@@ -8,10 +8,15 @@ const c = new Chance()
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
-
   const end = t.endOf('week').minus({ day: 1 })
+  if (start.month === end.month) {
+    return start.toFormat('MMMM yyyy')
+  }
+  if (start.year === end.year) {
+    return `${start.monthShort} — ${end.monthShort} ${end.year}`
+  }
 
-  return start.toFormat('MMMM d — ') + end.toFormat('MMMM d')
+  return `${start.monthShort} ${start.year} — ${end.monthShort} ${end.year}`
 }
 
 const weekSpansTwoMonths = (t: DateTime): boolean => {
