@@ -33,15 +33,19 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
   const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
-  const getLabel = (): string => {
+  const getHeader = (): string => {
     if (weekly) {
-      const begin = getStartOfWeek(DateTime.fromISO(start))
-        .toLocal()
-        .toFormat('LLLL d')
-      const end = getEndOfWeek(DateTime.fromISO(start))
-        .toLocal()
-        .toFormat('LLLL d')
-      return `${begin} — ${end}`
+      const begin = getStartOfWeek(DateTime.fromISO(start)).toLocal()
+      const end = getEndOfWeek(DateTime.fromISO(start)).toLocal()
+
+      if (begin.month === end.month) {
+        return `${end.monthLong} ${end.year}`
+      }
+      if (begin.year === end.year) {
+        return `${begin.monthShort} — ${end.monthShort} ${end.year}`
+      }
+
+      return `${begin.monthShort} ${begin.year} — ${end.monthShort} ${end.year}`
     }
 
     return DateTime.fromISO(start).toLocal().toFormat('LLLL yyyy')
@@ -130,26 +134,30 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
             data-cy='show-today'
             onClick={handleTodayClick}
             variant='outlined'
-            size='large'
+            title={DateTime.local().toFormat('cccc, LLLL d')}
           >
             Today
           </Button>
 
           <div className={classes.arrowBtns}>
             <IconButton
-              title='Previous'
+              title='Previous month'
               data-cy='back'
               onClick={handleBackClick}
             >
               <LeftIcon />
             </IconButton>
-            <IconButton title='Next' data-cy='next' onClick={handleNextClick}>
+            <IconButton
+              title='Next month'
+              data-cy='next'
+              onClick={handleNextClick}
+            >
               <RightIcon />
             </IconButton>
           </div>
 
           <Typography component='h2' data-cy='calendar-header' variant='h5'>
-            {getLabel()}
+            {getHeader()}
           </Typography>
         </Grid>
       </Grid>
