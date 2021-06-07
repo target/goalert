@@ -821,6 +821,7 @@ scalar ISOTimestamp
 scalar ClockTime
 
 # WeekdayFilter is an array of 7 true/false values representing days of the week.
+# The first index (0) represents Sunday.
 scalar WeekdayFilter
 
 type Alert {
