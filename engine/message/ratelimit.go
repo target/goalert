@@ -18,6 +18,14 @@ func init() {
 	// all message types
 	perCM.AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
+	// On-Call Status Notifications
+	perCM.
+		WithMsgTypes(notification.MessageTypeScheduleOnCallStatus).
+		AddRules([]ThrottleRule{
+			{Count: 2, Per: 15 * time.Minute},
+			{Count: 4, Per: 1 * time.Hour, Smooth: true},
+		})
+
 	// status notifications
 	perCM.
 		WithMsgTypes(notification.MessageTypeAlertStatus, notification.MessageTypeAlertStatusBundle).
