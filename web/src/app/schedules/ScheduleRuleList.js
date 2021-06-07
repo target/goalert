@@ -6,7 +6,6 @@ import FlatList from '../lists/FlatList'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Grid, Card } from '@material-ui/core'
 import FilterContainer from '../util/FilterContainer'
-import PageActions from '../util/PageActions'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { startCase, sortBy } from 'lodash'
@@ -110,30 +109,33 @@ export default class ScheduleRuleList extends React.PureComponent {
 
     return (
       <React.Fragment>
-        <PageActions>
-          <FilterContainer onReset={() => this.props.resetFilter()}>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-            </Grid>
-          </FilterContainer>
-          <SpeedDial
-            label='Add Assignment'
-            actions={[
-              {
-                label: 'Add Rotation',
-                onClick: () => this.setState({ createType: 'rotation' }),
-                icon: <AccountMultiplePlus />,
-              },
-              {
-                label: 'Add User',
-                onClick: () => this.setState({ createType: 'user' }),
-                icon: <AccountPlus />,
-              },
-            ]}
-          />
-        </PageActions>
+        <SpeedDial
+          label='Add Assignment'
+          actions={[
+            {
+              label: 'Add Rotation',
+              onClick: () => this.setState({ createType: 'rotation' }),
+              icon: <AccountMultiplePlus />,
+            },
+            {
+              label: 'Add User',
+              onClick: () => this.setState({ createType: 'user' }),
+              icon: <AccountPlus />,
+            },
+          ]}
+        />
         <Card style={{ width: '100%', marginBottom: 64 }}>
-          <FlatList headerNote={this.getHeaderNote()} items={items} />
+          <FlatList
+            headerNote={this.getHeaderNote()}
+            headerAction={
+              <FilterContainer onReset={() => this.props.resetFilter()}>
+                <Grid item xs={12}>
+                  <ScheduleTZFilter scheduleID={this.props.scheduleID} />
+                </Grid>
+              </FilterContainer>
+            }
+            items={items}
+          />
         </Card>
 
         {this.state.createType && (

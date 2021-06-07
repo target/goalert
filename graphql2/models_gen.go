@@ -102,6 +102,7 @@ type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
 	Repeat      *int                              `json:"repeat"`
+	Favorite    *bool                             `json:"favorite"`
 	Steps       []CreateEscalationPolicyStepInput `json:"steps"`
 }
 
@@ -214,10 +215,12 @@ type EscalationPolicyConnection struct {
 }
 
 type EscalationPolicySearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type LabelConnection struct {
