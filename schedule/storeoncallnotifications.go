@@ -7,6 +7,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -22,6 +23,31 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 	err = validate.Range("Rules", len(rules), 0, onCallNotificationRuleLimit)
 	if err != nil {
 		return err
+	}
+
+	type dupkey struct {
+		HasTime bool
+		Time    timeutil.Clock
+		Channel uuid.UUID
+	}
+	m := make(map[dupkey]struct{})
+	for i, r := range rules {
+		key := dupkey{
+			HasTime: r.Time != nil,
+			Channel: r.ChannelID,
+		}
+		if key.HasTime {
+			key.Time = *r.Time
+		}
+
+		if _, ok := m[key]; ok {
+			if key.HasTime {
+				return validation.NewFieldError(fmt.Sprintf("Rules[%d]", i), "Rule already exists for that channel and time-of-day.")
+			}
+
+			return validation.NewFieldError(fmt.Sprintf("Rules[%d]", i), "On-change rule already exists for that channel.")
+		}
+		m[key] = struct{}{}
 	}
 
 	ids := make([]bool, onCallNotificationRuleLimit)
