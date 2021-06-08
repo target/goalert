@@ -73,8 +73,8 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
    */
   query: DocumentNode
 
-  // path specifies the location of the data nodes to be rendered, default "nodes"
-  path?: string
+  // path specifies the location of the data nodes to render, defaults to "data.nodes"
+  path?: string | string[]
 
   // mapDataNode maps the data found at the given `path` to the struct required by a FlatList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
@@ -97,7 +97,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
       url: n.id,
       subText: n.description,
     }),
-    path = 'nodes',
+    path = 'data.nodes',
     query,
     variables = {},
     noSearch,
@@ -130,7 +130,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     pollInterval: POLL_INTERVAL,
   })
 
-  const dataNodes = _.get(data, 'data.' + path, [])
+  const dataNodes = _.get(data, path, [])
   const items = dataNodes.map(mapDataNode)
   let loadMore: ((numberToLoad?: number) => void) | undefined
 
