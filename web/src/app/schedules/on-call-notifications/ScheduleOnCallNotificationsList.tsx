@@ -1,14 +1,13 @@
 import React from 'react'
 import { gql } from '@apollo/client'
 import QueryList from '../../lists/QueryList'
-import ScheduleOnCallNotificationAction, {
-  Rule,
-} from './ScheduleOnCallNotificationAction'
+import ScheduleOnCallNotificationAction from './ScheduleOnCallNotificationAction'
 import ScheduleOnCallNotificationCreateFab from './ScheduleOnCallNotificationCreateFab'
 import { SlackBW } from '../../icons/components/Icons'
 
 import Avatar from '@material-ui/core/Avatar'
 import { getSelectedDays } from './ScheduleOnCallNotificationFormDialog'
+import { Rule } from './util'
 
 interface ScheduleOnCallNotificationsProps {
   scheduleID: string

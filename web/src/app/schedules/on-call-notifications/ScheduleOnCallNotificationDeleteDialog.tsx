@@ -5,8 +5,7 @@ import { nonFieldErrors } from '../../util/errutil'
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import { Rule } from './ScheduleOnCallNotificationAction'
-import { mapDataToInput } from './ScheduleOnCallNotificationFormDialog'
+import { Rule, mapDataToInput } from './util'
 
 interface ScheduleOnCallNotificationDeleteDialogProps {
   rule: Rule

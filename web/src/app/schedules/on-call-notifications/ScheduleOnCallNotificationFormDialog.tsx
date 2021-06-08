@@ -4,10 +4,9 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
-import _ from 'lodash'
 
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
-import { Rule } from './ScheduleOnCallNotificationAction'
+import { Rule, mapDataToInput } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors, FieldError } from '../../util/errutil'
 import { FormContainer, FormField } from '../../forms'
@@ -66,6 +65,7 @@ function getInitialValue(rule?: Rule): Value {
   return result
 }
 
+// TODO fix this
 // getSelectedDays takes WeekdayFilter and returns the included truthy days
 // as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
@@ -82,17 +82,6 @@ export function getSelectedDays(
       value: dayVal ? idx.toString() : '-1',
     }))
     .filter((dayVal) => dayVal.value !== '-1')
-}
-
-// todo move to util
-export function mapDataToInput(
-  rules: Array<Rule> = [],
-): Array<OnCallNotificationRuleInput> {
-  return rules.map((nr: Rule) => {
-    const n = _.pick(nr, 'id', 'target', 'time', 'weekdayFilter')
-    n.target = _.pick(n.target, 'id', 'type')
-    return n
-  }) as Array<OnCallNotificationRuleInput>
 }
 
 interface ScheduleOnCallNotificationFormProps {
@@ -124,6 +113,8 @@ export default function ScheduleOnCallNotificationFormDialog(
       existingRules = existingRules.filter((r) => r.id !== p.rule?.id)
     }
 
+    console.log('EXISTING', existingRules)
+
     let newRule: OnCallNotificationRuleInput
     switch (value.ruleType) {
       case RuleType.OnChange:
@@ -150,6 +141,7 @@ export default function ScheduleOnCallNotificationFormDialog(
         throw new Error('Unknown rule type')
     }
 
+    console.log('NEW', newRule)
     return existingRules.concat(newRule)
   }
 

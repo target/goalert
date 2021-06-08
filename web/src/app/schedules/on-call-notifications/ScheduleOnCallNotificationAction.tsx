@@ -2,18 +2,7 @@ import React, { useState } from 'react'
 import OtherActions from '../../util/OtherActions'
 import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFormDialog'
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
-import { WeekdayFilter } from '../../../schema'
-
-export interface Rule {
-  id: string
-  target: {
-    id: string
-    type: string
-    name?: string
-  }
-  time?: string
-  weekdayFilter?: WeekdayFilter
-}
+import { Rule } from './util'
 
 interface ScheduleOnCallNotificationActionProps {
   rule: Rule
