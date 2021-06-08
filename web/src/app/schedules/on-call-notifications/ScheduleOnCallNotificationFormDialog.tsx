@@ -67,25 +67,6 @@ function getInitialValue(rule?: Rule): Value {
   return result
 }
 
-// TODO fix this
-// getSelectedDays takes WeekdayFilter and returns the included truthy days
-// as their given day-index in a week
-// e.g. [false, true, true, false, false, true, false]
-// -> [{ label: 'Monday', value: '1' }, { label: 'Wednesday', value: '3' }]
-export function getSelectedDays(
-  weekdayFilter?: WeekdayFilter,
-): Array<SelectOption> {
-  if (!weekdayFilter) {
-    return []
-  }
-  return weekdayFilter
-    .map((dayVal, idx) => ({
-      label: days[idx],
-      value: dayVal ? idx.toString() : '-1',
-    }))
-    .filter((dayVal) => dayVal.value !== '-1')
-}
-
 interface ScheduleOnCallNotificationFormProps {
   scheduleID: string
   onClose: () => void
@@ -135,6 +116,7 @@ export default function ScheduleOnCallNotificationFormDialog(
             id: value.slackChannelID,
             type: 'slackChannel',
           },
+          // TODO add value.timeZone, pass as arg here
           time: isoToGQLClockTime(value.time),
           weekdayFilter: value.weekdayFilter,
         }
