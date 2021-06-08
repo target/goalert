@@ -146,7 +146,7 @@ export default function ScheduleDetails({ scheduleID }) {
           {
             label: 'On-Call Notifications',
             url: 'on-call-notifications',
-            subText: 'Get notified when on-call shifts to the next user',
+            subText: 'Set up notifications to know who is on-call',
           },
         ]}
       />
