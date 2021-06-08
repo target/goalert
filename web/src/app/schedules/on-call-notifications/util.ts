@@ -13,9 +13,9 @@ export interface Rule {
   weekdayFilter?: WeekdayFilter
 }
 
-// todo move to util
 export function mapDataToInput(
   rules: Array<Rule> = [],
+  // TODO remove default
   scheduleTimeZone: Zone = LocalZone.instance,
 ): Array<OnCallNotificationRuleInput> {
   return rules.map((r: Rule) => {
