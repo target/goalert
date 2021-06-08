@@ -219,6 +219,7 @@ export default function ScheduleOnCallNotificationFormDialog(
                         label='Time'
                         name='time'
                         disabled={value.ruleType !== RuleType.OnSchedule}
+                        required={value.ruleType === RuleType.OnSchedule}
                       />
                     </TableCell>
                     {days.map((day, dayIdx) => (
