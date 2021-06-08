@@ -4,7 +4,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
-import { makeStyles } from '@material-ui/core/styles'
 import _ from 'lodash'
 
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
@@ -28,14 +27,6 @@ import {
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 
-interface ScheduleOnCallNotificationFormProps {
-  scheduleID: string
-  onClose: () => void
-
-  // if set, the form will default with these values
-  rule?: Rule
-}
-
 enum RuleType {
   OnChange = 'ON_CHANGE',
   OnSchedule = 'ON_SCHEDULE',
@@ -48,16 +39,32 @@ type Value = {
   ruleType: RuleType
 }
 
-const useStyles = makeStyles({
-  timeFields: {
-    display: 'flex',
-  },
-  timeField: {
-    paddingLeft: '2.5rem',
-    paddingRight: 8,
-    width: 'fit-content',
-  },
-})
+function getInitialValue(rule?: Rule): Value {
+  if (!rule) {
+    return {
+      slackChannelID: '',
+      time: DateTime.local().set({ minute: 0, hour: 9 }).toISO(),
+      weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
+      ruleType: RuleType.OnChange,
+    }
+  }
+
+  const result: Value = {
+    slackChannelID: rule.target.id,
+    time: '',
+    weekdayFilter: new Array(7).fill(false) as WeekdayFilter,
+    ruleType: RuleType.OnChange,
+  }
+
+  // on schedule change
+  if (rule.weekdayFilter) {
+    result.weekdayFilter = rule.weekdayFilter
+    result.time = rule.time as string
+    result.ruleType = RuleType.OnSchedule
+  }
+
+  return result
+}
 
 // getSelectedDays takes WeekdayFilter and returns the included truthy days
 // as their given day-index in a week
@@ -77,6 +84,7 @@ export function getSelectedDays(
     .filter((dayVal) => dayVal.value !== '-1')
 }
 
+// todo move to util
 export function mapDataToInput(
   rules: Array<Rule> = [],
 ): Array<OnCallNotificationRuleInput> {
@@ -87,17 +95,19 @@ export function mapDataToInput(
   }) as Array<OnCallNotificationRuleInput>
 }
 
+interface ScheduleOnCallNotificationFormProps {
+  scheduleID: string
+  onClose: () => void
+
+  // if set, populates form
+  rule?: Rule
+}
+
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const classes = useStyles()
-  const [value, setValue] = useState<Value>({
-    slackChannelID: '',
-    time: DateTime.local().set({ minute: 0, hour: 9 }).toISO(),
-    weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
-    ruleType: RuleType.OnChange,
-  })
-  // console.log(value)
+  const [value, setValue] = useState<Value>(getInitialValue(p.rule))
+  console.log(value)
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -107,9 +117,12 @@ export default function ScheduleOnCallNotificationFormDialog(
   })
 
   function makeRules(): OnCallNotificationRuleInput[] {
-    const existingRules = mapDataToInput(
-      data?.schedule?.onCallNotificationRules,
-    )
+    let existingRules = mapDataToInput(data?.schedule?.onCallNotificationRules)
+
+    // remove old rule when editing
+    if (p.rule) {
+      existingRules = existingRules.filter((r) => r.id !== p.rule?.id)
+    }
 
     let newRule: OnCallNotificationRuleInput
     switch (value.ruleType) {
@@ -137,18 +150,6 @@ export default function ScheduleOnCallNotificationFormDialog(
         throw new Error('Unknown rule type')
     }
 
-    // // handle editing vs creating
-    // const newRules = rules
-    // if (p.rule) {
-    //   const idx = _.findIndex(rules, ['id', p.rule.id])
-    //   newRules[idx] = {
-    //     ...rules[idx],
-    //     ...newRule,
-    //   }
-    // } else {
-    //   newRules.push(newRule)
-    // }
-
     return existingRules.concat(newRule)
   }
 
@@ -172,8 +173,6 @@ export default function ScheduleOnCallNotificationFormDialog(
   function handleOnChange(value: Value): void {
     setValue(value)
   }
-
-  console.log(mutationStatus.error)
 
   const formErrors = fieldErrors(mutationStatus.error).concat(
     nonFieldErrors(mutationStatus.error) as FieldError[], // NOTE:
@@ -218,7 +217,7 @@ export default function ScheduleOnCallNotificationFormDialog(
                 />
               </RadioGroup>
             </Grid>
-            <Grid className={classes.timeFields} item>
+            <Grid item>
               <Table padding='none'>
                 <TableBody>
                   <TableRow>

@@ -4,7 +4,7 @@ import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFo
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
 import { WeekdayFilter } from '../../../schema'
 
-export type Rule = {
+export interface Rule {
   id: string
   target: {
     id: string
