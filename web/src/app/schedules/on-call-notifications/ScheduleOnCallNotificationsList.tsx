@@ -64,6 +64,7 @@ export default function ScheduleOnCallNotificationsList(
         query={query}
         variables={{ id: p.scheduleID }}
         headerNote='Configure notifications for on-call updates'
+        emptyMessage='No notification rules'
         noSearch
         path='onCallNotificationRules'
         mapDataNode={(nr) => ({
