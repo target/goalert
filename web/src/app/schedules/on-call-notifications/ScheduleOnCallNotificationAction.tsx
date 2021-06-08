@@ -4,11 +4,6 @@ import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFo
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
 import { WeekdayFilter } from '../../../schema'
 
-interface ScheduleOnCallNotificationActionProps {
-  rule: Rule
-  scheduleID: string
-}
-
 export type Rule = {
   id: string
   target: {
@@ -18,6 +13,11 @@ export type Rule = {
   }
   time?: string
   weekdayFilter?: WeekdayFilter
+}
+
+interface ScheduleOnCallNotificationActionProps {
+  rule: Rule
+  scheduleID: string
 }
 
 export default function ScheduleOnCallNotificationAction(

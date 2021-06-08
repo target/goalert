@@ -10,15 +10,23 @@ import _ from 'lodash'
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import { Rule } from './ScheduleOnCallNotificationAction'
 import FormDialog from '../../dialogs/FormDialog'
-import { nonFieldErrors } from '../../util/errutil'
+import { nonFieldErrors, fieldErrors, FieldError } from '../../util/errutil'
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import MaterialSelect, { SelectOption } from '../../selection/MaterialSelect'
+import { SelectOption } from '../../selection/MaterialSelect'
 import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
+import {
+  Checkbox,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@material-ui/core'
+import { DateTime } from 'luxon'
 
 interface ScheduleOnCallNotificationFormProps {
   scheduleID: string
@@ -28,10 +36,16 @@ interface ScheduleOnCallNotificationFormProps {
   rule?: Rule
 }
 
+enum RuleType {
+  OnChange = 'ON_CHANGE',
+  OnSchedule = 'ON_SCHEDULE',
+}
+
 type Value = {
-  target: string
-  time?: string
-  weekdayFilter?: Array<SelectOption> | null
+  slackChannelID: string
+  time: string
+  weekdayFilter: WeekdayFilter
+  ruleType: RuleType
 }
 
 const useStyles = makeStyles({
@@ -43,26 +57,7 @@ const useStyles = makeStyles({
     paddingRight: 8,
     width: 'fit-content',
   },
-  weekdayFilterField: {
-    paddingRight: '2.5rem',
-    paddingLeft: 8,
-    width: '100%',
-  },
 })
-
-// getWeekdayFilter takes the selected days and returns a full
-// week represented as booleans.
-// e.g. [{ label: 'Monday', value: '1' }, { label: 'Wednesday', value: '3' }]
-// -> [true, false, true, false, false, false, true]
-function getWeekdayFilter(days: Array<SelectOption>): WeekdayFilter {
-  const res = new Array(7).fill(false) as WeekdayFilter
-
-  days.forEach((day) => {
-    res[parseInt(day.value, 10)] = true
-  })
-
-  return res
-}
 
 // getSelectedDays takes WeekdayFilter and returns the included truthy days
 // as their given day-index in a week
@@ -97,15 +92,13 @@ export default function ScheduleOnCallNotificationFormDialog(
 ): JSX.Element {
   const classes = useStyles()
   const [value, setValue] = useState<Value>({
-    target: p.rule?.target.id ?? '',
-    time: p.rule?.time ?? '',
-    weekdayFilter: getSelectedDays(p.rule?.weekdayFilter),
+    slackChannelID: '',
+    time: DateTime.local().set({ minute: 0, hour: 9 }).toISO(),
+    weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
+    ruleType: RuleType.OnChange,
   })
+  // console.log(value)
 
-  const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
-  const [mutate, mutationStatus] = useMutation(setMutation)
-
-  // load all rules to set
   const { loading, error, data } = useQuery(query, {
     variables: {
       id: p.scheduleID,
@@ -113,67 +106,90 @@ export default function ScheduleOnCallNotificationFormDialog(
     nextFetchPolicy: 'cache-first',
   })
 
-  function handleOnSubmit(): void {
-    const rules = mapDataToInput(data?.schedule?.onCallNotificationRules)
-    const newRule: OnCallNotificationRuleInput = {
-      target: {
-        id: value.target,
-        type: 'slackChannel',
-      },
-      time: isoToGQLClockTime(value.time),
-      weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? []),
+  function makeRules(): OnCallNotificationRuleInput[] {
+    const existingRules = mapDataToInput(
+      data?.schedule?.onCallNotificationRules,
+    )
+
+    let newRule: OnCallNotificationRuleInput
+    switch (value.ruleType) {
+      case RuleType.OnChange:
+        newRule = {
+          target: {
+            id: value.slackChannelID,
+            type: 'slackChannel',
+          },
+          time: isoToGQLClockTime(value.time),
+        }
+        break
+
+      case RuleType.OnSchedule:
+        newRule = {
+          target: {
+            id: value.slackChannelID,
+            type: 'slackChannel',
+          },
+          time: isoToGQLClockTime(value.time),
+          weekdayFilter: value.weekdayFilter,
+        }
+        break
+      default:
+        throw new Error('Unknown rule type')
     }
 
-    if (notifyOnUpdate) {
-      delete newRule.time
-      delete newRule.weekdayFilter
-    }
+    // // handle editing vs creating
+    // const newRules = rules
+    // if (p.rule) {
+    //   const idx = _.findIndex(rules, ['id', p.rule.id])
+    //   newRules[idx] = {
+    //     ...rules[idx],
+    //     ...newRule,
+    //   }
+    // } else {
+    //   newRules.push(newRule)
+    // }
 
-    // handle editing vs creating
-    const newRules = rules
-    if (p.rule) {
-      const idx = _.findIndex(rules, ['id', p.rule.id])
-      newRules[idx] = {
-        ...rules[idx],
-        ...newRule,
-      }
-    } else {
-      newRules.push(newRule)
-    }
-
-    mutate({
-      variables: {
-        input: {
-          scheduleID: p.scheduleID,
-          rules: newRules,
-        },
-      },
-      optimisticResponse: () => p.onClose(),
-    })
+    return existingRules.concat(newRule)
   }
+
+  const [mutate, mutationStatus] = useMutation(setMutation, {
+    variables: {
+      input: {
+        scheduleID: p.scheduleID,
+        rules: makeRules(),
+      },
+    },
+    onCompleted: () => p.onClose(),
+  })
 
   if (loading && !data?.schedule) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   function handleRadioOnChange(event: ChangeEvent<HTMLInputElement>): void {
-    setNotifyOnUpdate(event?.target?.value === 'true')
+    setValue({ ...value, ruleType: event.target.value as RuleType })
   }
 
   function handleOnChange(value: Value): void {
     setValue(value)
   }
 
+  console.log(mutationStatus.error)
+
+  const formErrors = fieldErrors(mutationStatus.error).concat(
+    nonFieldErrors(mutationStatus.error) as FieldError[], // NOTE:
+  )
+
   return (
     <FormDialog
       title={(p.rule ? 'Edit ' : 'Create ') + 'Notification Rule'}
-      errors={nonFieldErrors(mutationStatus.error)}
+      errors={formErrors}
       onClose={() => p.onClose()}
-      onSubmit={() => handleOnSubmit()}
+      onSubmit={() => mutate()}
       form={
         <FormContainer
           value={value}
           onChange={(value: Value) => handleOnChange(value)}
-          errors={mutationStatus.error}
+          errors={formErrors}
         >
           <Grid container spacing={2} direction='column'>
             <Grid item>
@@ -181,74 +197,63 @@ export default function ScheduleOnCallNotificationFormDialog(
                 component={SlackChannelSelect}
                 fullWidth
                 label='Select Channel'
-                name='target'
+                name='slack-channel-id'
+                fieldName='slackChannelID'
+                required
               />
             </Grid>
             <Grid item>
-              <RadioGroup onChange={handleRadioOnChange}>
+              <RadioGroup onChange={handleRadioOnChange} value={value.ruleType}>
                 <FormControlLabel
                   data-cy='notify-on-change'
                   label='Notify when on-call hands off to a new user'
-                  value='true'
+                  value={RuleType.OnChange}
                   control={<Radio />}
                 />
                 <FormControlLabel
                   data-cy='notify-at-time'
                   label='Notify at a specific day and time every week'
-                  value='false'
+                  value={RuleType.OnSchedule}
                   control={<Radio />}
                 />
               </RadioGroup>
             </Grid>
             <Grid className={classes.timeFields} item>
-              <div className={classes.timeField}>
-                <FormField
-                  component={ISOTimePicker}
-                  label='Time'
-                  name='time'
-                  disabled={notifyOnUpdate}
-                />
-              </div>
-              <div className={classes.weekdayFilterField}>
-                <FormField
-                  component={MaterialSelect}
-                  name='weekdayFilter'
-                  label='Select Days'
-                  multiple
-                  fullWidth
-                  disabled={notifyOnUpdate}
-                  options={[
-                    {
-                      label: 'Sunday',
-                      value: '0',
-                    },
-                    {
-                      label: 'Monday',
-                      value: '1',
-                    },
-                    {
-                      label: 'Tuesday',
-                      value: '2',
-                    },
-                    {
-                      label: 'Wednesday',
-                      value: '3',
-                    },
-                    {
-                      label: 'Thursday',
-                      value: '4',
-                    },
-                    {
-                      label: 'Friday',
-                      value: '5',
-                    },
-                    {
-                      label: 'Saturday',
-                      value: '6',
-                    },
-                  ]}
-                />
-              </div>
+              <Table padding='none'>
+                <TableBody>
+                  <TableRow>
+                    <TableCell rowSpan={2} padding='none'>
+                      <FormField
+                        component={ISOTimePicker}
+                        fullWidth
+                        label='Time'
+                        name='time'
+                        disabled={value.ruleType !== RuleType.OnSchedule}
+                      />
+                    </TableCell>
+                    {days.map((day, dayIdx) => (
+                      <TableCell key={dayIdx} variant='head' align='center'>
+                        {day.slice(0, 3)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow>
+                    {days.map((day, i) => (
+                      <TableCell key={i} padding='checkbox'>
+                        <FormField
+                          noError
+                          component={Checkbox}
+                          checkbox
+                          value={value.weekdayFilter[i]}
+                          name={`weekday-filter[${i}]`}
+                          fieldName={`weekdayFilter[${i}]`}
+                          disabled={value.ruleType !== RuleType.OnSchedule}
+                        />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
             </Grid>
           </Grid>
         </FormContainer>
