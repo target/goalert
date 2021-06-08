@@ -19,12 +19,14 @@ import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
 import {
   Checkbox,
+  Hidden,
   Table,
   TableBody,
   TableCell,
   TableRow,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
+import useWidth from '../../util/useWidth'
 
 enum RuleType {
   OnChange = 'ON_CHANGE',
@@ -96,6 +98,7 @@ export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
   const [value, setValue] = useState<Value>(getInitialValue(p.rule))
+  const width = useWidth()
   console.log(value)
 
   const { loading, error, data } = useQuery(query, {
@@ -169,6 +172,17 @@ export default function ScheduleOnCallNotificationFormDialog(
     nonFieldErrors(mutationStatus.error) as FieldError[], // NOTE:
   )
 
+  const scheduleTimeField = (
+    <FormField
+      component={ISOTimePicker}
+      fullWidth
+      label='Time'
+      name='time'
+      disabled={value.ruleType !== RuleType.OnSchedule}
+      required={value.ruleType === RuleType.OnSchedule}
+    />
+  )
+
   return (
     <FormDialog
       title={(p.rule ? 'Edit ' : 'Create ') + 'Notification Rule'}
@@ -209,19 +223,21 @@ export default function ScheduleOnCallNotificationFormDialog(
               </RadioGroup>
             </Grid>
             <Grid item>
-              <Table padding='none'>
+              <Table padding={width === 'xs' ? 'default' : 'none'}>
                 <TableBody>
+                  <Hidden smUp>
+                    <TableRow>
+                      <TableCell colSpan={7} padding='none'>
+                        {scheduleTimeField}
+                      </TableCell>
+                    </TableRow>
+                  </Hidden>
                   <TableRow>
-                    <TableCell rowSpan={2} padding='none'>
-                      <FormField
-                        component={ISOTimePicker}
-                        fullWidth
-                        label='Time'
-                        name='time'
-                        disabled={value.ruleType !== RuleType.OnSchedule}
-                        required={value.ruleType === RuleType.OnSchedule}
-                      />
-                    </TableCell>
+                    <Hidden xsDown>
+                      <TableCell rowSpan={2} padding='none'>
+                        {scheduleTimeField}
+                      </TableCell>
+                    </Hidden>
                     {days.map((day, dayIdx) => (
                       <TableCell key={dayIdx} variant='head' align='center'>
                         {day.slice(0, 3)}
