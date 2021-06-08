@@ -98,7 +98,7 @@
     "postcss": "8.3.0",
     "postcss-loader": "5.3.0",
     "prop-types": "15.7.2",
-    "react-swipeable-views-utils": "0.13.9",
+    "react-swipeable-views-utils": "0.14.0",
     "redux": "4.0.5",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "2.0.0",
