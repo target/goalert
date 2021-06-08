@@ -123,7 +123,6 @@ export default function ScheduleOnCallNotificationFormDialog(
             id: value.slackChannelID,
             type: 'slackChannel',
           },
-          time: isoToGQLClockTime(value.time),
         }
         break
 
