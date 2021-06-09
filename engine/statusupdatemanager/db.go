@@ -73,13 +73,5 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
 		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
-
-		// - get a subset of last_status != current_status
-		// - insert messages for each
-		// - if new status is closed, delete row
-		// - else update to current status
-		//
-		// - message module, when there are multiple pending messages for the same alert/destination, drop all but the most recent
-
 	}, p.Err
 }
