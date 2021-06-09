@@ -379,6 +379,7 @@ export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
+  favorite?: boolean
   steps?: CreateEscalationPolicyStepInput[]
 }
 
@@ -554,6 +555,8 @@ export interface EscalationPolicySearchOptions {
   after?: string
   search?: string
   omit?: string[]
+  favoritesOnly?: boolean
+  favoritesFirst?: boolean
 }
 
 export interface ScheduleSearchOptions {
@@ -730,6 +733,7 @@ export interface EscalationPolicy {
   name: string
   description: string
   repeat: number
+  isFavorite: boolean
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
   notices: Notice[]

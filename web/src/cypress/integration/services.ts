@@ -505,13 +505,13 @@ function testServices(screen: ScreenFormat): void {
 
       cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
-      cy.pageAction('Acknowledge All')
+      cy.get('button span').contains('Acknowledge All').click()
       cy.dialogFinish('Confirm')
 
       cy.get('ul[data-cy=apollo-list]').should('contain', 'ACKNOWLEDGED')
       cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
-      cy.pageAction('Close All')
+      cy.get('button span').contains('Close All').click()
       cy.dialogFinish('Confirm')
 
       cy.get('body').should('contain', 'No results')

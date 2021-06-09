@@ -46,46 +46,44 @@ class ScheduleList extends React.PureComponent {
   }
 }
 
-export default class ScheduleRouter extends React.PureComponent {
-  render() {
-    return (
-      <Switch>
-        <Route exact path='/schedules' component={ScheduleList} />
-        <Route
-          exact
-          path='/schedules/:scheduleID'
-          render={({ match }) => (
-            <ScheduleDetails scheduleID={match.params.scheduleID} />
-          )}
-        />
+export default function ScheduleRouter() {
+  return (
+    <Switch>
+      <Route exact path='/schedules' component={ScheduleList} />
+      <Route
+        exact
+        path='/schedules/:scheduleID'
+        render={({ match }) => (
+          <ScheduleDetails scheduleID={match.params.scheduleID} />
+        )}
+      />
 
-        <Route
-          path='/schedules/:scheduleID/assignments'
-          render={({ match }) => (
-            <ScheduleRuleList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/escalation-policies'
-          render={({ match }) => (
-            <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/overrides'
-          render={({ match }) => (
-            <ScheduleOverrideList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/shifts'
-          render={({ match }) => (
-            <ScheduleShiftList scheduleID={match.params.scheduleID} />
-          )}
-        />
+      <Route
+        path='/schedules/:scheduleID/assignments'
+        render={({ match }) => (
+          <ScheduleRuleList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/escalation-policies'
+        render={({ match }) => (
+          <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/overrides'
+        render={({ match }) => (
+          <ScheduleOverrideList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/shifts'
+        render={({ match }) => (
+          <ScheduleShiftList scheduleID={match.params.scheduleID} />
+        )}
+      />
 
-        <Route component={PageNotFound} />
-      </Switch>
-    )
-  }
+      <Route component={PageNotFound} />
+    </Switch>
+  )
 }
