@@ -38,6 +38,14 @@ export function mapDataToInput(
 }
 
 export function getDayNames(filter: WeekdayFilter): string {
+  const everyday = [true, true, true, true, true, true, true]
+  const isEverday = filter.every((val, i) => val === everyday[i])
+  if (isEverday) return 'every day'
+
+  const weekdays = [false, true, true, true, true, true, false]
+  const isWeekdays = filter.every((val, i) => val === weekdays[i])
+  if (isWeekdays) return 'weekdays'
+
   const names = days.filter((name, i) => filter[i]).map((day) => day + 's')
   const lastDay = names.length > 1 ? names.pop() : ''
   return names.join(', ') + (lastDay && ' and ' + lastDay)

@@ -38,7 +38,7 @@ export const setMutation = gql`
 
 function subText(rule: Rule): string {
   if (rule.time && rule.weekdayFilter) {
-    return getDayNames(rule.weekdayFilter) + ' at ' + rule.time
+    return `Notifies ${getDayNames(rule.weekdayFilter)} at ${rule.time}`
   }
 
   return 'Notifies when on-call hands off'

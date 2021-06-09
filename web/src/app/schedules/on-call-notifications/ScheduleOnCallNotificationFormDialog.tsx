@@ -14,7 +14,6 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import { SelectOption } from '../../selection/MaterialSelect'
 import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
 import {

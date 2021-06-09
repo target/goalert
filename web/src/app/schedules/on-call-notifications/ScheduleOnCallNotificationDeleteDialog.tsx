@@ -11,18 +11,10 @@ function getDeleteSummary(r: Rule): string {
   const prefix = `${r.target.name} will no longer be notified`
 
   if (r.time && r.weekdayFilter) {
-    const everyday = [true, true, true, true, true, true, true]
-    const isEverday = r.weekdayFilter.every((val, i) => val === everyday[i])
-    if (isEverday) return prefix + ' everyday at ' + r.time
-
-    const weekdays = [false, true, true, true, true, true, false]
-    const isWeekdays = r.weekdayFilter.every((val, i) => val === weekdays[i])
-    if (isWeekdays) return prefix + ' on weekdays at ' + r.time
-
-    return prefix + ' on ' + getDayNames(r.weekdayFilter) + ' at ' + r.time
+    return `${prefix} ${getDayNames(r.weekdayFilter)} at ${r.time}`
   }
 
-  return `${prefix} will no longer be notified when on-call changes.`
+  return `${prefix} when on-call changes.`
 }
 
 interface ScheduleOnCallNotificationDeleteDialogProps {
