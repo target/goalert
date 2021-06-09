@@ -1,5 +1,5 @@
 import React from 'react'
-import { ApolloError, useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
@@ -54,7 +54,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       title='Are you sure?'
       confirm
       loading={mutationStatus.loading}
-      errors={nonFieldErrors(mutationStatus.error as ApolloError)}
+      errors={nonFieldErrors(mutationStatus.error)}
       subTitle={getDeleteSummary(p.rule)}
       onSubmit={() => mutate()}
       onClose={() => p.onClose()}

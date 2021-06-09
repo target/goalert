@@ -6,7 +6,7 @@ import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
 
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
-import { Rule, mapDataToInput } from './util'
+import { Rule, RuleInput, mapDataToInput } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors, FieldError } from '../../util/errutil'
 import { FormContainer, FormField } from '../../forms'
@@ -14,7 +14,7 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
+import { WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
 import {
   Checkbox,
@@ -88,7 +88,7 @@ export default function ScheduleOnCallNotificationFormDialog(
     nextFetchPolicy: 'cache-first',
   })
 
-  function makeRules(): OnCallNotificationRuleInput[] {
+  function makeRules(): RuleInput[] {
     let existingRules = mapDataToInput(data?.schedule?.onCallNotificationRules)
 
     // remove old rule when editing
@@ -98,7 +98,7 @@ export default function ScheduleOnCallNotificationFormDialog(
 
     console.log('EXISTING', existingRules)
 
-    let newRule: OnCallNotificationRuleInput
+    let newRule: RuleInput
     switch (value.ruleType) {
       case RuleType.OnChange:
         newRule = {

@@ -1,23 +1,20 @@
 import { LocalZone, Zone } from 'luxon'
-import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
+import {
+  OnCallNotificationRule,
+  OnCallNotificationRuleInput,
+  WeekdayFilter,
+} from '../../../schema'
 import { days, isoToGQLClockTime } from '../util'
 
-export interface Rule {
-  id: string
-  target: {
-    id: string
-    type: string
-    name?: string
-  }
-  time?: string
-  weekdayFilter?: WeekdayFilter
-}
+// type aliases for convenience
+export type Rule = OnCallNotificationRule
+export type RuleInput = OnCallNotificationRuleInput
 
 export function mapDataToInput(
   rules: Array<Rule> = [],
   // TODO remove default
   scheduleTimeZone: Zone = LocalZone.instance,
-): Array<OnCallNotificationRuleInput> {
+): Array<RuleInput> {
   return rules.map((r: Rule) => {
     const result: Rule = {
       id: r.id,
@@ -34,7 +31,7 @@ export function mapDataToInput(
       result.weekdayFilter = r.weekdayFilter
     }
     return result
-  }) as Array<OnCallNotificationRuleInput>
+  }) as Array<RuleInput>
 }
 
 export function getDayNames(filter: WeekdayFilter): string {
