@@ -19,18 +19,15 @@ export default function ScheduleOnCallNotificationAction(
     <React.Fragment>
       <OtherActions
         actions={[
-          {
-            label: 'Edit',
-            onClick: () => setShowEdit(true),
-          },
+          { label: 'Edit', onClick: () => setShowEdit(true) },
           { label: 'Delete', onClick: () => setShowDelete(true) },
         ]}
       />
       {showEdit && (
         <ScheduleOnCallNotificationFormDialog
+          rule={p.rule}
           scheduleID={p.scheduleID}
           onClose={() => setShowEdit(false)}
-          rule={p.rule}
         />
       )}
       {showDelete && (
