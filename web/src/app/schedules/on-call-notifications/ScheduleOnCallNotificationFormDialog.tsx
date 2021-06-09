@@ -79,7 +79,6 @@ export default function ScheduleOnCallNotificationFormDialog(
 ): JSX.Element {
   const [value, setValue] = useState<Value>(getInitialValue(p.rule))
   const width = useWidth()
-  console.log(value)
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -95,8 +94,6 @@ export default function ScheduleOnCallNotificationFormDialog(
     if (p.rule) {
       existingRules = existingRules.filter((r) => r.id !== p.rule?.id)
     }
-
-    console.log('EXISTING', existingRules)
 
     let newRule: RuleInput
     switch (value.ruleType) {
@@ -124,7 +121,6 @@ export default function ScheduleOnCallNotificationFormDialog(
         throw new Error('Unknown rule type')
     }
 
-    console.log('NEW', newRule)
     return existingRules.concat(newRule)
   }
 
