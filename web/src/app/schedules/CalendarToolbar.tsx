@@ -141,14 +141,14 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
 
           <div className={classes.arrowBtns}>
             <IconButton
-              title='Previous month'
+              title={`Previous ${weekly ? 'week' : 'month'}`}
               data-cy='back'
               onClick={handleBackClick}
             >
               <LeftIcon />
             </IconButton>
             <IconButton
-              title='Next month'
+              title={`Next ${weekly ? 'week' : 'month'}`}
               data-cy='next'
               onClick={handleNextClick}
             >
