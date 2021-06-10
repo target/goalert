@@ -78,7 +78,7 @@ func (tt *TargetType) UnmarshalText(data []byte) error {
 	return nil
 }
 
-// UnmarshalGQL implements the graphql.Marshaler interface
+// UnmarshalGQL implements the graphql.Unmarshaler interface
 func (tt *TargetType) UnmarshalGQL(v interface{}) error {
 	str, err := graphql.UnmarshalString(v)
 	if err != nil {
