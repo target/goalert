@@ -507,6 +507,8 @@ input CreateEscalationPolicyInput {
   description: String = ""
   repeat: Int = 3
 
+  favorite: Boolean
+
   steps: [CreateEscalationPolicyStepInput!]
 }
 
@@ -715,6 +717,12 @@ input EscalationPolicySearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited escalaton policies in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite escalation policies first.
+  favoritesFirst: Boolean = false
 }
 
 input ScheduleSearchOptions {
@@ -913,6 +921,7 @@ type EscalationPolicy {
   name: String!
   description: String!
   repeat: Int!
+  isFavorite: Boolean!
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!

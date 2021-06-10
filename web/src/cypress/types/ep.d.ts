@@ -12,6 +12,7 @@ interface EP {
   description: string
   repeat: number
   stepCount: number
+  isFavorite: boolean
 }
 
 interface EPOptions {
@@ -19,6 +20,7 @@ interface EPOptions {
   description?: string
   repeat?: number
   stepCount?: number
+  favorite?: boolean
 }
 
 interface EPStep {

@@ -127,6 +127,22 @@ function testFavorites(): void {
         .pageFab()
         .get('input[name=schedules]'),
   )
+
+  check(
+    'Escalation Policy',
+    'escalation-policies',
+    (name: string, favorite: boolean) =>
+      cy.createEP({ name, favorite }).then((ep: EP) => ep.id),
+    () =>
+      cy
+        .createService()
+        .then((service: Service) => {
+          return cy.visit(`/services/${service.id}`)
+        })
+        .get('button[title=Edit]')
+        .click()
+        .get('input[name=escalation-policy]'),
+  )
 }
 
 testScreen('Favorites', testFavorites)
