@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
@@ -73,7 +73,7 @@ function FormDialog(props) {
   }
 
   function renderForm() {
-    const { disableGutters, form } = props
+    const { form } = props
 
     // don't render empty space
     if (!form) {
@@ -108,8 +108,6 @@ function FormDialog(props) {
   }
 
   function renderActions() {
-    const { onBack, onNext } = props
-
     if (alert) {
       return (
         <DialogActions>
