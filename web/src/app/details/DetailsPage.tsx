@@ -10,8 +10,6 @@ import { ChevronRight } from '@material-ui/icons'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import IconButton from '@material-ui/core/IconButton'
 import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
@@ -179,11 +177,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                     }
                     secondary={li.subText}
                   />
-                  <ListItemSecondaryAction>
-                    <IconButton component={AppLink} to={li.url}>
-                      <ChevronRight />
-                    </IconButton>
-                  </ListItemSecondaryAction>
+                  <ChevronRight />
                 </ListItem>
               ))}
             </List>
