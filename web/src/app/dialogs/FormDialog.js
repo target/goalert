@@ -59,7 +59,7 @@ function FormDialog(props) {
     primaryActionLabel, // remove from dialogProps spread
     maxWidth,
     notices,
-    onClose: onExited,
+    onClose,
     onSubmit,
     subTitle, // can't be used in dialogProps spread
     title,
@@ -68,8 +68,12 @@ function FormDialog(props) {
     ...dialogProps
   } = props
 
-  const onClose = () => {
+  const handleOnClose = () => {
     setOpen(false)
+  }
+
+  const handleOnExited = () => {
+    onClose()
   }
 
   function renderForm() {
@@ -111,7 +115,7 @@ function FormDialog(props) {
     if (alert) {
       return (
         <DialogActions>
-          <Button color='primary' onClick={onClose} variant='contained'>
+          <Button color='primary' onClick={handleOnClose} variant='contained'>
             {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
@@ -125,7 +129,7 @@ function FormDialog(props) {
         <Button
           className={classes.cancelButton}
           disabled={loading}
-          onClick={onBack || onClose}
+          onClick={onBack || handleOnClose}
         >
           {onBack ? 'Back' : 'Cancel'}
         </Button>
@@ -149,17 +153,17 @@ function FormDialog(props) {
       maxWidth={maxWidth}
       fullWidth
       open={open}
-      onClose={onClose}
+      onClose={handleOnClose}
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
-      onExited={onExited}
+      onExited={handleOnExited}
       {...dialogProps}
     >
       <Notices notices={notices} />
       <DialogTitleWrapper
         fullScreen={fs}
-        onClose={onClose}
+        onClose={handleOnClose}
         title={title}
         subTitle={subTitle}
       />
@@ -208,7 +212,9 @@ FormDialog.propTypes = {
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,
 
+  // Callback fired when the dialog has exited.
   onClose: p.func,
+
   onSubmit: p.func,
 
   // if onNext is specified the submit button will be replaced with a 'Next' button
