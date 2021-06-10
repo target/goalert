@@ -1,6 +1,6 @@
 import React, { cloneElement } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { isWidthDown } from '@material-ui/core'
+import { isWidthDown, isWidthUp } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
@@ -21,32 +21,6 @@ import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
 
-interface DetailsPageProps {
-  title: string
-
-  // optional content
-  avatar?: JSX.Element // placement for an icon or image
-  subheader?: string | JSX.Element
-  details?: string
-  notices?: Array<Notice>
-  links?: Array<Link>
-  pageContent?: JSX.Element
-  primaryActions?: Array<Action | JSX.Element>
-  secondaryActions?: Array<Action | JSX.Element>
-}
-
-type LinkStatus = 'ok' | 'warn' | 'err'
-type Link = {
-  url: string
-  label: string
-  subText?: string
-  status?: LinkStatus
-}
-
-function isDesktopMode(width: string): boolean {
-  return width === 'md' || width === 'lg' || width === 'xl'
-}
-
 const useStyles = makeStyles({
   ...statusStyles,
   flexHeight: {
@@ -66,11 +40,32 @@ const useStyles = makeStyles({
   },
 })
 
+type Link = {
+  url: string
+  label: string
+  subText?: string
+  status?: 'ok' | 'warn' | 'err'
+}
+
+interface DetailsPageProps {
+  title: string
+
+  avatar?: JSX.Element
+  subheader?: string | JSX.Element
+  details?: string
+  notices?: Array<Notice>
+  links?: Array<Link>
+  pageContent?: JSX.Element
+  primaryActions?: Array<Action | JSX.Element>
+  secondaryActions?: Array<Action | JSX.Element>
+}
+
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
+  const isDesktop = isWidthUp('md', width)
 
-  const linkClassName = (status?: LinkStatus): string => {
+  const linkClassName = (status?: Link['status']): string => {
     if (status === 'ok') return classes.statusOK
     if (status === 'warn') return classes.statusWarning
     if (status === 'err') return classes.statusError
@@ -94,7 +89,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       )}
 
       {/* Header card */}
-      <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
+      <Grid item xs={12} lg={isDesktop && p.links?.length ? 8 : 12}>
         <Card className={classes.fullHeight}>
           <Grid
             className={classes.fullHeight}
@@ -150,11 +145,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Quick Links */}
       {p.links?.length && (
-        <Grid
-          item
-          xs={12}
-          lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
-        >
+        <Grid item xs={12} lg={isDesktop && p.links?.length ? 4 : 12}>
           <Card className={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
@@ -175,7 +166,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                   <ListItemText
                     primary={li.label}
                     primaryTypographyProps={
-                      isDesktopMode(width) ? undefined : { variant: 'h5' }
+                      isDesktop ? undefined : { variant: 'h5' }
                     }
                     secondary={li.subText}
                   />
