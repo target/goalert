@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
@@ -13,7 +13,6 @@ import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
 import { styles as globalStyles } from '../styles/materialStyles'
-import withGracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
@@ -48,18 +47,23 @@ function FormDialog(props) {
   const classes = useStyles()
   const width = useWidth()
   const isWideScreen = isWidthUp('md', width)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    setOpen(true)
+  }, [])
+
   const {
     alert,
     confirm,
     disableGutters,
     errors,
     fullScreen,
-    isUnmounting,
     loading,
     primaryActionLabel, // remove from dialogProps spread
     maxWidth,
     notices,
-    onClose,
+    onClose: onExited,
     onSubmit,
     subTitle, // can't be used in dialogProps spread
     title,
@@ -67,6 +71,10 @@ function FormDialog(props) {
     onBack,
     ...dialogProps
   } = props
+
+  const onClose = () => {
+    setOpen(false)
+  }
 
   function renderForm() {
     const { disableGutters, form } = props
@@ -104,16 +112,7 @@ function FormDialog(props) {
   }
 
   function renderActions() {
-    const {
-      alert,
-      confirm,
-      errors,
-      loading,
-      primaryActionLabel,
-      onClose,
-      onBack,
-      onNext,
-    } = props
+    const { onBack, onNext } = props
 
     if (alert) {
       return (
@@ -155,11 +154,12 @@ function FormDialog(props) {
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
-      open={!isUnmounting}
+      open={open}
       onClose={onClose}
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
+      onExited={onExited}
       {...dialogProps}
     >
       <Notices notices={notices} />
@@ -222,10 +222,6 @@ FormDialog.propTypes = {
   // if onBack is specified the cancel button will be replaced with a 'Back' button
   onBack: p.func,
 
-  // provided by graceful unmount
-  isUnmounting: p.bool,
-  onExited: p.func,
-
   // allow the dialog to grow beyond the normal max-width.
   grow: p.bool,
 }
@@ -240,4 +236,4 @@ FormDialog.defaultProps = {
   maxWidth: 'sm',
 }
 
-export default withGracefulUnmount(FormDialog)
+export default FormDialog
