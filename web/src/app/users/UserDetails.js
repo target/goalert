@@ -127,6 +127,7 @@ export default function UserDetails(props) {
       subText: svcCount
         ? `On-call for ${svcCount} service${svcCount > 1 ? 's' : ''}`
         : 'Not currently on-call',
+      ariaLabel: 'Go to on call assignments',
     },
   ]
 
@@ -135,6 +136,7 @@ export default function UserDetails(props) {
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
       subText: 'Manage schedules you have subscribed to',
+      ariaLabel: 'Go to calendar subscriptions',
     })
   }
 
@@ -145,6 +147,7 @@ export default function UserDetails(props) {
       subText: `${sessCount || 'No'} active session${
         sessCount === 1 ? '' : 's'
       }`,
+      ariaLabel: 'Go to active sessions',
     })
   }
 

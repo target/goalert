@@ -43,6 +43,7 @@ const useStyles = makeStyles({
 type Link = {
   url: string
   label: string
+  ariaLabel: string
   subText?: string
   status?: 'ok' | 'warn' | 'err'
 }
@@ -171,7 +172,11 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                     secondary={li.subText}
                   />
                   <ListItemSecondaryAction>
-                    <IconButton component={AppLink} to={li.url}>
+                    <IconButton
+                      component={AppLink}
+                      to={li.url}
+                      aria-label={li.ariaLabel}
+                    >
                       <ChevronRight />
                     </IconButton>
                   </ListItemSecondaryAction>

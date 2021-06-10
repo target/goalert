@@ -93,6 +93,7 @@ export default function PolicyDetails(props) {
             label: 'Services',
             url: 'services',
             subText: 'Find services that link to this policy',
+            ariaLabel: 'Go to escalation policy services',
           },
         ]}
       />

@@ -125,22 +125,26 @@ export default function ServiceDetails({ serviceID }) {
             status: alertStatus(_.get(data, 'alerts.nodes')),
             url: 'alerts',
             subText: 'Manage alerts specific to this service',
+            ariaLabel: 'Go to service alerts',
           },
           {
             label: 'Heartbeat Monitors',
             url: 'heartbeat-monitors',
             status: hbStatus(_.get(data, 'service.heartbeatMonitors')),
             subText: 'Manage endpoints monitored for you',
+            ariaLabel: 'Go to service heartbeat monitors',
           },
           {
             label: 'Integration Keys',
             url: 'integration-keys',
             subText: 'Manage keys used to create alerts',
+            ariaLabel: 'Go to service integration keys',
           },
           {
             label: 'Labels',
             url: 'labels',
             subText: 'Group together services',
+            ariaLabel: 'Go to service labels',
           },
         ]}
       />

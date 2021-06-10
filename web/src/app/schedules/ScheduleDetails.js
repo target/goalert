@@ -127,21 +127,25 @@ export default function ScheduleDetails({ scheduleID }) {
             label: 'Assignments',
             url: 'assignments',
             subText: 'Manage rules for rotations and users',
+            ariaLabel: 'Go to schedule assignments',
           },
           {
             label: 'Escalation Policies',
             url: 'escalation-policies',
             subText: 'Find escalation policies that link to this schedule',
+            ariaLabel: 'Go to schedule escalation policies',
           },
           {
             label: 'Overrides',
             url: 'overrides',
             subText: 'Add, remove, or replace a user temporarily',
+            ariaLabel: 'Go to schedule overrides',
           },
           {
             label: 'Shifts',
             url: 'shifts',
             subText: 'Review a list of past and future on-call shifts',
+            ariaLabel: 'Go to schedule shifts',
           },
         ]}
       />
