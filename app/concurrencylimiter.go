@@ -10,6 +10,8 @@ import (
 
 var errQueueFull = errors.New("queue full")
 
+// multiLock allows a fixed number of Lock calls to succeed
+// with a maximum ordered-queue.
 type multiLock struct {
 	queue *list.List
 
@@ -21,6 +23,7 @@ type multiLock struct {
 	lockFull chan struct{}
 }
 
+// newMultiLock creates a new multiLock with the provided max lock and wait counts.
 func newMultiLock(maxLock, maxWait int) *multiLock {
 	m := &multiLock{
 		maxLock:  maxLock,
@@ -33,7 +36,12 @@ func newMultiLock(maxLock, maxWait int) *multiLock {
 	return m
 }
 
-func (m *multiLock) Lock(ctx context.Context) (err error) {
+// TryLock is guaranteed to return immediately. If the request has been put in the queue,
+// a waitFn is returned. If err != nil, the lock failed. If both are nil, the lock was
+// acquired.
+//
+// waitFn will return nil if the lock was acquired.
+func (m *multiLock) TryLock() (waitFn func(context.Context) error, err error) {
 	select {
 	case <-m.lock:
 		// fast path if not yet at the limit
@@ -43,38 +51,63 @@ func (m *multiLock) Lock(ctx context.Context) (err error) {
 		} else {
 			m.lock <- struct{}{}
 		}
-		return nil
+		return nil, nil
 	case <-m.lockFull:
 	}
 
 	if m.queue.Len() == m.maxWait {
 		m.lockFull <- struct{}{}
-		return errQueueFull
+		return nil, errQueueFull
 	}
 
 	lockCh := make(chan struct{})
 	e := m.queue.PushBack(lockCh)
 	m.lockFull <- struct{}{}
 
-	select {
-	case <-lockCh:
-		return nil
-	case <-ctx.Done():
-	}
+	return func(ctx context.Context) error {
+		select {
+		case <-lockCh:
+			return nil
+		case <-ctx.Done():
+		}
 
-	// canceled; attempt to remove or accept lock
-	select {
-	case <-lockCh:
-		// got lock, return nil
-		return nil
-	case <-m.lockFull:
-	}
+		// canceled; attempt to remove or accept lock
+		select {
+		case <-lockCh:
+			// got lock, return nil
+			return nil
+		case <-m.lockFull:
+		}
 
-	m.queue.Remove(e)
-	m.lockFull <- struct{}{}
+		m.queue.Remove(e)
+		m.lockFull <- struct{}{}
 
-	return ctx.Err()
+		return ctx.Err()
+	}, nil
 }
+
+// Lock will return nil if a lock was acquired or errQueueFull if there is no more room
+// in the queue. If the context is canceled while waiting in the queue ctx.Err() may be
+// returned.
+//
+// The lock is valid beyond the lifecyle of the provided context, if nil is returned
+// Unlock must be called to release it.
+//
+// The number of locks held is guaranteed to be >0 after calling Lock.
+func (m *multiLock) Lock(ctx context.Context) error {
+	waitFn, err := m.TryLock()
+	if err != nil {
+		return err
+	}
+	if waitFn == nil {
+		return nil
+	}
+
+	return waitFn(ctx)
+}
+
+// Unlock will release a held lock. It returns true
+// if the new lock count is zero.
 func (m *multiLock) Unlock() (last bool) {
 	select {
 	case <-m.lock:
@@ -145,9 +178,23 @@ func (l *concurrencyLimiter) Lock(ctx context.Context, id string) (err error) {
 		delete(l.lruEl, id)
 		l.lruEmpty.Remove(el)
 	}
-	l.mx.Unlock()
 
-	return m.Lock(ctx)
+	// Use two-stage locking so we can "reserve" our lock before releasing the mutex.
+	// This prevents a possible race condition with cleanup thinking the lock is empty
+	// before Lock is actually called here.
+	//
+	// Two stage ensures we either get the lock or are added to the queue (marking it as non-empty)
+	// before allowing Unlock to do it's cleanup logic.
+	wait, err := m.TryLock()
+	l.mx.Unlock()
+	if err != nil {
+		return err
+	}
+	if wait == nil {
+		return nil
+	}
+
+	return wait(ctx)
 }
 
 // Unlock releases a lock for the given ID.
