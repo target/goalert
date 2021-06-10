@@ -224,6 +224,12 @@ FormDialog.propTypes = {
 
   // allow the dialog to grow beyond the normal max-width.
   grow: p.bool,
+
+  // If true, the dialog will be full-screen
+  fullScreen: p.bool,
+
+  // notices to render; see details/Notices.tsx
+  notices: p.arrayOf(p.object),
 }
 
 FormDialog.defaultProps = {
