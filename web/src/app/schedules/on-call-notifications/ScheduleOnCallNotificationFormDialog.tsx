@@ -17,6 +17,7 @@ import { GenericError } from '../../error-pages'
 import { WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
 import {
+  Box,
   Checkbox,
   Hidden,
   Table,
@@ -77,7 +78,7 @@ interface ScheduleOnCallNotificationFormProps {
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Value>(getInitialValue(p.rule))
+  const [value, setValue] = useState(getInitialValue(p.rule))
   const width = useWidth()
 
   const { loading, error, data } = useQuery(query, {
@@ -162,7 +163,7 @@ export default function ScheduleOnCallNotificationFormDialog(
 
   return (
     <FormDialog
-      title={(p.rule ? 'Edit ' : 'Create ') + 'Notification Rule'}
+      title={`${p.rule ? 'Edit' : 'Create'} Notification Rule`}
       errors={formErrors}
       onClose={() => p.onClose()}
       onSubmit={() => mutate()}
@@ -215,9 +216,17 @@ export default function ScheduleOnCallNotificationFormDialog(
                         {scheduleTimeField}
                       </TableCell>
                     </Hidden>
-                    {days.map((day, dayIdx) => (
-                      <TableCell key={dayIdx} variant='head' align='center'>
-                        {day.slice(0, 3)}
+                    {days.map((day, i) => (
+                      <TableCell key={i} variant='head' align='center'>
+                        <Box
+                          color={
+                            value.ruleType !== RuleType.OnSchedule
+                              ? 'text.disabled'
+                              : 'text.primary'
+                          }
+                        >
+                          {day.slice(0, 3)}
+                        </Box>
                       </TableCell>
                     ))}
                   </TableRow>
