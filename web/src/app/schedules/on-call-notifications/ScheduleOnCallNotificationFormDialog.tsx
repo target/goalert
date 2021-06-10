@@ -32,24 +32,17 @@ type Value = {
 }
 
 function getInitialValue(rule?: Rule): Value {
-  if (!rule) {
-    return {
-      slackChannelID: '',
-      time: DateTime.local().set({ minute: 0, hour: 9 }).toISO(),
-      weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
-      ruleType: RuleType.OnChange,
-    }
-  }
-
+  // defaults
   const result: Value = {
-    slackChannelID: rule.target.id,
-    time: '',
-    weekdayFilter: new Array(7).fill(false) as WeekdayFilter,
+    slackChannelID: '',
+    time: DateTime.local().set({ hour: 9, minute: 0 }).toISO(),
+    weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
     ruleType: RuleType.OnChange,
   }
 
-  // on schedule change
-  if (rule.weekdayFilter) {
+  result.slackChannelID = rule?.target?.id ?? ''
+
+  if (rule?.weekdayFilter) {
     result.weekdayFilter = rule.weekdayFilter
     result.time = rule.time as string
     result.ruleType = RuleType.OnSchedule
@@ -132,7 +125,8 @@ export default function ScheduleOnCallNotificationFormDialog(
   if (error) return <GenericError error={error.message} />
 
   function handleRadioOnChange(event: ChangeEvent<HTMLInputElement>): void {
-    setValue({ ...value, ruleType: event.target.value as RuleType })
+    const ruleType = event.target.value as RuleType
+    setValue({ ...value, ruleType })
   }
 
   function handleOnChange(value: Value): void {
