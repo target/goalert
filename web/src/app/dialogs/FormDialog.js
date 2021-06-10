@@ -47,11 +47,7 @@ function FormDialog(props) {
   const classes = useStyles()
   const width = useWidth()
   const isWideScreen = isWidthUp('md', width)
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    setOpen(true)
-  }, [])
+  const [open, setOpen] = useState(true)
 
   const {
     alert,
