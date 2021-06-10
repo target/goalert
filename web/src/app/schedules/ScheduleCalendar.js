@@ -171,7 +171,7 @@ function ScheduleCalendar(props) {
               onClick={onNewTempSched}
               className={classes.tempSchedBtn}
               startIcon={<GroupAdd />}
-              title='Make temporary change to this schedule'
+              title='Make temporary change to schedule'
             >
               Temp Sched
             </Button>
