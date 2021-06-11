@@ -37,7 +37,7 @@ function getInitialValue(rule?: Rule, zone?: string): Value {
   // defaults
   const result: Value = {
     slackChannelID: '',
-    time: DateTime.local().set({ hour: 9, minute: 0 }).toISO(),
+    time: DateTime.local().set({ hour: 9, minute: 0 }).toISOTime(),
     weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
     ruleType: RuleType.OnChange,
   }
@@ -48,7 +48,7 @@ function getInitialValue(rule?: Rule, zone?: string): Value {
     result.weekdayFilter = rule.weekdayFilter
     result.time = DateTime.fromFormat(rule.time as string, 'HH:mm', {
       zone,
-    }).toISO()
+    }).toISOTime()
     result.ruleType = RuleType.OnSchedule
   }
 
