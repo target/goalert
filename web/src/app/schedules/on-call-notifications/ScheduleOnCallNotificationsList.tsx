@@ -43,7 +43,7 @@ export const setMutation = gql`
 
 function subText(rule: Rule, zone: string): string {
   if (rule.time && rule.weekdayFilter) {
-    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toUTC()
+    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', { zone })
     return `Notifies ${getDayNames(
       rule.weekdayFilter,
     )} at ${timeStr.toLocaleString(DateTime.TIME_SIMPLE)}
