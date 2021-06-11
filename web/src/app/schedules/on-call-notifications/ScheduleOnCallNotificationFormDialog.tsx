@@ -26,6 +26,8 @@ import {
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import useWidth from '../../util/useWidth'
+import { ScheduleTZFilter } from '../ScheduleTZFilter'
+import { useURLParam } from '../../actions/hooks'
 
 enum RuleType {
   OnChange = 'ON_CHANGE',
@@ -39,7 +41,7 @@ type Value = {
   ruleType: RuleType
 }
 
-function getInitialValue(rule?: Rule): Value {
+function getInitialValue(rule?: Rule, zone?: string): Value {
   if (!rule) {
     return {
       slackChannelID: '',
@@ -59,7 +61,9 @@ function getInitialValue(rule?: Rule): Value {
   // on schedule change
   if (rule.weekdayFilter) {
     result.weekdayFilter = rule.weekdayFilter
-    result.time = rule.time as string
+    result.time = DateTime.fromFormat(rule.time as string, 'HH:mm', {
+      zone,
+    }).toISO()
     result.ruleType = RuleType.OnSchedule
   }
 
@@ -77,7 +81,8 @@ interface ScheduleOnCallNotificationFormProps {
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Value>(getInitialValue(p.rule))
+  const [zone] = useURLParam('tz', 'local')
+  const [value, setValue] = useState<Value>(getInitialValue(p.rule, zone))
   const width = useWidth()
   console.log(value)
 
@@ -89,7 +94,10 @@ export default function ScheduleOnCallNotificationFormDialog(
   })
 
   function makeRules(): RuleInput[] {
-    let existingRules = mapDataToInput(data?.schedule?.onCallNotificationRules)
+    let existingRules = mapDataToInput(
+      data?.schedule?.onCallNotificationRules,
+      zone,
+    )
 
     // remove old rule when editing
     if (p.rule) {
@@ -115,8 +123,7 @@ export default function ScheduleOnCallNotificationFormDialog(
             id: value.slackChannelID,
             type: 'slackChannel',
           },
-          // TODO add value.timeZone, pass as arg here
-          time: isoToGQLClockTime(value.time),
+          time: isoToGQLClockTime(value.time, zone),
           weekdayFilter: value.weekdayFilter,
         }
         break
@@ -202,6 +209,12 @@ export default function ScheduleOnCallNotificationFormDialog(
                   control={<Radio />}
                 />
               </RadioGroup>
+            </Grid>
+            <Grid item xs={12}>
+              <ScheduleTZFilter
+                label={(tz) => `Configure in ${tz}`}
+                scheduleID={p.scheduleID}
+              />
             </Grid>
             <Grid item>
               <Table padding={width === 'xs' ? 'default' : 'none'}>

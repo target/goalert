@@ -1,4 +1,3 @@
-import { LocalZone, Zone } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
@@ -12,8 +11,7 @@ export type RuleInput = OnCallNotificationRuleInput
 
 export function mapDataToInput(
   rules: Array<Rule> = [],
-  // TODO remove default
-  scheduleTimeZone: Zone = LocalZone.instance,
+  scheduleTimeZone: string,
 ): Array<RuleInput> {
   return rules.map((r: Rule) => {
     const result: Rule = {

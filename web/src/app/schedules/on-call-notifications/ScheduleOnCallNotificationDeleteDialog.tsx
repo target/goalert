@@ -6,6 +6,7 @@ import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import { Rule, mapDataToInput, getDayNames } from './util'
+import { useURLParam } from '../../actions/hooks'
 
 function getDeleteSummary(r: Rule): string {
   const prefix = `${r.target.name} will no longer be notified`
@@ -26,6 +27,7 @@ interface ScheduleOnCallNotificationDeleteDialogProps {
 export default function ScheduleOnCallNotificationDeleteDialog(
   p: ScheduleOnCallNotificationDeleteDialogProps,
 ): JSX.Element {
+  const [zone] = useURLParam('tz', 'local')
   const { loading, error, data } = useQuery(query, {
     variables: {
       id: p.scheduleID,
@@ -40,6 +42,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
           data.schedule.onCallNotificationRules.filter(
             (nr: Rule) => nr.id !== p.rule.id,
           ),
+          zone,
         ),
       },
     },
