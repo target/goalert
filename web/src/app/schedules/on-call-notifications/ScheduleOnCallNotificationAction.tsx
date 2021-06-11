@@ -1,40 +1,33 @@
-import React, { useState } from 'react'
-import OtherActions from '../../util/OtherActions'
+import React from 'react'
 import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFormDialog'
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
 import { Rule } from './util'
 
 interface ScheduleOnCallNotificationActionProps {
-  rule: Rule
   scheduleID: string
+  editRule?: Rule
+  deleteRule?: Rule
+  handleOnCloseEdit: () => void
+  handleOnCloseDelete: () => void
 }
 
 export default function ScheduleOnCallNotificationAction(
   p: ScheduleOnCallNotificationActionProps,
 ): JSX.Element {
-  const [showEdit, setShowEdit] = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
-
   return (
     <React.Fragment>
-      <OtherActions
-        actions={[
-          { label: 'Edit', onClick: () => setShowEdit(true) },
-          { label: 'Delete', onClick: () => setShowDelete(true) },
-        ]}
-      />
-      {showEdit && (
+      {p.editRule && (
         <ScheduleOnCallNotificationFormDialog
-          rule={p.rule}
+          rule={p.editRule}
           scheduleID={p.scheduleID}
-          onClose={() => setShowEdit(false)}
+          onClose={p.handleOnCloseEdit}
         />
       )}
-      {showDelete && (
+      {p.deleteRule && (
         <ScheduleOnCallNotificationDeleteDialog
-          rule={p.rule}
+          rule={p.deleteRule}
           scheduleID={p.scheduleID}
-          onClose={() => setShowDelete(false)}
+          onClose={p.handleOnCloseDelete}
         />
       )}
     </React.Fragment>
