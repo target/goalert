@@ -1,4 +1,4 @@
-import React, { cloneElement } from 'react'
+import React, { cloneElement, forwardRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { isWidthDown } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
@@ -15,7 +15,7 @@ import { ReactNode } from 'react-markdown'
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
 import CardActions, { Action } from './CardActions'
-import AppLink from '../util/AppLink'
+import AppLink, { AppLinkProps } from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
 
@@ -63,6 +63,16 @@ const useStyles = makeStyles({
     marginBottom: 64,
   },
 })
+
+const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
+  function LIApplink(props, ref): JSX.Element {
+    return (
+      <li>
+        <AppLink ref={ref} {...props} />
+      </li>
+    )
+  },
+)
 
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
@@ -166,7 +176,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 <ListItem
                   key={idx}
                   className={linkClassName(li.status)}
-                  component={AppLink}
+                  component={LIApplink}
                   to={li.url}
                   button
                 >
