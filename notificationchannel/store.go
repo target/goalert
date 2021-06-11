@@ -106,7 +106,7 @@ func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, e
 
 	_, err = tx.StmtContext(ctx, db.lock).ExecContext(ctx)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("aqcuire lock: %w", err)
+		return uuid.UUID{}, fmt.Errorf("acquire lock: %w", err)
 	}
 
 	// try again after exclusive lock

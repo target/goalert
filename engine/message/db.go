@@ -63,6 +63,8 @@ type DB struct {
 	insertAlertBundle  *sql.Stmt
 	insertStatusBundle *sql.Stmt
 
+	deleteAny *sql.Stmt
+
 	lastSent     time.Time
 	sentMessages map[string]Message
 }
@@ -360,6 +362,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
+
+		deleteAny: p.P(`delete from outgoing_messages where id = any($1)`),
 	}, p.Err
 }
 
@@ -442,6 +446,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 	}
 	db.lastSent = now
+
+	result, toDelete := dedupOnCallNotifications(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
+		if err != nil {
+			return nil, fmt.Errorf("delete duplicate on-call notifications: %w", err)
+		}
+	}
 
 	cfg := config.FromContext(ctx)
 	if cfg.General.MessageBundles {

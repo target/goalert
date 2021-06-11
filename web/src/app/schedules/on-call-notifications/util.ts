@@ -43,5 +43,6 @@ export function getDayNames(filter: WeekdayFilter): string {
 
   const names = days.filter((name, i) => filter[i]).map((day) => day + 's')
   const lastDay = names.length > 1 ? names.pop() : ''
-  return names.join(', ') + (lastDay && ' and ' + lastDay)
+  const oxford = names.length > 1 ? ',' : ''
+  return names.join(', ') + (lastDay && `${oxford} and ` + lastDay)
 }

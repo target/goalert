@@ -295,7 +295,6 @@ func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificatio
 		return nil
 	}
 	if rule.WeekdayFilter == nil || rule.WeekdayFilter.IsAlways() {
-		// TODO: schedule time zone
 		newTime := rule.Time.FirstOfDay(nowInZone)
 		if !newTime.After(nowInZone) {
 			// add a day
