@@ -15,7 +15,7 @@ import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import { WeekdayFilter } from '../../../schema'
-import { isoToGQLClockTime, days } from '../util'
+import { isoToGQLClockTime, days, gqlClockTimeToISO } from '../util'
 import { Checkbox, makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
@@ -46,9 +46,7 @@ function getInitialValue(rule?: Rule, zone?: string): Value {
 
   if (rule?.weekdayFilter) {
     result.weekdayFilter = rule.weekdayFilter
-    result.time = DateTime.fromFormat(rule.time as string, 'HH:mm', {
-      zone,
-    }).toISO()
+    result.time = gqlClockTimeToISO(rule.time, zone)
     result.ruleType = RuleType.OnSchedule
   }
 
