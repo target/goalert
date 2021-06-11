@@ -3,46 +3,29 @@ import {
   Button,
   ButtonGroup,
   Grid,
+  IconButton,
   makeStyles,
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { getEndOfWeek, getStartOfWeek } from '../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
+import LeftIcon from '@material-ui/icons/ChevronLeft'
+import RightIcon from '@material-ui/icons/ChevronRight'
 
 const useStyles = makeStyles((theme) => ({
+  arrowBtns: {
+    marginLeft: theme.spacing(1.75),
+    marginRight: theme.spacing(1.75),
+  },
   container: {
-    paddingBottom: '1em',
-  },
-  labelGridItem: {
-    alignItems: 'center',
-    display: 'flex',
-    justifyContent: 'center',
-    order: 3,
-    [theme.breakpoints.up('lg')]: {
-      order: 2,
-    },
-  },
-  primaryNavBtnGroup: {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'flex-start',
-    order: 1,
-  },
-  secondaryBtnGroup: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    order: 2,
-    [theme.breakpoints.up('lg')]: {
-      justifyContent: 'flex-end',
-      order: 3,
-    },
+    paddingBottom: theme.spacing(2),
   },
 }))
 
 type ViewType = 'month' | 'week'
 interface CalendarToolbarProps {
-  startAdornment?: React.ReactNode
+  filter?: React.ReactNode
   endAdornment?: React.ReactNode
 }
 
@@ -50,15 +33,19 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
   const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
-  const getLabel = (): string => {
+  const getHeader = (): string => {
     if (weekly) {
-      const begin = getStartOfWeek(DateTime.fromISO(start))
-        .toLocal()
-        .toFormat('LLLL d')
-      const end = getEndOfWeek(DateTime.fromISO(start))
-        .toLocal()
-        .toFormat('LLLL d')
-      return `${begin} — ${end}`
+      const begin = getStartOfWeek(DateTime.fromISO(start)).toLocal()
+      const end = getEndOfWeek(DateTime.fromISO(start)).toLocal()
+
+      if (begin.month === end.month) {
+        return `${end.monthLong} ${end.year}`
+      }
+      if (begin.year === end.year) {
+        return `${begin.monthShort} — ${end.monthShort} ${end.year}`
+      }
+
+      return `${begin.monthShort} ${begin.year} — ${end.monthShort} ${end.year}`
     }
 
     return DateTime.fromISO(start).toLocal().toFormat('LLLL yyyy')
@@ -134,49 +121,73 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   }
 
   return (
-    <Grid container spacing={2} className={classes.container}>
-      <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
-        {props.startAdornment}
-        <ButtonGroup color='primary' aria-label='Calendar Navigation'>
-          <Button data-cy='show-today' onClick={handleTodayClick}>
+    <Grid
+      container
+      spacing={2}
+      className={classes.container}
+      justify='space-between'
+      alignItems='center'
+    >
+      <Grid item>
+        <Grid container alignItems='center'>
+          <Button
+            data-cy='show-today'
+            onClick={handleTodayClick}
+            variant='outlined'
+            title={DateTime.local().toFormat('cccc, LLLL d')}
+          >
             Today
           </Button>
-          <Button data-cy='back' onClick={handleBackClick}>
-            Back
-          </Button>
-          <Button data-cy='next' onClick={handleNextClick}>
-            Next
-          </Button>
-        </ButtonGroup>
+
+          <div className={classes.arrowBtns}>
+            <IconButton
+              title={`Previous ${weekly ? 'week' : 'month'}`}
+              data-cy='back'
+              onClick={handleBackClick}
+            >
+              <LeftIcon />
+            </IconButton>
+            <IconButton
+              title={`Next ${weekly ? 'week' : 'month'}`}
+              data-cy='next'
+              onClick={handleNextClick}
+            >
+              <RightIcon />
+            </IconButton>
+          </div>
+
+          <Typography component='h2' data-cy='calendar-header' variant='h5'>
+            {getHeader()}
+          </Typography>
+        </Grid>
       </Grid>
 
-      <Grid item xs={12} lg={4} className={classes.labelGridItem}>
-        <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
-          {getLabel()}
-        </Typography>
-      </Grid>
-
-      <Grid item xs={12} lg={4} className={classes.secondaryBtnGroup}>
-        <ButtonGroup
-          color='primary'
-          aria-label='Toggle between Monthly and Weekly views'
-        >
-          <Button
-            data-cy='show-month'
-            disabled={!weekly}
-            onClick={() => onView('month')}
+      <Grid item>
+        <Grid container alignItems='center' justify='flex-end'>
+          {props.filter}
+          <ButtonGroup
+            color='primary'
+            aria-label='Toggle between Monthly and Weekly views'
           >
-            Month
-          </Button>
-          <Button
-            data-cy='show-week'
-            disabled={weekly}
-            onClick={() => onView('week')}
-          >
-            Week
-          </Button>
-        </ButtonGroup>
-        {props.endAdornment}
+            <Button
+              data-cy='show-month'
+              disabled={!weekly}
+              onClick={() => onView('month')}
+              title='Month view'
+            >
+              Month
+            </Button>
+            <Button
+              data-cy='show-week'
+              disabled={weekly}
+              onClick={() => onView('week')}
+              title='Week view'
+            >
+              Week
+            </Button>
+          </ButtonGroup>
+          {props.endAdornment}
+        </Grid>
       </Grid>
     </Grid>
   )
