@@ -41,7 +41,7 @@ export default function SpinContainer(props: SpinContainerProps): JSX.Element {
     }
   }
 
-  useLayoutEffect(() => {
+  const handleLayout = () => {
     if (!ref.current) return
     const newRect = {
       top: ref.current.offsetTop,
@@ -51,7 +51,16 @@ export default function SpinContainer(props: SpinContainerProps): JSX.Element {
     }
     if (_.isEqual(rect, newRect)) return
     setRect(newRect)
-  }, [ref.current])
+  }
+  useEffect(() => {
+    window.addEventListener('resize', handleLayout)
+
+    return () => {
+      window.removeEventListener('resize', handleLayout)
+    }
+  }, [])
+
+  useLayoutEffect(handleLayout, [ref.current])
 
   return (
     <div>
