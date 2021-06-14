@@ -1,5 +1,5 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { useState } from 'react'
+import PropTypes from 'prop-types'
 import MountWatcher from '../util/MountWatcher'
 
 import { FormContext, FormContainerContext } from './context'
@@ -7,91 +7,51 @@ import { get, set, cloneDeep } from 'lodash'
 
 // FormContainer handles grouping multiple FormFields.
 // It works with the Form component to handle validation.
-export class FormContainer extends React.PureComponent {
-  static propTypes = {
-    value: p.object,
 
-    errors: p.arrayOf(
-      p.shape({
-        message: p.string.isRequired,
-        field: p.string.isRequired,
-        helpLink: p.string,
-      }),
-    ),
-
-    onChange: p.func,
-    disabled: p.bool,
-
-    mapValue: p.func,
-    mapOnChangeValue: p.func,
-
-    // If true, will render optional fields with `(optional)` appended to the label.
-    // In addition, required fields will not be appended with `*`.
-    optionalLabels: p.bool,
-
-    // Enables functionality to remove an incoming value at it's index from
-    // an array field if the new value is falsey.
-    removeFalseyIdxs: p.bool,
-  }
-
-  static defaultProps = {
-    errors: [],
-    value: {},
-    onChange: () => {},
-
-    mapValue: (value) => value,
-    mapOnChangeValue: (value) => value,
-  }
-
-  state = {
-    validationErrors: [],
-  }
-
+export function FormContainer(props) {
+  const [state, setState] = useState({})
   _fields = {}
-
-  addField = (fieldName, validate) => {
-    if (!this._fields[fieldName]) {
-      this._fields[fieldName] = []
+  function addField(fieldName, validate) {
+    if (_fields[fieldName]) {
+      _fields[fieldName] = []
     }
-    this._fields[fieldName].push(validate)
+    _fields[fieldName].push(validate)
 
     return () => {
-      this._fields[fieldName] = this._fields[fieldName].filter(
-        (v) => v !== validate,
-      )
-      if (this._fields[fieldName].length === 0) {
-        delete this._fields[fieldName]
+      _fields[fieldName] = _fields[fieldName].filter((v) => v !== validate)
+      if (_fields[fieldName].length === 0) {
+        delete _fields[fieldName]
       }
     }
   }
 
-  onSubmit = () => {
-    const validate = (field) => {
+  function onSubmit() {
+    function validate(field) {
       let err
       // find first error
-      this._fields[field].find((validate) => {
-        err = validate(get(this.props.value, field))
+      _fields[field].find((validate) => {
+        err = validate(get(props.value, field))
         return err
       })
       if (err) err.field = field
       return err
     }
-    const validationErrors = Object.keys(this._fields)
+    const validationErrors = Object.keys(_fields)
       .map(validate)
       .filter((e) => e)
-    this.setState({ validationErrors })
+    setState({ validationErrors })
     if (validationErrors.length) return false
 
     return true
   }
 
-  onChange = (fieldName, e) => {
+  function onChange(fieldName, e) {
     const {
       mapValue,
       mapOnChangeValue,
       value: _value,
       removeFalseyIdxs,
-    } = this.props
+    } = props
 
     // copy into a mutable object
     const oldValue = cloneDeep(_value)
@@ -117,50 +77,72 @@ export class FormContainer extends React.PureComponent {
         return i !== parseInt(idx, 10)
       })
 
-      return this.props.onChange(
+      return props.onChange(
         mapOnChangeValue(set(mapValue(oldValue), arrayPath, newArr)),
       )
     }
 
-    return this.props.onChange(
+    return props.onChange(
       mapOnChangeValue(set(mapValue(oldValue), fieldName, value)),
     )
   }
 
-  render() {
-    return <FormContext.Consumer>{this.renderComponent}</FormContext.Consumer>
-  }
-
-  renderComponent = ({ disabled: formDisabled, addSubmitCheck }) => {
+  function renderComponent({ disabled: formDisabled, addSubmitCheck }) {
     const {
       value,
       mapValue,
       optionalLabels,
       disabled: containerDisabled,
-    } = this.props
+    } = props
 
     return (
       <MountWatcher
         onMount={() => {
-          this._unregister = addSubmitCheck(this.onSubmit)
+          _unregister = addSubmitCheck(onSubmit)
         }}
         onUnmount={() => {
-          this._unregister()
+          _unregister()
         }}
       >
         <FormContainerContext.Provider
           value={{
             value: mapValue(value),
             disabled: formDisabled || containerDisabled,
-            errors: this.state.validationErrors.concat(this.props.errors),
-            onChange: this.onChange,
-            addField: this.addField,
+            errors: validationErrors.concat(props.errors),
+            onChange: onChange,
+            addField: addField,
             optionalLabels: optionalLabels,
           }}
         >
-          {this.props.children}
+          {props.children}
+          <h1>GHJGHGHFGHFJFFGHFGHFJGHFGHFJ</h1>
         </FormContainerContext.Provider>
       </MountWatcher>
     )
   }
+}
+
+FormContainer.propTypes = {
+  value: PropTypes.object,
+  errors: PropTypes.arrayOf(
+    PropTypes.shape({
+      message: PropTypes.string.isRequired,
+      field: PropTypes.string.isRequired,
+      helpLink: PropTypes.string,
+    }),
+  ),
+
+  onChange: PropTypes.func,
+  disabled: PropTypes.bool,
+
+  mapValue: PropTypes.func,
+  mapOnChangeValue: PropTypes.func,
+
+  // If true, will render optional fields with `(optional)` appended to the label.
+  // In addition, required fields will not be appended with `*`.
+  optionalLabels: PropTypes.bool,
+
+  // Enables functionality to remove an incoming value at it's index from
+  // an array field if the new value is falsey.
+  removeFalseyIdxs: PropTypes.bool,
 }
