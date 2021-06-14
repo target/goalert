@@ -20,6 +20,7 @@ function PolicyCreateDialog(props) {
     name: '',
     description: '',
     repeat: { label: '3', value: '3' },
+    favorite: true,
   }
   const [createPolicy, createPolicyStatus] = useMutation(mutation, {
     variables: {
@@ -27,6 +28,7 @@ function PolicyCreateDialog(props) {
         name: (value && value.name) || defaultValue.name,
         description: (value && value.description) || defaultValue.description,
         repeat: (value && value.repeat.value) || defaultValue.repeat.value,
+        favorite: true,
       },
     },
     onCompleted: props.onClose,

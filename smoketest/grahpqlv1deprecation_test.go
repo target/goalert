@@ -19,14 +19,14 @@ func TestGraphQLV1Deprecation(t *testing.T) {
 	url := h.URL() + "/v1/graphql"
 
 	// ensure api is enabled
-	h.SetConfigValue("General.DisableV1GraphQL", "false")
+	h.SetConfigValue("General.EnableV1GraphQL", "true")
 
 	// test graphql v1 endpoint returns successfully (unauthorized status code)
 	resp, _ := http.Get(url)
 	assert.Equal(t, resp.StatusCode, 401)
 
 	// disable api
-	h.SetConfigValue("General.DisableV1GraphQL", "true")
+	h.SetConfigValue("General.EnableV1GraphQL", "false")
 
 	// test graphql v1 endpoint returns not found status code
 	resp, _ = http.Get(url)

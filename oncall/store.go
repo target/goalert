@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -270,7 +271,11 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
-	tempScheds, err := db.schedStore.TemporarySchedules(ctx, tx, scheduleID)
+	id, err := uuid.FromString(scheduleID)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse schedule ID")
+	}
+	tempScheds, err := db.schedStore.TemporarySchedules(ctx, tx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup temporary schedules")
 	}

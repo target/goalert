@@ -53,7 +53,11 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 }
 
 func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {
-	return s.ScheduleStore.TemporarySchedules(ctx, nil, raw.ID)
+	id, err := parseUUID("ScheduleID", raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	return s.ScheduleStore.TemporarySchedules(ctx, nil, id)
 }
 
 func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input assignment.RawTarget) (*graphql2.ScheduleTarget, error) {

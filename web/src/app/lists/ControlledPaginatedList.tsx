@@ -50,7 +50,7 @@ const useStyles = makeStyles({
 
 export interface ControlledPaginatedListProps extends PaginatedListProps {
   checkboxActions?: ControlledPaginatedListAction[]
-  filter?: ReactElement
+  secondaryActions?: ReactElement
 
   // if set, the search string param is ignored
   noSearch?: boolean
@@ -92,7 +92,7 @@ export default function ControlledPaginatedList(
   const classes = useStyles()
   const {
     checkboxActions,
-    filter,
+    secondaryActions,
     noSearch,
     searchAdornment,
     items,
@@ -253,7 +253,7 @@ export default function ControlledPaginatedList(
     <React.Fragment>
       <Grid container item xs={12} justify='flex-end' alignItems='center'>
         {renderActions()}
-        {filter}
+        {secondaryActions}
         {!noSearch && (
           <Grid item className={classes.search}>
             <Search endAdornment={searchAdornment} />

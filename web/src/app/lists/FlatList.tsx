@@ -86,8 +86,9 @@ export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
 export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
 
-  // headerNote will be displayed at the top of the list.
-  headerNote?: string
+  // header elements will be displayed at the top of the list.
+  headerNote?: string // left-aligned
+  headerAction?: JSX.Element // right-aligned
 
   // emptyMessage will be displayed if there are no items in the list.
   emptyMessage?: string
@@ -134,6 +135,7 @@ export default function FlatList({
   onReorder,
   emptyMessage,
   headerNote,
+  headerAction,
   items,
   inset,
   transition,
@@ -324,18 +326,25 @@ export default function FlatList({
     return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
+  // renderList handles rendering the list container as well as any
+  // header elements provided
   function renderList(): JSX.Element {
     return (
       <List {...listProps}>
-        {headerNote && (
+        {(headerNote || headerAction) && (
           <ListItem>
-            <ListItemText
-              disableTypography
-              secondary={
-                <Typography color='textSecondary'>{headerNote}</Typography>
-              }
-              className={classes.listItemText}
-            />
+            {headerNote && (
+              <ListItemText
+                disableTypography
+                secondary={
+                  <Typography color='textSecondary'>{headerNote}</Typography>
+                }
+                className={classes.listItemText}
+              />
+            )}
+            {headerAction && (
+              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
+            )}
           </ListItem>
         )}
         {!items.length && renderEmptyMessage()}
