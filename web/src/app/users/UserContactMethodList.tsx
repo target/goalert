@@ -107,7 +107,7 @@ export default function UserContactMethodList(
 
   function getSecondaryAction(cm: UserContactMethod): JSX.Element {
     return (
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && isWidthUp('md', width) && (
           <Grid item>
             <Button
