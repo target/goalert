@@ -63,7 +63,7 @@ export default function SpinContainer(props: SpinContainerProps): JSX.Element {
   useLayoutEffect(handleLayout, [ref.current])
 
   return (
-    <div>
+    <div data-cy-spin-loading={props.loading || spin}>
       {spin && (
         <div
           style={{
