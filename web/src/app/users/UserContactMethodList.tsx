@@ -1,7 +1,14 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
+import {
+  Button,
+  Card,
+  CardHeader,
+  Grid,
+  IconButton,
+  makeStyles,
+} from '@material-ui/core'
 
 import { isWidthUp } from '@material-ui/core/withWidth'
 import { sortContactMethods } from './util'
@@ -14,6 +21,7 @@ import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
+import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 
 const query = gql`
@@ -42,9 +50,14 @@ interface UserContactMethodListProps {
   readOnly?: boolean
 }
 
+const useStyles = makeStyles((theme) => ({
+  cardHeader: globalStyles(theme).cardHeader,
+}))
+
 export default function UserContactMethodList(
   props: UserContactMethodListProps,
 ): JSX.Element {
+  const classes = useStyles()
   const width = useWidth()
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
@@ -133,6 +146,7 @@ export default function UserContactMethodList(
     <Grid item xs={12}>
       <Card>
         <CardHeader
+          className={classes.cardHeader}
           titleTypographyProps={{ component: 'h2', variant: 'h5' }}
           title='Contact Methods'
         />
