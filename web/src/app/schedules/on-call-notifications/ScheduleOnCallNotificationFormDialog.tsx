@@ -18,8 +18,6 @@ import { WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
 import { Checkbox, makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
-import { useURLParam } from '../../actions/hooks'
 
 enum RuleType {
   OnChange = 'ON_CHANGE',
@@ -33,11 +31,11 @@ type Value = {
   ruleType: RuleType
 }
 
-function getInitialValue(rule?: Rule, zone?: string): Value {
+function getInitialValue(rule?: Rule): Value {
   // defaults
   const result: Value = {
     slackChannelID: '',
-    time: DateTime.local().set({ hour: 9, minute: 0 }).toISOTime(),
+    time: DateTime.local().set({ hour: 9, minute: 0 }).toISO(),
     weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
     ruleType: RuleType.OnChange,
   }
@@ -46,9 +44,7 @@ function getInitialValue(rule?: Rule, zone?: string): Value {
 
   if (rule?.weekdayFilter) {
     result.weekdayFilter = rule.weekdayFilter
-    result.time = DateTime.fromFormat(rule.time as string, 'HH:mm', {
-      zone,
-    }).toISOTime()
+    result.time = rule.time as string
     result.ruleType = RuleType.OnSchedule
   }
 
@@ -68,8 +64,7 @@ interface ScheduleOnCallNotificationFormProps {
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [zone] = useURLParam('tz', 'local')
-  const [value, setValue] = useState(getInitialValue(p.rule, zone))
+  const [value, setValue] = useState(getInitialValue(p.rule))
   const classes = useStyles()
 
   const { loading, error, data } = useQuery(query, {
@@ -80,10 +75,7 @@ export default function ScheduleOnCallNotificationFormDialog(
   })
 
   function makeRules(): RuleInput[] {
-    let existingRules = mapDataToInput(
-      data?.schedule?.onCallNotificationRules,
-      zone,
-    )
+    let existingRules = mapDataToInput(data?.schedule?.onCallNotificationRules)
 
     // remove old rule when editing
     if (p.rule) {
@@ -107,7 +99,8 @@ export default function ScheduleOnCallNotificationFormDialog(
             id: value.slackChannelID,
             type: 'slackChannel',
           },
-          time: isoToGQLClockTime(value.time, zone),
+          // TODO add value.timeZone, pass as arg here
+          time: isoToGQLClockTime(value.time),
           weekdayFilter: value.weekdayFilter,
         }
         break
@@ -162,7 +155,7 @@ export default function ScheduleOnCallNotificationFormDialog(
                 component={SlackChannelSelect}
                 fullWidth
                 label='Select Channel'
-                name='slack-channel-id'
+                name='slackChannelID'
                 fieldName='slackChannelID'
                 required
               />
@@ -182,12 +175,6 @@ export default function ScheduleOnCallNotificationFormDialog(
                   control={<Radio />}
                 />
               </RadioGroup>
-            </Grid>
-            <Grid item xs={12}>
-              <ScheduleTZFilter
-                label={(tz) => `Configure in ${tz}`}
-                scheduleID={p.scheduleID}
-              />
             </Grid>
             <Grid item>
               <Grid container spacing={2} alignItems='center'>

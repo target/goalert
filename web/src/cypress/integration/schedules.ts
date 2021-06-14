@@ -121,6 +121,16 @@ function testSchedules(screen: ScreenFormat): void {
       )
     })
 
+    it('should navigate to and from on-call notifications', () => {
+      cy.navigateToAndFrom(
+        screen, 
+        'Schedule Details', 
+        sched.name, 
+        'On-Call Notifications', 
+        `${sched.id}/on-call-notifications`
+      )
+    })
+
     it('should view shifts', () => {
       cy.setScheduleTarget({
         scheduleID: sched.id,
@@ -407,19 +417,35 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.get('[data-cy="notify-on-change"]').click()
       cy.dialogForm({
-        target: 'general',
-        time: '18:44',
-        weekdayFilter: {
-          label: 'Tuesday',
-          value: 2,
-        },
+        slackChannelID: 'general',
+        // time: '18:44',
+        // weekdayFilter:'',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', '#general')
-      cy.get('body').should('contain', 'Mondays at 6:44 PM')
+      cy.get('body').should('contain', 'Notifies when on-call hands off')
+      //cy.get('body').should('contain', 'Mondays at 6:44 PM')
+
+      // cy.pageFab('Create Notification Rule')
+      // cy.dialogTitle('Create Notification Rule')
+      // cy.get('[data-cy="notify-at-time"]').click()
+      // cy.dialogForm({
+      //   slackChannelID: 'foobar',
+      //   time: '18:44',
+      //  'weekday-filter[1]':'weekdayFilter[true]',
+      // })
+      // cy.dialogFinish('Submit')
+     // cy.get('body').should('contain', 'Notifies Every day at 18:44')
     })
 
-    it('should edit a notification rule', () => {})
+    it.only('should edit a notification rule', () => {
+
+      cy.get('[data-cy="other-actions"]').find('button[title="Other Actions"]').click()
+      cy.dialogTitle('Edit Notification Rule')
+      cy.dialogForm({ slackChannelID: 'foobar' })
+      cy.dialogFinish('Submit')
+    })
+
     it('should delete a notification rule', () => {})
   })
 }
