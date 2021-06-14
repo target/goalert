@@ -39,7 +39,7 @@ interface ListItemAction {
 
 interface UserContactMethodListProps {
   userID: string
-  readOnly?: true
+  readOnly?: boolean
 }
 
 export default function UserContactMethodList(
