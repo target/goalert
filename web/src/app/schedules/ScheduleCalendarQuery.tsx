@@ -8,7 +8,6 @@ import useWidth from '../util/useWidth'
 import { useURLParam } from '../actions/hooks'
 import { Query } from '../../schema'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query scheduleCalendarShifts(
