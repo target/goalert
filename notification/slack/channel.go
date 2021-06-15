@@ -330,12 +330,12 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 
 			var userLinks []string
 			for _, u := range t.Users {
-				userLinks = append(userLinks, getSlackLink(u.URL, u.Name))
+				userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
 			}
 			userStr = "Users: " + strings.Join(userLinks, ", ")
 		}
 
-		vals.Set("text", fmt.Sprintf("%s are on call for Schedule: %s", userStr, getSlackLink(t.Schedule.URL, t.Schedule.Name)))
+		vals.Set("text", fmt.Sprintf("%s are on-call for Schedule: %s", userStr, fmt.Sprintf("<%s|%s>", t.Schedule.URL, t.Schedule.Name)))
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
