@@ -35,6 +35,9 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 		if r.WeekdayFilter != nil && r.WeekdayFilter.IsNever() {
 			return validation.NewFieldError("Rules[%d].WeekdayFilter", "At least one day must be enabled when specifying a weekday filter.")
 		}
+		if r.WeekdayFilter != nil && r.Time == nil {
+			return validation.NewFieldError("Rules[%d].WeekdayFilter", "Weekday filter may only be used with Time.")
+		}
 		key := dupkey{
 			HasTime: r.Time != nil,
 			Channel: r.ChannelID,
