@@ -403,7 +403,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 
 	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
 	if err != nil {
-		h.t.Fatalf("failed to exec query: %v", err)
+		h.t.Fatalf("failed to exec query: %v\n%s", err, b.String())
 	}
 }
 
