@@ -11,6 +11,8 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { WeekdayFilter } from '../../../schema'
 
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 export type Value = {
   slackChannelID: string | null
   time: string | null
@@ -145,7 +147,7 @@ export default function ScheduleOnCallNotificationsForm(
                 {days.map((day, i) => (
                   <FormControlLabel
                     key={i}
-                    label={day.slice(0, 3)}
+                    label={day}
                     labelPlacement='top'
                     classes={{ labelPlacementTop: classes.margin0 }}
                     control={

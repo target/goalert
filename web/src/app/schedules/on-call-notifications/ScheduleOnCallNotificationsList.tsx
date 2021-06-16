@@ -13,6 +13,7 @@ import { OnCallNotificationRule } from '../../../schema'
 import { DateTime } from 'luxon'
 import { weekdaySummary } from '../util'
 import CreateFAB from '../../lists/CreateFAB'
+import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
 type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -126,6 +127,13 @@ export default function ScheduleOnCallNotificationsList(
         <ScheduleOnCallNotificationsCreateDialog
           scheduleID={props.scheduleID}
           onClose={() => setCreateRule(false)}
+        />
+      )}
+      {editRule && (
+        <ScheduleOnCallNotificationsEditDialog
+          scheduleID={props.scheduleID}
+          ruleID={editRule}
+          onClose={() => setEditRule('')}
         />
       )}
       <CreateFAB
