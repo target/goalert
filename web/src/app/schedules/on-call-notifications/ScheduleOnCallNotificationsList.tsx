@@ -63,8 +63,8 @@ export default function ScheduleOnCallNotificationsList(
   props: ScheduleOnCallNotificationsListProps,
 ): JSX.Element {
   const [createRule, setCreateRule] = useState(false)
-  const [editRule, setEditRule] = useState('')
-  const [deleteRule, setDeleteRule] = useState('')
+  const [editRuleID, setEditRuleID] = useState('')
+  const [deleteRuleID, setDeleteRuleID] = useState('')
   const { data, loading, error } = useQuery(query, {
     variables: { id: props.scheduleID },
   })
@@ -101,11 +101,11 @@ export default function ScheduleOnCallNotificationsList(
                       actions={[
                         {
                           label: 'Edit',
-                          onClick: () => setEditRule(rule.id),
+                          onClick: () => setEditRuleID(rule.id),
                         },
                         {
                           label: 'Delete',
-                          onClick: () => setDeleteRule(rule.id),
+                          onClick: () => setDeleteRuleID(rule.id),
                         },
                       ]}
                     />
@@ -116,24 +116,24 @@ export default function ScheduleOnCallNotificationsList(
           </Card>
         </Grid>
       </Grid>
-      {deleteRule && (
-        <ScheduleOnCallNotificationsDeleteDialog
-          scheduleID={props.scheduleID}
-          ruleID={deleteRule}
-          onClose={() => setDeleteRule('')}
-        />
-      )}
       {createRule && (
         <ScheduleOnCallNotificationsCreateDialog
           scheduleID={props.scheduleID}
           onClose={() => setCreateRule(false)}
         />
       )}
-      {editRule && (
+      {editRuleID && (
         <ScheduleOnCallNotificationsEditDialog
           scheduleID={props.scheduleID}
-          ruleID={editRule}
-          onClose={() => setEditRule('')}
+          ruleID={editRuleID}
+          onClose={() => setEditRuleID('')}
+        />
+      )}
+      {deleteRuleID && (
+        <ScheduleOnCallNotificationsDeleteDialog
+          scheduleID={props.scheduleID}
+          ruleID={deleteRuleID}
+          onClose={() => setDeleteRuleID('')}
         />
       )}
       <CreateFAB

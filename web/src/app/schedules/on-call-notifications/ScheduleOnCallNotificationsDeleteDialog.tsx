@@ -2,7 +2,6 @@ import React from 'react'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
-import { setMutation } from './ScheduleOnCallNotifications'
 import { Rule, withoutTypeName } from './util'
 import { useURLParam } from '../../actions/hooks'
 import { DateTime } from 'luxon'
@@ -47,6 +46,11 @@ const query = gql`
     }
   }
 `
+const mutation = gql`
+  mutation ($input: SetScheduleOnCallNotificationRulesInput!) {
+    setScheduleOnCallNotificationRules(input: $input)
+  }
+`
 
 interface ScheduleOnCallNotificationsDeleteDialogProps {
   scheduleID: string
@@ -65,7 +69,7 @@ export default function ScheduleOnCallNotificationsDeleteDialog(
   const rules = (data?.schedule?.onCallNotificationRules ?? []).filter((r) => r)
 
   const rule = rules.find((r) => r.id === p.ruleID)
-  const [mutate, mutationStatus] = useMutation(setMutation, {
+  const [mutate, mutationStatus] = useMutation(mutation, {
     variables: {
       input: {
         scheduleID: p.scheduleID,
