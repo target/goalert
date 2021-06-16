@@ -405,12 +405,6 @@ function testSchedules(screen: ScreenFormat): void {
 
   describe('Schedule On-Call Notifications', () => {
     let sched: Schedule
-    // beforeEach(() => {
-    //   cy.setScheduleNotificationRules([]).then((s: Schedule) => {
-    //     sched = s
-    //     return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
-    //   })
-    // })
 
     it('should show existing notification rules', () => {
       cy.setScheduleNotificationRules(
@@ -472,10 +466,10 @@ function testSchedules(screen: ScreenFormat): void {
         'weekday-filter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies Mondays at 12:00AM')
+      cy.get('body').should('contain', 'Notifies Mondays at 12:00 AM UTC')
     })
 
-    it.only('should delete a notification rule', () => {
+    it('should delete a notification rule', () => {
       cy.setScheduleNotificationRules(
         [
           {
@@ -510,14 +504,14 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.dialogTitle('Are you sure?')
       cy.dialogContains(
-        ' will no longer be notified Sundays, Mondays, Tuesdays, Thursdays, Fridays, and Saturdays at 00:00',
+        ' will no longer be notified Sundays, Mondays, Tuesdays, Thursdays, Fridays, and Saturdays at 12:00 AM UTC',
       )
       cy.dialogFinish('Confirm')
 
       cy.get('[data-cy=apollo-list]').should('not.contain', 'Notifies')
     })
 
-    it.only('should edit from onSchedule to onChange', () => {
+    it('should edit from onSchedule to onChange', () => {
       cy.setScheduleNotificationRules(
         [
           {
@@ -545,7 +539,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'Notifies when on-call hands off')
     })
     
-    it.only('should edit from onChange to onSchedule', () => {
+    it('should edit from onChange to onSchedule', () => {
       cy.setScheduleNotificationRules(
         [
           {
@@ -581,7 +575,7 @@ function testSchedules(screen: ScreenFormat): void {
         'weekday-filter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies Mondays')
+      cy.get('body').should('contain', 'Notifies Mondays at 7:00 AM UTC')
     })
   })
 }
