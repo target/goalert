@@ -98,12 +98,10 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 			order by step.step_number, oc.start_time
 		`),
 		onCallUsersSchedule: p.P(`
-			SELECT u.id, u.name
-			FROM users u
-			JOIN schedule_on_call_users socu
-			ON socu.user_id = u.id
-			WHERE socu.schedule_id = $1
-			AND socu.end_time IS NULL
+			SELECT s.user_id, u.name
+			FROM schedule_on_call_users s
+			JOIN users u ON u.id = s.user_id
+			WHERE s.schedule_id = $1 AND s.end_time IS NULL
 		`),
 		schedOnCall: p.P(`
 			select
