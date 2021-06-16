@@ -1,24 +1,27 @@
 package notification
 
-// ScheduleOnCallStatus represents notification of an on-call assignment
-
+// Schedule provides information about a schedule for notifications.
 type Schedule struct {
 	ID   string
 	Name string
 	URL  string
 }
 
+// User provides information about a user for notifications.
 type User struct {
 	ID   string
 	Name string
 	URL  string
 }
+
+// ScheduleOnCallStatus is a Message that indicates which users are
+// currently on-call for a Schedule
 type ScheduleOnCallStatus struct {
 	Dest       Dest
 	CallbackID string
 
-	Schedule
-	Users []User
+	Schedule Schedule
+	Users    []User
 }
 
 var _ Message = &ScheduleOnCallStatus{}
