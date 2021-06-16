@@ -3,7 +3,35 @@ import {
   OnCallNotificationRuleInput,
   WeekdayFilter,
 } from '../../../schema'
-import { getDayNames, mapDataToInput } from './util'
+import { getDayNames, mapDataToInput, weekdayFilterString } from './util'
+
+describe('weekdayFilterString', () => {
+  function check(f: WeekdayFilter, exp: string) {
+    const names = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ]
+    const testName = f
+      .map((el, idx) => (el ? names[idx] : null))
+      .filter((el) => el)
+      .join(', ')
+    it(testName, () => {
+      expect(weekdayFilterString(f)).toBe(exp)
+    })
+  }
+
+  check([true, true, true, true, true, true, true], 'every day')
+  check([false, false, false, false, false, false, false], 'never')
+  check([true, false, false, false, false, false, true], 'weekends')
+  check([false, true, true, true, true, true, false], 'M-F')
+  check([false, true, true, true, true, true, true], 'M-F and Sat')
+  check([true, true, false, false, false, true, false], 'Sun,Mon,Fri')
+})
 
 describe('mapDataToInput', () => {
   const check = (
