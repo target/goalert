@@ -1,74 +1,137 @@
-import React, { useContext, useState } from 'react'
-import { Grid } from '@material-ui/core'
+import React, { useState } from 'react'
+import { Grid, Card } from '@material-ui/core'
 import Avatar from '@material-ui/core/Avatar'
 
-import QueryList from '../../lists/QueryList'
+import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { SlackBW } from '../../icons/components/Icons'
-import { getRuleSummary, Rule } from './util'
-import { useURLParam, useResetURLParams } from '../../actions/hooks'
-import FilterContainer from '../../util/FilterContainer'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
-import { query, ScheduleContext } from './ScheduleOnCallNotifications'
-import ScheduleOnCallNotificationsFormDialog from './ScheduleOnCallNotificationsFormDialog'
+import { Rule } from './util'
+import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
+import { gql, useQuery } from '@apollo/client'
+import { OnCallNotificationRule } from '../../../schema'
+import { DateTime } from 'luxon'
+import { weekdaySummary } from '../util'
+import CreateFAB from '../../lists/CreateFAB'
 
-export default function ScheduleOnCallNotificationsList(): JSX.Element {
-  const [displayZone] = useURLParam('tz', 'local')
-  const resetFilter = useResetURLParams('tz')
-  const schedCtx = useContext(ScheduleContext)
-  const [editRule, setEditRule] = useState<Rule | null>(null)
-  const [deleteRule, setDeleteRule] = useState<Rule | null>(null)
+type ScheduleOnCallNotificationsListProps = {
+  scheduleID: string
+}
+
+const query = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      id
+      timeZone
+      onCallNotificationRules {
+        id
+        target {
+          id
+          type
+          name
+        }
+        time
+        weekdayFilter
+      }
+    }
+  }
+`
+
+function ruleSummary(scheduleZone: string, r: Rule): string {
+  const prefix = `Notifies`
+  if (!r.time) {
+    return `${prefix} when on-call changes.`
+  }
+
+  const dt = DateTime.fromFormat(r.time, 'HH:mm', {
+    zone: scheduleZone,
+  })
+
+  const timeStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
+  const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
+
+  const summary = `${prefix} ${weekdaySummary(r.weekdayFilter)} at ${timeStr}`
+  if (timeStr === localStr) {
+    return summary
+  }
+
+  return summary + ` (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
+}
+
+export default function ScheduleOnCallNotificationsList(
+  props: ScheduleOnCallNotificationsListProps,
+): JSX.Element {
+  const [createRule, setCreateRule] = useState(false)
+  const [editRule, setEditRule] = useState('')
+  const [deleteRule, setDeleteRule] = useState('')
+  const { data, loading, error } = useQuery(query, {
+    variables: { id: props.scheduleID },
+  })
+
+  const rules: OnCallNotificationRule[] = (
+    data?.schedule?.onCallNotificationRules ?? []
+  ).filter((r) => r) // remove any invalid/null rules
+  const tz = data?.schedule?.timeZone
 
   return (
     <React.Fragment>
-      <QueryList
-        query={query}
-        variables={{ id: schedCtx.id }}
-        emptyMessage='No notification rules'
-        noSearch
-        path='data.onCallNotificationRules'
-        headerNote={`Showing times in ${
-          displayZone === 'local' ? 'local time' : displayZone
-        }.`}
-        headerAction={
-          <FilterContainer onReset={() => resetFilter()}>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={schedCtx.id} />
-            </Grid>
-          </FilterContainer>
-        }
-        mapDataNode={(nr) => ({
-          id: nr.id,
-          icon: (
-            <Avatar>
-              <SlackBW />
-            </Avatar>
-          ),
-          title: nr.target.name,
-          subText: getRuleSummary(nr as Rule, schedCtx.timeZone, displayZone),
-          action: (
-            <OtherActions
-              actions={[
-                { label: 'Edit', onClick: () => setEditRule(nr as Rule) },
-                { label: 'Delete', onClick: () => setDeleteRule(nr as Rule) },
-              ]}
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Card>
+            <FlatList
+              headerNote={tz ? `Showing times for schedule in ${tz}.` : ''}
+              emptyMessage={
+                !data && loading
+                  ? 'Loading notification rules...'
+                  : 'No notification rules.'
+              }
+              items={rules.map((rule) => {
+                return {
+                  icon:
+                    rule.target.type === 'slackChannel' ? (
+                      <Avatar>
+                        <SlackBW />{' '}
+                      </Avatar>
+                    ) : null,
+                  title: rule.target.name,
+                  subText: ruleSummary(data.schedule.timeZone, rule),
+                  secondaryAction: (
+                    <OtherActions
+                      actions={[
+                        {
+                          label: 'Edit',
+                          onClick: () => setEditRule(rule.id),
+                        },
+                        {
+                          label: 'Delete',
+                          onClick: () => setDeleteRule(rule.id),
+                        },
+                      ]}
+                    />
+                  ),
+                }
+              })}
             />
-          ),
-        })}
-      />
-      {editRule && (
-        <ScheduleOnCallNotificationsFormDialog
-          rule={editRule}
-          onClose={() => setEditRule(null)}
-        />
-      )}
+          </Card>
+        </Grid>
+      </Grid>
       {deleteRule && (
         <ScheduleOnCallNotificationsDeleteDialog
-          rule={deleteRule}
-          onClose={() => setDeleteRule(null)}
+          scheduleID={props.scheduleID}
+          ruleID={deleteRule}
+          onClose={() => setDeleteRule('')}
         />
       )}
+      {createRule && (
+        <ScheduleOnCallNotificationsCreateDialog
+          scheduleID={props.scheduleID}
+          onClose={() => setCreateRule(false)}
+        />
+      )}
+      <CreateFAB
+        onClick={() => setCreateRule(true)}
+        title='Create Notification Rule'
+      />
     </React.Fragment>
   )
 }

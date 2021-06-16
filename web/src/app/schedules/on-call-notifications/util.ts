@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
@@ -9,6 +10,13 @@ import { days, isoToGQLClockTime } from '../util'
 // type aliases for convenience
 export type Rule = OnCallNotificationRule
 export type RuleInput = OnCallNotificationRuleInput
+
+export function withoutTypeName(obj) {
+  return {
+    ..._.omit(obj, '__typename'),
+    target: _.omit(obj.target, ['__typename', 'name']),
+  }
+}
 
 export function mapDataToInput(
   rules: Array<Rule> = [],
@@ -33,7 +41,9 @@ export function mapDataToInput(
   }) as Array<RuleInput>
 }
 
-export function weekdayFilterString(filter: WeekdayFilter): string {
+export function weekdayFilterString(filter?: WeekdayFilter): string {
+  if (!filter) return 'every day'
+
   const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const state = filter.map((v) => (v ? '1' : '0')).join('')
   switch (state) {
