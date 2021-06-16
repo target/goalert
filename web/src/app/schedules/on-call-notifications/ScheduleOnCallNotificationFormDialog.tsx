@@ -7,7 +7,7 @@ import Radio from '@material-ui/core/Radio'
 import { DateTime } from 'luxon'
 import { Checkbox, makeStyles } from '@material-ui/core'
 
-import { ScheduleContext, setMutation } from './ScheduleOnCallNotificationsList'
+import { ScheduleContext, setMutation } from './ScheduleOnCallNotifications'
 import { Rule, RuleInput, mapDataToInput } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors, FieldError } from '../../util/errutil'

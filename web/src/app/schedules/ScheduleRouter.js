@@ -10,7 +10,7 @@ import ScheduleShiftList from './ScheduleShiftList'
 import { PageNotFound } from '../error-pages/Errors'
 import ScheduleRuleList from './ScheduleRuleList'
 import SimpleListPage from '../lists/SimpleListPage'
-import ScheduleOnCallNotificationsList from './on-call-notifications/ScheduleOnCallNotificationsList'
+import ScheduleOnCallNotifications from './on-call-notifications/ScheduleOnCallNotifications'
 
 const query = gql`
   query schedulesQuery($input: ScheduleSearchOptions) {
@@ -67,9 +67,7 @@ export default function ScheduleRouter() {
       <Route
         path='/schedules/:scheduleID/on-call-notifications'
         render={({ match }) => (
-          <ScheduleOnCallNotificationsList
-            scheduleID={match.params.scheduleID}
-          />
+          <ScheduleOnCallNotifications scheduleID={match.params.scheduleID} />
         )}
       />
       <Route
