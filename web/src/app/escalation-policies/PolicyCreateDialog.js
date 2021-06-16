@@ -31,7 +31,6 @@ function PolicyCreateDialog(props) {
         favorite: true,
       },
     },
-    onCompleted: props.onClose,
   })
 
   const { loading, data, error } = createPolicyStatus
