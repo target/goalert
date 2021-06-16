@@ -25,6 +25,7 @@ type Store interface {
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
 }
 
+// ScheduleOnCallUser represents a currently on-call user for a schedule.
 type ScheduleOnCallUser struct {
 	ID   string
 	Name string
