@@ -3,6 +3,7 @@ package oncall
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -180,20 +181,21 @@ func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]S
 	}
 	rows, err := db.onCallUsersSchedule.QueryContext(ctx, scheduleID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetch on-call users for schedule '%s': %w", scheduleID, err)
 	}
-
 	defer rows.Close()
+
 	var result []ScheduleOnCallUser
 	for rows.Next() {
 		var u ScheduleOnCallUser
 		err = rows.Scan(&u.ID, &u.Name)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan on-call user entry #%d for schedule '%s': %w", len(result), scheduleID, err)
 		}
-		result = append(result, u)
 
+		result = append(result, u)
 	}
+
 	return result, nil
 }
 
