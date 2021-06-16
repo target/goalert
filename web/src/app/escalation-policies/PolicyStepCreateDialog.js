@@ -39,7 +39,6 @@ function PolicyStepCreateDialog(props) {
         targets: (value && value.targets) || defaultValue.targets,
       },
     },
-    onCompleted: props.onClose,
   })
 
   const { loading, error } = createStepStatus

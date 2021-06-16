@@ -48,7 +48,6 @@ function PolicyEditDialog(props) {
         repeat: value?.repeat?.value ?? defaultValue.repeat.value,
       },
     },
-    onCompleted: props.onClose,
   })
   const fieldErrs = fieldErrors(editDialogMutationStatus.error)
 
