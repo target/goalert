@@ -141,14 +141,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.ScheduleOnCallStatus{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
-			Schedule: notification.Schedule{
-				Name: sched.Name,
-				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
-				ID:   msg.ScheduleID,
-			},
-			Users: onCallUsers,
+			Dest:         msg.Dest,
+			CallbackID:   msg.ID,
+			ScheduleName: sched.Name,
+			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
+			ScheduleID:   msg.ScheduleID,
+			Users:        onCallUsers,
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))

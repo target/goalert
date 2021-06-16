@@ -1,12 +1,5 @@
 package notification
 
-// Schedule provides information about a schedule for notifications.
-type Schedule struct {
-	ID   string
-	Name string
-	URL  string
-}
-
 // User provides information about a user for notifications.
 type User struct {
 	ID   string
@@ -20,8 +13,11 @@ type ScheduleOnCallStatus struct {
 	Dest       Dest
 	CallbackID string
 
-	Schedule Schedule
-	Users    []User
+	ScheduleID   string
+	ScheduleName string
+	ScheduleURL  string
+
+	Users []User
 }
 
 var _ Message = &ScheduleOnCallStatus{}
