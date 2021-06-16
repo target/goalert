@@ -35,7 +35,7 @@ interface ScheduleOnCallNotificationDeleteDialogProps {
 export default function ScheduleOnCallNotificationDeleteDialog(
   p: ScheduleOnCallNotificationDeleteDialogProps,
 ): JSX.Element {
-  const [URLZone] = useURLParam('tz', 'local')
+  const [displayZone] = useURLParam('tz', 'local')
   const schedCtx = useContext(ScheduleContext)
 
   const [mutate, mutationStatus] = useMutation(setMutation, {
@@ -59,7 +59,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       confirm
       loading={mutationStatus.loading}
       errors={nonFieldErrors(mutationStatus.error)}
-      subTitle={getDeleteSummary(p.rule, schedCtx.timeZone, URLZone)}
+      subTitle={getDeleteSummary(p.rule, schedCtx.timeZone, displayZone)}
       onSubmit={() => mutate()}
       onClose={() => p.onClose()}
     />

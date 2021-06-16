@@ -72,9 +72,9 @@ export default function ScheduleOnCallNotificationFormDialog(
   const editing = Boolean(p.rule)
   const classes = useStyles()
   const schedCtx = useContext(ScheduleContext)
-  const [URLZone] = useURLParam<string>('tz', 'local')
+  const [displayZone] = useURLParam<string>('tz', 'local')
   const [value, setValue] = useState(
-    getInitialValue(editing ? schedCtx.timeZone : URLZone, p.rule),
+    getInitialValue(editing ? schedCtx.timeZone : displayZone, p.rule),
   )
 
   const newRules = (() => {
