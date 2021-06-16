@@ -39,7 +39,6 @@ func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCal
 	}
 
 	if ch.Type == notificationchannel.TypeSlack {
-
 		return &assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
 			ID:   ch.Value,
