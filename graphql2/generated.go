@@ -4139,6 +4139,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.

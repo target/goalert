@@ -1,9 +1,10 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
 	"database/sql"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
@@ -72,6 +73,12 @@ func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmetho
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
 	var cm *contactmethod.ContactMethod
+	cfg := config.FromContext(ctx)
+
+	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
+		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{

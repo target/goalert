@@ -29,12 +29,18 @@ const userConflictQuery = gql`
 `
 
 export default function UserContactMethodCreateDialog(props) {
-  const [allowSV, allowE] = useConfigValue('Twilio.Enable', 'SMTP.Enable')
+  const [allowSV, allowE, allowW] = useConfigValue(
+    'Twilio.Enable',
+    'SMTP.Enable',
+    'Webhook.Enable',
+  )
   let typeVal = ''
   if (allowSV) {
     typeVal = 'SMS'
   } else if (allowE) {
     typeVal = 'EMAIL'
+  } else if (allowW) {
+    typeVal = 'WEBHOOK'
   }
   // values for contact method form
   const [CMValue, setCMValue] = useState({

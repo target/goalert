@@ -127,6 +127,20 @@ function testProfile(): void {
       check(name, type, value)
     })
 
+    it('should allow creating webhook', () => {
+      cy.updateConfig({
+        Webhook: {
+          Enable: true,
+        },
+      })
+      cy.reload()
+
+      const name = 'SM CM ' + c.word({ length: 8 })
+      const type = c.pickone(['WEBHOOK'])
+      const value = c.url()
+      check(name, type, value)
+    })
+
     it('should return error with link to conflicting user', () => {
       cy.fixture('profile').then((prof) => {
         cy.addContactMethod({ userID: prof.id }).then(
