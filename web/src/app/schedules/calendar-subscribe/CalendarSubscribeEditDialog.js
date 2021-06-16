@@ -41,7 +41,6 @@ export function CalendarSubscribeEditDialogContent(props) {
         name: value.name,
       },
     },
-    onCompleted: () => props.onClose(),
   })
 
   return (

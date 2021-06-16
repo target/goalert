@@ -40,7 +40,6 @@ export default function ScheduleRuleCreateDialog(props) {
     variables: { id: scheduleID },
   })
   const [mutate, mutationStatus] = useMutation(mutation, {
-    onCompleted: onClose,
     variables: {
       input: {
         target: {

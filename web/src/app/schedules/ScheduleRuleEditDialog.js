@@ -68,7 +68,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
 
   renderMutation(data, zone) {
     return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
+      <Mutation mutation={mutation}>
         {(commit, status) => this.renderDialog(data, commit, status, zone)}
       </Mutation>
     )

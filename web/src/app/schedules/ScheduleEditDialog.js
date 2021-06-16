@@ -46,7 +46,7 @@ export default class ScheduleEditDialog extends React.PureComponent {
 
   renderMutation(data) {
     return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
+      <Mutation mutation={mutation}>
         {(...args) => this.renderForm(data, ...args)}
       </Mutation>
     )

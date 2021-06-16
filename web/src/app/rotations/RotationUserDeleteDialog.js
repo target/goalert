@@ -34,7 +34,6 @@ const RotationUserDeleteDialog = (props) => {
   })
   const { userIDs, users } = data.rotation
   const [deleteUserMutation] = useMutation(mutation, {
-    onCompleted: onClose,
     variables: {
       input: {
         id: rotationID,

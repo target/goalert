@@ -97,6 +97,7 @@ export default function CalendarSubscribeCreateDialog(props) {
       primaryActionLabel={isComplete ? 'Done' : null}
       onSubmit={() => (isComplete ? props.onClose() : createSubscription())}
       form={getForm(isComplete, form, status.data)}
+      remainOpen
     />
   )
 }
