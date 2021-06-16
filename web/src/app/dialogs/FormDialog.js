@@ -65,6 +65,7 @@ function FormDialog(props) {
     title,
     onNext,
     onBack,
+    remainOpen = false,
     ...dialogProps
   } = props
 
@@ -74,6 +75,31 @@ function FormDialog(props) {
 
   const handleOnExited = () => {
     onClose()
+  }
+
+  const handleOnSubmit = (e, valid) => {
+    e.preventDefault()
+
+    if (!valid) {
+      return
+    }
+
+    if (onNext) {
+      onNext()
+      return
+    }
+
+    if (remainOpen) {
+      onSubmit()
+      return
+    }
+
+    Promise.resolve(onSubmit()).then(
+      () => {
+        setOpen(false)
+      },
+      () => {},
+    )
   }
 
   function renderForm() {
@@ -171,12 +197,7 @@ function FormDialog(props) {
         <Form
           id='dialog-form'
           className={classes.formContainer}
-          onSubmit={(e, valid) => {
-            e.preventDefault()
-            if (valid) {
-              onNext ? onNext() : onSubmit()
-            }
-          }}
+          onSubmit={handleOnSubmit}
         >
           <ErrorBoundary>{renderForm()}</ErrorBoundary>
         </Form>
@@ -230,6 +251,9 @@ FormDialog.propTypes = {
 
   // notices to render; see details/Notices.tsx
   notices: p.arrayOf(p.object),
+
+  // remainOpen prevents the dialog from closing on submit
+  remainOpen: p.bool,
 }
 
 FormDialog.defaultProps = {
