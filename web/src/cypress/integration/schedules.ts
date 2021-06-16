@@ -418,55 +418,48 @@ function testSchedules(screen: ScreenFormat): void {
         { timeZone: 'UTC' },
       ).then((s: Schedule) => {
         sched = s
-        return cy.visit(
-          '/schedules/' + sched.id + '/on-call-notifications?tz=UTC',
-        )
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })
 
-      cy.get('[data-cy=apollo-list]')
-        .should('contain', 'Notifies when on-call hands off')
-        .should(
-          'contain',
-          'Notifies Sundays, Mondays, Tuesdays, Thursdays, Fridays, and Saturdays at 12:00 AM',
-        )
+      cy.get('#content')
+        .should('contain', 'Notifies when on-call changes')
+        .should('contain', 'Notifies Sun—Tue, Thu—Sat at 12:00 AM')
     })
 
     it('should create notification rules', () => {
       cy.createSchedule({ timeZone: 'UTC' }).then((s: Schedule) => {
         sched = s
-        return cy.visit(
-          '/schedules/' + sched.id + '/on-call-notifications?tz=UTC',
-        )
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })
 
       // on change
       cy.pageFab()
       cy.dialogTitle('Create Notification Rule')
-      cy.get('[data-cy="notify-on-change"]').click()
       cy.dialogForm({
-        'slack-channel-id': 'general',
+        ruleType: 'on-change',
+        slackChannelID: 'general',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', '#general')
-      cy.get('body').should('contain', 'Notifies when on-call hands off')
+      cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
       cy.pageFab()
       cy.dialogTitle('Create Notification Rule')
-      cy.get('[data-cy="notify-at-time"]').click()
       cy.dialogForm({
-        'slack-channel-id': 'foobar',
+        slackChannelID: 'foobar',
+        ruleType: 'time-of-day',
         time: '00:00',
-        'weekday-filter[0]': false,
-        'weekday-filter[1]': true,
-        'weekday-filter[2]': false,
-        'weekday-filter[3]': false,
-        'weekday-filter[4]': false,
-        'weekday-filter[5]': false,
-        'weekday-filter[6]': false,
+        'weekdayFilter[0]': false,
+        'weekdayFilter[1]': true,
+        'weekdayFilter[2]': false,
+        'weekdayFilter[3]': false,
+        'weekdayFilter[4]': false,
+        'weekdayFilter[5]': false,
+        'weekdayFilter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies Mondays at 12:00 AM UTC')
+      cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
     })
 
     it('should delete a notification rule', () => {
@@ -481,13 +474,11 @@ function testSchedules(screen: ScreenFormat): void {
         { timeZone: 'UTC' },
       ).then((s: Schedule) => {
         sched = s
-        return cy.visit(
-          '/schedules/' + sched.id + '/on-call-notifications?tz=UTC',
-        )
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })
 
-      cy.get('[data-cy=apollo-list]')
-        .contains('li', 'hands off')
+      cy.get('#content')
+        .contains('li', 'on-call changes')
         .find('[aria-label="Other Actions"]')
         .menu('Delete')
 
@@ -495,20 +486,22 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogContains(' will no longer be notified when on-call changes.')
       cy.dialogFinish('Confirm')
 
-      cy.get('[data-cy=apollo-list]').should('not.contain', 'hands off')
+      cy.get('#content').should('not.contain', 'on-call changes')
 
-      cy.get('[data-cy=apollo-list]')
+      cy.get('#content')
         .contains('li', 'Notifies')
         .find('[aria-label="Other Actions"]')
         .menu('Delete')
 
       cy.dialogTitle('Are you sure?')
       cy.dialogContains(
-        ' will no longer be notified Sundays, Mondays, Tuesdays, Thursdays, Fridays, and Saturdays at 12:00 AM UTC',
+        ' will no longer be notified Sun—Tue, Thu—Sat at 12:00 AM',
       )
       cy.dialogFinish('Confirm')
 
-      cy.get('[data-cy=apollo-list]').should('not.contain', 'Notifies')
+      cy.get('#content')
+        .should('not.contain', 'Notifies')
+        .should('contain', 'No notification rules')
     })
 
     it('should edit from onSchedule to onChange', () => {
@@ -518,64 +511,52 @@ function testSchedules(screen: ScreenFormat): void {
             time: '00:00',
             weekdayFilter: [false, true, true, true, true, true, true],
           },
-          { time: null, weekdayFilter: null },
         ],
         { timeZone: 'UTC' },
       ).then((s: Schedule) => {
         sched = s
-        return cy.visit(
-          '/schedules/' + sched.id + '/on-call-notifications?tz=UTC',
-        )
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })
 
-      cy.get('[data-cy=apollo-list]')
-      .contains('li', 'Notifies')
-      .find('[aria-label="Other Actions"]')
-      .menu('Edit')
+      cy.get('#content')
+        .contains('li', 'Notifies')
+        .find('[aria-label="Other Actions"]')
+        .menu('Edit')
 
       cy.dialogTitle('Edit Notification Rule')
-      cy.get('[data-cy="notify-on-change"]').click()
+      cy.dialogForm({ ruleType: 'on-change' })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies when on-call hands off')
+      cy.get('#content').should('contain', 'Notifies when on-call changes')
     })
-    
-    it('should edit from onChange to onSchedule', () => {
-      cy.setScheduleNotificationRules(
-        [
-          {
-            time: '00:00',
-            weekdayFilter: [false, true, true, true, true, true, true],
-          },
-          { time: null, weekdayFilter: null },
-        ],
-        { timeZone: 'UTC' },
-      ).then((s: Schedule) => {
+
+    it.only('should edit from onChange to onSchedule', () => {
+      cy.setScheduleNotificationRules([{ time: null, weekdayFilter: null }], {
+        timeZone: 'UTC',
+      }).then((s: Schedule) => {
         sched = s
-        return cy.visit(
-          '/schedules/' + sched.id + '/on-call-notifications?tz=UTC',
-        )
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })
 
-      cy.get('[data-cy=apollo-list]')
-      .contains('li', 'Notifies')
-      .find('[aria-label="Other Actions"]')
-      .menu('Edit')
+      cy.get('#content')
+        .contains('li', 'Notifies')
+        .find('[aria-label="Other Actions"]')
+        .menu('Edit')
 
       cy.dialogTitle('Edit Notification Rule')
-      cy.get('[data-cy="notify-at-time"]').click()
       cy.dialogForm({
-        'slack-channel-id': 'foobar',
+        ruleType: 'time-of-day',
+        slackChannelID: 'foobar',
         time: '07:00',
-        'weekday-filter[0]': false,
-        'weekday-filter[1]': true,
-        'weekday-filter[2]': false,
-        'weekday-filter[3]': false,
-        'weekday-filter[4]': false,
-        'weekday-filter[5]': false,
-        'weekday-filter[6]': false,
+        'weekdayFilter[0]': false,
+        'weekdayFilter[1]': true,
+        'weekdayFilter[2]': false,
+        'weekdayFilter[3]': false,
+        'weekdayFilter[4]': false,
+        'weekdayFilter[5]': false,
+        'weekdayFilter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies Mondays at 7:00 AM UTC')
+      cy.get('body').should('contain', 'Notifies Mon at 7:00 AM')
     })
   })
 }

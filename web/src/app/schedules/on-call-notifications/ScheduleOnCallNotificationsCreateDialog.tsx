@@ -60,9 +60,11 @@ export default function ScheduleOnCallNotificationsCreateDialog(
         scheduleID: p.scheduleID,
         rules: existingRules.map(withoutTypeName).concat({
           weekdayFilter: value.time ? value.weekdayFilter : null,
-          time: DateTime.fromISO(value.time || '')
-            .setZone(data?.schedule?.timeZone)
-            .toFormat('HH:mm'),
+          time: value.time
+            ? DateTime.fromISO(value.time || '')
+                .setZone(data?.schedule?.timeZone)
+                .toFormat('HH:mm')
+            : null,
           target: { type: 'slackChannel', id: value.slackChannelID },
         }),
       },

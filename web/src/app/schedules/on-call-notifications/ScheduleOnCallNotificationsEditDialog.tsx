@@ -79,9 +79,11 @@ export default function ScheduleOnCallNotificationsEditDialog(
           .concat({
             id: rule?.id,
             weekdayFilter: value.time ? value.weekdayFilter : null,
-            time: DateTime.fromISO(value.time || '')
-              .setZone(data?.schedule?.timeZone)
-              .toFormat('HH:mm'),
+            time: value.time
+              ? DateTime.fromISO(value.time || '')
+                  .setZone(data?.schedule?.timeZone)
+                  .toFormat('HH:mm')
+              : null,
             target: { type: 'slackChannel', id: value.slackChannelID },
           }),
       },
@@ -95,7 +97,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
 
   return (
     <FormDialog
-      title='Create Notification Rule'
+      title='Edit Notification Rule'
       errors={formErrors}
       loading={loading}
       onClose={() => p.onClose()}

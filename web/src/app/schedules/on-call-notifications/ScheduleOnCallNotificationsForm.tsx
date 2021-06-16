@@ -135,6 +135,7 @@ export default function ScheduleOnCallNotificationsForm(
             <Grid item xs={12} sm={5} md={4}>
               <FormField
                 component={ISOTimePicker}
+                timeZone={schedTZ}
                 fullWidth
                 name='time'
                 disabled={!value.time}
