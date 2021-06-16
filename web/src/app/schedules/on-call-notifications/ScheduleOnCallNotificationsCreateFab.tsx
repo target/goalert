@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import CreateFAB from '../../lists/CreateFAB'
-import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFormDialog'
+import ScheduleOnCallNotificationsFormDialog from './ScheduleOnCallNotificationsFormDialog'
 
-export default function ScheduleOnCallNotificationCreateFab(): JSX.Element {
+export default function ScheduleOnCallNotificationsCreateFab(): JSX.Element {
   const [showCreate, setShowCreate] = useState(false)
 
   return (
@@ -12,7 +12,7 @@ export default function ScheduleOnCallNotificationCreateFab(): JSX.Element {
         onClick={() => setShowCreate(true)}
       />
       {showCreate && (
-        <ScheduleOnCallNotificationFormDialog
+        <ScheduleOnCallNotificationsFormDialog
           onClose={() => setShowCreate(false)}
         />
       )}

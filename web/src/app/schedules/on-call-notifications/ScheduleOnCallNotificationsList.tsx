@@ -10,8 +10,8 @@ import { useURLParam, useResetURLParams } from '../../actions/hooks'
 import FilterContainer from '../../util/FilterContainer'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { query, ScheduleContext } from './ScheduleOnCallNotifications'
-import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFormDialog'
-import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
+import ScheduleOnCallNotificationsFormDialog from './ScheduleOnCallNotificationsFormDialog'
+import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 
 export default function ScheduleOnCallNotificationsList(): JSX.Element {
   const [displayZone] = useURLParam('tz', 'local')
@@ -58,13 +58,13 @@ export default function ScheduleOnCallNotificationsList(): JSX.Element {
         })}
       />
       {editRule && (
-        <ScheduleOnCallNotificationFormDialog
+        <ScheduleOnCallNotificationsFormDialog
           rule={editRule}
           onClose={() => setEditRule(null)}
         />
       )}
       {deleteRule && (
-        <ScheduleOnCallNotificationDeleteDialog
+        <ScheduleOnCallNotificationsDeleteDialog
           rule={deleteRule}
           onClose={() => setDeleteRule(null)}
         />
