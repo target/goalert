@@ -27,24 +27,6 @@ function getDeleteSummary(
   return `${prefix} when on-call changes.`
 }
 
-export function getRuleSummary(
-  rule: Rule,
-  scheduleZone: string,
-  displayZone: string,
-): string {
-  if (rule.time && rule.weekdayFilter) {
-    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', {
-      zone: scheduleZone,
-    })
-      .setZone(displayZone)
-      .toFormat('h:mm a ZZZZ')
-
-    return `Notifies ${getDayNames(rule.weekdayFilter)} at ${timeStr}`
-  }
-
-  return 'Notifies when on-call hands off'
-}
-
 interface ScheduleOnCallNotificationDeleteDialogProps {
   rule: Rule
   onClose: () => void
