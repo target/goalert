@@ -59,15 +59,15 @@ function getInitialValue(zone: string, rule?: Rule): Value {
 
 const useStyles = makeStyles({ margin0: { margin: 0 } })
 
-interface ScheduleOnCallNotificationFormProps {
+interface ScheduleOnCallNotificationsFormProps {
   onClose: () => void
 
   // if set, populates form
   rule?: Rule
 }
 
-export default function ScheduleOnCallNotificationFormDialog(
-  p: ScheduleOnCallNotificationFormProps,
+export default function ScheduleOnCallNotificationsFormDialog(
+  p: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
   const editing = Boolean(p.rule)
   const classes = useStyles()

@@ -27,13 +27,13 @@ function getDeleteSummary(
   return `${prefix} when on-call changes.`
 }
 
-interface ScheduleOnCallNotificationDeleteDialogProps {
+interface ScheduleOnCallNotificationsDeleteDialogProps {
   rule: Rule
   onClose: () => void
 }
 
-export default function ScheduleOnCallNotificationDeleteDialog(
-  p: ScheduleOnCallNotificationDeleteDialogProps,
+export default function ScheduleOnCallNotificationsDeleteDialog(
+  p: ScheduleOnCallNotificationsDeleteDialogProps,
 ): JSX.Element {
   const [displayZone] = useURLParam('tz', 'local')
   const schedCtx = useContext(ScheduleContext)

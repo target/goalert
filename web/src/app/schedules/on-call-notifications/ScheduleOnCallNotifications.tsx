@@ -1,7 +1,7 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 
-import ScheduleOnCallNotificationCreateFab from './ScheduleOnCallNotificationCreateFab'
+import ScheduleOnCallNotificationsCreateFab from './ScheduleOnCallNotificationsCreateFab'
 import { Schedule } from '../../../schema'
 import { ObjectNotFound, GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -54,7 +54,7 @@ export default function ScheduleOnCallNotifications(
   return (
     <ScheduleContext.Provider value={data.schedule}>
       <ScheduleOnCallNotificationsList />
-      <ScheduleOnCallNotificationCreateFab />
+      <ScheduleOnCallNotificationsCreateFab />
     </ScheduleContext.Provider>
   )
 }
