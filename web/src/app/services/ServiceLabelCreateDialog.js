@@ -29,7 +29,6 @@ export default function ServiceLabelCreateDialog(props) {
   const [value, setValue] = useState({ key: '', value: '' })
 
   const [createLabel, createLabelStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
     update: (cache) => {
       const { service } = cache.readQuery({
         query,

@@ -28,7 +28,6 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
     timeoutMinutes: data.timeoutMinutes,
   })
   const [update, { loading, error }] = useMutation(mutation, {
-    onCompleted: props.onClose,
     variables: {
       input: { id: props.monitorID, ...value },
     },
