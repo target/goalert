@@ -126,7 +126,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup on call users by schedule")
 		}
-		schedName, err := p.cfg.ScheduleStore.FindName(ctx, msg.ScheduleID)
+		sched, err := p.cfg.ScheduleStore.FindOne(ctx, msg.ScheduleID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup schedule by id")
 		}
@@ -144,7 +144,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			Schedule: notification.Schedule{
-				Name: schedName,
+				Name: sched.Name,
 				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
 				ID:   msg.ScheduleID,
 			},

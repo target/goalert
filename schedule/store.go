@@ -21,7 +21,6 @@ type Store struct {
 	findOne *sql.Stmt
 	delete  *sql.Stmt
 
-	findName    *sql.Stmt
 	findData    *sql.Stmt
 	findUpdData *sql.Stmt
 	updateData  *sql.Stmt
@@ -41,7 +40,6 @@ func NewStore(ctx context.Context, db *sql.DB, usr user.Store) (*Store, error) {
 		db:  db,
 		usr: usr,
 
-		findName:    p.P(`SELECT name FROM schedules WHERE id = $1`),
 		findData:    p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1`),
 		findUpdData: p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1 FOR UPDATE`),
 		insertData:  p.P(`INSERT INTO schedule_data (schedule_id, data) VALUES ($1, '{}')`),
@@ -283,23 +281,4 @@ func (store *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) 
 	}
 	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
-}
-
-func (store *Store) FindName(ctx context.Context, id string) (string, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return "", err
-	}
-	err = validate.UUID("ScheduleID", id)
-	if err != nil {
-		return "", err
-	}
-
-	row := store.findName.QueryRowContext(ctx, id)
-	var result *string
-	err = row.Scan(&result)
-	if err != nil {
-		return "", err
-	}
-	return *result, nil
 }
