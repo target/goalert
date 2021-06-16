@@ -33,7 +33,7 @@ export default function HeartbeatMonitorCreateDialog(props) {
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => createHeartbeat().then(props.onClose)}
+      onSubmit={() => createHeartbeat()}
       form={
         <HeartbeatMonitorForm
           errors={fieldErrors(error).map((f) => ({
