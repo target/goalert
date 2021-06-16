@@ -13,6 +13,8 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+// An OnCallNotificationRule defines when notifications for on-call users for a schedule
+// should be sent.
 type OnCallNotificationRule struct {
 	// ID is a persistent value for UI or other systems to track rule additions/deletions/edits.
 	ID RuleID
@@ -26,6 +28,8 @@ type OnCallNotificationRule struct {
 	NextNotification *time.Time
 }
 
+// RuleID uniquely identifies an OnCallNotificationRule within the context of a single schedule
+// and i stable across updates.
 type RuleID struct {
 	scheduleID uuid.UUID
 	id         int
