@@ -49,7 +49,6 @@ export default function ScheduleOverrideCreateDialog(props) {
         scheduleID: props.scheduleID,
       },
     },
-    onCompleted: props.onClose,
   })
 
   return (
