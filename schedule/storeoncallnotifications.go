@@ -14,6 +14,7 @@ import (
 
 const onCallNotificationRuleLimit = 50
 
+// SetOnCallNotificationRules will set/replace all notification rules for the given schedule ID.
 func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, rules []OnCallNotificationRule) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -104,6 +105,7 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 	})
 }
 
+// OnCallNotificationRules returns the current set of OnCallNotificationRules for the provided scheduleID.
 func (store *Store) OnCallNotificationRules(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) ([]OnCallNotificationRule, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
