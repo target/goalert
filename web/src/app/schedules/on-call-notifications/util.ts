@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
@@ -45,4 +46,22 @@ export function getDayNames(filter: WeekdayFilter): string {
   const lastDay = names.length > 1 ? names.pop() : ''
   const oxford = names.length > 1 ? ',' : ''
   return names.join(', ') + (lastDay && `${oxford} and ` + lastDay)
+}
+
+export function getRuleSummary(
+  rule: Rule,
+  scheduleZone: string,
+  displayZone: string,
+): string {
+  if (rule.time && rule.weekdayFilter) {
+    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', {
+      zone: scheduleZone,
+    })
+      .setZone(displayZone)
+      .toFormat('h:mm a ZZZZ')
+
+    return `Notifies ${getDayNames(rule.weekdayFilter)} at ${timeStr}`
+  }
+
+  return 'Notifies when on-call hands off'
 }

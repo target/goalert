@@ -10,7 +10,7 @@ describe('mapDataToInput', () => {
     data: OnCallNotificationRule[],
     expected: OnCallNotificationRuleInput[],
   ): void => {
-    const actual = mapDataToInput(data)
+    const actual = mapDataToInput(data, 'UTC')
     expect(actual).toEqual(expected)
   }
 

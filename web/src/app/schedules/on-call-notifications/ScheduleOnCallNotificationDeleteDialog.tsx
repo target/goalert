@@ -1,56 +1,75 @@
-import React from 'react'
-import { useQuery, useMutation } from '@apollo/client'
+import React, { useContext } from 'react'
+import { useMutation } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
-import { query, setMutation } from './ScheduleOnCallNotificationsList'
-import Spinner from '../../loading/components/Spinner'
-import { GenericError } from '../../error-pages'
+import { ScheduleContext, setMutation } from './ScheduleOnCallNotificationsList'
 import { Rule, mapDataToInput, getDayNames } from './util'
 import { useURLParam } from '../../actions/hooks'
+import { DateTime } from 'luxon'
 
-function getDeleteSummary(r: Rule): string {
+function getDeleteSummary(
+  r: Rule,
+  scheduleZone: string,
+  displayZone: string,
+): string {
   const prefix = `${r.target.name} will no longer be notified`
 
   if (r.time && r.weekdayFilter) {
-    return `${prefix} ${getDayNames(r.weekdayFilter)} at ${r.time}`
+    const timeStr = DateTime.fromFormat(r.time, 'HH:mm', {
+      zone: scheduleZone,
+    })
+      .setZone(displayZone)
+      .toFormat('h:mm a ZZZZ')
+
+    return `${prefix} ${getDayNames(r.weekdayFilter)} at ${timeStr}`
   }
 
   return `${prefix} when on-call changes.`
 }
 
+export function getRuleSummary(
+  rule: Rule,
+  scheduleZone: string,
+  displayZone: string,
+): string {
+  if (rule.time && rule.weekdayFilter) {
+    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', {
+      zone: scheduleZone,
+    })
+      .setZone(displayZone)
+      .toFormat('h:mm a ZZZZ')
+
+    return `Notifies ${getDayNames(rule.weekdayFilter)} at ${timeStr}`
+  }
+
+  return 'Notifies when on-call hands off'
+}
+
 interface ScheduleOnCallNotificationDeleteDialogProps {
   rule: Rule
-  scheduleID: string
   onClose: () => void
 }
 
 export default function ScheduleOnCallNotificationDeleteDialog(
   p: ScheduleOnCallNotificationDeleteDialogProps,
 ): JSX.Element {
-  const [zone] = useURLParam('tz', 'local')
-  const { loading, error, data } = useQuery(query, {
-    variables: {
-      id: p.scheduleID,
-    },
-  })
+  const [URLZone] = useURLParam('tz', 'local')
+  const schedCtx = useContext(ScheduleContext)
 
   const [mutate, mutationStatus] = useMutation(setMutation, {
     variables: {
       input: {
-        scheduleID: p.scheduleID,
+        scheduleID: schedCtx.id,
         rules: mapDataToInput(
-          data.schedule.onCallNotificationRules.filter(
+          schedCtx.onCallNotificationRules.filter(
             (nr: Rule) => nr.id !== p.rule.id,
           ),
-          zone,
+          schedCtx.timeZone,
         ),
       },
     },
     onCompleted: () => p.onClose(),
   })
-
-  if (loading && !data?.schedule) return <Spinner />
-  if (error) return <GenericError error={error.message} />
 
   return (
     <FormDialog
@@ -58,7 +77,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       confirm
       loading={mutationStatus.loading}
       errors={nonFieldErrors(mutationStatus.error)}
-      subTitle={getDeleteSummary(p.rule)}
+      subTitle={getDeleteSummary(p.rule, schedCtx.timeZone, URLZone)}
       onSubmit={() => mutate()}
       onClose={() => p.onClose()}
     />

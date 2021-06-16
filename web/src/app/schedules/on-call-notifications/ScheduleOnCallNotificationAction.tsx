@@ -4,9 +4,8 @@ import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotification
 import { Rule } from './util'
 
 interface ScheduleOnCallNotificationActionProps {
-  scheduleID: string
-  editRule?: Rule
-  deleteRule?: Rule
+  editRule: Rule | null
+  deleteRule: Rule | null
   handleOnCloseEdit: () => void
   handleOnCloseDelete: () => void
 }
@@ -19,14 +18,12 @@ export default function ScheduleOnCallNotificationAction(
       {p.editRule && (
         <ScheduleOnCallNotificationFormDialog
           rule={p.editRule}
-          scheduleID={p.scheduleID}
           onClose={p.handleOnCloseEdit}
         />
       )}
       {p.deleteRule && (
         <ScheduleOnCallNotificationDeleteDialog
           rule={p.deleteRule}
-          scheduleID={p.scheduleID}
           onClose={p.handleOnCloseDelete}
         />
       )}

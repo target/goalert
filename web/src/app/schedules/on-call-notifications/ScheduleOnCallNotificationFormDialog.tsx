@@ -1,25 +1,23 @@
-import React, { ChangeEvent, useState } from 'react'
-import { useQuery, useMutation } from '@apollo/client'
+import React, { ChangeEvent, useContext, useState } from 'react'
+import { useMutation } from '@apollo/client'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
+import { DateTime } from 'luxon'
+import { Checkbox, makeStyles } from '@material-ui/core'
 
-import { query, setMutation } from './ScheduleOnCallNotificationsList'
+import { ScheduleContext, setMutation } from './ScheduleOnCallNotificationsList'
 import { Rule, RuleInput, mapDataToInput } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors, FieldError } from '../../util/errutil'
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import Spinner from '../../loading/components/Spinner'
-import { GenericError } from '../../error-pages'
 import { WeekdayFilter } from '../../../schema'
 import { isoToGQLClockTime, days } from '../util'
-import { Checkbox, makeStyles } from '@material-ui/core'
-import { DateTime } from 'luxon'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { useURLParam } from '../../actions/hooks'
+import { ScheduleTZFilter } from '../ScheduleTZFilter'
 
 enum RuleType {
   OnChange = 'ON_CHANGE',
@@ -33,20 +31,24 @@ type Value = {
   ruleType: RuleType
 }
 
-function getInitialValue(rule?: Rule, zone?: string): Value {
+function getInitialValue(zone: string, rule?: Rule): Value {
   // defaults
   const result: Value = {
     slackChannelID: '',
-    time: DateTime.local().set({ hour: 9, minute: 0 }).toISOTime(),
+    time: DateTime.fromObject({
+      hour: 9,
+      minute: 0,
+      zone: 'local',
+    }).toISOTime(),
     weekdayFilter: new Array(7).fill(true) as WeekdayFilter,
     ruleType: RuleType.OnChange,
   }
 
+  // populate form if editing
   result.slackChannelID = rule?.target?.id ?? ''
-
-  if (rule?.weekdayFilter) {
+  if (rule?.weekdayFilter && rule?.time) {
     result.weekdayFilter = rule.weekdayFilter
-    result.time = DateTime.fromFormat(rule.time as string, 'HH:mm', {
+    result.time = DateTime.fromFormat(rule.time, 'HH:mm', {
       zone,
     }).toISOTime()
     result.ruleType = RuleType.OnSchedule
@@ -58,7 +60,6 @@ function getInitialValue(rule?: Rule, zone?: string): Value {
 const useStyles = makeStyles({ margin0: { margin: 0 } })
 
 interface ScheduleOnCallNotificationFormProps {
-  scheduleID: string
   onClose: () => void
 
   // if set, populates form
@@ -68,25 +69,22 @@ interface ScheduleOnCallNotificationFormProps {
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [zone] = useURLParam('tz', 'local')
-  const [value, setValue] = useState(getInitialValue(p.rule, zone))
+  const editing = Boolean(p.rule)
   const classes = useStyles()
+  const schedCtx = useContext(ScheduleContext)
+  const [URLZone] = useURLParam<string>('tz', 'local')
+  const [value, setValue] = useState(
+    getInitialValue(editing ? schedCtx.timeZone : URLZone, p.rule),
+  )
 
-  const { loading, error, data } = useQuery(query, {
-    variables: {
-      id: p.scheduleID,
-    },
-    nextFetchPolicy: 'cache-first',
-  })
-
-  function makeRules(): RuleInput[] {
+  const newRules = (() => {
     let existingRules = mapDataToInput(
-      data?.schedule?.onCallNotificationRules,
-      zone,
+      schedCtx.onCallNotificationRules,
+      schedCtx.timeZone,
     )
 
-    // remove old rule when editing
-    if (p.rule) {
+    if (editing) {
+      // remove old rule
       existingRules = existingRules.filter((r) => r.id !== p.rule?.id)
     }
 
@@ -107,7 +105,7 @@ export default function ScheduleOnCallNotificationFormDialog(
             id: value.slackChannelID,
             type: 'slackChannel',
           },
-          time: isoToGQLClockTime(value.time, zone),
+          time: isoToGQLClockTime(value.time, schedCtx.timeZone),
           weekdayFilter: value.weekdayFilter,
         }
         break
@@ -116,20 +114,17 @@ export default function ScheduleOnCallNotificationFormDialog(
     }
 
     return existingRules.concat(newRule)
-  }
+  })()
 
   const [mutate, mutationStatus] = useMutation(setMutation, {
     variables: {
       input: {
-        scheduleID: p.scheduleID,
-        rules: makeRules(),
+        scheduleID: schedCtx.id,
+        rules: newRules,
       },
     },
     onCompleted: () => p.onClose(),
   })
-
-  if (loading && !data?.schedule) return <Spinner />
-  if (error) return <GenericError error={error.message} />
 
   function handleRadioOnChange(event: ChangeEvent<HTMLInputElement>): void {
     const ruleType = event.target.value as RuleType
@@ -146,14 +141,14 @@ export default function ScheduleOnCallNotificationFormDialog(
 
   return (
     <FormDialog
-      title={`${p.rule ? 'Edit' : 'Create'} Notification Rule`}
+      title={`${editing ? 'Edit' : 'Create'} Notification Rule`}
       errors={formErrors}
       onClose={() => p.onClose()}
       onSubmit={() => mutate()}
       form={
         <FormContainer
           value={value}
-          onChange={(value: Value) => handleOnChange(value)}
+          onChange={handleOnChange}
           errors={formErrors}
         >
           <Grid container spacing={2} direction='column'>
@@ -185,8 +180,9 @@ export default function ScheduleOnCallNotificationFormDialog(
             </Grid>
             <Grid item xs={12}>
               <ScheduleTZFilter
+                disabled={value.ruleType !== RuleType.OnSchedule}
                 label={(tz) => `Configure in ${tz}`}
-                scheduleID={p.scheduleID}
+                scheduleID={schedCtx.id}
               />
             </Grid>
             <Grid item>
