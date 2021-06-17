@@ -1,8 +1,14 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import p from 'prop-types'
 import FlatList from '../lists/FlatList'
-import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
+import {
+  Button,
+  Card,
+  CardHeader,
+  Grid,
+  IconButton,
+  makeStyles,
+} from '@material-ui/core'
 
 import { isWidthUp } from '@material-ui/core/withWidth'
 import { sortContactMethods } from './util'
@@ -11,12 +17,12 @@ import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { styles as globalStyles } from '../styles/materialStyles'
 import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
+import { styles as globalStyles } from '../styles/materialStyles'
+import { UserContactMethod } from '../../schema'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -34,27 +40,29 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => {
-  const { cardHeader } = globalStyles(theme)
+interface ListItemAction {
+  label: string
+  onClick: () => void
+}
 
-  return createStyles({
-    actionGrid: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    cardHeader,
-  })
-})
+interface UserContactMethodListProps {
+  userID: string
+  readOnly?: boolean
+}
 
-export default function UserContactMethodList(props) {
+const useStyles = makeStyles((theme) => ({
+  cardHeader: globalStyles(theme).cardHeader,
+}))
+
+export default function UserContactMethodList(
+  props: UserContactMethodListProps,
+): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
-
-  const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
-  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
-  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
-
-  const [showSendTestByID, setShowSendTestByID] = useState(null)
+  const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
+  const [showEditDialogByID, setShowEditDialogByID] = useState('')
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
+  const [showSendTestByID, setShowSendTestByID] = useState('')
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -63,12 +71,12 @@ export default function UserContactMethodList(props) {
   })
 
   if (loading && !data) return <Spinner />
-  if (!data.user) return <ObjectNotFound type='user' />
+  if (data && !data.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
   const contactMethods = data.user.contactMethods
 
-  const getIcon = (cm) => {
+  const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
     if (props.readOnly) {
       return <Warning message='Contact method disabled' />
@@ -79,7 +87,6 @@ export default function UserContactMethodList(props) {
         data-cy='cm-disabled'
         aria-label='Reactivate contact method'
         onClick={() => setShowVerifyDialogByID(cm.id)}
-        variant='contained'
         color='primary'
         disabled={props.readOnly}
       >
@@ -88,7 +95,7 @@ export default function UserContactMethodList(props) {
     )
   }
 
-  function getActionMenuItems(cm) {
+  function getActionMenuItems(cm: UserContactMethod): ListItemAction[] {
     const actions = [
       { label: 'Edit', onClick: () => setShowEditDialogByID(cm.id) },
       {
@@ -111,9 +118,9 @@ export default function UserContactMethodList(props) {
     return actions
   }
 
-  function getSecondaryAction(cm) {
+  function getSecondaryAction(cm: UserContactMethod): JSX.Element {
     return (
-      <Grid container spacing={2} className={classes.actionGrid}>
+      <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && isWidthUp('md', width) && (
           <Grid item>
             <Button
@@ -140,7 +147,7 @@ export default function UserContactMethodList(props) {
       <Card>
         <CardHeader
           className={classes.cardHeader}
-          component='h3'
+          titleTypographyProps={{ component: 'h2', variant: 'h5' }}
           title='Contact Methods'
         />
         <FlatList
@@ -156,33 +163,28 @@ export default function UserContactMethodList(props) {
         {showVerifyDialogByID && (
           <UserContactMethodVerificationDialog
             contactMethodID={showVerifyDialogByID}
-            onClose={() => setShowVerifyDialogByID(null)}
+            onClose={() => setShowVerifyDialogByID('')}
           />
         )}
         {showEditDialogByID && (
           <UserContactMethodEditDialog
             contactMethodID={showEditDialogByID}
-            onClose={() => setShowEditDialogByID(null)}
+            onClose={() => setShowEditDialogByID('')}
           />
         )}
         {showDeleteDialogByID && (
           <UserContactMethodDeleteDialog
             contactMethodID={showDeleteDialogByID}
-            onClose={() => setShowDeleteDialogByID(null)}
+            onClose={() => setShowDeleteDialogByID('')}
           />
         )}
         {showSendTestByID && (
           <SendTestDialog
             messageID={showSendTestByID}
-            onClose={() => setShowSendTestByID(null)}
+            onClose={() => setShowSendTestByID('')}
           />
         )}
       </Card>
     </Grid>
   )
-}
-
-UserContactMethodList.propTypes = {
-  userID: p.string.isRequired,
-  readOnly: p.bool,
 }

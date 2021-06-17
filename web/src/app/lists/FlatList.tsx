@@ -74,7 +74,7 @@ export interface FlatListItem {
   title?: string
   highlight?: boolean
   subText?: JSX.Element | string
-  icon?: JSX.Element
+  icon?: JSX.Element | null
   secondaryAction?: JSX.Element | null
   url?: string
   id?: string
