@@ -9,14 +9,14 @@ import { DateTime } from 'luxon'
 import { OnCallNotificationRule } from '../../../schema'
 import {
   Value,
-  valueToRule,
+  onCallValueToRuleInput,
   RuleFieldError,
-  ruleSummary,
+  onCallRuleSummary,
   NO_DAY,
-  mapErrors,
+  mapOnCallErrors,
   EVERY_DAY,
   formatLocalClockTime,
-  ruleToInput,
+  onCallRuleToInput,
 } from './util'
 
 const schedTZQuery = gql`
@@ -75,7 +75,7 @@ type _Data = {
   rules: OnCallNotificationRule[]
 }
 
-export function useRulesData(scheduleID: string): _Data {
+export function useOnCallRulesData(scheduleID: string): _Data {
   const q = useQuery(rulesQuery, { variables: { id: scheduleID } })
   const zone = q.data?.schedule?.timeZone || ''
   const rules: OnCallNotificationRule[] = (
@@ -88,7 +88,7 @@ type _Submit = {
   m: MutationResult
   submit: () => Promise<void>
 }
-export function useSubmit(
+export function useSetOnCallRulesSubmit(
   scheduleID: string,
   zone: string,
   ...rules: Array<OnCallNotificationRule | Value | null>
@@ -103,10 +103,10 @@ export function useSubmit(
           .map((r) => {
             if (r === null) return null
             if ('slackChannelID' in r) {
-              return valueToRule(zone, r)
+              return onCallValueToRuleInput(zone, r)
             }
 
-            return ruleToInput(r as OnCallNotificationRule)
+            return onCallRuleToInput(r as OnCallNotificationRule)
           })
 
           // remove any null values
@@ -117,7 +117,7 @@ export function useSubmit(
   return { m, submit: () => submit().then(() => {}) }
 }
 
-export type UpdateRuleState = {
+export type UpdateOnCallRuleState = {
   dialogErrors: Error[]
   fieldErrors: RuleFieldError[]
 
@@ -125,24 +125,29 @@ export type UpdateRuleState = {
   submit: () => Promise<void>
 }
 
-export type UpsertRuleState = UpdateRuleState & {
+export type UpsertOnCallRuleState = UpdateOnCallRuleState & {
   value: Value
 }
 
-export function useCreateRule(
+export function useCreateOnCallRule(
   scheduleID: string,
   value: Value | null,
-): UpsertRuleState {
-  const { q, zone, rules } = useRulesData(scheduleID)
+): UpsertOnCallRuleState {
+  const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
   const newValue: Value = value || {
     time: null,
     weekdayFilter: NO_DAY,
     slackChannelID: null,
   }
-  const { m, submit } = useSubmit(scheduleID, zone, newValue, ...rules)
+  const { m, submit } = useSetOnCallRulesSubmit(
+    scheduleID,
+    zone,
+    newValue,
+    ...rules,
+  )
 
-  const [dialogErrors, fieldErrors] = mapErrors(m.error, q.error)
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
   return {
     dialogErrors,
     fieldErrors,
@@ -152,12 +157,12 @@ export function useCreateRule(
   }
 }
 
-export function useEditRule(
+export function useEditOnCallRule(
   scheduleID: string,
   ruleID: string,
   value: Value | null,
-): UpsertRuleState {
-  const { q, zone, rules } = useRulesData(scheduleID)
+): UpsertOnCallRuleState {
+  const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
   const rule = rules.find((r) => r.id === ruleID)
   const newValue: Value = value || {
@@ -167,14 +172,14 @@ export function useEditRule(
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     slackChannelID: rule?.target.id || null,
   }
-  const { m, submit } = useSubmit(
+  const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
     zone,
     newValue,
     ...rules.filter((r) => r.id !== ruleID),
   )
 
-  const [dialogErrors, fieldErrors] = mapErrors(m.error, q.error)
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
   return {
     dialogErrors,
     fieldErrors,
@@ -184,17 +189,17 @@ export function useEditRule(
   }
 }
 
-export type DeleteRuleState = UpdateRuleState & {
+export type DeleteOnCallRuleState = UpdateOnCallRuleState & {
   rule?: OnCallNotificationRule
   ruleSummary: string
 }
 
-export function useDeleteRule(
+export function useDeleteOnCallRule(
   scheduleID: string,
   ruleID: string,
-): DeleteRuleState {
-  const { q, zone, rules } = useRulesData(scheduleID)
-  const { m, submit } = useSubmit(
+): DeleteOnCallRuleState {
+  const { q, zone, rules } = useOnCallRulesData(scheduleID)
+  const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
     zone,
     ...rules.filter((r) => r.id !== ruleID),
@@ -202,13 +207,13 @@ export function useDeleteRule(
   const rule = rules.find((r) => r.id === ruleID)
 
   // treat all field errors as dialog errors for delete
-  const [dialogErrors, fieldErrors] = mapErrors(null, m.error, q.error)
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(null, m.error, q.error)
   return {
     dialogErrors,
     fieldErrors,
     busy: (q.loading && !zone) || m.loading,
     rule,
-    ruleSummary: ruleSummary(zone, rule),
+    ruleSummary: onCallRuleSummary(zone, rule),
     submit,
   }
 }

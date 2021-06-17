@@ -44,7 +44,12 @@ export function formatClockTime(dt: DateTime): string {
   return `${zoneStr} (${localStr})`
 }
 
-function formatTime(zone: string, time: string): string {
+// formatZoneTime will format a time string simply for the current locale
+// if the time is different in local from zone, then it will additionally add
+// the local time and offset as a suffix.
+//
+// example: 9:00 AM (4:00 AM CST)
+function formatZoneTime(zone: string, time: string): string {
   if (!zone) {
     // fallback to just displaying the existing time according to locale
     return DateTime.fromFormat(time, 'HH:mm').toLocaleString(
@@ -57,7 +62,7 @@ function formatTime(zone: string, time: string): string {
   return formatClockTime(dt)
 }
 
-export const valueToRule = (
+export const onCallValueToRuleInput = (
   zone: string,
   v: Value,
 ): OnCallNotificationRuleInput => ({
@@ -68,7 +73,7 @@ export const valueToRule = (
   target: { type: 'slackChannel', id: v.slackChannelID || '' },
 })
 
-export const ruleToInput = (
+export const onCallRuleToInput = (
   v: OnCallNotificationRule,
 ): OnCallNotificationRuleInput | null =>
   v
@@ -80,7 +85,7 @@ export const ruleToInput = (
       }
     : null
 
-export function mapErrors(
+export function mapOnCallErrors(
   mErr?: ApolloError | null,
   ...qErr: Array<ApolloError | undefined>
 ): [Error[], RuleFieldError[]] {
@@ -112,9 +117,12 @@ export function mapErrors(
   return [dialogErrs, fieldErrs]
 }
 
-export function ruleSummary(zone: string, r?: OnCallNotificationRule): string {
+export function onCallRuleSummary(
+  zone: string,
+  r?: OnCallNotificationRule,
+): string {
   if (!r) return ''
   if (!r.time) return 'when on-call changes.'
 
-  return `${weekdaySummary(r.weekdayFilter)} at ${formatTime(zone, r.time)}`
+  return `${weekdaySummary(r.weekdayFilter)} at ${formatZoneTime(zone, r.time)}`
 }

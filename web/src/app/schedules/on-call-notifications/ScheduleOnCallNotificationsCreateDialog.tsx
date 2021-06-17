@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Value } from './util'
-import { useCreateRule } from './hooks'
+import { useCreateOnCallRule } from './hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 
@@ -14,7 +14,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   p: ScheduleOnCallNotificationsCreateDialogProps,
 ): JSX.Element {
   const [_value, setValue] = useState<Value | null>(null)
-  const update = useCreateRule(p.scheduleID, _value)
+  const update = useCreateOnCallRule(p.scheduleID, _value)
 
   return (
     <FormDialog

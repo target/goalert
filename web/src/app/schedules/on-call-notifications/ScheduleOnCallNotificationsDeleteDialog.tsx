@@ -1,7 +1,7 @@
 import React from 'react'
 
 import FormDialog from '../../dialogs/FormDialog'
-import { useDeleteRule } from './hooks'
+import { useDeleteOnCallRule } from './hooks'
 
 interface ScheduleOnCallNotificationsDeleteDialogProps {
   scheduleID: string
@@ -12,7 +12,7 @@ interface ScheduleOnCallNotificationsDeleteDialogProps {
 export default function ScheduleOnCallNotificationsDeleteDialog(
   p: ScheduleOnCallNotificationsDeleteDialogProps,
 ): JSX.Element {
-  const update = useDeleteRule(p.scheduleID, p.ruleID)
+  const update = useDeleteOnCallRule(p.scheduleID, p.ruleID)
 
   if (!update.busy && !update.rule) {
     return (

@@ -5,8 +5,8 @@ import Avatar from '@material-ui/core/Avatar'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { SlackBW } from '../../icons/components/Icons'
-import { useRulesData } from './hooks'
-import { ruleSummary } from './util'
+import { useOnCallRulesData } from './hooks'
+import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
@@ -22,7 +22,7 @@ export default function ScheduleOnCallNotificationsList(
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
-  const { q, zone, rules } = useRulesData(props.scheduleID)
+  const { q, zone, rules } = useOnCallRulesData(props.scheduleID)
 
   return (
     <React.Fragment>
@@ -45,7 +45,7 @@ export default function ScheduleOnCallNotificationsList(
                       </Avatar>
                     ) : null,
                   title: rule.target.name,
-                  subText: 'Notifies ' + ruleSummary(zone, rule),
+                  subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (
                     <OtherActions
                       actions={[
