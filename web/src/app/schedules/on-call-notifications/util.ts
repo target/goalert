@@ -44,8 +44,8 @@ export type DeleteRuleState = UpdateRuleState & {
   ruleSummary: string
 }
 
-export const EveryDay = new Array(7).fill(true) as WeekdayFilter
-export const Never = new Array(7).fill(false) as WeekdayFilter
+export const EVERY_DAY = new Array(7).fill(true) as WeekdayFilter
+export const NO_DAY = new Array(7).fill(false) as WeekdayFilter
 
 const schedTZQuery = gql`
   query ($id: ID!) {
@@ -239,7 +239,7 @@ export function useCreateRule(
 
   const newValue: Value = value || {
     time: null,
-    weekdayFilter: Never,
+    weekdayFilter: NO_DAY,
     slackChannelID: null,
   }
   const { m, submit } = useSubmit(scheduleID, zone, newValue, ...rules)
@@ -266,7 +266,7 @@ export function useEditRule(
     time: rule?.time
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
-    weekdayFilter: rule?.time ? rule.weekdayFilter || EveryDay : Never,
+    weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     slackChannelID: rule?.target.id || null,
   }
   const { m, submit } = useSubmit(

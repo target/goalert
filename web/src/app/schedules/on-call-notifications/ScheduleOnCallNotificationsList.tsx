@@ -8,11 +8,10 @@ import { SlackBW } from '../../icons/components/Icons'
 import { useRulesData, ruleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
-
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
-type ScheduleOnCallNotificationsListProps = {
+interface ScheduleOnCallNotificationsListProps {
   scheduleID: string
 }
 
