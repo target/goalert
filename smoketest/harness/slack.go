@@ -31,8 +31,6 @@ type slackChannel struct {
 	h    *Harness
 	name string
 	id   string
-
-	expected [][]string
 }
 
 func (h *Harness) Slack() SlackServer { return h.slack }
