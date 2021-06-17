@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-
-import { Value, useCreateRule } from './util'
+import { Value } from './util'
+import { useCreateRule } from './hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 

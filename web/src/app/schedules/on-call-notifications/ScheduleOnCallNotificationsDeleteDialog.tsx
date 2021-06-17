@@ -1,7 +1,7 @@
 import React from 'react'
 
 import FormDialog from '../../dialogs/FormDialog'
-import { useDeleteRule } from './util'
+import { useDeleteRule } from './hooks'
 
 interface ScheduleOnCallNotificationsDeleteDialogProps {
   scheduleID: string

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
-import { Value, useEditRule } from './util'
+import { Value } from './util'
+import { useEditRule } from './hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 

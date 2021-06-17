@@ -9,13 +9,8 @@ import { Checkbox, makeStyles, Typography } from '@material-ui/core'
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import {
-  Value,
-  useFormatScheduleLocalISOTime,
-  NO_DAY,
-  EVERY_DAY,
-  RuleFieldError,
-} from './util'
+import { useFormatScheduleLocalISOTime } from './hooks'
+import { Value, NO_DAY, EVERY_DAY, RuleFieldError } from './util'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
