@@ -25,14 +25,14 @@ export default class UserNotificationRuleCreateDialog extends React.PureComponen
   state = {
     value: {
       contactMethodID: '',
-      delayMinutes: '0',
+      delayMinutes: 0,
     },
     errors: [],
   }
 
   render() {
     return (
-      <Mutation mutation={createMutation} onCompleted={this.props.onClose}>
+      <Mutation mutation={createMutation}>
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
     )

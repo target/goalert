@@ -47,7 +47,6 @@ export default class IntegrationKeyCreateDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        onCompleted={this.props.onClose}
         update={(cache, { data: { createIntegrationKey } }) => {
           const { service } = cache.readQuery({
             query,
