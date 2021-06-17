@@ -92,6 +92,8 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     })
   }
 
+  const links = (p.links || []).filter((l) => l)
+
   return (
     <Grid container spacing={2}>
       {/* Notices */}
@@ -157,12 +159,8 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       </Grid>
 
       {/* Quick Links */}
-      {p.links?.length && (
-        <Grid
-          item
-          xs={12}
-          lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
-        >
+      {links.length && (
+        <Grid item xs={12} lg={isDesktopMode(width) && links.length ? 4 : 12}>
           <Card className={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
@@ -172,7 +170,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               }}
             />
             <List data-cy='route-links' className={classes.quickLinks} dense>
-              {p.links.map((li, idx) => (
+              {links.map((li, idx) => (
                 <ListItem
                   key={idx}
                   className={linkClassName(li.status)}
