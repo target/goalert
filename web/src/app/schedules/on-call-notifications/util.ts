@@ -81,18 +81,28 @@ const updateMutation = gql`
   }
 `
 
-function formatClockTime(dt: DateTime): string {
+function formatLocalClockTime(dt: DateTime): string {
   const zoneStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
   const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
 
   if (zoneStr === localStr) {
+    return ''
+  }
+
+  return `${localStr} ${dt.setZone('local').toFormat('ZZZZ')}`
+}
+
+function formatClockTime(dt: DateTime): string {
+  const zoneStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
+  const localStr = formatLocalClockTime(dt)
+  if (!localStr) {
     return zoneStr
   }
 
-  return `${zoneStr} (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
+  return `${zoneStr} (${localStr})`
 }
 
-export function useFormatScheduleISOTime(
+export function useFormatScheduleLocalISOTime(
   scheduleID: string,
 ): [(isoTime: string | null) => string, string] {
   const { data } = useQuery(schedTZQuery, {
@@ -102,7 +112,7 @@ export function useFormatScheduleISOTime(
   return [
     (isoTime: string | null) => {
       if (!tz || !isoTime) return ''
-      return formatClockTime(DateTime.fromISO(isoTime).setZone(tz))
+      return formatLocalClockTime(DateTime.fromISO(isoTime).setZone(tz))
     },
     tz,
   ]

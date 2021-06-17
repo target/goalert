@@ -11,7 +11,7 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import {
   Value,
-  useFormatScheduleISOTime,
+  useFormatScheduleLocalISOTime,
   Never,
   EveryDay,
   RuleFieldError,
@@ -35,7 +35,7 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
-  const [formatTime, zone] = useFormatScheduleISOTime(scheduleID)
+  const [formatTime, zone] = useFormatScheduleLocalISOTime(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
