@@ -5,58 +5,15 @@ import Avatar from '@material-ui/core/Avatar'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { SlackBW } from '../../icons/components/Icons'
-import { Rule } from './util'
+import { useRulesData } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
-import { gql, useQuery } from '@apollo/client'
-import { OnCallNotificationRule } from '../../../schema'
-import { DateTime } from 'luxon'
-import { weekdaySummary } from '../util'
+import { ruleSummary } from './util'
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
 type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
-}
-
-const query = gql`
-  query ($id: ID!) {
-    schedule(id: $id) {
-      id
-      timeZone
-      onCallNotificationRules {
-        id
-        target {
-          id
-          type
-          name
-        }
-        time
-        weekdayFilter
-      }
-    }
-  }
-`
-
-function ruleSummary(scheduleZone: string, r: Rule): string {
-  const prefix = `Notifies`
-  if (!r.time) {
-    return `${prefix} when on-call changes.`
-  }
-
-  const dt = DateTime.fromFormat(r.time, 'HH:mm', {
-    zone: scheduleZone,
-  })
-
-  const timeStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
-  const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
-
-  const summary = `${prefix} ${weekdaySummary(r.weekdayFilter)} at ${timeStr}`
-  if (timeStr === localStr) {
-    return summary
-  }
-
-  return summary + ` (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
 }
 
 export default function ScheduleOnCallNotificationsList(
@@ -65,14 +22,7 @@ export default function ScheduleOnCallNotificationsList(
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
-  const { data, loading, error } = useQuery(query, {
-    variables: { id: props.scheduleID },
-  })
-
-  const rules: OnCallNotificationRule[] = (
-    data?.schedule?.onCallNotificationRules ?? []
-  ).filter((r) => r) // remove any invalid/null rules
-  const tz = data?.schedule?.timeZone
+  const { q, zone, rules } = useRulesData(props.scheduleID)
 
   return (
     <React.Fragment>
@@ -80,9 +30,9 @@ export default function ScheduleOnCallNotificationsList(
         <Grid item xs={12}>
           <Card>
             <FlatList
-              headerNote={tz ? `Showing times for schedule in ${tz}.` : ''}
+              headerNote={zone ? `Showing times for schedule in ${zone}.` : ''}
               emptyMessage={
-                !data && loading
+                q.loading
                   ? 'Loading notification rules...'
                   : 'No notification rules.'
               }
@@ -95,7 +45,7 @@ export default function ScheduleOnCallNotificationsList(
                       </Avatar>
                     ) : null,
                   title: rule.target.name,
-                  subText: ruleSummary(data.schedule.timeZone, rule),
+                  subText: 'Notifies ' + ruleSummary(zone, rule),
                   secondaryAction: (
                     <OtherActions
                       actions={[

@@ -1,101 +1,309 @@
+import {
+  gql,
+  useQuery,
+  useMutation,
+  QueryResult,
+  MutationResult,
+  ApolloError,
+} from '@apollo/client'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
+
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
   WeekdayFilter,
 } from '../../../schema'
-import { days, isoToGQLClockTime } from '../util'
+import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
+import { weekdaySummary } from '../util'
 
-// type aliases for convenience
-export type Rule = OnCallNotificationRule
-export type RuleInput = OnCallNotificationRuleInput
-
-export function withoutTypeName(obj) {
-  return {
-    ..._.omit(obj, '__typename'),
-    target: _.omit(obj.target, ['__typename', 'name']),
-  }
+export type Value = {
+  slackChannelID: string | null
+  time: string | null
+  weekdayFilter: WeekdayFilter
 }
 
-export function mapDataToInput(
-  rules: Array<Rule> = [],
-  scheduleTimeZone: string,
-): Array<RuleInput> {
-  return rules.map((r: Rule) => {
-    const result: Rule = {
-      id: r.id,
-      target: {
-        id: r.target.id,
-        type: r.target.type,
+export type RuleFieldError = {
+  field: 'time' | 'weekdayFilter' | 'slackChannelID'
+  message: string
+}
+
+export type UpdateRuleState = {
+  dialogErrors: Error[]
+  fieldErrors: RuleFieldError[]
+
+  busy: boolean
+  submit: () => Promise<void>
+}
+
+export type UpsertRuleState = UpdateRuleState & {
+  value: Value
+}
+
+export type DeleteRuleState = UpdateRuleState & {
+  rule?: OnCallNotificationRule
+  ruleSummary: string
+}
+
+export const EveryDay = new Array(7).fill(true) as WeekdayFilter
+export const Never = new Array(7).fill(false) as WeekdayFilter
+
+const schedTZQuery = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      id
+      timeZone
+    }
+  }
+`
+
+const rulesQuery = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      id
+      timeZone
+      rules: onCallNotificationRules {
+        id
+        target {
+          id
+          name
+          type
+        }
+        time
+        weekdayFilter
+      }
+    }
+  }
+`
+
+const updateMutation = gql`
+  mutation ($input: SetScheduleOnCallNotificationRulesInput!) {
+    setScheduleOnCallNotificationRules(input: $input)
+  }
+`
+
+export function useFormatScheduleISOTime(
+  scheduleID: string,
+): [(isoTime: string | null) => string, string] {
+  const { data } = useQuery(schedTZQuery, {
+    variables: { id: scheduleID },
+  })
+  const tz = data?.schedule?.timeZone
+  return [
+    (isoTime: string | null) => {
+      if (!tz || !isoTime) return ''
+      return formatClockTime(DateTime.fromISO(isoTime).setZone(tz))
+    },
+    tz,
+  ]
+}
+
+function formatClockTime(dt: DateTime): string {
+  const zoneStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
+  const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
+
+  if (zoneStr === localStr) {
+    return zoneStr
+  }
+
+  return `${zoneStr} (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
+}
+
+function formatTime(zone: string, time: string): string {
+  if (!zone) {
+    // fallback to just displaying the existing time according to locale
+    return DateTime.fromFormat(time, 'HH:mm').toLocaleString(
+      DateTime.TIME_SIMPLE,
+    )
+  }
+
+  const dt = DateTime.fromFormat(time, 'HH:mm', { zone })
+
+  return formatClockTime(dt)
+}
+
+type _Data = {
+  q: QueryResult
+  zone: string
+  rules: OnCallNotificationRule[]
+}
+
+export function useRulesData(scheduleID: string): _Data {
+  const q = useQuery(rulesQuery, { variables: { id: scheduleID } })
+  const zone = q.data?.schedule?.timeZone || ''
+  const rules: OnCallNotificationRule[] = (
+    q.data?.schedule?.rules || []
+  ).filter((r?: OnCallNotificationRule) => r)
+  return { q, zone, rules }
+}
+type _Submit = {
+  m: MutationResult
+  submit: () => Promise<void>
+}
+
+const valueToRule = (zone: string, v: Value): OnCallNotificationRuleInput => ({
+  time: v.time
+    ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
+    : undefined,
+  weekdayFilter: v.time ? v.weekdayFilter : undefined,
+  target: { type: 'slackChannel', id: v.slackChannelID || '' },
+})
+
+const ruleToInput = (
+  v: OnCallNotificationRule,
+): OnCallNotificationRuleInput | null =>
+  v
+    ? {
+        time: v.time,
+        id: v.id,
+        weekdayFilter: v.weekdayFilter,
+        target: { type: v.target.type, id: v.target.id },
+      }
+    : null
+
+function useSubmit(
+  scheduleID: string,
+  zone: string,
+  ...rules: Array<OnCallNotificationRule | Value | null>
+): _Submit {
+  const [submit, m] = useMutation(updateMutation, {
+    variables: {
+      input: {
+        scheduleID,
+
+        // map value and rules into input format
+        rules: rules
+          .map((r) => {
+            if (r === null) return null
+            if ('slackChannelID' in r) {
+              return valueToRule(zone, r)
+            }
+
+            return ruleToInput(r as OnCallNotificationRule)
+          })
+
+          // remove any null values
+          .filter((r) => r),
       },
-    }
-
-    if (r.time) {
-      result.time = isoToGQLClockTime(r.time, scheduleTimeZone)
-    }
-    if (r.weekdayFilter) {
-      result.weekdayFilter = r.weekdayFilter
-    }
-    return result
-  }) as Array<RuleInput>
+    },
+  })
+  return { m, submit: () => submit().then(() => {}) }
 }
 
-export function weekdayFilterString(filter?: WeekdayFilter): string {
-  if (!filter) return 'every day'
-
-  const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const state = filter.map((v) => (v ? '1' : '0')).join('')
-  switch (state) {
-    case '0000000':
-      return 'never'
-    case '1111111':
-      return 'every day'
-    case '1000001':
-      return 'weekends'
-    case '0111110':
-      return 'M-F'
-    case '11111110':
-      return 'M-F and Sun'
-    case '0111111':
-      return 'M-F and Sat'
+function mapErrors(
+  mErr?: ApolloError | null,
+  ...qErr: Array<ApolloError | undefined>
+): [Error[], RuleFieldError[]] {
+  let dialogErrs: Error[] = []
+  qErr.forEach((e) => (dialogErrs = dialogErrs.concat(allErrors(e))))
+  if (!mErr) {
+    return [dialogErrs, []]
   }
 
-  return filter
-    .map((v, idx) => (v ? names[idx] : null))
-    .filter((v) => v)
-    .join(',')
-}
+  dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
 
-export function getDayNames(filter: WeekdayFilter): string {
-  const everyday = [true, true, true, true, true, true, true]
-  const isEverday = filter.every((val, i) => val === everyday[i])
-  if (isEverday) return 'every day'
+  const fieldErrs = fieldErrors(mErr)
+    .map((e) => {
+      switch (e.field) {
+        case 'time':
+        case 'weekdayFilter':
+          return e
+      }
 
-  const weekdays = [false, true, true, true, true, true, false]
-  const isWeekdays = filter.every((val, i) => val === weekdays[i])
-  if (isWeekdays) return 'weekdays'
+      if (e.field.startsWith('target')) {
+        return { ...e, field: 'slackChannelID' }
+      }
 
-  const names = days.filter((name, i) => filter[i]).map((day) => day + 's')
-  const lastDay = names.length > 1 ? names.pop() : ''
-  const oxford = names.length > 1 ? ',' : ''
-  return names.join(', ') + (lastDay && `${oxford} and ` + lastDay)
-}
-
-export function getRuleSummary(
-  rule: Rule,
-  scheduleZone: string,
-  displayZone: string,
-): string {
-  if (rule.time && rule.weekdayFilter) {
-    const timeStr = DateTime.fromFormat(rule.time, 'HH:mm', {
-      zone: scheduleZone,
+      dialogErrs.push(e)
+      return null
     })
-      .setZone(displayZone)
-      .toFormat('h:mm a ZZZZ')
+    .filter((e) => e !== null) as RuleFieldError[]
 
-    return `Notifies ${getDayNames(rule.weekdayFilter)} at ${timeStr}`
+  return [dialogErrs, fieldErrs]
+}
+
+export function useCreateRule(
+  scheduleID: string,
+  value: Value | null,
+): UpsertRuleState {
+  const { q, zone, rules } = useRulesData(scheduleID)
+
+  const newValue: Value = value || {
+    time: null,
+    weekdayFilter: Never,
+    slackChannelID: null,
   }
+  const { m, submit } = useSubmit(scheduleID, zone, newValue, ...rules)
 
-  return 'Notifies when on-call hands off'
+  const [dialogErrors, fieldErrors] = mapErrors(m.error, q.error)
+  return {
+    dialogErrors,
+    fieldErrors,
+    busy: (q.loading && !zone) || m.loading,
+    value: newValue,
+    submit,
+  }
+}
+
+export function useEditRule(
+  scheduleID: string,
+  ruleID: string,
+  value: Value | null,
+): UpsertRuleState {
+  const { q, zone, rules } = useRulesData(scheduleID)
+
+  const rule = rules.find((r) => r.id === ruleID)
+  const newValue: Value = value || {
+    time: rule?.time
+      ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
+      : null,
+    weekdayFilter: rule?.time ? rule.weekdayFilter || EveryDay : Never,
+    slackChannelID: rule?.target.id || null,
+  }
+  const { m, submit } = useSubmit(
+    scheduleID,
+    zone,
+    newValue,
+    ...rules.filter((r) => r.id !== ruleID),
+  )
+
+  const [dialogErrors, fieldErrors] = mapErrors(m.error, q.error)
+  return {
+    dialogErrors,
+    fieldErrors,
+    busy: (q.loading && !zone) || m.loading,
+    value: newValue,
+    submit,
+  }
+}
+
+export function ruleSummary(zone: string, r?: OnCallNotificationRule): string {
+  if (!r) return ''
+  if (!r.time) return 'when on-call changes.'
+
+  return `${weekdaySummary(r.weekdayFilter)} at ${formatTime(zone, r.time)}`
+}
+
+export function useDeleteRule(
+  scheduleID: string,
+  ruleID: string,
+): DeleteRuleState {
+  const { q, zone, rules } = useRulesData(scheduleID)
+  const { m, submit } = useSubmit(
+    scheduleID,
+    zone,
+    ...rules.filter((r) => r.id !== ruleID),
+  )
+  const rule = rules.find((r) => r.id === ruleID)
+
+  // treat all field errors as dialog errors for delete
+  const [dialogErrors, fieldErrors] = mapErrors(null, m.error, q.error)
+  return {
+    dialogErrors,
+    fieldErrors,
+    busy: (q.loading && !zone) || m.loading,
+    rule,
+    ruleSummary: ruleSummary(zone, rule),
+    submit,
+  }
 }

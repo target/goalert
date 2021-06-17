@@ -1,56 +1,29 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
 import { DateTime } from 'luxon'
 import { Checkbox, makeStyles, Typography } from '@material-ui/core'
+
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import { WeekdayFilter } from '../../../schema'
+import {
+  Value,
+  useFormatScheduleISOTime,
+  Never,
+  EveryDay,
+  RuleFieldError,
+} from './util'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export type Value = {
-  slackChannelID: string | null
-  time: string | null
-  weekdayFilter: WeekdayFilter
-}
-
 interface ScheduleOnCallNotificationsFormProps {
   scheduleID: string
-
   value: Value
-
-  errors: {
-    field: 'time' | 'weekdayFilter' | 'slackChannelID'
-    message: string
-  }[]
-
+  errors: RuleFieldError[]
   onChange: (val: Value) => void
-}
-
-const query = gql`
-  query ($id: ID!) {
-    schedule(id: $id) {
-      id
-      timeZone
-    }
-  }
-`
-
-function timeHint(schedTZ: string, timeISO: string | null): string {
-  if (timeISO === null) return ''
-
-  const dt = DateTime.fromISO(timeISO)
-  const schedTime = dt.setZone(schedTZ).toLocaleString(DateTime.TIME_SIMPLE)
-  const localTime = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
-
-  if (schedTime === localTime) return ''
-
-  return `${localTime} ${dt.setZone('local').toFormat('ZZZZ')}`
 }
 
 const useStyles = makeStyles({
@@ -62,30 +35,18 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
-  const { data, loading, error } = useQuery(query, {
-    variables: { id: scheduleID },
-  })
-  const value = props.value
-  const schedTZ = data?.schedule?.timeZone
+  const [formatTime, zone] = useFormatScheduleISOTime(scheduleID)
 
-  const handleRuleChange = (e) => {
+  const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value === 'on-change') {
-      formProps.onChange({
-        ...formProps.value,
-        time: null,
-        weekdayFilter: [false, false, false, false, false, false, false],
-      })
+      props.onChange({ ...formProps.value, time: null, weekdayFilter: Never })
       return
     }
 
-    formProps.onChange({
-      ...formProps.value,
-      weekdayFilter: [true, true, true, true, true, true, true],
-      time: DateTime.fromObject({
-        hour: 9,
-        minute: 0,
-        zone: schedTZ,
-      }).toISO(),
+    props.onChange({
+      ...props.value,
+      weekdayFilter: EveryDay,
+      time: DateTime.fromObject({ hour: 9, zone }).toISO(),
     })
   }
 
@@ -125,9 +86,9 @@ export default function ScheduleOnCallNotificationsForm(
           <Typography
             color='textSecondary'
             className={classes.tzNote}
-            style={{ visibility: value.time ? 'visible' : 'hidden' }}
+            style={{ visibility: props.value.time ? 'visible' : 'hidden' }}
           >
-            Configuring in {schedTZ}
+            Configuring in {zone}
           </Typography>
         </Grid>
         <Grid item>
@@ -135,12 +96,12 @@ export default function ScheduleOnCallNotificationsForm(
             <Grid item xs={12} sm={5} md={4}>
               <FormField
                 component={ISOTimePicker}
-                timeZone={schedTZ}
+                timeZone={zone}
                 fullWidth
                 name='time'
-                disabled={!value.time}
-                required={!!value.time}
-                hint={timeHint(schedTZ, value.time)}
+                disabled={!props.value.time}
+                required={!!props.value.time}
+                hint={formatTime(props.value.time)}
               />
             </Grid>
             <Grid item xs={12} sm={7} md={8}>
@@ -157,7 +118,7 @@ export default function ScheduleOnCallNotificationsForm(
                         component={Checkbox}
                         checkbox
                         name={`weekdayFilter[${i}]`}
-                        disabled={!value.time}
+                        disabled={!props.value.time}
                       />
                     }
                   />

@@ -529,7 +529,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('#content').should('contain', 'Notifies when on-call changes')
     })
 
-    it.only('should edit from onChange to onSchedule', () => {
+    it('should edit from onChange to onSchedule', () => {
       cy.setScheduleNotificationRules([{ time: null, weekdayFilter: null }], {
         timeZone: 'UTC',
       }).then((s: Schedule) => {
