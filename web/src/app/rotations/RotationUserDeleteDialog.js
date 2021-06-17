@@ -4,6 +4,7 @@ import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+import { nonFieldErrors } from '../util/errutil'
 
 const query = gql`
   query ($id: ID!) {
@@ -26,27 +27,34 @@ const mutation = gql`
 `
 const RotationUserDeleteDialog = (props) => {
   const { rotationID, userIndex, onClose } = props
-  const { loading, data, error } = useQuery(query, {
+  const {
+    loading: qLoading,
+    data,
+    error,
+  } = useQuery(query, {
     pollInterval: 0,
     variables: {
       id: rotationID,
     },
   })
   const { userIDs, users } = data.rotation
-  const [deleteUserMutation] = useMutation(mutation, {
-    variables: {
-      input: {
-        id: rotationID,
-        userIDs: userIDs.filter((_, index) => index !== userIndex),
+  const [deleteUserMutation, { loading: mLoading, error: mError }] =
+    useMutation(mutation, {
+      variables: {
+        input: {
+          id: rotationID,
+          userIDs: userIDs.filter((_, index) => index !== userIndex),
+        },
       },
-    },
-  })
+    })
 
-  if (loading && !data) return <Spinner />
+  if (qLoading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   return (
     <FormDialog
+      loading={mLoading}
+      errors={nonFieldErrors(mError)}
       title='Are you sure?'
       confirm
       subTitle={`This will delete ${

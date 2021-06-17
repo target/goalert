@@ -64,9 +64,7 @@ export default function ScheduleRuleCreateDialog(props) {
       errors={nonFieldErrors(mutationStatus.error)}
       maxWidth='md'
       loading={(!data && queryStatus.loading) || mutationStatus.loading}
-      onSubmit={() => {
-        mutate()
-      }}
+      onSubmit={() => mutate()}
       form={
         <ScheduleRuleForm
           targetType={targetType}
