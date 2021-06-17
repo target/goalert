@@ -12,8 +12,8 @@ import { ISOTimePicker } from '../../util/ISOPickers'
 import {
   Value,
   useFormatScheduleLocalISOTime,
-  Never,
-  EveryDay,
+  NO_DAY,
+  EVERY_DAY,
   RuleFieldError,
 } from './util'
 
@@ -39,13 +39,13 @@ export default function ScheduleOnCallNotificationsForm(
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
-      props.onChange({ ...formProps.value, time: null, weekdayFilter: Never })
+      props.onChange({ ...formProps.value, time: null, weekdayFilter: NO_DAY })
       return
     }
 
     props.onChange({
       ...props.value,
-      weekdayFilter: EveryDay,
+      weekdayFilter: EVERY_DAY,
       time: DateTime.fromObject({ hour: 9, zone }).toISO(),
     })
   }
