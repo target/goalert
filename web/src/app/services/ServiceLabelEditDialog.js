@@ -61,7 +61,6 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        onCompleted={this.props.onClose}
         update={(cache) => {
           const { service } = cache.readQuery({
             query,
