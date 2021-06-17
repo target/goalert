@@ -85,7 +85,7 @@ export function weekdaySummary(filter) {
     case '1111110':
       return 'M—F and Sun'
     case '1111111':
-      return 'Everyday'
+      return 'Every day'
   }
 
   const d = []

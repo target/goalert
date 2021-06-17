@@ -290,7 +290,10 @@ export function ruleSummary(zone: string, r?: OnCallNotificationRule): string {
   if (!r) return ''
   if (!r.time) return 'when on-call changes.'
 
-  return `${weekdaySummary(r.weekdayFilter)} at ${formatTime(zone, r.time)}`
+  return `${weekdaySummary(r.weekdayFilter).toLowerCase()} at ${formatTime(
+    zone,
+    r.time,
+  )}`
 }
 
 export function useDeleteRule(
