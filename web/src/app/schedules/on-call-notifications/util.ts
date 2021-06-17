@@ -6,7 +6,6 @@ import {
   MutationResult,
   ApolloError,
 } from '@apollo/client'
-import _ from 'lodash'
 import { DateTime } from 'luxon'
 
 import {
@@ -82,6 +81,17 @@ const updateMutation = gql`
   }
 `
 
+function formatClockTime(dt: DateTime): string {
+  const zoneStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
+  const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
+
+  if (zoneStr === localStr) {
+    return zoneStr
+  }
+
+  return `${zoneStr} (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
+}
+
 export function useFormatScheduleISOTime(
   scheduleID: string,
 ): [(isoTime: string | null) => string, string] {
@@ -96,17 +106,6 @@ export function useFormatScheduleISOTime(
     },
     tz,
   ]
-}
-
-function formatClockTime(dt: DateTime): string {
-  const zoneStr = dt.toLocaleString(DateTime.TIME_SIMPLE)
-  const localStr = dt.setZone('local').toLocaleString(DateTime.TIME_SIMPLE)
-
-  if (zoneStr === localStr) {
-    return zoneStr
-  }
-
-  return `${zoneStr} (${localStr} ${dt.setZone('local').toFormat('ZZZZ')})`
 }
 
 function formatTime(zone: string, time: string): string {

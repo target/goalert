@@ -5,10 +5,10 @@ import Avatar from '@material-ui/core/Avatar'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { SlackBW } from '../../icons/components/Icons'
-import { useRulesData } from './util'
+import { useRulesData, ruleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
-import { ruleSummary } from './util'
+
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 

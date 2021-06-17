@@ -37,7 +37,7 @@ export default function ScheduleOnCallNotificationsForm(
   const classes = useStyles()
   const [formatTime, zone] = useFormatScheduleISOTime(scheduleID)
 
-  const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
       props.onChange({ ...formProps.value, time: null, weekdayFilter: Never })
       return
