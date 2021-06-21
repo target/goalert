@@ -20,7 +20,7 @@ func init() {
 
 	// On-Call Status Notifications
 	perCM.
-		WithMsgTypes(notification.MessageTypeScheduleOnCallStatus).
+		WithMsgTypes(notification.MessageTypeScheduleOnCallNotification).
 		AddRules([]ThrottleRule{
 			{Count: 2, Per: 15 * time.Minute},
 			{Count: 4, Per: 1 * time.Hour, Smooth: true},

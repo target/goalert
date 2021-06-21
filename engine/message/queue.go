@@ -13,7 +13,7 @@ var typePriority = map[notification.MessageType]int{
 	notification.MessageTypeVerification: 1,
 	notification.MessageTypeTest:         2,
 
-	notification.MessageTypeScheduleOnCallStatus: 3,
+	notification.MessageTypeScheduleOnCallNotification: 3,
 
 	// First alert will jump the list with priority 0, so this only
 	// represents additional alerts to the service after the first.

@@ -24,4 +24,4 @@ var _ Message = &ScheduleOnCallStatus{}
 
 func (s ScheduleOnCallStatus) ID() string        { return s.CallbackID }
 func (s ScheduleOnCallStatus) Destination() Dest { return s.Dest }
-func (s ScheduleOnCallStatus) Type() MessageType { return MessageTypeScheduleOnCallStatus }
+func (s ScheduleOnCallStatus) Type() MessageType { return MessageTypeScheduleOnCallNotification }
