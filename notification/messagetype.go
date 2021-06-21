@@ -37,7 +37,7 @@ func (s MessageType) Value() (driver.Value, error) {
 	case MessageTypeAlertStatusBundle:
 		return "alert_status_update_bundle", nil
 	case MessageTypeScheduleOnCallStatus:
-		return "schedule_on_call_status", nil
+		return "schedule_on_call_notification", nil
 	}
 	return nil, fmt.Errorf("could not process unknown type for MessageType %s", s)
 }
@@ -58,7 +58,7 @@ func (s *MessageType) Scan(value interface{}) error {
 		*s = MessageTypeAlertBundle
 	case "alert_status_update_bundle":
 		*s = MessageTypeAlertStatusBundle
-	case "schedule_on_call_status":
+	case "schedule_on_call_notification":
 		*s = MessageTypeScheduleOnCallStatus
 	default:
 		return fmt.Errorf("could not process unknown type for MessageType %str", str)

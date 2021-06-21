@@ -14,7 +14,7 @@ SET version = 7
 WHERE type_id = 'message';
 
 DELETE FROM outgoing_messages
-WHERE message_type = 'schedule_on_call_status';
+WHERE message_type = 'schedule_on_call_notification';
 
 ALTER TABLE
   outgoing_messages DROP COLUMN schedule_id;
