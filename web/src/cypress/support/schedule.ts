@@ -87,7 +87,7 @@ function setScheduleNotificationRules(
         },
       })
     })
-    .then(() => cy.graphql(query, { id: schedule }))
+    .then(() => cy.graphql(query, { id: schedule }) as { schedule: Schedule })
     .then((sched: { schedule: Schedule }) => sched.schedule)
 }
 
