@@ -7,9 +7,9 @@ type User struct {
 	URL  string
 }
 
-// ScheduleOnCallStatus is a Message that indicates which users are
+// ScheduleOnCallNotification is a Message that indicates which users are
 // currently on-call for a Schedule
-type ScheduleOnCallStatus struct {
+type ScheduleOnCallNotification struct {
 	Dest       Dest
 	CallbackID string
 
@@ -20,8 +20,8 @@ type ScheduleOnCallStatus struct {
 	Users []User
 }
 
-var _ Message = &ScheduleOnCallStatus{}
+var _ Message = &ScheduleOnCallNotification{}
 
-func (s ScheduleOnCallStatus) ID() string        { return s.CallbackID }
-func (s ScheduleOnCallStatus) Destination() Dest { return s.Dest }
-func (s ScheduleOnCallStatus) Type() MessageType { return MessageTypeScheduleOnCallNotification }
+func (s ScheduleOnCallNotification) ID() string        { return s.CallbackID }
+func (s ScheduleOnCallNotification) Destination() Dest { return s.Dest }
+func (s ScheduleOnCallNotification) Type() MessageType { return MessageTypeScheduleOnCallNotification }

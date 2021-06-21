@@ -140,7 +140,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			})
 		}
 
-		notifMsg = notification.ScheduleOnCallStatus{
+		notifMsg = notification.ScheduleOnCallNotification{
 			Dest:         msg.Dest,
 			CallbackID:   msg.ID,
 			ScheduleName: sched.Name,
