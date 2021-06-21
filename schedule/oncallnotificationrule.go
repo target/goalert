@@ -29,7 +29,7 @@ type OnCallNotificationRule struct {
 }
 
 // RuleID uniquely identifies an OnCallNotificationRule within the context of a single schedule
-// and i stable across updates.
+// and is stable across updates.
 type RuleID struct {
 	scheduleID uuid.UUID
 	id         int
