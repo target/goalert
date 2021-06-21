@@ -36,7 +36,6 @@ export function ScheduleTZFilter(props) {
 
   return (
     <FormControlLabel
-      disabled={props.disabled}
       data-cy='tz-switch'
       control={
         <Switch
@@ -53,7 +52,7 @@ export function ScheduleTZFilter(props) {
 
 ScheduleTZFilter.propTypes = {
   label: p.func,
-  disabled: p.bool,
+
   scheduleID: p.string.isRequired,
 
   // provided by connect

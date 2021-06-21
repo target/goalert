@@ -7,7 +7,7 @@ import {
 } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { Grid } from '@material-ui/core'
-import _ from 'lodash'
+import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
@@ -30,7 +30,7 @@ const buildFetchMore = (
   stopPolling: QueryResult['stopPolling'],
   itemsPerPage: number,
 ): ((numberToLoad?: number) => void) | undefined => {
-  return _.once((newLimit?: number) => {
+  return once((newLimit?: number) => {
     stopPolling()
     return fetchMore({
       variables: {
@@ -73,10 +73,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
    */
   query: DocumentNode
 
-  // path specifies the location of the data nodes to render, defaults to "data.nodes"
-  path?: string | string[]
-
-  // mapDataNode maps the data found at the given `path` to the struct required by a FlatList item
+  // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
@@ -97,7 +94,6 @@ export default function QueryList(props: QueryListProps): JSX.Element {
       url: n.id,
       subText: n.description,
     }),
-    path = 'data.nodes',
     query,
     variables = {},
     noSearch,
@@ -130,8 +126,8 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     pollInterval: POLL_INTERVAL,
   })
 
-  const dataNodes = _.get(data, path, [])
-  const items = dataNodes.map(mapDataNode)
+  const nodes = data?.data?.nodes ?? []
+  const items = nodes.map(mapDataNode)
   let loadMore: ((numberToLoad?: number) => void) | undefined
 
   if (data?.data?.pageInfo?.hasNextPage) {
