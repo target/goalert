@@ -163,6 +163,9 @@ func (db *DB) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
 	row := db.findOne.QueryRowContext(ctx, id)
 	var i IntegrationKey
 	err = scanFrom(&i, row.Scan)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
