@@ -71,6 +71,9 @@ func (r RuleID) MarshalText() ([]byte, error) {
 	return []byte(r.String()), nil
 }
 
+// UnmarshalText will parse a rule in string form.
+//
+// Format is a 36-char UUID string, then colon, followed by a unique int value.
 func (r *RuleID) UnmarshalText(data []byte) error {
 	s := string(data)
 	if s == "" {
