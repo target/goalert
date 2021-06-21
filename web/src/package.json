@@ -74,7 +74,7 @@
     "@types/history": "4.7.8",
     "@types/jest": "26.0.23",
     "@types/lodash": "4.14.170",
-    "@types/luxon": "1.26.5",
+    "@types/luxon": "1.27.0",
     "@types/react": "17.0.8",
     "@types/react-beautiful-dnd": "^13.0.0",
     "@types/react-big-calendar": "0.31.0",
