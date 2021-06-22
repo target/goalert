@@ -19,7 +19,7 @@ func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
 	var toDelete []string
 	filter := messages[:0]
 	for _, msg := range messages {
-		if msg.Type != notification.MessageTypeScheduleOnCallNotification {
+		if msg.Type != notification.MessageTypeScheduleOnCallUsers {
 			filter = append(filter, msg)
 			continue
 		}

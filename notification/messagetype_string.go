@@ -15,12 +15,12 @@ func _() {
 	_ = x[MessageTypeVerification-4]
 	_ = x[MessageTypeAlertBundle-5]
 	_ = x[MessageTypeAlertStatusBundle-6]
-	_ = x[MessageTypeScheduleOnCallNotification-7]
+	_ = x[MessageTypeScheduleOnCallUsers-7]
 }
 
-const _MessageType_name = "MessageTypeUnknownMessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerificationMessageTypeAlertBundleMessageTypeAlertStatusBundleMessageTypeScheduleOnCallNotification"
+const _MessageType_name = "MessageTypeUnknownMessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerificationMessageTypeAlertBundleMessageTypeAlertStatusBundleMessageTypeScheduleOnCallUsers"
 
-var _MessageType_index = [...]uint8{0, 18, 34, 56, 71, 94, 116, 144, 181}
+var _MessageType_index = [...]uint8{0, 18, 34, 56, 71, 94, 116, 144, 174}
 
 func (i MessageType) String() string {
 	if i < 0 || i >= MessageType(len(_MessageType_index)-1) {

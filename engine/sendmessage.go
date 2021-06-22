@@ -121,7 +121,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 			Code:       code,
 		}
-	case notification.MessageTypeScheduleOnCallNotification:
+	case notification.MessageTypeScheduleOnCallUsers:
 		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup on call users by schedule")
@@ -140,7 +140,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			})
 		}
 
-		notifMsg = notification.ScheduleOnCallNotification{
+		notifMsg = notification.ScheduleOnCallUsers{
 			Dest:         msg.Dest,
 			CallbackID:   msg.ID,
 			ScheduleName: sched.Name,

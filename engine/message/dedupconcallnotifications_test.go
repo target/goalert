@@ -18,19 +18,19 @@ func TestDedupOnCallNotifications(t *testing.T) {
 		},
 		{
 			ID:         "b",
-			Type:       notification.MessageTypeScheduleOnCallNotification,
+			Type:       notification.MessageTypeScheduleOnCallUsers,
 			ScheduleID: "A",
 			CreatedAt:  n.Add(time.Minute),
 		},
 		{
 			ID:         "c",
-			Type:       notification.MessageTypeScheduleOnCallNotification,
+			Type:       notification.MessageTypeScheduleOnCallUsers,
 			ScheduleID: "A",
 			CreatedAt:  n.Add(2 * time.Second),
 		},
 		{
 			ID:         "d",
-			Type:       notification.MessageTypeScheduleOnCallNotification,
+			Type:       notification.MessageTypeScheduleOnCallUsers,
 			ScheduleID: "B",
 			CreatedAt:  n.Add(time.Second),
 		},
