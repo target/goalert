@@ -391,7 +391,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	for rows.Next() {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, ScheduleID sql.NullString
+		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, scheduleID sql.NullString
 		var alertID, logID sql.NullInt64
 		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
@@ -410,7 +410,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&createdAt,
 			&sentAt,
 			&statusAlertIDs,
-			&ScheduleID,
+			&scheduleID,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -425,7 +425,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
 		msg.StatusAlertIDs = statusAlertIDs
-		msg.ScheduleID = ScheduleID.String
+		msg.ScheduleID = scheduleID.String
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
