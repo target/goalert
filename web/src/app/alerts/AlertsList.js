@@ -21,10 +21,12 @@ import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
-import QueryList from '../lists/QueryList'
+
 import useWidth from '../util/useWidth'
 import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
+import ControlledPaginatedList from '../lists/ControlledPaginatedList'
+import { usePaginatedQuery } from '../lists/usePaginatedQuery'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -252,47 +254,49 @@ export default function AlertsList(props) {
     return actions
   }
 
-  // render
+  const { q, loadMore } = usePaginatedQuery(alertsListQuery, variables)
+
+  const items =
+    q.data?.data?.nodes?.map((a) => ({
+      id: a.id,
+      status: getListItemStatus(a.status),
+      title: `${a.alertID}: ${a.status.toUpperCase().replace('STATUS', '')}`,
+      subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+      action: (
+        <ListItemText
+          className={classes.alertTimeContainer}
+          secondary={
+            fullTime
+              ? DateTime.fromISO(a.createdAt).toLocaleString(
+                  DateTime.DATETIME_MED,
+                )
+              : formatTimeSince(a.createdAt)
+          }
+        />
+      ),
+      url: `/alerts/${a.id}`,
+      selectable: a.status !== 'StatusClosed',
+    })) ?? []
+
   return (
     <React.Fragment>
-      <QueryList
-        query={alertsListQuery}
+      <ControlledPaginatedList
         infiniteScroll
+        items={items}
+        isLoading={!q.data && q.loading}
+        loadMore={loadMore}
         headerNote={getHeaderNote()}
-        mapDataNode={(a) => ({
-          id: a.id,
-          status: getListItemStatus(a.status),
-          title: `${a.alertID}: ${a.status
-            .toUpperCase()
-            .replace('STATUS', '')}`,
-          subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: (
-            <ListItemText
-              className={classes.alertTimeContainer}
-              secondary={
-                fullTime
-                  ? DateTime.fromISO(a.createdAt).toLocaleString(
-                      DateTime.DATETIME_MED,
-                    )
-                  : formatTimeSince(a.createdAt)
-              }
-            />
-          ),
-          url: `/alerts/${a.id}`,
-          selectable: a.status !== 'StatusClosed',
-        })}
-        variables={variables}
-        secondaryActions={
-          props?.secondaryActions ?? (
-            <AlertsListFilter serviceID={props.serviceID} />
-          )
-        }
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />
           </Hidden>
         }
         checkboxActions={getActions()}
+        secondaryActions={
+          props.secondaryActions ?? (
+            <AlertsListFilter serviceID={props.serviceID} />
+          )
+        }
       />
 
       <CreateFAB

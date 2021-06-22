@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import p from 'prop-types'
 import { Grid, FormControlLabel, Switch } from '@material-ui/core'
-import QueryList from '../lists/QueryList'
 import { gql } from '@apollo/client'
+
 import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
@@ -14,6 +14,8 @@ import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
 import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
+import { usePaginatedQuery } from '../lists/usePaginatedQuery'
+import { PaginatedList } from '../lists/PaginatedList'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -51,6 +53,8 @@ export default function ScheduleOverrideList(props) {
   const [zone] = useURLParam('tz', 'local')
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
+  const now = useMemo(() => new Date().toISOString(), [showPast])
+
   const subText = (n) => {
     const timeStr = formatOverrideTime(n.start, n.end, zone)
     if (n.addUser && n.removeUser) {
@@ -65,9 +69,42 @@ export default function ScheduleOverrideList(props) {
     return `Removed from ${timeStr}`
   }
 
+  const { q, loadMore } = usePaginatedQuery(
+    query,
+    {
+      input: {
+        scheduleID: props.scheduleID,
+        start: showPast ? null : now,
+        filterAnyUserID: userFilter,
+      },
+    },
+    false,
+  )
+
+  const items =
+    q.data?.data?.nodes?.map((n) => ({
+      title: n.addUser ? n.addUser.name : n.removeUser.name,
+      subText: subText(n),
+      icon: <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />,
+      action: (
+        <OtherActions
+          actions={[
+            {
+              label: 'Edit',
+              onClick: () => setEditID(n.id),
+            },
+            {
+              label: 'Delete',
+              onClick: () => setDeleteID(n.id),
+            },
+          ]}
+        />
+      ),
+    })) ?? []
+
   const zoneText = zone === 'local' ? 'local time' : zone
   const hasUsers = Boolean(userFilter.length)
-  const note = showPast
+  const headerNote = showPast
     ? `Showing all overrides${
         hasUsers ? ' for selected users' : ''
       } in ${zoneText}.`
@@ -78,39 +115,12 @@ export default function ScheduleOverrideList(props) {
   return (
     <React.Fragment>
       <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
-      <QueryList
-        headerNote={note}
-        noSearch
+      <PaginatedList
         noPlaceholder
-        query={query}
-        mapDataNode={(n) => ({
-          title: n.addUser ? n.addUser.name : n.removeUser.name,
-          subText: subText(n),
-          icon: (
-            <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />
-          ),
-          action: (
-            <OtherActions
-              actions={[
-                {
-                  label: 'Edit',
-                  onClick: () => setEditID(n.id),
-                },
-                {
-                  label: 'Delete',
-                  onClick: () => setDeleteID(n.id),
-                },
-              ]}
-            />
-          ),
-        })}
-        variables={{
-          input: {
-            scheduleID: props.scheduleID,
-            start: showPast ? null : new Date().toISOString(),
-            filterAnyUserID: userFilter,
-          },
-        }}
+        items={items}
+        isLoading={!q.data && q.loading}
+        loadMore={loadMore}
+        headerNote={headerNote}
         headerAction={
           <FilterContainer onReset={() => resetFilter()}>
             <Grid item xs={12}>
