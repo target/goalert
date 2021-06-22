@@ -13,6 +13,7 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
+import './slack'
 import './alert'
 import './calendar-subscription'
 import './fail-fast'

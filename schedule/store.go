@@ -241,7 +241,9 @@ func (store *Store) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	if err != nil {
 		return nil, err
 	}
-	userID := permission.UserID(ctx)
+	var userID sql.NullString
+	userID.String = permission.UserID(ctx)
+	userID.Valid = userID.String != ""
 	row := store.findOne.QueryRowContext(ctx, id, userID)
 	var s Schedule
 	var tz string

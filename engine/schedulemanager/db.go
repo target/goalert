@@ -19,6 +19,9 @@ type DB struct {
 	endOnCall   *sql.Stmt
 	startOnCall *sql.Stmt
 	data        *sql.Stmt
+	updateData  *sql.Stmt
+
+	scheduleOnCallNotification *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -46,7 +49,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from user_overrides
 			where now() between start_time and end_time
 		`),
-		data: p.P(`select schedule_id, data from schedule_data where data notnull`),
+		data:       p.P(`select schedule_id, data from schedule_data where data notnull for update`),
+		updateData: p.P(`update schedule_data set data = $2 where schedule_id = $1`),
 		rules: p.P(`
 			select
 				rule.schedule_id,
@@ -88,7 +92,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				user_id = $2 and
 				end_time isnull
 		`),
-
+		scheduleOnCallNotification: p.P(`
+			insert into outgoing_messages (id, message_type, channel_id, schedule_id) values ($1, 'schedule_on_call_notification', $2, $3)
+		`),
 		currentTime: p.P(`select now()`),
 	}, p.Err
 }
