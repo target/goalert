@@ -41,7 +41,7 @@ export default function SpinContainer(props: SpinContainerProps): JSX.Element {
     }
   }
 
-  const handleLayout = () => {
+  const handleLayout = (): void => {
     if (!ref.current) return
     const newRect = {
       top: ref.current.offsetTop,
