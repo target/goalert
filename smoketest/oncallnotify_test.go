@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
+// TestOnCallNotify will validate that on-change notifications are sent for schedules.
 func TestOnCallNotify(t *testing.T) {
 	t.Parallel()
 
