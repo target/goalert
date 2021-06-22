@@ -1,12 +1,7 @@
 import { DateTime } from 'luxon'
 
 function dialog(): Cypress.Chainable {
-  return cy
-    .get('[data-cy=unmounting]')
-    .should('not.exist')
-    .get('[role=dialog]')
-    .should('have.length', 1)
-    .should('be.visible')
+  return cy.get('[role=dialog]').should('have.length', 1).should('be.visible')
 }
 
 function dialogForm(
@@ -36,15 +31,9 @@ function dialogClick(s: string): Cypress.Chainable {
 }
 
 function dialogFinish(s: string): Cypress.Chainable {
-  return dialog()
-    .get('[data-cy-gu]')
-    .then((el) => {
-      const id = el.data('cyGu')
-      return cy
-        .dialogClick(s)
-        .get(`[data-cy-gu=${id}]`)
-        .should('not.exist', { timeout: 15000 })
-    })
+  return dialogClick(s)
+    .get(`[role=dialog]`)
+    .should('not.exist', { timeout: 15000 })
 }
 
 Cypress.Commands.add('dialogFinish', dialogFinish)
