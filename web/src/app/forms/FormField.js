@@ -41,11 +41,27 @@ export function FormField(props) {
     ...otherFieldProps
   } = props
 
+  const fieldName = _fieldName || name
+
+  const validateField = (value) => {
+    if (
+      required &&
+      !['boolean', 'number'].includes(typeof value) &&
+      isEmpty(value)
+    ) {
+      return new Error('Required field.')
+    }
+
+    return validate(value)
+  }
+
+  useEffect(() => {
+    return addField(fieldName, validateField)
+  }, [])
+
   const baseLabel = typeof _label === 'string' ? _label : startCase(name)
   const label =
     !required && optionalLabels ? baseLabel + ' (optional)' : baseLabel
-
-  const fieldName = _fieldName || name
 
   const fieldProps = {
     ...otherFieldProps,
@@ -90,22 +106,6 @@ export function FormField(props) {
       newValue = Math.min(fieldProps.max, newValue)
     onChange(fieldName, mapOnChangeValue(newValue, value))
   }
-
-  const validateField = (value) => {
-    if (
-      required &&
-      !['boolean', 'number'].includes(typeof value) &&
-      isEmpty(value)
-    ) {
-      return new Error('Required field.')
-    }
-
-    return validate(value)
-  }
-
-  useEffect(() => {
-    return addField(fieldName, validateField)
-  }, [])
 
   function renderFormHelperText(error, hint) {
     if (error?.helpLink) {
