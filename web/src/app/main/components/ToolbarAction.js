@@ -45,6 +45,7 @@ function ToolbarAction(props) {
       {getRoute('/schedules/:scheduleID/escalation-policies')}
       {getRoute('/schedules/:scheduleID/overrides')}
       {getRoute('/schedules/:scheduleID/shifts')}
+      {getRoute('/schedules/:scheduleID/on-call-notifications')}
       {getRoute('/escalation-policies/:escalationPolicyID/services')}
       {getRoute('/services/:serviceID/alerts')}
       {getRoute('/services/:serviceID/integration-keys')}

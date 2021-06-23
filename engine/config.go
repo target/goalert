@@ -7,6 +7,8 @@ import (
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/oncall"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 )
@@ -20,6 +22,8 @@ type Config struct {
 	UserStore           user.Store
 	NotificationStore   notification.Store
 	NCStore             notificationchannel.Store
+	OnCallStore         oncall.Store
+	ScheduleStore       *schedule.Store
 
 	ConfigSource config.Source
 

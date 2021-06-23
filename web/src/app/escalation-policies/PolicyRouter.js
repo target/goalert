@@ -14,6 +14,7 @@ const query = gql`
         id
         name
         description
+        isFavorite
       }
       pageInfo {
         hasNextPage
@@ -24,26 +25,36 @@ const query = gql`
 `
 
 export default function PolicyRouter() {
-  const renderList = () => (
-    <SimpleListPage
-      query={query}
-      mapDataNode={(n) => ({
-        title: n.name,
-        subText: n.description,
-        url: n.id,
-      })}
-      createForm={<PolicyCreateDialog />}
-      createLabel='Escalation Policy'
-    />
-  )
+  function renderList() {
+    return (
+      <SimpleListPage
+        query={query}
+        variables={{ input: { favoritesFirst: true } }}
+        mapDataNode={(n) => ({
+          title: n.name,
+          subText: n.description,
+          url: n.id,
+          isFavorite: n.isFavorite,
+        })}
+        createForm={<PolicyCreateDialog />}
+        createLabel='Escalation Policy'
+      />
+    )
+  }
 
-  const renderDetails = ({ match }) => (
-    <PolicyDetails escalationPolicyID={match.params.escalationPolicyID} />
-  )
+  function renderDetails({ match }) {
+    return (
+      <PolicyDetails escalationPolicyID={match.params.escalationPolicyID} />
+    )
+  }
 
-  const renderServices = ({ match }) => (
-    <PolicyServicesQuery escalationPolicyID={match.params.escalationPolicyID} />
-  )
+  function renderServices({ match }) {
+    return (
+      <PolicyServicesQuery
+        escalationPolicyID={match.params.escalationPolicyID}
+      />
+    )
+  }
 
   return (
     <Switch>

@@ -211,6 +211,7 @@ export interface SetScheduleShiftInput {
 export interface Mutation {
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
+  setScheduleOnCallNotificationRules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -339,7 +340,7 @@ export interface ScheduleRuleInput {
   id?: string
   start?: ClockTime
   end?: ClockTime
-  weekdayFilter?: boolean[]
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface SetLabelInput {
@@ -379,6 +380,7 @@ export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
+  favorite?: boolean
   steps?: CreateEscalationPolicyStepInput[]
 }
 
@@ -457,6 +459,26 @@ export interface Schedule {
   target?: ScheduleTarget
   isFavorite: boolean
   temporarySchedules: TemporarySchedule[]
+  onCallNotificationRules: OnCallNotificationRule[]
+}
+
+export interface SetScheduleOnCallNotificationRulesInput {
+  scheduleID: string
+  rules: OnCallNotificationRuleInput[]
+}
+
+export interface OnCallNotificationRuleInput {
+  id?: string
+  target: TargetInput
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
+}
+
+export interface OnCallNotificationRule {
+  id: string
+  target: Target
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface OnCallShift {
@@ -478,7 +500,7 @@ export interface ScheduleRule {
   scheduleID: string
   start: ClockTime
   end: ClockTime
-  weekdayFilter: boolean[]
+  weekdayFilter: WeekdayFilter
   target: Target
 }
 
@@ -554,6 +576,8 @@ export interface EscalationPolicySearchOptions {
   after?: string
   search?: string
   omit?: string[]
+  favoritesOnly?: boolean
+  favoritesFirst?: boolean
 }
 
 export interface ScheduleSearchOptions {
@@ -602,6 +626,16 @@ export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
 export type ISOTimestamp = string
 
 export type ClockTime = string
+
+export type WeekdayFilter = [
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+]
 
 export interface Alert {
   id: string
@@ -720,6 +754,7 @@ export interface EscalationPolicy {
   name: string
   description: string
   repeat: number
+  isFavorite: boolean
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
   notices: Notice[]
@@ -889,7 +924,7 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
-  | 'General.DisableV1GraphQL'
+  | 'General.EnableV1GraphQL'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Auth.RefererURLs'

@@ -181,7 +181,7 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(schedules)/:id/:sub(assignments|escalation-policies|overrides|shifts)'
+        path='/:type(schedules)/:id/:sub(assignments|on-call-notifications|escalation-policies|overrides|shifts)'
         render={renderSubPageTitle}
       />
       <Route

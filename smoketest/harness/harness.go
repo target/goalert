@@ -120,6 +120,8 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	return h
 }
 
+func (h *Harness) App() *app.App { return h.backend }
+
 func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
@@ -234,7 +236,6 @@ func (h *Harness) Start() {
 	h.t.Helper()
 
 	var cfg config.Config
-	cfg.General.DisableV1GraphQL = true
 	cfg.Slack.Enable = true
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
@@ -402,7 +403,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 
 	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
 	if err != nil {
-		h.t.Fatalf("failed to exec query: %v", err)
+		h.t.Fatalf("failed to exec query: %v\n%s", err, b.String())
 	}
 }
 

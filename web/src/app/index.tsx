@@ -14,7 +14,6 @@ import App from './main/App'
 import MuiPickersUtilsProvider from './mui-pickers'
 import history from './history'
 import store from './reduxStore'
-import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
 import { warn } from './util/debug'
@@ -69,9 +68,7 @@ ReactDOM.render(
                   />
                 )}
               </Config>
-              <GracefulUnmounterProvider>
-                <App />
-              </GracefulUnmounterProvider>
+              <App />
             </ConfigProvider>
           </MuiPickersUtilsProvider>
         </ConnectedRouter>

@@ -13,11 +13,14 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Typography from '@material-ui/core/Typography'
 import Countdown from 'react-countdown-now'
+import {
+  ArrowUpward as EscalateIcon,
+  Check as AcknowledgeIcon,
+  Close as CloseIcon,
+} from '@material-ui/icons'
+import { gql, useMutation } from '@apollo/client'
 import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
-import Options from '../../util/Options'
-import { gql } from '@apollo/client'
-import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
@@ -25,6 +28,7 @@ import { makeStyles } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
 import _ from 'lodash'
+import CardActions from '../../details/CardActions'
 
 const useStyles = makeStyles((theme) => ({
   activeRow: {
@@ -48,10 +52,48 @@ const useStyles = makeStyles((theme) => ({
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
 
+const updateStatusMutation = gql`
+  mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
+    updateAlerts(input: $input) {
+      id
+    }
+  }
+`
 function AlertDetails(props) {
   const classes = useStyles()
   const width = useWidth()
   const fullScreen = isWidthDown('md', width)
+
+  const [ack] = useMutation(updateStatusMutation, {
+    variables: {
+      input: {
+        alertIDs: [props.data.id],
+        newStatus: 'StatusAcknowledged',
+      },
+    },
+  })
+  const [close] = useMutation(updateStatusMutation, {
+    variables: {
+      input: {
+        alertIDs: [props.data.id],
+        newStatus: 'StatusClosed',
+      },
+    },
+  })
+  const [escalate] = useMutation(
+    gql`
+      mutation EscalateAlertMutation($input: [Int!]) {
+        escalateAlerts(input: $input) {
+          id
+        }
+      }
+    `,
+    {
+      variables: {
+        input: [props.data.id],
+      },
+    },
+  )
 
   // localstorage stores true/false as a string; convert to a bool
   // default to true if localstorage is not set
@@ -364,73 +406,40 @@ function AlertDetails(props) {
    * Options to show for alert details menu
    */
   function getMenuOptions() {
-    const { id, status } = props.data
+    const { status } = props.data
+    let options = []
 
-    if (status === 'StatusClosed') return [] // no options to show if alert is already closed
-    const updateStatusMutation = gql`
-      mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
-        updateAlerts(input: $input) {
-          id
-        }
-      }
-    `
-    const options = []
-    const ack = {
-      text: 'Acknowledge',
-      mutation: {
-        query: updateStatusMutation,
-        variables: {
-          input: {
-            alertIDs: [id],
-            newStatus: 'StatusAcknowledged',
-          },
+    if (status === 'StatusClosed') return options
+    if (status === 'StatusUnacknowledged') {
+      options = [
+        {
+          icon: <AcknowledgeIcon />,
+          label: 'Acknowledge',
+          handleOnClick: () => ack(),
         },
-      },
+      ]
     }
 
-    const esc = {
-      text: 'Escalate',
-      mutation: {
-        query: gql`
-          mutation EscalateAlertMutation($input: [Int!]) {
-            escalateAlerts(input: $input) {
-              id
-            }
-          }
-        `,
-        variables: {
-          input: [id],
-        },
+    // only remaining status is acknowledged, show remaining buttons
+    return [
+      ...options,
+      {
+        icon: <CloseIcon />,
+        label: 'Close',
+        handleOnClick: () => close(),
       },
-    }
-
-    const close = {
-      text: 'Close',
-      mutation: {
-        query: updateStatusMutation,
-        variables: {
-          input: {
-            alertIDs: [id],
-            newStatus: 'StatusClosed',
-          },
-        },
+      {
+        icon: <EscalateIcon />,
+        label: 'Escalate',
+        handleOnClick: () => escalate(),
       },
-    }
-
-    if (status === 'StatusUnacknowledged') options.push(ack)
-    options.push(close)
-    options.push(esc)
-    return options
+    ]
   }
 
   const { data: alert } = props
 
-  const options = getMenuOptions()
-  const optionsMenu = options.length > 0 ? <Options options={options} /> : null
-
   return (
     <Grid container spacing={2}>
-      <PageActions>{optionsMenu}</PageActions>
       <Grid item xs={12} className={classes.cardContainer}>
         <Card className={getCardClassName()}>
           <CardContent data-cy='alert-summary'>
@@ -452,6 +461,7 @@ function AlertDetails(props) {
               </Grid>
             </Grid>
           </CardContent>
+          <CardActions secondaryActions={getMenuOptions()} />
         </Card>
       </Grid>
       {renderAlertDetails()}

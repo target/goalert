@@ -68,4 +68,5 @@ LabelForm.propTypes = {
 
   editValueOnly: p.bool,
   create: p.bool,
+  disabled: p.bool,
 }

@@ -8,10 +8,15 @@ const c = new Chance()
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
-
   const end = t.endOf('week').minus({ day: 1 })
+  if (start.month === end.month) {
+    return start.toFormat('MMMM yyyy')
+  }
+  if (start.year === end.year) {
+    return `${start.monthShort} — ${end.monthShort} ${end.year}`
+  }
 
-  return start.toFormat('MMMM d — ') + end.toFormat('MMMM d')
+  return `${start.monthShort} ${start.year} — ${end.monthShort} ${end.year}`
 }
 
 const weekSpansTwoMonths = (t: DateTime): boolean => {
@@ -71,6 +76,8 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it(`should view a shift's tooltip`, () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
+
     cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="replace-override"]').should('be.visible')
@@ -158,6 +165,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a replace override from a shift tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
     const name = rot.users[0].name
 
     cy.fixture('users').then((users) => {
@@ -176,6 +184,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a remove override from a shift tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
     const name = rot.users[0].name
 
     cy.get('[data-cy=calendar]')

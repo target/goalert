@@ -102,6 +102,7 @@ type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
 	Repeat      *int                              `json:"repeat"`
+	Favorite    *bool                             `json:"favorite"`
 	Steps       []CreateEscalationPolicyStepInput `json:"steps"`
 }
 
@@ -214,10 +215,12 @@ type EscalationPolicyConnection struct {
 }
 
 type EscalationPolicySearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type LabelConnection struct {
@@ -287,10 +290,10 @@ type ScheduleConnection struct {
 }
 
 type ScheduleRuleInput struct {
-	ID            *string         `json:"id"`
-	Start         *timeutil.Clock `json:"start"`
-	End           *timeutil.Clock `json:"end"`
-	WeekdayFilter []bool          `json:"weekdayFilter"`
+	ID            *string                 `json:"id"`
+	Start         *timeutil.Clock         `json:"start"`
+	End           *timeutil.Clock         `json:"end"`
+	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter"`
 }
 
 type ScheduleSearchOptions struct {
@@ -342,6 +345,11 @@ type SetLabelInput struct {
 	Target *assignment.RawTarget `json:"target"`
 	Key    string                `json:"key"`
 	Value  string                `json:"value"`
+}
+
+type SetScheduleOnCallNotificationRulesInput struct {
+	ScheduleID string                        `json:"scheduleID"`
+	Rules      []OnCallNotificationRuleInput `json:"rules"`
 }
 
 type SetTemporaryScheduleInput struct {

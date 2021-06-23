@@ -1,18 +1,19 @@
 import { calcNewActiveIndex, handoffSummary, reorderList } from './util'
 import { Settings } from 'luxon'
 
+let oldZone = ''
+beforeAll(() => {
+  // 01/02 03:04:05PM '06 -0700
+  Settings.now = () => 1136239445
+  oldZone = Settings.defaultZoneName
+  Settings.defaultZoneName = 'UTC'
+})
+afterAll(() => {
+  Settings.now = () => Date.now()
+  Settings.defaultZoneName = oldZone
+})
+
 describe('calcNewActiveIndex', () => {
-  let oldZone = ''
-  beforeAll(() => {
-    // 01/02 03:04:05PM '06 -0700
-    Settings.now = () => 1136239445
-    oldZone = Settings.defaultZoneName
-    Settings.defaultZoneName = 'UTC'
-  })
-  afterAll(() => {
-    Settings.now = () => Date.now()
-    Settings.defaultZone = oldZone
-  })
   const check = (aIdx, oldIdx, newIdx, exp) => {
     expect(calcNewActiveIndex(aIdx, oldIdx, newIdx)).toBe(exp)
   }
