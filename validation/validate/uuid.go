@@ -11,6 +11,12 @@ import (
 // UUID will validate a UUID, returning a FieldError
 // if invalid.
 func UUID(fname, u string) error {
+	if len(u) != 36 {
+		// Format check only required to ensure string IDs are valid when being passed to DB.
+		//
+		// We can remove this check once we switch to uuid.UUID in structs everywhere.
+		return validation.NewFieldError(fname, "must be valid UUID: format must be xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+	}
 	_, err := uuid.Parse(u)
 	if err != nil {
 		return validation.NewFieldError(fname, "must be a valid UUID: "+err.Error())
