@@ -107,6 +107,11 @@ function fillFormField(
   return cy
     .get(selector)
     .then((el) => {
+      if (el.attr('type') === 'radio') {
+        return cy
+          .get(`${selPrefix} input[name="${name}"][value="${value}"]`)
+          .click()
+      }
       // Auto detect/expand accordion sections if need be
       const accordionSectionID = el
         .parents('[aria-labelledby][role=region]')
