@@ -16,6 +16,8 @@ import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { usePaginatedQuery } from '../lists/usePaginatedQuery'
 import { PaginatedList } from '../lists/PaginatedList'
+import { useSelector } from 'react-redux'
+import { urlKeySelector } from '../selectors'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -47,7 +49,7 @@ export default function ScheduleOverrideList(props) {
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
   const [create, setCreate] = useState(null)
-
+  const urlKey = useSelector(urlKeySelector)
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [showPast, setShowPast] = useURLParam('showPast', false)
   const [zone] = useURLParam('tz', 'local')
@@ -116,6 +118,7 @@ export default function ScheduleOverrideList(props) {
     <React.Fragment>
       <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
       <PaginatedList
+        key={urlKey}
         noPlaceholder
         items={items}
         isLoading={!q.data && q.loading}
