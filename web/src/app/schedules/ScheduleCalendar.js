@@ -7,7 +7,9 @@ import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import CalendarEventWrapper from './CalendarEventWrapper'
+import CalendarEventWrapper, {
+  EventHandlerContext,
+} from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
@@ -19,16 +21,14 @@ import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
+import SpinContainer from '../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
 const useStyles = makeStyles((theme) => ({
-  calendarContainer: {
-    padding: '1em',
-  },
   card: {
-    marginTop: 4,
+    padding: theme.spacing(2),
   },
   filterBtn: {
     marginRight: theme.spacing(1.75),
@@ -46,6 +46,14 @@ function ScheduleCalendar(props) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
+
+  const {
+    shifts,
+    temporarySchedules,
+    onNewTempSched,
+    onEditTempSched,
+    onDeleteTempSched,
+  } = props
 
   const eventStyleGetter = (event, start, end, isSelected) => {
     if (event.fixed) {
@@ -119,15 +127,6 @@ function ScheduleCalendar(props) {
     })
   }
 
-  const {
-    shifts,
-    temporarySchedules,
-    CardProps,
-    onNewTempSched,
-    onEditTempSched,
-    onDeleteTempSched,
-  } = props
-
   return (
     <React.Fragment>
       <Typography variant='caption' color='textSecondary'>
@@ -135,87 +134,83 @@ function ScheduleCalendar(props) {
           Times shown are in {Intl.DateTimeFormat().resolvedOptions().timeZone}
         </i>
       </Typography>
-      <Card className={classes.card} {...CardProps}>
-        <div data-cy='calendar' className={classes.calendarContainer}>
-          <CalendarToolbar
-            startAdornment={
-              <FilterContainer
-                onReset={resetFilter}
-                iconButtonProps={{
-                  size: 'small',
-                  className: classes.filterBtn,
-                }}
-              >
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={activeOnly}
-                        onChange={(e) => setActiveOnly(e.target.checked)}
-                        value='activeOnly'
-                      />
-                    }
-                    label='Active shifts only'
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <UserSelect
-                    label='Filter users...'
-                    multiple
-                    value={userFilter}
-                    onChange={setUserFilter}
-                  />
-                </Grid>
-              </FilterContainer>
-            }
-            endAdornment={
-              <Button
-                variant='contained'
-                size='small'
-                color='primary'
-                data-cy='new-temp-sched'
-                onClick={onNewTempSched}
-                className={classes.tempSchedBtn}
-                startIcon={<GroupAdd />}
-                title='Make temporary change to this schedule'
-              >
-                Temp Sched
-              </Button>
-            }
-          />
-          <Calendar
-            date={new Date(start)}
-            localizer={localizer}
-            events={getCalEvents(shifts, temporarySchedules)}
-            style={{
-              height: weekly ? '100%' : '45rem',
-              fontFamily: theme.typography.body2.fontFamily,
-              fontSize: theme.typography.body2.fontSize,
+      <Card className={classes.card} data-cy='calendar'>
+        <CalendarToolbar
+          filter={
+            <FilterContainer
+              onReset={resetFilter}
+              iconButtonProps={{
+                size: 'small',
+                className: classes.filterBtn,
+              }}
+            >
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={activeOnly}
+                      onChange={(e) => setActiveOnly(e.target.checked)}
+                      value='activeOnly'
+                    />
+                  }
+                  label='Active shifts only'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <UserSelect
+                  label='Filter users...'
+                  multiple
+                  value={userFilter}
+                  onChange={setUserFilter}
+                />
+              </Grid>
+            </FilterContainer>
+          }
+          endAdornment={
+            <Button
+              variant='contained'
+              color='primary'
+              data-cy='new-temp-sched'
+              onClick={onNewTempSched}
+              className={classes.tempSchedBtn}
+              startIcon={<GroupAdd />}
+              title='Make temporary change to schedule'
+            >
+              Temp Sched
+            </Button>
+          }
+        />
+        <SpinContainer loading={props.loading}>
+          <EventHandlerContext.Provider
+            value={{
+              onEditTempSched,
+              onDeleteTempSched,
+              onOverrideClick: setOverrideDialog,
             }}
-            tooltipAccessor={() => null}
-            views={['month', 'week']}
-            view={weekly ? 'week' : 'month'}
-            showAllEvents
-            eventPropGetter={eventStyleGetter}
-            onNavigate={() => {}} // stub to hide false console err
-            onView={() => {}} // stub to hide false console err
-            components={{
-              eventWrapper: function calEventWrapper(props) {
-                return (
-                  <CalendarEventWrapper
-                    onOverrideClick={(overrideDialog) =>
-                      setOverrideDialog(overrideDialog)
-                    }
-                    onEditTempSched={onEditTempSched}
-                    onDeleteTempSched={onDeleteTempSched}
-                    {...props}
-                  />
-                )
-              },
-              toolbar: () => null,
-            }}
-          />
-        </div>
+          >
+            <Calendar
+              date={new Date(start)}
+              localizer={localizer}
+              events={getCalEvents(shifts, temporarySchedules)}
+              style={{
+                height: weekly ? '100%' : '45rem',
+                fontFamily: theme.typography.body2.fontFamily,
+                fontSize: theme.typography.body2.fontSize,
+              }}
+              tooltipAccessor={() => null}
+              views={['month', 'week']}
+              view={weekly ? 'week' : 'month'}
+              showAllEvents
+              eventPropGetter={eventStyleGetter}
+              onNavigate={() => {}} // stub to hide false console err
+              onView={() => {}} // stub to hide false console err
+              components={{
+                eventWrapper: CalendarEventWrapper,
+                toolbar: () => null,
+              }}
+            />
+          </EventHandlerContext.Provider>
+        </SpinContainer>
       </Card>
       {Boolean(overrideDialog) && (
         <ScheduleOverrideCreateDialog
@@ -234,7 +229,7 @@ ScheduleCalendar.propTypes = {
   scheduleID: p.string.isRequired,
   shifts: p.array.isRequired,
   temporarySchedules: p.array,
-  CardProps: p.object, // todo: use CardProps from types once TS
+  loading: p.bool,
 }
 
 export default ScheduleCalendar

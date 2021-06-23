@@ -36,7 +36,7 @@ function useISOPicker(
 
     const dt = DateTime.fromFormat(input, format, { zone })
     if (dt.isValid) {
-      if (type === 'time') {
+      if (dtValue && type === 'time') {
         return dtValue.set({
           hour: dt.hour,
           minute: dt.minute,

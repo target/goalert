@@ -137,6 +137,9 @@ const cache = new InMemoryCache({
         targets: {
           merge: false,
         },
+        onCallNotificationRules: {
+          merge: false,
+        },
       },
     },
     Service: {

@@ -73,7 +73,7 @@ type DB struct {
 func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 7,
+		Version: 8,
 	})
 	if err != nil {
 		return nil, err
@@ -352,7 +352,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				msg.service_id,
 				msg.created_at,
 				msg.sent_at,
-				msg.status_alert_ids
+				msg.status_alert_ids,
+				msg.schedule_id
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -390,7 +391,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	for rows.Next() {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
+		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, scheduleID sql.NullString
 		var alertID, logID sql.NullInt64
 		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
@@ -409,6 +410,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&createdAt,
 			&sentAt,
 			&statusAlertIDs,
+			&scheduleID,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -423,6 +425,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
 		msg.StatusAlertIDs = statusAlertIDs
+		msg.ScheduleID = scheduleID.String
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
@@ -443,6 +446,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 	}
 	db.lastSent = now
+
+	result, toDelete := dedupOnCallNotifications(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
+		if err != nil {
+			return nil, fmt.Errorf("delete duplicate on-call notifications: %w", err)
+		}
+	}
 
 	cfg := config.FromContext(ctx)
 	result, toDelete := dedupStatusMessages(result)

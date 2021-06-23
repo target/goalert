@@ -112,6 +112,33 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 			Code:       code,
 		}
+	case notification.MessageTypeScheduleOnCallUsers:
+		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup on call users by schedule")
+		}
+		sched, err := p.cfg.ScheduleStore.FindOne(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup schedule by id")
+		}
+
+		var onCallUsers []notification.User
+		for _, u := range users {
+			onCallUsers = append(onCallUsers, notification.User{
+				Name: u.Name,
+				ID:   u.ID,
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + u.ID),
+			})
+		}
+
+		notifMsg = notification.ScheduleOnCallUsers{
+			Dest:         msg.Dest,
+			CallbackID:   msg.ID,
+			ScheduleName: sched.Name,
+			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
+			ScheduleID:   msg.ScheduleID,
+			Users:        onCallUsers,
+		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
 		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil

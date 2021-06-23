@@ -253,6 +253,9 @@ func (db *DB) Add(ctx context.Context, r *Rule) (*Rule, error) {
 }
 
 func (db *DB) CreateRuleTx(ctx context.Context, tx *sql.Tx, r *Rule) (*Rule, error) {
+	if tx == nil {
+		return db._Add(ctx, db.add, r)
+	}
 	return db._Add(ctx, tx.Stmt(db.add), r)
 }
 

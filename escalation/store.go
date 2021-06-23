@@ -148,7 +148,7 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 			JOIN escalation_policy_actions act ON
 				act.escalation_policy_step_id = $1 AND
 				act.channel_id = chan.id
-			WHERE chan.value = $2
+			WHERE chan.value = $2 and chan.type = 'SLACK'
 		`),
 
 		findOnePolicy: p.P(`
@@ -408,7 +408,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	notifCh, err := db.ncStore.CreateTx(ctx, tx, &notificationchannel.Channel{
+	notifID, err := db.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
 		Type:  notificationchannel.TypeSlack,
 		Name:  ch.Name,
 		Value: ch.ID,
@@ -417,7 +417,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	return assignment.NotificationChannelTarget(notifCh.ID), nil
+	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
 func (db *DB) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
 	var notifChanID string
