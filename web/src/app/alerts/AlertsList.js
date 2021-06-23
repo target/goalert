@@ -287,7 +287,7 @@ export default function AlertsList(props) {
         loadMore={loadMore}
         headerNote={getHeaderNote()}
         secondaryActions={
-          props.secondaryActions ?? (
+          props?.secondaryActions ?? (
             <AlertsListFilter serviceID={props.serviceID} />
           )
         }
