@@ -147,7 +147,9 @@ export function FormField(props) {
           {...fieldProps}
           error={checkbox ? undefined : Boolean(fieldProps.error)}
           label={formLabel ? null : fieldProps.label}
-        />
+        >
+          {fieldProps.children}
+        </Component>
         {!noError && renderFormHelperText(fieldProps.error, fieldProps.hint)}
       </FormControl>
     )
@@ -160,6 +162,9 @@ export function FormField(props) {
   )
 }
 FormField.propTypes = {
+  // pass select dropdown items as children
+  children: p.node,
+
   // one of component or render must be provided
   component: p.any,
   render: p.func,
@@ -211,6 +216,21 @@ FormField.propTypes = {
   noError: p.bool,
 
   step: p.oneOfType([p.number, p.string]),
+
+  InputProps: p.object,
+
+  disabled: p.bool,
+
+  multiline: p.bool,
+  autoComplete: p.string,
+
+  fullWidth: p.bool,
+
+  placeholder: p.string,
+
+  type: p.string,
+  select: p.bool,
+  timeZone: p.string,
 }
 
 FormField.defaultProps = {
