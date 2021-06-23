@@ -93,6 +93,7 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
+  const ITEMS_PER_PAGE = 25
   const classes = useStyles()
   const width = useWidth()
   // transition fab above snackbar when snackbar width overlaps fab placement
@@ -130,7 +131,7 @@ export default function AlertsList(props) {
   const variables = {
     input: {
       filterByStatus: getStatusFilter(filter),
-      first: 25,
+      first: ITEMS_PER_PAGE,
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
       includeNotified: !props.serviceID, // keep service list alerts specific to that service
@@ -281,6 +282,7 @@ export default function AlertsList(props) {
   return (
     <React.Fragment>
       <ControlledPaginatedList
+        itemsPerPage={ITEMS_PER_PAGE}
         infiniteScroll
         items={items}
         isLoading={!q.data && q.loading}
