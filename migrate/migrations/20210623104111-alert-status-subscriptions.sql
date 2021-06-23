@@ -27,8 +27,15 @@ JOIN alert_logs l ON l.id = log_id AND l.event != 'closed';
 
 DROP TABLE user_last_alert_log;
 
+LOCK outgoing_messages; 
+DELETE FROM outgoing_messages WHERE message_type = 'alert_status_update_bundle'; 
+ALTER TABLE outgoing_messages 
+    ADD CONSTRAINT om_no_status_bundles CHECK(message_type != 'alert_status_update_bundle');
+
 -- +migrate Down
 UPDATE engine_processing_versions SET version = 2 WHERE type_id = 'status_update';
+
+ALTER TABLE outgoing_messages DROP CONSTRAINT om_no_status_bundles;
 
  CREATE TABLE user_last_alert_log (
     alert_id BIGINT NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
