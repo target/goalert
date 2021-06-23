@@ -138,7 +138,7 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokID, err := uuid.Parse(parts[0])
-	if httpError(ctx, w, fmt.Errorf("invalid mailbox name: %w", err)) {
+	if httpError(ctx, w, err) {
 		return
 	}
 
