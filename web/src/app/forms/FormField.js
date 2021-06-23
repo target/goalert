@@ -27,13 +27,13 @@ export function FormField(props) {
     fieldName: _fieldName,
     formLabel,
     required,
-    validate,
+    validate = () => {},
     disabled: fieldDisabled,
     hint,
     label: _label,
     InputLabelProps: _inputProps,
-    mapValue,
-    mapOnChangeValue,
+    mapValue = (value) => value,
+    mapOnChangeValue = (value) => value,
     min,
     max,
     checkbox,
@@ -231,10 +231,4 @@ FormField.propTypes = {
   type: p.string,
   select: p.bool,
   timeZone: p.string,
-}
-
-FormField.defaultProps = {
-  validate: () => {},
-  mapValue: (value) => value,
-  mapOnChangeValue: (value) => value,
 }
