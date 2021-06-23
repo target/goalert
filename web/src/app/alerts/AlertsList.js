@@ -286,17 +286,17 @@ export default function AlertsList(props) {
         isLoading={!q.data && q.loading}
         loadMore={loadMore}
         headerNote={getHeaderNote()}
+        secondaryActions={
+          props.secondaryActions ?? (
+            <AlertsListFilter serviceID={props.serviceID} />
+          )
+        }
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />
           </Hidden>
         }
         checkboxActions={getActions()}
-        secondaryActions={
-          props.secondaryActions ?? (
-            <AlertsListFilter serviceID={props.serviceID} />
-          )
-        }
       />
 
       <CreateFAB
