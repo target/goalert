@@ -28,7 +28,7 @@ func init() {
 
 	// status notifications
 	perCM.
-		WithMsgTypes(notification.MessageTypeAlertStatus, notification.MessageTypeAlertStatusBundle).
+		WithMsgTypes(notification.MessageTypeAlertStatus).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: 3 * time.Minute},
 			{Count: 3, Per: 20 * time.Minute},
