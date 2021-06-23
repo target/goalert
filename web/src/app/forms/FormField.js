@@ -133,32 +133,24 @@ export function FormField(props) {
     return null
   }
 
-  function renderContent() {
-    if (render) return render(fieldProps)
-    return (
-      <FormControl
-        fullWidth={fieldProps.fullWidth}
-        error={Boolean(fieldProps.error)}
-      >
-        {formLabel && (
-          <FormLabel style={{ paddingBottom: '0.5em' }}>{_label}</FormLabel>
-        )}
-        <Component
-          {...fieldProps}
-          error={checkbox ? undefined : Boolean(fieldProps.error)}
-          label={formLabel ? null : fieldProps.label}
-        >
-          {fieldProps.children}
-        </Component>
-        {!noError && renderFormHelperText(fieldProps.error, fieldProps.hint)}
-      </FormControl>
-    )
-  }
-
+  if (render) return render(fieldProps)
   return (
-    <FormContainerContext.Consumer>
-      {renderContent}
-    </FormContainerContext.Consumer>
+    <FormControl
+      fullWidth={fieldProps.fullWidth}
+      error={Boolean(fieldProps.error)}
+    >
+      {formLabel && (
+        <FormLabel style={{ paddingBottom: '0.5em' }}>{_label}</FormLabel>
+      )}
+      <Component
+        {...fieldProps}
+        error={checkbox ? undefined : Boolean(fieldProps.error)}
+        label={formLabel ? null : fieldProps.label}
+      >
+        {fieldProps.children}
+      </Component>
+      {!noError && renderFormHelperText(fieldProps.error, fieldProps.hint)}
+    </FormControl>
   )
 }
 FormField.propTypes = {
