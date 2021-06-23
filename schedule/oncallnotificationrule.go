@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 )
@@ -87,7 +87,7 @@ func (r *RuleID) UnmarshalText(data []byte) error {
 	}
 
 	var err error
-	r.scheduleID, err = uuid.FromString(s[:36])
+	r.scheduleID, err = uuid.Parse(s[:36])
 	if err != nil {
 		return err
 	}

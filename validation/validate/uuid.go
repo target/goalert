@@ -2,16 +2,16 @@ package validate
 
 import (
 	"database/sql"
-	"github.com/target/goalert/validation"
 	"strconv"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
+	"github.com/target/goalert/validation"
 )
 
 // UUID will validate a UUID, returning a FieldError
 // if invalid.
 func UUID(fname, u string) error {
-	_, err := uuid.FromString(u)
+	_, err := uuid.Parse(u)
 	if err != nil {
 		return validation.NewFieldError(fname, "must be a valid UUID: "+err.Error())
 	}

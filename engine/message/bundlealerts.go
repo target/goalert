@@ -1,7 +1,7 @@
 package message
 
 import (
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/notification"
 )
 
@@ -51,7 +51,7 @@ func bundleAlertMessages(messages []Message, bundleFunc func(Message, []string) 
 
 		msg.Type = notification.MessageTypeAlertBundle
 		msg.AlertID = 0
-		msg.ID = uuid.NewV4().String()
+		msg.ID = uuid.New().String()
 		err := bundleFunc(msg.Message, msg.IDs)
 		if err != nil {
 			return nil, err
