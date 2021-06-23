@@ -32,7 +32,11 @@ func (c checker) UserExistsString(idStr string) bool {
 	if idStr == "" {
 		return false
 	}
-	id, _ := uuid.Parse(idStr)
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return false
+	}
+
 	return c.UserExistsUUID(id)
 }
 func (c checker) UserExistsUUID(id uuid.UUID) bool { _, ok := c[id]; return ok }
