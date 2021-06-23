@@ -13,7 +13,7 @@ CREATE TRIGGER trg_insert_alert_logs_user_last_alert
 AFTER INSERT
 ON alert_logs
 FOR EACH ROW
-WHEN (NEW.event = 'notification_sent')
+WHEN (((NEW.event = 'notification_sent'::enum_alert_log_event) AND (NEW.sub_type = 'user'::enum_alert_log_subject_type)))
 EXECUTE PROCEDURE fn_insert_user_last_alert_log();
 
 CREATE TRIGGER trg_insert_alert_logs_user_last_alert_update

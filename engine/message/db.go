@@ -456,7 +456,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	cfg := config.FromContext(ctx)
-	result, toDelete := dedupStatusMessages(result)
+	result, toDelete = dedupStatusMessages(result)
 	if len(toDelete) > 0 {
 		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
 		if err != nil {
