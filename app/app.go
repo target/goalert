@@ -109,7 +109,7 @@ type App struct {
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
 
-	NonceStore    nonce.Store
+	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
 	NCStore       notificationchannel.Store

@@ -60,7 +60,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NonceStore == nil {
-		app.NonceStore, err = nonce.NewDB(ctx, app.db)
+		app.NonceStore, err = nonce.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init nonce store")
