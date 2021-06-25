@@ -11,6 +11,6 @@ import (
 type Config struct {
 	AlertStore          alert.Store
 	IntegrationKeyStore integrationkey.Store
-	HeartbeatStore      heartbeat.Store
+	HeartbeatStore      *heartbeat.Store
 	UserStore           user.Store
 }
