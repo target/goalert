@@ -144,7 +144,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.UserStore == nil {
-		app.UserStore, err = user.NewDB(ctx, app.db)
+		app.UserStore, err = user.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init user store")

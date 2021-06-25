@@ -86,7 +86,7 @@ type App struct {
 	AlertLogStore alertlog.Store
 
 	AuthBasicStore        *basic.Store
-	UserStore             user.Store
+	UserStore             *user.Store
 	ContactMethodStore    contactmethod.Store
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store

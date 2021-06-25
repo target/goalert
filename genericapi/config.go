@@ -12,5 +12,5 @@ type Config struct {
 	AlertStore          alert.Store
 	IntegrationKeyStore integrationkey.Store
 	HeartbeatStore      heartbeat.Store
-	UserStore           user.Store
+	UserStore           *user.Store
 }
