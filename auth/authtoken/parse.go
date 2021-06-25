@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/validation"
 )
 
@@ -22,7 +22,7 @@ func Parse(s string, verifyFn VerifyFunc) (*Token, bool, error) {
 	if len(s) == 36 {
 		// integration key type is the only one with possible length 36. Session keys, even if
 		// we switched to a 128-bit signature would be a minimum of 38 base64-encoded chars.
-		id, err := uuid.FromString(s)
+		id, err := uuid.Parse(s)
 		if err != nil {
 			return nil, false, validation.NewGenericError(err.Error())
 		}

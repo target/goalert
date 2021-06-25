@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // ShortURLMiddleware will issue redirects for requests to generated short URLs.
@@ -48,11 +48,11 @@ func ShortPath(longPath string) string {
 	switch {
 	case serviceAlertsURL.MatchString(longPath):
 		idStr := strings.TrimPrefix(strings.TrimSuffix(longPath, "/alerts"), "/services/")
-		id, err := uuid.FromString(idStr)
+		id, err := uuid.Parse(idStr)
 		if err != nil {
 			return ""
 		}
-		return fmt.Sprintf("/s/%s", urlEnc.EncodeToString(id.Bytes()))
+		return fmt.Sprintf("/s/%s", urlEnc.EncodeToString(id[:]))
 	case alertURL.MatchString(longPath):
 		i, err := strconv.Atoi(strings.TrimPrefix(longPath, "/alerts/"))
 		if err != nil || i == 0 {

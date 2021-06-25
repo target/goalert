@@ -13,8 +13,8 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Handler struct {
@@ -49,7 +49,7 @@ type App interface {
 
 func NewHandler(ctx context.Context, oldC, newC driver.Connector, oldURL, newURL string) (*Handler, error) {
 	h := &Handler{
-		id:         uuid.NewV4().String(),
+		id:         uuid.New().String(),
 		stateCh:    make(chan State),
 		statusCh:   make(chan *Status),
 		controlCh:  make(chan *DeadlineConfig),
