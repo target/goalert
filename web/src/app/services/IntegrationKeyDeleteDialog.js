@@ -5,7 +5,7 @@ import p from 'prop-types'
 
 import { nonFieldErrors } from '../util/errutil'
 import Spinner from '../loading/components/Spinner'
-import { GenericError } from '../error-pages'
+import { GenericError, ObjectNotFound } from '../error-pages'
 import FormDialog from '../dialogs/FormDialog'
 
 const query = gql`
@@ -66,6 +66,8 @@ export default function IntegrationKeyDeleteDialog(props) {
   })
 
   if (loading && !data) return <Spinner />
+  if (data && !data.integrationKey)
+    return <ObjectNotFound type='integration key' />
   if (error) return <GenericError error={error.message} />
 
   return (
