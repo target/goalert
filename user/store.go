@@ -278,7 +278,7 @@ func (s *Store) InsertTx(ctx context.Context, tx *sql.Tx, u *User) (*User, error
 	return n, nil
 }
 
-// Insert is equivilant to calling InsertTx(ctx, nil, u).
+// Insert is equivalent to calling InsertTx(ctx, nil, u).
 func (s *Store) Insert(ctx context.Context, u *User) (*User, error) { return s.InsertTx(ctx, nil, u) }
 
 // DeleteTx deletes a User with the given ID.
@@ -397,10 +397,10 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 	return nil
 }
 
-// Delete is equivilant to calling DeleteTx(ctx, nil, id).
+// Delete is equivalent to calling DeleteTx(ctx, nil, id).
 func (s *Store) Delete(ctx context.Context, id string) error { return s.DeleteTx(ctx, nil, id) }
 
-// Update id equivilant to calling UpdateTx(ctx, nil, u).
+// Update id equivalent to calling UpdateTx(ctx, nil, u).
 func (s *Store) Update(ctx context.Context, u *User) error { return s.UpdateTx(ctx, nil, u) }
 
 // UpdateTx allows updating a user name, email, and status update preference.
@@ -475,7 +475,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]User, error) {
 	return result, nil
 }
 
-// FindOne is equivilant to calling FindOneTx(ctx, nil, id, false).
+// FindOne is equivalent to calling FindOneTx(ctx, nil, id, false).
 func (s *Store) FindOne(ctx context.Context, id string) (*User, error) {
 	return s.FindOneTx(ctx, nil, id, false)
 }
