@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/groupcache"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 )
 
@@ -28,11 +28,16 @@ type ExistanceChecker interface {
 
 type checker map[uuid.UUID]struct{}
 
-func (c checker) UserExistsString(id string) bool {
-	if id == "" {
+func (c checker) UserExistsString(idStr string) bool {
+	if idStr == "" {
 		return false
 	}
-	return c.UserExistsUUID(uuid.FromStringOrNil(id))
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return false
+	}
+
+	return c.UserExistsUUID(id)
 }
 func (c checker) UserExistsUUID(id uuid.UUID) bool { _, ok := c[id]; return ok }
 

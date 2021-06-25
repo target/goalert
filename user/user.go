@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // A User is the base information of a user of the system. Authentication details are stored
@@ -97,7 +97,7 @@ func (u *User) fields() []interface{} {
 func (u User) Normalize() (*User, error) {
 	var err error
 	if u.ID == "" {
-		u.ID = uuid.NewV4().String()
+		u.ID = uuid.New().String()
 	}
 	if u.Email != "" {
 		err = validate.Email("Email", u.Email)

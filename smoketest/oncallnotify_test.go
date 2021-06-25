@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
@@ -46,7 +46,7 @@ func TestOnCallNotify(t *testing.T) {
 
 	ctx := permission.SystemContext(context.Background(), "Test")
 	_, err := h.App().ScheduleRuleStore.CreateRuleTx(ctx, nil, &rule.Rule{
-		ID:            uuid.NewV4().String(),
+		ID:            uuid.New().String(),
 		ScheduleID:    h.UUID("sid"),
 		WeekdayFilter: timeutil.EveryDay(),
 		Target:        assignment.UserTarget(h.UUID("uid2")),
