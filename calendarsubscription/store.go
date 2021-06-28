@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
@@ -183,11 +183,16 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
+	tokID, err := uuid.Parse(n.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	n.token, err = authtoken.Token{
 		Type:      authtoken.TypeCalSub,
 		Version:   2,
 		CreatedAt: now,
-		ID:        uuid.FromStringOrNil(n.ID),
+		ID:        tokID,
 	}.Encode(s.keys.Sign)
 	return n, err
 }

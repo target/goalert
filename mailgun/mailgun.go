@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authtoken"
@@ -136,7 +136,13 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if httpError(ctx, w, errors.Wrap(err, "bad mailbox name")) {
 		return
 	}
-	tok := authtoken.Token{ID: uuid.FromStringOrNil(parts[0])}
+
+	tokID, err := uuid.Parse(parts[0])
+	if httpError(ctx, w, err) {
+		return
+	}
+
+	tok := authtoken.Token{ID: tokID}
 	var dedupStr string
 	if len(parts) > 1 {
 		dedupStr = parts[1]
