@@ -3,13 +3,13 @@ package heartbeat
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util/sqlutil"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -112,7 +112,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, e
 	if err != nil {
 		return nil, err
 	}
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 	n.lastState = StateInactive
 	var timeout pgtype.Interval
 	err = timeout.Set(n.Timeout)

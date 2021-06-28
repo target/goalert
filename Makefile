@@ -284,9 +284,9 @@ postgres:
 		postgres:13-alpine || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
-	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000000 --user admin --pass admin123 "--db-url=$(DB_URL)"
+	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
 resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate

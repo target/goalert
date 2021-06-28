@@ -8,8 +8,8 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Store allows generating and consuming nonce values.
@@ -77,10 +77,7 @@ func (s *Store) Shutdown(ctx context.Context) error {
 }
 
 // New will generate a new cryptographically random nonce value.
-func (s *Store) New() (id [16]byte) {
-	copy(id[:], uuid.NewV4().Bytes())
-	return id
-}
+func (s *Store) New() [16]byte { return uuid.New() }
 
 // Consume will record the use of a nonce value.
 //

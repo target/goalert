@@ -17,8 +17,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 const minTimeBetweenTests = time.Minute
@@ -291,7 +291,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 		return validation.NewFieldError("ContactMethod", "test message rate-limit exceeded")
 	}
 
-	vID := uuid.NewV4().String()
+	vID := uuid.New().String()
 	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
@@ -324,7 +324,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %.0f minute(s)", minTimeBetweenTests.Minutes()))
 	}
 
-	vcID := uuid.NewV4().String()
+	vcID := uuid.New().String()
 	code := db.rand.Intn(900000) + 100000
 	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {

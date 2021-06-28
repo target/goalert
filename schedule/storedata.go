@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/util/jsonutil"
 )
 
