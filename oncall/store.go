@@ -3,9 +3,11 @@ package oncall
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -14,14 +16,19 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // Store allows retrieving and calculating on-call information.
 type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
+	OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error)
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
+}
+
+// ScheduleOnCallUser represents a currently on-call user for a schedule.
+type ScheduleOnCallUser struct {
+	ID   string
+	Name string
 }
 
 // ServiceOnCallUser represents a currently on-call user for a service.
@@ -46,8 +53,9 @@ type Shift struct {
 type DB struct {
 	db *sql.DB
 
-	onCallUsersSvc *sql.Stmt
-	schedOverrides *sql.Stmt
+	onCallUsersSvc      *sql.Stmt
+	onCallUsersSchedule *sql.Stmt
+	schedOverrides      *sql.Stmt
 
 	schedOnCall *sql.Stmt
 	schedTZ     *sql.Stmt
@@ -89,7 +97,12 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 			where svc.id = $1
 			order by step.step_number, oc.start_time
 		`),
-
+		onCallUsersSchedule: p.P(`
+			SELECT s.user_id, u.name
+			FROM schedule_on_call_users s
+			JOIN users u ON u.id = s.user_id
+			WHERE s.schedule_id = $1 AND s.end_time IS NULL
+		`),
 		schedOnCall: p.P(`
 			select
 				user_id,
@@ -154,6 +167,35 @@ func (db *DB) OnCallUsersByService(ctx context.Context, serviceID string) ([]Ser
 		onCall = append(onCall, u)
 	}
 	return onCall, nil
+}
+
+func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+	err = validate.UUID("ScheduleID", scheduleID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.onCallUsersSchedule.QueryContext(ctx, scheduleID)
+	if err != nil {
+		return nil, fmt.Errorf("fetch on-call users for schedule '%s': %w", scheduleID, err)
+	}
+	defer rows.Close()
+
+	var result []ScheduleOnCallUser
+	for rows.Next() {
+		var u ScheduleOnCallUser
+		err = rows.Scan(&u.ID, &u.Name)
+		if err != nil {
+			return nil, fmt.Errorf("scan on-call user entry #%d for schedule '%s': %w", len(result), scheduleID, err)
+		}
+
+		result = append(result, u)
+	}
+
+	return result, nil
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
@@ -271,7 +313,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
-	id, err := uuid.FromString(scheduleID)
+	id, err := uuid.Parse(scheduleID)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse schedule ID")
 	}

@@ -25,14 +25,14 @@ func (t Token) Encode(signFn SignFunc) (string, error) {
 		}
 		b = make([]byte, 17)
 		b[0] = 'S'
-		copy(b[1:], t.ID.Bytes())
+		copy(b[1:], t.ID[:])
 		enc = base64.URLEncoding
 	case 2:
 		b = make([]byte, 27)
 		b[0] = 'V' // versioned header format
 		b[1] = 2
 		b[2] = byte(t.Type)
-		copy(b[3:], t.ID.Bytes())
+		copy(b[3:], t.ID[:])
 		binary.BigEndian.PutUint64(b[19:], uint64(t.CreatedAt.Unix()))
 	default:
 		return "", validation.NewFieldError("Type", "unsupported version")

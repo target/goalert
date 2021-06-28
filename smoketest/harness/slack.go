@@ -31,24 +31,30 @@ type slackChannel struct {
 	h    *Harness
 	name string
 	id   string
-
-	expected [][]string
 }
 
 func (h *Harness) Slack() SlackServer { return h.slack }
 
 func (s *slackServer) WaitAndAssert() {
+	s.h.t.Helper()
 	timeout := time.NewTimer(15 * time.Second)
 	defer timeout.Stop()
 
 	t := time.NewTicker(time.Millisecond)
 	defer t.Stop()
 
-	for _, ch := range s.channels {
-		for !ch.waitAndAssert(timeout.C) {
-			<-t.C
+	for i := 0; i < 3; i++ {
+		s.h.Trigger()
+		var hasFailure bool
+		for _, ch := range s.channels {
+			hasFailure = hasFailure || ch.hasUnexpectedMessages()
+		}
+
+		if hasFailure {
+			s.h.t.FailNow()
 		}
 	}
+
 }
 
 func (s *slackServer) Channel(name string) SlackChannel {
@@ -68,38 +74,45 @@ func (s *slackServer) Channel(name string) SlackChannel {
 func (ch *slackChannel) ID() string   { return ch.id }
 func (ch *slackChannel) Name() string { return ch.name }
 func (ch *slackChannel) ExpectMessage(keywords ...string) {
-	ch.expected = append(ch.expected, keywords)
-}
+	ch.h.t.Helper()
 
-func (ch *slackChannel) waitAndAssert(timeout <-chan time.Time) bool {
-	msgs := ch.h.slack.Messages(ch.id)
+	timeout := time.NewTimer(15 * time.Second)
+	defer timeout.Stop()
 
-	check := func(keywords []string) bool {
+	for {
 	msgLoop:
-		for i, msg := range msgs {
+		for _, msg := range ch.h.slack.Messages(ch.id) {
 			for _, w := range keywords {
 				if !strings.Contains(msg.Text, w) {
 					continue msgLoop
 				}
 			}
-			msgs = append(msgs[:i], msgs[i+1:]...)
-			return true
-		}
-		return false
-	}
 
-	for i, exp := range ch.expected {
+			ch.h.t.Logf("received Slack message to %s: %s", ch.name, msg.Text)
+			ch.h.slack.DeleteMessage(ch.id, msg.TS)
+			return
+		}
+
 		select {
-		case <-timeout:
-			ch.h.t.Fatalf("timeout waiting for slack message: channel=%s; ID=%s; message=%d keywords=%v\nGot: %s", ch.name, ch.id, i, exp, msgs)
+		case <-timeout.C:
+			ch.h.t.Fatalf("timeout waiting for slack message: Channel=%s; ID=%s; keywords=%v\nGot: %#v", ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
 		default:
 		}
-		if !check(exp) {
-			return false
-		}
+
+		ch.h.Trigger()
+	}
+}
+
+func (ch *slackChannel) hasUnexpectedMessages() bool {
+	ch.h.t.Helper()
+
+	var hasFailure bool
+	for _, msg := range ch.h.slack.Messages(ch.id) {
+		ch.h.t.Errorf("unexpected slack message: Channel=%s; ID=%s; Text=%s", ch.name, ch.id, msg.Text)
+		hasFailure = true
 	}
 
-	return true
+	return hasFailure
 }
 
 func (h *Harness) initSlack() {

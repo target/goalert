@@ -188,12 +188,13 @@ func (f *WeekdayFilter) UnmarshalGQL(v interface{}) error {
 
 func (f WeekdayFilter) MarshalText() ([]byte, error) {
 	res := make([]byte, 7)
-	for i := time.Sunday; i <= time.Saturday; i++ {
-		if f.Day(i) {
-			res[i] = '1'
-		} else {
+	for i, v := range f {
+		if v == 0 {
 			res[i] = '0'
+			continue
 		}
+
+		res[i] = '1'
 	}
 
 	return res, nil
@@ -212,9 +213,9 @@ func (f *WeekdayFilter) UnmarshalText(data []byte) error {
 	for i, r := range s {
 		switch r {
 		case '0':
-			f[0] = 0
+			f[i] = 0
 		case '1':
-			f[1] = 1
+			f[i] = 1
 		default:
 			return fmt.Errorf("invalid character at position %d: expected 0 or 1 but got %c", i, r)
 		}

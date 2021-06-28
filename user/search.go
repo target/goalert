@@ -37,7 +37,7 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	SELECT
+	SELECT DISTINCT ON (lower(usr.name))
 		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
 	{{ if .CMValue }}

@@ -71,7 +71,7 @@ export default class UserNotificationRuleList extends React.PureComponent {
         <Card>
           <CardHeader
             className={classes.cardHeader}
-            component='h3'
+            titleTypographyProps={{ component: 'h2', variant: 'h5' }}
             title='Notification Rules'
           />
           <FlatList

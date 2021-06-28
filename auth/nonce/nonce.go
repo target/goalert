@@ -3,12 +3,13 @@ package nonce
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/log"
 	"time"
 
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
+
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Store allows generating and consuming nonce values.
@@ -83,10 +84,7 @@ func (db *DB) Shutdown(ctx context.Context) error {
 }
 
 // New will generate a new cryptographically random nonce value.
-func (db *DB) New() (id [16]byte) {
-	copy(id[:], uuid.NewV4().Bytes())
-	return id
-}
+func (db *DB) New() [16]byte { return uuid.New() }
 
 // Consume will record the use of a nonce value.
 //
