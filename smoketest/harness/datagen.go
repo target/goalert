@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -89,7 +89,7 @@ func (d *DataGen) GetWithArg(arg, id string) string {
 
 // GenUUID will return a random UUID.
 func GenUUID() string {
-	return uuid.NewV4().String()
+	return uuid.New().String()
 }
 
 // GenPhoneCC will return a random phone number with supplied country code

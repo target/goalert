@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -27,7 +27,7 @@ func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.
 // and setting carrier to "" (for non-phone types).
 func (c ContactMethod) Normalize() (*ContactMethod, error) {
 	if c.ID == "" {
-		c.ID = uuid.NewV4().String()
+		c.ID = uuid.New().String()
 	}
 	err := validate.Many(
 		validate.UUID("ID", c.ID),

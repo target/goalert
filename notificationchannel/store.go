@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -124,7 +124,7 @@ func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, e
 	if !id.Valid {
 		// create new one
 		id.Valid = true
-		id.UUID = uuid.NewV4()
+		id.UUID = uuid.New()
 		_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, id, n.Name, n.Type, n.Value)
 		if err != nil {
 			return uuid.UUID{}, fmt.Errorf("create new NC: %w", err)

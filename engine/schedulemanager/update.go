@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -233,9 +233,6 @@ func (db *DB) update(ctx context.Context) error {
 			if r.Time != nil {
 				continue
 			}
-			if r.WeekdayFilter != nil && !r.WeekdayFilter.Day(now.In(tz[schedID]).Weekday()) {
-				continue
-			}
 
 			needsOnCallNotification[schedID] = r.ChannelID
 		}
@@ -270,7 +267,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	for schedID, chanID := range needsOnCallNotification {
-		_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.NewV4(), chanID, schedID)
+		_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.New(), chanID, schedID)
 		if err != nil {
 			return err
 		}
