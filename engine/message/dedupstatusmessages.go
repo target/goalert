@@ -19,12 +19,6 @@ func dedupStatusMessages(messages []Message) ([]Message, []string) {
 	var toDelete []string
 	filter := messages[:0]
 	for _, msg := range messages {
-		//lint:ignore SA1019 TODO delete all occurrences of AlertStatusBundle type and definition
-		if msg.Type == notification.MessageTypeAlertStatusBundle {
-			// drop old status bundles
-			toDelete = append(toDelete, msg.ID)
-			continue
-		}
 		if msg.Type != notification.MessageTypeAlertStatus {
 			filter = append(filter, msg)
 			continue

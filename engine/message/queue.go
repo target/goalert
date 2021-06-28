@@ -21,7 +21,6 @@ var typePriority = map[notification.MessageType]int{
 	notification.MessageTypeAlertBundle: 4,
 
 	notification.MessageTypeAlertStatus: 5,
-	// notification.MessageTypeAlertStatusBundle: 5,
 }
 
 type queue struct {
