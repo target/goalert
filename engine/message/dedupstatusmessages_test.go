@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/notification"
 )
 
-func TestDB_BundleStatusMessages(t *testing.T) {
+func TestDedupStatusMessages(t *testing.T) {
 	n := time.Now()
 	msg := []Message{
 		{
