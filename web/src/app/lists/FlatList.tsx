@@ -20,7 +20,7 @@ import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle, Color } from '@material-ui/lab'
 import { Notice, NoticeType } from '../details/Notices'
-import { useLinearProgress } from '../util/useLinearProgress'
+import FadeLinearProgress from '../util/FadeLinearProgress'
 
 const lime = '#93ed94'
 const lightLime = '#defadf'
@@ -58,6 +58,10 @@ const useStyles = makeStyles({
   },
   listItemText: {
     fontStyle: 'italic',
+  },
+  loadingOffset: {
+    // offset height of loading progress bar
+    paddingBottom: '4px',
   },
 })
 
@@ -147,7 +151,6 @@ export default function FlatList({
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
-  const loadingComponent = useLinearProgress(isLoading)
 
   function handleDragStart(): void {
     // adds a little vibration if the browser supports it
@@ -332,13 +335,18 @@ export default function FlatList({
     )
 
     let listContent
-    if (isLoading) listContent = loadingComponent
+    if (isLoading) listContent = <FadeLinearProgress />
     else if (items.length <= 0) listContent = emptyMessageItem
     else if (transition) listContent = renderTransitionItems()
     else listContent = renderItems()
 
     return (
-      <List {...listProps}>
+      <List
+        {...listProps}
+        classes={{
+          root: isLoading ? classes.loadingOffset : undefined,
+        }}
+      >
         {(headerNote || headerAction) && (
           <ListItem>
             {headerNote && (
