@@ -28,9 +28,18 @@ JOIN alert_logs l ON l.id = log_id AND l.event != 'closed';
 DROP TABLE user_last_alert_log;
 
 LOCK outgoing_messages; 
-DELETE FROM outgoing_messages WHERE message_type = 'alert_status_update_bundle'; 
+
+DELETE FROM outgoing_messages
+WHERE
+    message_type = 'alert_status_update_bundle' AND (
+        last_status = 'pending' OR next_retry_at notnull
+    );
+
 ALTER TABLE outgoing_messages 
-    ADD CONSTRAINT om_no_status_bundles CHECK(message_type != 'alert_status_update_bundle');
+    ADD CONSTRAINT om_no_status_bundles CHECK(
+        message_type != 'alert_status_update_bundle' OR
+        last_status != 'pending'
+    );
 
 -- +migrate Down
 UPDATE engine_processing_versions SET version = 2 WHERE type_id = 'status_update';
@@ -80,3 +89,6 @@ FROM alert_status_subscriptions s
 JOIN user_contact_methods cm ON cm.id = s.contact_method_id;
 
 DROP TABLE alert_status_subscriptions;
+
+ALTER TABLE outgoing_messages 
+    DROP CONSTRAINT om_no_status_bundles;
