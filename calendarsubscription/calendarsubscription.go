@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/validation/validate"
 	"github.com/target/goalert/version"
@@ -77,7 +77,7 @@ func (cs CalendarSubscription) Token() string { return cs.token }
 // Normalize will validate and produce a normalized CalendarSubscription struct.
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	if cs.ID == "" {
-		cs.ID = uuid.NewV4().String()
+		cs.ID = uuid.New().String()
 	}
 
 	err := validate.Many(

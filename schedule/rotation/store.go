@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"sort"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -415,7 +415,7 @@ func (db *DB) CreateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) (*R
 		stmt = tx.Stmt(stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Type, n.Start, n.ShiftLength, n.Start.Location().String())
 	if err != nil {
@@ -722,7 +722,7 @@ func (db *DB) AddParticipantTx(ctx context.Context, tx *sql.Tx, p *Participant) 
 		stmt = tx.Stmt(stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	row := stmt.QueryRowContext(ctx, n.ID, n.RotationID, n.Target.TargetID())
 	err = row.Scan(&n.Position)
@@ -867,7 +867,7 @@ func (db *DB) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID str
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 	for _, userID := range userIDs {
-		_, err = stmt.ExecContext(ctx, uuid.NewV4().String(), rotationID, userID)
+		_, err = stmt.ExecContext(ctx, uuid.New().String(), rotationID, userID)
 		if err != nil {
 			return err
 		}

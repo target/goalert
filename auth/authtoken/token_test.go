@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +30,7 @@ func TestToken_Version1(t *testing.T) {
 	t.Run("encoding/decoding", func(t *testing.T) {
 		tok := &Token{
 			Version: 1,
-			ID:      uuid.FromStringOrNil("a592fe16-edb5-45bb-a7d2-d109fae252bc"),
+			ID:      uuid.MustParse("a592fe16-edb5-45bb-a7d2-d109fae252bc"),
 			Type:    TypeSession,
 		}
 		s, err := tok.Encode(func(b []byte) ([]byte, error) { return []byte("sig"), nil })
@@ -40,9 +40,9 @@ func TestToken_Version1(t *testing.T) {
 		assert.NoError(t, err) // should be valid base64
 
 		var exp bytes.Buffer
-		exp.WriteByte('S')        // Session key
-		exp.Write(tok.ID.Bytes()) // ID
-		exp.WriteString("sig")    // Signature
+		exp.WriteByte('S')     // Session key
+		exp.Write(tok.ID[:])   // ID
+		exp.WriteString("sig") // Signature
 		assert.Equal(t, exp.Bytes(), dec)
 
 		parsed, isOld, err := Parse(s, func(typ Type, p, sig []byte) (bool, bool) {
@@ -64,7 +64,7 @@ func TestToken_Version1(t *testing.T) {
 		assert.EqualValues(t, &Token{
 			Type:    TypeSession,
 			Version: 1,
-			ID:      uuid.FromStringOrNil("da1b925c-950b-4c1d-b962-32ef99db8af0"),
+			ID:      uuid.MustParse("da1b925c-950b-4c1d-b962-32ef99db8af0"),
 		}, parsed)
 	})
 }
@@ -86,7 +86,7 @@ func TestToken_Version2(t *testing.T) {
 	exp.WriteByte('V')                                                 // Versioned header flag
 	exp.WriteByte(2)                                                   // version
 	exp.WriteByte(byte(TypeCalSub))                                    // type
-	exp.Write(tok.ID.Bytes())                                          // ID
+	exp.Write(tok.ID[:])                                               // ID
 	binary.Write(&exp, binary.BigEndian, uint64(tok.CreatedAt.Unix())) // CreatedAt
 	exp.WriteString("sig")                                             // Signature
 	assert.Equal(t, exp.Bytes(), dec)

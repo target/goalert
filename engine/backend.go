@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type backend struct {
@@ -25,7 +25,7 @@ func newBackend(db *sql.DB) (*backend, error) {
 
 	return &backend{
 		db:       db,
-		clientID: uuid.NewV4().String(),
+		clientID: uuid.New().String(),
 
 		findOne: p.P(`
 			SELECT

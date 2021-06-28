@@ -159,7 +159,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       </Grid>
 
       {/* Quick Links */}
-      {links.length && (
+      {links.length > 0 && (
         <Grid item xs={12} lg={isDesktopMode(width) && links.length ? 4 : 12}>
           <Card className={classes.fullHeight}>
             <CardHeader

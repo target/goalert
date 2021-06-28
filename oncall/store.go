@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -15,8 +16,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // Store allows retrieving and calculating on-call information.
@@ -314,7 +313,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
-	id, err := uuid.FromString(scheduleID)
+	id, err := uuid.Parse(scheduleID)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse schedule ID")
 	}
