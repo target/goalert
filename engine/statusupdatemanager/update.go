@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/permission"
@@ -88,7 +88,7 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.NewV4(), chanID, cmID, userID, alertID, logID)
+		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
 		if err != nil {
 			return fmt.Errorf("insert status update message for id=%d: %w", id, err)
 		}
