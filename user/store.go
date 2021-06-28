@@ -505,7 +505,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 	return &u, nil
 }
 
-// FindSomeAuthSubjectsForProvider returns up to `limit` auth subjects associated with a given userID.
+// FindSomeAuthSubjectsForProvider returns up to `limit` auth subjects associated with a given providerID.
 //
 // afterSubjectID can be specified for paginating responses. Results are sorted by subject id.
 func (s *Store) FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error) {
