@@ -44,7 +44,8 @@ ALTER TABLE outgoing_messages
 -- +migrate Down
 UPDATE engine_processing_versions SET version = 2 WHERE type_id = 'status_update';
 
-ALTER TABLE outgoing_messages DROP CONSTRAINT om_no_status_bundles;
+ALTER TABLE outgoing_messages 
+    DROP CONSTRAINT om_no_status_bundles;
 
  CREATE TABLE user_last_alert_log (
     alert_id BIGINT NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
@@ -89,6 +90,3 @@ FROM alert_status_subscriptions s
 JOIN user_contact_methods cm ON cm.id = s.contact_method_id;
 
 DROP TABLE alert_status_subscriptions;
-
-ALTER TABLE outgoing_messages 
-    DROP CONSTRAINT om_no_status_bundles;
