@@ -155,11 +155,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	return store, nil
 }
 
-// AuthSubjectsFunc will call the provided forEachFn for each auth subject for the given userID and/or providerID.
+// AuthSubjectsFunc will call the provided forEachFn for each AuthSubject.
 // If an error is returned by forEachFn it will stop reading subjects and be returned.
 //
-// If providerID is empty, all providers will be returned.
-// if userID is empty, all users will be returned.
+// providerID, if not empty, will limit AuthSubjects to those with the same providerID.
+// userID, if not empty, will limit AuthSubjects to those assigned to the given userID.
 func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
