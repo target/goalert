@@ -20,6 +20,7 @@ import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle, Color } from '@material-ui/lab'
 import { Notice, NoticeType } from '../details/Notices'
+import { useLinearProgress } from '../util/useLinearProgress'
 
 const lime = '#93ed94'
 const lightLime = '#defadf'
@@ -103,6 +104,9 @@ export interface FlatListProps extends ListProps {
 
   // will render transition in list
   transition?: boolean
+
+  // will render a loading indicator instead of items
+  isLoading?: boolean
 }
 
 const severityMap: { [K in NoticeType]: Color } = {
@@ -139,9 +143,11 @@ export default function FlatList({
   items,
   inset,
   transition,
+  isLoading,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
+  const loadingComponent = useLinearProgress(isLoading)
 
   function handleDragStart(): void {
     // adds a little vibration if the browser supports it
@@ -219,8 +225,8 @@ export default function FlatList({
     )
   }
 
-  function renderTransitionItems(): JSX.Element[] {
-    return items.map((item, idx) => {
+  function renderTransitionItems(): JSX.Element {
+    const transItems = items.map((item, idx) => {
       if ('subHeader' in item) {
         return (
           <CSSTransition
@@ -266,21 +272,8 @@ export default function FlatList({
         </CSSTransition>
       )
     })
-  }
 
-  function renderEmptyMessage(): JSX.Element {
-    return (
-      <ListItem>
-        <ListItemText
-          disableTypography
-          secondary={
-            <Typography data-cy='list-empty-message' variant='caption'>
-              {emptyMessage}
-            </Typography>
-          }
-        />
-      </ListItem>
-    )
+    return <TransitionGroup>{transItems}</TransitionGroup>
   }
 
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
@@ -322,13 +315,28 @@ export default function FlatList({
     })
   }
 
-  function renderTransitions(): JSX.Element {
-    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
-  }
-
   // renderList handles rendering the list container as well as any
   // header elements provided
   function renderList(): JSX.Element {
+    const emptyMessageItem = (
+      <ListItem>
+        <ListItemText
+          disableTypography
+          secondary={
+            <Typography data-cy='list-empty-message' variant='caption'>
+              {emptyMessage}
+            </Typography>
+          }
+        />
+      </ListItem>
+    )
+
+    let listContent
+    if (isLoading) listContent = loadingComponent
+    else if (items.length <= 0) listContent = emptyMessageItem
+    else if (transition) listContent = renderTransitionItems()
+    else listContent = renderItems()
+
     return (
       <List {...listProps}>
         {(headerNote || headerAction) && (
@@ -347,8 +355,7 @@ export default function FlatList({
             )}
           </ListItem>
         )}
-        {!items.length && renderEmptyMessage()}
-        {transition ? renderTransitions() : renderItems()}
+        {listContent}
       </List>
     )
   }
