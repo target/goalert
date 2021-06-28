@@ -60,8 +60,7 @@ type DB struct {
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
 
-	insertAlertBundle  *sql.Stmt
-	insertStatusBundle *sql.Stmt
+	insertAlertBundle *sql.Stmt
 
 	deleteAny *sql.Stmt
 
@@ -312,28 +311,6 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				last_status_at = now(),
 				status_details = (select id from new_msg),
 				cycle_id = null
-			where id = any($7::uuid[])
-		`),
-
-		insertStatusBundle: p.P(`
-			with new_msg as (
-				insert into outgoing_messages (
-					id,
-					created_at,
-					message_type,
-					contact_method_id,
-					user_id,
-					alert_log_id,
-					status_alert_ids
-				) values (
-					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
-				) returning (id)
-			)
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = now(),
-				status_details = (select id from new_msg)
 			where id = any($7::uuid[])
 		`),
 
