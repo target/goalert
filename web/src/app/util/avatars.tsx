@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from './RequireConfig'
-import { Avatar, SvgIconProps, AvatarProps } from '@material-ui/core'
+import {
+  Avatar,
+  SvgIconProps,
+  AvatarProps,
+  makeStyles,
+} from '@material-ui/core'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
@@ -28,21 +33,33 @@ function useValidImage(srcURL?: string): boolean {
   return valid
 }
 
+const useStyles = makeStyles((theme) => ({
+  avatar: {
+    color: theme.palette.getContrastText(theme.palette.secondary.main),
+    backgroundColor: theme.palette.secondary.main,
+  },
+}))
+
 function useAvatar(
   Fallback: IconProps,
   otherProps: AvatarProps,
   imgSrc?: string,
 ): JSX.Element {
+  const classes = useStyles()
   const validImage = useValidImage(imgSrc)
+
+  if (!validImage) {
+    return <Fallback />
+  }
+
   return (
     <Avatar
+      className={classes.avatar}
       alt=''
       src={validImage ? imgSrc : undefined}
       data-cy={validImage ? null : 'avatar-fallback'}
       {...otherProps}
-    >
-      {validImage ? null : <Fallback color='primary' />}
-    </Avatar>
+    />
   )
 }
 

@@ -6,10 +6,10 @@ import { useQuery, gql } from '@apollo/client'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
+  VpnKey as ServiceIcon,
 } from '@material-ui/icons'
-import Avatar from '@material-ui/core/Avatar'
 
-import { UserAvatar, ServiceAvatar } from './avatars'
+import { UserAvatar } from './avatars'
 import { SlackBW } from '../icons'
 import { Query } from '../../schema'
 
@@ -47,7 +47,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   return (
     <Chip
       data-cy='service-chip'
-      avatar={<ServiceAvatar />}
+      icon={<ServiceIcon />}
       onClick={() => dispatch(push(`/services/${id}`))}
       label={getLabel()}
       {...rest}
@@ -76,11 +76,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   return (
     <Chip
       data-cy='rotation-chip'
-      avatar={
-        <Avatar>
-          <RotationIcon />
-        </Avatar>
-      }
+      icon={<RotationIcon />}
       onClick={() => dispatch(push(`/rotations/${id}`))}
       {...rest}
     />
@@ -94,11 +90,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   return (
     <Chip
       data-cy='schedule-chip'
-      avatar={
-        <Avatar>
-          <ScheduleIcon />
-        </Avatar>
-      }
+      icon={<ScheduleIcon />}
       onClick={() => dispatch(push(`/schedules/${id}`))}
       {...rest}
     />
@@ -139,11 +131,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
     <Chip
       data-cy='slack-chip'
       data-clickable={clickable}
-      avatar={
-        <Avatar>
-          <SlackBW />
-        </Avatar>
-      }
+      icon={<SlackBW />}
       {...rest}
     />
   )
