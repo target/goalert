@@ -7,7 +7,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 func TestSignVerify(t *testing.T) {
@@ -26,9 +26,9 @@ func TestSignVerify(t *testing.T) {
 	}
 	var buf bytes.Buffer
 	try := func(t *testing.T) {
-		sessID := uuid.NewV4()
+		sessID := uuid.New()
 		buf.WriteByte('S') // session IDs will be prefixed with an "S"
-		buf.Write(sessID.Bytes())
+		buf.Write(sessID[:])
 		sig, err := db.Sign(buf.Bytes())
 		if err != nil {
 			t.Fatal(err)

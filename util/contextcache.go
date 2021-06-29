@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type cacheableKey string
@@ -12,7 +12,7 @@ type cacheableKey string
 const cacheableKeyID = cacheableKey("cache-id")
 
 func cacheableContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, cacheableKeyID, uuid.NewV4().String())
+	return context.WithValue(ctx, cacheableKeyID, uuid.New().String())
 }
 
 // WrapCacheableContext will make all request contexts cacheable, to be used with
