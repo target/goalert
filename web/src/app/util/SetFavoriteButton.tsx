@@ -4,6 +4,7 @@ import MUIFavoriteIcon from '@material-ui/icons/Favorite'
 import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
 import Tooltip from '@material-ui/core/Tooltip'
 import { makeStyles } from '@material-ui/core/styles'
+import { red } from '@material-ui/core/colors'
 import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
@@ -15,7 +16,7 @@ interface SetFavoriteButtonProps {
 
 const useStyles = makeStyles({
   favorited: {
-    color: 'rgb(205, 24, 49)',
+    color: red[500],
   },
   notFavorited: {
     color: 'inherit',
