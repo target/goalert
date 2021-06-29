@@ -39,6 +39,8 @@ type Store interface {
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
 	AuthSubjectsFunc(ctx context.Context, providerID, userID string, f func(AuthSubject) error) error
 	FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error)
+
+	FindUserSubjectID(ctx context.Context, providerID, userID string) (string, error)
 }
 
 var _ Store = &DB{}
@@ -71,6 +73,8 @@ type DB struct {
 	findAuthSubjectsByUser *sql.Stmt
 
 	findAuthSubjects *sql.Stmt
+
+	findUserSubjectID *sql.Stmt
 
 	grp *groupcache.Group
 
@@ -169,6 +173,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_id = $2 AND 
 				subject_id = $3
 		`),
+
+		findUserSubjectID: p.P(`SELECT subject_id FROM auth_subjects WHERE provider_id = $1 and user_id = $2`),
 	}
 	if p.Err != nil {
 		return nil, p.Err
@@ -179,6 +185,32 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
 
 	return store, nil
+}
+
+func (db *DB) FindUserSubjectID(ctx context.Context, providerID, userID string) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return "", err
+	}
+
+	err = validate.Many(
+		validate.SubjectID("ProviderID", providerID),
+		validate.UUID("UserID", userID),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	var subjectID string
+	err = db.findUserSubjectID.QueryRowContext(ctx, providerID, userID).Scan(&subjectID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return subjectID, nil
 }
 
 func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {

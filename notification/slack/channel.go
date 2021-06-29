@@ -114,16 +114,16 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res.(*Channel), nil
 }
 
-func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
 	cfg := config.FromContext(ctx)
 
 	s.teamMx.Lock()
+	defer s.teamMx.Unlock()
 	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
 		// teamID missing or token changed
 		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
-			s.teamMx.Unlock() // always unlock
-			return nil, err
+			return "", err
 		}
 
 		// update teamID and token after fetching succeeds
@@ -131,8 +131,16 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		s.token = cfg.Slack.AccessToken
 	}
 
-	teamID := s.teamID
-	s.teamMx.Unlock()
+	return s.teamID, nil
+}
+
+func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+	cfg := config.FromContext(ctx)
+
+	teamID, err := s.TeamID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lookup team ID: %w", err)
+	}
 
 	v := make(url.Values)
 	// Parameters and URL documented here:
@@ -151,7 +159,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 	}
 
-	err := s.chanTht.Wait(ctx)
+	err = s.chanTht.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -327,10 +335,26 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		if len(t.Users) == 0 {
 			userStr = "No users"
 		} else {
-
+			teamID, err := s.TeamID(ctx)
+			if err != nil {
+				log.Log(ctx, fmt.Errorf("lookup team ID: %w", err))
+			}
+			providerID := "slack:" + teamID
 			var userLinks []string
 			for _, u := range t.Users {
-				userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
+				var subjectID string
+				if teamID != "" {
+					subjectID, err = s.cfg.UserStore.FindUserSubjectID(ctx, providerID, u.ID)
+					if err != nil {
+						log.Log(ctx, fmt.Errorf("lookup slack subject ID for user '%s': %w", u.ID, err))
+					}
+				}
+
+				if subjectID != "" {
+					userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
+				} else {
+					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
+				}
 			}
 			userStr = "Users: " + strings.Join(userLinks, ", ")
 		}
