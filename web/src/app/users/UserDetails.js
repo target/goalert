@@ -223,7 +223,7 @@ export default function UserDetails(props) {
         }
         primaryActions={
           props.readOnly
-            ? []
+            ? null
             : [
                 <StatusUpdateNotification
                   key='primary-action-status-updates'
@@ -245,7 +245,7 @@ export default function UserDetails(props) {
                   handleOnClick: () => setShowEdit(true),
                 },
               ]
-            : []
+            : null
         }
         links={links}
       />
