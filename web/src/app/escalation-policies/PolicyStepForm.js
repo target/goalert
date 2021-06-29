@@ -29,7 +29,6 @@ const useStyles = makeStyles(() => ({
   badge: {
     top: -1,
     right: -1,
-    backgroundColor: '#cd1831',
   },
   optional: {
     float: 'left',
@@ -74,7 +73,7 @@ function PolicyStepForm(props) {
   const badgeMeUpScotty = (len, txt) => (
     <Badge
       badgeContent={len}
-      color='primary'
+      color='secondary'
       invisible={!len}
       classes={{
         badge: classes.badge,

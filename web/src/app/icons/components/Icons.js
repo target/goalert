@@ -8,16 +8,16 @@ import slackIcon from '../../public/slack.svg'
 import slackIconBW from '../../public/slack_monochrome_black.svg'
 import { makeStyles } from '@material-ui/core/styles'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   trashIcon: {
     color: '#666',
     cursor: 'pointer',
     float: 'right',
   },
   warningColor: {
-    color: '#FFD602',
+    color: theme.palette.warning.main,
   },
-})
+}))
 
 export function Trash() {
   const classes = useStyles()

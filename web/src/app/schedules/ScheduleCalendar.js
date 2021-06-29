@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Card, Button, makeStyles } from '@material-ui/core'
+import { Card, Button, makeStyles, useTheme } from '@material-ui/core'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
@@ -14,7 +14,6 @@ import CalendarToolbar from './CalendarToolbar'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
 import { DateTime, Interval } from 'luxon'
-import { theme } from '../mui'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
 import _ from 'lodash'
@@ -40,6 +39,7 @@ const useStyles = makeStyles((theme) => ({
 
 function ScheduleCalendar(props) {
   const classes = useStyles()
+  const theme = useTheme()
   const { weekly, start } = useCalendarNavigation()
 
   const [overrideDialog, setOverrideDialog] = useState(null)
@@ -55,14 +55,25 @@ function ScheduleCalendar(props) {
     onDeleteTempSched,
   } = props
 
-  const eventStyleGetter = (event, start, end, isSelected) => {
+  const eventStyleGetter = (event) => {
+    // temporary schedules
     if (event.fixed) {
       return {
         style: {
-          backgroundColor: isSelected ? '#094F13' : '#0C6618',
-          borderColor: '#094F13',
+          backgroundColor: theme.palette.secondary.main,
+          borderColor: theme.palette.secondary.dark,
+          color: theme.palette.getContrastText(theme.palette.secondary.main),
         },
       }
+    }
+
+    // all other events
+    return {
+      style: {
+        backgroundColor: theme.palette.primary.main,
+        borderColor: theme.palette.primary.dark,
+        color: theme.palette.getContrastText(theme.palette.primary.main),
+      },
     }
   }
 
@@ -169,7 +180,7 @@ function ScheduleCalendar(props) {
           endAdornment={
             <Button
               variant='contained'
-              color='primary'
+              color='secondary'
               data-cy='new-temp-sched'
               onClick={onNewTempSched}
               className={classes.tempSchedBtn}

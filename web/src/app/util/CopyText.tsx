@@ -6,17 +6,18 @@ import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   copyContainer: {
     alignItems: 'center',
     display: 'flex',
     width: 'fit-content',
     wordBreak: 'break-all',
+    color: theme.palette.secondary.main,
   },
   icon: {
     paddingRight: 4,
   },
-})
+}))
 
 interface CopyTextProps {
   placement?: TooltipProps['placement']
