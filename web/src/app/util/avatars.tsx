@@ -48,10 +48,6 @@ function useAvatar(
   const classes = useStyles()
   const validImage = useValidImage(imgSrc)
 
-  if (!validImage) {
-    return <Fallback />
-  }
-
   return (
     <Avatar
       className={classes.avatar}
@@ -59,7 +55,9 @@ function useAvatar(
       src={validImage ? imgSrc : undefined}
       data-cy={validImage ? null : 'avatar-fallback'}
       {...otherProps}
-    />
+    >
+      {validImage ? null : <Fallback />}
+    </Avatar>
   )
 }
 
