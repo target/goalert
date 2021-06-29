@@ -92,7 +92,6 @@ export default function Notices({
             message: classes.alertMessage,
             action: classes.alertAction,
           }}
-          elevation={1}
           action={index === 0 ? renderShowAllToggle() : null}
         >
           <AlertTitle>
