@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"golang.org/x/net/context/ctxhttp"
@@ -339,22 +340,32 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 			if err != nil {
 				log.Log(ctx, fmt.Errorf("lookup team ID: %w", err))
 			}
-			providerID := "slack:" + teamID
+
+			m := make(map[string]string, len(t.Users))
+			if teamID != "" {
+				userIDs := make([]string, len(t.Users))
+				for i, u := range t.Users {
+					userIDs[i] = u.ID
+				}
+				err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, func(sub user.AuthSubject) error {
+					m[sub.UserID] = sub.SubjectID
+					return nil
+				}, userIDs...)
+				if err != nil {
+					log.Log(ctx, fmt.Errorf("lookup auth subjects for slack: %w", err))
+				}
+			}
+
 			var userLinks []string
 			for _, u := range t.Users {
-				var subjectID string
-				if teamID != "" {
-					subjectID, err = s.cfg.UserStore.FindUserSubjectID(ctx, providerID, u.ID)
-					if err != nil {
-						log.Log(ctx, fmt.Errorf("lookup slack subject ID for user '%s': %w", u.ID, err))
-					}
+				subjectID := m[u.ID]
+				if subjectID == "" {
+					// fallback to a link to the GoAlert user
+					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
+					continue
 				}
 
-				if subjectID != "" {
-					userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
-				} else {
-					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
-				}
+				userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
 			}
 			userStr = "Users: " + strings.Join(userLinks, ", ")
 		}

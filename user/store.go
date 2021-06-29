@@ -37,10 +37,8 @@ type Store interface {
 	AddAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
-	AuthSubjectsFunc(ctx context.Context, providerID, userID string, f func(AuthSubject) error) error
+	AuthSubjectsFunc(ctx context.Context, providerID string, f func(AuthSubject) error, userIDs ...string) error
 	FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error)
-
-	FindUserSubjectID(ctx context.Context, providerID, userID string) (string, error)
 }
 
 var _ Store = &DB{}
@@ -73,8 +71,6 @@ type DB struct {
 	findAuthSubjectsByUser *sql.Stmt
 
 	findAuthSubjects *sql.Stmt
-
-	findUserSubjectID *sql.Stmt
 
 	grp *groupcache.Group
 
@@ -116,7 +112,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from auth_subjects
 			where
 				(provider_id = $1 or $1 isnull) and
-				(user_id = $2 or $2 isnull)
+				(user_id = any($2) or $2 isnull)
 		`),
 
 		findMany: p.P(`
@@ -173,8 +169,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_id = $2 AND 
 				subject_id = $3
 		`),
-
-		findUserSubjectID: p.P(`SELECT subject_id FROM auth_subjects WHERE provider_id = $1 and user_id = $2`),
 	}
 	if p.Err != nil {
 		return nil, p.Err
@@ -187,33 +181,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return store, nil
 }
 
-func (db *DB) FindUserSubjectID(ctx context.Context, providerID, userID string) (string, error) {
-	err := permission.LimitCheckAny(ctx, permission.System)
-	if err != nil {
-		return "", err
-	}
-
-	err = validate.Many(
-		validate.SubjectID("ProviderID", providerID),
-		validate.UUID("UserID", userID),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	var subjectID string
-	err = db.findUserSubjectID.QueryRowContext(ctx, providerID, userID).Scan(&subjectID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return subjectID, nil
-}
-
-func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
+func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID string, forEachFn func(AuthSubject) error, userIDs ...string) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
@@ -221,9 +189,8 @@ func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, f
 	if providerID != "" {
 		err = validate.SubjectID("ProviderID", providerID)
 	}
-	if userID != "" {
-		err = validate.Many(err, validate.UUID("UserID", userID))
-	}
+	fmt.Println("IDS", userIDs)
+	err = validate.Many(err, validate.ManyUUID("UserID", userIDs, 100))
 	if err != nil {
 		return err
 	}
@@ -232,12 +199,14 @@ func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, f
 		String: providerID,
 		Valid:  providerID != "",
 	}
-	uID := sql.NullString{
-		String: userID,
-		Valid:  userID != "",
+
+	var uIDs sqlutil.NullUUIDArray
+	if len(userIDs) > 0 {
+		uIDs.Valid = true
+		uIDs.UUIDArray = sqlutil.UUIDArray(userIDs)
 	}
 
-	rows, err := db.findAuthSubjects.QueryContext(ctx, pID, uID)
+	rows, err := db.findAuthSubjects.QueryContext(ctx, pID, uIDs)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
