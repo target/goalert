@@ -206,7 +206,7 @@ export default class WizardScheduleForm extends React.Component {
                       'data-cy': 'fts-tooltip-popper',
                     }}
                   >
-                    <InfoIcon color='primary' />
+                    <InfoIcon />
                   </Tooltip>
                 </FormLabel>
                 <RadioGroup
