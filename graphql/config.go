@@ -42,7 +42,7 @@ type Config struct {
 
 	EscalationStore     escalation.Store
 	IntegrationKeyStore integrationkey.Store
-	HeartbeatStore      heartbeat.Store
+	HeartbeatStore      *heartbeat.Store
 
 	LimitStore limit.Store
 

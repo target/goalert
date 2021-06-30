@@ -103,7 +103,7 @@ type App struct {
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
 	LimitStore     *limit.Store
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
