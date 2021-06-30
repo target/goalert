@@ -67,6 +67,8 @@ docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-
 
 $(BIN_DIR)/goalert: go.sum $(GOALERT_DEPS) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+$(BIN_DIR)/goalert-slack-email-sync-linux-amd64: pkg/sysapi/* cmd/goalert-slack-email-sync/*
+	GOOS=linux go build -trimpath $(BUILD_FLAGS) -o $@ ./cmd/goalert-slack-email-sync
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
@@ -85,10 +87,11 @@ $(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -type f) migrate/*
 $(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
 	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
-$(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
+$(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-% $(BIN_DIR)/goalert-slack-email-sync-%
 	rm -rf $(BIN_DIR)/$*
 	mkdir -p $(BIN_DIR)/$*/goalert/bin
 	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
+	cp $(BIN_DIR)/goalert-slack-email-sync-$* $(BIN_DIR)/$*/goalert/bin/goalert-slack-email-sync
 	tar czvf $@ -C $(BIN_DIR)/$* goalert
 
 $(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
