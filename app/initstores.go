@@ -233,7 +233,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init limit config store")
 	}
 	if app.HeartbeatStore == nil {
-		app.HeartbeatStore, err = heartbeat.NewDB(ctx, app.db)
+		app.HeartbeatStore, err = heartbeat.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init heartbeat store")

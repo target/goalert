@@ -72,7 +72,7 @@ type App struct {
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
 	AuthHandler *auth.Handler
