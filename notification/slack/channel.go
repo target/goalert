@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -321,6 +322,20 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+	case notification.ScheduleOnCallUsers:
+		var userStr string
+		if len(t.Users) == 0 {
+			userStr = "No users"
+		} else {
+
+			var userLinks []string
+			for _, u := range t.Users {
+				userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
+			}
+			userStr = "Users: " + strings.Join(userLinks, ", ")
+		}
+
+		vals.Set("text", fmt.Sprintf("%s are on-call for Schedule: %s", userStr, fmt.Sprintf("<%s|%s>", t.ScheduleURL, t.ScheduleName)))
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}

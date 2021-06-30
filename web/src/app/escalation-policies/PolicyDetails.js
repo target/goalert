@@ -7,6 +7,7 @@ import { Edit, Delete } from '@material-ui/icons'
 
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
+import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import DetailsPage from '../details/DetailsPage'
@@ -82,6 +83,10 @@ export default function PolicyDetails(props) {
             icon: <Delete />,
             handleOnClick: () => setShowDeleteDialog(true),
           },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            escalationPolicyID={data.id}
+          />,
         ]}
         links={[
           {

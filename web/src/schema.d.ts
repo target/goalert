@@ -211,6 +211,7 @@ export interface SetScheduleShiftInput {
 export interface Mutation {
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
+  setScheduleOnCallNotificationRules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -379,6 +380,7 @@ export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
+  favorite?: boolean
   steps?: CreateEscalationPolicyStepInput[]
 }
 
@@ -457,6 +459,26 @@ export interface Schedule {
   target?: ScheduleTarget
   isFavorite: boolean
   temporarySchedules: TemporarySchedule[]
+  onCallNotificationRules: OnCallNotificationRule[]
+}
+
+export interface SetScheduleOnCallNotificationRulesInput {
+  scheduleID: string
+  rules: OnCallNotificationRuleInput[]
+}
+
+export interface OnCallNotificationRuleInput {
+  id?: string
+  target: TargetInput
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
+}
+
+export interface OnCallNotificationRule {
+  id: string
+  target: Target
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface OnCallShift {
@@ -554,6 +576,8 @@ export interface EscalationPolicySearchOptions {
   after?: string
   search?: string
   omit?: string[]
+  favoritesOnly?: boolean
+  favoritesFirst?: boolean
 }
 
 export interface ScheduleSearchOptions {
@@ -736,6 +760,7 @@ export interface EscalationPolicy {
   name: string
   description: string
   repeat: number
+  isFavorite: boolean
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
   notices: Notice[]

@@ -290,6 +290,10 @@ type Mutation {
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
+  setScheduleOnCallNotificationRules(
+    input: SetScheduleOnCallNotificationRulesInput!
+  ): Boolean!
+
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -507,6 +511,8 @@ input CreateEscalationPolicyInput {
   description: String = ""
   repeat: Int = 3
 
+  favorite: Boolean
+
   steps: [CreateEscalationPolicyStepInput!]
 }
 
@@ -590,6 +596,36 @@ type Schedule {
   isFavorite: Boolean!
 
   temporarySchedules: [TemporarySchedule!]!
+  onCallNotificationRules: [OnCallNotificationRule!]!
+}
+
+input SetScheduleOnCallNotificationRulesInput {
+  scheduleID: ID!
+  rules: [OnCallNotificationRuleInput!]!
+}
+
+input OnCallNotificationRuleInput {
+  id: ID
+  target: TargetInput!
+
+  # time indicates a time-of-day (in the schedule's time zone)
+  # to send a message of current on-call users.
+  #
+  # If time is null, a notification will be sent any time the set of on-call users
+  # changes for this schedule.
+  time: ClockTime
+
+  # weekdayFilter indicates which days of the week this rule is evaluated.
+  #
+  # It is required for time-of-day notifications and must be null if time is null.
+  weekdayFilter: WeekdayFilter
+}
+
+type OnCallNotificationRule {
+  id: ID!
+  target: Target!
+  time: ClockTime
+  weekdayFilter: WeekdayFilter
 }
 
 type OnCallShift {
@@ -715,6 +751,12 @@ input EscalationPolicySearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited escalaton policies in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite escalation policies first.
+  favoritesFirst: Boolean = false
 }
 
 input ScheduleSearchOptions {
@@ -779,6 +821,7 @@ scalar ISOTimestamp
 scalar ClockTime
 
 # WeekdayFilter is an array of 7 true/false values representing days of the week.
+# The first index (0) represents Sunday.
 scalar WeekdayFilter
 
 type Alert {
@@ -920,6 +963,7 @@ type EscalationPolicy {
   name: String!
   description: String!
   repeat: Int!
+  isFavorite: Boolean!
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!

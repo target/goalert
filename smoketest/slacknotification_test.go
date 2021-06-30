@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestSlackNotification tests that slack channels are returned for configured users.
@@ -32,6 +33,6 @@ func TestSlackNotification(t *testing.T) {
 	h := harness.NewHarness(t, sql, "slack-user-link")
 	defer h.Close()
 
-	h.Slack().Channel("test").ExpectMessage("testing")
 	h.CreateAlert(h.UUID("sid"), "testing")
+	h.Slack().Channel("test").ExpectMessage("testing")
 }
