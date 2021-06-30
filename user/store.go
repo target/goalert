@@ -189,7 +189,6 @@ func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID string, forEachFn
 	if providerID != "" {
 		err = validate.SubjectID("ProviderID", providerID)
 	}
-	fmt.Println("IDS", userIDs)
 	err = validate.Many(err, validate.ManyUUID("UserID", userIDs, 100))
 	if err != nil {
 		return err
