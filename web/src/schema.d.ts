@@ -651,9 +651,11 @@ export interface Alert {
   pendingNotifications: AlertPendingNotification[]
 }
 
+export type DestType = 'SMS' | 'VOICE' | 'EMAIL' | 'SLACK'
+
 export interface AlertPendingNotification {
-  targetType: TargetType
-  targetName: string
+  destType?: DestType
+  destName: string
 }
 
 export interface AlertRecentEventsOptions {

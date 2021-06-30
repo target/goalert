@@ -6,7 +6,6 @@ import (
 	"time"
 
 	alertlog "github.com/target/goalert/alert/log"
-	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -263,8 +262,8 @@ func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
 
 		findPendingNotifications: p(`
 			SELECT
-			COALESCE(ucm.type::text, nc.type::text) AS target_type,
-			COALESCE(u.name, nc.name) AS target_name
+			COALESCE(ucm.type::text, nc.type::text) AS dest_type,
+			COALESCE(u.name, nc.name) AS dest_name
 			FROM outgoing_messages om
 			LEFT JOIN user_contact_methods ucm 
 			ON om.user_id = ucm.user_id
@@ -301,15 +300,15 @@ func (db *DB) FindPendingNotifications(ctx context.Context, alertID int, service
 
 	result := make([]AlertPendingNotification, 0)
 	for rows.Next() {
-		var tgtType assignment.TargetType
-		var tgtName string
-		err := rows.Scan(&tgtType, &tgtName)
+		var destType string
+		var destName string
+		err := rows.Scan(&destType, &destName)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, AlertPendingNotification{
-			TargetType: tgtType,
-			TargetName: tgtName,
+			DestType: destType,
+			DestName: destName,
 		})
 	}
 

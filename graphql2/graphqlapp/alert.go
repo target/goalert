@@ -384,8 +384,8 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 
 	for _, val := range rows {
 		result = append(result, graphql2.AlertPendingNotification{
-			TargetName: val.TargetName,
-			TargetType: 1, //TODO targetTypeEnum.Get(val.TargetType),
+			DestName: val.DestName,
+			DestType: (*graphql2.DestType)(&val.DestType),
 		})
 	}
 

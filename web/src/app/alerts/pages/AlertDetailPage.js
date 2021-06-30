@@ -33,6 +33,10 @@ const query = gql`
         stepNumber
         repeatCount
       }
+      pendingNotifications {
+        destType
+        destName
+      }
     }
   }
 `

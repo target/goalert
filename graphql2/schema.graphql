@@ -843,9 +843,19 @@ type Alert {
   pendingNotifications: [AlertPendingNotification!]!
 }
 
+enum DestType {
+  # user contact method types
+  SMS
+  VOICE
+  EMAIL
+
+  # notification channel types
+  SLACK
+}
+
 type AlertPendingNotification {
-  destType: DestType: # SMS, VOICE, slackChannel, email # cm.type nc.type
-  destName: String! # e.g. slack channel name, user name
+  destType: DestType
+  destName: String! # e.g. notification channel name, user name
 }
 
 input AlertRecentEventsOptions {

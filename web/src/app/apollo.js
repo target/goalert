@@ -118,6 +118,11 @@ const cache = new InMemoryCache({
     Query: {
       fields: typePolicyQueryFields,
     },
+    Alert: {
+      fields: {
+        pendingNotifications: false,
+      },
+    },
     EscalationPolicy: {
       fields: {
         steps: {

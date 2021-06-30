@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -29,8 +28,8 @@ type Alert struct {
 }
 
 type AlertPendingNotification struct {
-	TargetName string                `json:"targetName"`
-	TargetType assignment.TargetType `json:"targetType"`
+	DestName string
+	DestType string
 }
 
 // DedupKey will return the de-duplication key for the alert.

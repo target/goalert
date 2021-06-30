@@ -29,6 +29,7 @@ import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
+import Notices from '../../details/Notices'
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)
@@ -423,8 +424,18 @@ function AlertDetails(props) {
 
   const { data: alert } = props
 
+  const notices = alert.pendingNotifications.map((n) => ({
+    type: 'WARNING',
+    message: `Notification Pending for ${n.destName} (${n.destType})`,
+    details:
+      'One or more notifications are waiting to be sent. This may be due to rate limiting or something else.',
+  }))
+
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} justify='center'>
+      <Grid item xs={12} lg={9}>
+        <Notices notices={notices} />
+      </Grid>
       <Grid item xs={12} className={classes.cardContainer}>
         <Card className={getCardClassName()}>
           <CardContent data-cy='alert-summary'>
