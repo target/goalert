@@ -19,7 +19,7 @@ type Config struct {
 	AlertStore          alert.Store
 	ContactMethodStore  contactmethod.Store
 	NotificationManager *notification.Manager
-	UserStore           user.Store
+	UserStore           *user.Store
 	NotificationStore   notification.Store
 	NCStore             notificationchannel.Store
 	OnCallStore         oncall.Store

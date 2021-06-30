@@ -9,7 +9,7 @@ import (
 )
 
 type Server struct {
-	UserStore user.Store
+	UserStore *user.Store
 	sysapi.UnimplementedSysAPIServer
 }
 
