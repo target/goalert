@@ -9,7 +9,7 @@ import (
 // Config contains values used for the Slack notification sender.
 type Config struct {
 	BaseURL   string
-	UserStore user.Store
+	UserStore *user.Store
 }
 
 func (c Config) url(path string) string {
