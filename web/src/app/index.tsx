@@ -6,8 +6,6 @@ import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
 import { ApolloProvider } from '@apollo/client'
-import { MuiThemeProvider } from '@material-ui/core/styles'
-import { theme } from './mui'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
@@ -18,6 +16,7 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
 import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
+import { ThemeProvider } from './main/components/ThemeProvider'
 
 // version check
 if (
@@ -54,26 +53,26 @@ const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
 LazyGARouteTracker.displayName = 'LazyGARouteTracker'
 
 ReactDOM.render(
-  <MuiThemeProvider theme={theme}>
-    <ApolloProvider client={GraphQLClient}>
-      <ReduxProvider store={store}>
-        <ConnectedRouter history={history}>
-          <MuiPickersUtilsProvider>
-            <ConfigProvider>
-              <NewVersionCheck />
-              <Config>
-                {(config: ConfigData) => (
-                  <LazyGARouteTracker
-                    trackingID={config['General.GoogleAnalyticsID'] as string}
-                  />
-                )}
-              </Config>
+  <ApolloProvider client={GraphQLClient}>
+    <ReduxProvider store={store}>
+      <ConnectedRouter history={history}>
+        <MuiPickersUtilsProvider>
+          <ConfigProvider>
+            <NewVersionCheck />
+            <Config>
+              {(config: ConfigData) => (
+                <LazyGARouteTracker
+                  trackingID={config['General.GoogleAnalyticsID'] as string}
+                />
+              )}
+            </Config>
+            <ThemeProvider>
               <App />
-            </ConfigProvider>
-          </MuiPickersUtilsProvider>
-        </ConnectedRouter>
-      </ReduxProvider>
-    </ApolloProvider>
-  </MuiThemeProvider>,
+            </ThemeProvider>
+          </ConfigProvider>
+        </MuiPickersUtilsProvider>
+      </ConnectedRouter>
+    </ReduxProvider>
+  </ApolloProvider>,
   document.getElementById('app'),
 )
