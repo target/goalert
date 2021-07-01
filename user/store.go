@@ -86,7 +86,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			from auth_subjects
 			where
 				(provider_id = $1 or $1 isnull) and
-				(user_id = $2 or $2 isnull)
+				(user_id = any($2) or $2 isnull)
 		`),
 
 		findMany: p.P(`
@@ -160,7 +160,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 //
 // providerID, if not empty, will limit AuthSubjects to those with the same providerID.
 // userID, if not empty, will limit AuthSubjects to those assigned to the given userID.
-func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
+func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID string, forEachFn func(AuthSubject) error, userIDs ...string) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return err
@@ -168,9 +168,7 @@ func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID, userID string,
 	if providerID != "" {
 		err = validate.SubjectID("ProviderID", providerID)
 	}
-	if userID != "" {
-		err = validate.Many(err, validate.UUID("UserID", userID))
-	}
+	err = validate.Many(err, validate.ManyUUID("UserID", userIDs, 100))
 	if err != nil {
 		return err
 	}
@@ -179,12 +177,14 @@ func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID, userID string,
 		String: providerID,
 		Valid:  providerID != "",
 	}
-	uID := sql.NullString{
-		String: userID,
-		Valid:  userID != "",
+
+	var uIDs sqlutil.NullUUIDArray
+	if len(userIDs) > 0 {
+		uIDs.Valid = true
+		uIDs.UUIDArray = sqlutil.UUIDArray(userIDs)
 	}
 
-	rows, err := s.findAuthSubjects.QueryContext(ctx, pID, uID)
+	rows, err := s.findAuthSubjects.QueryContext(ctx, pID, uIDs)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
@@ -560,10 +560,10 @@ func (s *Store) FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, 
 // FindAllAuthSubjectsForUser returns all auth subjects associated with a given userID.
 func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error) {
 	var result []AuthSubject
-	err := s.AuthSubjectsFunc(ctx, "", userID, func(sub AuthSubject) error {
+	err := s.AuthSubjectsFunc(ctx, "", func(sub AuthSubject) error {
 		result = append(result, sub)
 		return nil
-	})
+	}, userID)
 	if err != nil {
 		return nil, err
 	}
