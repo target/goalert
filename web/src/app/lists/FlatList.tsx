@@ -15,49 +15,62 @@ import {
   DroppableProvided,
 } from 'react-beautiful-dnd'
 import ListSubheader from '@material-ui/core/ListSubheader'
-import AppLink from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle, Color } from '@material-ui/lab'
+import { green, grey } from '@material-ui/core/colors'
+import AppLink from '../util/AppLink'
 import { Notice, NoticeType } from '../details/Notices'
 
-const lime = '#93ed94'
-const lightLime = '#defadf'
-const lightGrey = '#ebebeb'
+const useStyles = makeStyles((theme) => {
+  const activeBorderCol = green[500]
+  const activeBgCol = green[200]
+  const draggingBgCol = grey[300]
 
-const useStyles = makeStyles({
-  alert: {
-    margin: '0.5rem 0 0.5rem 0',
-  },
-  background: { backgroundColor: 'white' },
-  highlightedItem: {
-    width: '100%',
-    borderLeft: '6px solid ' + lime,
-    background: lightLime,
-  },
-  participantDragging: {
-    backgroundColor: lightGrey,
-  },
-  slideEnter: {
-    transform: 'translateX(-100%)',
-  },
-  slideEnterActive: {
-    transform: 'translateX(0%)',
-    transition: 'opacity 500ms, transform 500ms',
-  },
-  slideExit: {
-    transform: 'translateX(0%)',
-  },
-  slideExitActive: {
-    transform: 'translateX(-100%)',
-    transition: 'opacity 500ms, transform 500ms',
-  },
-  listItem: {
-    width: '100%',
-  },
-  listItemText: {
-    fontStyle: 'italic',
-  },
+  return {
+    alert: {
+      margin: '0.5rem 0 0.5rem 0',
+    },
+    background: { backgroundColor: 'red' },
+    highlightedItem: {
+      width: '100%',
+      borderLeft: '6px solid ' + activeBorderCol,
+      backgroundColor: activeBgCol,
+
+      // list item children
+      '& *': {
+        color: theme.palette.getContrastText(activeBgCol),
+      },
+    },
+    participantDragging: {
+      backgroundColor: draggingBgCol,
+
+      // list item children
+      '& *': {
+        color: theme.palette.getContrastText(draggingBgCol),
+      },
+    },
+    slideEnter: {
+      transform: 'translateX(-100%)',
+    },
+    slideEnterActive: {
+      transform: 'translateX(0%)',
+      transition: 'opacity 500ms, transform 500ms',
+    },
+    slideExit: {
+      transform: 'translateX(0%)',
+    },
+    slideExitActive: {
+      transform: 'translateX(-100%)',
+      transition: 'opacity 500ms, transform 500ms',
+    },
+    listItem: {
+      width: '100%',
+    },
+    listItemText: {
+      fontStyle: 'italic',
+    },
+  }
 })
 
 export interface FlatListSub {
