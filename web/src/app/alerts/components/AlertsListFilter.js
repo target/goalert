@@ -182,11 +182,7 @@ function AlertsListFilter({ serviceID }) {
 
   return (
     <React.Fragment>
-      <IconButton
-        aria-label='Filter Alerts'
-        color='inherit'
-        onClick={handleOpenFilters}
-      >
+      <IconButton aria-label='Filter Alerts' onClick={handleOpenFilters}>
         <FilterList />
       </IconButton>
       {renderFilters()}

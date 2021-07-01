@@ -54,7 +54,6 @@ export default class OtherActions extends React.PureComponent {
           {React.cloneElement(this.props.icon, {
             'aria-label': 'Other Actions',
             'data-cy': 'other-actions',
-            color: this.props.color ? this.props.color : 'inherit',
             'aria-expanded': Boolean(this.state.anchorEl),
             onClick: (e) => {
               onClose.cancel()

@@ -2,7 +2,6 @@ import React, { ReactElement, useState } from 'react'
 import {
   Checkbox,
   Grid,
-  Icon,
   IconButton,
   makeStyles,
   Tooltip,
@@ -175,11 +174,7 @@ export default function ControlledPaginatedList(
           data-cy='checkboxes-menu'
         >
           <OtherActions
-            icon={
-              <Icon>
-                <ArrowDropDown />
-              </Icon>
-            }
+            icon={<ArrowDropDown color='action' />}
             actions={[
               {
                 label: 'All',
