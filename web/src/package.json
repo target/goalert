@@ -95,7 +95,7 @@
     "cypress": "7.6.0",
     "jest": "27.0.6",
     "json-loader": "0.5.7",
-    "postcss": "8.3.4",
+    "postcss": "8.3.5",
     "postcss-loader": "6.1.0",
     "prop-types": "15.7.2",
     "react-swipeable-views-utils": "0.14.0",
