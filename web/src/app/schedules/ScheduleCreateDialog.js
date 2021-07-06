@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
@@ -17,36 +17,35 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleCreateDialog extends React.PureComponent {
-  state = {
+export default function ScheduleCreateDialog(props) {
+  const [schedule, setSchedule] = useState({
     value: {
       name: '',
       description: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       favorite: true,
     },
-  }
+  })
 
-  render() {
-    return <Mutation mutation={mutation}>{this.renderForm}</Mutation>
-  }
+  return <Mutation mutation={mutation}>{renderForm}</Mutation>
 
-  renderForm = (commit, status) => {
+  function renderForm(commit, status) {
     if (status.data && status.data.createSchedule) {
       return (
         <Redirect push to={`/schedules/${status.data.createSchedule.id}`} />
       )
     }
+
     return (
       <FormDialog
-        onClose={this.props.onClose}
+        onClose={props.onClose}
         title='Create New Schedule'
         errors={nonFieldErrors(status.error)}
         onSubmit={() =>
           commit({
             variables: {
               input: {
-                ...this.state.value,
+                ...schedule.value,
                 targets: [
                   {
                     target: { type: 'user', id: '__current_user' },
@@ -61,8 +60,8 @@ export default class ScheduleCreateDialog extends React.PureComponent {
           <ScheduleForm
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={this.state.value}
-            onChange={(value) => this.setState({ value })}
+            value={schedule.value}
+            onChange={(value) => setSchedule({ value })}
           />
         }
       />
