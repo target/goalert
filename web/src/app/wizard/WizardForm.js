@@ -1,4 +1,5 @@
-import React from 'react'
+import React, {useState, useCallback} from 'react'
+import useForceUpdate from 'use-force-update';
 import p from 'prop-types'
 import StepIcon from '@material-ui/core/StepIcon'
 import FormControl from '@material-ui/core/FormControl'
@@ -29,42 +30,30 @@ const styles = {
 
 @withWidth()
 @withStyles(styles)
-export default class WizardForm extends React.PureComponent {
-  static propTypes = {
-    onChange: p.func.isRequired,
-    value: valuePropType,
-    errors: p.arrayOf(
-      p.shape({
-        message: p.string.isRequired,
-      }),
-    ),
-  }
 
-  handleSecondaryScheduleToggle = (e) => {
-    const { onChange, value } = this.props
+ 
+const WizardForm = ({classes, onChange, value, width, props }) => {
+ const forceUpdate = useForceUpdate()
+ const handleSecondaryScheduleToggle = (e) => { 
     onChange(set(value, ['secondarySchedule', 'enable'], e.target.value))
-    this.forceUpdate()
+     forceUpdate()
   }
 
-  sectionHeading = (text) => {
+ const sectionHeading = (text) => {
     return (
       <Typography component='h2' variant='h6'>
         {text}
       </Typography>
     )
-  }
-
-  render() {
-    const { classes, onChange, value, width } = this.props
-
+  }  
     return (
-      <FormContainer optionalLabels {...this.props}>
+      <FormContainer optionalLabels {...props}>
         <Grid container spacing={2}>
           <Grid item className={classes.stepItem}>
             <StepIcon icon='1' />
           </Grid>
           <Grid item xs={10}>
-            {this.sectionHeading('Team Details')}
+            {sectionHeading('Team Details')}
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
             <FormField
@@ -81,14 +70,14 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='2' />
           </Grid>
           <Grid item xs={10}>
-            {this.sectionHeading('Primary Schedule')}
+            {sectionHeading('Primary Schedule')}
           </Grid>
           <WizardScheduleForm onChange={onChange} value={value} />
           <Grid item className={classes.stepItem}>
             <StepIcon icon='3' />
           </Grid>
           <Grid item xs={10}>
-            {this.sectionHeading('Secondary Schedule')}
+            {sectionHeading('Secondary Schedule')}
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
             <FormControl>
@@ -100,7 +89,7 @@ export default class WizardForm extends React.PureComponent {
                 name='secondary'
                 row
                 value={value.secondarySchedule.enable}
-                onChange={this.handleSecondaryScheduleToggle}
+                onChange={(e) => handleSecondaryScheduleToggle(e)}
               >
                 <FormControlLabel
                   data-cy='secondary.yes'
@@ -124,14 +113,14 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='4' />
           </Grid>
           <Grid item xs={10}>
-            {this.sectionHeading('Escalation Policy')}
+            {sectionHeading('Escalation Policy')}
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
             <FormField
               component={TextField}
               name='delayMinutes'
               errorName='newEscalationPolicy.steps0.delayMinutes'
-              label={this.getDelayLabel()}
+              label={getDelayLabel()}
               formLabel
               fullWidth={isWidthDown('md', width)}
               required
@@ -161,7 +150,7 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='5' />
           </Grid>
           <Grid item xs={10}>
-            {this.sectionHeading('Service')}
+            {sectionHeading('Service')}
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
             <FormField
@@ -200,10 +189,20 @@ export default class WizardForm extends React.PureComponent {
     )
   }
 
-  getDelayLabel = () => {
-    if (this.props.value.secondarySchedule.enable === 'yes') {
+  const getDelayLabel = (props) => {
+    if (props.value.secondarySchedule.enable === 'yes') {
       return 'How long would you like to wait until escalating to your secondary schedule (in minutes)?'
     }
     return 'How long would you like to wait until alerting your primary schedule again (in minutes)?'
   }
-}
+ 
+
+WizzardForm.propTypes = {
+    onChange: p.func.isRequired,
+    value: valuePropType,
+    errors: p.arrayOf(
+      p.shape({
+        message: p.string.isRequired,
+      }),
+    ),
+  }
