@@ -1,6 +1,5 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import p from 'prop-types'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
 import Card from '@material-ui/core/Card'
@@ -21,7 +20,7 @@ const query = gql`
 
 export default function ScheduleAssignedToList(props) {
   ScheduleAssignedToList.propTypes = {
-    scheduleID: propTypes.string.isRequired,
+    scheduleID: PropTypes.string.isRequired,
   }
 
   function renderList({ data }) {
