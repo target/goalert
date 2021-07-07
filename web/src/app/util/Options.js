@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component , useState} from 'react'
 import { PropTypes as p } from 'prop-types'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
@@ -28,40 +28,31 @@ import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
  */
 @withWidth()
 @withStyles(styles)
-export default class Options extends Component {
-  static propTypes = {
-    asIcon: p.bool, // render icon button as an icon only
-    Icon: p.func, // icon component to override default options menu icon
-    iconProps: p.object, // extra properties to supply to IconButton
-    anchorProps: p.object, // override props to position menu on desktop
-    transformProps: p.object, // override props to position menu on desktop
-    options: p.array.isRequired, // [{ disabled: false, text: '', onClick: () => { . . . } }]
-    positionRelative: p.bool, // if true, disables the options menu being fixed to the top right
-  }
+export default function Options(props) {
 
-  state = {
+  const [state, setState] = useState({
     anchorEl: null,
     show: false,
     errorMessage: '',
     showErrorDialog: false,
     showOptions: false,
-  }
+  })
 
-  handleOpenMenu = (event) => {
-    this.setState({
+  const handleOpenMenu = (event) => {
+    setState({
       anchorEl: event.currentTarget,
       show: true,
     })
   }
 
-  handleCloseMenu = () => {
-    this.setState({
+  const handleCloseMenu = () => {
+    setState({
       show: false,
     })
   }
 
-  handleShowOptions = (bool) => {
-    this.setState({
+  const handleShowOptions = (bool) => {
+    setState({
       showOptions: bool,
     })
   }
@@ -69,26 +60,26 @@ export default class Options extends Component {
   /*
    * Run mutation and catch any errors,
    */
-  onMutationSubmit = (o, mutation) => {
-    this.handleCloseMenu()
-    this.handleShowOptions(false)
+  const onMutationSubmit = (o, mutation) => {
+    handleCloseMenu()
+    handleShowOptions(false)
     return mutation({ variables: o.mutation.variables }).catch((error) =>
-      this.setState({ errorMessage: error.message, showErrorDialog: true }),
+      setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
-  onClick = (o) => {
+  const onClick = (o) => {
     Promise.resolve(o.onClick()).catch((error) =>
-      this.setState({ errorMessage: error.message, showErrorDialog: true }),
+    setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
-  renderItemMutation = (o, idx, type) => {
+  const renderItemMutation = (o, idx, type) => {
     // render list or menu item
     const item = (mutation) => {
       if (type === 'list') {
         return (
-          <ListItem button onClick={() => this.onMutationSubmit(o, mutation)}>
+          <ListItem button onClick={() => onMutationSubmit(o, mutation)}>
             <ListItemText primary={o.text} />
           </ListItem>
         )
@@ -98,7 +89,7 @@ export default class Options extends Component {
           <MenuItem
             key={idx}
             disabled={o.disabled}
-            onClick={() => this.onMutationSubmit(o, mutation)}
+            onClick={() => onMutationSubmit(o, mutation)}
           >
             {o.text}
           </MenuItem>
@@ -123,8 +114,8 @@ export default class Options extends Component {
     )
   }
 
-  renderIconButton = (onClick) => {
-    const { asIcon, Icon, iconProps } = this.props
+  const renderIconButton = (onClick) => {
+    const { asIcon, Icon, iconProps } = props
 
     if (asIcon) {
       return (
@@ -133,7 +124,7 @@ export default class Options extends Component {
           data-cy='other-actions'
           color='inherit'
           onClick={onClick}
-          aria-expanded={this.state.show || this.state.showOptions}
+          aria-expanded={state.show || state.showOptions}
           {...iconProps}
         />
       )
@@ -144,7 +135,7 @@ export default class Options extends Component {
         data-cy='other-actions'
         color='inherit'
         onClick={onClick}
-        aria-expanded={this.state.show || this.state.showOptions}
+        aria-expanded={state.show || state.showOptions}
         {...iconProps}
       >
         {Icon || <OptionsIcon />}
@@ -152,31 +143,31 @@ export default class Options extends Component {
     )
   }
 
-  renderMobileOptions() {
-    const { options } = this.props
+  function renderMobileOptions() {
+    const { options } = props
 
     return (
       <Hidden key='mobile-options' mdUp>
-        {this.renderIconButton(() => this.handleShowOptions(true))}
+        {renderIconButton(() => handleShowOptions(true))}
         <SwipeableDrawer
           anchor='bottom'
           disableDiscovery
           disableSwipeToOpen
-          open={this.state.showOptions}
+          open={state.showOptions}
           onOpen={() => null}
-          onClose={() => this.handleShowOptions(false)}
+          onClose={() => handleShowOptions(false)}
         >
           <div
             tabIndex={0}
             role='button'
-            onClick={() => this.handleShowOptions(false)}
-            onKeyDown={() => this.handleShowOptions(false)}
+            onClick={() => handleShowOptions(false)}
+            onKeyDown={() => handleShowOptions(false)}
           >
             <List data-cy='mobile-actions'>
               {options.map((o, idx) => {
                 // render with mutation form if exists
                 if (o.mutation) {
-                  return this.renderItemMutation(o, idx, 'list')
+                  return renderItemMutation(o, idx, 'list')
                 }
 
                 // otherwise render as item with onclick func
@@ -185,8 +176,8 @@ export default class Options extends Component {
                     key={idx}
                     button
                     onClick={() => {
-                      this.handleShowOptions(false)
-                      this.onClick(o)
+                      handleShowOptions(false)
+                      onClick(o)
                     }}
                   >
                     <ListItemText primary={o.text} />
@@ -200,17 +191,17 @@ export default class Options extends Component {
     )
   }
 
-  renderDesktopOptions() {
-    const { options, anchorProps, transformProps } = this.props
+  function renderDesktopOptions() {
+    const { options, anchorProps, transformProps } = props
 
     return (
       <Hidden key='desktop-options' smDown>
-        {this.renderIconButton(this.handleOpenMenu)}
+        {renderIconButton(handleOpenMenu)}
         <Menu
-          anchorEl={() => this.state.anchorEl}
+          anchorEl={() => state.anchorEl}
           getContentAnchorEl={null}
-          open={!!(this.state.show && this.state.anchorEl)}
-          onClose={this.handleCloseMenu}
+          open={!!(state.show && state.anchorEl)}
+          onClose={handleCloseMenu}
           PaperProps={{
             style: {
               minWidth: '15em',
@@ -232,7 +223,7 @@ export default class Options extends Component {
           {options.map((o, idx) => {
             // render with mutation form if exists
             if (o.mutation) {
-              return this.renderItemMutation(o, idx, 'menu')
+              return renderItemMutation(o, idx, 'menu')
             }
 
             // otherwise render as item with onclick func
@@ -241,8 +232,8 @@ export default class Options extends Component {
                 key={idx}
                 disabled={o.disabled}
                 onClick={() => {
-                  this.handleCloseMenu()
-                  this.onClick(o)
+                  handleCloseMenu()
+                  onClick(o)
                 }}
               >
                 {o.text}
@@ -253,25 +244,33 @@ export default class Options extends Component {
       </Hidden>
     )
   }
-
-  render() {
     const children = [
       <Dialog
         key='error-dialog'
-        open={this.state.showErrorDialog}
-        onClose={() => this.setState({ showErrorDialog: false })}
-        onExited={() => this.setState({ errorMessage: '' })}
+        open={state.showErrorDialog}
+        onClose={() => setState({ showErrorDialog: false })}
+        onExited={() => setState({ errorMessage: '' })}
       >
         <DialogTitleWrapper
-          fullScreen={isWidthDown('md', this.props.width)}
+          fullScreen={isWidthDown('md', props.width)}
           title='An error occurred'
         />
-        <DialogContentError error={this.state.errorMessage} />
+        <DialogContentError error={state.errorMessage} />
       </Dialog>,
-      this.renderDesktopOptions(),
-      this.renderMobileOptions(),
+      renderDesktopOptions(),
+      renderMobileOptions(),
     ]
 
     return children
-  }
 }
+
+
+Options.propTypes = {
+    asIcon: p.bool, // render icon button as an icon only
+    Icon: p.func, // icon component to override default options menu icon
+    iconProps: p.object, // extra properties to supply to IconButton
+    anchorProps: p.object, // override props to position menu on desktop
+    transformProps: p.object, // override props to position menu on desktop
+    options: p.array.isRequired, // [{ disabled: false, text: '', onClick: () => { . . . } }]
+    positionRelative: p.bool, // if true, disables the options menu being fixed to the top right
+  }
