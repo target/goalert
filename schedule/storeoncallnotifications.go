@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
@@ -38,6 +38,9 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 		}
 		if r.WeekdayFilter != nil && r.Time == nil {
 			return validation.NewFieldError("Rules[%d].WeekdayFilter", "Weekday filter may only be used with Time.")
+		}
+		if r.WeekdayFilter == nil && r.Time != nil {
+			return validation.NewFieldError("Rules[%d].WeekdayFilter", "Weekday filter is required with Time.")
 		}
 		key := dupkey{
 			HasTime: r.Time != nil,

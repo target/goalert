@@ -60,7 +60,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NonceStore == nil {
-		app.NonceStore, err = nonce.NewDB(ctx, app.db)
+		app.NonceStore, err = nonce.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init nonce store")
@@ -144,7 +144,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.UserStore == nil {
-		app.UserStore, err = user.NewDB(ctx, app.db)
+		app.UserStore, err = user.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init user store")
@@ -233,7 +233,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init limit config store")
 	}
 	if app.HeartbeatStore == nil {
-		app.HeartbeatStore, err = heartbeat.NewDB(ctx, app.db)
+		app.HeartbeatStore, err = heartbeat.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init heartbeat store")
