@@ -27,65 +27,63 @@ const query = gql`
     }
   }
 `
-class ScheduleList extends React.PureComponent {
-  render() {
-    return (
-      <SimpleListPage
-        query={query}
-        variables={{ input: { favoritesFirst: true } }}
-        mapDataNode={(n) => ({
-          title: n.name,
-          subText: n.description,
-          url: n.id,
-          isFavorite: n.isFavorite,
-        })}
-        createForm={<ScheduleCreateDialog />}
-        createLabel='Schedule'
+const ScheduleList = () => {
+  return (
+    <SimpleListPage
+      query={query}
+      variables={{ input: { favoritesFirst: true } }}
+      mapDataNode={(n) => ({
+        title: n.name,
+        subText: n.description,
+        url: n.id,
+        isFavorite: n.isFavorite,
+      })}
+      createForm={<ScheduleCreateDialog />}
+      createLabel='Schedule'
+    />
+  )
+}
+
+const ScheduleRouter = () => {
+  return (
+    <Switch>
+      <Route exact path='/schedules' component={ScheduleList} />
+      <Route
+        exact
+        path='/schedules/:scheduleID'
+        render={({ match }) => (
+          <ScheduleDetails scheduleID={match.params.scheduleID} />
+        )}
       />
-    )
-  }
+
+      <Route
+        path='/schedules/:scheduleID/assignments'
+        render={({ match }) => (
+          <ScheduleRuleList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/escalation-policies'
+        render={({ match }) => (
+          <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/overrides'
+        render={({ match }) => (
+          <ScheduleOverrideList scheduleID={match.params.scheduleID} />
+        )}
+      />
+      <Route
+        path='/schedules/:scheduleID/shifts'
+        render={({ match }) => (
+          <ScheduleShiftList scheduleID={match.params.scheduleID} />
+        )}
+      />
+
+      <Route component={PageNotFound} />
+    </Switch>
+  )
 }
 
-export default class ScheduleRouter extends React.PureComponent {
-  render() {
-    return (
-      <Switch>
-        <Route exact path='/schedules' component={ScheduleList} />
-        <Route
-          exact
-          path='/schedules/:scheduleID'
-          render={({ match }) => (
-            <ScheduleDetails scheduleID={match.params.scheduleID} />
-          )}
-        />
-
-        <Route
-          path='/schedules/:scheduleID/assignments'
-          render={({ match }) => (
-            <ScheduleRuleList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/escalation-policies'
-          render={({ match }) => (
-            <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/overrides'
-          render={({ match }) => (
-            <ScheduleOverrideList scheduleID={match.params.scheduleID} />
-          )}
-        />
-        <Route
-          path='/schedules/:scheduleID/shifts'
-          render={({ match }) => (
-            <ScheduleShiftList scheduleID={match.params.scheduleID} />
-          )}
-        />
-
-        <Route component={PageNotFound} />
-      </Switch>
-    )
-  }
-}
+export default ScheduleRouter
