@@ -3,30 +3,28 @@ import p from 'prop-types'
 import SpeedDial from '../util/SpeedDial'
 import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 
-export default class ScheduleNewOverrideFAB extends React.PureComponent {
-  static propsTypes = {
+export default function ScheduleNewOverrideFAB(props) {
+  ScheduleNewOverrideFAB.propsTypes = {
     onClick: p.func.isRequired,
   }
 
-  actions = [
+  const actions = [
     {
       label: 'Temporarily Replace a User',
-      onClick: () => this.props.onClick('replace'),
+      onClick: () => props.onClick('replace'),
       icon: <AccountSwitch />,
     },
     {
       label: 'Temporarily Remove a User',
-      onClick: () => this.props.onClick('remove'),
+      onClick: () => props.onClick('remove'),
       icon: <AccountMinus />,
     },
     {
       label: 'Temporarily Add a User',
-      onClick: () => this.props.onClick('add'),
+      onClick: () => props.onClick('add'),
       icon: <AccountPlus />,
     },
   ]
 
-  render() {
-    return <SpeedDial label='Create New Override' actions={this.actions} />
-  }
+  return <SpeedDial label='Create New Override' actions={actions} />
 }
