@@ -100,8 +100,7 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("delete subscription for closed alert #%d (id=%d): %w", alertID, id, err)
 		}
 	} else {
-
-		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id)
+		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id, newStatus)
 		if err != nil {
 			return fmt.Errorf("update status for alert #%d to '%s' (id=%d): %w", alertID, newStatus, id, err)
 		}
