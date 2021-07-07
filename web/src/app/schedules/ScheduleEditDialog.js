@@ -24,46 +24,34 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleEditDialog extends React.PureComponent {
-  static propTypes = {
+export default function ScheduleEditDialog(props) {
+  ScheduleEditDialog.propTypes = {
     scheduleID: p.string.isRequired,
     onClose: p.func,
   }
 
-  state = {
-    value: null,
-  }
+  const [state, setState] = useState(null)
 
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        render={({ data }) => this.renderMutation(data.schedule)}
-      />
-    )
-  }
-
-  renderMutation(data) {
+  const renderMutation = (data) => {
     return (
       <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(...args) => this.renderForm(data, ...args)}
+        {(...args) => renderForm(data, ...args)}
       </Mutation>
     )
   }
 
-  renderForm = (data, commit, status) => {
+  const renderForm = (data, commit, status) => {
     return (
       <FormDialog
-        onClose={this.props.onClose}
+        onClose={props.onClose}
         title='Edit Schedule'
         errors={nonFieldErrors(status.error)}
         onSubmit={() =>
           commit({
             variables: {
               input: {
-                id: this.props.scheduleID,
-                ...this.state.value,
+                id: props.scheduleID,
+                ...state,
               },
             },
           })
@@ -73,16 +61,24 @@ export default class ScheduleEditDialog extends React.PureComponent {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={
-              this.state.value || {
+              state || {
                 name: data.name,
                 description: data.description,
                 timeZone: data.timeZone,
               }
             }
-            onChange={(value) => this.setState({ value })}
+            onChange={(value) => setState({ value })}
           />
         }
       />
     )
   }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID }}
+      render={({ data }) => renderMutation(data.schedule)}
+    />
+  )
 }
