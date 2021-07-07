@@ -173,7 +173,7 @@ func (d *datagen) NewSchedule() {
 
 // NewScheduleRule will generate a random schedule rule for the provided schedule ID.
 func (d *datagen) NewScheduleRule(scheduleID string) {
-	var filter rule.WeekdayFilter
+	var filter timeutil.WeekdayFilter
 	for i := range filter {
 		filter.SetDay(time.Weekday(i), gofakeit.Bool())
 	}
@@ -343,13 +343,15 @@ func (d *datagen) NewAlert(status alert.Status) {
 // NewFavorite will generate a new favorite for the provided user ID.
 func (d *datagen) NewFavorite(userID string) {
 	var tgt assignment.Target
-	switch rand.Intn(3) {
+	switch rand.Intn(4) {
 	case 0:
 		tgt = assignment.ServiceTarget(d.ids.Gen(func() string { return d.Services[rand.Intn(len(d.Services))].ID }, "favSvc", userID))
 	case 1:
 		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[rand.Intn(len(d.Rotations))].ID }, "favRot", userID))
 	case 2:
 		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, "favSched", userID))
+	case 3:
+		tgt = assignment.EscalationPolicyTarget(d.ids.Gen(func() string { return d.EscalationPolicies[rand.Intn(len(d.EscalationPolicies))].ID }, "favEP", userID))
 	}
 
 	d.Favorites = append(d.Favorites, userFavorite{

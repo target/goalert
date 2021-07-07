@@ -3,6 +3,7 @@ package assignment
 //go:generate go run golang.org/x/tools/cmd/stringer -type TargetType
 
 import (
+	"encoding"
 	"io"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -32,13 +33,13 @@ const (
 	TargetTypeUserSession
 )
 
-// UnmarshalGQL implements the graphql.Marshaler interface
-func (tt *TargetType) UnmarshalGQL(v interface{}) error {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return err
-	}
+var _ graphql.Marshaler = TargetType(0)
+var _ graphql.Unmarshaler = new(TargetType)
+var _ encoding.TextMarshaler = TargetType(0)
+var _ encoding.TextUnmarshaler = new(TargetType)
 
+func (tt *TargetType) UnmarshalText(data []byte) error {
+	str := string(data)
 	switch str {
 	case "escalationPolicy":
 		*tt = TargetTypeEscalationPolicy
@@ -77,38 +78,57 @@ func (tt *TargetType) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
-// MarshalGQL implements the graphql.Marshaler interface
-func (tt TargetType) MarshalGQL(w io.Writer) {
+// UnmarshalGQL implements the graphql.Unmarshaler interface
+func (tt *TargetType) UnmarshalGQL(v interface{}) error {
+	str, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return err
+	}
+	return tt.UnmarshalText([]byte(str))
+}
+
+func (tt TargetType) MarshalText() ([]byte, error) {
 	switch tt {
 	case TargetTypeEscalationPolicy:
-		graphql.MarshalString("escalationPolicy").MarshalGQL(w)
+		return []byte("escalationPolicy"), nil
 	case TargetTypeNotificationPolicy:
-		graphql.MarshalString("notificationPolicy").MarshalGQL(w)
+		return []byte("notificationPolicy"), nil
 	case TargetTypeRotation:
-		graphql.MarshalString("rotation").MarshalGQL(w)
+		return []byte("rotation"), nil
 	case TargetTypeService:
-		graphql.MarshalString("service").MarshalGQL(w)
+		return []byte("service"), nil
 	case TargetTypeSchedule:
-		graphql.MarshalString("schedule").MarshalGQL(w)
+		return []byte("schedule"), nil
 	case TargetTypeCalendarSubscription:
-		graphql.MarshalString("calendarSubscription").MarshalGQL(w)
+		return []byte("calendarSubscription"), nil
 	case TargetTypeUser:
-		graphql.MarshalString("user").MarshalGQL(w)
+		return []byte("user"), nil
 	case TargetTypeIntegrationKey:
-		graphql.MarshalString("integrationKey").MarshalGQL(w)
+		return []byte("integrationKey"), nil
 	case TargetTypeUserOverride:
-		graphql.MarshalString("userOverride").MarshalGQL(w)
+		return []byte("userOverride"), nil
 	case TargetTypeNotificationChannel:
-		graphql.MarshalString("notificationChannel").MarshalGQL(w)
+		return []byte("notificationChannel"), nil
 	case TargetTypeSlackChannel:
-		graphql.MarshalString("slackChannel").MarshalGQL(w)
+		return []byte("slackChannel"), nil
 	case TargetTypeContactMethod:
-		graphql.MarshalString("contactMethod").MarshalGQL(w)
+		return []byte("contactMethod"), nil
 	case TargetTypeNotificationRule:
-		graphql.MarshalString("notificationRule").MarshalGQL(w)
+		return []byte("notificationRule"), nil
 	case TargetTypeHeartbeatMonitor:
-		graphql.MarshalString("heartbeatMonitor").MarshalGQL(w)
+		return []byte("heartbeatMonitor"), nil
 	case TargetTypeUserSession:
-		graphql.MarshalString("userSession").MarshalGQL(w)
+		return []byte("userSession"), nil
 	}
+
+	return nil, validation.NewFieldError("TargetType", "unknown target type "+tt.String())
+}
+
+// MarshalGQL implements the graphql.Marshaler interface
+func (tt TargetType) MarshalGQL(w io.Writer) {
+	data, err := tt.MarshalText()
+	if err != nil {
+		panic(err)
+	}
+	graphql.MarshalString(string(data)).MarshalGQL(w)
 }

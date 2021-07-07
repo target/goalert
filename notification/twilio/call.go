@@ -57,15 +57,12 @@ type Call struct {
 	ErrorCode      *CallErrorCode
 }
 
-func (call *Call) messageStatus(id string) *notification.MessageStatus {
+func (call *Call) messageStatus() *notification.Status {
 	if call == nil {
 		return nil
 	}
 
-	status := &notification.MessageStatus{
-		ID:                id,
-		ProviderMessageID: call.SID,
-	}
+	var status notification.Status
 	if call.ErrorMessage != nil && call.ErrorCode != nil {
 		status.Details = fmt.Sprintf("%s: [%d] %s", call.Status, *call.ErrorCode, *call.ErrorMessage)
 	} else {
@@ -77,15 +74,15 @@ func (call *Call) messageStatus(id string) *notification.MessageStatus {
 
 	switch call.Status {
 	case CallStatusCompleted:
-		status.State = notification.MessageStateDelivered
+		status.State = notification.StateDelivered
 	case CallStatusInitiated, CallStatusQueued:
-		status.State = notification.MessageStateSending
+		status.State = notification.StateSending
 	case CallStatusBusy:
-		status.State = notification.MessageStateFailedTemp
+		status.State = notification.StateFailedTemp
 	case CallStatusFailed, CallStatusCanceled, CallStatusNoAnswer:
-		status.State = notification.MessageStateFailedPerm
+		status.State = notification.StateFailedPerm
 	default:
-		status.State = notification.MessageStateSent
+		status.State = notification.StateSent
 	}
-	return status
+	return &status
 }

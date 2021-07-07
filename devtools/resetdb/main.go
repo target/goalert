@@ -13,11 +13,11 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -108,10 +108,7 @@ func fillDB(ctx context.Context, url string) error {
 		t.Microseconds = time.Duration(c).Microseconds()
 		return t
 	}
-	asUUID := func(id string) (res [16]byte) {
-		copy(res[:], uuid.FromStringOrNil(id).Bytes())
-		return res
-	}
+	asUUID := func(id string) [16]byte { return uuid.MustParse(id) }
 	asUUIDPtr := func(id string) *[16]byte {
 		if id == "" {
 			return nil
@@ -259,7 +256,7 @@ func fillDB(ctx context.Context, url string) error {
 			rot = &id
 		}
 		return []interface{}{asUUID(fav.UserID), svc, sched, rot}
-	}, "users", "services", "schedules", "rotations")
+	}, "users", "services", "schedules", "rotations", "escalation_policies")
 
 	_, err = pool.Exec(ctx, "alter table alerts disable trigger trg_enforce_alert_limit")
 	must(err)

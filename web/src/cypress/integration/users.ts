@@ -1,4 +1,8 @@
 import { testScreen } from '../support'
+import { User } from '../../schema'
+import { Chance } from 'chance'
+
+const c = new Chance()
 
 function testUsers(screen: ScreenFormat): void {
   describe('List Page', () => {
@@ -35,36 +39,111 @@ function testUsers(screen: ScreenFormat): void {
     })
   })
 
-  describe('Page Actions', () => {
+  describe('Details Page', () => {
+    let user: User
+    beforeEach(() =>
+      cy.createUser().then((u: User) => {
+        user = u
+        cy.adminLogin()
+        return cy.visit(`/users/${user.id}`)
+      }),
+    )
+
+    it('should display correct information', () => {
+      cy.get('body').should('contain', user.name).should('contain', user.email)
+    })
+
     it('should edit a user role', () => {
-      cy.adminLogin()
+      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[type="checkbox"]').check()
+      cy.dialogFinish('Confirm')
 
-      cy.fixture('users').then((users) => {
-        cy.visit(`/users/${users[0].id}`)
-
-        cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
-        cy.get('[type="checkbox"]').check()
-        cy.dialogFinish('Confirm')
-
-        cy.reload()
-        cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
-        cy.get('[type="checkbox"]').should('be.checked')
-      })
+      cy.reload()
+      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[type="checkbox"]').should('be.checked')
     })
 
     it('should delete a user', () => {
-      cy.adminLogin()
+      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
-      cy.fixture('users').then((users) => {
-        cy.visit(`/users/${users[0].id}`)
+      cy.get('[data-cy=apollo-list]').should('not.contain', user.name)
+    })
+  })
 
-        cy.get('[data-cy="card-actions"]')
-          .find('button[title="Delete"]')
-          .click()
-        cy.dialogTitle('Are you sure?')
-        cy.dialogFinish('Confirm')
+  describe('User Subpages', () => {
+    it('should navigate to and from its on-call assignments', () => {
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
 
-        cy.get('[data-cy=apollo-list]').should('not.contain', users[0].name)
+        cy.navigateToAndFrom(
+          screen,
+          'User Details',
+          user.name,
+          'On-Call Assignments',
+          `${user.id}/on-call-assignments`,
+        )
+      })
+    })
+
+    it('should see no on-call assignments text', () => {
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
+
+        cy.get('[data-cy=route-links]').contains('On-Call Assignments').click()
+        cy.get('body').should(
+          'contain',
+          `${user.name} is not currently on-call.`,
+        )
+      })
+    })
+
+    it('should see on-call assigment list', () => {
+      const name = 'SVC ' + c.word({ length: 8 })
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
+
+        return cy
+          .createService({ name })
+          .then((svc: Service) => {
+            return cy
+              .fixture('users')
+              .then(() => {
+                return cy.createEPStep({
+                  epID: svc.epID,
+                  targets: [{ type: 'user', id: user.id }],
+                })
+              })
+              .task('engine:trigger')
+              .then(() => svc.id)
+          })
+          .then((svcID: string) => {
+            cy.get('[data-cy=route-links]')
+              .contains('On-Call Assignments')
+              .click()
+            cy.get('body').contains('a', name).click()
+            cy.url().should(
+              'eq',
+              Cypress.config().baseUrl + '/services/' + svcID,
+            )
+          })
+      })
+    })
+
+    // admin only
+    it('should navigate to and from its active sessions', () => {
+      cy.createUser().then((user: User) => {
+        cy.adminLogin()
+        cy.visit(`users/${user.id}`)
+
+        cy.navigateToAndFrom(
+          screen,
+          'User Details',
+          user.name,
+          'Sessions',
+          `${user.id}/sessions`,
+        )
       })
     })
   })

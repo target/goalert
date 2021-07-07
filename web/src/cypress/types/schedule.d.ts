@@ -11,6 +11,8 @@ declare namespace Cypress {
 
     /** Creates a new temporary schedule. */
     createTemporarySchedule: typeof createTemporarySchedule
+
+    setScheduleNotificationRules: typeof setScheduleNotificationRules
   }
 }
 

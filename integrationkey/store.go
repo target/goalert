@@ -11,8 +11,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Store interface {
@@ -117,7 +117,7 @@ func (db *DB) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*
 		stmt = tx.Stmt(stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Type, n.ServiceID)
 	if err != nil {
 		return nil, err
