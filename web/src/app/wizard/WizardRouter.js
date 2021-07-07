@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -45,8 +45,9 @@ const styles = {
 
 @withWidth()
 @withStyles(styles)
-export default class WizardRouter extends React.PureComponent {
-  state = {
+
+export default function WizardRouter ({classes, width}) {
+ const [state, setState] = useState({
     errorMessage: null,
     complete: false,
     redirect: false,
@@ -87,64 +88,17 @@ export default class WizardRouter extends React.PureComponent {
           timeZone: null,
         },
       },
-    },
-  }
+    }})
 
-  /*
-   * Called when submitting the entire form. The initial
-   * mutation is to create a service, which will have children
-   * variables that will in turn also create the proper targets.
-   *
-   * e.g. createService: { newEscalationPolicy: {...} }
-   */
-  submit = (e, isValid, commit) => {
-    e.preventDefault() // prevents reloading
-    if (!isValid) return
 
-    const variables = {
-      input: {
-        ...getService(this.state.value),
-        newEscalationPolicy: {
-          ...getEscalationPolicy(this.state.value),
-          steps: this.getSteps(),
-        },
-      },
-    }
-
-    commit({ variables })
-      .then(() => {
-        this.setState({ complete: true })
-      })
-      .catch((err) => {
-        const generalErrors = nonFieldErrors(err)
-        const graphqlErrors = fieldErrors(err).map((error) => {
-          const name = error.field
-            .split('.')
-            .pop() // get last occurrence
-            .replace(/([A-Z])/g, ' $1') // insert a space before all caps
-            .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
-
-          return `${name}: ${error.message}`
-        })
-
-        const errors = generalErrors.concat(graphqlErrors)
-
-        if (errors.length) {
-          this.setState({
-            errorMessage: errors.map((e) => e.message || e).join('\n'),
-          })
-        }
-      })
-  }
-
-  /*
+    /*
    * Get steps for the EP
    *
    * Handles not returning a second step if the secondary
    * schedule is not enabled in the form.
    */
-  getSteps = () => {
-    const value = this.state.value
+  const getSteps = () => {
+    const value = state.value
     const secondary = value.secondarySchedule.enable === 'yes'
     const steps = []
 
@@ -165,18 +119,65 @@ export default class WizardRouter extends React.PureComponent {
     return steps
   }
 
-  onDialogClose = (data) => {
-    if (data && data.createService) {
-      return this.setState({ redirect: true })
+  /*
+   * Called when submitting the entire form. The initial
+   * mutation is to create a service, which will have children
+   * variables that will in turn also create the proper targets.
+   *
+   * e.g. createService: { newEscalationPolicy: {...} }
+   */
+  const submit = (e, isValid, commit) => {
+    e.preventDefault() // prevents reloading
+    if (!isValid) return
+
+    const variables = {
+      input: {
+        ...getService(state.value),
+        newEscalationPolicy: {
+          ...getEscalationPolicy(state.value),
+          steps: getSteps(),
+        },
+      },
     }
 
-    this.setState({ complete: false, errorMessage: null }, () => {
+    commit({ variables })
+      .then(() => {
+        setState({ complete: true })
+      })
+      .catch((err) => {
+        const generalErrors = nonFieldErrors(err)
+        const graphqlErrors = fieldErrors(err).map((error) => {
+          const name = error.field
+            .split('.')
+            .pop() // get last occurrence
+            .replace(/([A-Z])/g, ' $1') // insert a space before all caps
+            .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
+
+          return `${name}: ${error.message}`
+        })
+
+        const errors = generalErrors.concat(graphqlErrors)
+
+        if (errors.length) {
+          setState({
+            errorMessage: errors.map((e) => e.message || e).join('\n'),
+          })
+        }
+      })
+  }
+
+
+  const onDialogClose = (data) => {
+    if (data && data.createService) {
+      return setState({ redirect: true })
+    }
+
+    setState({ complete: false, errorMessage: null }, () => {
       window.scrollTo(0, 0)
     })
   }
-
-  render() {
-    const { complete, errorMessage, redirect } = this.state
+  
+    const { complete, errorMessage, redirect } = state
 
     return (
       <Mutation mutation={mutation}>
@@ -189,18 +190,18 @@ export default class WizardRouter extends React.PureComponent {
             <React.Fragment>
               <Card>
                 <Form
-                  onSubmit={(e, isValid) => this.submit(e, isValid, commit)}
+                  onSubmit={(e, isValid) => submit(e, isValid, commit)}
                   disabled={loading}
                 >
                   <CardContent>
                     <WizardForm
                       disabled={status.loading}
                       errors={fieldErrors(error)}
-                      value={this.state.value}
-                      onChange={(value) => this.setState({ value })}
+                      value={state.value}
+                      onChange={(value) => setState({ value })}
                     />
                   </CardContent>
-                  <CardActions className={this.props.classes.cardActions}>
+                  <CardActions className={classes.cardActions}>
                     <LoadingButton
                       attemptCount={fieldErrors(error).length ? 1 : 0}
                       buttonText='Submit'
@@ -213,19 +214,19 @@ export default class WizardRouter extends React.PureComponent {
               </Card>
               <Dialog
                 fullScreen={
-                  isWidthDown('md', this.props.width) && !errorMessage
+                  isWidthDown('md', width) && !errorMessage
                 }
                 open={complete || Boolean(errorMessage)}
-                onClose={() => this.onDialogClose(data)}
+                onClose={() => onDialogClose(data)}
               >
                 <DialogTitleWrapper
-                  fullScreen={isWidthDown('md', this.props.width)}
+                  fullScreen={isWidthDown('md', width)}
                   title={complete ? 'Success!' : 'An error occurred'}
                 />
-                {this.renderSubmittedContent()}
+                {renderSubmittedContent(state)}
                 <DialogActions>
                   <Button
-                    onClick={() => this.onDialogClose(data)}
+                    onClick={() => onDialogClose(data)}
                     color='primary'
                   >
                     Close
@@ -239,8 +240,8 @@ export default class WizardRouter extends React.PureComponent {
     )
   }
 
-  renderSubmittedContent() {
-    const { complete, errorMessage, value } = this.state
+  function renderSubmittedContent(state) {
+    const { complete, errorMessage, value } = state
 
     if (complete) {
       return (
@@ -257,4 +258,3 @@ export default class WizardRouter extends React.PureComponent {
       return <DialogContentError error={errorMessage} />
     }
   }
-}
