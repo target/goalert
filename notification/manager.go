@@ -3,7 +3,6 @@ package notification
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -18,13 +17,13 @@ type Manager struct {
 	providers   map[string]*namedSender
 	searchOrder []*namedSender
 
-	Receiver
+	ResultReceiver
 	mx *sync.RWMutex
 
 	stubNotifiers bool
 }
 
-var _ Sender = &Manager{}
+var _ ResultReceiver = Manager{}
 
 // NewManager initializes a new Manager.
 func NewManager() *Manager {
@@ -41,16 +40,12 @@ func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
 }
 
-// Status will return the current status of a message.
-func (mgr *Manager) Status(ctx context.Context, messageID, providerMsgID string) (*MessageStatus, error) {
-	parts := strings.SplitN(providerMsgID, ":", 2)
-	if len(parts) != 2 {
-		return nil, errors.Errorf("invalid provider message ID '%s'", providerMsgID)
-	}
+// MessageStatus will return the current status of a message.
+func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, providerMsgID ProviderMessageID) (*Status, error) {
 
-	provider := mgr.providers[parts[0]]
+	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, errors.Errorf("unknown provider ID '%s'", parts[0])
+		return nil, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
@@ -60,15 +55,11 @@ func (mgr *Manager) Status(ctx context.Context, messageID, providerMsgID string)
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
 	sp.AddAttributes(
-		trace.StringAttribute("provider.id", parts[0]),
-		trace.StringAttribute("provider.message.id", parts[1]),
+		trace.StringAttribute("provider.id", providerMsgID.ExternalID),
+		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
 	)
 	defer sp.End()
-	stat, err := checker.Status(ctx, messageID, parts[1])
-	if stat != nil {
-		stat = stat.wrap(ctx, provider)
-	}
-	return stat, err
+	return checker.Status(ctx, providerMsgID.ExternalID)
 }
 
 // RegisterSender will register a sender under a given DestType and name.
@@ -91,23 +82,23 @@ func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	mgr.searchOrder = append(mgr.searchOrder, n)
 
 	if rs, ok := s.(ReceiverSetter); ok {
-		rs.SetReceiver(&namedReceiver{ns: n, Receiver: mgr})
+		rs.SetReceiver(&namedReceiver{ns: n, r: mgr})
 	}
 }
 
-// RegisterReceiver will set the given Receiver as the target for all Receive() calls.
+// SetResultReceiver will set the ResultReceiver as the target for all Receiver calls.
 // It will panic if called multiple times.
-func (mgr *Manager) RegisterReceiver(r Receiver) {
-	if mgr.Receiver != nil {
-		panic("tried to register a second Receiver")
+func (mgr *Manager) SetResultReceiver(p ResultReceiver) {
+	if mgr.ResultReceiver != nil {
+		panic("tried to register a second Processor instance")
 	}
-	mgr.Receiver = r
+	mgr.ResultReceiver = p
 }
 
-// Send implements the Sender interface by trying all registered senders for the type given
+// SendMessage tries all registered senders for the type given
 // in Notification. An error is returned if there are no registered senders for the type
 // or if an error is returned from all of them.
-func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error) {
+func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, error) {
 	mgr.mx.RLock()
 	defer mgr.mx.RUnlock()
 
@@ -135,7 +126,7 @@ func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, erro
 			trace.StringAttribute("message.type", msg.Type().String()),
 			trace.StringAttribute("message.id", msg.ID()),
 		)
-		status, err := s.Send(sendCtx, msg)
+		res, err := s.Send(sendCtx, msg)
 		sp.End()
 		if err != nil {
 			log.Log(sendCtx, errors.Wrap(err, "send notification"))
@@ -146,7 +137,7 @@ func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, erro
 			WithLabelValues(msg.Destination().Type.String(), msg.Type().String()).
 			Inc()
 		// status already wrapped via namedSender
-		return status, nil
+		return res, nil
 	}
 	if !tried {
 		return nil, fmt.Errorf("no senders registered for type '%s'", destType)

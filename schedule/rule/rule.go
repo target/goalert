@@ -14,7 +14,7 @@ import (
 type Rule struct {
 	ID         string `json:"id"`
 	ScheduleID string `json:"schedule_id"`
-	WeekdayFilter
+	timeutil.WeekdayFilter
 	Start     timeutil.Clock `json:"start"`
 	End       timeutil.Clock `json:"end"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -23,7 +23,7 @@ type Rule struct {
 
 func NewAlwaysActive(scheduleID string, tgt assignment.Target) *Rule {
 	return &Rule{
-		WeekdayFilter: everyDay,
+		WeekdayFilter: timeutil.EveryDay(),
 		ScheduleID:    scheduleID,
 		Target:        tgt,
 	}
@@ -169,10 +169,10 @@ func (r Rule) EndTime(t time.Time) time.Time {
 }
 
 // NeverActive returns true if the rule will never be active.
-func (r Rule) NeverActive() bool { return r.WeekdayFilter == neverDays }
+func (r Rule) NeverActive() bool { return r.WeekdayFilter.IsNever() }
 
 // AlwaysActive will return true if the rule will always be active.
-func (r Rule) AlwaysActive() bool { return r.WeekdayFilter == everyDay && r.Start == r.End }
+func (r Rule) AlwaysActive() bool { return r.WeekdayFilter.IsAlways() && r.Start == r.End }
 
 // IsActive determines if the rule is active in the given moment in time, in the location of t.
 func (r Rule) IsActive(t time.Time) bool {

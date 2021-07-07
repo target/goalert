@@ -58,14 +58,14 @@ func (a *App) closeLoaders(ctx context.Context) {
 	}
 }
 
-func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
+func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.Status, error) {
 	loader, ok := ctx.Value(dataLoaderKeyNotificationMessageStatus).(*dataloader.NotificationMessageStatusLoader)
 	if !ok {
 		ms, err := app.NotificationStore.FindManyMessageStatuses(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		return &ms[0], nil
+		return &ms[0].Status, nil
 	}
 
 	return loader.FetchOne(ctx, id)

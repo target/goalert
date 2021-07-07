@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
@@ -13,7 +13,6 @@ import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
 import { styles as globalStyles } from '../styles/materialStyles'
-import withGracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
@@ -48,13 +47,14 @@ function FormDialog(props) {
   const classes = useStyles()
   const width = useWidth()
   const isWideScreen = isWidthUp('md', width)
+  const [open, setOpen] = useState(true)
+
   const {
     alert,
     confirm,
     disableGutters,
     errors,
     fullScreen,
-    isUnmounting,
     loading,
     primaryActionLabel, // remove from dialogProps spread
     maxWidth,
@@ -68,8 +68,16 @@ function FormDialog(props) {
     ...dialogProps
   } = props
 
+  const handleOnClose = () => {
+    setOpen(false)
+  }
+
+  const handleOnExited = () => {
+    onClose()
+  }
+
   function renderForm() {
-    const { disableGutters, form } = props
+    const { form } = props
 
     // don't render empty space
     if (!form) {
@@ -104,21 +112,10 @@ function FormDialog(props) {
   }
 
   function renderActions() {
-    const {
-      alert,
-      confirm,
-      errors,
-      loading,
-      primaryActionLabel,
-      onClose,
-      onBack,
-      onNext,
-    } = props
-
     if (alert) {
       return (
         <DialogActions>
-          <Button color='primary' onClick={onClose} variant='contained'>
+          <Button color='primary' onClick={handleOnClose} variant='contained'>
             {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
@@ -132,7 +129,7 @@ function FormDialog(props) {
         <Button
           className={classes.cancelButton}
           disabled={loading}
-          onClick={onBack || onClose}
+          onClick={onBack || handleOnClose}
         >
           {onBack ? 'Back' : 'Cancel'}
         </Button>
@@ -155,17 +152,18 @@ function FormDialog(props) {
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
-      open={!isUnmounting}
-      onClose={onClose}
+      open={open}
+      onClose={handleOnClose}
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
+      onExited={handleOnExited}
       {...dialogProps}
     >
       <Notices notices={notices} />
       <DialogTitleWrapper
         fullScreen={fs}
-        onClose={onClose}
+        onClose={handleOnClose}
         title={title}
         subTitle={subTitle}
       />
@@ -214,7 +212,9 @@ FormDialog.propTypes = {
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,
 
+  // Callback fired when the dialog has exited.
   onClose: p.func,
+
   onSubmit: p.func,
 
   // if onNext is specified the submit button will be replaced with a 'Next' button
@@ -222,12 +222,14 @@ FormDialog.propTypes = {
   // if onBack is specified the cancel button will be replaced with a 'Back' button
   onBack: p.func,
 
-  // provided by graceful unmount
-  isUnmounting: p.bool,
-  onExited: p.func,
-
   // allow the dialog to grow beyond the normal max-width.
   grow: p.bool,
+
+  // If true, the dialog will be full-screen
+  fullScreen: p.bool,
+
+  // notices to render; see details/Notices.tsx
+  notices: p.arrayOf(p.object),
 }
 
 FormDialog.defaultProps = {
@@ -240,4 +242,4 @@ FormDialog.defaultProps = {
   maxWidth: 'sm',
 }
 
-export default withGracefulUnmount(FormDialog)
+export default FormDialog

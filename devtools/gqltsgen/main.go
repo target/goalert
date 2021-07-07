@@ -84,7 +84,11 @@ func main() {
 			}
 			fmt.Fprintf(w, "}\n\n")
 		case ast.Scalar:
-			fmt.Fprintf(w, "export type %s = string\n\n", def.Name)
+			typeName := "string"
+			if def.Name == "WeekdayFilter" {
+				typeName = "[boolean, boolean, boolean, boolean, boolean, boolean, boolean]"
+			}
+			fmt.Fprintf(w, "export type %s = %s\n\n", def.Name, typeName)
 		default:
 			log.Fatal("Unsupported kind:", def.Name, def.Kind)
 		}

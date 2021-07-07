@@ -1,4 +1,4 @@
-import React, { cloneElement } from 'react'
+import React, { cloneElement, forwardRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { isWidthDown } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
@@ -10,14 +10,12 @@ import { ChevronRight } from '@material-ui/icons'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import IconButton from '@material-ui/core/IconButton'
 import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
 import CardActions, { Action } from './CardActions'
-import AppLink from '../util/AppLink'
+import AppLink, { AppLinkProps } from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
 
@@ -66,6 +64,16 @@ const useStyles = makeStyles({
   },
 })
 
+const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
+  function LIApplink(props, ref): JSX.Element {
+    return (
+      <li>
+        <AppLink ref={ref} {...props} />
+      </li>
+    )
+  },
+)
+
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
@@ -83,6 +91,8 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       style: { width: 56, height: 56 },
     })
   }
+
+  const links = (p.links || []).filter((l) => l)
 
   return (
     <Grid container spacing={2}>
@@ -149,12 +159,8 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       </Grid>
 
       {/* Quick Links */}
-      {p.links?.length && (
-        <Grid
-          item
-          xs={12}
-          lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
-        >
+      {links.length > 0 && (
+        <Grid item xs={12} lg={isDesktopMode(width) && links.length ? 4 : 12}>
           <Card className={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
@@ -164,11 +170,11 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               }}
             />
             <List data-cy='route-links' className={classes.quickLinks} dense>
-              {p.links.map((li, idx) => (
+              {links.map((li, idx) => (
                 <ListItem
                   key={idx}
                   className={linkClassName(li.status)}
-                  component={AppLink}
+                  component={LIApplink}
                   to={li.url}
                   button
                 >
@@ -179,11 +185,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                     }
                     secondary={li.subText}
                   />
-                  <ListItemSecondaryAction>
-                    <IconButton component={AppLink} to={li.url}>
-                      <ChevronRight />
-                    </IconButton>
-                  </ListItemSecondaryAction>
+                  <ChevronRight />
                 </ListItem>
               ))}
             </List>

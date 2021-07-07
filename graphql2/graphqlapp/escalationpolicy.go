@@ -131,6 +131,12 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 		if err != nil {
 			return err
 		}
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.EscalationPolicyTarget(pol.ID))
+			if err != nil {
+				return err
+			}
+		}
 
 		for i, step := range input.Steps {
 			step.EscalationPolicyID = &pol.ID
@@ -320,6 +326,10 @@ func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *esc
 	return (*App)(step).FindOnePolicy(ctx, raw.PolicyID)
 }
 
+func (step *EscalationPolicy) IsFavorite(ctx context.Context, raw *escalation.Policy) (bool, error) {
+	return raw.IsUserFavorite(), nil
+}
+
 func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) ([]escalation.Step, error) {
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
 }
@@ -356,6 +366,7 @@ func (q *Query) EscalationPolicies(ctx context.Context, opts *graphql2.Escalatio
 	}
 
 	var searchOpts escalation.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
 	}
@@ -365,6 +376,12 @@ func (q *Query) EscalationPolicies(ctx context.Context, opts *graphql2.Escalatio
 		if err != nil {
 			return nil, err
 		}
+	}
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	if opts.First != nil {
 		searchOpts.Limit = *opts.First
