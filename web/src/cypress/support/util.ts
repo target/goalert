@@ -141,6 +141,12 @@ export function testScreen(
 ): void {
   describe(label, () => {
     before(() => {
+      // Ensure we cancel any in-flight requests by navigating to a blank page before setup.
+      //
+      // Fixes issues with stale cookies being set from the previous test.
+      cy.intercept('/_cy_test_reset', '<html></html>')
+      cy.visit('/_cy_test_reset')
+
       cy.clearCookie('goalert_session.2')
       resetQuery().then((query) =>
         cy.task('engine:stop').sql(query).task('engine:start'),

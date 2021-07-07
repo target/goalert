@@ -86,7 +86,7 @@ type App struct {
 	AlertLogStore alertlog.Store
 
 	AuthBasicStore        *basic.Store
-	UserStore             user.Store
+	UserStore             *user.Store
 	ContactMethodStore    contactmethod.Store
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
@@ -103,13 +103,13 @@ type App struct {
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
 	LimitStore     *limit.Store
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
 
-	NonceStore    nonce.Store
+	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
 	NCStore       notificationchannel.Store

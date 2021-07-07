@@ -16,8 +16,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v4/stdlib" // import db driver
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/smoketest/harness"
 	"github.com/target/goalert/util/sqlutil"
@@ -537,7 +537,7 @@ func TestMigrations(t *testing.T) {
 		t.Fatal("failed to open db:", err)
 	}
 	defer db.Close()
-	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.NewV4().String(), "-", "", -1)
+	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.New().String(), "-", "", -1)
 
 	_, err = db.Exec("create database " + sqlutil.QuoteID(dbName))
 	if err != nil {

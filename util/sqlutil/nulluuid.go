@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type NullUUID struct {
@@ -17,7 +17,7 @@ func (u NullUUID) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	return u.UUID.Bytes(), nil
+	return []byte(u.UUID[:]), nil
 }
 
 func (u *NullUUID) Scan(src interface{}) (err error) {
@@ -29,13 +29,13 @@ func (u *NullUUID) Scan(src interface{}) (err error) {
 
 	switch s := src.(type) {
 	case string:
-		u.UUID, err = uuid.FromString(s)
+		u.UUID, err = uuid.Parse(s)
 	case []byte:
 		if len(s) == 16 {
 			u.UUID, err = uuid.FromBytes(s)
 			break
 		}
-		u.UUID, err = uuid.FromString(string(s))
+		u.UUID, err = uuid.Parse(string(s))
 	default:
 		return fmt.Errorf("unknown format for UUID: %T", s)
 	}

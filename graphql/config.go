@@ -30,7 +30,7 @@ type Config struct {
 
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
-	UserStore     user.Store
+	UserStore     *user.Store
 	CMStore       contactmethod.Store
 	NRStore       notificationrule.Store
 	ServiceStore  service.Store
@@ -42,7 +42,7 @@ type Config struct {
 
 	EscalationStore     escalation.Store
 	IntegrationKeyStore integrationkey.Store
-	HeartbeatStore      heartbeat.Store
+	HeartbeatStore      *heartbeat.Store
 
 	LimitStore limit.Store
 

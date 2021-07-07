@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type Store interface {
@@ -181,7 +182,7 @@ func (db *DB) CreateServiceTx(ctx context.Context, tx *sql.Tx, s *Service) (*Ser
 		return nil, err
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 	stmt := db.insert
 	if tx != nil {
 		stmt = tx.Stmt(stmt)

@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/target/goalert/util/sqlutil"
-
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/notification/slack"
@@ -13,10 +11,11 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Store interface {
@@ -333,7 +332,7 @@ func tgtFields(id string, tgt assignment.Target, insert bool) []interface{} {
 	}
 	if insert {
 		return []interface{}{
-			uuid.NewV4().String(),
+			uuid.New().String(),
 			id,
 			usr,
 			sched,
@@ -569,7 +568,7 @@ func (db *DB) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Polic
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Repeat)
 	if err != nil {
@@ -885,7 +884,7 @@ func (db *DB) CreateStepTx(ctx context.Context, tx *sql.Tx, s *Step) (*Step, err
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes).Scan(&n.StepNumber)
 	if err != nil {

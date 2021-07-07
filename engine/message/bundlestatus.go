@@ -3,7 +3,7 @@ package message
 import (
 	"sort"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/notification"
 )
 
@@ -60,7 +60,7 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 		}
 
 		msg.Type = notification.MessageTypeAlertStatusBundle
-		msg.ID = uuid.NewV4().String()
+		msg.ID = uuid.New().String()
 		msg.StatusAlertIDs = make([]int, 0, len(msg.StatusAlertIDs))
 		for id := range msg.Alerts {
 			msg.StatusAlertIDs = append(msg.StatusAlertIDs, id)
