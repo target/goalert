@@ -65,6 +65,8 @@ export default function IntegrationKeyDeleteDialog(props) {
   })
 
   if (loading && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
   if (!loading && !deleteKeyStatus.loading && data?.integrationKey === null) {
     return (
       <FormDialog
@@ -75,8 +77,6 @@ export default function IntegrationKeyDeleteDialog(props) {
       />
     )
   }
-
-  if (error) return <GenericError error={error.message} />
 
   return (
     <FormDialog
