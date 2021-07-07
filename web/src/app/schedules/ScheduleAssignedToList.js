@@ -4,6 +4,7 @@ import p from 'prop-types'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
 import Card from '@material-ui/core/Card'
+import PropTypes from 'prop-types'
 
 const query = gql`
   query ($id: ID!) {
@@ -18,22 +19,12 @@ const query = gql`
   }
 `
 
-export default class ScheduleAssignedToList extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
+export default function ScheduleAssignedToList(props) {
+  ScheduleAssignedToList.propTypes = {
+    scheduleID: propTypes.string.isRequired,
   }
 
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        render={this.renderList}
-      />
-    )
-  }
-
-  renderList({ data }) {
+  function renderList({ data }) {
     return (
       <Card style={{ width: '100%' }}>
         <FlatList
@@ -46,4 +37,12 @@ export default class ScheduleAssignedToList extends React.PureComponent {
       </Card>
     )
   }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID }}
+      render={renderList}
+    />
+  )
 }
