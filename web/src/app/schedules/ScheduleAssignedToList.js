@@ -3,7 +3,7 @@ import { gql } from '@apollo/client'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
 import Card from '@material-ui/core/Card'
-import PropTypes from 'prop-types'
+import p from 'prop-types'
 
 const query = gql`
   query ($id: ID!) {
@@ -20,7 +20,7 @@ const query = gql`
 
 export default function ScheduleAssignedToList(props) {
   ScheduleAssignedToList.propTypes = {
-    scheduleID: PropTypes.string.isRequired,
+    scheduleID: p.string.isRequired,
   }
 
   function renderList({ data }) {
