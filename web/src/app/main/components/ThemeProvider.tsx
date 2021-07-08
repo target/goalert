@@ -38,13 +38,6 @@ function getPalette(theme: string): PaletteOptions {
         primary: {
           main: '#BB86FC',
         },
-        // secondary: {
-        //   main: '#03DAC6',
-        // },
-        // background: {
-        //   default: '#121212',
-        //   paper: '#121212',
-        // },
       }
 
     case 'light':
@@ -52,9 +45,6 @@ function getPalette(theme: string): PaletteOptions {
       return {
         primary: {
           main: '#6200ee',
-        },
-        secondary: {
-          main: '#03DAC6',
         },
       }
   }
