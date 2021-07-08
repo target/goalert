@@ -24,8 +24,6 @@ const useStyles = makeStyles((theme) => {
       },
     },
     textField: {
-      backgroundColor: 'white',
-      borderRadius: '4px',
       [theme.breakpoints.up('md')]: {
         minWidth: 250,
         '& input:focus': {
@@ -95,7 +93,7 @@ export default function Search(props) {
         }}
         data-cy='search-field'
         placeholder='Search'
-        variant='outlined'
+        variant='filled'
         margin='dense'
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}
