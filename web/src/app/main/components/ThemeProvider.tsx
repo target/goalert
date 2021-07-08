@@ -79,6 +79,12 @@ function makeTheme(theme: string): Theme {
       MuiCard: {
         variant: 'outlined',
       },
+      MuiFilledInput: {
+        disableUnderline: true,
+        style: {
+          borderRadius: 4,
+        },
+      },
     },
 
     ...testOverrides,
