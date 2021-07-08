@@ -77,6 +77,23 @@ function ScheduleCalendar(props) {
     }
   }
 
+  const dayPropGetter = (date) => {
+    const outOfBounds =
+      DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
+    const currentDay = DateTime.local().hasSame(
+      DateTime.fromJSDate(date),
+      'day',
+    )
+
+    if (theme.palette.type === 'dark' && (outOfBounds || currentDay)) {
+      return {
+        style: {
+          backgroundColor: theme.palette.background.default,
+        },
+      }
+    }
+  }
+
   const getCalEvents = (shifts, _tempScheds) => {
     const tempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
@@ -213,6 +230,7 @@ function ScheduleCalendar(props) {
               view={weekly ? 'week' : 'month'}
               showAllEvents
               eventPropGetter={eventStyleGetter}
+              dayPropGetter={dayPropGetter}
               onNavigate={() => {}} // stub to hide false console err
               onView={() => {}} // stub to hide false console err
               components={{
