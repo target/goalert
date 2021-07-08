@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import MountWatcher from '../util/MountWatcher'
-
+import React, { useEffect, useState, useRef, useContext } from 'react'
+import p from 'prop-types'
 import { FormContext, FormContainerContext } from './context'
 import { get, set, cloneDeep } from 'lodash'
 
@@ -95,46 +93,42 @@ export function FormContainer(props) {
   }
 
   return (
-    <FormContext.Consumer>
-      <FormContainerContext.Provider
-        value={{
-          value: mapValue(value),
-          disabled: formDisabled || containerDisabled,
-          errors: persistentValidationErrors(validationErrors).concat(
-            props.errors,
-          ),
-          onChange: onChange,
-          addField: addField,
-          optionalLabels: optionalLabels,
-        }}
-      >
-        {props.children}
-      </FormContainerContext.Provider>
-    </FormContext.Consumer>
+    <FormContainerContext.Provider
+      value={{
+        value: mapValue(value),
+        disabled: formDisabled || containerDisabled,
+        errors: persistentValidationErrors.concat(props.errors),
+        onChange: onChange,
+        addField: addField,
+        optionalLabels: optionalLabels,
+      }}
+    >
+      {props.children}
+    </FormContainerContext.Provider>
   )
 }
 
 FormContainer.propTypes = {
-  value: PropTypes.object,
-  errors: PropTypes.arrayOf(
-    PropTypes.shape({
-      message: PropTypes.string.isRequired,
-      field: PropTypes.string.isRequired,
-      helpLink: PropTypes.string,
+  value: p.object,
+  errors: p.arrayOf(
+    p.shape({
+      message: p.string.isRequired,
+      field: p.string.isRequired,
+      helpLink: p.string,
     }),
   ),
 
-  onChange: PropTypes.func,
-  disabled: PropTypes.bool,
+  onChange: p.func,
+  disabled: p.bool,
 
-  mapValue: PropTypes.func,
-  mapOnChangeValue: PropTypes.func,
+  mapValue: p.func,
+  mapOnChangeValue: p.func,
 
   // If true, will render optional fields with `(optional)` appended to the label.
   // In addition, required fields will not be appended with `*`.
-  optionalLabels: PropTypes.bool,
+  optionalLabels: p.bool,
 
   // Enables functionality to remove an incoming value at it's index from
   // an array field if the new value is falsey.
-  removeFalseyIdxs: PropTypes.bool,
+  removeFalseyIdxs: p.bool,
 }
