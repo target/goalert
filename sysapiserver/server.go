@@ -13,6 +13,23 @@ type Server struct {
 	sysapi.UnimplementedSysAPIServer
 }
 
+func (srv *Server) UsersWithoutAuthProvider(req *sysapi.UsersWithoutAuthProviderRequest, rSrv sysapi.SysAPI_UsersWithoutAuthProviderServer) error {
+	ctx := permission.SystemContext(rSrv.Context(), "SystemAPI")
+	return srv.UserStore.WithoutAuthProviderFunc(ctx, req.ProviderId, func(u user.User) error {
+		return rSrv.Send(&sysapi.UserInfo{
+			Id:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+		})
+	})
+}
+
+func (srv *Server) SetAuthSubject(ctx context.Context, req *sysapi.SetAuthSubjectRequest) (*sysapi.SetAuthSubjectResponse, error) {
+	ctx = permission.SystemContext(ctx, "SystemAPI")
+
+	return &sysapi.SetAuthSubjectResponse{}, srv.UserStore.SetAuthSubject(ctx, req.Subject.ProviderId, req.Subject.SubjectId, req.Subject.UserId)
+}
+
 func (srv *Server) AuthSubjects(req *sysapi.AuthSubjectsRequest, rSrv sysapi.SysAPI_AuthSubjectsServer) error {
 	ctx := permission.SystemContext(rSrv.Context(), "SystemAPI")
 
