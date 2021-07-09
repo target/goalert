@@ -5,23 +5,6 @@ import { TextField, Grid } from '@material-ui/core'
 import { TimeZoneSelect } from '../selection'
 
 export default function ScheduleForm(props) {
-  ScheduleForm.propTypes = {
-    value: p.shape({
-      name: p.string.isRequired,
-      description: p.string.isRequired,
-      timeZone: p.string.isRequired,
-    }).isRequired,
-
-    errors: p.arrayOf(
-      p.shape({
-        field: p.oneOf(['name', 'description', 'timeZone']).isRequired,
-        message: p.string.isRequired,
-      }),
-    ),
-
-    onChange: p.func.isRequired,
-  }
-
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
@@ -56,4 +39,21 @@ export default function ScheduleForm(props) {
       </Grid>
     </FormContainer>
   )
+}
+
+ScheduleForm.propTypes = {
+  value: p.shape({
+    name: p.string.isRequired,
+    description: p.string.isRequired,
+    timeZone: p.string.isRequired,
+  }).isRequired,
+
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf(['name', 'description', 'timeZone']).isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
+
+  onChange: p.func.isRequired,
 }
