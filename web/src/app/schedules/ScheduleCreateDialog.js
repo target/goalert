@@ -18,13 +18,11 @@ const mutation = gql`
 `
 
 export default function ScheduleCreateDialog(props) {
-  const [schedule, setSchedule] = useState({
-    value: {
-      name: '',
-      description: '',
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      favorite: true,
-    },
+  const [value, setValue] = useState({
+    name: '',
+    description: '',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    favorite: true,
   })
 
   return <Mutation mutation={mutation}>{renderForm}</Mutation>
@@ -45,7 +43,7 @@ export default function ScheduleCreateDialog(props) {
           commit({
             variables: {
               input: {
-                ...schedule.value,
+                ...value,
                 targets: [
                   {
                     target: { type: 'user', id: '__current_user' },
@@ -60,8 +58,8 @@ export default function ScheduleCreateDialog(props) {
           <ScheduleForm
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={schedule.value}
-            onChange={(value) => setSchedule({ value })}
+            value={value}
+            onChange={(value) => setValue({ value })}
           />
         }
       />
