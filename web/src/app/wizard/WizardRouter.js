@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -7,8 +7,8 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogActions from '@material-ui/core/DialogActions'
-import withStyles from '@material-ui/core/styles/withStyles'
 import { Redirect } from 'react-router-dom'
+import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
@@ -22,9 +22,10 @@ import {
   getSchedule,
   getScheduleTargets,
 } from './util'
-import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
+import { isWidthDown } from '@material-ui/core/withWidth'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import useWidth from '../util/useWidth'
 
 const mutation = gql`
   mutation ($input: CreateServiceInput!) {
@@ -37,68 +38,61 @@ const mutation = gql`
   }
 `
 
-const styles = {
+const styles = makeStyles(() => ({
   cardActions: {
     justifyContent: 'flex-end',
   },
-}
+}))
 
-@withWidth()
-@withStyles(styles)
-
-export default function WizardRouter ({classes, width}) {
- const [state, setState] = useState({
-    errorMessage: null,
-    complete: false,
-    redirect: false,
-    // all of the potential variables to be used in the final mutation
-    // objected prefaced with "enable" are optional, and won't committed
-    // unless set to 'yes'
-    value: {
-      teamName: '',
-      delayMinutes: '',
-      repeat: '',
-      key: null,
-      primarySchedule: {
-        timeZone: null,
-        users: [],
-        rotation: {
-          startDate: DateTime.local().startOf('day').toISO(),
-          type: 'never',
-          favorite: true,
-        },
-        followTheSunRotation: {
-          enable: 'no',
-          users: [],
-          timeZone: null,
-        },
+export default function WizardRouter() {
+  const classes = styles()
+  const width = useWidth()
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [complete, setComplete] = useState(false)
+  const [redirect, setRedirect] = useState(false)
+  const [value, setValue] = useState({
+    teamName: '',
+    delayMinutes: '',
+    repeat: '',
+    key: null,
+    primarySchedule: {
+      timeZone: null,
+      users: [],
+      rotation: {
+        startDate: DateTime.local().startOf('day').toISO(),
+        type: 'never',
+        favorite: true,
       },
-      secondarySchedule: {
+      followTheSunRotation: {
         enable: 'no',
-        timeZone: null,
         users: [],
-        rotation: {
-          startDate: DateTime.local().startOf('day').toISO(),
-          type: 'never',
-          favorite: true,
-        },
-        followTheSunRotation: {
-          enable: 'no',
-          users: [],
-          timeZone: null,
-        },
+        timeZone: null,
       },
-    }})
+    },
+    secondarySchedule: {
+      enable: 'no',
+      timeZone: null,
+      users: [],
+      rotation: {
+        startDate: DateTime.local().startOf('day').toISO(),
+        type: 'never',
+        favorite: true,
+      },
+      followTheSunRotation: {
+        enable: 'no',
+        users: [],
+        timeZone: null,
+      },
+    },
+  })
 
-
-    /*
+  /*
    * Get steps for the EP
    *
    * Handles not returning a second step if the secondary
    * schedule is not enabled in the form.
    */
   const getSteps = () => {
-    const value = state.value
     const secondary = value.secondarySchedule.enable === 'yes'
     const steps = []
 
@@ -132,9 +126,9 @@ export default function WizardRouter ({classes, width}) {
 
     const variables = {
       input: {
-        ...getService(state.value),
+        ...getService(value),
         newEscalationPolicy: {
-          ...getEscalationPolicy(state.value),
+          ...getEscalationPolicy(value),
           steps: getSteps(),
         },
       },
@@ -142,7 +136,7 @@ export default function WizardRouter ({classes, width}) {
 
     commit({ variables })
       .then(() => {
-        setState({ complete: true })
+        setComplete(true)
       })
       .catch((err) => {
         const generalErrors = nonFieldErrors(err)
@@ -159,90 +153,26 @@ export default function WizardRouter ({classes, width}) {
         const errors = generalErrors.concat(graphqlErrors)
 
         if (errors.length) {
-          setState({
-            errorMessage: errors.map((e) => e.message || e).join('\n'),
-          })
+          setErrorMessage(errors.map((e) => e.message || e).join('\n'))
         }
       })
   }
 
-
   const onDialogClose = (data) => {
     if (data && data.createService) {
-      return setState({ redirect: true })
+      return setRedirect(true)
     }
 
-    setState({ complete: false, errorMessage: null }, () => {
+    setComplete(false)
+    setErrorMessage(null)
+
+    const scrollWindow = () => {
       window.scrollTo(0, 0)
-    })
-  }
-  
-    const { complete, errorMessage, redirect } = state
-
-    return (
-      <Mutation mutation={mutation}>
-        {(commit, { data, error, loading }) => {
-          if (redirect && data && data.createService) {
-            return <Redirect push to={`/services/${data.createService.id}`} />
-          }
-
-          return (
-            <React.Fragment>
-              <Card>
-                <Form
-                  onSubmit={(e, isValid) => submit(e, isValid, commit)}
-                  disabled={loading}
-                >
-                  <CardContent>
-                    <WizardForm
-                      disabled={status.loading}
-                      errors={fieldErrors(error)}
-                      value={state.value}
-                      onChange={(value) => setState({ value })}
-                    />
-                  </CardContent>
-                  <CardActions className={classes.cardActions}>
-                    <LoadingButton
-                      attemptCount={fieldErrors(error).length ? 1 : 0}
-                      buttonText='Submit'
-                      color='primary'
-                      loading={loading}
-                      type='submit'
-                    />
-                  </CardActions>
-                </Form>
-              </Card>
-              <Dialog
-                fullScreen={
-                  isWidthDown('md', width) && !errorMessage
-                }
-                open={complete || Boolean(errorMessage)}
-                onClose={() => onDialogClose(data)}
-              >
-                <DialogTitleWrapper
-                  fullScreen={isWidthDown('md', width)}
-                  title={complete ? 'Success!' : 'An error occurred'}
-                />
-                {renderSubmittedContent(state)}
-                <DialogActions>
-                  <Button
-                    onClick={() => onDialogClose(data)}
-                    color='primary'
-                  >
-                    Close
-                  </Button>
-                </DialogActions>
-              </Dialog>
-            </React.Fragment>
-          )
-        }}
-      </Mutation>
-    )
+    }
+    scrollWindow()
   }
 
-  function renderSubmittedContent(state) {
-    const { complete, errorMessage, value } = state
-
+  function renderSubmittedContent() {
     if (complete) {
       return (
         <DialogContent>
@@ -258,3 +188,59 @@ export default function WizardRouter ({classes, width}) {
       return <DialogContentError error={errorMessage} />
     }
   }
+
+  return (
+    <Mutation mutation={mutation}>
+      {(commit, { data, error, loading }) => {
+        if (redirect && data && data.createService) {
+          return <Redirect push to={`/services/${data.createService.id}`} />
+        }
+
+        return (
+          <React.Fragment>
+            <Card>
+              <Form
+                onSubmit={(e, isValid) => submit(e, isValid, commit)}
+                disabled={loading}
+              >
+                <CardContent>
+                  <WizardForm
+                    disabled={status.loading}
+                    errors={fieldErrors(error)}
+                    value={value}
+                    onChange={(value) => setValue({ value })}
+                  />
+                </CardContent>
+                <CardActions className={classes.cardActions}>
+                  <LoadingButton
+                    attemptCount={fieldErrors(error).length ? 1 : 0}
+                    buttonText='Submit'
+                    color='primary'
+                    loading={loading}
+                    type='submit'
+                  />
+                </CardActions>
+              </Form>
+            </Card>
+            <Dialog
+              fullScreen={isWidthDown('md', width) && !errorMessage}
+              open={complete || Boolean(errorMessage)}
+              onClose={() => onDialogClose(data)}
+            >
+              <DialogTitleWrapper
+                fullScreen={isWidthDown('md', width)}
+                title={complete ? 'Success!' : 'An error occurred'}
+              />
+              {renderSubmittedContent()}
+              <DialogActions>
+                <Button onClick={() => onDialogClose(data)} color='primary'>
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </React.Fragment>
+        )
+      }}
+    </Mutation>
+  )
+}
