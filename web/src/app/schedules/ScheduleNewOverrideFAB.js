@@ -4,10 +4,6 @@ import SpeedDial from '../util/SpeedDial'
 import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 
 export default function ScheduleNewOverrideFAB(props) {
-  ScheduleNewOverrideFAB.propsTypes = {
-    onClick: p.func.isRequired,
-  }
-
   const actions = [
     {
       label: 'Temporarily Replace a User',
@@ -27,4 +23,8 @@ export default function ScheduleNewOverrideFAB(props) {
   ]
 
   return <SpeedDial label='Create New Override' actions={actions} />
+}
+
+ScheduleNewOverrideFAB.propTypes = {
+  onClick: p.func.isRequired,
 }
