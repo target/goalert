@@ -19,11 +19,11 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
 	"github.com/target/goalert/config"
@@ -157,7 +157,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 	t.Logf("Using DB URL: %s", dbURL)
 	start := time.Now()
-	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
+	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "", -1)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -403,7 +403,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 
 	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
 	if err != nil {
-		h.t.Fatalf("failed to exec query: %v", err)
+		h.t.Fatalf("failed to exec query: %v\n%s", err, b.String())
 	}
 }
 
@@ -618,7 +618,7 @@ func (h *Harness) CreateUser() (u *user.User) {
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		u, err = h.backend.UserStore.Insert(ctx, &user.User{
 			Name:  fmt.Sprintf("Generated%d", h.userGeneratedIndex),
-			ID:    uuid.NewV4().String(),
+			ID:    uuid.New().String(),
 			Role:  permission.RoleUser,
 			Email: fmt.Sprintf("generated%d@example.com", h.userGeneratedIndex),
 		})

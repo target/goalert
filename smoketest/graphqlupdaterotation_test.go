@@ -75,7 +75,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 						rules: {
 							start: "00:00"
 							end: "23:00"
-							weekdayFilter: [true, true, true, true, true, false, false]
+							weekdayFilter: [true, true, true, true, true, true, true]
 						}
 					}
 				}
