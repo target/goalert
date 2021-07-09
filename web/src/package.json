@@ -96,7 +96,7 @@
     "jest": "27.0.6",
     "json-loader": "0.5.7",
     "postcss": "8.3.5",
-    "postcss-loader": "6.1.0",
+    "postcss-loader": "6.1.1",
     "prop-types": "15.7.2",
     "react-swipeable-views-utils": "0.14.0",
     "redux": "4.0.5",
