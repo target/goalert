@@ -19,7 +19,7 @@ export function FormContainer(props) {
       let err
       // find first error
       _fields[field].find((validate) => {
-        err = validate(get(props.value, field))
+        err = validate(get(value, field))
         return err
       })
       if (err) err.field = field
@@ -131,4 +131,13 @@ FormContainer.propTypes = {
   // Enables functionality to remove an incoming value at it's index from
   // an array field if the new value is falsey.
   removeFalseyIdxs: p.bool,
+}
+
+FormContainer.defaultProps = {
+  errors: [],
+  value: {},
+  onChange: () => {},
+
+  mapValue: (value) => value,
+  mapOnChangeValue: (value) => value,
 }
