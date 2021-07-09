@@ -1,21 +1,33 @@
-package rule
+package timeutil
 
 import (
 	"bytes"
 	"database/sql/driver"
+	"encoding"
+	"fmt"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation"
 )
 
 type WeekdayFilter [7]byte
+
+var _ encoding.TextMarshaler = WeekdayFilter{}
+var _ encoding.TextUnmarshaler = &WeekdayFilter{}
+var _ graphql.Marshaler = WeekdayFilter{}
+var _ graphql.Unmarshaler = &WeekdayFilter{}
 
 var (
 	neverDays = WeekdayFilter([7]byte{})
 	everyDay  = WeekdayFilter([7]byte{1, 1, 1, 1, 1, 1, 1})
 )
+
+func (f WeekdayFilter) IsNever() bool  { return f == neverDays }
+func (f WeekdayFilter) IsAlways() bool { return f == everyDay }
 
 // EveryDay returns a WeekdayFilter that is permanently active.
 func EveryDay() WeekdayFilter { return everyDay }
@@ -53,7 +65,7 @@ func (f WeekdayFilter) NextActive(t time.Time) time.Time {
 		day := (w + (i + 1)) % 7
 
 		if f[day] == 1 {
-			return timeutil.NextWeekday(t, time.Weekday(day))
+			return NextWeekday(t, time.Weekday(day))
 		}
 	}
 
@@ -71,7 +83,7 @@ func (f WeekdayFilter) NextInactive(t time.Time) time.Time {
 		day := (w + (i + 1)) % 7
 
 		if f[day] == 0 {
-			return timeutil.NextWeekday(t, time.Weekday(day))
+			return NextWeekday(t, time.Weekday(day))
 		}
 	}
 
@@ -141,6 +153,75 @@ func (f WeekdayFilter) DaysSince(d time.Weekday, enabled bool) int {
 
 	idx = bytes.LastIndexByte(f[d+1:], val)
 	return 6 - idx
+}
+
+func (f WeekdayFilter) MarshalGQL(w io.Writer) {
+	res := make([]bool, 7)
+	for i := range f {
+		res[i] = f[i] == 1
+	}
+	graphql.MarshalAny(res).MarshalGQL(w)
+}
+
+func (f *WeekdayFilter) UnmarshalGQL(v interface{}) error {
+	slice, ok := v.([]interface{})
+	if !ok {
+		return validation.NewFieldError("weekdayFilter", "must be an array")
+	}
+	if len(slice) != 7 {
+		return validation.NewFieldError("weekdayFilter", fmt.Sprintf("expected 7 items; got %d", len(slice)))
+	}
+	for i, v := range slice {
+		b, ok := v.(bool)
+		if !ok {
+			return validation.NewFieldError(fmt.Sprintf("weekdayFilter[%d]", i), fmt.Sprintf("expected true or false; got %T", v))
+		}
+		if b {
+			f[i] = 1
+		} else {
+			f[i] = 0
+		}
+	}
+
+	return nil
+}
+
+func (f WeekdayFilter) MarshalText() ([]byte, error) {
+	res := make([]byte, 7)
+	for i, v := range f {
+		if v == 0 {
+			res[i] = '0'
+			continue
+		}
+
+		res[i] = '1'
+	}
+
+	return res, nil
+}
+func (f *WeekdayFilter) UnmarshalText(data []byte) error {
+	s := string(data)
+	if s == "" {
+		*f = neverDays
+		return nil
+	}
+
+	if len(s) != 7 {
+		return fmt.Errorf("invalid length: expected 7; got %d", len(s))
+	}
+
+	for i, r := range s {
+		switch r {
+		case '0':
+			f[i] = 0
+		case '1':
+			f[i] = 1
+		default:
+			return fmt.Errorf("invalid character at position %d: expected 0 or 1 but got %c", i, r)
+		}
+	}
+
+	return nil
 }
 
 // String returns a string representation of the WeekdayFilter.

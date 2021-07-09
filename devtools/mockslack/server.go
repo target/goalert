@@ -198,6 +198,29 @@ func (st *state) Messages(chanID string) []Message {
 	return result
 }
 
+// DeleteMessage will delete a message from channel history.
+func (st *state) DeleteMessage(chanID, ts string) bool {
+	st.mx.Lock()
+	defer st.mx.Unlock()
+	ch := st.channels[chanID]
+	if ch == nil {
+		return false
+	}
+
+	var deleted bool
+	msgs := ch.Messages[:0]
+	for _, m := range ch.Messages {
+		if m.TS == ts {
+			deleted = true
+			continue
+		}
+		msgs = append(msgs, m)
+	}
+	ch.Messages = msgs
+
+	return deleted
+}
+
 // ServeHTTP serves the Slack API.
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Printf("%s %s", req.Method, req.URL.Path)

@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -18,8 +17,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 const minTimeBetweenTests = time.Minute
@@ -29,13 +28,13 @@ type Store interface {
 	SendContactMethodVerification(ctx context.Context, cmID string) error
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
-	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
+	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error)
 
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
-	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
+	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error)
 
 	// OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
-	OriginalMessageStatus(ctx context.Context, alertID int, dest Dest) (*MessageStatus, error)
+	OriginalMessageStatus(ctx context.Context, alertID int, dest Dest) (*SendResult, error)
 }
 
 var _ Store = &DB{}
@@ -179,7 +178,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*MessageStatus, error) {
+func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return nil, err
@@ -292,7 +291,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 		return validation.NewFieldError("ContactMethod", "test message rate-limit exceeded")
 	}
 
-	vID := uuid.NewV4().String()
+	vID := uuid.New().String()
 	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
@@ -325,7 +324,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %.0f minute(s)", minTimeBetweenTests.Minutes()))
 	}
 
-	vcID := uuid.NewV4().String()
+	vcID := uuid.New().String()
 	code := db.rand.Intn(900000) + 100000
 	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
@@ -367,29 +366,29 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
-func messageStateFromStatus(lastStatus string, hasNextRetry bool) (MessageState, error) {
+func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error) {
 	switch lastStatus {
 	case "queued_remotely", "sending":
-		return MessageStateSending, nil
+		return StateSending, nil
 	case "pending":
-		return MessageStatePending, nil
+		return StatePending, nil
 	case "sent":
-		return MessageStateSent, nil
+		return StateSent, nil
 	case "delivered":
-		return MessageStateDelivered, nil
+		return StateDelivered, nil
 	case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
-			return MessageStateFailedTemp, nil
+			return StateFailedTemp, nil
 		} else {
-			return MessageStateFailedPerm, nil
+			return StateFailedPerm, nil
 		}
 	default:
 		return -1, fmt.Errorf("unknown last_status %s", lastStatus)
 	}
 }
 
-func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error) {
+func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -409,17 +408,15 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	}
 	defer rows.Close()
 
-	var result []MessageStatus
-	var s MessageStatus
+	var result []SendResult
+	var s SendResult
 	for rows.Next() {
 		var lastStatus string
 		var hasNextRetry bool
-		var providerMsgID sql.NullString
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry)
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
 		if err != nil {
 			return nil, err
 		}
-		s.ProviderMessageID = providerMsgID.String
 		s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
 		if err != nil {
 			return nil, err
@@ -431,7 +428,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	return result, nil
 }
 
-func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
+func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -449,31 +446,22 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 
 	return s, createdAt, nil
 }
-func scanStatus(row *sql.Row) (*MessageStatus, time.Time, error) {
-	var s MessageStatus
+func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
+	var s SendResult
 	var lastStatus string
 	var hasNextRetry bool
-	var providerMsgID sql.NullString
 	var createdAt sql.NullTime
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry, &createdAt)
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
 	if err != nil {
 		return nil, time.Time{}, err
 	}
-	s.ProviderMessageID = stripProviderIDType(providerMsgID.String)
 	s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
 	return &s, createdAt.Time, nil
-}
-
-func stripProviderIDType(s string) string {
-	if !strings.Contains(s, ":") {
-		return s
-	}
-	return strings.SplitN(s, ":", 2)[1]
 }

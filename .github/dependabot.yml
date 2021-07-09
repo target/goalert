@@ -4,7 +4,8 @@ updates:
     directory: '/'
     schedule:
       interval: daily
-      time: '11:00'
+      time: '09:00'
+      timezone: 'America/Chicago'
     open-pull-requests-limit: 3
     ignore:
       - dependency-name: '@date-io/luxon'

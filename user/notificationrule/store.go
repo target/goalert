@@ -3,13 +3,12 @@ package notificationrule
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
-
 	"github.com/target/goalert/validation/validate"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 // Store allows the lookup and management of NotificationRules.
@@ -100,7 +99,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, n *NotificationRule) (*N
 		return nil, err
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	_, err = wrapTx(ctx, tx, db.insert).ExecContext(ctx, n.ID, n.UserID, n.DelayMinutes, n.ContactMethodID)
 	if err != nil {
