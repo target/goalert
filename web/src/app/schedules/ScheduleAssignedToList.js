@@ -19,10 +19,6 @@ const query = gql`
 `
 
 export default function ScheduleAssignedToList(props) {
-  ScheduleAssignedToList.propTypes = {
-    scheduleID: p.string.isRequired,
-  }
-
   function renderList({ data }) {
     return (
       <Card style={{ width: '100%' }}>
@@ -44,4 +40,8 @@ export default function ScheduleAssignedToList(props) {
       render={renderList}
     />
   )
+}
+
+ScheduleAssignedToList.propTypes = {
+  scheduleID: p.string.isRequired,
 }
