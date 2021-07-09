@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
@@ -25,20 +25,7 @@ const mutation = gql`
 `
 
 export default function ScheduleEditDialog(props) {
-  ScheduleEditDialog.propTypes = {
-    scheduleID: p.string.isRequired,
-    onClose: p.func,
-  }
-
   const [state, setState] = useState(null)
-
-  const renderMutation = (data) => {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(...args) => renderForm(data, ...args)}
-      </Mutation>
-    )
-  }
 
   const renderForm = (data, commit, status) => {
     return (
@@ -67,10 +54,18 @@ export default function ScheduleEditDialog(props) {
                 timeZone: data.timeZone,
               }
             }
-            onChange={(value) => setState({ value })}
+            onChange={(value) => setState(value)}
           />
         }
       />
+    )
+  }
+
+  const renderMutation = (data) => {
+    return (
+      <Mutation mutation={mutation} onCompleted={props.onClose}>
+        {(...args) => renderForm(data, ...args)}
+      </Mutation>
     )
   }
 
@@ -81,4 +76,9 @@ export default function ScheduleEditDialog(props) {
       render={({ data }) => renderMutation(data.schedule)}
     />
   )
+}
+
+ScheduleEditDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  onClose: p.func,
 }
