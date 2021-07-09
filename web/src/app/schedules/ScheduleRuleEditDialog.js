@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
 import { Mutation } from '@apollo/client/react/components'
@@ -32,51 +32,12 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleRuleEditDialog extends React.Component {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-    target: p.shape({
-      type: p.oneOf(['rotation', 'user']).isRequired,
-      id: p.string.isRequired,
-    }).isRequired,
-    onClose: p.func,
-  }
+export default function ScheduleRuleEditDialog(props) {
+  const [value, setValue] = useState(null)
 
-  state = {
-    value: null,
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    if (this.state !== nextState) return true
-
-    return false
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID, tgt: this.props.target }}
-        noPoll
-        fetchPolicy='network-only'
-        render={({ data }) =>
-          this.renderMutation(data.schedule.target, data.schedule.timeZone)
-        }
-      />
-    )
-  }
-
-  renderMutation(data, zone) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(data, commit, status, zone)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, status, zone) {
+  function renderDialog(data, commit, status, zone) {
     const defaults = {
-      targetID: this.props.target.id,
+      targetID: props.target.id,
       rules: data.rules.map((r) => ({
         id: r.id,
         weekdayFilter: r.weekdayFilter,
@@ -84,25 +45,34 @@ export default class ScheduleRuleEditDialog extends React.Component {
         end: gqlClockTimeToISO(r.end, zone),
       })),
     }
+
+    function renderMutation(data, zone) {
+      return (
+        <Mutation mutation={mutation} onCompleted={props.onClose}>
+          {(commit, status) => renderDialog(data, commit, status, zone)}
+        </Mutation>
+      )
+    }
+
     return (
       <FormDialog
-        onClose={this.props.onClose}
-        title={`Edit Rules for ${_.startCase(this.props.target.type)}`}
+        onClose={props.onClose}
+        title={`Edit Rules for ${_.startCase(props.target.type)}`}
         errors={nonFieldErrors(status.error)}
         maxWidth='md'
         onSubmit={() => {
-          if (!this.state.value) {
+          if (!value) {
             // no changes
-            this.props.onClose()
+            props.onClose()
             return
           }
           commit({
             variables: {
               input: {
-                target: this.props.target,
-                scheduleID: this.props.scheduleID,
+                target: props.target,
+                scheduleID: props.scheduleID,
 
-                rules: this.state.value.rules.map((r) => ({
+                rules: value.rules.map((r) => ({
                   ...r,
                   start: isoToGQLClockTime(r.start, zone),
                   end: isoToGQLClockTime(r.end, zone),
@@ -113,16 +83,37 @@ export default class ScheduleRuleEditDialog extends React.Component {
         }}
         form={
           <ScheduleRuleForm
-            targetType={this.props.target.type}
+            targetType={props.target.type}
             targetDisabled
-            scheduleID={this.props.scheduleID}
+            scheduleID={props.scheduleID}
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={this.state.value || defaults}
-            onChange={(value) => this.setState({ value })}
+            value={value || defaults}
+            onChange={(value) => setValue({ value })}
           />
         }
       />
     )
   }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID, tgt: props.target }}
+      noPoll
+      fetchPolicy='network-only'
+      render={({ data }) =>
+        renderMutation(data.schedule.target, data.schedule.timeZone)
+      }
+    />
+  )
+}
+
+ScheduleRuleEditDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  target: p.shape({
+    type: p.oneOf(['rotation', 'user']).isRequired,
+    id: p.string.isRequired,
+  }).isRequired,
+  onClose: p.func,
 }
