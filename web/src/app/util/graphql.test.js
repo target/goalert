@@ -86,7 +86,7 @@ describe('prefixQuery', () => {
     'should prefix query and variables',
     {},
     gql`
-      query($id: ID!, $id2: ID!) {
+      query ($id: ID!, $id2: ID!) {
         user(id: $id) {
           id
           name
@@ -98,7 +98,7 @@ describe('prefixQuery', () => {
       }
     `,
     gql`
-      query($q0_id: ID!, $q0_id2: ID!) {
+      query ($q0_id: ID!, $q0_id2: ID!) {
         q0_user: user(id: $q0_id) {
           id
           name

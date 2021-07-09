@@ -12,6 +12,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -42,6 +43,8 @@ import (
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/sqlutil"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
 )
 
 // App represents an instance of the GoAlert application.
@@ -56,6 +59,10 @@ type App struct {
 
 	cooldown *cooldown
 	doneCh   chan struct{}
+
+	sysAPIL   net.Listener
+	sysAPISrv *grpc.Server
+	hSrv      *health.Server
 
 	srv         *http.Server
 	requestLock *contextLocker
@@ -78,7 +85,8 @@ type App struct {
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
 
-	UserStore             user.Store
+	AuthBasicStore        *basic.Store
+	UserStore             *user.Store
 	ContactMethodStore    contactmethod.Store
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
@@ -95,13 +103,13 @@ type App struct {
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
 	LimitStore     *limit.Store
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
 
-	NonceStore    nonce.Store
+	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
 	NCStore       notificationchannel.Store

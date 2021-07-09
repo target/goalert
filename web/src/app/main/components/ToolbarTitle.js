@@ -44,7 +44,7 @@ const mapSingular = {
 
 const queries = {
   users: gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       data: user(id: $id) {
         id
         name
@@ -52,7 +52,7 @@ const queries = {
     }
   `,
   services: gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       data: service(id: $id) {
         id
         name
@@ -60,7 +60,7 @@ const queries = {
     }
   `,
   schedules: gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       data: schedule(id: $id) {
         id
         name
@@ -68,7 +68,7 @@ const queries = {
     }
   `,
   'escalation-policies': gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       data: escalationPolicy(id: $id) {
         id
         name
@@ -181,7 +181,7 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(schedules)/:id/:sub(assignments|escalation-policies|overrides|shifts)'
+        path='/:type(schedules)/:id/:sub(assignments|on-call-notifications|escalation-policies|overrides|shifts)'
         render={renderSubPageTitle}
       />
       <Route

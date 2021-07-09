@@ -2,7 +2,6 @@ import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
 
 import Avatar from '@material-ui/core/Avatar'
-import FavoriteIcon from '@material-ui/icons/Star'
 import Card from '@material-ui/core/Card'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Grid from '@material-ui/core/Grid'
@@ -10,14 +9,16 @@ import IconButton from '@material-ui/core/IconButton'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
 import useWidth from '../util/useWidth'
 
+import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
@@ -50,7 +51,6 @@ const useStyles = makeStyles((theme) => ({
   },
   favoriteIcon: {
     backgroundColor: 'transparent',
-    color: 'grey',
   },
   headerNote: {
     fontStyle: 'italic',
@@ -164,8 +164,9 @@ export interface PaginatedListProps {
   // cardHeader will be displayed at the top of the card
   cardHeader?: ReactNode
 
-  // headerNote will be displayed at the top of the list
-  headerNote?: string
+  // header elements will be displayed at the top of the list.
+  headerNote?: string // left-aligned
+  headerAction?: JSX.Element // right-aligned
 
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
@@ -199,6 +200,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
     cardHeader,
     headerNote,
+    headerAction,
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
     infiniteScroll,
@@ -269,7 +271,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       favIcon = (
         <div className={classes.itemAction}>
           <Avatar className={classes.favoriteIcon}>
-            <FavoriteIcon data-cy='fav-icon' />
+            <FavoriteIcon />
           </Avatar>
         </div>
       )
@@ -315,7 +317,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         key={'list_' + idx}
         {...urlProps}
       >
-        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+        {item.icon && <ListItemAvatar>{item.icon}</ListItemAvatar>}
         <ListItemText
           className={classes.itemText}
           primary={item.title}
@@ -357,15 +359,20 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
-        {headerNote && (
+        {(headerNote || headerAction) && (
           <ListItem>
-            <ListItemText
-              className={classes.headerNote}
-              disableTypography
-              secondary={
-                <Typography color='textSecondary'>{headerNote}</Typography>
-              }
-            />
+            {headerNote && (
+              <ListItemText
+                className={classes.headerNote}
+                disableTypography
+                secondary={
+                  <Typography color='textSecondary'>{headerNote}</Typography>
+                }
+              />
+            )}
+            {headerAction && (
+              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
+            )}
           </ListItem>
         )}
         {renderListItems()}

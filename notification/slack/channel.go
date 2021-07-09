@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"golang.org/x/net/context/ctxhttp"
@@ -113,16 +115,16 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res.(*Channel), nil
 }
 
-func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
 	cfg := config.FromContext(ctx)
 
 	s.teamMx.Lock()
+	defer s.teamMx.Unlock()
 	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
 		// teamID missing or token changed
 		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
-			s.teamMx.Unlock() // always unlock
-			return nil, err
+			return "", err
 		}
 
 		// update teamID and token after fetching succeeds
@@ -130,8 +132,16 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		s.token = cfg.Slack.AccessToken
 	}
 
-	teamID := s.teamID
-	s.teamMx.Unlock()
+	return s.teamID, nil
+}
+
+func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+	cfg := config.FromContext(ctx)
+
+	teamID, err := s.TeamID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lookup team ID: %w", err)
+	}
 
 	v := make(url.Values)
 	// Parameters and URL documented here:
@@ -150,7 +160,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 	}
 
-	err := s.chanTht.Wait(ctx)
+	err = s.chanTht.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +311,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
+func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
 	cfg := config.FromContext(ctx)
 
 	vals := make(url.Values)
@@ -310,21 +320,69 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	vals.Set("channel", msg.Destination().Value)
 	switch t := msg.(type) {
 	case notification.Alert:
+		if t.OriginalStatus != nil {
+			// Reply in thread if we already sent a message for this alert.
+			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+			vals.Set("text", "Escalated.")
+			vals.Set("reply_broadcast", "true")
+			break
+		}
+
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+	case notification.ScheduleOnCallUsers:
+		var userStr string
+		if len(t.Users) == 0 {
+			userStr = "No users"
+		} else {
+			teamID, err := s.TeamID(ctx)
+			if err != nil {
+				log.Log(ctx, fmt.Errorf("lookup team ID: %w", err))
+			}
+
+			m := make(map[string]string, len(t.Users))
+			if teamID != "" {
+				userIDs := make([]string, len(t.Users))
+				for i, u := range t.Users {
+					userIDs[i] = u.ID
+				}
+				err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, func(sub user.AuthSubject) error {
+					m[sub.UserID] = sub.SubjectID
+					return nil
+				}, userIDs...)
+				if err != nil {
+					log.Log(ctx, fmt.Errorf("lookup auth subjects for slack: %w", err))
+				}
+			}
+
+			var userLinks []string
+			for _, u := range t.Users {
+				subjectID := m[u.ID]
+				if subjectID == "" {
+					// fallback to a link to the GoAlert user
+					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
+					continue
+				}
+
+				userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
+			}
+			userStr = "Users: " + strings.Join(userLinks, ", ")
+		}
+
+		vals.Set("text", fmt.Sprintf("%s are on-call for Schedule: %s", userStr, fmt.Sprintf("<%s|%s>", t.ScheduleURL, t.ScheduleName)))
 	default:
-		return nil, errors.Errorf("unsupported message type: %T", t)
+		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
 	vals.Set("token", cfg.Slack.AccessToken)
 
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("non-200 response: %s", resp.Status)
+		return "", nil, errors.Errorf("non-200 response: %s", resp.Status)
 	}
 
 	var resData struct {
@@ -334,17 +392,13 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	}
 	err = json.NewDecoder(resp.Body).Decode(&resData)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode response")
+		return "", nil, errors.Wrap(err, "decode response")
 	}
 	if !resData.OK {
-		return nil, errors.Errorf("Slack error: %s", resData.Error)
+		return "", nil, errors.Errorf("Slack error: %s", resData.Error)
 	}
 
-	return &notification.MessageStatus{
-		ID:                msg.ID(),
-		ProviderMessageID: resData.TS,
-		State:             notification.MessageStateDelivered,
-	}, nil
+	return resData.TS, &notification.Status{State: notification.StateDelivered}, nil
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {

@@ -10,7 +10,7 @@ import { Dialog, DialogTitle, DialogActions, Button } from '@material-ui/core'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const createMutation = gql`
-  mutation($input: CreateUserContactMethodInput!) {
+  mutation ($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
       id
     }
@@ -18,7 +18,7 @@ const createMutation = gql`
 `
 
 const userConflictQuery = gql`
-  query($input: UserSearchOptions) {
+  query ($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id

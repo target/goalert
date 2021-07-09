@@ -21,9 +21,6 @@ const useStyles = makeStyles((theme) => {
     subMenu: {
       padding: '0',
     },
-    parentItem: {
-      color: theme.palette.primary.main,
-    },
     subMenuLinkText: {
       paddingLeft: '3.5rem',
       '& span': {
@@ -41,20 +38,12 @@ const useStyles = makeStyles((theme) => {
     dropdownClosed: {
       transform: 'rotate(-90deg)',
     },
-    listItemText: {
-      color: theme.palette.primary.main,
-    },
   }
 })
 
 export default function NavSubMenu(props) {
-  const {
-    parentIcon,
-    parentTitle,
-    path,
-    subMenuRoutes,
-    closeMobileSidebar,
-  } = props
+  const { parentIcon, parentTitle, path, subMenuRoutes, closeMobileSidebar } =
+    props
   const classes = useStyles()
   const pathname = useSelector(urlPathSelector)
   const isRoute = pathname.startsWith(path)
@@ -66,19 +55,15 @@ export default function NavSubMenu(props) {
           <IconComponent />
         </ListItemIcon>
         <ListItemText
-          className={classes.parentItem}
           disableTypography
           primary={
-            <Typography
-              variant='subtitle1'
-              component='p'
-              className={classes.listItemText}
-            >
+            <Typography variant='subtitle1' component='p'>
               {label}
             </Typography>
           }
         />
         <ExpandMoreIcon
+          color='action'
           className={
             classes.dropdown +
             ' ' +

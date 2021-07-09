@@ -6,7 +6,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     rotation(id: $id) {
       id
       users {
@@ -19,7 +19,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($input: UpdateRotationInput!) {
+  mutation ($input: UpdateRotationInput!) {
     updateRotation(input: $input)
   }
 `

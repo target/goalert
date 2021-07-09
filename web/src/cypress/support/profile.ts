@@ -167,7 +167,6 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
       id: prof.id,
       name: prof.name,
       email: prof.email,
-      role: prof.role,
     },
   })
 }

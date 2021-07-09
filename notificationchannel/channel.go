@@ -1,9 +1,8 @@
 package notificationchannel
 
 import (
+	"github.com/google/uuid"
 	"github.com/target/goalert/validation/validate"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 type Channel struct {
@@ -15,7 +14,7 @@ type Channel struct {
 
 func (c Channel) Normalize() (*Channel, error) {
 	if c.ID == "" {
-		c.ID = uuid.NewV4().String()
+		c.ID = uuid.New().String()
 	}
 
 	err := validate.Many(

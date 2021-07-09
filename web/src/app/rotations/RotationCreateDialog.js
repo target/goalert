@@ -8,7 +8,7 @@ import RotationForm from './RotationForm'
 import { DateTime } from 'luxon'
 
 const mutation = gql`
-  mutation($input: CreateRotationInput!) {
+  mutation ($input: CreateRotationInput!) {
     createRotation(input: $input) {
       id
       name
@@ -67,7 +67,7 @@ const RotationCreateDialog = (props) => {
 }
 
 RotationCreateDialog.propTypes = {
-  onClose: p.func.isRequired,
+  onClose: p.func,
 }
 
 export default RotationCreateDialog

@@ -33,9 +33,9 @@ export function parseClock(s, zone) {
 }
 
 export function formatClock(dt) {
-  return `${dt.hour
+  return `${dt.hour.toString().padStart(2, '0')}:${dt.minute
     .toString()
-    .padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}`
+    .padStart(2, '0')}`
 }
 
 // Shifts a weekdayFilter so that it matches the luxon day n
@@ -75,9 +75,9 @@ export function weekdaySummary(filter) {
   const bin = filter.map((f) => (f ? '1' : '0')).join('')
   switch (bin) {
     case '1000001':
-      return 'Weekends'
+      return 'weekends'
     case '0000000':
-      return 'Never'
+      return 'never'
     case '0111110':
       return 'M—F'
     case '0111111':
@@ -85,7 +85,7 @@ export function weekdaySummary(filter) {
     case '1111110':
       return 'M—F and Sun'
     case '1111111':
-      return 'Everyday'
+      return 'every day'
   }
 
   const d = []
@@ -124,7 +124,9 @@ export function ruleSummary(rules, scheduleZone, displayZone) {
     .map((r) => {
       const start = getTime(r.start)
       const weekdayFilter = alignWeekdayFilter(start.weekday, r.weekdayFilter)
-      return `${weekdaySummary(weekdayFilter)} from ${start.toLocaleString(
+      let summary = weekdaySummary(weekdayFilter)
+      summary = summary[0].toUpperCase() + summary.slice(1)
+      return `${summary} from ${start.toLocaleString(
         DateTime.TIME_SIMPLE,
       )} to ${getTime(r.end).toLocaleString(DateTime.TIME_SIMPLE)} `
     })

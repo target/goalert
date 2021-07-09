@@ -81,16 +81,33 @@ export const styles = (theme) => ({
   },
   // used for react-router Link components
   nav: {
-    color: theme.palette.primary['500'],
+    borderRadius: 4,
+    margin: 8,
     textDecoration: 'none',
     display: 'block',
+    '& p, span': {
+      lineHeight: '1.375rem',
+      color: theme.palette.text.secondary, // todo: use text.primary with baseline mui palette
+    },
+    '&:focus': {
+      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+    },
     '&:hover': {
+      borderRadius: 4,
+      margin: 8,
       textDecoration: 'none',
+      overflow: 'hidden',
     },
   },
   navSelected: {
-    backgroundColor: '#ebebeb',
-    borderRight: '3px solid ' + theme.palette.primary['500'],
+    backgroundColor: theme.palette.primary.main + '1f', // 12% opacity
+    borderRadius: 4,
+    margin: 8,
+
+    // text and icon
+    '& p, svg': {
+      color: theme.palette.primary.main,
+    },
   },
   // parent container must have position: relative
   topRightActions: {

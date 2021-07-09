@@ -4,6 +4,7 @@ const plugins = [
   '@babel/plugin-syntax-dynamic-import',
   ['@babel/plugin-proposal-decorators', { legacy: true }],
   ['@babel/plugin-proposal-class-properties', { loose: true }],
+  ['@babel/plugin-proposal-private-methods', { loose: true }],
 ]
 if (process.env.NODE_ENV !== 'production') {
   plugins.push('babel-plugin-typescript-to-proptypes')

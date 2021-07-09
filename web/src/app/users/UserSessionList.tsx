@@ -7,13 +7,12 @@ import {
   ApolloError,
   gql,
 } from '@apollo/client'
-import { Button, Card, IconButton, makeStyles } from '@material-ui/core'
+import { Button, Card, Grid, IconButton } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
 import _ from 'lodash'
-import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 
@@ -33,7 +32,7 @@ const profileQuery = gql`
 `
 
 const byUserQuery = gql`
-  query($userID: ID!) {
+  query ($userID: ID!) {
     user(id: $userID) {
       id
       sessions {
@@ -48,7 +47,7 @@ const byUserQuery = gql`
 `
 
 const mutationLogoutOne = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ id: $id, type: userSession }])
   }
 `
@@ -58,12 +57,6 @@ const mutationLogoutAll = gql`
     endAllAuthSessionsByCurrentUser
   }
 `
-
-const useStyles = makeStyles({
-  button: {
-    width: '270px',
-  },
-})
 
 export interface UserSessionListProps {
   userID?: string
@@ -100,8 +93,6 @@ type Session = {
 export default function UserSessionList(
   props: UserSessionListProps,
 ): JSX.Element {
-  const classes = useStyles()
-
   // handles both logout all and logout individual sessions
   const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 
@@ -127,40 +118,45 @@ export default function UserSessionList(
 
   return (
     <React.Fragment>
-      <PageActions>
+      <Grid container spacing={2}>
         {!userID && (
-          <Button
-            color='inherit'
-            onClick={() => setEndSession('all')}
-            className={classes.button}
-          >
-            Log Out Other Sessions
-          </Button>
+          <Grid item xs={12} container justify='flex-end'>
+            <Button
+              color='primary'
+              variant='outlined'
+              data-cy='reset'
+              onClick={() => setEndSession('all')}
+            >
+              Log Out Other Sessions
+            </Button>
+          </Grid>
         )}
-      </PageActions>
-
-      <Card>
-        <FlatList
-          items={sessions.map((s) => ({
-            title: friendlyUAString(s.userAgent),
-            highlight: s.current,
-            secondaryAction: s.current ? null : (
-              <IconButton
-                color='primary'
-                onClick={() =>
-                  setEndSession({
-                    id: s.id,
-                    userAgent: s.userAgent,
-                  })
-                }
-              >
-                <DeleteIcon />
-              </IconButton>
-            ),
-            subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
-          }))}
-        />
-      </Card>
+        <Grid item xs={12}>
+          <Card>
+            <FlatList
+              emptyMessage='No active sessions'
+              items={sessions.map((s) => ({
+                title: friendlyUAString(s.userAgent),
+                highlight: s.current,
+                secondaryAction: s.current ? null : (
+                  <IconButton
+                    color='primary'
+                    onClick={() =>
+                      setEndSession({
+                        id: s.id,
+                        userAgent: s.userAgent,
+                      })
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                ),
+                subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
+              }))}
+            />
+          </Card>
+        </Grid>
+      </Grid>
 
       {endSession === 'all' && (
         <FormDialog

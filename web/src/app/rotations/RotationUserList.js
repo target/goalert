@@ -1,22 +1,23 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
-import { gql } from '@apollo/client'
-import FlatList from '../lists/FlatList'
-import Query from '../util/Query'
+import { gql, useMutation, useQuery } from '@apollo/client'
+import { DateTime } from 'luxon'
 import Card from '@material-ui/core/Card'
+import { makeStyles } from '@material-ui/core'
 import CardHeader from '@material-ui/core/CardHeader'
+
+import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
-import { Mutation } from '@apollo/client/react/components'
 import OtherActions from '../util/OtherActions'
 import CountDown from '../util/CountDown'
 import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
-import { DateTime } from 'luxon'
 import { UserAvatar } from '../util/avatars'
-import { withStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
+import Spinner from '../loading/components/Spinner'
+import { GenericError, ObjectNotFound } from '../error-pages'
 
-const rotationUsersQuery = gql`
+const query = gql`
   query rotationUsers($id: ID!) {
     rotation(id: $id) {
       id
@@ -36,181 +37,200 @@ const mutation = gql`
   }
 `
 
-const styles = (theme) => {
+const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
     cardHeader,
   }
-}
+})
 
-@withStyles(styles)
-export default class RotationUserList extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-  }
+function RotationUserList({ rotationID }) {
+  const classes = useStyles()
+  const [deleteIndex, setDeleteIndex] = useState(null)
+  const [setActiveIndex, setSetActiveIndex] = useState(null)
+  const [lastSwap, setLastSwap] = useState([])
 
-  state = {
-    deleteIndex: null,
-    setActiveIndex: null,
-  }
+  const {
+    data,
+    loading: qLoading,
+    error: qError,
+  } = useQuery(query, {
+    variables: { id: rotationID },
+  })
 
-  render() {
-    const { classes } = this.props
-    return (
-      <React.Fragment>
-        <Card>
-          <CardHeader
-            className={classes.cardHeader}
-            component='h3'
-            title='Users'
-          />
-          <Query
-            query={rotationUsersQuery}
-            render={({ data }) => this.renderMutation(data)}
-            variables={{ id: this.props.rotationID }}
-          />
-        </Card>
-        {this.state.deleteIndex !== null && (
-          <RotationUserDeleteDialog
-            rotationID={this.props.rotationID}
-            userIndex={this.state.deleteIndex}
-            onClose={() => this.setState({ deleteIndex: null })}
-          />
-        )}
-        {this.state.setActiveIndex !== null && (
-          <RotationSetActiveDialog
-            rotationID={this.props.rotationID}
-            userIndex={this.state.setActiveIndex}
-            onClose={() => this.setState({ setActiveIndex: null })}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
+  const [updateRotation, { error: mError }] = useMutation(mutation)
 
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation}>
-        {(commit) => this.renderList(data, commit)}
-      </Mutation>
-    )
-  }
+  // reset swap history on add/remove participant
+  useEffect(() => {
+    setLastSwap([])
+  }, [data?.rotation?.users?.length])
 
-  renderList(data, commit) {
-    const { users, activeUserIndex, nextHandoffTimes } = data.rotation
+  if (qLoading && !data) return <Spinner />
+  if (data && !data.rotation) return <ObjectNotFound type='rotation' />
+  if (qError || mError)
+    return <GenericError error={qError.message || mError.message} />
 
-    // duplicate first entry
-    const _nextHandoffTimes = (nextHandoffTimes || [])
-      .slice(0, 1)
-      .concat(nextHandoffTimes)
-    const handoff = users.map((u, index) => {
-      const handoffIndex =
-        (index + (users.length - activeUserIndex)) % users.length
-      const time = _nextHandoffTimes[handoffIndex]
-      if (!time) {
-        return null
-      }
+  const { users, activeUserIndex, nextHandoffTimes } = data.rotation
 
-      if (index === activeUserIndex) {
-        return (
-          <CountDown
-            end={time}
-            weeks
-            days
-            hours
-            minutes
-            prefix='Active for the next '
-            style={{ marginLeft: '1em' }}
-            expiredTimeout={60}
-            expiredMessage='< 1 Minute'
-          />
-        )
-      }
+  // duplicate first entry
+  const _nextHandoffTimes = (nextHandoffTimes || [])
+    .slice(0, 1)
+    .concat(nextHandoffTimes)
+
+  const handoff = users.map((u, index) => {
+    const handoffIndex =
+      (index + (users.length - activeUserIndex)) % users.length
+    const time = _nextHandoffTimes[handoffIndex]
+    if (!time) {
+      return null
+    }
+
+    if (index === activeUserIndex) {
       return (
-        'Starts at ' +
-        DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
-        ' ' +
-        DateTime.fromISO(time).toRelativeCalendar()
+        <CountDown
+          end={time}
+          weeks
+          days
+          hours
+          minutes
+          prefix='Active for the next '
+          style={{ marginLeft: '1em' }}
+          expiredTimeout={60}
+          expiredMessage='< 1 Minute'
+        />
       )
-    })
-
+    }
     return (
-      <FlatList
-        data-cy='users'
-        emptyMessage='No users currently assigned to this rotation'
-        headerNote={
-          users.length ? "Click and drag on a user's name to re-order" : ''
-        }
-        items={users.map((u, index) => ({
-          title: u.name,
-          id: u.id,
-          highlight: index === activeUserIndex,
-          icon: <UserAvatar userID={u.id} />,
-          subText: handoff[index],
-          secondaryAction: (
-            <OtherActions
-              actions={[
-                {
-                  label: 'Set Active',
-                  onClick: () => this.setState({ setActiveIndex: index }),
-                },
-                {
-                  label: 'Remove',
-                  onClick: () => this.setState({ deleteIndex: index }),
-                },
-              ]}
-            />
-          ),
-        }))}
-        onReorder={(...args) => {
-          const updatedUsers = reorderList(
-            users.map((u) => u.id),
-            ...args,
-          )
-          const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)
-          const params = { id: this.props.rotationID, userIDs: updatedUsers }
-
-          if (newActiveIndex !== -1) {
-            params.activeUserIndex = newActiveIndex
-          }
-
-          return commit({
-            variables: { input: params },
-            update: (cache, response) => {
-              if (!response.data.updateRotation) {
-                return
-              }
-              const data = cache.readQuery({
-                query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
-              })
-
-              const users = reorderList(data.rotation.users, ...args)
-
-              cache.writeQuery({
-                query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
-                data: {
-                  ...data,
-                  rotation: {
-                    ...data.rotation,
-                    activeUserIndex:
-                      newActiveIndex === -1
-                        ? data.rotation.activeUserIndex
-                        : newActiveIndex,
-                    users,
-                  },
-                },
-              })
-            },
-            optimisticResponse: {
-              __typename: 'Mutation',
-              updateRotation: true,
-            },
-          })
-        }}
-      />
+      'Starts at ' +
+      DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
+      ' ' +
+      DateTime.fromISO(time).toRelativeCalendar()
     )
-  }
+  })
+
+  // re-enact swap history to get unique identier per list item
+  let listIDs = users.map((_, idx) => idx)
+  lastSwap.forEach((s) => {
+    listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
+  })
+
+  return (
+    <React.Fragment>
+      {deleteIndex !== null && (
+        <RotationUserDeleteDialog
+          rotationID={rotationID}
+          userIndex={deleteIndex}
+          onClose={() => setDeleteIndex(null)}
+        />
+      )}
+      {setActiveIndex !== null && (
+        <RotationSetActiveDialog
+          rotationID={rotationID}
+          userIndex={setActiveIndex}
+          onClose={() => setSetActiveIndex(null)}
+        />
+      )}
+      <Card>
+        <CardHeader
+          className={classes.cardHeader}
+          component='h3'
+          title='Users'
+        />
+
+        <FlatList
+          data-cy='users'
+          emptyMessage='No users currently assigned to this rotation'
+          headerNote={
+            users.length ? "Click and drag on a user's name to re-order" : ''
+          }
+          items={users.map((u, index) => ({
+            title: u.name,
+            id: String(listIDs[index]),
+            highlight: index === activeUserIndex,
+            icon: <UserAvatar userID={u.id} />,
+            subText: handoff[index],
+            secondaryAction: (
+              <OtherActions
+                actions={[
+                  {
+                    label: 'Set Active',
+                    onClick: () => setSetActiveIndex(index),
+                  },
+                  {
+                    label: 'Remove',
+                    onClick: () => setDeleteIndex(index),
+                  },
+                ]}
+              />
+            ),
+          }))}
+          onReorder={(oldIndex, newIndex) => {
+            setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
+
+            const updatedUsers = reorderList(
+              users.map((u) => u.id),
+              oldIndex,
+              newIndex,
+            )
+            const newActiveIndex = calcNewActiveIndex(
+              activeUserIndex,
+              oldIndex,
+              newIndex,
+            )
+            const params = { id: rotationID, userIDs: updatedUsers }
+
+            if (newActiveIndex !== -1) {
+              params.activeUserIndex = newActiveIndex
+            }
+
+            return updateRotation({
+              variables: { input: params },
+              update: (cache, response) => {
+                if (!response.data.updateRotation) {
+                  return
+                }
+                const data = cache.readQuery({
+                  query,
+                  variables: { id: rotationID },
+                })
+
+                const users = reorderList(
+                  data.rotation.users,
+                  oldIndex,
+                  newIndex,
+                )
+
+                cache.writeQuery({
+                  query,
+                  variables: { id: rotationID },
+                  data: {
+                    ...data,
+                    rotation: {
+                      ...data.rotation,
+                      activeUserIndex:
+                        newActiveIndex === -1
+                          ? data.rotation.activeUserIndex
+                          : newActiveIndex,
+                      users,
+                    },
+                  },
+                })
+              },
+              optimisticResponse: {
+                __typename: 'Mutation',
+                updateRotation: true,
+              },
+            })
+          }}
+        />
+      </Card>
+    </React.Fragment>
+  )
 }
+
+RotationUserList.propTypes = {
+  rotationID: p.string.isRequired,
+}
+
+export default RotationUserList

@@ -589,7 +589,7 @@ Migration: %s (#%d)
 				if cmd.Flag("admin").Value.String() == "true" {
 					u.Role = permission.RoleAdmin
 				}
-				userStore, err := user.NewDB(ctx, db)
+				userStore, err := user.NewStore(ctx, db)
 				if err != nil {
 					return errors.Wrap(err, "init user store")
 				}
@@ -647,6 +647,11 @@ func getConfig() (Config, error) {
 
 		TLSListenAddr: viper.GetString("listen-tls"),
 
+		SysAPIListenAddr: viper.GetString("listen-sysapi"),
+		SysAPICertFile:   viper.GetString("sysapi-cert-file"),
+		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
+		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
+
 		HTTPPrefix: viper.GetString("http-prefix"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
@@ -701,6 +706,11 @@ func init() {
 	RootCmd.Flags().StringP("listen", "l", def.ListenAddr, "Listen address:port for the application.")
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
+
+	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
+	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
+	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
+	RootCmd.Flags().String("sysapi-ca-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.")
 
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 
@@ -773,7 +783,8 @@ func init() {
 	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
+	initCertCommands()
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {

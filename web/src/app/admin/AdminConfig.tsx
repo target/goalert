@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import Button from '@material-ui/core/Button'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Divider from '@material-ui/core/Divider'
+import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
-import PageActions from '../util/PageActions'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { Form } from '../forms'
 import {
@@ -39,7 +40,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [ConfigValueInput!]) {
+  mutation ($input: [ConfigValueInput!]) {
     setConfig(input: $input)
   }
 `
@@ -76,7 +77,7 @@ interface ConfigValues {
 function formatHeading(s = ''): string {
   return startCase(s)
     .replace(/\bTwo Way\b/, 'Two-Way')
-    .replace('Disable V 1 Graph QL', 'Disable V1 GraphQL')
+    .replace('Enable V 1 Graph QL', 'Enable V1 GraphQL')
     .replace('Git Hub', 'GitHub')
     .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
 }
@@ -111,35 +112,6 @@ export default function AdminConfig(): JSX.Element {
     setValues(newVal)
   }
 
-  const renderPageActions = (): JSX.Element => {
-    return (
-      <PageActions>
-        <Button
-          color='inherit'
-          data-cy='reset'
-          disabled={isEmpty(values)}
-          onClick={() => setValues({})}
-          classes={{
-            label: isEmpty(values) ? classes.saveDisabled : undefined,
-          }}
-        >
-          Reset
-        </Button>
-        <Button
-          color='inherit'
-          data-cy='save'
-          disabled={isEmpty(values)}
-          onClick={() => setConfirm(true)}
-          classes={{
-            label: isEmpty(values) ? classes.saveDisabled : undefined,
-          }}
-        >
-          Save
-        </Button>
-      </PageActions>
-    )
-  }
-
   const groups = uniq(
     configValues.map((f: ConfigValue) => f.id.split('.')[0]),
   ) as string[]
@@ -163,90 +135,26 @@ export default function AdminConfig(): JSX.Element {
     _.keys(values).filter((key) => key.startsWith(id + '.')).length
 
   return (
-    <React.Fragment>
-      {groups.map((groupID: string, index: number) => (
-        <Accordion
-          key={groupID}
-          expanded={section === groupID}
-          onChange={handleExpandChange(groupID)}
-        >
-          <AccordionSummary
-            aria-expanded={section === groupID}
-            aria-controls={`accordion-sect-${groupID}`}
-            id={`accordion-${groupID}`}
-            expandIcon={<ExpandMoreIcon />}
+    <Grid container spacing={2}>
+      <Grid item xs={12} container justify='flex-end'>
+        <ButtonGroup color='primary' variant='outlined'>
+          <Button
+            data-cy='reset'
+            disabled={isEmpty(values)}
+            onClick={() => setValues({})}
           >
-            <Typography
-              component='h2'
-              variant='subtitle1'
-              className={classes.heading}
-            >
-              {formatHeading(groupID)}
-            </Typography>
-            <Typography className={classes.secondaryHeading}>
-              {hasEnable(groupID) &&
-                (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
-            </Typography>
-            {(changeCount(groupID) && (
-              <Chip
-                className={classes.changeChip}
-                size='small'
-                label={`${changeCount(groupID)} unsaved change${
-                  changeCount(groupID) === 1 ? '' : 's'
-                }`}
-              />
-            )) ||
-              null}
-          </AccordionSummary>
-          <Divider />
-          <AccordionDetails
-            id={`accordion-sect-${groupID}`}
-            aria-labelledby={`accordion-${groupID}`}
-            className={classes.accordionDetails}
-            role='region'
+            Reset
+          </Button>
+          <Button
+            data-cy='save'
+            disabled={isEmpty(values)}
+            onClick={() => setConfirm(true)}
           >
-            <Form className={classes.form}>
-              <AdminSection
-                value={values}
-                onChange={(id: string, value: null | string) =>
-                  updateValue(id, value)
-                }
-                fields={configValues
-                  .filter(
-                    (f: ConfigValue) => f.id.split('.')[0] === groups[index],
-                  )
-                  .map((f: ConfigValue) => ({
-                    id: f.id,
-                    label: formatHeading(_.last(f.id.split('.'))),
-                    description: f.description,
-                    password: f.password,
-                    type: f.type,
-                    value: f.value,
-                  }))}
-              />
-              {hintGroups[groupID] &&
-                hintGroups[groupID].map((h: ConfigHint) => (
-                  <TextField
-                    key={h.id}
-                    label={hintName(h.id)}
-                    value={h.value}
-                    variant='filled'
-                    margin='none'
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position='end'>
-                          <CopyText value={h.value} placement='left' />
-                        </InputAdornment>
-                      ),
-                    }}
-                    fullWidth
-                  />
-                ))}
-            </Form>
-          </AccordionDetails>
-        </Accordion>
-      ))}
-      {renderPageActions()}
+            Save
+          </Button>
+        </ButtonGroup>
+      </Grid>
+
       {confirm && (
         <AdminDialog
           mutation={mutation}
@@ -259,6 +167,91 @@ export default function AdminConfig(): JSX.Element {
           }}
         />
       )}
-    </React.Fragment>
+
+      <Grid item xs={12}>
+        {groups.map((groupID: string, index: number) => (
+          <Accordion
+            key={groupID}
+            expanded={section === groupID}
+            onChange={handleExpandChange(groupID)}
+          >
+            <AccordionSummary
+              aria-expanded={section === groupID}
+              aria-controls={`accordion-sect-${groupID}`}
+              id={`accordion-${groupID}`}
+              expandIcon={<ExpandMoreIcon />}
+            >
+              <Typography
+                component='h2'
+                variant='subtitle1'
+                className={classes.heading}
+              >
+                {formatHeading(groupID)}
+              </Typography>
+              <Typography className={classes.secondaryHeading}>
+                {hasEnable(groupID) &&
+                  (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
+              </Typography>
+              {(changeCount(groupID) && (
+                <Chip
+                  className={classes.changeChip}
+                  size='small'
+                  label={`${changeCount(groupID)} unsaved change${
+                    changeCount(groupID) === 1 ? '' : 's'
+                  }`}
+                />
+              )) ||
+                null}
+            </AccordionSummary>
+            <Divider />
+            <AccordionDetails
+              id={`accordion-sect-${groupID}`}
+              aria-labelledby={`accordion-${groupID}`}
+              className={classes.accordionDetails}
+              role='region'
+            >
+              <Form className={classes.form}>
+                <AdminSection
+                  value={values}
+                  onChange={(id: string, value: null | string) =>
+                    updateValue(id, value)
+                  }
+                  fields={configValues
+                    .filter(
+                      (f: ConfigValue) => f.id.split('.')[0] === groups[index],
+                    )
+                    .map((f: ConfigValue) => ({
+                      id: f.id,
+                      label: formatHeading(_.last(f.id.split('.'))),
+                      description: f.description,
+                      password: f.password,
+                      type: f.type,
+                      value: f.value,
+                    }))}
+                />
+                {hintGroups[groupID] &&
+                  hintGroups[groupID].map((h: ConfigHint) => (
+                    <TextField
+                      key={h.id}
+                      label={hintName(h.id)}
+                      value={h.value}
+                      variant='filled'
+                      margin='none'
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <CopyText value={h.value} placement='left' />
+                          </InputAdornment>
+                        ),
+                      }}
+                      fullWidth
+                    />
+                  ))}
+              </Form>
+            </AccordionDetails>
+          </Accordion>
+        ))}
+      </Grid>
+    </Grid>
   )
 }

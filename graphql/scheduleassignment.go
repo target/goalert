@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"fmt"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/schedule/shiftcalc"
 	"github.com/target/goalert/util/log"
@@ -119,7 +120,7 @@ func (h *Handler) deleteScheduleAssignmentField() *g.Field {
 
 			var ctx = log.WithField(p.Context, "ScheduleID", schedID)
 
-			var asnTarget assignment.RawTarget
+			var asnTarget RawTarget
 			asnTarget.ID, _ = m["target_id"].(string)
 			asnTarget.Type, _ = m["target_type"].(assignment.TargetType)
 

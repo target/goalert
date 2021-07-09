@@ -46,7 +46,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username, pass
 
 	err = validate.Many(
 		validate.UUID("UserID", userID),
-		validate.UserName("UserName", username),
+		validate.Username("Username", username),
 		validate.Text("Password", password, 8, 200),
 	)
 	if err != nil {
@@ -64,7 +64,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username, pass
 // Validate should return a userID if the username and password match.
 func (b *Store) Validate(ctx context.Context, username, password string) (string, error) {
 	err := validate.Many(
-		validate.UserName("UserName", username),
+		validate.Username("Username", username),
 		validate.Text("Password", password, 1, 200),
 	)
 	if err != nil {

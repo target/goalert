@@ -43,7 +43,7 @@ func (h *Handler) setLabelField() *g.Field {
 
 			var lbl label.Label
 
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.ID, _ = m["target_id"].(string)
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			lbl.Target = tgt

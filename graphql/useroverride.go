@@ -2,10 +2,11 @@ package graphql
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/validation"
-	"time"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
@@ -130,7 +131,7 @@ func (h *Handler) updateUserOverrideField() *g.Field {
 
 			var o override.UserOverride
 
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.ID, _ = m["target_id"].(string)
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			o.Target = tgt

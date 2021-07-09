@@ -239,5 +239,5 @@ From Twilio Dashboard, navigate to **Phone Numbers** and click on your trial pho
 
 Twilio trial account limitations (if you decide to upgrade your Twilio account these go away):
 
-- SMS: The message "Sent from your Twilio trail account" is prepended to all SMS messages
+- SMS: The message "Sent from your Twilio trial account" is prepended to all SMS messages
 - Voice: "You have a trial account..." verbal message before GoAlert message.

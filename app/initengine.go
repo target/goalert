@@ -38,6 +38,8 @@ func (app *App) initEngine(ctx context.Context) error {
 		UserStore:           app.UserStore,
 		NotificationStore:   app.NotificationStore,
 		NCStore:             app.NCStore,
+		OnCallStore:         app.OnCallStore,
+		ScheduleStore:       app.ScheduleStore,
 
 		ConfigSource: app.ConfigStore,
 
@@ -51,7 +53,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		return errors.Wrap(err, "init engine")
 	}
 
-	app.notificationManager.RegisterReceiver(app.Engine)
+	app.notificationManager.SetResultReceiver(app.Engine)
 
 	return nil
 }

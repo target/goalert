@@ -7,7 +7,7 @@ import FormDialog from '../dialogs/FormDialog'
 import { get } from 'lodash'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     rotation(id: $id) {
       id
       name
@@ -19,7 +19,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [TargetInput!]!) {
+  mutation ($input: [TargetInput!]!) {
     deleteAll(input: $input)
   }
 `

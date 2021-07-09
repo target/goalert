@@ -6,7 +6,7 @@ import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ id: $id, type: notificationRule }])
   }
 `

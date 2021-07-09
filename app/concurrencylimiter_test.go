@@ -3,109 +3,102 @@ package app
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestPendingList(t *testing.T) {
-	list := &pendingList{}
+func TestMultiLock_TryLock(t *testing.T) {
+	l := newMultiLock(1, 1)
+	ctx := context.Background()
+	assert.NoError(t, l.Lock(ctx))
 
-	r1 := list.newReq()
-	assert.Equal(t, r1, list.pop())
+	wait, err := l.TryLock()
+	assert.NoError(t, err)
 
-	r2 := list.newReq()
-	assert.Equal(t, r2, list.pop())
-	assert.Nil(t, list.head)
-	assert.Nil(t, list.tail)
+	go wait(ctx)
+	assert.False(t, l.Unlock())
+	assert.True(t, l.Unlock())
+}
 
-	assert.Nil(t, list.pop())
+func TestMultiLock(t *testing.T) {
+	l := newMultiLock(10, 10)
 
-	r3 := list.newReq()
-	r4 := list.newReq()
-	r5 := list.newReq()
+	err := l.Lock(context.Background())
+	require.NoError(t, err)
 
-	assert.True(t, list.remove(r4))
-	assert.Nil(t, r4.prev)
-	assert.Nil(t, r4.next)
-	assert.False(t, list.remove(r4))
+	for i := 0; i < 19; i++ {
+		wait, err := l.TryLock()
+		require.NoError(t, err)
+		if wait != nil {
+			go wait(context.Background())
+		}
+	}
 
-	assert.Equal(t, r3, list.pop())
-	assert.Equal(t, r5, list.pop())
-	assert.Nil(t, list.head)
-	assert.Nil(t, list.tail)
+	for i := 0; i < 20; i++ {
+		assert.False(t, l.Unlock())
+		wait, err := l.TryLock()
+		require.NoError(t, err)
+		go wait(context.Background())
+	}
+
+	for i := 0; i < 19; i++ {
+		assert.False(t, l.Unlock())
+	}
+
+	assert.True(t, l.Unlock())
 }
 
 func TestConcurrencyLimiter(t *testing.T) {
 	t.Run("lock count", func(t *testing.T) {
-		lim := newConcurrencyLimiter(2, 10)
+		lim := newConcurrencyLimiter(2, 0)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		err := lim.Lock(ctx, "foo")
-		assert.Nil(t, err)
+		defer cancel()
 
-		err = lim.Lock(ctx, "foo")
-		assert.Nil(t, err)
+		assert.NoError(t, lim.Lock(ctx, "foo"))
+		assert.NoError(t, lim.Lock(ctx, "foo"))
+		assert.Error(t, lim.Lock(ctx, "foo"))
+		assert.NoError(t, lim.Lock(ctx, "bar"))
+		lim.Unlock("foo")
+		assert.NoError(t, lim.Lock(ctx, "foo"))
+	})
 
-		err = lim.Lock(ctx, "bar")
-		assert.Nil(t, err)
-
+	t.Run("cancelation", func(t *testing.T) {
+		lim := newConcurrencyLimiter(1, 1)
+		ctx, cancel := context.WithCancel(context.Background())
+		assert.NoError(t, lim.Lock(ctx, "foo"))
 		cancel()
-		err = lim.Lock(ctx, "foo")
-		assert.Error(t, err, "context canceled")
-
-		lim.Unlock("bar")
-		err = lim.Lock(ctx, "foo")
-		assert.Error(t, err, "context canceled")
-
-		assert.Panics(t, func() {
-			// unlock twice (only locked once)
-			lim.Unlock("bar")
-		})
+		assert.Error(t, lim.Lock(ctx, "foo"))
 
 		lim.Unlock("foo")
-		ctx, cancel = context.WithCancel(context.Background())
-		err = lim.Lock(ctx, "foo")
-		assert.Nil(t, err)
 
-		cancel()
-		assert.Equal(t, 2, lim.lockCount["foo"])
-		assert.Equal(t, 0, lim.lockCount["bar"])
+		// empty limiter should return lock instantly, even with canceled context (required behavior for empty/LRU cleanup logic)
+		//
+		// context only comes into play if in queue/waiting.
+		assert.NoError(t, lim.Lock(ctx, "foo"))
 	})
 
 	t.Run("queue", func(t *testing.T) {
-		lim := newConcurrencyLimiter(1, 3)
-		ctx := context.Background()
+		lim := newConcurrencyLimiter(1, 2)
 
-		gotLockCh := make(chan struct{})
-		lock := func() { lim.Lock(ctx, "foo"); gotLockCh <- struct{}{} }
-		for i := 0; i < 4; i++ {
-			go lock()
-		}
-		<-gotLockCh
-		assert.Equal(t, 1, lim.lockCount["foo"])
-		time.Sleep(time.Millisecond) // ensure other goroutines have a chance to fill the queue
-		assert.Error(t, lim.Lock(ctx, "foo"))
-		assert.Equal(t, 3, lim.queueCount["foo"])
+		ctx, cancel := context.WithCancel(context.Background())
+		assert.NoError(t, lim.Lock(ctx, "foo"))
 
+		errCh := make(chan error, 3)
+		go func() { errCh <- lim.Lock(ctx, "foo") }()
+		go func() { errCh <- lim.Lock(ctx, "foo") }()
+		go func() { errCh <- lim.Lock(ctx, "foo") }()
+
+		// one too many for the config
+		assert.EqualError(t, <-errCh, errQueueFull.Error())
+
+		// next up in queue should work
 		lim.Unlock("foo")
-		go lock()
+		assert.NoError(t, <-errCh)
 
-		<-gotLockCh
-		lim.Unlock("foo")
-
-		<-gotLockCh
-		lim.Unlock("foo")
-
-		<-gotLockCh
-		lim.Unlock("foo")
-
-		<-gotLockCh
-		lim.Unlock("foo")
-
-		assert.Equal(t, 0, lim.lockCount["foo"])
-		assert.Equal(t, 0, lim.queueCount["foo"])
-
-		assert.Nil(t, lim.Lock(ctx, "foo"))
+		// cancel while last one is in queue
+		cancel()
+		assert.Error(t, <-errCh)
 	})
 }
