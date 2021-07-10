@@ -34,7 +34,6 @@ export default function OtherActionsMenuDesktop({ isOpen, onClose, actions }) {
 }
 
 OtherActionsMenuDesktop.propTypes = {
-  anchorEl: p.object,
   onClose: p.func,
   isOpen: p.bool,
   actions: p.arrayOf(
