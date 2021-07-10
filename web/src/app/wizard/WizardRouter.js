@@ -165,11 +165,7 @@ export default function WizardRouter() {
 
     setComplete(false)
     setErrorMessage(null)
-
-    const scrollWindow = () => {
-      window.scrollTo(0, 0)
-    }
-    scrollWindow()
+    window.scrollTo(0, 0)
   }
 
   function renderSubmittedContent() {
@@ -208,7 +204,7 @@ export default function WizardRouter() {
                     disabled={status.loading}
                     errors={fieldErrors(error)}
                     value={value}
-                    onChange={(value) => setValue({ value })}
+                    onChange={(value) => setValue(value)}
                   />
                 </CardContent>
                 <CardActions className={classes.cardActions}>
