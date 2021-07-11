@@ -22,7 +22,6 @@ export default function PolicyDeleteDialog(props) {
         },
       ],
     },
-    onCompleted: () => dispatch(push('/escalation-policies')),
   })
 
   return (

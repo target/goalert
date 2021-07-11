@@ -15,7 +15,6 @@ export default function CalendarSubscribeDeleteDialog(props) {
     variables: {
       id: props.calSubscriptionID,
     },
-    onCompleted: props.onClose,
   })
 
   return (

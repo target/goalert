@@ -29,7 +29,6 @@ const RotationAddUserDialog = (props) => {
         userIDs: users,
       },
     },
-    onCompleted: onClose,
   })
 
   return (

@@ -154,6 +154,7 @@ export default function CreateAlertDialog(props) {
       onSubmit={() => (hasCompleted ? props.onClose() : mutate())}
       onNext={currentStep < 2 ? onNext : null}
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
+      remainOpen
     />
   )
 }

@@ -58,7 +58,6 @@ export default function TempSchedDialog({
     : []
 
   const [submit, { loading, error }] = useMutation(mutation, {
-    onCompleted: () => onClose(),
     variables: {
       input: {
         ...value,

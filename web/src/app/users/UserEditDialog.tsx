@@ -23,9 +23,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
   const [adminChecked, setAdminChecked] = React.useState(props.role === 'admin')
 
-  const [editUser, editUserStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [editUser, editUserStatus] = useMutation(mutation)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setAdminChecked(e.target.checked)

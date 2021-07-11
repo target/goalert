@@ -50,7 +50,7 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
 
   renderMutation({ name, type, value }) {
     return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
+      <Mutation mutation={mutation}>
         {(commit, status) =>
           this.renderDialog(commit, status, { name, type, value })
         }

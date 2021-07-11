@@ -35,7 +35,6 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
   })
   const [save, saveStatus] = useMutation(mutation, {
     variables: { input: { ...value, id: serviceID } },
-    onCompleted: onClose,
   })
 
   const defaults = {

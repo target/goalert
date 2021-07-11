@@ -16,7 +16,6 @@ function UserContactMethodDeleteDialog(props) {
     variables: {
       id: contactMethodID,
     },
-    onCompleted: props.onClose,
   })
 
   return (

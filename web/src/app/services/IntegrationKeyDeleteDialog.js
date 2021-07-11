@@ -43,7 +43,6 @@ export default function IntegrationKeyDeleteDialog(props) {
   })
 
   const [deleteKey, deleteKeyStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
     update: (cache) => {
       const { service } = cache.readQuery({
         query: updateQuery,

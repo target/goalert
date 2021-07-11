@@ -37,9 +37,7 @@ export default function RotationEditDialog(props) {
     pollInterval: 0,
   })
 
-  const [editRotation, editRotationStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [editRotation, editRotationStatus] = useMutation(mutation)
 
   if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />

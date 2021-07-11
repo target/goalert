@@ -32,7 +32,6 @@ const RotationSetActiveDialog = (props) => {
     },
   })
   const [setActiveMutation] = useMutation(mutation, {
-    onCompleted: onClose,
     variables: {
       input: {
         id: rotationID,

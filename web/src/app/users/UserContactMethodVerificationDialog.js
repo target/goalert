@@ -42,7 +42,6 @@ export default function UserContactMethodVerificationDialog(props) {
         code: value.code,
       },
     },
-    onCompleted: props.onClose,
   })
   const [fromNumber] = useConfigValue('Twilio.FromNumber')
 

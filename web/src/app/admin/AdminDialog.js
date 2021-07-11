@@ -11,9 +11,7 @@ import Diff from '../util/Diff'
 import { useMutation } from '@apollo/client'
 
 function AdminDialog(props) {
-  const [commit, { error }] = useMutation(props.mutation, {
-    onCompleted: props.onComplete,
-  })
+  const [commit, { error }] = useMutation(props.mutation)
   const changeKeys = Object.keys(props.fieldValues)
   const changes = props.values
     .filter((v) => changeKeys.includes(v.id))

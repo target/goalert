@@ -29,7 +29,6 @@ function PolicyStepDeleteDialog(props) {
     variables: { id: props.escalationPolicyID },
   })
   const [deleteStepMutation, deleteStepMutationStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
     update: (cache) => {
       const { escalationPolicy } = cache.readQuery({
         query,

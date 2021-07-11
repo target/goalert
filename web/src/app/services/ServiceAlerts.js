@@ -35,7 +35,6 @@ export default function ServiceAlerts(props) {
         newStatus: alertStatus,
       },
     },
-    onCompleted: () => setShowDialog(false),
   })
 
   const { loading } = mutationStatus

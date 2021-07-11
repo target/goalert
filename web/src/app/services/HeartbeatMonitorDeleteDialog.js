@@ -34,7 +34,7 @@ export default function HeartbeatMonitorDeleteDialog(props) {
         loading={loading}
         errors={nonFieldErrors(error)}
         onClose={props.onClose}
-        onSubmit={() => deleteHeartbeat().then(props.onClose)}
+        onSubmit={() => deleteHeartbeat()}
       />
     )
   }
