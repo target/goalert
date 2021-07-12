@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/target/goalert/util/sqlutil"
-
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/notification/slack"
@@ -13,10 +11,11 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Store interface {
@@ -148,13 +147,36 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 			JOIN escalation_policy_actions act ON
 				act.escalation_policy_step_id = $1 AND
 				act.channel_id = chan.id
-			WHERE chan.value = $2
+			WHERE chan.value = $2 and chan.type = 'SLACK'
 		`),
 
-		findOnePolicy:          p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = $1`),
+		findOnePolicy: p.P(`
+			SELECT
+				e.id,
+				e.name,
+				e.description,
+				e.repeat,
+				fav is distinct from null
+			FROM
+				escalation_policies e
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_escalation_policy_id = e.id AND fav.user_id = $2
+			WHERE e.id = $1
+		`),
 		findOnePolicyForUpdate: p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = $1 FOR UPDATE`),
-		findManyPolicies:       p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = any($1)`),
-
+		findManyPolicies: p.P(`
+            SELECT
+                e.id,
+                e.name,
+                e.description,
+                e.repeat,
+                fav is distinct from null
+            FROM
+                escalation_policies e
+            LEFT JOIN user_favorites fav ON
+                fav.tgt_escalation_policy_id = e.id AND fav.user_id = $2
+            WHERE e.id = any($1)
+        `),
 		findAllPolicies: p.P(`SELECT id, name, description, repeat FROM escalation_policies`),
 		findAllPoliciesBySchedule: p.P(`
 			SELECT DISTINCT
@@ -310,7 +332,7 @@ func tgtFields(id string, tgt assignment.Target, insert bool) []interface{} {
 	}
 	if insert {
 		return []interface{}{
-			uuid.NewV4().String(),
+			uuid.New().String(),
 			id,
 			usr,
 			sched,
@@ -337,8 +359,8 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	userID := permission.UserID(ctx)
+	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -350,7 +372,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	var result []Policy
 	var p Policy
 	for rows.Next() {
-		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat)
+		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat, &p.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}
@@ -385,7 +407,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	notifCh, err := db.ncStore.CreateTx(ctx, tx, &notificationchannel.Channel{
+	notifID, err := db.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
 		Type:  notificationchannel.TypeSlack,
 		Name:  ch.Name,
 		Value: ch.ID,
@@ -394,7 +416,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	return assignment.NotificationChannelTarget(notifCh.ID), nil
+	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
 func (db *DB) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
 	var notifChanID string
@@ -546,7 +568,7 @@ func (db *DB) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Polic
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Repeat)
 	if err != nil {
@@ -862,7 +884,7 @@ func (db *DB) CreateStepTx(ctx context.Context, tx *sql.Tx, s *Step) (*Step, err
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 
 	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes).Scan(&n.StepNumber)
 	if err != nil {

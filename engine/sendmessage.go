@@ -13,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.MessageStatus, error) {
+func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.SendMessage")
 	defer sp.End()
 	sp.AddAttributes(
@@ -46,10 +46,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		if count == 0 {
 			// already acked/closed, don't send bundled notification
-			return &notification.MessageStatus{
-				ID:      msg.ID,
-				Details: "alerts acked/closed before message sent",
-				State:   notification.MessageStateFailedPerm,
+			return &notification.SendResult{
+				ID: msg.ID,
+				Status: notification.Status{
+					Details: "alerts acked/closed before message sent",
+					State:   notification.StateFailedPerm,
+				},
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
@@ -119,16 +121,43 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 			Code:       code,
 		}
+	case notification.MessageTypeScheduleOnCallUsers:
+		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup on call users by schedule")
+		}
+		sched, err := p.cfg.ScheduleStore.FindOne(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup schedule by id")
+		}
+
+		var onCallUsers []notification.User
+		for _, u := range users {
+			onCallUsers = append(onCallUsers, notification.User{
+				Name: u.Name,
+				ID:   u.ID,
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + u.ID),
+			})
+		}
+
+		notifMsg = notification.ScheduleOnCallUsers{
+			Dest:         msg.Dest,
+			CallbackID:   msg.ID,
+			ScheduleName: sched.Name,
+			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
+			ScheduleID:   msg.ScheduleID,
+			Users:        onCallUsers,
+		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
-		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
+		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil
 	}
 
 	meta := alertlog.NotificationMetaData{
 		MessageID: msg.ID,
 	}
 
-	status, err := p.cfg.NotificationManager.Send(ctx, notifMsg)
+	res, err := p.cfg.NotificationManager.SendMessage(ctx, notifMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -143,5 +172,5 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	}
 
-	return status, nil
+	return res, nil
 }

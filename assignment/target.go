@@ -6,9 +6,9 @@ type Target interface {
 	TargetID() string
 }
 type RawTarget struct {
-	Type TargetType `json:"target_type"`
-	ID   string     `json:"target_id"`
-	Name string     `json:"target_name"`
+	Type TargetType
+	ID   string
+	Name string `json:"-"`
 }
 
 func NewRawTarget(t Target) RawTarget {

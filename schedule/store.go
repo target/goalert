@@ -30,10 +30,10 @@ type Store struct {
 
 	findMany *sql.Stmt
 
-	usr user.Store
+	usr *user.Store
 }
 
-func NewStore(ctx context.Context, db *sql.DB, usr user.Store) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
@@ -241,7 +241,9 @@ func (store *Store) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	if err != nil {
 		return nil, err
 	}
-	userID := permission.UserID(ctx)
+	var userID sql.NullString
+	userID.String = permission.UserID(ctx)
+	userID.Valid = userID.String != ""
 	row := store.findOne.QueryRowContext(ctx, id, userID)
 	var s Schedule
 	var tz string

@@ -589,7 +589,7 @@ Migration: %s (#%d)
 				if cmd.Flag("admin").Value.String() == "true" {
 					u.Role = permission.RoleAdmin
 				}
-				userStore, err := user.NewDB(ctx, db)
+				userStore, err := user.NewStore(ctx, db)
 				if err != nil {
 					return errors.Wrap(err, "init user store")
 				}

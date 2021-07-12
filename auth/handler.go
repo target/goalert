@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
@@ -502,7 +502,7 @@ func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (
 	tok := &authtoken.Token{
 		Version: 1,
 		Type:    authtoken.TypeSession,
-		ID:      uuid.NewV4(),
+		ID:      uuid.New(),
 	}
 	_, err := h.startSession.ExecContext(ctx, tok.ID.String(), userAgent, userID)
 	if err != nil {

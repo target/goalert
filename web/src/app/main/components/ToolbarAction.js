@@ -45,12 +45,14 @@ function ToolbarAction(props) {
       {getRoute('/schedules/:scheduleID/escalation-policies')}
       {getRoute('/schedules/:scheduleID/overrides')}
       {getRoute('/schedules/:scheduleID/shifts')}
+      {getRoute('/schedules/:scheduleID/on-call-notifications')}
       {getRoute('/escalation-policies/:escalationPolicyID/services')}
       {getRoute('/services/:serviceID/alerts')}
       {getRoute('/services/:serviceID/integration-keys')}
       {getRoute('/services/:serviceID/heartbeat-monitors')}
       {getRoute('/services/:serviceID/labels')}
       {getRoute('/users/:userID/on-call-assignments')}
+      {getRoute('/users/:userID/sessions')}
       {getRoute('/users/:userID/schedule-calendar-subscriptions')}
       {getRoute('/profile/on-call-assignments')}
       {getRoute('/profile/schedule-calendar-subscriptions')}

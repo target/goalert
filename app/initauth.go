@@ -45,7 +45,7 @@ func (app *App) initAuth(ctx context.Context) error {
 	}
 	app.AuthHandler.AddIdentityProvider("github", githubProvider)
 
-	basicProvider, err := basic.NewProvider(ctx, app.db)
+	basicProvider, err := basic.NewProvider(ctx, app.AuthBasicStore)
 	if err != nil {
 		return errors.Wrap(err, "init basic auth provider")
 	}

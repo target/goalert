@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
@@ -26,15 +26,17 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CalendarEventWrapper({
-  children,
-  event,
-  onOverrideClick,
-  onEditTempSched,
-  onDeleteTempSched,
-}) {
+export const EventHandlerContext = React.createContext({
+  onOverrideClick: () => {},
+  onEditTempSched: () => {},
+  onDeleteTempSched: () => {},
+})
+
+export default function CalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
+  const { onOverrideClick, onEditTempSched, onDeleteTempSched } =
+    useContext(EventHandlerContext)
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
@@ -207,7 +209,4 @@ export default function CalendarEventWrapper({
 
 CalendarEventWrapper.propTypes = {
   event: p.object.isRequired,
-  onOverrideClick: p.func.isRequired,
-  onEditTempSched: p.func,
-  onDeleteTempSched: p.func,
 }
