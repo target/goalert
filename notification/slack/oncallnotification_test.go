@@ -8,22 +8,15 @@ import (
 )
 
 func TestRenderOnCallNotification(t *testing.T) {
-	// static user id -> slack ID mappings for testing
-	slackUserIDs := map[string]string{
-		"slack.1": "slack.1.SLACKID",
-		"slack.2": "slack.2.SLACKID",
-		"slack.3": "slack.3.SLACKID",
-	}
-	msg := notification.ScheduleOnCallUsers{
-		ScheduleName: "schedule.name",
-		ScheduleURL:  "schedule.url",
-	}
-
 	// test with `msg` for the provided user ids
 	check := func(desc, expected string, userIDs []string) {
 		t.Helper()
 		t.Run(desc, func(t *testing.T) {
-			msg.Users = nil
+			msg := notification.ScheduleOnCallUsers{
+				ScheduleName: "schedule.name",
+				ScheduleURL:  "schedule.url",
+			}
+
 			for _, id := range userIDs {
 				msg.Users = append(msg.Users, notification.User{
 					ID:   id,
@@ -31,7 +24,15 @@ func TestRenderOnCallNotification(t *testing.T) {
 					URL:  id + ".url",
 				})
 			}
-			assert.Equal(t, expected, renderOnCallNotificationMessage(msg, slackUserIDs))
+
+			assert.Equal(t, expected, renderOnCallNotificationMessage(msg,
+
+				// define some static mappings for testing graceful fallback
+				map[string]string{
+					"slack.1": "slack.1.SLACKID",
+					"slack.2": "slack.2.SLACKID",
+					"slack.3": "slack.3.SLACKID",
+				}))
 		})
 	}
 
@@ -52,7 +53,13 @@ func TestRenderOnCallNotification(t *testing.T) {
 		[]string{"slack.1", "foo", "slack.3"})
 
 	t.Run("no panic on nil map", func(t *testing.T) {
-		msg.Users = []notification.User{{ID: "foo.SLACKID", Name: "foo.name", URL: "foo.url"}}
+		msg := notification.ScheduleOnCallUsers{
+			ScheduleName: "schedule.name",
+			ScheduleURL:  "schedule.url",
+			Users: []notification.User{
+				{ID: "foo.SLACKID", Name: "foo.name", URL: "foo.url"},
+			},
+		}
 
 		assert.Equal(t, "<foo.url|foo.name> is on-call for <schedule.url|schedule.name>", renderOnCallNotificationMessage(msg, nil))
 	})
