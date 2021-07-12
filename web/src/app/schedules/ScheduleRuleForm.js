@@ -103,8 +103,8 @@ const query = gql`
 
 @withStyles(styles)
 @connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
-export default function ScheduleRuleForm(props){
 
+export default function ScheduleRuleForm(props){
    function renderForm() {
     const {
       zone: displayTZ,
@@ -279,7 +279,6 @@ export default function ScheduleRuleForm(props){
       </TableRow>
     )
   }
-
       return (
       <Query
         query={query}
@@ -288,7 +287,6 @@ export default function ScheduleRuleForm(props){
         render={({ data }) => renderForm(data.schedule.timeZone)}
       />
     )
-  
 }
 
   ScheduleRuleForm.propTypes = {
@@ -303,7 +301,6 @@ export default function ScheduleRuleForm(props){
         p.shape({
           start: p.string.isRequired,
           end: p.string.isRequired,
-
           weekdayFilter: p.arrayOf(p.bool).isRequired,
         }),
       ).isRequired,
