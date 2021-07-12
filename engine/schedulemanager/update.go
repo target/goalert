@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,8 +105,6 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	var rules []userRule
-	var tzName string
-	tz := make(map[string]*time.Location)
 	for rows.Next() {
 		var r userRule
 		err = rows.Scan(
@@ -113,21 +112,33 @@ func (db *DB) update(ctx context.Context) error {
 			&r.WeekdayFilter,
 			&r.Start,
 			&r.End,
-			&tzName,
 			&r.UserID,
 		)
 		if err != nil {
 			return errors.Wrap(err, "scan rule")
 		}
-		if tz[r.ScheduleID] == nil {
-			tz[r.ScheduleID], err = util.LoadLocation(tzName)
-			if err != nil {
-				return errors.Wrap(err, "load timezone")
-			}
-		}
 
 		rules = append(rules, r)
 	}
+
+	rows, err = tx.StmtContext(ctx, db.schedTZ).QueryContext(ctx)
+	if err != nil {
+		return fmt.Errorf("fetch schedule TZ info: %w", err)
+	}
+	defer rows.Close()
+	tz := make(map[string]*time.Location)
+	for rows.Next() {
+		var id, tzName string
+		err = rows.Scan(&id, &tzName)
+		if err != nil {
+			return fmt.Errorf("scan schedule TZ info: %w", err)
+		}
+		tz[id], err = util.LoadLocation(tzName)
+		if err != nil {
+			return fmt.Errorf("load TZ info '%s' for schedule '%s': %w", tzName, id, err)
+		}
+	}
+
 	rows, err = tx.Stmt(db.getOnCall).QueryContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get on call")
