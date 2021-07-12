@@ -6,7 +6,6 @@ import ScheduleDetails from './ScheduleDetails'
 import ScheduleOverrideList from './ScheduleOverrideList'
 import ScheduleAssignedToList from './ScheduleAssignedToList'
 import ScheduleShiftList from './ScheduleShiftList'
-
 import { PageNotFound } from '../error-pages/Errors'
 import ScheduleRuleList from './ScheduleRuleList'
 import SimpleListPage from '../lists/SimpleListPage'
@@ -27,23 +26,21 @@ const query = gql`
     }
   }
 `
-class ScheduleList extends React.PureComponent {
-  render() {
-    return (
-      <SimpleListPage
-        query={query}
-        variables={{ input: { favoritesFirst: true } }}
-        mapDataNode={(n) => ({
-          title: n.name,
-          subText: n.description,
-          url: n.id,
-          isFavorite: n.isFavorite,
-        })}
-        createForm={<ScheduleCreateDialog />}
-        createLabel='Schedule'
-      />
-    )
-  }
+function ScheduleList() {
+  return (
+    <SimpleListPage
+      query={query}
+      variables={{ input: { favoritesFirst: true } }}
+      mapDataNode={(n) => ({
+        title: n.name,
+        subText: n.description,
+        url: n.id,
+        isFavorite: n.isFavorite,
+      })}
+      createForm={<ScheduleCreateDialog />}
+      createLabel='Schedule'
+    />
+  )
 }
 
 export default class ScheduleRouter extends React.PureComponent {
