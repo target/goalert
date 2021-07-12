@@ -103,45 +103,16 @@ const query = gql`
 
 @withStyles(styles)
 @connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
-export default class ScheduleRuleForm extends React.PureComponent {
-  static propTypes = {
-    targetType: p.oneOf(['rotation', 'user']).isRequired,
-    targetDisabled: p.bool,
 
-    scheduleID: p.string.isRequired,
-
-    value: p.shape({
-      targetID: p.string.isRequired,
-      rules: p.arrayOf(
-        p.shape({
-          start: p.string.isRequired,
-          end: p.string.isRequired,
-
-          weekdayFilter: p.arrayOf(p.bool).isRequired,
-        }),
-      ).isRequired,
-    }).isRequired,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        noPoll
-        render={({ data }) => this.renderForm(data.schedule.timeZone)}
-      />
-    )
-  }
-
-  renderForm() {
+export default function ScheduleRuleForm(props){
+   function renderForm() {
     const {
       zone: displayTZ,
       targetDisabled,
       targetType,
       classes,
       ...formProps
-    } = this.props
+    } = props
 
     return (
       <FormContainer {...formProps} optionalLabels>
@@ -189,9 +160,9 @@ export default class ScheduleRuleForm extends React.PureComponent {
                     <IconButton
                       aria-label='Add rule'
                       onClick={() =>
-                        this.props.onChange({
-                          ...this.props.value,
-                          rules: this.props.value.rules.concat({
+                        props.onChange({
+                          ...props.value,
+                          rules: props.value.rules.concat({
                             start: DateTime.local()
                               .startOf('day')
                               .toUTC()
@@ -212,8 +183,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {this.props.value.rules.map((r, idx) =>
-                  this.renderRuleField(idx),
+                {props.value.rules.map((r, idx) =>
+                  renderRuleField(idx),
                 )}
               </TableBody>
             </Table>
@@ -223,8 +194,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
     )
   }
 
-  renderRuleField(idx) {
-    const classes = this.props.classes
+  function renderRuleField(idx) {
+    const classes = props.classes
     return (
       <TableRow key={idx}>
         <TableCell className={classes.startEnd}>
@@ -252,7 +223,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
             <TableCell key={dayIdx} padding='checkbox'>
               <FormField
                 noError
-                className={this.props.classes.noPadding}
+                className={props.classes.noPadding}
                 component={Checkbox}
                 checkbox
                 fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
@@ -291,13 +262,13 @@ export default class ScheduleRuleForm extends React.PureComponent {
           </TableCell>
         </Hidden>
         <TableCell padding='none'>
-          {this.props.value.rules.length > 1 && (
+          {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
               onClick={() =>
-                this.props.onChange({
-                  ...this.props.value,
-                  rules: this.props.value.rules.filter((r, i) => i !== idx),
+                props.onChange({
+                  ...props.value,
+                  rules: props.value.rules.filter((r, i) => i !== idx),
                 })
               }
             >
@@ -308,4 +279,30 @@ export default class ScheduleRuleForm extends React.PureComponent {
       </TableRow>
     )
   }
+      return (
+      <Query
+        query={query}
+        variables={{ id: props.scheduleID }}
+        noPoll
+        render={({ data }) => renderForm(data.schedule.timeZone)}
+      />
+    )
 }
+
+  ScheduleRuleForm.propTypes = {
+    targetType: p.oneOf(['rotation', 'user']).isRequired,
+    targetDisabled: p.bool,
+
+    scheduleID: p.string.isRequired,
+
+    value: p.shape({
+      targetID: p.string.isRequired,
+      rules: p.arrayOf(
+        p.shape({
+          start: p.string.isRequired,
+          end: p.string.isRequired,
+          weekdayFilter: p.arrayOf(p.bool).isRequired,
+        }),
+      ).isRequired,
+    }).isRequired,
+  }
