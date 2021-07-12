@@ -9,7 +9,7 @@ import (
 
 // HandlerConfig provides configuration for the auth handler.
 type HandlerConfig struct {
-	UserStore      user.Store
+	UserStore      *user.Store
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
 	IntKeyStore    integrationkey.Store

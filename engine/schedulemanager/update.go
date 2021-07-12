@@ -307,7 +307,12 @@ func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificatio
 		return nil
 	}
 
-	newTime := rule.Time.FirstOfDay(rule.WeekdayFilter.NextActive(nowInZone))
+	var newTime time.Time
+	if rule.WeekdayFilter.Day(nowInZone.Weekday()) {
+		newTime = rule.Time.FirstOfDay(nowInZone)
+	} else {
+		newTime = rule.Time.FirstOfDay(rule.WeekdayFilter.NextActive(nowInZone))
+	}
 	if !newTime.After(nowInZone) {
 		newTime = rule.Time.FirstOfDay(rule.WeekdayFilter.NextActive(newTime))
 	}
