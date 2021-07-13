@@ -25,7 +25,7 @@ const mutation = gql`
 `
 
 export default function ScheduleEditDialog(props) {
-  const [state, setState] = useState(null)
+  const [value, setValue] = useState(null)
 
   const renderForm = (data, commit, status) => {
     return (
@@ -38,7 +38,7 @@ export default function ScheduleEditDialog(props) {
             variables: {
               input: {
                 id: props.scheduleID,
-                ...state,
+                ...value,
               },
             },
           })
@@ -48,13 +48,13 @@ export default function ScheduleEditDialog(props) {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={
-              state || {
+              value || {
                 name: data.name,
                 description: data.description,
                 timeZone: data.timeZone,
               }
             }
-            onChange={(value) => setState(value)}
+            onChange={(value) => setValue(value)}
           />
         }
       />
