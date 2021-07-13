@@ -105,7 +105,6 @@ export default function ScheduleRuleForm(props) {
   const classes = useStyles()
   const [zone] = useURLParam('tz', 'local')
   function renderRuleField(idx) {
-    const classes = props.classes
     return (
       <TableRow key={idx}>
         <TableCell className={classes.startEnd}>
@@ -133,7 +132,7 @@ export default function ScheduleRuleForm(props) {
             <TableCell key={dayIdx} padding='checkbox'>
               <FormField
                 noError
-                className={props.classes.noPadding}
+                className={classes.noPadding}
                 component={Checkbox}
                 checkbox
                 fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
