@@ -61,7 +61,7 @@ export default function ScheduleRouter() {
           <ScheduleRuleList scheduleID={match.params.scheduleID} />
         )}
       />
-      <Route
+      <Route 
         path='/schedules/:scheduleID/on-call-notifications'
         render={({ match }) => (
           <ScheduleOnCallNotificationsList
@@ -69,7 +69,7 @@ export default function ScheduleRouter() {
           />
         )}
       />
-      <Route
+      <Route 
         path='/schedules/:scheduleID/escalation-policies'
         render={({ match }) => (
           <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
