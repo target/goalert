@@ -5,7 +5,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 
-export default function OtherActionsMenuDesktop({ isOpen, onClose, actions }) {
+export default function OtherActionsMobile({ isOpen, onClose, actions }) {
   return (
     <SwipeableDrawer
       anchor='bottom'
@@ -33,7 +33,7 @@ export default function OtherActionsMenuDesktop({ isOpen, onClose, actions }) {
   )
 }
 
-OtherActionsMenuDesktop.propTypes = {
+OtherActionsMobile.propTypes = {
   onClose: p.func,
   isOpen: p.bool,
   actions: p.arrayOf(
