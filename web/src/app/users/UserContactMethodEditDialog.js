@@ -30,7 +30,6 @@ export default function UserContactMethodEditDialog({
   contactMethodID,
 }) {
   const [value, setValue] = useState(null)
-  const [edit, setEdit] = useState(true)
 
   function renderDialog(commit, status, defaultValue) {
     const { loading, error } = status
@@ -57,7 +56,7 @@ export default function UserContactMethodEditDialog({
           <UserContactMethodForm
             errors={fieldErrs}
             disabled={loading}
-            edit={edit}
+            edit={true}
             value={value || defaultValue}
             onChange={(value) => setValue(value)}
           />
