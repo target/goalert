@@ -11,10 +11,10 @@ import {
   Hidden,
   IconButton,
   TableBody,
-  withStyles,
   MenuItem,
   TextField,
   Typography,
+  makeStyles,
 } from '@material-ui/core'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
@@ -100,8 +100,8 @@ const query = gql`
     }
   }
 `
+const useStyles = makeStyles(styles)
 
-@withStyles(styles)
 @connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
 
 export default function ScheduleRuleForm(props){
