@@ -56,7 +56,7 @@ export default function UserContactMethodEditDialog({
           <UserContactMethodForm
             errors={fieldErrs}
             disabled={loading}
-            edit={true}
+            edit
             value={value || defaultValue}
             onChange={(value) => setValue(value)}
           />
