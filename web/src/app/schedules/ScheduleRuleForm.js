@@ -23,8 +23,6 @@ import { Add, Trash } from '../icons'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
 import { gql } from '@apollo/client'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { ISOTimePicker } from '../util/ISOPickers'
 import { DateTime } from 'luxon'
 
@@ -104,89 +102,8 @@ const query = gql`
 const useStyles = makeStyles(styles)
 
 export default function ScheduleRuleForm(props) {
-  function renderForm() {
-    const { targetDisabled, targetType, ...formProps } = props
-    const classes = useStyles()
-    const [zone] = useURLParam('tz', 'local')
-
-    return (
-      <FormContainer {...formProps} optionalLabels>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
-            <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
-              Times and weekdays shown in{' '}
-              {zone === 'local' ? 'local time' : zone}.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-            <ScheduleTZFilter
-              label={(tz) => `Configure in ${tz}`}
-              scheduleID={props.scheduleID}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              required
-              component={targetType === 'user' ? UserSelect : RotationSelect}
-              label={startCase(targetType)}
-              disabled={targetDisabled}
-              name='targetID'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Table data-cy='target-rules'>
-              <TableHead>
-                <TableRow>
-                  <TableCell className={classes.startEnd}>Start</TableCell>
-                  <TableCell className={classes.startEnd}>End</TableCell>
-                  <Hidden smDown>
-                    {days.map((d) => (
-                      <TableCell key={d} padding='checkbox'>
-                        {d.slice(0, 3)}
-                      </TableCell>
-                    ))}
-                  </Hidden>
-                  <Hidden mdUp>
-                    <TableCell className={classes.dayFilter}>Days</TableCell>
-                  </Hidden>
-                  <TableCell padding='none'>
-                    <IconButton
-                      aria-label='Add rule'
-                      onClick={() =>
-                        props.onChange({
-                          ...props.value,
-                          rules: props.value.rules.concat({
-                            start: DateTime.local()
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            end: DateTime.local()
-                              .plus({ day: 1 })
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            weekdayFilter: Array(days.length).fill(true),
-                          }),
-                        })
-                      }
-                    >
-                      <Add />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {props.value.rules.map((r, idx) => renderRuleField(idx))}
-              </TableBody>
-            </Table>
-          </Grid>
-        </Grid>
-      </FormContainer>
-    )
-  }
-
+  const classes = useStyles()
+  const [zone] = useURLParam('tz', 'local')
   function renderRuleField(idx) {
     const classes = props.classes
     return (
@@ -272,6 +189,88 @@ export default function ScheduleRuleForm(props) {
       </TableRow>
     )
   }
+
+  function renderForm() {
+    const { targetDisabled, targetType, ...formProps } = props
+
+    return (
+      <FormContainer {...formProps} optionalLabels>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
+            <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
+              Times and weekdays shown in{' '}
+              {zone === 'local' ? 'local time' : zone}.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
+            <ScheduleTZFilter
+              label={(tz) => `Configure in ${tz}`}
+              scheduleID={props.scheduleID}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              required
+              component={targetType === 'user' ? UserSelect : RotationSelect}
+              label={startCase(targetType)}
+              disabled={targetDisabled}
+              name='targetID'
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Table data-cy='target-rules'>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={classes.startEnd}>Start</TableCell>
+                  <TableCell className={classes.startEnd}>End</TableCell>
+                  <Hidden smDown>
+                    {days.map((d) => (
+                      <TableCell key={d} padding='checkbox'>
+                        {d.slice(0, 3)}
+                      </TableCell>
+                    ))}
+                  </Hidden>
+                  <Hidden mdUp>
+                    <TableCell className={classes.dayFilter}>Days</TableCell>
+                  </Hidden>
+                  <TableCell padding='none'>
+                    <IconButton
+                      aria-label='Add rule'
+                      onClick={() =>
+                        props.onChange({
+                          ...props.value,
+                          rules: props.value.rules.concat({
+                            start: DateTime.local()
+                              .startOf('day')
+                              .toUTC()
+                              .toISO(),
+                            end: DateTime.local()
+                              .plus({ day: 1 })
+                              .startOf('day')
+                              .toUTC()
+                              .toISO(),
+                            weekdayFilter: Array(days.length).fill(true),
+                          }),
+                        })
+                      }
+                    >
+                      <Add />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {props.value.rules.map((r, idx) => renderRuleField(idx))}
+              </TableBody>
+            </Table>
+          </Grid>
+        </Grid>
+      </FormContainer>
+    )
+  }
+
   return (
     <Query
       query={query}
