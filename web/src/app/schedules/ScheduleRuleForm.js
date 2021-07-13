@@ -16,6 +16,7 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
+import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
@@ -102,17 +103,11 @@ const query = gql`
 `
 const useStyles = makeStyles(styles)
 
-@connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
-
-export default function ScheduleRuleForm(props){
-   function renderForm() {
-    const {
-      zone: displayTZ,
-      targetDisabled,
-      targetType,
-      classes,
-      ...formProps
-    } = props
+export default function ScheduleRuleForm(props) {
+  function renderForm() {
+    const { targetDisabled, targetType, ...formProps } = props
+    const classes = useStyles()
+    const [zone] = useURLParam('tz', 'local')
 
     return (
       <FormContainer {...formProps} optionalLabels>
@@ -120,14 +115,14 @@ export default function ScheduleRuleForm(props){
           <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
             <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
               Times and weekdays shown in{' '}
-              {displayTZ === 'local' ? 'local time' : displayTZ}.
+              {zone === 'local' ? 'local time' : zone}.
             </Typography>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             {/* Purposefully leaving out of form, as it's only used for converting display times. */}
             <ScheduleTZFilter
               label={(tz) => `Configure in ${tz}`}
-              scheduleID={this.props.scheduleID}
+              scheduleID={props.scheduleID}
             />
           </Grid>
           <Grid item xs={12}>
@@ -183,9 +178,7 @@ export default function ScheduleRuleForm(props){
                 </TableRow>
               </TableHead>
               <TableBody>
-                {props.value.rules.map((r, idx) =>
-                  renderRuleField(idx),
-                )}
+                {props.value.rules.map((r, idx) => renderRuleField(idx))}
               </TableBody>
             </Table>
           </Grid>
@@ -279,30 +272,30 @@ export default function ScheduleRuleForm(props){
       </TableRow>
     )
   }
-      return (
-      <Query
-        query={query}
-        variables={{ id: props.scheduleID }}
-        noPoll
-        render={({ data }) => renderForm(data.schedule.timeZone)}
-      />
-    )
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID }}
+      noPoll
+      render={({ data }) => renderForm(data.schedule.timeZone)}
+    />
+  )
 }
 
-  ScheduleRuleForm.propTypes = {
-    targetType: p.oneOf(['rotation', 'user']).isRequired,
-    targetDisabled: p.bool,
+ScheduleRuleForm.propTypes = {
+  targetType: p.oneOf(['rotation', 'user']).isRequired,
+  targetDisabled: p.bool,
 
-    scheduleID: p.string.isRequired,
+  scheduleID: p.string.isRequired,
 
-    value: p.shape({
-      targetID: p.string.isRequired,
-      rules: p.arrayOf(
-        p.shape({
-          start: p.string.isRequired,
-          end: p.string.isRequired,
-          weekdayFilter: p.arrayOf(p.bool).isRequired,
-        }),
-      ).isRequired,
-    }).isRequired,
-  }
+  value: p.shape({
+    targetID: p.string.isRequired,
+    rules: p.arrayOf(
+      p.shape({
+        start: p.string.isRequired,
+        end: p.string.isRequired,
+        weekdayFilter: p.arrayOf(p.bool).isRequired,
+      }),
+    ).isRequired,
+  }).isRequired,
+}
