@@ -38,14 +38,14 @@ const mutation = gql`
   }
 `
 
-const styles = makeStyles(() => ({
+const useStyles = makeStyles(() => ({
   cardActions: {
     justifyContent: 'flex-end',
   },
 }))
 
 export default function WizardRouter() {
-  const classes = styles()
+  const classes = useStyles()
   const width = useWidth()
   const [errorMessage, setErrorMessage] = useState(null)
   const [complete, setComplete] = useState(false)
