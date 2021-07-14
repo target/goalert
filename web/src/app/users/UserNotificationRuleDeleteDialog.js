@@ -10,21 +10,12 @@ const mutation = gql`
     deleteAll(input: [{ id: $id, type: notificationRule }])
   }
 `
-export default class UserNotificationRuleDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    ruleID: p.string.isRequired,
-  }
-
-  render() {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, { loading, error }) {
-    const { ruleID, ...rest } = this.props
+export default function UserNotificationRuleDeleteDialog({
+  ruleID,
+  onClose,
+  ...rest
+}) {
+  function renderDialog(commit, { loading, error }) {
     return (
       <FormDialog
         title='Are you sure?'
@@ -37,4 +28,14 @@ export default class UserNotificationRuleDeleteDialog extends React.PureComponen
       />
     )
   }
+  return (
+    <Mutation mutation={mutation} onCompleted={onClose}>
+      {(commit, status) => renderDialog(commit, status)}
+    </Mutation>
+  )
+}
+
+UserNotificationRuleDeleteDialog.propTypes = {
+  ruleID: p.string.isRequired,
+  onClose: p.func,
 }
