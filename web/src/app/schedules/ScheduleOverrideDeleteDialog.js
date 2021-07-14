@@ -1,14 +1,13 @@
 import React from 'react'
 import p from 'prop-types'
 
-import { connect } from 'react-redux'
 import { gql } from '@apollo/client'
 import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import { Typography } from '@material-ui/core'
 import FormDialog from '../dialogs/FormDialog'
-import { urlParamSelector } from '../selectors'
+import { useURLParam } from '../actions/hooks'
 import { formatOverrideTime } from './util'
 
 const query = gql`
@@ -34,14 +33,10 @@ const mutation = gql`
     deleteAll(input: [{ type: userOverride, id: $id }])
   }
 `
-@connect((state) => ({ zone: urlParamSelector(state)('tz') }))
 
-export default function ScheduleOverrideDeleteDialog({
-  overrideID,
-  onClose,
-  zone,
-  proScheduleOverrideDeleteDialogps
-}) {
+export default function ScheduleOverrideDeleteDialog({ overrideID, onClose }) {
+  const [zone] = useURLParam('tz', 'local')
+
   function renderDialog(data, commit, mutStatus) {
     const { loading, error } = mutStatus
     const { addUser, removeUser, start, end } = data
@@ -62,7 +57,7 @@ export default function ScheduleOverrideDeleteDialog({
         }`}
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={proScheduleOverrideDeleteDialogps.onClose}
+        onClose={onClose}
         onSubmit={() => {
           return commit({
             variables: {
