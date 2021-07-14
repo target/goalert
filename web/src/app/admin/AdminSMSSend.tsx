@@ -41,7 +41,7 @@ const useStyles = makeStyles({
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
-  const [fromNumber, setFromNumber] = useState(cfgFromNumber)
+  const [fromNumber, setFromNumber] = useState(cfgFromNumber as string)
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
