@@ -5,9 +5,9 @@ import { isWidthDown } from '@material-ui/core/withWidth/index'
 import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import useWidth from '../util/useWidth'
-import { useURLParam } from '../actions/hooks'
 import { Query } from '../../schema'
 import { GenericError, ObjectNotFound } from '../error-pages'
+import { useCalendarNavigation } from './hooks'
 
 const query = gql`
   query scheduleCalendarShifts(
@@ -59,25 +59,16 @@ function ScheduleCalendarQuery({
 }: ScheduleCalendarQueryProps): JSX.Element | null {
   const width = useWidth()
   const isMobile = isWidthDown('sm', width)
-
-  const [weekly] = useURLParam<boolean>('weekly', false)
-  const [start] = useURLParam(
-    'start',
-    weekly
-      ? getStartOfWeek().toUTC().toISO()
-      : DateTime.local().startOf('month').toUTC().toISO(),
-  )
+  const { weekly, start } = useCalendarNavigation()
 
   const [queryStart, queryEnd] = weekly
     ? [
-        getStartOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
-        getEndOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
+        getStartOfWeek(DateTime.fromISO(start)).toISO(),
+        getEndOfWeek(DateTime.fromISO(start)).toISO(),
       ]
     : [
-        getStartOfWeek(DateTime.fromISO(start).startOf('month'))
-          .toUTC()
-          .toISO(),
-        getEndOfWeek(DateTime.fromISO(start).endOf('month')).toUTC().toISO(),
+        getStartOfWeek(DateTime.fromISO(start).startOf('month')).toISO(),
+        getEndOfWeek(DateTime.fromISO(start).endOf('month')).toISO(),
       ]
 
   const { data, error, loading } = useQuery<Query>(query, {

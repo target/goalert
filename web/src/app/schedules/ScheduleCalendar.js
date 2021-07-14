@@ -189,7 +189,7 @@ function ScheduleCalendar(props) {
             }}
           >
             <Calendar
-              date={new Date(start)}
+              date={DateTime.fromISO(start).toJSDate()}
               localizer={localizer}
               events={getCalEvents(shifts, temporarySchedules)}
               style={{
