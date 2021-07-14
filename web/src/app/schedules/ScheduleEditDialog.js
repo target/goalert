@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
@@ -24,46 +24,21 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleEditDialog extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function ScheduleEditDialog(props) {
+  const [value, setValue] = useState(null)
 
-  state = {
-    value: null,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        render={({ data }) => this.renderMutation(data.schedule)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(...args) => this.renderForm(data, ...args)}
-      </Mutation>
-    )
-  }
-
-  renderForm = (data, commit, status) => {
+  const renderForm = (data, commit, status) => {
     return (
       <FormDialog
-        onClose={this.props.onClose}
+        onClose={props.onClose}
         title='Edit Schedule'
         errors={nonFieldErrors(status.error)}
         onSubmit={() =>
           commit({
             variables: {
               input: {
-                id: this.props.scheduleID,
-                ...this.state.value,
+                id: props.scheduleID,
+                ...value,
               },
             },
           })
@@ -73,16 +48,37 @@ export default class ScheduleEditDialog extends React.PureComponent {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={
-              this.state.value || {
+              value || {
                 name: data.name,
                 description: data.description,
                 timeZone: data.timeZone,
               }
             }
-            onChange={(value) => this.setState({ value })}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  const renderMutation = (data) => {
+    return (
+      <Mutation mutation={mutation} onCompleted={props.onClose}>
+        {(...args) => renderForm(data, ...args)}
+      </Mutation>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID }}
+      render={({ data }) => renderMutation(data.schedule)}
+    />
+  )
+}
+
+ScheduleEditDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  onClose: p.func,
 }
