@@ -61,7 +61,11 @@ export default function App() {
   const authValid = useSelector(authSelector)
 
   if (!authValid) {
-    return <Login />
+    return (
+      <div className={classes.root}>
+        <Login />
+      </div>
+    )
   }
 
   let cyFormat = 'wide'

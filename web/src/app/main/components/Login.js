@@ -7,8 +7,7 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Divider from '@material-ui/core/Divider'
 import Hidden from '@material-ui/core/Hidden'
-import { makeStyles, isWidthDown } from '@material-ui/core'
-import useWidth from '../../util/useWidth'
+import { makeStyles } from '@material-ui/core'
 import { getParameterByName } from '../../util/query_param'
 import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
 import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
@@ -17,8 +16,6 @@ import logoImgSrc from '../../public/goalert-logo-scaled@2.png'
 import { pathPrefix } from '../../env'
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
-const BACKGROUND_URL =
-  'https://www.toptal.com/designers/subtlepatterns/patterns/dust_scratches.png'
 
 const useStyles = makeStyles({
   card: {
@@ -63,8 +60,6 @@ const useStyles = makeStyles({
 
 export default function Login() {
   const classes = useStyles()
-  const width = useWidth()
-  const isFullScreen = isWidthDown('md', width)
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -75,19 +70,6 @@ export default function Login() {
       .then((data) => setProviders(data))
       .catch((err) => setError(err))
   }, [])
-
-  /*
-   * Sets the background image for the login page
-   *
-   * Background pattern from Toptal Subtle Patterns
-   */
-  useEffect(() => {
-    if (isFullScreen) {
-      document.body.style.backgroundColor = `white` // overrides light grey background
-    } else {
-      document.body.style.backgroundImage = `url('${BACKGROUND_URL}')` // overrides light grey background
-    }
-  }, [isFullScreen])
 
   /*
    * Renders a field from a provider
