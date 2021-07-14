@@ -41,9 +41,7 @@ const useStyles = makeStyles({
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
-  const [fromNumber, setFromNumber] = useState(
-    (cfgFromNumber as string).replace(/^\+/, ''),
-  )
+  const [fromNumber, setFromNumber] = useState(cfgFromNumber)
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -51,7 +49,7 @@ export default function AdminSMSSend(): JSX.Element {
   const [send, sendStatus] = useMutation(sendSMSMutation, {
     variables: {
       input: {
-        from: '+' + fromNumber,
+        from: fromNumber,
         to: toNumber,
         body,
       },
