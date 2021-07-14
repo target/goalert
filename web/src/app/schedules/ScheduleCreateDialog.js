@@ -25,8 +25,6 @@ export default function ScheduleCreateDialog(props) {
     favorite: true,
   })
 
-  return <Mutation mutation={mutation}>{renderForm}</Mutation>
-
   function renderForm(commit, status) {
     if (status.data && status.data.createSchedule) {
       return (
@@ -65,4 +63,5 @@ export default function ScheduleCreateDialog(props) {
       />
     )
   }
+  return <Mutation mutation={mutation}>{renderForm}</Mutation>
 }
