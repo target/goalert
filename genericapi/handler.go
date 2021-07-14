@@ -56,7 +56,7 @@ func (h *Handler) ServeHeartbeatCheck(w http.ResponseWriter, r *http.Request) {
 	monitorID := parts[len(parts)-1]
 
 	err := retry.DoTemporaryError(func(_ int) error {
-		return h.c.HeartbeatStore.Heartbeat(ctx, monitorID)
+		return h.c.HeartbeatStore.RecordHeartbeat(ctx, monitorID)
 	},
 		retry.Log(ctx),
 		retry.Limit(12),

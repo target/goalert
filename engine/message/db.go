@@ -60,8 +60,7 @@ type DB struct {
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
 
-	insertAlertBundle  *sql.Stmt
-	insertStatusBundle *sql.Stmt
+	insertAlertBundle *sql.Stmt
 
 	deleteAny *sql.Stmt
 
@@ -315,28 +314,6 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			where id = any($7::uuid[])
 		`),
 
-		insertStatusBundle: p.P(`
-			with new_msg as (
-				insert into outgoing_messages (
-					id,
-					created_at,
-					message_type,
-					contact_method_id,
-					user_id,
-					alert_log_id,
-					status_alert_ids
-				) values (
-					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
-				) returning (id)
-			)
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = now(),
-				status_details = (select id from new_msg)
-			where id = any($7::uuid[])
-		`),
-
 		messages: p.P(`
 			select
 				msg.id,
@@ -456,14 +433,15 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	cfg := config.FromContext(ctx)
-	if cfg.General.MessageBundles {
-		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
-			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
-			return errors.Wrap(err, "insert status bundle")
-		})
+	result, toDelete = dedupStatusMessages(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("delete duplicate status updates: %w", err)
 		}
+	}
+
+	if cfg.General.MessageBundles {
 		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
 			var cmID, chanID, userID sql.NullString
 			if msg.UserID != "" {
