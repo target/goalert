@@ -31,12 +31,18 @@ const sendSMSMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   twilioLink: {
-    display: 'flex',
     alignItems: 'center',
+    display: 'flex',
+    width: 'fit-content',
+    wordBreak: 'break-all',
+    color: theme.palette.secondary.main,
   },
-})
+  twilioLinkIcon: {
+    paddingLeft: 4,
+  },
+}))
 
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
@@ -52,7 +58,7 @@ export default function AdminSMSSend(): JSX.Element {
     variables: {
       input: {
         from: '+' + fromNumber,
-        to: '+' + toNumber,
+        to: toNumber,
         body,
       },
     },
@@ -109,11 +115,16 @@ export default function AdminSMSSend(): JSX.Element {
               loading={sendStatus.loading}
             />
             {sendStatus.data?.debugSendSMS && (
-              <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
-                <div className={classes.twilioLink}>
-                  <Typography>Open in Twilio&nbsp;</Typography>
-                  <OpenInNewIcon fontSize='small' />
-                </div>
+              <AppLink
+                className={classes.twilioLink}
+                to={sendStatus.data.debugSendSMS.providerURL}
+                newTab
+              >
+                <Typography>Open in Twilio</Typography>
+                <OpenInNewIcon
+                  className={classes.twilioLinkIcon}
+                  fontSize='small'
+                />
               </AppLink>
             )}
           </CardActions>

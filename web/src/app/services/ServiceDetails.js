@@ -12,7 +12,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
-import AppLink from '../util/AppLink'
+import { MuiLink } from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 
 const query = gql`
@@ -93,9 +93,9 @@ export default function ServiceDetails({ serviceID }) {
           <React.Fragment>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
-              <AppLink to={`/escalation-policies/${data.service.ep.id}`}>
+              <MuiLink to={`/escalation-policies/${data.service.ep.id}`}>
                 {data.service.ep.name}
-              </AppLink>
+              </MuiLink>
             ) : (
               <Spinner text='Looking up policy...' />
             )}

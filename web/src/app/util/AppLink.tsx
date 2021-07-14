@@ -48,6 +48,11 @@ export function MuiLink(props: MuiLinkProps): JSX.Element {
   const { to: _to, newTab, ...other } = props
   const path = usePath(_to)
 
+  if (newTab) {
+    other.target = '_blank'
+    other.rel = 'noopener noreferrer'
+  }
+
   return (
     <Link component={RouterLink} to={path} {...other}>
       {props.children}

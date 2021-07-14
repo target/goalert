@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core'
 
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import AppLink from '../../../util/AppLink'
+import AppLink, { MuiLink } from '../../../util/AppLink'
 
 const serviceQuery = gql`
   query service($id: ID!) {
@@ -55,18 +55,16 @@ export default function CreateAlertServiceListItem(props) {
     <ListItem key={id} divider>
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
-          <Typography>
-            <AppLink to={serviceURL} newTab>
-              {service.name}
-            </AppLink>
-          </Typography>
+          <MuiLink to={serviceURL} newTab>
+            {service.name}
+          </MuiLink>
           <Typography color='error' variant='caption'>
             {err}
           </Typography>
         </span>
 
         <AppLink to={serviceURL} newTab>
-          <OpenInNewIcon fontSize='small' />
+          <OpenInNewIcon fontSize='small' color='secondary' />
         </AppLink>
       </ListItemText>
     </ListItem>

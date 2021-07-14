@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import CopyText from '../../../util/CopyText'
-import AppLink from '../../../util/AppLink'
+import AppLink, { MuiLink } from '../../../util/AppLink'
 
 const useStyles = makeStyles({
   listItemText: {
@@ -37,16 +37,16 @@ export default function CreateAlertListItem(props) {
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <AppLink to={alertURL} newTab>
+            <MuiLink to={alertURL} newTab>
               #{id}
-            </AppLink>
+            </MuiLink>
           </Typography>
         </span>
 
         <span className={classes.endLinks}>
           <CopyText value={alertURL} placement='left' />
           <AppLink to={alertURL} newTab className={classes.openInNewTab}>
-            <OpenInNewIcon fontSize='small' />
+            <OpenInNewIcon fontSize='small' color='secondary' />
           </AppLink>
         </span>
       </ListItemText>

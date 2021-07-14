@@ -31,7 +31,6 @@ const useStyles = makeStyles((theme) => {
     alert: {
       margin: '0.5rem 0 0.5rem 0',
     },
-    background: { backgroundColor: 'red' },
     highlightedItem: {
       width: '100%',
       borderLeft: '6px solid ' + activeBorderCol,
@@ -186,7 +185,7 @@ export default function FlatList({
 
   function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
     return (
-      <ListSubheader key={idx} className={classes.background}>
+      <ListSubheader key={idx}>
         <Typography
           component='h2'
           variant='subtitle1'

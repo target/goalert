@@ -15,7 +15,7 @@ import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useConfigValue } from '../util/RequireConfig'
-import AppLink from '../util/AppLink'
+import { MuiLink } from '../util/AppLink'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -88,9 +88,9 @@ export default function UserCalendarSubscriptionList(props) {
       subheaderDict[sub.schedule.name] = true
       items.push({
         subHeader: (
-          <AppLink to={`/schedules/${sub.scheduleID}`}>
+          <MuiLink to={`/schedules/${sub.scheduleID}`}>
             {sub.schedule.name}
-          </AppLink>
+          </MuiLink>
         ),
       })
     }

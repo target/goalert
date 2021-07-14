@@ -12,7 +12,7 @@ import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
-import AppLink from '../util/AppLink'
+import { MuiLink } from '../util/AppLink'
 
 import { makeStyles } from '@material-ui/core'
 import Spinner from '../loading/components/Spinner'
@@ -132,7 +132,7 @@ export default function IntegrationKeyList(props) {
               headerNote={
                 <React.Fragment>
                   API Documentation is available{' '}
-                  <AppLink to='/docs'>here</AppLink>.
+                  <MuiLink to='/docs'>here</MuiLink>.
                 </React.Fragment>
               }
               emptyMessage='No integration keys exist for this service.'
