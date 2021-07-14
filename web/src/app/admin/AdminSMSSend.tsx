@@ -52,7 +52,7 @@ export default function AdminSMSSend(): JSX.Element {
     variables: {
       input: {
         from: '+' + fromNumber,
-        to: '+' + toNumber,
+        to: toNumber,
         body,
       },
     },
