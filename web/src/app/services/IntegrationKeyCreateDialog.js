@@ -32,11 +32,8 @@ const query = gql`
   }
 `
 
-export default function IntegrationKeyCreateDialog() {
-  const [state, setState] = useState({
-    value: { name: '', type: 'generic' },
-    errors: [],
-  })
+export default function IntegrationKeyCreateDialog(props) {
+  const [value, setValue] = useState({ name: '', type: 'generic' })
 
   const renderDialog = (commit, status) => {
     const { loading, error } = status
@@ -50,7 +47,7 @@ export default function IntegrationKeyCreateDialog() {
         onSubmit={() => {
           return commit({
             variables: {
-              input: { ...state.value, serviceID: props.serviceID },
+              input: { ...value, serviceID: props.serviceID },
             },
           })
         }}
@@ -58,8 +55,8 @@ export default function IntegrationKeyCreateDialog() {
           <IntegrationKeyForm
             errors={fieldErrors(error)}
             disabled={loading}
-            value={state.value}
-            onChange={(value) => setState({ value })}
+            value={value}
+            onChange={(value) => setValue({ value })}
           />
         }
       />
