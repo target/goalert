@@ -34,7 +34,7 @@ func TestThrottle(t *testing.T) {
 					cur = cur.Add(time.Minute)
 				}
 
-				assert.Equal(t, nextMessage.String(), cur.String())
+				assert.Equal(t, nextMessage.In(n.Location()).Format(time.UnixDate), cur.Format(time.UnixDate))
 				sentTimes = append(sentTimes, nextMessage)
 			}
 		})
@@ -72,5 +72,36 @@ func TestThrottle(t *testing.T) {
 		n.Add(15*time.Minute),
 		n.Add(18*time.Minute),
 	)
+
+	t.Run("max delay issue", func(t *testing.T) {
+		cfg := message.ThrottleRules{
+			{Count: 3, Per: 15 * time.Minute},                 // max delay = 12 minutes
+			{Count: 7, Per: 60 * time.Minute, Smooth: true},   // max delay = (7-3=4) per (60-15=45) min; 45/4 = 11.25 min delay
+			{Count: 15, Per: 180 * time.Minute, Smooth: true}, //max delay = (15-7=8) per (180-60=120) min; 120/8 = 15 min max delay
+		}
+
+		times := []time.Time{
+			time.Date(2021, 7, 9, 8, 37, 0, 0, time.UTC),
+			time.Date(2021, 7, 9, 8, 27, 28, 0, time.UTC),
+			time.Date(2021, 7, 9, 8, 19, 40, 0, time.UTC),
+			time.Date(2021, 7, 9, 7, 34, 35, 0, time.UTC),
+			time.Date(2021, 7, 9, 7, 21, 30, 0, time.UTC),
+			time.Date(2021, 7, 9, 7, 16, 40, 0, time.UTC),
+			time.Date(2021, 7, 9, 7, 7, 31, 0, time.UTC),
+			time.Date(2021, 7, 9, 6, 54, 40, 0, time.UTC),
+			time.Date(2021, 7, 9, 5, 28, 33, 0, time.UTC),
+			time.Date(2021, 7, 9, 5, 27, 25, 0, time.UTC),
+			time.Date(2021, 7, 9, 4, 34, 30, 0, time.UTC),
+			time.Date(2021, 7, 9, 4, 21, 28, 0, time.UTC),
+			time.Date(2021, 7, 9, 4, 8, 35, 0, time.UTC),
+		}
+
+		th := message.NewThrottle(cfg, time.Date(2021, 7, 9, 8, 57, 0, 0, time.UTC), true)
+		for _, ts := range times {
+			th.Record(message.Message{SentAt: ts})
+		}
+		isThrottled := th.InCooldown(message.Message{})
+		assert.False(t, isThrottled, "should not be throttled")
+	})
 
 }
