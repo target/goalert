@@ -1,6 +1,6 @@
 import React from 'react'
-import AppLink from '../util/AppLink'
+import { MuiLink } from '../util/AppLink'
 
 export const ScheduleLink = (schedule) => {
-  return <AppLink to={`/schedules/${schedule.id}`}>{schedule.name}</AppLink>
+  return <MuiLink to={`/schedules/${schedule.id}`}>{schedule.name}</MuiLink>
 }

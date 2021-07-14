@@ -23,7 +23,7 @@ import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
-import AppLink from '../../util/AppLink'
+import { MuiLink } from '../../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
@@ -308,11 +308,11 @@ function AlertDetails(props) {
       <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
         <CardContent>
           <Typography component='h3' variant='h5'>
-            <AppLink
+            <MuiLink
               to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
             >
               Escalation Policy
-            </AppLink>
+            </MuiLink>
           </Typography>
         </CardContent>
         <CardContent className={classes.tableCardContent}>
