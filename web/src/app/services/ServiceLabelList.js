@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { makeStyles } from '@material-ui/core'
 import { gql } from '@apollo/client'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
@@ -38,29 +38,18 @@ const sortItems = (a, b) => {
   return 0
 }
 
-@withStyles(styles)
-export default class ServiceLabelList extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-  }
+const useStyles = makeStyles(styles)
 
-  state = {
+export default function ServiceLabelList(props) {
+  const [value, setValue] = useState({
     create: false,
     editKey: null,
     deleteKey: null,
-  }
+  })
 
-  renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ serviceID: this.props.serviceID }}
-        render={({ data }) => this.renderList(data.service.labels)}
-      />
-    )
-  }
+  const classes = useStyles()
 
-  renderList(labels) {
+  function renderList(labels) {
     const items = (labels || [])
       .slice()
       .sort(sortItems)
@@ -72,11 +61,11 @@ export default class ServiceLabelList extends React.PureComponent {
             actions={[
               {
                 label: 'Edit',
-                onClick: () => this.setState({ editKey: label.key }),
+                onClick: () => setValue({ editKey: label.key }),
               },
               {
                 label: 'Delete',
-                onClick: () => this.setState({ deleteKey: label.key }),
+                onClick: () => setValue({ deleteKey: label.key }),
               },
             ]}
           />
@@ -92,39 +81,48 @@ export default class ServiceLabelList extends React.PureComponent {
     )
   }
 
-  render() {
+  function renderQuery() {
     return (
-      <React.Fragment>
-        <Grid item xs={12} className={this.props.classes.spacing}>
-          <Card>
-            <CardContent>{this.renderQuery()}</CardContent>
-          </Card>
-        </Grid>
-        <CreateFAB
-          onClick={() => this.setState({ create: true })}
-          title='Add Label'
-        />
-        {this.state.create && (
-          <ServiceLabelSetDialog
-            serviceID={this.props.serviceID}
-            onClose={() => this.setState({ create: false })}
-          />
-        )}
-        {this.state.editKey && (
-          <ServiceLabelEditDialog
-            serviceID={this.props.serviceID}
-            labelKey={this.state.editKey}
-            onClose={() => this.setState({ editKey: null })}
-          />
-        )}
-        {this.state.deleteKey && (
-          <ServiceLabelDeleteDialog
-            serviceID={this.props.serviceID}
-            labelKey={this.state.deleteKey}
-            onClose={() => this.setState({ deleteKey: null })}
-          />
-        )}
-      </React.Fragment>
+      <Query
+        query={query}
+        variables={{ serviceID: props.serviceID }}
+        render={({ data }) => renderList(data.service.labels)}
+      />
     )
   }
+
+  return (
+    <React.Fragment>
+      <Grid item xs={12} className={classes.spacing}>
+        <Card>
+          <CardContent>{renderQuery()}</CardContent>
+        </Card>
+      </Grid>
+      <CreateFAB onClick={() => setValue({ create: true })} title='Add Label' />
+      {value.create && (
+        <ServiceLabelSetDialog
+          serviceID={props.serviceID}
+          onClose={() => setValue({ create: false })}
+        />
+      )}
+      {value.editKey && (
+        <ServiceLabelEditDialog
+          serviceID={props.serviceID}
+          labelKey={value.editKey}
+          onClose={() => setValue({ editKey: null })}
+        />
+      )}
+      {value.deleteKey && (
+        <ServiceLabelDeleteDialog
+          serviceID={props.serviceID}
+          labelKey={value.deleteKey}
+          onClose={() => setValue({ deleteKey: null })}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+
+ServiceLabelList.propTypes = {
+  serviceID: p.string.isRequired,
 }
