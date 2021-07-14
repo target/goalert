@@ -413,7 +413,7 @@ function AlertDetails(props) {
     if (status === 'StatusUnacknowledged') {
       options = [
         {
-          icon: <AcknowledgeIcon />,
+          icon: <AcknowledgeIcon color='secondary' />,
           label: 'Acknowledge',
           handleOnClick: () => ack(),
         },
@@ -424,12 +424,12 @@ function AlertDetails(props) {
     return [
       ...options,
       {
-        icon: <CloseIcon />,
+        icon: <CloseIcon color='secondary' />,
         label: 'Close',
         handleOnClick: () => close(),
       },
       {
-        icon: <EscalateIcon />,
+        icon: <EscalateIcon color='secondary' />,
         label: 'Escalate',
         handleOnClick: () => escalate(),
       },
