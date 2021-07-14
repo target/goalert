@@ -79,7 +79,7 @@ func TestManyAlerts(t *testing.T) {
 		h.FastForward(20 * time.Minute)
 	}
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 8; i++ {
 		createAndClose(i)
 	}
 
