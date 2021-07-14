@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
+import ButtonBase from '@material-ui/core/ButtonBase'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
@@ -40,6 +41,9 @@ const useStyles = makeStyles({
   // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
   // so that all three passed contrast requirements (WCAG 2 AA)
   ...textColors,
+  listItem: {
+    cursor: 'default',
+  },
   logTimeContainer: {
     width: 'max-content',
   },
@@ -131,7 +135,7 @@ export default function AlertDetailLogs(props) {
     }
 
     return (
-      <ListItem key={idx} divider>
+      <ListItem className={classes.listItem} key={idx} button disableRipple>
         <ListItemText
           primary={event.message}
           secondary={details}
