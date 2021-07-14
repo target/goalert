@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import p from 'prop-types'
 import IconButton from '@material-ui/core/IconButton'
 import { MoreHoriz as OptionsIcon } from '@material-ui/icons'
@@ -15,9 +15,10 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, icon, ref, actions, placement }) {
+export default function OtherActions({ color, icon, actions, placement }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
+  const ref = useRef(null)
 
   return (
     <React.Fragment>
