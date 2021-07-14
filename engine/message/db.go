@@ -410,10 +410,12 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 
 		if !msg.SentAt.IsZero() {
+			// if the message was sent, just add it to the map
 			db.sentMessages[msg.ID] = msg
-		} else {
-			result = append(result, msg)
+			continue
 		}
+
+		result = append(result, msg)
 	}
 
 	for id, msg := range db.sentMessages {
