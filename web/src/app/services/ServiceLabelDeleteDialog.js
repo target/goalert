@@ -25,8 +25,14 @@ const mutation = gql`
   }
 `
 
-export default function ServiceLabelDeleteDialog() {
-  function renderMutation() {
+export default class ServiceLabelDeleteDialog extends React.PureComponent {
+  static propTypes = {
+    serviceID: p.string.isRequired,
+    labelKey: p.string.isRequired,
+    onClose: p.func,
+  }
+
+  renderMutation() {
     return (
       <Mutation
         mutation={mutation}
@@ -55,7 +61,7 @@ export default function ServiceLabelDeleteDialog() {
     )
   }
 
-  const renderDialog = (commit, mutStatus) => {
+  renderDialog(commit, mutStatus) {
     const { loading, error } = mutStatus
 
     return (
@@ -85,11 +91,7 @@ export default function ServiceLabelDeleteDialog() {
     )
   }
 
-  return renderMutation()
-}
-
-ServiceLabelDeleteDialog.propTypes = {
-  serviceID: p.string.isRequired,
-  labelKey: p.string.isRequired,
-  onClose: p.func,
+  render() {
+    return this.renderMutation()
+  }
 }
