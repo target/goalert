@@ -311,9 +311,9 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			set
 				last_status = 'bundled',
 				last_status_at = now(),
-				status_details = (select id from new_msg),
+				status_details = $1,
 				cycle_id = null
-			where id = any($1::uuid[])
+			where id = any($2::uuid[])
 		`),
 
 		messages: p.P(`
@@ -473,7 +473,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 				return err
 			}
 
-			_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, sqlutil.UUIDArray(ids))
+			_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, msg.ID, sqlutil.UUIDArray(ids))
 			return err
 		})
 		if err != nil {
