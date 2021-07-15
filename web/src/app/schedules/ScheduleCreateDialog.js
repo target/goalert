@@ -57,7 +57,7 @@ export default function ScheduleCreateDialog(props) {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={value}
-            onChange={(value) => setValue({ value })}
+            onChange={(value) => setValue(value)}
           />
         }
       />
