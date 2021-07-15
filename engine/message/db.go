@@ -448,7 +448,11 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	result, err = dedupAlerts(result, func(parentID string, duplicateIDs []string) error {
 		_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, parentID, sqlutil.UUIDArray(duplicateIDs))
-		return fmt.Errorf("bundle '%v' by pointing to '%s': %w", duplicateIDs, parentID, err)
+		if err != nil {
+			return fmt.Errorf("bundle '%v' by pointing to '%s': %w", duplicateIDs, parentID, err)
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("dedup alerts: %w", err)
