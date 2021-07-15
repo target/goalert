@@ -351,21 +351,13 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		sentSince = cutoff
 	}
 
-	result := make([]Message, 0, len(db.sentMessages))
-	for id, msg := range db.sentMessages {
-		if msg.SentAt.Before(cutoff) {
-			delete(db.sentMessages, id)
-			continue
-		}
-		result = append(result, msg)
-	}
-
 	rows, err := tx.StmtContext(ctx, db.messages).QueryContext(ctx, sentSince)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
 	defer rows.Close()
 
+	result := make([]Message, 0, len(db.sentMessages))
 	for rows.Next() {
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, scheduleID sql.NullString
@@ -417,10 +409,21 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			continue
 		}
 
-		result = append(result, msg)
 		if !msg.SentAt.IsZero() {
+			// if the message was sent, just add it to the map
 			db.sentMessages[msg.ID] = msg
+			continue
 		}
+
+		result = append(result, msg)
+	}
+
+	for id, msg := range db.sentMessages {
+		if msg.SentAt.Before(cutoff) {
+			delete(db.sentMessages, id)
+			continue
+		}
+		result = append(result, msg)
 	}
 	db.lastSent = now
 
