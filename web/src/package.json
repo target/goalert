@@ -73,7 +73,7 @@
     "@types/diff": "5.0.1",
     "@types/history": "4.7.9",
     "@types/jest": "26.0.24",
-    "@types/lodash": "4.14.170",
+    "@types/lodash": "4.14.171",
     "@types/luxon": "1.27.1",
     "@types/react": "17.0.14",
     "@types/react-beautiful-dnd": "^13.1.0",
