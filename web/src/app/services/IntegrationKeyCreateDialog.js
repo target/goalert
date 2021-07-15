@@ -34,6 +34,7 @@ const query = gql`
 
 export default function IntegrationKeyCreateDialog(props) {
   const [value, setValue] = useState({ name: '', type: 'generic' })
+  const { serviceID, onClose } = props
 
   const renderDialog = (commit, status) => {
     const { loading, error } = status
@@ -43,11 +44,11 @@ export default function IntegrationKeyCreateDialog(props) {
         title='Create New Integration Key'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={props.onClose}
+        onClose={onClose}
         onSubmit={() => {
           return commit({
             variables: {
-              input: { ...value, serviceID: props.serviceID },
+              input: { ...value, serviceID: serviceID },
             },
           })
         }}
@@ -56,7 +57,7 @@ export default function IntegrationKeyCreateDialog(props) {
             errors={fieldErrors(error)}
             disabled={loading}
             value={value}
-            onChange={(value) => setValue({ value })}
+            onChange={(value) => setValue(value)}
           />
         }
       />
@@ -66,15 +67,15 @@ export default function IntegrationKeyCreateDialog(props) {
   return (
     <Mutation
       mutation={mutation}
-      onCompleted={props.onClose}
+      onCompleted={onClose}
       update={(cache, { data: { createIntegrationKey } }) => {
         const { service } = cache.readQuery({
           query,
-          variables: { serviceID: props.serviceID },
+          variables: { serviceID: serviceID },
         })
         cache.writeQuery({
           query,
-          variables: { serviceID: props.serviceID },
+          variables: { serviceID: serviceID },
           data: {
             service: {
               ...service,
