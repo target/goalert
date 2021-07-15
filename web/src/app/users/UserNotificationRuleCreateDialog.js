@@ -17,7 +17,7 @@ const createMutation = gql`
 `
 
 export default function UserNotificationRuleCreateDialog({ onClose, userID }) {
-  const [value, setValue] = useState({ contactMethodID: '', delayMinutes: '0' })
+  const [value, setValue] = useState({ contactMethodID: '', delayMinutes: 0 })
 
   function renderDialog(commit, status) {
     const { loading, error } = status
