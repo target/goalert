@@ -41,12 +41,10 @@ const sortItems = (a, b) => {
 const useStyles = makeStyles(styles)
 
 export default function ServiceLabelList(props) {
-  const [value, setValue] = useState({
-    create: false,
-    editKey: null,
-    deleteKey: null,
-  })
-
+  const { serviceID } = props
+  const [create, setCreate] = useState(false)
+  const [editKey, setEditKey] = useState(null)
+  const [deleteKey, setDeleteKey] = useState(null)
   const classes = useStyles()
 
   function renderList(labels) {
@@ -61,11 +59,11 @@ export default function ServiceLabelList(props) {
             actions={[
               {
                 label: 'Edit',
-                onClick: () => setValue({ editKey: label.key }),
+                onClick: () => setEditKey(label.key),
               },
               {
                 label: 'Delete',
-                onClick: () => setValue({ deleteKey: label.key }),
+                onClick: () => setDeleteKey(label.key),
               },
             ]}
           />
@@ -85,7 +83,7 @@ export default function ServiceLabelList(props) {
     return (
       <Query
         query={query}
-        variables={{ serviceID: props.serviceID }}
+        variables={{ serviceID: serviceID }}
         render={({ data }) => renderList(data.service.labels)}
       />
     )
@@ -98,25 +96,25 @@ export default function ServiceLabelList(props) {
           <CardContent>{renderQuery()}</CardContent>
         </Card>
       </Grid>
-      <CreateFAB onClick={() => setValue({ create: true })} title='Add Label' />
-      {value.create && (
+      <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
+      {create && (
         <ServiceLabelSetDialog
-          serviceID={props.serviceID}
-          onClose={() => setValue({ create: false })}
+          serviceID={serviceID}
+          onClose={() => setCreate(false)}
         />
       )}
-      {value.editKey && (
+      {editKey && (
         <ServiceLabelEditDialog
-          serviceID={props.serviceID}
-          labelKey={value.editKey}
-          onClose={() => setValue({ editKey: null })}
+          serviceID={serviceID}
+          labelKey={editKey}
+          onClose={() => setEditKey(null)}
         />
       )}
-      {value.deleteKey && (
+      {deleteKey && (
         <ServiceLabelDeleteDialog
-          serviceID={props.serviceID}
-          labelKey={value.deleteKey}
-          onClose={() => setValue({ deleteKey: null })}
+          serviceID={serviceID}
+          labelKey={deleteKey}
+          onClose={() => setDeleteKey(null)}
         />
       )}
     </React.Fragment>
