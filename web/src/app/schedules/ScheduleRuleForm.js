@@ -102,6 +102,7 @@ const query = gql`
 const useStyles = makeStyles(styles)
 
 export default function ScheduleRuleForm(props) {
+  const { value, scheduleID, onChange } = props
   const classes = useStyles()
   const [zone] = useURLParam('tz', 'local')
   function renderRuleField(idx) {
@@ -175,9 +176,9 @@ export default function ScheduleRuleForm(props) {
             <IconButton
               aria-label='Delete rule'
               onClick={() =>
-                props.onChange({
-                  ...props.value,
-                  rules: props.value.rules.filter((r, i) => i !== idx),
+                onChange({
+                  ...value,
+                  rules: value.rules.filter((r, i) => i !== idx),
                 })
               }
             >
@@ -205,7 +206,7 @@ export default function ScheduleRuleForm(props) {
             {/* Purposefully leaving out of form, as it's only used for converting display times. */}
             <ScheduleTZFilter
               label={(tz) => `Configure in ${tz}`}
-              scheduleID={props.scheduleID}
+              scheduleID={scheduleID}
             />
           </Grid>
           <Grid item xs={12}>
@@ -238,9 +239,9 @@ export default function ScheduleRuleForm(props) {
                     <IconButton
                       aria-label='Add rule'
                       onClick={() =>
-                        props.onChange({
-                          ...props.value,
-                          rules: props.value.rules.concat({
+                        onChange({
+                          ...value,
+                          rules: value.rules.concat({
                             start: DateTime.local()
                               .startOf('day')
                               .toUTC()
