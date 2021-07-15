@@ -40,6 +40,14 @@ const queries = {
       }
     }
   `,
+  user: gql`
+    query userFavQuery($id: ID!) {
+      data: user(id: $id) {
+        id
+        isFavorite
+      }
+    }
+  `,
 }
 
 const mutation = gql`
@@ -62,6 +70,9 @@ export function QuerySetFavoriteButton(props) {
   } else if (props.escalationPolicyID) {
     typeName = 'escalationPolicy'
     id = props.escalationPolicyID
+  } else if (props.userID) {
+    typeName = 'user'
+    id = props.userID
   } else {
     throw new Error('unknown type')
   }
@@ -113,5 +124,6 @@ QuerySetFavoriteButton.propTypes = {
     rotationID: p.string,
     scheduleID: p.string,
     escalationPolicyID: p.string,
+    userID: p.string,
   }),
 }

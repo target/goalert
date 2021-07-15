@@ -457,6 +457,7 @@ type ComplexityRoot struct {
 		ContactMethods        func(childComplexity int) int
 		Email                 func(childComplexity int) int
 		ID                    func(childComplexity int) int
+		IsFavorite            func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		NotificationRules     func(childComplexity int) int
 		OnCallSteps           func(childComplexity int) int
@@ -687,6 +688,7 @@ type UserResolver interface {
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
 	Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
+	IsFavorite(ctx context.Context, obj *user.User) (bool, error)
 }
 type UserCalendarSubscriptionResolver interface {
 	ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
@@ -2785,6 +2787,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.isFavorite":
+		if e.complexity.User.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.User.IsFavorite(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -3542,6 +3551,7 @@ input CreateUserInput {
   name: String
   email: String
   role: UserRole
+  favorite: Boolean
 }
 
 input CreateUserCalendarSubscriptionInput {
@@ -3944,6 +3954,12 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input AlertSearchOptions {
@@ -4214,6 +4230,8 @@ type User {
   sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+
+  isFavorite: Boolean!
 }
 
 type UserSession {
@@ -14603,6 +14621,41 @@ func (ec *executionContext) _User_onCallSteps(ctx context.Context, field graphql
 	return ec.marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐStepᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_isFavorite(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().IsFavorite(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserCalendarSubscription_id(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17862,6 +17915,14 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "favorite":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -19583,6 +19644,22 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CMType"))
 			it.CMType, err = ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesOnly":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
+			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesFirst":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
+			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22419,6 +22496,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_onCallSteps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "isFavorite":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_isFavorite(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

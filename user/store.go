@@ -91,9 +91,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findMany: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
-			FROM users
-			WHERE id = any($1)
+				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, fav is distinct from null
+			FROM users u
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_user_id = u.id AND fav.user_id = $2
+			WHERE u.id = any($1)
 		`),
 
 		deleteOne:          p.P(`DELETE FROM users WHERE id = $1`),
@@ -104,9 +106,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findOne: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
-			FROM users
-			WHERE id = $1
+				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, fav is distinct from null
+			FROM users u
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_user_id = u.id AND fav.user_id = $2
+			WHERE u.id = $1
 		`),
 		findOneForUpdate: p.P(`
 			SELECT
@@ -452,8 +456,8 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	userID := permission.UserID(ctx)
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

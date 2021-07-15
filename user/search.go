@@ -29,20 +29,33 @@ type SearchOptions struct {
 
 	// CMType is matched against the user's contact method type.
 	CMType contactmethod.Type `json:"t,omitempty"`
+
+	// FavoritesUserID specifies the UserID whose favorite users want to be displayed.
+	FavoritesUserID string `json:"u,omitempty"`
+
+	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
+	FavoritesOnly bool `json:"g,omitempty"`
+
+	// FavoritesFirst indicates the user marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	FavoritesFirst bool `json:"f,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	Name string `json:"n,omitempty"`
+	Name       string `json:"n,omitempty"`
+	IsFavorite bool   `json:"f,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	SELECT DISTINCT ON (lower(usr.name))
-		usr.id, usr.name, usr.email, usr.role
+	SELECT DISTINCT ON ({{ .OrderBy }})
+		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
 	FROM users usr
 	{{ if .CMValue }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
 	{{ end }}
+	{{if not .FavoritesOnly}}
+		LEFT {{end}} JOIN user_favorites fav on usr.id = fav.tgt_user_id 
+			AND {{if .FavoritesUserID}} fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
@@ -51,7 +64,13 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		AND usr.name ILIKE :search
 	{{end}}
 	{{if .After.Name}}
-		AND lower(usr.name) > lower(:afterName)
+	AND {{if not .FavoritesFirst}}
+		lower(usr.name) > lower(:afterName)
+	{{else if .After.IsFavorite}}
+		((fav IS DISTINCT FROM NULL AND lower(usr.name) > lower(:afterName)) OR fav isnull)
+	{{else}}
+		(fav isnull AND lower(usr.name) > lower(:afterName))
+	{{end}}
 	{{end}}
 	{{ if .CMValue }}
 		AND ucm.value = :CMValue
@@ -59,11 +78,18 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .CMType }}
 		AND ucm.type = :CMType
 	{{ end }}
-	ORDER BY lower(usr.name)
+	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
+
+func (opts renderData) OrderBy() string {
+	if opts.FavoritesFirst {
+		return "fav isnull, lower(usr.name)"
+	}
+	return "lower(usr.name)"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -95,6 +121,12 @@ func (opts renderData) Normalize() (*renderData, error) {
 		}
 		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice))
 	}
+	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
+		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	return &opts, err
 }
@@ -106,12 +138,14 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("CMValue", opts.CMValue),
 		sql.Named("CMType", opts.CMType),
+		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }
 
 // Search performs a paginated search of users with the given options.
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]User, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
+	userCheck := permission.User
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +160,13 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]User, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "render query")
 	}
+	if opts.FavoritesUserID != "" {
+		userCheck = permission.MatchUser(opts.FavoritesUserID)
+	}
+	err = permission.LimitCheckAny(ctx, permission.System, userCheck)
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -139,7 +180,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]User, error)
 	var result []User
 	var u User
 	for rows.Next() {
-		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role)
+		err = rows.Scan(&u.ID, &u.Name, &u.Email, &u.Role, &u.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}

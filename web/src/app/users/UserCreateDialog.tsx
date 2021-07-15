@@ -27,6 +27,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
     email: '',
     isAdmin: false,
     name: '',
+    favorite: true,
   })
 
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
@@ -38,6 +39,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
         name: value.name ? value.name : null,
         email: value.email,
         role: value.isAdmin ? 'admin' : 'user',
+        favorite: true,
       },
     },
     onCompleted: (data) => history.push(`/users/${data.createUser.id}`),
