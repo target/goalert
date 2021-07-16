@@ -70,27 +70,6 @@ const renderDaysValue = (value) => {
   return parts.join(',')
 }
 
-const styles = () => {
-  return {
-    noPadding: {
-      padding: 0,
-    },
-    dayFilter: {
-      padding: 0,
-      paddingRight: '1em',
-    },
-    startEnd: {
-      padding: 0,
-      minWidth: '6em',
-      paddingRight: '1em',
-    },
-    tzNote: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-  }
-}
-
 const query = gql`
   query ($id: ID!) {
     schedule(id: $id) {
@@ -99,7 +78,24 @@ const query = gql`
     }
   }
 `
-const useStyles = makeStyles(styles)
+const useStyles = makeStyles({
+  noPadding: {
+    padding: 0,
+  },
+  dayFilter: {
+    padding: 0,
+    paddingRight: '1em',
+  },
+  startEnd: {
+    padding: 0,
+    minWidth: '6em',
+    paddingRight: '1em',
+  },
+  tzNote: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
 
 export default function ScheduleRuleForm(props) {
   const { value, scheduleID, onChange } = props
