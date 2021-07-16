@@ -5,7 +5,8 @@ import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import UserContactMethodSelect from './UserContactMethodSelect'
 
-export default function UserNotificationRuleForm({ userID, ...other }) {
+export default function UserNotificationRuleForm(props) {
+  const { userID, ...other } = props
   return (
     <FormContainer {...other} optionalLabels>
       <Grid container spacing={2}>
@@ -38,4 +39,20 @@ export default function UserNotificationRuleForm({ userID, ...other }) {
 
 UserNotificationRuleForm.propTypes = {
   userID: p.string.isRequired,
+
+  value: p.shape({
+    contactMethodID: p.string.isRequired,
+    delayMinutes: p.number.isRequired,
+  }).isRequired,
+
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf(['delayMinutes', 'contactMethodID']).isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
+
+  onChange: p.func,
+
+  disabled: p.bool,
 }
