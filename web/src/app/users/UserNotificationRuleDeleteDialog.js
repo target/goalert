@@ -10,11 +10,8 @@ const mutation = gql`
     deleteAll(input: [{ id: $id, type: notificationRule }])
   }
 `
-export default function UserNotificationRuleDeleteDialog({
-  ruleID,
-  onClose,
-  ...rest
-}) {
+export default function UserNotificationRuleDeleteDialog(props) {
+  const { ruleID, ...rest } = props
   function renderDialog(commit, { loading, error }) {
     return (
       <FormDialog
@@ -29,7 +26,7 @@ export default function UserNotificationRuleDeleteDialog({
     )
   }
   return (
-    <Mutation mutation={mutation} onCompleted={onClose}>
+    <Mutation mutation={mutation} onCompleted={props.onClose}>
       {(commit, status) => renderDialog(commit, status)}
     </Mutation>
   )
