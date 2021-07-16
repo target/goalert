@@ -143,6 +143,17 @@ function testFavorites(): void {
         .click()
         .get('input[name=escalation-policy]'),
   )
+  check(
+    'User',
+    'users',
+    (name: string, favorite: boolean) =>
+      cy.createUser({ name, favorite }).then((user: Profile) => user.id),
+    () =>
+      cy
+        .setUserFavorite()
+        .then((res: GraphQLResponse) => (res = res.user.isFavorite)),
+    //cy.pageFab().get('input[name=users'),
+  )
 }
 
 testScreen('Favorites', testFavorites)

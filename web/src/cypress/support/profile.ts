@@ -10,6 +10,7 @@ function createManyUsers(
     name: user.name || c.word({ length: 12 }),
     email: user.email || c.email(),
     role: user.role || 'user',
+    isFavorite: user.favorite || false,
   }))
 
   const dbQuery =
@@ -171,8 +172,40 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
   })
 }
 
+function setUserFavorite(id: string): Cypress.Chainable {
+  const query = `
+    query userFavQuery($id: ID!) {
+      data: user(id: $id) {
+        id
+        isFavorite
+      }
+    }
+  `
+
+  const mutation = `
+  mutation setFav($input: SetFavoriteInput!) {
+    setFavorite(input: $input)
+  }`
+
+  return cy.graphql(query, { id }).then((res: GraphQLResponse) => {
+    if (!res.user.isFavorite) return
+
+    res.user.forEach((user: Profile) => {
+      cy.graphql(mutation, {
+        input: [
+          {
+            id: user.id,
+            isFavorite: true,
+          },
+        ],
+      })
+    })
+  })
+}
+
 Cypress.Commands.add('createUser', createUser)
 Cypress.Commands.add('createManyUsers', createManyUsers)
 Cypress.Commands.add('resetProfile', resetProfile)
 Cypress.Commands.add('addContactMethod', addContactMethod)
 Cypress.Commands.add('addNotificationRule', addNotificationRule)
+Cypress.Commands.add('setUserFavorite', setUserFavorite)

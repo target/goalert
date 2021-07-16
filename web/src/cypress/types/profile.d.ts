@@ -16,6 +16,9 @@ declare namespace Cypress {
 
     /** Adds a notification rule. If userID is missing, the test user's will be used. */
     addNotificationRule: typeof addNotificationRule
+
+    /** Sets a user as a favorite */
+    setUserFavorite: typeof setUserFavorite
   }
 }
 
@@ -27,12 +30,14 @@ interface Profile {
   role: UserRole
   username?: string
   passwordHash?: string
+  isFavorite: boolean
 }
 
 interface UserOptions {
   name?: string
   email?: string
   role?: UserRole
+  favorite?: boolean
 }
 
 type ContactMethodType = 'SMS' | 'VOICE'
