@@ -1770,10 +1770,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-big-calendar@0.31.4":
-  version "0.31.4"
-  resolved "https://registry.yarnpkg.com/@types/react-big-calendar/-/react-big-calendar-0.31.4.tgz#294891455d7f0db9886ca3ffbd8c8ab03fb26ba4"
-  integrity sha512-O9rz5KzgHvHqnDa1iKsJ6EuglDPC/fFu2r9Wd7o6cv/rGj/kmQxWvlIT4ZoRiBK/M0RfUdxi6GiGF7J/5xP7KA==
+"@types/react-big-calendar@0.33.1":
+  version "0.33.1"
+  resolved "https://registry.yarnpkg.com/@types/react-big-calendar/-/react-big-calendar-0.33.1.tgz#48463e5b7d27a82dbf5808dea529c03708514b31"
+  integrity sha512-xX5BaxS+7K62+gtEeg0DqaBInNXDSk2LgkHhbgtqjo/CqwEqB8cwuhIE34XnL33z+pzbn/h7i+0W5fJq0kShdQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/react" "*"
@@ -6938,10 +6938,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@1.27.0:
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.27.0.tgz#ae10c69113d85dab8f15f5e8390d0cbeddf4f00f"
-  integrity sha512-VKsFsPggTA0DvnxtJdiExAucKdAnwbCCNlMM5ENvHlxubqWd0xhZcdb4XgZ7QFNhaRhilXCFxHuoObP5BNA4PA==
+luxon@1.28.0:
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.28.0.tgz#e7f96daad3938c06a62de0fb027115d251251fbf"
+  integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
 
 make-dir@^2.1.0:
   version "2.1.0"
