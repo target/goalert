@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => {
 
 export default function UserNotificationRuleList({ userID, readOnly }) {
   const classes = useStyles()
-  const [deleteId, setDeleteId] = useState(null)
+  const [deleteID, setDeleteID] = useState(null)
 
   function renderList(notificationRules) {
     return (
@@ -61,7 +61,7 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
               secondaryAction: readOnly ? null : (
                 <IconButton
                   aria-label='Delete notification rule'
-                  onClick={() => setDeleteId(nr.id)}
+                  onClick={() => setDeleteID(nr.id)}
                 >
                   <Delete />
                 </IconButton>
@@ -70,10 +70,10 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
             emptyMessage='No notification rules'
           />
         </Card>
-        {deleteId && (
+        {deleteID && (
           <UserNotificationRuleDeleteDialog
-            ruleID={deleteId}
-            onClose={() => setDeleteId(null)}
+            ruleID={deleteID}
+            onClose={() => setDeleteID(null)}
           />
         )}
       </Grid>
