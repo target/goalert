@@ -26,10 +26,6 @@ const query = gql`
   }
 `
 
-const styles = () => ({
-  spacing: { marginBottom: 96 },
-})
-
 const sortItems = (a, b) => {
   if (a.key.toLowerCase() < b.key.toLowerCase()) return -1
   if (a.key.toLowerCase() > b.key.toLowerCase()) return 1
@@ -38,10 +34,9 @@ const sortItems = (a, b) => {
   return 0
 }
 
-const useStyles = makeStyles(styles)
+const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
 
-export default function ServiceLabelList(props) {
-  const { serviceID } = props
+export default function ServiceLabelList({ serviceID }) {
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState(null)
   const [deleteKey, setDeleteKey] = useState(null)
@@ -83,7 +78,7 @@ export default function ServiceLabelList(props) {
     return (
       <Query
         query={query}
-        variables={{ serviceID: serviceID }}
+        variables={{ serviceID }}
         render={({ data }) => renderList(data.service.labels)}
       />
     )
