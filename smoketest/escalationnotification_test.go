@@ -62,8 +62,7 @@ func TestEscalationNotification(t *testing.T) {
 
 	h.FastForward(30 * time.Minute) // ensure both rules have elapsed
 
-	// 1 sms from the first step, 1 from the escalated one
-	d1.ExpectSMS("testing")
+	// 1 sms from the first step, 1 from the escalated one, should be de-duplicated
 	d1.ExpectSMS("testing")
 
 	h.Escalate(1, 1)
