@@ -115,7 +115,7 @@ export default function App() {
               <LazyNewUserSetup />
               <Grid
                 container
-                justify='center'
+                justifyContent='center'
                 className={classes.mainContainer}
               >
                 <Grid className={classes.containerClass} item>
