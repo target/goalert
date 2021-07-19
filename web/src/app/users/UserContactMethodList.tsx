@@ -143,7 +143,7 @@ export default function UserContactMethodList(
     )
   }
 
-  function getSubText(cm: UserContactMethod) {
+  function getSubText(cm: UserContactMethod): JSX.Element | string {
     if (cm.type === 'WEBHOOK') {
       const { origin } = new URL(cm.formattedValue)
       return (
