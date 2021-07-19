@@ -1,6 +1,8 @@
 # Using Webhooks
 
-Webhooks are POST requests to specified endpoints with a content type of `application/json`. Below are example payloads:
+Webhooks are POST requests to specified endpoints with a content type of `application/json`. Webhook calls must complete within 3 seconds.
+
+Below are example payloads:
 
 ### Verification Message
 
