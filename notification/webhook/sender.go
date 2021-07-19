@@ -94,13 +94,6 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
 		}
-	case notification.AlertStatusBundle:
-		payload = POSTDataAlertStatusBundle{
-			Type:     "AlertStatusBundle",
-			Count:    m.Count,
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
-		}
 	default:
 		return "", nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
 	}
