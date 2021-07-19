@@ -19,6 +19,10 @@ func alwaysValid(Type, []byte, []byte) (bool, bool) { return true, false }
 // Parse will parse a token string, optionally verifying it's signature.
 // If verifyFn is nil, the signature is ignored.
 func Parse(s string, verifyFn VerifyFunc) (*Token, bool, error) {
+	if len(s) == 0 {
+		return nil, false, validation.NewGenericError("invalid length")
+	}
+
 	if len(s) == 36 {
 		// integration key type is the only one with possible length 36. Session keys, even if
 		// we switched to a 128-bit signature would be a minimum of 38 base64-encoded chars.
