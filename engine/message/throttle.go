@@ -69,7 +69,7 @@ func (tr *Throttle) Record(msg Message) {
 		key := ThrottleItem{Dest: msg.Dest, BucketDur: rule.Per}
 		tr.count[key]++
 		count := tr.count[key]
-		if tr.first[key].IsZero() {
+		if tr.first[key].IsZero() || msg.SentAt.Before(tr.first[key]) {
 			tr.first[key] = msg.SentAt
 		}
 

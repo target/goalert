@@ -9,5 +9,5 @@ import (
 // specified as criteria, any valid user will be accepted.
 type Config struct {
 	Keyring    keyring.Keyring
-	NonceStore nonce.Store
+	NonceStore *nonce.Store
 }

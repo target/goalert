@@ -20,7 +20,7 @@ import (
 )
 
 // DefaultGraphQLAdminUserID is the UserID created & used for GraphQL calls by default.
-const DefaultGraphQLAdminUserID = "00000000-0000-0000-0000-000000000000"
+const DefaultGraphQLAdminUserID = "00000000-0000-0000-0000-000000000002"
 
 func (h *Harness) insertGraphQLUser(userID string) string {
 	h.t.Helper()

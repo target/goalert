@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 
@@ -29,7 +30,7 @@ func (h *Handler) setUserFavoriteField() *g.Field {
 				return nil, errors.New("invalid input type")
 			}
 
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			tgt.ID, _ = m["target_id"].(string)
 
@@ -62,7 +63,7 @@ func (h *Handler) unsetUserFavoriteField() *g.Field {
 				return nil, errors.New("invalid input type")
 			}
 
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			tgt.ID, _ = m["target_id"].(string)
 

@@ -2,10 +2,10 @@ package validate
 
 import "github.com/target/goalert/validation"
 
-// UserName will validate a username to ensure it is between 3 and 24 characters,
+// Username will validate a username to ensure it is between 3 and 24 characters,
 // and only contains lower-case ASCII letters and numbers.
-func UserName(fname, name string) error {
-	b := []byte(name)
+func Username(fname, value string) error {
+	b := []byte(value)
 	l := len(b)
 	if l < 3 {
 		return validation.NewFieldError(fname, "must be at least 3 characters")
@@ -14,7 +14,7 @@ func UserName(fname, name string) error {
 		return validation.NewFieldError(fname, "cannot be more than 24 characters")
 	}
 
-	for _, c := range name {
+	for _, c := range value {
 		if c >= 'a' && c <= 'z' {
 			continue
 		}

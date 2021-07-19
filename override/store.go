@@ -13,7 +13,7 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // Store is used to manage active overrides.
@@ -203,7 +203,7 @@ func (db *DB) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverr
 	if !n.End.After(time.Now()) {
 		return nil, validation.NewFieldError("End", "must be in the future")
 	}
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 	var add, rem sql.NullString
 	if n.AddUserID != "" {
 		add.Valid = true

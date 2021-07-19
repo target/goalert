@@ -1,5 +1,7 @@
 package notification
 
+import "fmt"
+
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
 type Dest struct {
@@ -18,6 +20,8 @@ const (
 	DestTypeUserEmail
 	DestTypeUserWebhook
 )
+
+func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
 
 // IsUserCM returns true if the DestType represents a user contact method.
 func (t DestType) IsUserCM() bool {

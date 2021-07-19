@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
@@ -50,7 +51,8 @@ import (
 
 type App struct {
 	DB             *sql.DB
-	UserStore      user.Store
+	AuthBasicStore *basic.Store
+	UserStore      *user.Store
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
 	NCStore        notificationchannel.Store
@@ -70,7 +72,7 @@ type App struct {
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
 	AuthHandler *auth.Handler

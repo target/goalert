@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime, Interval } from 'luxon'
 import {
+  OnCallNotificationRuleInput,
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
@@ -22,6 +23,73 @@ const fmtTime = (num: number): string => {
 
 const randClock = (): string =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
+
+const randWeekdayFilter = (): boolean[] =>
+  new Array(7).fill(0).map(() => c.bool())
+
+function setScheduleNotificationRules(
+  _rules: [Partial<OnCallNotificationRuleInput>],
+  schedule?: string | Partial<Schedule>,
+): Cypress.Chainable<Schedule> {
+  if (typeof schedule !== 'string') {
+    return cy
+      .createSchedule(schedule)
+      .then((sched: Schedule) => setScheduleNotificationRules(_rules, sched.id))
+  }
+
+  const mutation = `mutation($input: SetScheduleOnCallNotificationRulesInput!) {setScheduleOnCallNotificationRules(input: $input)}`
+  const query = `query($id: ID!) {
+    schedule(id: $id){
+      id
+      name
+      description
+      timeZone
+      isFavorite
+      onCallNotificationRules {
+        time
+        weekdayFilter
+        target {
+          id
+          type
+          name
+        }
+      }
+    }
+  }`
+
+  return cy
+    .getSlackChannels()
+    .then((channels: SlackChannel[]) => {
+      const rules = _rules.map((r) => {
+        let time: string | null | undefined = r.time
+        if (time === undefined) {
+          time = c.bool() ? randClock() : null
+        }
+
+        let weekdayFilter: boolean[] | null | undefined = r.weekdayFilter
+        if (weekdayFilter === undefined) {
+          weekdayFilter = time && c.bool() ? randWeekdayFilter() : null
+        }
+        return {
+          target: r.target ?? {
+            type: 'slackChannel',
+            id: c.pickone(channels).id,
+          },
+          weekdayFilter,
+          time,
+        }
+      })
+
+      return cy.graphql(mutation, {
+        input: {
+          scheduleID: schedule,
+          rules,
+        },
+      })
+    })
+    .then(() => cy.graphql(query, { id: schedule }) as { schedule: Schedule })
+    .then((sched: { schedule: Schedule }) => sched.schedule)
+}
 
 function setScheduleTarget(
   scheduleTgt?: Partial<ScheduleTargetInput>,
@@ -265,3 +333,7 @@ Cypress.Commands.add('createSchedule', createSchedule)
 Cypress.Commands.add('setScheduleTarget', setScheduleTarget)
 Cypress.Commands.add('deleteSchedule', deleteSchedule)
 Cypress.Commands.add('createTemporarySchedule', createTemporarySchedule)
+Cypress.Commands.add(
+  'setScheduleNotificationRules',
+  setScheduleNotificationRules,
+)

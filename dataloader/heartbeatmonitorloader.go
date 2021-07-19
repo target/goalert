@@ -9,10 +9,10 @@ import (
 
 type HeartbeatMonitorLoader struct {
 	*loader
-	store heartbeat.Store
+	store *heartbeat.Store
 }
 
-func NewHeartbeatMonitorLoader(ctx context.Context, store heartbeat.Store) *HeartbeatMonitorLoader {
+func NewHeartbeatMonitorLoader(ctx context.Context, store *heartbeat.Store) *HeartbeatMonitorLoader {
 	p := &HeartbeatMonitorLoader{
 		store: store,
 	}

@@ -60,8 +60,9 @@ type DB struct {
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
 
-	insertAlertBundle  *sql.Stmt
-	insertStatusBundle *sql.Stmt
+	insertAlertBundle *sql.Stmt
+
+	deleteAny *sql.Stmt
 
 	lastSent     time.Time
 	sentMessages map[string]Message
@@ -71,7 +72,7 @@ type DB struct {
 func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 7,
+		Version: 8,
 	})
 	if err != nil {
 		return nil, err
@@ -313,28 +314,6 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			where id = any($7::uuid[])
 		`),
 
-		insertStatusBundle: p.P(`
-			with new_msg as (
-				insert into outgoing_messages (
-					id,
-					created_at,
-					message_type,
-					contact_method_id,
-					user_id,
-					alert_log_id,
-					status_alert_ids
-				) values (
-					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
-				) returning (id)
-			)
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = now(),
-				status_details = (select id from new_msg)
-			where id = any($7::uuid[])
-		`),
-
 		messages: p.P(`
 			select
 				msg.id,
@@ -350,7 +329,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				msg.service_id,
 				msg.created_at,
 				msg.sent_at,
-				msg.status_alert_ids
+				msg.status_alert_ids,
+				msg.schedule_id
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -359,6 +339,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
+
+		deleteAny: p.P(`delete from outgoing_messages where id = any($1)`),
 	}, p.Err
 }
 
@@ -369,24 +351,16 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		sentSince = cutoff
 	}
 
-	result := make([]Message, 0, len(db.sentMessages))
-	for id, msg := range db.sentMessages {
-		if msg.SentAt.Before(cutoff) {
-			delete(db.sentMessages, id)
-			continue
-		}
-		result = append(result, msg)
-	}
-
 	rows, err := tx.StmtContext(ctx, db.messages).QueryContext(ctx, sentSince)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
 	defer rows.Close()
 
+	result := make([]Message, 0, len(db.sentMessages))
 	for rows.Next() {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
+		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, scheduleID sql.NullString
 		var alertID, logID sql.NullInt64
 		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
@@ -405,6 +379,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&createdAt,
 			&sentAt,
 			&statusAlertIDs,
+			&scheduleID,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -419,6 +394,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
 		msg.StatusAlertIDs = statusAlertIDs
+		msg.ScheduleID = scheduleID.String
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
@@ -435,22 +411,42 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			continue
 		}
 
-		result = append(result, msg)
 		if !msg.SentAt.IsZero() {
+			// if the message was sent, just add it to the map
 			db.sentMessages[msg.ID] = msg
+			continue
 		}
+
+		result = append(result, msg)
+	}
+
+	for id, msg := range db.sentMessages {
+		if msg.SentAt.Before(cutoff) {
+			delete(db.sentMessages, id)
+			continue
+		}
+		result = append(result, msg)
 	}
 	db.lastSent = now
 
-	cfg := config.FromContext(ctx)
-	if cfg.General.MessageBundles {
-		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
-			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
-			return errors.Wrap(err, "insert status bundle")
-		})
+	result, toDelete := dedupOnCallNotifications(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("delete duplicate on-call notifications: %w", err)
 		}
+	}
+
+	cfg := config.FromContext(ctx)
+	result, toDelete = dedupStatusMessages(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
+		if err != nil {
+			return nil, fmt.Errorf("delete duplicate status updates: %w", err)
+		}
+	}
+
+	if cfg.General.MessageBundles {
 		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
 			var cmID, chanID, userID sql.NullString
 			if msg.UserID != "" {

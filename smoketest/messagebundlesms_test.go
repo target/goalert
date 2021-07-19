@@ -53,6 +53,4 @@ func TestMessageBundle_SMS(t *testing.T) {
 		ThenExpect("Acknowledged all", "My Service")
 
 	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [1,2,3,4], newStatus: StatusClosed}){id} }`)
-
-	d1.ExpectSMS("Closed", "3 other alerts")
 }

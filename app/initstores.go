@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -59,7 +60,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NonceStore == nil {
-		app.NonceStore, err = nonce.NewDB(ctx, app.db)
+		app.NonceStore, err = nonce.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init nonce store")
@@ -135,8 +136,15 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init service store")
 	}
 
+	if app.AuthBasicStore == nil {
+		app.AuthBasicStore, err = basic.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init basic auth store")
+	}
+
 	if app.UserStore == nil {
-		app.UserStore, err = user.NewDB(ctx, app.db)
+		app.UserStore, err = user.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init user store")
@@ -225,7 +233,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init limit config store")
 	}
 	if app.HeartbeatStore == nil {
-		app.HeartbeatStore, err = heartbeat.NewDB(ctx, app.db)
+		app.HeartbeatStore, err = heartbeat.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init heartbeat store")

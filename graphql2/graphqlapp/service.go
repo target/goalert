@@ -19,7 +19,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-const tempUUID = "00000000-0000-0000-0000-000000000000"
+const tempUUID = "00000000-0000-0000-0000-000000000001"
 
 type Service App
 

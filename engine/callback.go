@@ -3,7 +3,7 @@ package engine
 import (
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type callback struct {
@@ -15,7 +15,7 @@ type callback struct {
 
 func (c callback) Normalize() (*callback, error) {
 	if c.ID == "" {
-		c.ID = uuid.NewV4().String()
+		c.ID = uuid.New().String()
 	}
 	err := validate.Many(
 		validate.UUID("ID", c.ID),

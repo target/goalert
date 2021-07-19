@@ -56,7 +56,7 @@ models:
   Label:
     model: github.com/target/goalert/label.Label
   ClockTime:
-    model: github.com/target/goalert/graphql2.ClockTime
+    model: github.com/target/goalert/util/timeutil.Clock
   ScheduleRule:
     model: github.com/target/goalert/schedule/rule.Rule
   UserOverride:
@@ -85,3 +85,14 @@ models:
     model: github.com/target/goalert/schedule.FixedShift
   TemporarySchedule:
     model: github.com/target/goalert/schedule.TemporarySchedule
+  OnCallNotificationRule:
+    model: github.com/target/goalert/schedule.OnCallNotificationRule
+  OnCallNotificationRuleInput:
+    model: github.com/target/goalert/graphql2.OnCallNotificationRuleInput
+  WeekdayFilter:
+    model: github.com/target/goalert/util/timeutil.WeekdayFilter
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/google/uuid.UUID
+      - github.com/target/goalert/schedule.RuleID
