@@ -80,7 +80,7 @@ function PageControls(props: {
       xs={12}
       container // container for control items
       spacing={1}
-      justify='flex-end'
+      justifyContent='flex-end'
       alignItems='center'
       className={classes.controls}
     >

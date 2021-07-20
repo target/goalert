@@ -140,9 +140,9 @@ $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 system.ca.pem:
 	go run ./cmd/goalert gen-cert ca

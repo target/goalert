@@ -233,15 +233,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *no
 		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
-	case notification.AlertStatusBundle:
-		plural := "s have"
-		if t.Count == 2 { // count is the total number
-			plural = " has"
-		}
-		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.LogEntry, ""), t.Count-1, plural)
-		opts.CallType = CallTypeAlertStatus
-		subID = t.AlertID
-		opts.Params.Set(msgParamBundle, "1")
 	case notification.Alert:
 		message = t.Summary
 		opts.CallType = CallTypeAlert

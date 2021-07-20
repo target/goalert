@@ -119,12 +119,6 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 			ID:   t.AlertID,
 			Body: t.LogEntry,
 		}.Render()
-	case notification.AlertStatusBundle:
-		message, err = alertSMS{
-			ID:    t.AlertID,
-			Body:  t.LogEntry,
-			Count: t.Count - 1,
-		}.Render()
 	case notification.AlertBundle:
 		var link string
 		if !cfg.General.DisableSMSLinks {
