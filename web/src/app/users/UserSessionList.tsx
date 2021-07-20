@@ -120,7 +120,7 @@ export default function UserSessionList(
     <React.Fragment>
       <Grid container spacing={2}>
         {!userID && (
-          <Grid item xs={12} container justify='flex-end'>
+          <Grid item xs={12} container justifyContent='flex-end'>
             <Button
               color='primary'
               variant='outlined'

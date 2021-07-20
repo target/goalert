@@ -28,42 +28,13 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleRuleDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-    target: p.shape({ id: p.string.isRequired, type: p.string.isRequired })
-      .isRequired,
-    onClose: p.func,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{
-          id: this.props.scheduleID,
-          tgt: this.props.target,
-        }}
-        noPoll
-        render={({ data }) => this.renderMutation(data.schedule.target)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, status) {
+export default function ScheduleRuleDeleteDialog(props) {
+  function renderDialog(data, commit, status) {
     return (
       <FormDialog
-        onClose={this.props.onClose}
-        title={`Remove ${startCase(this.props.target.type)} From Schedule?`}
-        subTitle={`This will remove all rules, as well as end any active or future on-call shifts on this schedule for ${this.props.target.type}: ${data.target.name}.`}
+        onClose={props.onClose}
+        title={`Remove ${startCase(props.target.type)} From Schedule?`}
+        subTitle={`This will remove all rules, as well as end any active or future on-call shifts on this schedule for ${props.target.type}: ${data.target.name}.`}
         caption='Overrides will not be affected.'
         confirm
         errors={nonFieldErrors(status.error)}
@@ -71,8 +42,8 @@ export default class ScheduleRuleDeleteDialog extends React.PureComponent {
           commit({
             variables: {
               input: {
-                target: this.props.target,
-                scheduleID: this.props.scheduleID,
+                target: props.target,
+                scheduleID: props.scheduleID,
 
                 rules: [],
               },
@@ -82,4 +53,31 @@ export default class ScheduleRuleDeleteDialog extends React.PureComponent {
       />
     )
   }
+
+  function renderMutation(data) {
+    return (
+      <Mutation mutation={mutation} onCompleted={props.onClose}>
+        {(commit, status) => renderDialog(data, commit, status)}
+      </Mutation>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{
+        id: props.scheduleID,
+        tgt: props.target,
+      }}
+      noPoll
+      render={({ data }) => renderMutation(data.schedule.target)}
+    />
+  )
+}
+
+ScheduleRuleDeleteDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  target: p.shape({ id: p.string.isRequired, type: p.string.isRequired })
+    .isRequired,
+  onClose: p.func,
 }
