@@ -56,6 +56,7 @@ type Manager interface {
 	// of unacknowledged alerts.
 	ServiceInfo(ctx context.Context, serviceID string) (string, int, error)
 
+	// FindPendingNotifications will return destination info for alerts that are waiting to be sent
 	FindPendingNotifications(ctx context.Context, alertID int, serviceID string) ([]AlertPendingNotification, error)
 }
 
