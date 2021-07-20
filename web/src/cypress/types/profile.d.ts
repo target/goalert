@@ -17,8 +17,8 @@ declare namespace Cypress {
     /** Adds a notification rule. If userID is missing, the test user's will be used. */
     addNotificationRule: typeof addNotificationRule
 
-    /** Sets a user as a favorite */
-    setUserFavorite: typeof setUserFavorite
+    /** Returns search query of all user favorites */
+    getUserFavorites: typeof getUserFavorites
   }
 }
 
