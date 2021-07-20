@@ -2,6 +2,7 @@ package contactmethod
 
 import (
 	"fmt"
+
 	"github.com/target/goalert/notification"
 )
 
@@ -10,10 +11,11 @@ type Type string
 
 // ContactMethod types
 const (
-	TypeVoice Type = "VOICE"
-	TypeSMS   Type = "SMS"
-	TypeEmail Type = "EMAIL"
-	TypePush  Type = "PUSH"
+	TypeVoice   Type = "VOICE"
+	TypeSMS     Type = "SMS"
+	TypeEmail   Type = "EMAIL"
+	TypePush    Type = "PUSH"
+	TypeWebhook Type = "WEBHOOK"
 )
 
 // TypeFromDestType will return the Type associated with a

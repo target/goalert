@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
 import { Mutation } from '@apollo/client/react/components'
@@ -30,66 +30,39 @@ const mutation = gql`
     updateUserOverride(input: $input)
   }
 `
+export default function ScheduleOverrideEditDialog(props) {
+  const { onClose, overrideID } = props
+  const [value, setValue] = useState(null)
 
-export default class ScheduleOverrideEditDialog extends React.PureComponent {
-  static propTypes = {
-    overrideID: p.string.isRequired,
-    onClose: p.func,
-  }
-
-  state = {
-    value: null,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.overrideID }}
-        noPoll
-        fetchPolicy='network-only'
-        render={({ data }) => this.renderMutation(data.userOverride)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  getValue(data) {
-    if (this.state.value) return this.state.value
-    const value = {
+  function getValue(data) {
+    if (value) return value
+    const newValue = {
       start: data.start,
       end: data.end,
     }
 
-    value.addUserID = data.addUser ? data.addUser.id : ''
-    value.removeUserID = data.removeUser ? data.removeUser.id : ''
+    newValue.addUserID = data.addUser ? data.addUser.id : ''
+    newValue.removeUserID = data.removeUser ? data.removeUser.id : ''
 
-    return value
+    return newValue
   }
 
-  renderDialog(data, commit, status) {
+  function renderDialog(data, commit, status) {
     return (
       <FormDialog
-        onClose={this.props.onClose}
+        onClose={onClose}
         title='Edit Schedule Override'
         errors={nonFieldErrors(status.error)}
         onSubmit={() => {
-          if (this.state.value === null) {
-            this.props.onClose()
+          if (value === null) {
+            onClose()
             return
           }
           commit({
             variables: {
               input: {
-                ...this.state.value,
-                id: this.props.overrideID,
+                ...value,
+                id: overrideID,
               },
             },
           })
@@ -101,11 +74,34 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
             scheduleID={data.target.id}
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={this.getValue(data)}
-            onChange={(value) => this.setState({ value })}
+            value={getValue(data)}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  function renderMutation(data) {
+    return (
+      <Mutation mutation={mutation} onCompleted={onClose}>
+        {(commit, status) => renderDialog(data, commit, status)}
+      </Mutation>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: overrideID }}
+      noPoll
+      fetchPolicy='network-only'
+      render={({ data }) => renderMutation(data.userOverride)}
+    />
+  )
+}
+
+ScheduleOverrideEditDialog.propTypes = {
+  overrideID: p.string.isRequired,
+  onClose: p.func,
 }
