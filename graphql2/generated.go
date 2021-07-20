@@ -696,6 +696,7 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error)
 }
 type UserContactMethodResolver interface {
+	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 
 	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
@@ -4236,6 +4237,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.
@@ -15060,14 +15062,14 @@ func (ec *executionContext) _UserContactMethod_value(ctx context.Context, field 
 		Object:     "UserContactMethod",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
+		return ec.resolvers.UserContactMethod().Value(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22574,10 +22576,19 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "value":
-			out.Values[i] = ec._UserContactMethod_value(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_value(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "formattedValue":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

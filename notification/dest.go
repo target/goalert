@@ -18,6 +18,7 @@ const (
 	DestTypeSMS
 	DestTypeSlackChannel
 	DestTypeUserEmail
+	DestTypeUserWebhook
 )
 
 func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
@@ -25,7 +26,7 @@ func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.
 // IsUserCM returns true if the DestType represents a user contact method.
 func (t DestType) IsUserCM() bool {
 	switch t {
-	case DestTypeSMS, DestTypeVoice, DestTypeUserEmail:
+	case DestTypeSMS, DestTypeVoice, DestTypeUserEmail, DestTypeUserWebhook:
 		return true
 	}
 	return false
