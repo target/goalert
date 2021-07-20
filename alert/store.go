@@ -272,7 +272,7 @@ func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
 			LEFT JOIN users u
 			ON u.id = om.user_id
 			WHERE om.last_status='pending'
-			AND (CURRENT_TIMESTAMP - om.created_at) > INTERVAL '1' MINUTE
+			AND (now() - om.created_at) > INTERVAL '1' MINUTE
 			AND (om.alert_id = $1 OR (om.message_type = 'alert_notification_bundle' AND om.service_id = $2));
 		`),
 	}, prep.Err
