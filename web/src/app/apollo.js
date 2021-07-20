@@ -120,7 +120,9 @@ const cache = new InMemoryCache({
     },
     Alert: {
       fields: {
-        pendingNotifications: false,
+        pendingNotifications: {
+          merge: false,
+        },
       },
     },
     EscalationPolicy: {
