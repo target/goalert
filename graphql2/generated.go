@@ -118,8 +118,7 @@ type ComplexityRoot struct {
 	}
 
 	AlertPendingNotification struct {
-		DestName func(childComplexity int) int
-		DestType func(childComplexity int) int
+		Destination func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -873,19 +872,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
 
-	case "AlertPendingNotification.destName":
-		if e.complexity.AlertPendingNotification.DestName == nil {
+	case "AlertPendingNotification.destination":
+		if e.complexity.AlertPendingNotification.Destination == nil {
 			break
 		}
 
-		return e.complexity.AlertPendingNotification.DestName(childComplexity), true
-
-	case "AlertPendingNotification.destType":
-		if e.complexity.AlertPendingNotification.DestType == nil {
-			break
-		}
-
-		return e.complexity.AlertPendingNotification.DestType(childComplexity), true
+		return e.complexity.AlertPendingNotification.Destination(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -4023,19 +4015,8 @@ type Alert {
   pendingNotifications: [AlertPendingNotification!]!
 }
 
-enum DestType {
-  # user contact method types
-  SMS
-  VOICE
-  EMAIL
-
-  # notification channel types
-  SLACK
-}
-
 type AlertPendingNotification {
-  destType: DestType
-  destName: String! # e.g. notification channel name, user name
+  destination: String!
 }
 
 input AlertRecentEventsOptions {
@@ -6235,7 +6216,7 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AlertPendingNotification_destType(ctx context.Context, field graphql.CollectedField, obj *AlertPendingNotification) (ret graphql.Marshaler) {
+func (ec *executionContext) _AlertPendingNotification_destination(ctx context.Context, field graphql.CollectedField, obj *AlertPendingNotification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6253,39 +6234,7 @@ func (ec *executionContext) _AlertPendingNotification_destType(ctx context.Conte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DestType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*DestType)
-	fc.Result = res
-	return ec.marshalODestType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertPendingNotification_destName(ctx context.Context, field graphql.CollectedField, obj *AlertPendingNotification) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AlertPendingNotification",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DestName, nil
+		return obj.Destination, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20041,10 +19990,8 @@ func (ec *executionContext) _AlertPendingNotification(ctx context.Context, sel a
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AlertPendingNotification")
-		case "destType":
-			out.Values[i] = ec._AlertPendingNotification_destType(ctx, field, obj)
-		case "destName":
-			out.Values[i] = ec._AlertPendingNotification_destName(ctx, field, obj)
+		case "destination":
+			out.Values[i] = ec._AlertPendingNotification_destination(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -26032,22 +25979,6 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._DebugSendSMSInfo(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalODestType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestType(ctx context.Context, v interface{}) (*DestType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(DestType)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalODestType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestType(ctx context.Context, sel ast.SelectionSet, v *DestType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) marshalOEscalationPolicy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v *escalation.Policy) graphql.Marshaler {

@@ -36,8 +36,7 @@ type AlertLogEntryConnection struct {
 }
 
 type AlertPendingNotification struct {
-	DestType *DestType `json:"destType"`
-	DestName string    `json:"destName"`
+	Destination string `json:"destination"`
 }
 
 type AlertRecentEventsOptions struct {
@@ -657,51 +656,6 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type DestType string
-
-const (
-	DestTypeSms   DestType = "SMS"
-	DestTypeVoice DestType = "VOICE"
-	DestTypeEmail DestType = "EMAIL"
-	DestTypeSLACk DestType = "SLACK"
-)
-
-var AllDestType = []DestType{
-	DestTypeSms,
-	DestTypeVoice,
-	DestTypeEmail,
-	DestTypeSLACk,
-}
-
-func (e DestType) IsValid() bool {
-	switch e {
-	case DestTypeSms, DestTypeVoice, DestTypeEmail, DestTypeSLACk:
-		return true
-	}
-	return false
-}
-
-func (e DestType) String() string {
-	return string(e)
-}
-
-func (e *DestType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = DestType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid DestType", str)
-	}
-	return nil
-}
-
-func (e DestType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

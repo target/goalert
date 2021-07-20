@@ -34,8 +34,7 @@ const query = gql`
         repeatCount
       }
       pendingNotifications {
-        destType
-        destName
+        destination
       }
     }
   }

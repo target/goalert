@@ -426,9 +426,9 @@ function AlertDetails(props) {
 
   const notices = alert.pendingNotifications.map((n) => ({
     type: 'WARNING',
-    message: `Notification Pending for ${n.destName} (${n.destType})`,
+    message: `Notification Pending for ${n.destination}`,
     details:
-      'One or more notifications are waiting to be sent. This may be due to rate limiting or something else.',
+      'One or more notifications are waiting to be sent. Contact methods may be rate limited on a per-service basis.',
   }))
 
   return (
