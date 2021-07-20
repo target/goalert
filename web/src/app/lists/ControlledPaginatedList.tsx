@@ -251,7 +251,13 @@ export default function ControlledPaginatedList(
 
   return (
     <React.Fragment>
-      <Grid container item xs={12} justify='flex-end' alignItems='center'>
+      <Grid
+        container
+        item
+        xs={12}
+        justifyContent='flex-end'
+        alignItems='center'
+      >
         {renderActions()}
         {secondaryActions}
         {!noSearch && (

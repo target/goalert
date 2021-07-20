@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -38,6 +39,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	}
 
 	var notifMsg notification.Message
+	var isFirstAlertMessage bool
 	switch msg.Type {
 	case notification.MessageTypeAlertBundle:
 		name, count, err := p.am.ServiceInfo(ctx, msg.ServiceID)
@@ -83,18 +85,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 			OriginalStatus: stat,
 		}
-	case notification.MessageTypeAlertStatusBundle:
-		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
-		if err != nil {
-			return nil, errors.Wrap(err, "lookup alert log entry")
-		}
-		notifMsg = notification.AlertStatusBundle{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
-			LogEntry:   e.String(),
-			AlertID:    e.AlertID(),
-			Count:      len(msg.StatusAlertIDs),
-		}
+		isFirstAlertMessage = stat == nil
 	case notification.MessageTypeAlertStatus:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
 		if err != nil {
@@ -169,6 +160,22 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, meta)
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "append alert log"))
+		}
+	}
+
+	if isFirstAlertMessage && res.State.IsOK() {
+		var chanID, cmID sql.NullString
+		if msg.Dest.Type.IsUserCM() {
+			cmID.Valid = true
+			cmID.String = msg.Dest.ID
+		} else {
+			chanID.Valid = true
+			chanID.String = msg.Dest.ID
+		}
+		_, err = p.b.trackStatus.ExecContext(ctx, chanID, cmID, msg.AlertID)
+		if err != nil {
+			// non-fatal, but log because it means status updates will not work for that alert/dest.
+			log.Log(ctx, fmt.Errorf("track status updates for alert #%d for %s: %w", msg.AlertID, msg.Dest.String(), err))
 		}
 	}
 

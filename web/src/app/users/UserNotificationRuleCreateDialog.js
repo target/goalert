@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 
 import p from 'prop-types'
@@ -16,29 +16,10 @@ const createMutation = gql`
   }
 `
 
-export default class UserNotificationRuleCreateDialog extends React.PureComponent {
-  static propTypes = {
-    userID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function UserNotificationRuleCreateDialog({ onClose, userID }) {
+  const [value, setValue] = useState({ contactMethodID: '', delayMinutes: 0 })
 
-  state = {
-    value: {
-      contactMethodID: '',
-      delayMinutes: '0',
-    },
-    errors: [],
-  }
-
-  render() {
-    return (
-      <Mutation mutation={createMutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, status) {
+  function renderDialog(commit, status) {
     const { loading, error } = status
     const fieldErrs = fieldErrors(error)
 
@@ -47,24 +28,35 @@ export default class UserNotificationRuleCreateDialog extends React.PureComponen
         title='Create New Notification Rule'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={onClose}
         onSubmit={() => {
           return commit({
             variables: {
-              input: { ...this.state.value, userID: this.props.userID },
+              input: { ...value, userID: userID },
             },
           })
         }}
         form={
           <UserNotificationRuleForm
-            userID={this.props.userID}
+            userID={userID}
             errors={fieldErrs}
             disabled={loading}
-            value={this.state.value}
-            onChange={(value) => this.setState({ value })}
+            value={value}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  return (
+    <Mutation mutation={createMutation} onCompleted={onClose}>
+      {(commit, status) => renderDialog(commit, status)}
+    </Mutation>
+  )
+}
+
+UserNotificationRuleCreateDialog.propTypes = {
+  userID: p.string.isRequired,
+  onClose: p.func,
 }

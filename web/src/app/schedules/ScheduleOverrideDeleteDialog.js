@@ -1,14 +1,13 @@
 import React from 'react'
 import p from 'prop-types'
 
-import { connect } from 'react-redux'
 import { gql } from '@apollo/client'
 import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import { Typography } from '@material-ui/core'
 import FormDialog from '../dialogs/FormDialog'
-import { urlParamSelector } from '../selectors'
+import { useURLParam } from '../actions/hooks'
 import { formatOverrideTime } from './util'
 
 const query = gql`
@@ -35,58 +34,34 @@ const mutation = gql`
   }
 `
 
-@connect((state) => ({ zone: urlParamSelector(state)('tz') }))
-export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    overrideID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function ScheduleOverrideDeleteDialog({ overrideID, onClose }) {
+  const [zone] = useURLParam('tz', 'local')
 
-  renderQuery() {
-    return (
-      <Query
-        noPoll
-        query={query}
-        variables={{ id: this.props.overrideID }}
-        render={({ data }) => this.renderMutation(data.userOverride)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, mutStatus) {
+  function renderDialog(data, commit, mutStatus) {
     const { loading, error } = mutStatus
+    const { addUser, removeUser, start, end } = data
 
-    const zone = this.props.zone
-    const isReplace = data.addUser && data.removeUser
-    const verb = data.addUser ? 'Added' : 'Removed'
-
-    const time = formatOverrideTime(data.start, data.end, zone)
+    const isReplace = addUser && removeUser
+    const verb = addUser ? 'Added' : 'Removed'
+    const time = formatOverrideTime(start, end, zone)
 
     const caption = isReplace
-      ? `Replaced ${data.removeUser.name} from ${time}`
+      ? `Replaced ${removeUser.name} from ${time}`
       : `${verb} from ${time}`
     return (
       <FormDialog
         title='Are you sure?'
         confirm
         subTitle={`This will delete the override for: ${
-          data.addUser ? data.addUser.name : data.removeUser.name
+          addUser ? addUser.name : removeUser.name
         }`}
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={onClose}
         onSubmit={() => {
           return commit({
             variables: {
-              id: this.props.overrideID,
+              id: overrideID,
             },
           })
         }}
@@ -95,7 +70,28 @@ export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
     )
   }
 
-  render() {
-    return this.renderQuery()
+  function renderMutation(data) {
+    return (
+      <Mutation mutation={mutation} onCompleted={onClose}>
+        {(commit, status) => renderDialog(data, commit, status)}
+      </Mutation>
+    )
   }
+
+  function renderQuery() {
+    return (
+      <Query
+        noPoll
+        query={query}
+        variables={{ id: overrideID }}
+        render={({ data }) => renderMutation(data.userOverride)}
+      />
+    )
+  }
+  return renderQuery()
+}
+
+ScheduleOverrideDeleteDialog.propTypes = {
+  overrideID: p.string.isRequired,
+  onClose: p.func,
 }

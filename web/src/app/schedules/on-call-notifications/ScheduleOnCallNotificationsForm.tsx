@@ -100,7 +100,7 @@ export default function ScheduleOnCallNotificationsForm(
               />
             </Grid>
             <Grid item xs={12} sm={7} md={8}>
-              <Grid container justify='space-between'>
+              <Grid container justifyContent='space-between'>
                 {days.map((day, i) => (
                   <FormControlLabel
                     key={i}

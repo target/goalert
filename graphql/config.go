@@ -30,7 +30,7 @@ type Config struct {
 
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
-	UserStore     user.Store
+	UserStore     *user.Store
 	CMStore       contactmethod.Store
 	NRStore       notificationrule.Store
 	ServiceStore  service.Store
