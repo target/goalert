@@ -1372,10 +1372,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@material-ui/core@4.12.1":
-  version "4.12.1"
-  resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-4.12.1.tgz#ac8f081498047aa02bb6ee70b77c5dad6a2a6e73"
-  integrity sha512-C6hYsjkWCTfBx9FaqxhCZCITBagh7fyCKFtHyvO3tTOcBw6NJaktdhNZ2n82jQdQdgfFvg6OOxi7OOzsAdAcBQ==
+"@material-ui/core@4.12.2":
+  version "4.12.2"
+  resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-4.12.2.tgz#59a8b19f16b8c218d912f37f5ae70473c3c82c73"
+  integrity sha512-Q1npB8V73IC+eV2X6as+g71MpEGQwqKHUI2iujY62npk35V8nMx/bUXAHjv5kKG1BZ8s8XUWoG6s/VkjYPjjQA==
   dependencies:
     "@babel/runtime" "^7.4.4"
     "@material-ui/styles" "^4.11.4"
@@ -1950,14 +1950,14 @@
     eslint-scope "^5.1.1"
     eslint-utils "^3.0.0"
 
-"@typescript-eslint/parser@4.28.0":
-  version "4.28.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-4.28.0.tgz#2404c16751a28616ef3abab77c8e51d680a12caa"
-  integrity sha512-7x4D22oPY8fDaOCvkuXtYYTQ6mTMmkivwEzS+7iml9F9VkHGbbZ3x4fHRwxAb5KeuSkLqfnYjs46tGx2Nour4A==
+"@typescript-eslint/parser@4.28.4":
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-4.28.4.tgz#bc462dc2779afeefdcf49082516afdc3e7b96fab"
+  integrity sha512-4i0jq3C6n+og7/uCHiE6q5ssw87zVdpUj1k6VlVYMonE3ILdFApEzTWgppSRG4kVNB/5jxnH+gTeKLMNfUelQA==
   dependencies:
-    "@typescript-eslint/scope-manager" "4.28.0"
-    "@typescript-eslint/types" "4.28.0"
-    "@typescript-eslint/typescript-estree" "4.28.0"
+    "@typescript-eslint/scope-manager" "4.28.4"
+    "@typescript-eslint/types" "4.28.4"
+    "@typescript-eslint/typescript-estree" "4.28.4"
     debug "^4.3.1"
 
 "@typescript-eslint/scope-manager@4.28.0":
@@ -1968,10 +1968,23 @@
     "@typescript-eslint/types" "4.28.0"
     "@typescript-eslint/visitor-keys" "4.28.0"
 
+"@typescript-eslint/scope-manager@4.28.4":
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-4.28.4.tgz#bdbce9b6a644e34f767bd68bc17bb14353b9fe7f"
+  integrity sha512-ZJBNs4usViOmlyFMt9X9l+X0WAFcDH7EdSArGqpldXu7aeZxDAuAzHiMAeI+JpSefY2INHrXeqnha39FVqXb8w==
+  dependencies:
+    "@typescript-eslint/types" "4.28.4"
+    "@typescript-eslint/visitor-keys" "4.28.4"
+
 "@typescript-eslint/types@4.28.0":
   version "4.28.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-4.28.0.tgz#a33504e1ce7ac51fc39035f5fe6f15079d4dafb0"
   integrity sha512-p16xMNKKoiJCVZY5PW/AfILw2xe1LfruTcfAKBj3a+wgNYP5I9ZEKNDOItoRt53p4EiPV6iRSICy8EPanG9ZVA==
+
+"@typescript-eslint/types@4.28.4":
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-4.28.4.tgz#41acbd79b5816b7c0dd7530a43d97d020d3aeb42"
+  integrity sha512-3eap4QWxGqkYuEmVebUGULMskR6Cuoc/Wii0oSOddleP4EGx1tjLnZQ0ZP33YRoMDCs5O3j56RBV4g14T4jvww==
 
 "@typescript-eslint/typescript-estree@4.28.0":
   version "4.28.0"
@@ -1986,12 +1999,33 @@
     semver "^7.3.5"
     tsutils "^3.21.0"
 
+"@typescript-eslint/typescript-estree@4.28.4":
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-4.28.4.tgz#252e6863278dc0727244be9e371eb35241c46d00"
+  integrity sha512-z7d8HK8XvCRyN2SNp+OXC2iZaF+O2BTquGhEYLKLx5k6p0r05ureUtgEfo5f6anLkhCxdHtCf6rPM1p4efHYDQ==
+  dependencies:
+    "@typescript-eslint/types" "4.28.4"
+    "@typescript-eslint/visitor-keys" "4.28.4"
+    debug "^4.3.1"
+    globby "^11.0.3"
+    is-glob "^4.0.1"
+    semver "^7.3.5"
+    tsutils "^3.21.0"
+
 "@typescript-eslint/visitor-keys@4.28.0":
   version "4.28.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-4.28.0.tgz#255c67c966ec294104169a6939d96f91c8a89434"
   integrity sha512-PjJyTWwrlrvM5jazxYF5ZPs/nl0kHDZMVbuIcbpawVXaDPelp3+S9zpOz5RmVUfS/fD5l5+ZXNKnWhNYjPzCvw==
   dependencies:
     "@typescript-eslint/types" "4.28.0"
+    eslint-visitor-keys "^2.0.0"
+
+"@typescript-eslint/visitor-keys@4.28.4":
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-4.28.4.tgz#92dacfefccd6751cbb0a964f06683bfd72d0c4d3"
+  integrity sha512-NIAXAdbz1XdOuzqkJHjNKXKj8QQ4cv5cxR/g0uQhCYf/6//XrmfpaYsM7PnBcNbfvTDLUkqQ5TPNm1sozDdTWg==
+  dependencies:
+    "@typescript-eslint/types" "4.28.4"
     eslint-visitor-keys "^2.0.0"
 
 "@webassemblyjs/ast@1.11.1":
