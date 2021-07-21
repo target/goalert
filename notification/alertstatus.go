@@ -5,6 +5,9 @@ type AlertStatus struct {
 	CallbackID string
 	AlertID    int
 	LogEntry   string
+
+	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
+	OriginalStatus *SendResult
 }
 
 var _ Message = &AlertStatus{}
