@@ -321,12 +321,16 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Escalated.")
+			// only if escalation results in second notification to channel
+			vals.Set("text", "Notified.")
 			vals.Set("reply_broadcast", "true")
 			break
 		}
 
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+	case notification.AlertStatus:
+		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+		vals.Set("text", t.LogEntry)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallUsers:
