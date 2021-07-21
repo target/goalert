@@ -153,7 +153,7 @@ function FormDialog(props) {
       fullWidth
       open={open}
       onClose={(event, reason) => {
-        if (isWideScreen || !alert || reason !== 'backdropClick')
+        if (reason !== 'backdropClick' || isWideScreen || !alert)
           onClose(event, reason)
       }}
       TransitionComponent={
