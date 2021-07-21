@@ -153,13 +153,9 @@ function FormDialog(props) {
       fullWidth
       open={open}
       onClose={(event, reason) => {
-        if (
-          reason === 'backdropClick' &&
-          ( !isWideScreen || alert )
-        ){return}
-        onClose(event, reason)
-        }
-      }
+        if (isWideScreen || !alert || reason !== 'backdropClick')
+          onClose(event, reason)
+      }}
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
