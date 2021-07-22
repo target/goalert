@@ -329,7 +329,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertStatus:
-		vals.Set("thread_ts", t.Alert.OriginalStatus.ProviderMessageID.ExternalID)
+		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
 		vals.Set("text", t.LogEntry)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
