@@ -91,17 +91,28 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
-
+		a, err := p.cfg.AlertStore.FindOne(ctx, msg.AlertID)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original alert: %w", err)
+		}
 		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}
-		notifMsg = notification.AlertStatus{
+		alert := notification.Alert{
 			Dest:           msg.Dest,
-			AlertID:        e.AlertID(),
 			CallbackID:     msg.ID,
-			LogEntry:       e.String(),
+			AlertID:        e.AlertID(),
+			Summary:        a.Summary,
+			Details:        a.Details,
 			OriginalStatus: stat,
+		}
+		notifMsg = notification.AlertStatus{
+			Dest:       msg.Dest,
+			AlertID:    e.AlertID(),
+			CallbackID: msg.ID,
+			LogEntry:   e.String(),
+			Alert:      alert,
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{

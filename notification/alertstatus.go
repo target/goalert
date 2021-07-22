@@ -6,8 +6,8 @@ type AlertStatus struct {
 	AlertID    int
 	LogEntry   string
 
-	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
-	OriginalStatus *SendResult
+	// The Alert that this status is in regard to.
+	Alert Alert
 }
 
 var _ Message = &AlertStatus{}
