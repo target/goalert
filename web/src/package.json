@@ -91,7 +91,7 @@
     "chance": "1.1.7",
     "copy-webpack-plugin": "9.0.1",
     "css-loader": "6.1.0",
-    "cssnano": "5.0.6",
+    "cssnano": "5.0.7",
     "cypress": "7.7.0",
     "jest": "27.0.6",
     "json-loader": "0.5.7",
