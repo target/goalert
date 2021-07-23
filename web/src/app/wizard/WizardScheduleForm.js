@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import FormControl from '@material-ui/core/FormControl'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -35,14 +35,10 @@ const useStyles = makeStyles(() => ({
  * Renders the form fields to be used in the wizard that
  * can be used for creating a primary and secondary schedule.
  */
-export default function WizardScheduleForm({
-  value,
-  onChange,
-  secondary,
-  forceUpdate,
-}) {
+export default function WizardScheduleForm({ value, onChange, secondary }) {
   const width = useWidth()
   const classes = useStyles()
+  const forceUpdate = useState()[1]
 
   function renderFollowTheSun(key, schedType) {
     if (value[key].followTheSunRotation.enable === 'yes') {
