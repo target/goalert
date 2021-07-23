@@ -102,7 +102,7 @@
     "redux": "4.0.5",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "3.1.0",
-    "webpack": "5.45.1",
+    "webpack": "5.46.0",
     "webpack-cli": "4.7.2",
     "webpack-dev-server": "3.11.2"
   }
