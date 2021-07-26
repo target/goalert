@@ -184,7 +184,7 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              The schedule will be exactly as configured on this step for the
+              The schedule will be exactly as configured here for the
               entire duration (ignoring all assignments and overrides).
             </DialogContentText>
           </Grid>
