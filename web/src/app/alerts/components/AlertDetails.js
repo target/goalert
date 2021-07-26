@@ -433,7 +433,7 @@ function AlertDetails(props) {
 
   return (
     <Grid container spacing={2} justify='center'>
-      <Grid item xs={12} lg={9}>
+      <Grid item className={getCardClassName()}>
         <Notices notices={notices} />
       </Grid>
       <Grid item xs={12} className={classes.cardContainer}>
