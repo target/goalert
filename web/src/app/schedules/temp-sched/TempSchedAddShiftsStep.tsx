@@ -202,6 +202,7 @@ export default function TempSchedAddShiftsStep({
           </FormContainer>
           <Grid item>
             <Button
+              data-cy='add-shift'
               color='secondary'
               variant='contained'
               fullWidth
