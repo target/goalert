@@ -6,6 +6,7 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
+import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash'
@@ -207,6 +208,7 @@ export default function TempSchedAddShiftsStep({
               variant='contained'
               fullWidth
               onClick={handleAddShift}
+              endIcon={<ArrowRightAltIcon />}
             >
               Add Shift
             </Button>
