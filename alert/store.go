@@ -291,7 +291,10 @@ func (db *DB) FindPendingNotifications(ctx context.Context, alertID int, service
 	}
 
 	rows, err := db.findPendingNotifications.QueryContext(ctx, alertID, serviceID)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
