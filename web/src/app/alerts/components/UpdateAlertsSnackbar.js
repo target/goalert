@@ -68,8 +68,9 @@ function UpdateAlertsSnackbar({
       autoHideDuration={!errorMessage ? 3000 : null}
       open={open}
       onClose={onClose}
-      onExited={onExited}
-    >
+      TransitionProps={{
+        onExited
+      }}>
       <SnackbarContent
         className={errorMessage ? classes.error : classes.success}
         message={getMessage()}
