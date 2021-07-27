@@ -261,8 +261,9 @@ export default class Options extends Component {
         open={this.state.showErrorDialog}
         onClose={() => this.setState({ showErrorDialog: false })}
         TransitionProps={{
-          onExited: () => this.setState({ errorMessage: '' })
-        }}>
+          onExited: () => this.setState({ errorMessage: '' }),
+        }}
+      >
         <DialogTitleWrapper
           fullScreen={isWidthDown('md', this.props.width)}
           title='An error occurred'

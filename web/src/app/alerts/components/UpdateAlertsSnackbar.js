@@ -69,8 +69,9 @@ function UpdateAlertsSnackbar({
       open={open}
       onClose={onClose}
       TransitionProps={{
-        onExited
-      }}>
+        onExited,
+      }}
+    >
       <SnackbarContent
         className={errorMessage ? classes.error : classes.success}
         message={getMessage()}

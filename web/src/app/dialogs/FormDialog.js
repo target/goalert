@@ -159,8 +159,9 @@ function FormDialog(props) {
       }
       {...dialogProps}
       TransitionProps={{
-        onExited: handleOnExited
-      }}>
+        onExited: handleOnExited,
+      }}
+    >
       <Notices notices={notices} />
       <DialogTitleWrapper
         fullScreen={fs}
