@@ -4,9 +4,12 @@ import (
 	"bytes"
 	context "context"
 	"html/template"
+	"net/url"
 	"sort"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
@@ -103,12 +106,18 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	cfg := config.FromContext(ctx)
 
 	type Manifest struct {
-		AppName     string
-		CallbackURL string
+		AppName        string
+		CallbackDomain string
+		CallbackURL    string
 	}
-	m := Manifest{"GoAlert", "test.com"}
+	domain, err := url.Parse(cfg.CallbackURL(""))
+	if err != nil {
+		return "", errors.Wrap(err, "parse PublicURL")
+	}
+	m := Manifest{"GoAlert", domain.Host, cfg.CallbackURL("")}
 
 	var tmpl = template.Must(template.New("manifest").Parse(`
 _metadata:
@@ -119,10 +128,10 @@ display_information:
 settings:
 	interactivity:
 		is_enabled: true
-		request_url: {{.CallbackURL}}/api/v2/slack/message-action
-		message_menu_options_url: {{.CallbackURL}}/api/v2/slack/menu-options
+		request_url: {{.CallbackURL}}api/v2/slack/message-action
+		message_menu_options_url: {{.CallbackURL}}api/v2/slack/menu-options
 features:
-	unfurl_domains: {{.CallbackURL}}
+	unfurl_domains: [{{.CallbackDomain}}]
 	bot_user:
 		display_name: {{.AppName}}
 		always_online: true
@@ -137,7 +146,7 @@ oauth_config:
 		- im:write
 		- users:read.email
 	redirect_urls:
-		- {{.CallbackURL}}/api/v2/identity/providers/oidc/callback
+		- {{.CallbackURL}}api/v2/identity/providers/oidc/callback
 	`))
 
 	var t bytes.Buffer
