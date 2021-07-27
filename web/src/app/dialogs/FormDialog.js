@@ -157,7 +157,6 @@ function FormDialog(props) {
           // disable backdrop for mobile and alerts
           return
         }
-
         handleOnClose()
       }}
       TransitionComponent={
