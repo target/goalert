@@ -31,7 +31,6 @@ export default class URLErrorDialog extends React.Component {
           open={open}
           onClose={(_, r) => {
             if (r === 'backdropClick') return
-            
             this.onClose()
           }}
           aria-labelledby='alert-dialog-title'
