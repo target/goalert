@@ -44,7 +44,7 @@ export default function SlackActions(): JSX.Element {
       <Dialog open={showManifest} onClose={() => setShowManifest(false)}>
         <DialogTitle>New Slack App Manifest</DialogTitle>
         <DialogContent>
-          <Markdown value={data.generateSlackAppManifest} />
+          <Markdown value={'```' + data.generateSlackAppManifest + '\n```'} />
         </DialogContent>
         <DialogActions>
           <Button
