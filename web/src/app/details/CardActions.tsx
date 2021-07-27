@@ -83,8 +83,14 @@ function Action(p: ActionProps): JSX.Element {
       </Tooltip>
     )
   }
+
   return (
-    <Button onClick={action.handleOnClick} startIcon={action.icon}>
+    <Button
+      onClick={action.handleOnClick}
+      startIcon={action.icon}
+      variant='contained'
+      color='primary'
+    >
       {action.label}
     </Button>
   )
