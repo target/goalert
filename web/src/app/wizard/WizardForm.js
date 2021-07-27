@@ -15,7 +15,7 @@ import { value as valuePropType } from './propTypes'
 import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import MaterialSelect from '../selection/MaterialSelect'
-import { set } from 'lodash'
+import * as _ from 'lodash'
 
 const styles = {
   fieldItem: {
@@ -42,8 +42,9 @@ export default class WizardForm extends React.PureComponent {
 
   handleSecondaryScheduleToggle = (e) => {
     const { onChange, value } = this.props
-    onChange(set(value, ['secondarySchedule', 'enable'], e.target.value))
-    this.forceUpdate()
+    const newVal = _.cloneDeep(value)
+    newVal.secondarySchedule.enable = e.target.value
+    onChange(newVal)
   }
 
   sectionHeading = (text) => {
