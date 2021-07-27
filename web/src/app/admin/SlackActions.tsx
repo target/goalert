@@ -22,8 +22,9 @@ const query = gql`
 
 export default function SlackActions(): JSX.Element {
   const [showManifest, setShowManifest] = useState(false)
-  const { loading, error, data } = useQuery(query)
+  const [copied, setCopied] = useState(false)
 
+  const { loading, error, data } = useQuery(query)
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
@@ -47,9 +48,12 @@ export default function SlackActions(): JSX.Element {
           <Button
             variant='contained'
             color='primary'
-            onClick={() => copyToClipboard(data.generateSlackAppManifest)}
+            onClick={() => {
+              copyToClipboard(data.generateSlackAppManifest)
+              setCopied(true)
+            }}
           >
-            Copy
+            {copied ? 'Copied' : 'Copy'}
           </Button>
         </DialogActions>
       </Dialog>
