@@ -24,6 +24,8 @@ export default function SlackActions(): JSX.Element {
   const [showManifest, setShowManifest] = useState(false)
   const [copied, setCopied] = useState(false)
 
+  // todo: generate this on click
+  // e.g. someone generates, makes a config change, then wants to re-generate
   const { loading, error, data } = useQuery(query)
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
