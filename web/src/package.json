@@ -75,7 +75,7 @@
     "@types/jest": "26.0.24",
     "@types/lodash": "4.14.171",
     "@types/luxon": "1.27.1",
-    "@types/react": "17.0.14",
+    "@types/react": "17.0.15",
     "@types/react-beautiful-dnd": "^13.1.1",
     "@types/react-big-calendar": "0.33.1",
     "@types/react-dom": "17.0.9",
