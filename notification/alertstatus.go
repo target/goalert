@@ -12,7 +12,7 @@ type AlertStatus struct {
 	Details string
 
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
-	OriginalStatus *SendResult
+	OriginalStatus SendResult
 }
 
 var _ Message = &AlertStatus{}
