@@ -106,7 +106,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			LogEntry:       e.String(),
 			Summary:        a.Summary,
 			Details:        a.Details,
-			OriginalStatus: stat,
+			OriginalStatus: *stat,
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
