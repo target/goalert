@@ -20,35 +20,22 @@ func typeOrder(msg Message) int {
 // It also handles updating the outgoing_messages table by marking bundled messages with the `bundled`
 // status and creating a new bundled message placeholder.
 func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string, error), bundleFunc func(string, []string) error) ([]Message, error) {
+	toProcess, result := splitPendingByType(messages, notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
+	// sort by type, then CreatedAt
+	sort.Slice(toProcess, func(i, j int) bool {
+		if toProcess[i].Type != toProcess[j].Type {
+			return typeOrder(toProcess[i]) < typeOrder(toProcess[j])
+		}
+		return toProcess[i].CreatedAt.Before(toProcess[j].CreatedAt)
+	})
+
 	type key struct {
 		notification.Dest
 		ServiceID string
 	}
 
-	// sort by type, then CreatedAt
-	sort.Slice(messages, func(i, j int) bool {
-		if messages[i].Type != messages[j].Type {
-			return typeOrder(messages[i]) < typeOrder(messages[j])
-		}
-		return messages[i].CreatedAt.Before(messages[j].CreatedAt)
-	})
-
 	groups := make(map[key][]Message)
-
-	filtered := messages[:0]
-	for _, msg := range messages {
-		// ignore messages that have been sent
-		if !msg.SentAt.IsZero() {
-			filtered = append(filtered, msg)
-			continue
-		}
-
-		// ignore anything that is not an alert or alert bundle
-		if msg.Type != notification.MessageTypeAlert && msg.Type != notification.MessageTypeAlertBundle {
-			filtered = append(filtered, msg)
-			continue
-		}
-
+	for _, msg := range toProcess {
 		key := key{
 			Dest:      msg.Dest,
 			ServiceID: msg.ServiceID,
@@ -59,7 +46,7 @@ func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string
 	for _, msgs := range groups {
 		// skip single messages
 		if len(msgs) == 1 {
-			filtered = append(filtered, msgs[0])
+			result = append(result, msgs[0])
 			continue
 		}
 
@@ -86,8 +73,8 @@ func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string
 		if err != nil {
 			return nil, err
 		}
-		filtered = append(filtered, msgs[0])
+		result = append(result, msgs[0])
 	}
 
-	return filtered, nil
+	return result, nil
 }
