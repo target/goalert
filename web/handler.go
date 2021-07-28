@@ -22,7 +22,7 @@ var bundleFS embed.FS
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or by proxying to urlStr if set.
-func NewHandler(urlStr, prefix string) (http.Handler, error) {
+func NewHandler(urlStr, prefix, applicationName string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
 	etags := make(map[string]string)
@@ -69,8 +69,9 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 
 	var buf bytes.Buffer
 	err := indexTmpl.Execute(&buf, renderData{
-		Prefix:       prefix,
-		ExtraScripts: extraScripts,
+		ApplicationName: applicationName,
+		Prefix:          prefix,
+		ExtraScripts:    extraScripts,
 	})
 	if err != nil {
 		return nil, err

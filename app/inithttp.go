@@ -251,7 +251,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/health", app.healthCheck)
 	mux.HandleFunc("/health/engine", app.engineStatus)
 
-	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix)
+	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix, app.ConfigStore.Config().General.ApplicationName)
 	if err != nil {
 		return err
 	}
