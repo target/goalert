@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Query from '../util/Query'
 import { gql } from '@apollo/client'
@@ -8,12 +8,11 @@ import {
   Card,
   CardHeader,
   IconButton,
-  withStyles,
+  makeStyles,
 } from '@material-ui/core'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import { Delete } from '@material-ui/icons'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
-
 import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
@@ -35,37 +34,18 @@ const query = gql`
   }
 `
 
-const styles = (theme) => {
+const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
-
   return {
     cardHeader,
   }
-}
+})
 
-@withStyles(styles)
-export default class UserNotificationRuleList extends React.PureComponent {
-  static propTypes = {
-    userID: p.string.isRequired,
-    readOnly: p.bool,
-  }
+export default function UserNotificationRuleList({ userID, readOnly }) {
+  const classes = useStyles()
+  const [deleteID, setDeleteID] = useState(null)
 
-  state = {
-    delete: null,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.userID }}
-        render={({ data }) => this.renderList(data.user.notificationRules)}
-      />
-    )
-  }
-
-  renderList(notificationRules) {
-    const { classes } = this.props
+  function renderList(notificationRules) {
     return (
       <Grid item xs={12}>
         <Card>
@@ -78,10 +58,10 @@ export default class UserNotificationRuleList extends React.PureComponent {
             data-cy='notification-rules'
             items={sortNotificationRules(notificationRules).map((nr) => ({
               title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-              secondaryAction: this.props.readOnly ? null : (
+              secondaryAction: readOnly ? null : (
                 <IconButton
                   aria-label='Delete notification rule'
-                  onClick={() => this.setState({ delete: nr.id })}
+                  onClick={() => setDeleteID(nr.id)}
                 >
                   <Delete />
                 </IconButton>
@@ -90,13 +70,25 @@ export default class UserNotificationRuleList extends React.PureComponent {
             emptyMessage='No notification rules'
           />
         </Card>
-        {this.state.delete && (
+        {deleteID && (
           <UserNotificationRuleDeleteDialog
-            ruleID={this.state.delete}
-            onClose={() => this.setState({ delete: null })}
+            ruleID={deleteID}
+            onClose={() => setDeleteID(null)}
           />
         )}
       </Grid>
     )
   }
+  return (
+    <Query
+      query={query}
+      variables={{ id: userID }}
+      render={({ data }) => renderList(data.user.notificationRules)}
+    />
+  )
+}
+
+UserNotificationRuleList.propTypes = {
+  userID: p.string.isRequired,
+  readOnly: p.bool,
 }
