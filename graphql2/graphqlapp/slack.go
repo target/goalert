@@ -121,33 +121,33 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 
 	var tmpl = template.Must(template.New("manifest").Parse(`
 _metadata:
-	major_version: 1
-	minor_version: 1
+  major_version: 1
+  minor_version: 1
 display_information:
-	name: {{.AppName}}
+  name: {{.AppName}}
 settings:
-	interactivity:
-		is_enabled: true
-		request_url: {{.CallbackURL}}api/v2/slack/message-action
-		message_menu_options_url: {{.CallbackURL}}api/v2/slack/menu-options
+  interactivity:
+    is_enabled: true
+    request_url: {{.CallbackURL}}api/v2/slack/message-action
+    message_menu_options_url: {{.CallbackURL}}api/v2/slack/menu-options
 features:
-	unfurl_domains: [{{.CallbackDomain}}]
-	bot_user:
-		display_name: {{.AppName}}
-		always_online: true
+  unfurl_domains: [{{.CallbackDomain}}]
+  bot_user:
+    display_name: {{.AppName}}
+    always_online: true
 oauth_config:
-	scopes:
-		bot:
-		- links:read
-		- chat:write
-		- channels:read
-		- groups:read
-		- im:read
-		- im:write
-		- users:read.email
-	redirect_urls:
-		- {{.CallbackURL}}api/v2/identity/providers/oidc/callback
-	`))
+  scopes:
+    bot:
+      - links:read
+      - chat:write
+      - channels:read
+      - groups:read
+      - im:read
+      - im:write
+      - users:read.email
+  redirect_urls:
+    - {{.CallbackURL}}api/v2/identity/providers/oidc/callback
+`))
 
 	var t bytes.Buffer
 	if err = tmpl.Execute(&t, m); err != nil {
