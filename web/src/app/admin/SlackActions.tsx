@@ -4,6 +4,7 @@ import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Divider from '@material-ui/core/Divider'
 import { gql, useLazyQuery } from '@apollo/client'
@@ -46,7 +47,7 @@ export default function SlackActions(): JSX.Element {
       <CardActions
         primaryActions={[
           {
-            label: 'Generate Slack App Manifest',
+            label: 'Create New Slack App',
             handleOnClick: () => {
               getManifest()
               setShowManifest(true)
@@ -63,19 +64,42 @@ export default function SlackActions(): JSX.Element {
         TransitionProps={{ onExited: () => setCopied(false) }}
         fullWidth
       >
-        <DialogTitle>New Slack App Manifest</DialogTitle>
-        <DialogContent>{renderContent()}</DialogContent>
+        <DialogTitle>Create New Slack App</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Copy the manifest generated below to configure a new GoAlert app
+            within Slack.
+          </DialogContentText>
+          {renderContent()}
+          <DialogContentText>
+            More information about manifests can be found{' '}
+            <a
+              href='https://api.slack.com/reference/manifests'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              here
+            </a>
+            .
+          </DialogContentText>
+        </DialogContent>
         <DialogActions>
           <Button
-            variant='contained'
-            color='primary'
             onClick={() => {
               copyToClipboard(data.generateSlackAppManifest)
               setCopied(true)
             }}
             disabled={loading}
           >
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? 'Copied!' : 'Copy'}
+          </Button>
+          <Button
+            component='a'
+            href='https://api.slack.com/apps'
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            Configure in Slack
           </Button>
         </DialogActions>
       </Dialog>
