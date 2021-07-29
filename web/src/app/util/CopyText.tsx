@@ -64,7 +64,10 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
           setCopied(true)
         }}
       >
-        <ContentCopy className={classes.icon} fontSize='small' />
+        <ContentCopy
+          className={props.title ? classes.icon : undefined}
+          fontSize='small'
+        />
         {props.title}
       </AppLink>
     )

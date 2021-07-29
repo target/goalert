@@ -7,12 +7,13 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Divider from '@material-ui/core/Divider'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import { gql, useLazyQuery } from '@apollo/client'
 import CardActions from '../details/CardActions'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import Markdown from '../util/Markdown'
-import copyToClipboard from '../util/copyToClipboard'
+import CopyText from '../util/CopyText'
 
 const query = gql`
   query {
@@ -21,6 +22,10 @@ const query = gql`
 `
 
 const useStyles = makeStyles({
+  copyButton: {
+    float: 'right',
+    padding: '12px',
+  },
   dialog: {
     minHeight: '650px',
   },
@@ -29,7 +34,6 @@ const useStyles = makeStyles({
 export default function SlackActions(): JSX.Element {
   const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   const [getManifest, { called, loading, error, data }] = useLazyQuery(query, {
     pollInterval: 0,
@@ -38,7 +42,17 @@ export default function SlackActions(): JSX.Element {
   function renderContent(): JSX.Element {
     if (called && loading) return <Spinner />
     if (error) return <GenericError error={error.message} />
-    return <Markdown value={'```' + data?.generateSlackAppManifest + '\n```'} />
+    return (
+      <div>
+        <div className={classes.copyButton}>
+          <CopyText
+            value={data?.generateSlackAppManifest ?? ''}
+            placement='left'
+          />
+        </div>
+        <Markdown value={'```' + data?.generateSlackAppManifest + '\n```'} />
+      </div>
+    )
   }
 
   return (
@@ -61,7 +75,6 @@ export default function SlackActions(): JSX.Element {
         }}
         open={showManifest}
         onClose={() => setShowManifest(false)}
-        TransitionProps={{ onExited: () => setCopied(false) }}
         fullWidth
       >
         <DialogTitle>Create New Slack App</DialogTitle>
@@ -72,7 +85,7 @@ export default function SlackActions(): JSX.Element {
           </DialogContentText>
           {renderContent()}
           <DialogContentText>
-            More information about manifests can be found{' '}
+            Learn more about manifests{' '}
             <a
               href='https://api.slack.com/reference/manifests'
               target='_blank'
@@ -84,16 +97,13 @@ export default function SlackActions(): JSX.Element {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => {
-              copyToClipboard(data.generateSlackAppManifest)
-              setCopied(true)
-            }}
-            disabled={loading}
-          >
-            {copied ? 'Copied!' : 'Copy'}
+          <Button color='primary' onClick={() => setShowManifest(false)}>
+            Cancel
           </Button>
           <Button
+            variant='contained'
+            color='primary'
+            endIcon={<OpenInNewIcon />}
             component='a'
             href='https://api.slack.com/apps'
             target='_blank'
