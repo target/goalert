@@ -428,7 +428,7 @@ function AlertDetails(props) {
     type: 'WARNING',
     message: `Notification Pending for ${n.destination}`,
     details:
-      'One or more notifications are waiting to be sent. Contact methods may be rate limited on a per-service basis.',
+      'One or more notifications are waiting to be sent. This could be due to rate-limiting, processing, or network delays.',
   }))
 
   return (
