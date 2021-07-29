@@ -141,7 +141,7 @@ function testTemporarySchedule(screen: string): void {
     cy.get(addShiftsSelector).should('be.visible.and.contain', 'STEP 2 OF 2')
     cy.dialogForm({ userID: manualAddUser.name }, addShiftsSelector)
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
-    cy.get('button[title="Add Shift"]').click()
+    cy.get('button[data-cy="add-shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
     cy.dialogFinish('Submit')
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
@@ -186,7 +186,7 @@ function testTemporarySchedule(screen: string): void {
         'not.contain',
         manualAddUser.name,
       )
-      cy.get('button[title="Add Shift"]').click()
+      cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogFinish('Submit')
       cy.reload() // ensure calendar update
@@ -230,7 +230,7 @@ function testTemporarySchedule(screen: string): void {
       addShiftsSelector,
     )
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
-    cy.get('button[title="Add Shift"]').click()
+    cy.get('button[data-cy="add-shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
     cy.dialogForm(
       {
@@ -239,7 +239,7 @@ function testTemporarySchedule(screen: string): void {
       addShiftsSelector,
     )
     cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
-    cy.get('button[title="Add Shift"]').click()
+    cy.get('button[data-cy="add-shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
   })
