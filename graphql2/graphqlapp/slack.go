@@ -115,7 +115,7 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	}
 	domain, err := url.Parse(cfg.CallbackURL(""))
 	if err != nil {
-		return "", errors.Wrap(err, "parse PublicURL")
+		return "", errors.Wrap(err, "parse CallbackURL")
 	}
 	m := Manifest{"GoAlert", domain.Host, cfg.CallbackURL("")}
 
