@@ -54,6 +54,7 @@ export default function SlackActions(): JSX.Element {
               copyToClipboard(data.generateSlackAppManifest)
               setCopied(true)
             }}
+            disabled={loading}
           >
             {copied ? 'Copied' : 'Copy'}
           </Button>
