@@ -99,6 +99,9 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}
+		if stat == nil {
+			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
+		}
 		notifMsg = notification.AlertStatus{
 			Dest:           msg.Dest,
 			AlertID:        e.AlertID(),
