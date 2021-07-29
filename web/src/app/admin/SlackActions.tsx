@@ -19,13 +19,26 @@ const query = gql`
   }
 `
 
+const useStyles = makeStyles({
+  dialog: {
+    minHeight: '650px',
+  },
+})
+
 export default function SlackActions(): JSX.Element {
+  const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const [getManifest, { called, loading, error, data }] = useLazyQuery(query, {
     pollInterval: 0,
   })
+
+  function renderContent(): JSX.Element {
+    if (called && loading) return <Spinner />
+    if (error) return <GenericError error={error.message} />
+    return <Markdown value={'```' + data?.generateSlackAppManifest + '\n```'} />
+  }
 
   return (
     <React.Fragment>
@@ -41,11 +54,17 @@ export default function SlackActions(): JSX.Element {
           },
         ]}
       />
-      <Dialog open={showManifest} onClose={() => setShowManifest(false)}>
+      <Dialog
+        classes={{
+          paper: classes.dialog,
+        }}
+        open={showManifest}
+        onClose={() => setShowManifest(false)}
+        TransitionProps={{ onExited: () => setCopied(false) }}
+        fullWidth
+      >
         <DialogTitle>New Slack App Manifest</DialogTitle>
-        <DialogContent>
-          <Markdown value={'```' + data.generateSlackAppManifest + '\n```'} />
-        </DialogContent>
+        <DialogContent>{renderContent()}</DialogContent>
         <DialogActions>
           <Button
             variant='contained'
