@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import p from 'prop-types'
 import FormControl from '@material-ui/core/FormControl'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -38,7 +38,6 @@ const useStyles = makeStyles(() => ({
 export default function WizardScheduleForm({ value, onChange, secondary }) {
   const width = useWidth()
   const classes = useStyles()
-  const forceUpdate = useState()[1]
 
   function renderFollowTheSun(key, schedType) {
     if (value[key].followTheSunRotation.enable === 'yes') {
@@ -86,15 +85,15 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
   }
 
   const handleRotationTypeChange = (e) => {
-    onChange(set(value, [getKey(), 'rotation', 'type'], e.target.value))
-    forceUpdate()
+    const newVal = _.cloneDeep(value)
+    newVal[this.getKey()].rotation.type = e.target.value
+    onChange(newVal)
   }
 
   const handleFollowTheSunToggle = (e) => {
-    onChange(
-      set(value, [getKey(), 'followTheSunRotation', 'enable'], e.target.value),
-    )
-    forceUpdate()
+    const newVal = _.cloneDeep(value)
+    newVal[this.getKey()].followTheSunRotation.enable = e.target.value
+    onChange(newVal)
   }
 
   function renderRotationFields(key, schedType) {
