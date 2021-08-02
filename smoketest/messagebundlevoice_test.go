@@ -52,6 +52,4 @@ func TestMessageBundle_Voice(t *testing.T) {
 		ThenExpect("Acknowledged all")
 
 	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [1,2,3,4], newStatus: StatusClosed}){id} }`)
-
-	d1.ExpectVoice("Closed", "3 other alerts")
 }

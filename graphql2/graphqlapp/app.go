@@ -52,7 +52,7 @@ import (
 type App struct {
 	DB             *sql.DB
 	AuthBasicStore *basic.Store
-	UserStore      user.Store
+	UserStore      *user.Store
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
 	NCStore        notificationchannel.Store
@@ -72,7 +72,7 @@ type App struct {
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
 	AuthHandler *auth.Handler

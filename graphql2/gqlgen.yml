@@ -16,6 +16,9 @@ models:
         fieldName: AlertStatusCMID
   UserContactMethod:
     model: github.com/target/goalert/user/contactmethod.ContactMethod
+    fields:
+      value:
+        resolver: true
   UserNotificationRule:
     model: github.com/target/goalert/user/notificationrule.NotificationRule
   Target:
@@ -85,9 +88,14 @@ models:
     model: github.com/target/goalert/schedule.FixedShift
   TemporarySchedule:
     model: github.com/target/goalert/schedule.TemporarySchedule
+  OnCallNotificationRule:
+    model: github.com/target/goalert/schedule.OnCallNotificationRule
+  OnCallNotificationRuleInput:
+    model: github.com/target/goalert/graphql2.OnCallNotificationRuleInput
   WeekdayFilter:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
-      - github.com/satori/go.uuid.UUID
+      - github.com/google/uuid.UUID
+      - github.com/target/goalert/schedule.RuleID

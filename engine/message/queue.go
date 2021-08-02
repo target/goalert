@@ -13,11 +13,14 @@ var typePriority = map[notification.MessageType]int{
 	notification.MessageTypeVerification: 1,
 	notification.MessageTypeTest:         2,
 
-	notification.MessageTypeAlert:       3,
-	notification.MessageTypeAlertBundle: 3,
+	notification.MessageTypeScheduleOnCallUsers: 3,
 
-	notification.MessageTypeAlertStatus:       4,
-	notification.MessageTypeAlertStatusBundle: 4,
+	// First alert will jump the list with priority 0, so this only
+	// represents additional alerts to the service after the first.
+	notification.MessageTypeAlert:       4,
+	notification.MessageTypeAlertBundle: 4,
+
+	notification.MessageTypeAlertStatus: 5,
 }
 
 type queue struct {

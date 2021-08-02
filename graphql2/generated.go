@@ -65,6 +65,7 @@ type ResolverRoot interface {
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
 	Mutation() MutationResolver
+	OnCallNotificationRule() OnCallNotificationRuleResolver
 	OnCallShift() OnCallShiftResolver
 	Query() QueryResolver
 	Rotation() RotationResolver
@@ -210,48 +211,49 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                  func(childComplexity int, input user.AuthSubject) int
-		ClearTemporarySchedules         func(childComplexity int, input ClearTemporarySchedulesInput) int
-		CreateAlert                     func(childComplexity int, input CreateAlertInput) int
-		CreateEscalationPolicy          func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep      func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor          func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey            func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                  func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                  func(childComplexity int, input CreateScheduleInput) int
-		CreateService                   func(childComplexity int, input CreateServiceInput) int
-		CreateUser                      func(childComplexity int, input CreateUserInput) int
-		CreateUserCalendarSubscription  func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
-		CreateUserContactMethod         func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule      func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride              func(childComplexity int, input CreateUserOverrideInput) int
-		DebugCarrierInfo                func(childComplexity int, input DebugCarrierInfoInput) int
-		DebugSendSms                    func(childComplexity int, input DebugSendSMSInput) int
-		DeleteAll                       func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject               func(childComplexity int, input user.AuthSubject) int
-		EndAllAuthSessionsByCurrentUser func(childComplexity int) int
-		EscalateAlerts                  func(childComplexity int, input []int) int
-		SendContactMethodVerification   func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                       func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                     func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                        func(childComplexity int, input SetLabelInput) int
-		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
-		SetTemporarySchedule            func(childComplexity int, input SetTemporaryScheduleInput) int
-		TestContactMethod               func(childComplexity int, id string) int
-		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
-		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
-		UpdateEscalationPolicy          func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep      func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor          func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                  func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                  func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget            func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                   func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                      func(childComplexity int, input UpdateUserInput) int
-		UpdateUserCalendarSubscription  func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
-		UpdateUserContactMethod         func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride              func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod             func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                     func(childComplexity int, input user.AuthSubject) int
+		ClearTemporarySchedules            func(childComplexity int, input ClearTemporarySchedulesInput) int
+		CreateAlert                        func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy             func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep         func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor             func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey               func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                     func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                     func(childComplexity int, input CreateScheduleInput) int
+		CreateService                      func(childComplexity int, input CreateServiceInput) int
+		CreateUser                         func(childComplexity int, input CreateUserInput) int
+		CreateUserCalendarSubscription     func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
+		CreateUserContactMethod            func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule         func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride                 func(childComplexity int, input CreateUserOverrideInput) int
+		DebugCarrierInfo                   func(childComplexity int, input DebugCarrierInfoInput) int
+		DebugSendSms                       func(childComplexity int, input DebugSendSMSInput) int
+		DeleteAll                          func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		EndAllAuthSessionsByCurrentUser    func(childComplexity int) int
+		EscalateAlerts                     func(childComplexity int, input []int) int
+		SendContactMethodVerification      func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                          func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                        func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                           func(childComplexity int, input SetLabelInput) int
+		SetScheduleOnCallNotificationRules func(childComplexity int, input SetScheduleOnCallNotificationRulesInput) int
+		SetSystemLimits                    func(childComplexity int, input []SystemLimitInput) int
+		SetTemporarySchedule               func(childComplexity int, input SetTemporaryScheduleInput) int
+		TestContactMethod                  func(childComplexity int, id string) int
+		UpdateAlerts                       func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService              func(childComplexity int, input UpdateAlertsByServiceInput) int
+		UpdateEscalationPolicy             func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep         func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor             func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                     func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                     func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget               func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                      func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                         func(childComplexity int, input UpdateUserInput) int
+		UpdateUserCalendarSubscription     func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
+		UpdateUserContactMethod            func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride                 func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod                func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	Notice struct {
@@ -263,6 +265,13 @@ type ComplexityRoot struct {
 	NotificationState struct {
 		Details func(childComplexity int) int
 		Status  func(childComplexity int) int
+	}
+
+	OnCallNotificationRule struct {
+		ID            func(childComplexity int) int
+		Target        func(childComplexity int) int
+		Time          func(childComplexity int) int
+		WeekdayFilter func(childComplexity int) int
 	}
 
 	OnCallShift struct {
@@ -341,16 +350,17 @@ type ComplexityRoot struct {
 	}
 
 	Schedule struct {
-		AssignedTo         func(childComplexity int) int
-		Description        func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		IsFavorite         func(childComplexity int) int
-		Name               func(childComplexity int) int
-		Shifts             func(childComplexity int, start time.Time, end time.Time) int
-		Target             func(childComplexity int, input assignment.RawTarget) int
-		Targets            func(childComplexity int) int
-		TemporarySchedules func(childComplexity int) int
-		TimeZone           func(childComplexity int) int
+		AssignedTo              func(childComplexity int) int
+		Description             func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		IsFavorite              func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		OnCallNotificationRules func(childComplexity int) int
+		Shifts                  func(childComplexity int, start time.Time, end time.Time) int
+		Target                  func(childComplexity int, input assignment.RawTarget) int
+		Targets                 func(childComplexity int) int
+		TemporarySchedules      func(childComplexity int) int
+		TimeZone                func(childComplexity int) int
 	}
 
 	ScheduleConnection struct {
@@ -550,6 +560,7 @@ type IntegrationKeyResolver interface {
 type MutationResolver interface {
 	SetTemporarySchedule(ctx context.Context, input SetTemporaryScheduleInput) (bool, error)
 	ClearTemporarySchedules(ctx context.Context, input ClearTemporarySchedulesInput) (bool, error)
+	SetScheduleOnCallNotificationRules(ctx context.Context, input SetScheduleOnCallNotificationRulesInput) (bool, error)
 	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -590,6 +601,9 @@ type MutationResolver interface {
 	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
+}
+type OnCallNotificationRuleResolver interface {
+	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
 }
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
@@ -644,6 +658,7 @@ type ScheduleResolver interface {
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
 	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
 	TemporarySchedules(ctx context.Context, obj *schedule.Schedule) ([]schedule.TemporarySchedule, error)
+	OnCallNotificationRules(ctx context.Context, obj *schedule.Schedule) ([]schedule.OnCallNotificationRule, error)
 }
 type ScheduleRuleResolver interface {
 	Target(ctx context.Context, obj *rule.Rule) (*assignment.RawTarget, error)
@@ -681,6 +696,7 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error)
 }
 type UserContactMethodResolver interface {
+	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 
 	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
@@ -1503,6 +1519,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetLabel(childComplexity, args["input"].(SetLabelInput)), true
 
+	case "Mutation.setScheduleOnCallNotificationRules":
+		if e.complexity.Mutation.SetScheduleOnCallNotificationRules == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setScheduleOnCallNotificationRules_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetScheduleOnCallNotificationRules(childComplexity, args["input"].(SetScheduleOnCallNotificationRulesInput)), true
+
 	case "Mutation.setSystemLimits":
 		if e.complexity.Mutation.SetSystemLimits == nil {
 			break
@@ -1741,6 +1769,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NotificationState.Status(childComplexity), true
+
+	case "OnCallNotificationRule.id":
+		if e.complexity.OnCallNotificationRule.ID == nil {
+			break
+		}
+
+		return e.complexity.OnCallNotificationRule.ID(childComplexity), true
+
+	case "OnCallNotificationRule.target":
+		if e.complexity.OnCallNotificationRule.Target == nil {
+			break
+		}
+
+		return e.complexity.OnCallNotificationRule.Target(childComplexity), true
+
+	case "OnCallNotificationRule.time":
+		if e.complexity.OnCallNotificationRule.Time == nil {
+			break
+		}
+
+		return e.complexity.OnCallNotificationRule.Time(childComplexity), true
+
+	case "OnCallNotificationRule.weekdayFilter":
+		if e.complexity.OnCallNotificationRule.WeekdayFilter == nil {
+			break
+		}
+
+		return e.complexity.OnCallNotificationRule.WeekdayFilter(childComplexity), true
 
 	case "OnCallShift.end":
 		if e.complexity.OnCallShift.End == nil {
@@ -2320,6 +2376,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Schedule.Name(childComplexity), true
+
+	case "Schedule.onCallNotificationRules":
+		if e.complexity.Schedule.OnCallNotificationRules == nil {
+			break
+		}
+
+		return e.complexity.Schedule.OnCallNotificationRules(childComplexity), true
 
 	case "Schedule.shifts":
 		if e.complexity.Schedule.Shifts == nil {
@@ -3380,6 +3443,10 @@ type Mutation {
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
+  setScheduleOnCallNotificationRules(
+    input: SetScheduleOnCallNotificationRulesInput!
+  ): Boolean!
+
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -3682,6 +3749,36 @@ type Schedule {
   isFavorite: Boolean!
 
   temporarySchedules: [TemporarySchedule!]!
+  onCallNotificationRules: [OnCallNotificationRule!]!
+}
+
+input SetScheduleOnCallNotificationRulesInput {
+  scheduleID: ID!
+  rules: [OnCallNotificationRuleInput!]!
+}
+
+input OnCallNotificationRuleInput {
+  id: ID
+  target: TargetInput!
+
+  # time indicates a time-of-day (in the schedule's time zone)
+  # to send a message of current on-call users.
+  #
+  # If time is null, a notification will be sent any time the set of on-call users
+  # changes for this schedule.
+  time: ClockTime
+
+  # weekdayFilter indicates which days of the week this rule is evaluated.
+  #
+  # It is required for time-of-day notifications and must be null if time is null.
+  weekdayFilter: WeekdayFilter
+}
+
+type OnCallNotificationRule {
+  id: ID!
+  target: Target!
+  time: ClockTime
+  weekdayFilter: WeekdayFilter
 }
 
 type OnCallShift {
@@ -3877,6 +3974,7 @@ scalar ISOTimestamp
 scalar ClockTime
 
 # WeekdayFilter is an array of 7 true/false values representing days of the week.
+# The first index (0) represents Sunday.
 scalar WeekdayFilter
 
 type Alert {
@@ -4139,6 +4237,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.
@@ -4580,6 +4679,21 @@ func (ec *executionContext) field_Mutation_setLabel_args(ctx context.Context, ra
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNSetLabelInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setScheduleOnCallNotificationRules_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 SetScheduleOnCallNotificationRulesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSetScheduleOnCallNotificationRulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetScheduleOnCallNotificationRulesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7941,6 +8055,48 @@ func (ec *executionContext) _Mutation_clearTemporarySchedules(ctx context.Contex
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_setScheduleOnCallNotificationRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setScheduleOnCallNotificationRules_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetScheduleOnCallNotificationRules(rctx, args["input"].(SetScheduleOnCallNotificationRulesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_debugCarrierInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9739,6 +9895,140 @@ func (ec *executionContext) _NotificationState_status(ctx context.Context, field
 	res := resTmp.(*NotificationStatus)
 	fc.Result = res
 	return ec.marshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OnCallNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OnCallNotificationRule",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(schedule.RuleID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OnCallNotificationRule_target(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OnCallNotificationRule",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OnCallNotificationRule().Target(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*assignment.RawTarget)
+	fc.Result = res
+	return ec.marshalNTarget2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OnCallNotificationRule_time(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OnCallNotificationRule",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.Clock)
+	fc.Result = res
+	return ec.marshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OnCallNotificationRule_weekdayFilter(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OnCallNotificationRule",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WeekdayFilter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.WeekdayFilter)
+	fc.Result = res
+	return ec.marshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
@@ -12326,6 +12616,41 @@ func (ec *executionContext) _Schedule_temporarySchedules(ctx context.Context, fi
 	return ec.marshalNTemporarySchedule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐTemporaryScheduleᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Schedule_onCallNotificationRules(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Schedule",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Schedule().OnCallNotificationRules(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]schedule.OnCallNotificationRule)
+	fc.Result = res
+	return ec.marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRuleᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ScheduleConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ScheduleConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14737,14 +15062,14 @@ func (ec *executionContext) _UserContactMethod_value(ctx context.Context, field 
 		Object:     "UserContactMethod",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
+		return ec.resolvers.UserContactMethod().Value(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17913,6 +18238,50 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx context.Context, obj interface{}) (OnCallNotificationRuleInput, error) {
+	var it OnCallNotificationRuleInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "target":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
+			it.Target, err = ec.unmarshalNTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
+			it.Time, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "weekdayFilter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weekdayFilter"))
+			it.WeekdayFilter, err = ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Context, obj interface{}) (RotationSearchOptions, error) {
 	var it RotationSearchOptions
 	var asMap = obj.(map[string]interface{})
@@ -18268,6 +18637,34 @@ func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInput(ctx context.Context, obj interface{}) (SetScheduleOnCallNotificationRulesInput, error) {
+	var it SetScheduleOnCallNotificationRulesInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "scheduleID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
+			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rules":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
+			it.Rules, err = ec.unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20151,6 +20548,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setScheduleOnCallNotificationRules":
+			out.Values[i] = ec._Mutation_setScheduleOnCallNotificationRules(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "debugCarrierInfo":
 			out.Values[i] = ec._Mutation_debugCarrierInfo(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -20372,6 +20774,51 @@ func (ec *executionContext) _NotificationState(ctx context.Context, sel ast.Sele
 			}
 		case "status":
 			out.Values[i] = ec._NotificationState_status(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var onCallNotificationRuleImplementors = []string{"OnCallNotificationRule"}
+
+func (ec *executionContext) _OnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, obj *schedule.OnCallNotificationRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, onCallNotificationRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OnCallNotificationRule")
+		case "id":
+			out.Values[i] = ec._OnCallNotificationRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "target":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OnCallNotificationRule_target(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "time":
+			out.Values[i] = ec._OnCallNotificationRule_time(ctx, field, obj)
+		case "weekdayFilter":
+			out.Values[i] = ec._OnCallNotificationRule_weekdayFilter(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21212,6 +21659,20 @@ func (ec *executionContext) _Schedule(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Schedule_temporarySchedules(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "onCallNotificationRules":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Schedule_onCallNotificationRules(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -22115,10 +22576,19 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "value":
-			out.Values[i] = ec._UserContactMethod_value(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_value(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "formattedValue":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -23201,6 +23671,16 @@ func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtarget�
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
+	var res schedule.RuleID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, sel ast.SelectionSet, v schedule.RuleID) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23491,6 +23971,73 @@ func (ec *executionContext) unmarshalNNoticeType2githubᚗcomᚋtargetᚋgoalert
 
 func (ec *executionContext) marshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐType(ctx context.Context, sel ast.SelectionSet, v notice.Type) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, v schedule.OnCallNotificationRule) graphql.Marshaler {
+	return ec._OnCallNotificationRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []schedule.OnCallNotificationRule) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRule(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNOnCallNotificationRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInput(ctx context.Context, v interface{}) (OnCallNotificationRuleInput, error) {
+	res, err := ec.unmarshalInputOnCallNotificationRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInputᚄ(ctx context.Context, v interface{}) ([]OnCallNotificationRuleInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]OnCallNotificationRuleInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNOnCallNotificationRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNOnCallShift2githubᚗcomᚋtargetᚋgoalertᚋoncallᚐShift(ctx context.Context, sel ast.SelectionSet, v oncall.Shift) graphql.Marshaler {
@@ -23885,6 +24432,11 @@ func (ec *executionContext) unmarshalNSetFavoriteInput2githubᚗcomᚋtargetᚋg
 
 func (ec *executionContext) unmarshalNSetLabelInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInput(ctx context.Context, v interface{}) (SetLabelInput, error) {
 	res, err := ec.unmarshalInputSetLabelInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNSetScheduleOnCallNotificationRulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetScheduleOnCallNotificationRulesInput(ctx context.Context, v interface{}) (SetScheduleOnCallNotificationRulesInput, error) {
+	res, err := ec.unmarshalInputSetScheduleOnCallNotificationRulesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -25289,6 +25841,16 @@ func (ec *executionContext) marshalOHeartbeatMonitor2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._HeartbeatMonitor(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
+	var res schedule.RuleID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, sel ast.SelectionSet, v schedule.RuleID) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

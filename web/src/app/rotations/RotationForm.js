@@ -149,7 +149,7 @@ export default function RotationForm(props) {
         </Grid>
         {localZone !== value.timeZone && (
           <Grid item xs={6} className={classes.tzContainer}>
-            <Grid container justify='center'>
+            <Grid container justifyContent='center'>
               <FormControlLabel
                 control={
                   <Switch

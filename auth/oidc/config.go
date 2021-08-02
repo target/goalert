@@ -8,5 +8,5 @@ import (
 // Config provides necessary parameters for OIDC authentication.
 type Config struct {
 	Keyring    keyring.Keyring
-	NonceStore nonce.Store
+	NonceStore *nonce.Store
 }

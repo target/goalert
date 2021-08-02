@@ -113,16 +113,16 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res.(*Channel), nil
 }
 
-func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
 	cfg := config.FromContext(ctx)
 
 	s.teamMx.Lock()
+	defer s.teamMx.Unlock()
 	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
 		// teamID missing or token changed
 		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
-			s.teamMx.Unlock() // always unlock
-			return nil, err
+			return "", err
 		}
 
 		// update teamID and token after fetching succeeds
@@ -130,8 +130,16 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		s.token = cfg.Slack.AccessToken
 	}
 
-	teamID := s.teamID
-	s.teamMx.Unlock()
+	return s.teamID, nil
+}
+
+func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+	cfg := config.FromContext(ctx)
+
+	teamID, err := s.TeamID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lookup team ID: %w", err)
+	}
 
 	v := make(url.Values)
 	// Parameters and URL documented here:
@@ -150,7 +158,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 	}
 
-	err := s.chanTht.Wait(ctx)
+	err = s.chanTht.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -321,6 +329,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+	case notification.ScheduleOnCallUsers:
+		vals.Set("text", s.onCallNotificationText(ctx, t))
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}

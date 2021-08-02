@@ -17,7 +17,6 @@ import { isWidthDown } from '@material-ui/core/withWidth'
 import * as _ from 'lodash'
 import useWidth from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
-
 const useStyles = makeStyles({
   fieldItem: {
     marginLeft: '2.5em',

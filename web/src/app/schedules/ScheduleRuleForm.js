@@ -11,19 +11,18 @@ import {
   Hidden,
   IconButton,
   TableBody,
-  withStyles,
   MenuItem,
   TextField,
   Typography,
+  makeStyles,
 } from '@material-ui/core'
+import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
 import { gql } from '@apollo/client'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { ISOTimePicker } from '../util/ISOPickers'
 import { DateTime } from 'luxon'
 
@@ -71,27 +70,6 @@ const renderDaysValue = (value) => {
   return parts.join(',')
 }
 
-const styles = () => {
-  return {
-    noPadding: {
-      padding: 0,
-    },
-    dayFilter: {
-      padding: 0,
-      paddingRight: '1em',
-    },
-    startEnd: {
-      padding: 0,
-      minWidth: '6em',
-      paddingRight: '1em',
-    },
-    tzNote: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-  }
-}
-
 const query = gql`
   query ($id: ID!) {
     schedule(id: $id) {
@@ -100,131 +78,30 @@ const query = gql`
     }
   }
 `
+const useStyles = makeStyles({
+  noPadding: {
+    padding: 0,
+  },
+  dayFilter: {
+    padding: 0,
+    paddingRight: '1em',
+  },
+  startEnd: {
+    padding: 0,
+    minWidth: '6em',
+    paddingRight: '1em',
+  },
+  tzNote: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
 
-@withStyles(styles)
-@connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
-export default class ScheduleRuleForm extends React.PureComponent {
-  static propTypes = {
-    targetType: p.oneOf(['rotation', 'user']).isRequired,
-    targetDisabled: p.bool,
-
-    scheduleID: p.string.isRequired,
-
-    value: p.shape({
-      targetID: p.string.isRequired,
-      rules: p.arrayOf(
-        p.shape({
-          start: p.string.isRequired,
-          end: p.string.isRequired,
-
-          weekdayFilter: p.arrayOf(p.bool).isRequired,
-        }),
-      ).isRequired,
-    }).isRequired,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        noPoll
-        render={({ data }) => this.renderForm(data.schedule.timeZone)}
-      />
-    )
-  }
-
-  renderForm() {
-    const {
-      zone: displayTZ,
-      targetDisabled,
-      targetType,
-      classes,
-      ...formProps
-    } = this.props
-
-    return (
-      <FormContainer {...formProps} optionalLabels>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
-            <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
-              Times and weekdays shown in{' '}
-              {displayTZ === 'local' ? 'local time' : displayTZ}.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-            <ScheduleTZFilter
-              label={(tz) => `Configure in ${tz}`}
-              scheduleID={this.props.scheduleID}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              required
-              component={targetType === 'user' ? UserSelect : RotationSelect}
-              label={startCase(targetType)}
-              disabled={targetDisabled}
-              name='targetID'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Table data-cy='target-rules'>
-              <TableHead>
-                <TableRow>
-                  <TableCell className={classes.startEnd}>Start</TableCell>
-                  <TableCell className={classes.startEnd}>End</TableCell>
-                  <Hidden smDown>
-                    {days.map((d) => (
-                      <TableCell key={d} padding='checkbox'>
-                        {d.slice(0, 3)}
-                      </TableCell>
-                    ))}
-                  </Hidden>
-                  <Hidden mdUp>
-                    <TableCell className={classes.dayFilter}>Days</TableCell>
-                  </Hidden>
-                  <TableCell padding='none'>
-                    <IconButton
-                      aria-label='Add rule'
-                      onClick={() =>
-                        this.props.onChange({
-                          ...this.props.value,
-                          rules: this.props.value.rules.concat({
-                            start: DateTime.local()
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            end: DateTime.local()
-                              .plus({ day: 1 })
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            weekdayFilter: Array(days.length).fill(true),
-                          }),
-                        })
-                      }
-                    >
-                      <Add />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {this.props.value.rules.map((r, idx) =>
-                  this.renderRuleField(idx),
-                )}
-              </TableBody>
-            </Table>
-          </Grid>
-        </Grid>
-      </FormContainer>
-    )
-  }
-
-  renderRuleField(idx) {
-    const classes = this.props.classes
+export default function ScheduleRuleForm(props) {
+  const { value, scheduleID, onChange } = props
+  const classes = useStyles()
+  const [zone] = useURLParam('tz', 'local')
+  function renderRuleField(idx) {
     return (
       <TableRow key={idx}>
         <TableCell className={classes.startEnd}>
@@ -252,7 +129,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
             <TableCell key={dayIdx} padding='checkbox'>
               <FormField
                 noError
-                className={this.props.classes.noPadding}
+                className={classes.noPadding}
                 component={Checkbox}
                 checkbox
                 fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
@@ -291,13 +168,13 @@ export default class ScheduleRuleForm extends React.PureComponent {
           </TableCell>
         </Hidden>
         <TableCell padding='none'>
-          {this.props.value.rules.length > 1 && (
+          {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
               onClick={() =>
-                this.props.onChange({
-                  ...this.props.value,
-                  rules: this.props.value.rules.filter((r, i) => i !== idx),
+                onChange({
+                  ...value,
+                  rules: value.rules.filter((r, i) => i !== idx),
                 })
               }
             >
@@ -308,4 +185,112 @@ export default class ScheduleRuleForm extends React.PureComponent {
       </TableRow>
     )
   }
+
+  function renderForm() {
+    const { targetDisabled, targetType, ...formProps } = props
+
+    return (
+      <FormContainer {...formProps} optionalLabels>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
+            <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
+              Times and weekdays shown in{' '}
+              {zone === 'local' ? 'local time' : zone}.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
+            <ScheduleTZFilter
+              label={(tz) => `Configure in ${tz}`}
+              scheduleID={scheduleID}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              required
+              component={targetType === 'user' ? UserSelect : RotationSelect}
+              label={startCase(targetType)}
+              disabled={targetDisabled}
+              name='targetID'
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Table data-cy='target-rules'>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={classes.startEnd}>Start</TableCell>
+                  <TableCell className={classes.startEnd}>End</TableCell>
+                  <Hidden smDown>
+                    {days.map((d) => (
+                      <TableCell key={d} padding='checkbox'>
+                        {d.slice(0, 3)}
+                      </TableCell>
+                    ))}
+                  </Hidden>
+                  <Hidden mdUp>
+                    <TableCell className={classes.dayFilter}>Days</TableCell>
+                  </Hidden>
+                  <TableCell padding='none'>
+                    <IconButton
+                      aria-label='Add rule'
+                      onClick={() =>
+                        onChange({
+                          ...value,
+                          rules: value.rules.concat({
+                            start: DateTime.local()
+                              .startOf('day')
+                              .toUTC()
+                              .toISO(),
+                            end: DateTime.local()
+                              .plus({ day: 1 })
+                              .startOf('day')
+                              .toUTC()
+                              .toISO(),
+                            weekdayFilter: Array(days.length).fill(true),
+                          }),
+                        })
+                      }
+                    >
+                      <Add />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {props.value.rules.map((r, idx) => renderRuleField(idx))}
+              </TableBody>
+            </Table>
+          </Grid>
+        </Grid>
+      </FormContainer>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.scheduleID }}
+      noPoll
+      render={({ data }) => renderForm(data.schedule.timeZone)}
+    />
+  )
+}
+
+ScheduleRuleForm.propTypes = {
+  targetType: p.oneOf(['rotation', 'user']).isRequired,
+  targetDisabled: p.bool,
+
+  scheduleID: p.string.isRequired,
+
+  value: p.shape({
+    targetID: p.string.isRequired,
+    rules: p.arrayOf(
+      p.shape({
+        start: p.string.isRequired,
+        end: p.string.isRequired,
+        weekdayFilter: p.arrayOf(p.bool).isRequired,
+      }),
+    ).isRequired,
+  }).isRequired,
 }

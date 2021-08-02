@@ -7,13 +7,15 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 type backend struct {
 	db *sql.DB
 
 	findOne *sql.Stmt
+
+	trackStatus *sql.Stmt
 
 	clientID string
 }
@@ -23,7 +25,7 @@ func newBackend(db *sql.DB) (*backend, error) {
 
 	return &backend{
 		db:       db,
-		clientID: uuid.NewV4().String(),
+		clientID: uuid.New().String(),
 
 		findOne: p.P(`
 			SELECT
@@ -33,6 +35,11 @@ func newBackend(db *sql.DB) (*backend, error) {
 				contact_method_id
 			FROM outgoing_messages
 			WHERE id = $1
+		`),
+
+		trackStatus: p.P(`
+			insert into alert_status_subscriptions (channel_id, contact_method_id, alert_id, last_alert_status)
+			values ($1, $2, $3, 'triggered')
 		`),
 	}, p.Err
 }

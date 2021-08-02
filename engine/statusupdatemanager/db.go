@@ -3,6 +3,7 @@ package statusupdatemanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -11,7 +12,12 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	insertMessages *sql.Stmt
+	latestLogEntry *sql.Stmt
+	needsUpdate    *sql.Stmt
+	insertMessage  *sql.Stmt
+	updateStatus   *sql.Stmt
+	cleanupClosed  *sql.Stmt
+	cmWantsUpdates *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -21,7 +27,7 @@ func (db *DB) Name() string { return "Engine.StatusUpdateManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeStatusUpdate,
-		Version: 1,
+		Version: 3,
 	})
 	if err != nil {
 		return nil, err
@@ -31,63 +37,41 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		lock: lock,
 
-		insertMessages: p.P(`
-			with rows as (
-				select
-					log.id,
-					log.alert_id,
-					usr.alert_status_log_contact_method_id,
-					last.user_id,
-					log.event = 'closed' is_closed,
-					coalesce(last.user_id = log.sub_user_id, false) is_same_user
-				from user_last_alert_log last
-				join users usr on
-					usr.id = last.user_id
-				join alert_logs log ON
-					last.alert_id = log.alert_id AND
-					log.id BETWEEN last.log_id+1 AND last.next_log_id AND
-					log.event IN ('acknowledged', 'closed')
-				where last.log_id != last.next_log_id
-				limit 100
-				for update skip locked
-			), inserted as (
-				insert into outgoing_messages (
-					message_type,
-					alert_log_id,
-					alert_id,
-					contact_method_id,
-					user_id
-				)
-				select
-					'alert_status_update',
-					id,
-					alert_id,
-					alert_status_log_contact_method_id,
-					user_id
-				from rows
-				where
-					alert_status_log_contact_method_id notnull and
-					not is_same_user
-			), any_closed as (
-				select
-					bool_or(is_closed) is_closed, user_id, alert_id
-				from rows
-				group by user_id, alert_id
-			), updated as (
-				update user_last_alert_log log
-				set log_id = next_log_id
-				from any_closed c
-				where
-					not c.is_closed and
-					log.user_id = c.user_id and
-					log.alert_id = c.alert_id
-			)
-			delete from user_last_alert_log log
-			using any_closed c
-			where
-				c.is_closed and
-				log.user_id = c.user_id and
-				log.alert_id = c.alert_id
+		cmWantsUpdates: p.P(`
+			select coalesce(u.alert_status_log_contact_method_id = $1, false), u.id
+			from user_contact_methods cm
+			join users u on u.id = cm.user_id
+			where cm.id = $1 and not cm.disabled
 		`),
+
+		needsUpdate: p.P(`
+			select sub.id, channel_id, contact_method_id, alert_id, a.status
+			from alert_status_subscriptions sub
+			join alerts a on a.id = sub.alert_id and a.status != sub.last_alert_status
+			limit 1
+			for update skip locked
+		`),
+
+		insertMessage: p.P(`
+			insert into outgoing_messages(
+				id,
+				message_type,
+				channel_id,
+				contact_method_id,
+				user_id,
+				alert_id,
+				alert_log_id
+			) values ($1, 'alert_status_update', $2, $3, $4, $5, $6)
+		`),
+
+		latestLogEntry: p.P(`
+			select id from alert_logs
+			where alert_id = $1 and event = $2
+			order by id desc
+			limit 1
+		`),
+
+		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
+		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
 	}, p.Err
 }

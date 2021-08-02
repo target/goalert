@@ -3,13 +3,16 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -31,6 +34,43 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	}
 	return true, nil
 }
+
+func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input graphql2.SetScheduleOnCallNotificationRulesInput) (bool, error) {
+	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
+		for i, r := range input.Rules {
+			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel)
+			if err != nil {
+				return err
+			}
+
+			ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
+			if err != nil {
+				return err
+			}
+
+			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, &notificationchannel.Channel{
+				Type:  notificationchannel.TypeSlack,
+				Name:  ch.Name,
+				Value: ch.ID,
+			})
+			if err != nil {
+				return err
+			}
+			rules = append(rules, r.OnCallNotificationRule)
+		}
+
+		return a.ScheduleStore.SetOnCallNotificationRules(ctx, tx, schedID, rules)
+	})
+
+	return err == nil, err
+}
+
 func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetTemporaryScheduleInput) (bool, error) {
 	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
 	if err != nil {
