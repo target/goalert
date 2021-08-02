@@ -3,12 +3,12 @@ package graphqlapp
 import (
 	"bytes"
 	context "context"
+	_ "embed"
 	"html/template"
 	"net/url"
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/slack"
@@ -101,6 +101,9 @@ func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelS
 	return conn, err
 }
 
+//go:embed slack.manifest.yaml
+var manifestYAML string
+
 func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
@@ -108,49 +111,18 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	}
 	cfg := config.FromContext(ctx)
 
-	type Manifest struct {
-		AppName        string
-		CallbackDomain string
-		CallbackURL    string
-	}
-	domain, err := url.Parse(cfg.CallbackURL(""))
-	if err != nil {
-		return "", errors.Wrap(err, "parse CallbackURL")
-	}
-	m := Manifest{"GoAlert", domain.Host, cfg.CallbackURL("")}
-
-	var tmpl = template.Must(template.New("manifest").Parse(`
-_metadata:
-  major_version: 1
-  minor_version: 1
-display_information:
-  name: {{.AppName}}
-settings:
-  interactivity:
-    is_enabled: true
-    request_url: {{.CallbackURL}}api/v2/slack/message-action
-    message_menu_options_url: {{.CallbackURL}}api/v2/slack/menu-options
-features:
-  unfurl_domains: [{{.CallbackDomain}}]
-  bot_user:
-    display_name: {{.AppName}}
-    always_online: true
-oauth_config:
-  scopes:
-    bot:
-      - links:read
-      - chat:write
-      - channels:read
-      - groups:read
-      - im:read
-      - im:write
-      - users:read.email
-  redirect_urls:
-    - {{.CallbackURL}}api/v2/identity/providers/oidc/callback
-`))
+	var tmpl = template.Must(template.New("slack.manifest.yaml").Funcs(template.FuncMap{
+		"AppName": func() string {
+			return "GoAlert"
+		},
+		"CallbackDomain": func() string {
+			domain, _ := url.Parse(cfg.CallbackURL(""))
+			return domain.Host
+		},
+	}).Parse(manifestYAML))
 
 	var t bytes.Buffer
-	if err = tmpl.Execute(&t, m); err != nil {
+	if err = tmpl.Execute(&t, config.FromContext(ctx)); err != nil {
 		return "", err
 	}
 	return t.String(), nil
