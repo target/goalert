@@ -2,16 +2,16 @@ _metadata:
   major_version: 1
   minor_version: 1
 display_information:
-  name: "{{AppName}}"
+  name: '{{appName}}'
 settings:
   interactivity:
     is_enabled: true
-    request_url: "{{call .CallbackURL `api/v2/slack/message-action`}}"
-    message_menu_options_url: "{{call .CallbackURL `api/v2/slack/menu-options`}}"
+    request_url: '{{.CallbackURL "/api/v2/slack/message-action"}}'
+    message_menu_options_url: '{{.CallbackURL "/api/v2/slack/menu-options"}}'
 features:
-  unfurl_domains: ["{{CallbackDomain}}"]
+  unfurl_domains: ['{{domain (.CallbackURL "/api/v2/slack/message-action")}}']
   bot_user:
-    display_name: "{{AppName}}"
+    display_name: '{{appName}}'
     always_online: true
 oauth_config:
   scopes:
@@ -24,4 +24,4 @@ oauth_config:
       - im:write
       - users:read.email
   redirect_urls:
-    - "{{call .CallbackURL `api/v2/identity/providers/oidc/callback`}}"
+    - '{{.CallbackURL "/api/v2/identity/providers/oidc/callback"}}'

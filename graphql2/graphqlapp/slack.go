@@ -104,25 +104,29 @@ func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelS
 //go:embed slack.manifest.yaml
 var manifestYAML string
 
+var tmpl = template.Must(template.New("slack.manifest.yaml").Funcs(template.FuncMap{
+	"appName": func() string {
+		return "GoAlert"
+	},
+	"domain": func(urlStr string) (string, error) {
+		domain, err := url.Parse(urlStr)
+		if err != nil {
+			return "", err
+		}
+
+		return domain.Host, nil
+	},
+}).Parse(manifestYAML))
+
 func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return "", err
 	}
-	cfg := config.FromContext(ctx)
-
-	var tmpl = template.Must(template.New("slack.manifest.yaml").Funcs(template.FuncMap{
-		"AppName": func() string {
-			return "GoAlert"
-		},
-		"CallbackDomain": func() string {
-			domain, _ := url.Parse(cfg.CallbackURL(""))
-			return domain.Host
-		},
-	}).Parse(manifestYAML))
-
 	var t bytes.Buffer
-	if err = tmpl.Execute(&t, config.FromContext(ctx)); err != nil {
+	cfg := config.FromContext(ctx)
+	err = tmpl.Execute(&t, cfg)
+	if err != nil {
 		return "", err
 	}
 	return t.String(), nil
