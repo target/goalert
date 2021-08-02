@@ -48,6 +48,11 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
           setCopied(true)
         }}
       >
+        <ContentCopy
+          color='secondary'
+          className={props.title ? classes.icon : undefined}
+          fontSize='small'
+        />
         {props.title}
       </span>
     )
