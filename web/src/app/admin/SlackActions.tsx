@@ -42,15 +42,14 @@ export default function SlackActions(): JSX.Element {
   function renderContent(): JSX.Element {
     if (called && loading) return <Spinner />
     if (error) return <GenericError error={error.message} />
+
+    const manifest = data?.generateSlackAppManifest ?? ''
     return (
       <div>
         <div className={classes.copyButton}>
-          <CopyText
-            value={data?.generateSlackAppManifest ?? ''}
-            placement='left'
-          />
+          <CopyText value={manifest} placement='left' textOnly />
         </div>
-        <Markdown value={'```' + data?.generateSlackAppManifest + '\n```'} />
+        <Markdown value={'```\n' + manifest + '\n```'} />
       </div>
     )
   }
