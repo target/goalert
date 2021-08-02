@@ -35,6 +35,9 @@ type Store interface {
 
 	// OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
 	OriginalMessageStatus(ctx context.Context, alertID int, dest Dest) (*SendResult, error)
+
+	// FindPendingNotifications will return destination info for alerts that are waiting to be sent
+	FindPendingNotifications(ctx context.Context, alertID int, serviceID string) ([]AlertPendingNotification, error)
 }
 
 var _ Store = &DB{}
@@ -55,6 +58,8 @@ type DB struct {
 	origAlertMessage *sql.Stmt
 
 	rand *rand.Rand
+
+	findPendingNotifications *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -174,6 +179,21 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				created_at
 			from outgoing_messages msg
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
+		`),
+		findPendingNotifications: p.P(`
+			SELECT
+			COALESCE(ucm.type::text, nc.type::text) AS dest_type,
+			COALESCE(u.name, nc.name) AS dest_name
+			FROM outgoing_messages om
+			LEFT JOIN user_contact_methods ucm 
+			ON om.user_id = ucm.user_id
+			LEFT JOIN notification_channels nc 
+			ON nc.id = om.channel_id
+			LEFT JOIN users u
+			ON u.id = om.user_id
+			WHERE om.last_status='pending'
+			AND (now() - om.created_at) > INTERVAL '15 SECONDS'
+			AND (om.alert_id = $1 OR (om.message_type = 'alert_notification_bundle' AND om.service_id = $2));
 		`),
 	}, p.Err
 }
@@ -364,6 +384,43 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	log.Logf(logCtx, "Contact method ENABLED/VERIFIED.")
 
 	return nil
+}
+
+func (db *DB) FindPendingNotifications(ctx context.Context, alertID int, serviceID string) ([]AlertPendingNotification, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("ServiceID", serviceID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.findPendingNotifications.QueryContext(ctx, alertID, serviceID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []AlertPendingNotification
+	for rows.Next() {
+		var destType, destName string
+		err := rows.Scan(&destType, &destName)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, AlertPendingNotification{
+			DestType: destType,
+			DestName: destName,
+		})
+	}
+
+	return result, err
+
 }
 
 func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error) {

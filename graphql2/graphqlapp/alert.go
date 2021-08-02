@@ -375,7 +375,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	return conn, err
 }
 
-// PendingNotifications returns a list of notifications that are waiting to be sent for some reason such as throttling
+// PendingNotifications returns a list of notifications that are waiting to be sent
 func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]graphql2.AlertPendingNotification, error) {
 	var result []graphql2.AlertPendingNotification
 
@@ -383,12 +383,12 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		return result, nil
 	}
 
-	rows, err := a.AlertStore.FindPendingNotifications(ctx, obj.ID, obj.ServiceID)
+	p, err := a.NotificationStore.FindPendingNotifications(ctx, obj.ID, obj.ServiceID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, val := range rows {
+	for _, val := range p {
 		result = append(result, graphql2.AlertPendingNotification{
 			Destination: val.DestName + " (" + val.DestType + ")",
 		})

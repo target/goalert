@@ -55,9 +55,6 @@ type Manager interface {
 	// ServiceInfo will return the name of the given service ID as well as the current number
 	// of unacknowledged alerts.
 	ServiceInfo(ctx context.Context, serviceID string) (string, int, error)
-
-	// FindPendingNotifications will return destination info for alerts that are waiting to be sent
-	FindPendingNotifications(ctx context.Context, alertID int, serviceID string) ([]AlertPendingNotification, error)
 }
 
 type DB struct {
@@ -91,8 +88,6 @@ type DB struct {
 	escalate *sql.Stmt
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
-
-	findPendingNotifications *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -260,61 +255,7 @@ func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
 			FROM services
 			WHERE id = $1
 		`),
-
-		findPendingNotifications: p(`
-			SELECT
-			COALESCE(ucm.type::text, nc.type::text) AS dest_type,
-			COALESCE(u.name, nc.name) AS dest_name
-			FROM outgoing_messages om
-			LEFT JOIN user_contact_methods ucm 
-			ON om.user_id = ucm.user_id
-			LEFT JOIN notification_channels nc 
-			ON nc.id = om.channel_id
-			LEFT JOIN users u
-			ON u.id = om.user_id
-			WHERE om.last_status='pending'
-			AND (now() - om.created_at) > INTERVAL '15 SECONDS'
-			AND (om.alert_id = $1 OR (om.message_type = 'alert_notification_bundle' AND om.service_id = $2));
-		`),
 	}, prep.Err
-}
-
-func (db *DB) FindPendingNotifications(ctx context.Context, alertID int, serviceID string) ([]AlertPendingNotification, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate.UUID("ServiceID", serviceID)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := db.findPendingNotifications.QueryContext(ctx, alertID, serviceID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make([]AlertPendingNotification, 0)
-	for rows.Next() {
-		var destType string
-		var destName string
-		err := rows.Scan(&destType, &destName)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, AlertPendingNotification{
-			DestType: destType,
-			DestName: destName,
-		})
-	}
-
-	return result, err
-
 }
 
 func (db *DB) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
