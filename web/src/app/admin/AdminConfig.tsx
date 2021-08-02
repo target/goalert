@@ -240,7 +240,7 @@ export default function AdminConfig(): JSX.Element {
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position='end'>
-                            <CopyText value={h.value} placement='left' />
+                            <CopyText value={h.value} placement='left' asURL />
                           </InputAdornment>
                         ),
                       }}

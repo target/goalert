@@ -56,7 +56,9 @@ const sortItems = (a, b) => {
 }
 
 export function IntegrationKeyDetails(props) {
-  let copyText = <CopyText title={'Copy ' + props.label} value={props.href} />
+  let copyText = (
+    <CopyText title={'Copy ' + props.label} value={props.href} asURL />
+  )
 
   // if link is not properly present, do not display to copy
   if (props.type === 'email' && !props.href.startsWith('mailto:')) {
