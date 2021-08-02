@@ -43,5 +43,5 @@ func TestDedupOnCallNotifications(t *testing.T) {
 	for _, m := range out {
 		ids = append(ids, m.ID)
 	}
-	assert.Equal(t, []string{"b", "d", "a"}, ids)
+	assert.Equal(t, []string{"a", "b", "d"}, ids)
 }

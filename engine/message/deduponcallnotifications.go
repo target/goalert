@@ -8,7 +8,8 @@ import (
 
 // dedupOnCallNotifications will remove old on-call notifications if a newer one exists for the same schedule & destination.
 func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
-	sort.Slice(messages, func(i, j int) bool { return messages[i].CreatedAt.After(messages[j].CreatedAt) })
+	toProcess, result := splitPendingByType(messages, notification.MessageTypeScheduleOnCallUsers)
+	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].CreatedAt.After(toProcess[j].CreatedAt) })
 
 	type msgKey struct {
 		scheduleID string
@@ -17,12 +18,7 @@ func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
 
 	m := make(map[msgKey]struct{})
 	var toDelete []string
-	filter := messages[:0]
-	for _, msg := range messages {
-		if msg.Type != notification.MessageTypeScheduleOnCallUsers {
-			filter = append(filter, msg)
-			continue
-		}
+	for _, msg := range toProcess {
 		key := msgKey{scheduleID: msg.ScheduleID, dest: msg.Dest}
 		if _, ok := m[key]; ok {
 			toDelete = append(toDelete, msg.ID)
@@ -30,8 +26,8 @@ func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
 		}
 
 		m[key] = struct{}{}
-		filter = append(filter, msg)
+		result = append(result, msg)
 	}
 
-	return filter, toDelete
+	return result, toDelete
 }

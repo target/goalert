@@ -92,23 +92,6 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 			},
 		}}
 		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
-
-	case notification.AlertStatusBundle:
-		plural := "s"
-		if m.Count == 2 {
-			plural = ""
-		}
-		subject = fmt.Sprintf("GoAlert: Alert #%d: %s (and %d other%s)", m.AlertID, m.LogEntry, m.Count-1, plural)
-		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
-		e.Body.Intros = []string{m.LogEntry, fmt.Sprintf("%d additional alert%s have been updated.", m.Count-1, plural)}
-		e.Body.Actions = []hermes.Action{{
-			Button: hermes.Button{
-				Text: "Open Alert Details",
-				Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
-			},
-		}}
-		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
-
 	default:
 		return "", nil, errors.New("message type not supported")
 	}

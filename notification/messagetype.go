@@ -18,6 +18,11 @@ const (
 	MessageTypeTest
 	MessageTypeVerification
 	MessageTypeAlertBundle
+
+	// MessageTypeAlertStatusBundle is used for bundled status messages.
+	//
+	// Deprecated: Alert status messages are no longer bundled, status bundle
+	// messages are now dropped.
 	MessageTypeAlertStatusBundle
 	MessageTypeScheduleOnCallUsers
 )

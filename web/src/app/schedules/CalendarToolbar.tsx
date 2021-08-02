@@ -119,7 +119,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
       container
       spacing={2}
       className={classes.container}
-      justify='space-between'
+      justifyContent='space-between'
       alignItems='center'
     >
       <Grid item>
@@ -157,7 +157,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
       </Grid>
 
       <Grid item>
-        <Grid container alignItems='center' justify='flex-end'>
+        <Grid container alignItems='center' justifyContent='flex-end'>
           {props.filter}
           <ButtonGroup
             color='primary'

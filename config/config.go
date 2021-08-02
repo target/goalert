@@ -113,6 +113,11 @@ type Config struct {
 		Password string `password:"true" info:"Password for authentication."`
 	}
 
+	Webhook struct {
+		Enable      bool     `public:"true" info:"Enables webhook as a contact method."`
+		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
@@ -191,6 +196,82 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
+//  MatchURL will compare two url strings and will return true if they match.
+func MatchURL(baseURL, testURL string) (bool, error) {
+	compareQueryValues := func(baseVal, testVal url.Values) bool {
+		for name := range baseVal {
+			if baseVal.Get(name) == testVal.Get(name) {
+				continue
+			}
+			return false
+		}
+		return true
+	}
+
+	addImplicitPort := func(u *url.URL) {
+		if strings.Contains(u.Host, ":") {
+			return
+		}
+		switch strings.ToLower(u.Scheme) {
+		case "http":
+			u.Host += ":80"
+		case "https":
+			u.Host += ":443"
+		}
+	}
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return false, err
+	}
+
+	test, err := url.Parse(testURL)
+	if err != nil {
+		return false, err
+	}
+
+	addImplicitPort(base)
+	addImplicitPort(test)
+
+	// host/port check
+	if !strings.EqualFold(base.Host, test.Host) {
+		return false, nil
+	}
+
+	// scheme check
+	if !strings.EqualFold(base.Scheme, test.Scheme) {
+		return false, nil
+	}
+
+	// path check
+	if len(base.Path) > 1 && !strings.HasPrefix(test.Path, base.Path) {
+		return false, nil
+	}
+
+	// query check
+	if !compareQueryValues(base.Query(), test.Query()) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// ValidWebhookURL returns true if the URL is an allowed webhook source.
+func (cfg Config) ValidWebhookURL(testURL string) bool {
+	if len(cfg.Webhook.AllowedURLs) == 0 {
+		return true
+	}
+	for _, baseU := range cfg.Webhook.AllowedURLs {
+		matched, err := MatchURL(baseU, testURL)
+		if err != nil {
+			return false
+		}
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
 // ValidReferer returns true if the URL is an allowed referer source.
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	pubURL := cfg.PublicURL()
@@ -206,11 +287,19 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 		// just ensure ref is same host/scheme as req
 		u.Path = ""
 		u.RawQuery = ""
-		return strings.HasPrefix(ref, u.String())
+		matched, err := MatchURL(u.String(), ref)
+		if err != nil {
+			return false
+		}
+		return matched
 	}
 
 	for _, u := range cfg.Auth.RefererURLs {
-		if strings.HasPrefix(ref, u) {
+		matched, err := MatchURL(u, ref)
+		if err != nil {
+			return false
+		}
+		if matched {
 			return true
 		}
 	}
@@ -364,6 +453,11 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL(field, urlStr),
 		)
+	}
+
+	for i, urlStr := range cfg.Webhook.AllowedURLs {
+		field := fmt.Sprintf("Webhook.AllowedURLs[%d]", i)
+		err = validate.Many(err, validate.AbsoluteURL(field, urlStr))
 	}
 
 	m := make(map[string]bool)
