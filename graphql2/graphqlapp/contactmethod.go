@@ -1,9 +1,13 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
 	"database/sql"
+	"fmt"
+	"net/url"
+	"strings"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
@@ -19,16 +23,60 @@ func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
+func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
+	if obj.Type != contactmethod.TypeWebhook {
+		return obj.Value, nil
+	}
+
+	u, err := url.Parse(obj.Value)
+	if err != nil {
+		return "", err
+	}
+	return maskURLPass(u), nil
+}
+
+func maskURLPass(u *url.URL) string {
+	if u.User == nil {
+		return u.String()
+	}
+
+	_, ok := u.User.Password()
+	if !ok {
+		return u.String()
+	}
+
+	u.User = url.UserPassword(u.User.Username(), "")
+
+	parts := strings.SplitN(u.String(), "@", 2)
+	parts[0] += "***"
+	return strings.Join(parts, "@")
+}
+
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	formatted := obj.Value
+	formatted, err := a.Value(ctx, obj)
+	if err != nil {
+		return "", err
+	}
+
 	switch obj.Type {
 	case contactmethod.TypeSMS, contactmethod.TypeVoice:
-		num, err := libphonenumber.Parse(obj.Value, "")
+		num, err := libphonenumber.Parse(formatted, "")
 		if err != nil {
-			log.Log(ctx, err)
+			log.Log(ctx, fmt.Errorf("parse number for formatting: %w", err))
 			break
 		}
 		formatted = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
+	case contactmethod.TypeWebhook:
+		u, err := url.Parse(formatted)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("parse url for formatting: %w", err))
+			break
+		}
+		u.RawQuery = ""
+		if len(u.Path) > 15 {
+			u.Path = u.Path[:12] + "..."
+		}
+		formatted = maskURLPass(u)
 	}
 	return formatted, nil
 }
@@ -72,6 +120,12 @@ func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmetho
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
 	var cm *contactmethod.ContactMethod
+	cfg := config.FromContext(ctx)
+
+	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
+		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{

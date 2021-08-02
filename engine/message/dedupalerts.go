@@ -12,13 +12,10 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 		return msgs, nil
 	}
 
-	sort.Slice(msgs, func(i, j int) bool {
-		// if AlertID is the same, then sort by CreatedAt
-		if msgs[i].AlertID == msgs[j].AlertID {
-			return msgs[i].CreatedAt.Before(msgs[j].CreatedAt)
-		}
-		return msgs[i].AlertID < msgs[j].AlertID
-	})
+	toProcess, result := splitPendingByType(msgs, notification.MessageTypeAlert)
+
+	// sort by "created" time
+	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].CreatedAt.Before(toProcess[j].CreatedAt) })
 
 	type msgKey struct {
 		notification.Dest
@@ -27,19 +24,7 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 	alerts := make(map[msgKey]string, len(msgs))
 	duplicates := make(map[string][]string)
 
-	filtered := msgs[:0]
-	for _, msg := range msgs {
-		if msg.Type != notification.MessageTypeAlert {
-			// skip non-alert messages
-			filtered = append(filtered, msg)
-			continue
-		}
-		if !msg.SentAt.IsZero() {
-			// skip sent messages
-			filtered = append(filtered, msg)
-			continue
-		}
-
+	for _, msg := range toProcess {
 		// check if we have seen this alert before
 		key := msgKey{msg.Dest, msg.AlertID}
 
@@ -49,7 +34,7 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 		}
 
 		alerts[key] = msg.ID
-		filtered = append(filtered, msg)
+		result = append(result, msg)
 	}
 
 	for parentID, duplicateIDs := range duplicates {
@@ -59,5 +44,5 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 		}
 	}
 
-	return filtered, nil
+	return result, nil
 }

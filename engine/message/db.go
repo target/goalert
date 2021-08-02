@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/config"
@@ -406,6 +407,8 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			msg.Dest.Type = notification.DestTypeSlackChannel
 		case cmType.String == string(contactmethod.TypeEmail):
 			msg.Dest.Type = notification.DestTypeUserEmail
+		case cmType.String == string(contactmethod.TypeWebhook):
+			msg.Dest.Type = notification.DestTypeUserWebhook
 		default:
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue
@@ -459,7 +462,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	if cfg.General.MessageBundles {
-		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
+		result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
 			var cmID, chanID, userID sql.NullString
 			if msg.UserID != "" {
 				userID.Valid = true
@@ -472,12 +475,16 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 				chanID.Valid = true
 				chanID.String = msg.Dest.ID
 			}
-			_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
+
+			newID := uuid.NewString()
+			_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
 			if err != nil {
-				return err
+				return "", err
 			}
 
-			_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, msg.ID, sqlutil.UUIDArray(ids))
+			return newID, nil
+		}, func(parentID string, ids []string) error {
+			_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, parentID, sqlutil.UUIDArray(ids))
 			return err
 		})
 		if err != nil {

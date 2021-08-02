@@ -8,6 +8,9 @@ updates:
       timezone: 'America/Chicago'
     open-pull-requests-limit: 3
     ignore:
+      # ignore all patch updates
+      - dependency-name: '*'
+        update-types: ['version-update:semver-patch']
       - dependency-name: '@date-io/luxon'
         versions:
           - '<=3.0.0'

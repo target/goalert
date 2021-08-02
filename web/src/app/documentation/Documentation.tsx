@@ -3,6 +3,7 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
 import integrationKeys from './sections/IntegrationKeys.md'
+import webhooks from './sections/Webhooks.md'
 import Markdown from '../util/Markdown'
 import { useConfigValue } from '../util/RequireConfig'
 import { pathPrefix } from '../env'
@@ -19,7 +20,7 @@ export default function IntegrationKeyAPI(): JSX.Element {
   const classes = useStyles()
 
   // NOTE list markdown documents here
-  let markdownDocs = [integrationKeys]
+  let markdownDocs = [integrationKeys, webhooks]
 
   markdownDocs = markdownDocs.map((md) =>
     md.replaceAll(
