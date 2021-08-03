@@ -76,7 +76,7 @@ export default function SlackActions(): JSX.Element {
         onClose={() => setShowManifest(false)}
         fullWidth
       >
-        <DialogTitle>Create New Slack App</DialogTitle>
+        <DialogTitle data-cy='dialog-title'>Create New Slack App</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Copy the manifest generated below to configure a new GoAlert app
@@ -107,6 +107,7 @@ export default function SlackActions(): JSX.Element {
             href='https://api.slack.com/apps'
             target='_blank'
             rel='noopener noreferrer'
+            data-cy='configure-in-slack'
           >
             Configure in Slack
           </Button>
