@@ -9,7 +9,6 @@ settings:
     request_url: '{{.CallbackURL "/api/v2/slack/message-action"}}'
     message_menu_options_url: '{{.CallbackURL "/api/v2/slack/menu-options"}}'
 features:
-  unfurl_domains: ['{{domain (.CallbackURL "")}}']
   bot_user:
     display_name: '{{appName}}'
     always_online: true

@@ -5,7 +5,6 @@ import (
 	context "context"
 	_ "embed"
 	"html/template"
-	"net/url"
 	"sort"
 	"strings"
 
@@ -106,15 +105,7 @@ var manifestYAML string
 
 var tmpl = template.Must(template.New("slack.manifest.yaml").Funcs(template.FuncMap{
 	"appName": func() string {
-		return "GoAlert"
-	},
-	"domain": func(urlStr string) (string, error) {
-		domain, err := url.Parse(urlStr)
-		if err != nil {
-			return "", err
-		}
-
-		return domain.Host, nil
+		return "GoAlert" // todo: use Application Name cfg value
 	},
 }).Parse(manifestYAML))
 
