@@ -22,6 +22,6 @@ oauth_config:
       - groups:read
       - im:read
       - im:write
-      - users:read.email
+      - users:read
   redirect_urls:
     - '{{.CallbackURL "/api/v2/identity/providers/oidc/callback"}}'
