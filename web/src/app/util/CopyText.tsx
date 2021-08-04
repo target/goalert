@@ -11,6 +11,7 @@ const useStyles = makeStyles({
     display: 'flex',
     width: 'fit-content',
     wordBreak: 'break-all',
+    cursor: 'pointer',
   },
   icon: {
     paddingRight: 4,
