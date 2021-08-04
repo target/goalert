@@ -14,8 +14,8 @@ export function useCalendarNavigation(): CalendarNavigation {
   const [start, setStart] = useURLParam(
     'start',
     weekly
-      ? getStartOfWeek().toUTC().toISO()
-      : DateTime.local().startOf('month').toUTC().toISO(),
+      ? getStartOfWeek().toISODate()
+      : DateTime.now().startOf('month').toISODate(),
   )
 
   return {
