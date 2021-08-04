@@ -23,7 +23,9 @@ type replyLimiter struct {
 }
 
 func newReplyLimiter() *replyLimiter {
-	return &replyLimiter{}
+	return &replyLimiter{
+		state: make(map[string]numberState),
+	}
 }
 
 // RecordError will record an error for the given number.
