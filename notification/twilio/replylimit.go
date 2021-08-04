@@ -2,66 +2,41 @@ package twilio
 
 import (
 	"sync"
-	"time"
 )
 
-type numberState struct {
-	lastMessage   string
-	lastMessageAt time.Time
-	errCount      int
-}
-
 const (
-	maxErrCount = 5
-	dupMsgDur   = 5 * time.Minute
+	maxPassiveReplyCount = 5
 )
 
 type replyLimiter struct {
 	mx sync.Mutex
 
-	state map[string]numberState
+	state map[string]int
 }
 
 func newReplyLimiter() *replyLimiter {
 	return &replyLimiter{
-		state: make(map[string]numberState),
+		state: make(map[string]int),
 	}
 }
 
-// RecordError will record an error for the given number.
-func (r *replyLimiter) RecordError(toNumber string) {
+// RecordPassiveReply will increment the number of passive replies to a number.
+func (r *replyLimiter) RecordPassiveReply(toNumber string) {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	s := r.state[toNumber]
-	s.errCount++
-
-	r.state[toNumber] = s
+	r.state[toNumber]++
 }
 
-// RecordAndCheck will return true if the message should be sent.
-// It will also record that the message was sent if true.
-func (r *replyLimiter) RecordAndCheck(toNumber, message string) bool {
+// ShouldDrop will return true if the message should be dropped.
+func (r *replyLimiter) ShouldDrop(toNumber string) bool {
 	r.mx.Lock()
 	defer r.mx.Unlock()
 
-	s := r.state[toNumber]
-	if s.errCount >= maxErrCount {
-		return false
-	}
-
-	if time.Since(s.lastMessageAt) < dupMsgDur && s.lastMessage == message {
-		return false
-	}
-	s.lastMessage = message
-	s.lastMessageAt = time.Now()
-	s.errCount = 0
-	r.state[toNumber] = s
-
-	return true
+	return r.state[toNumber] >= maxPassiveReplyCount
 }
 
-// Reset will reset the state of the reply limiter for the given number.
+// Reset will reset the counter for the given number.
 func (r *replyLimiter) Reset(toNumber string) {
 	r.mx.Lock()
 	defer r.mx.Unlock()

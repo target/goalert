@@ -232,14 +232,19 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		"Type":   "TwilioSMS",
 	})
 
-	respond := func(isError bool, msg string) {
-		if isError {
-			s.limit.RecordError(from)
+	respond := func(isPassive bool, msg string) {
+		if !isPassive {
+			// always reset if an action was taken
+			s.limit.Reset(from)
 		}
 
-		if !s.limit.RecordAndCheck(from, msg) {
-			log.Debugf(ctx, "SMS reply limit reached for %s, not replying.", from)
+		if s.limit.ShouldDrop(from) {
+			log.Debugf(ctx, "SMS passive reply limit reached for %s, not replying.", from)
 			return
+		}
+
+		if isPassive {
+			s.limit.RecordPassiveReply(from)
 		}
 
 		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
@@ -396,7 +401,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Log(ctx, err)
-		respond(false, msg)
+		respond(true, msg)
 		return
 	}
 
