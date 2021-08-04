@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import {
+  Button,
   DialogContentText,
-  Fab,
   Grid,
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { Add as AddIcon } from '@material-ui/icons'
+import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash'
@@ -19,14 +19,6 @@ import { isISOAfter } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
-  addButton: {
-    boxShadow: 'none',
-  },
-  addButtonContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
@@ -43,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   shiftFormContainer: {
     maxHeight: '100%',
+    paddingRight: '2rem',
   },
 }))
 
@@ -177,7 +170,7 @@ export default function TempSchedAddShiftsStep({
         {/* title + fields container */}
         <Grid
           item
-          xs={5}
+          xs={6}
           container
           spacing={2}
           direction='column'
@@ -192,7 +185,7 @@ export default function TempSchedAddShiftsStep({
           <Grid item>
             <DialogContentText className={classes.contentText}>
               The schedule will be exactly as configured here for the entire
-              duration (ignoring all rules/overrides).
+              duration (ignoring all assignments and overrides).
             </DialogContentText>
           </Grid>
           <Grid item>
@@ -208,25 +201,22 @@ export default function TempSchedAddShiftsStep({
           >
             <TempSchedAddShiftForm min={edit ? start : undefined} />
           </FormContainer>
-        </Grid>
-
-        {/* add button container */}
-        <Grid item xs={2} className={classes.addButtonContainer}>
-          <Fab
-            className={classes.addButton}
-            aria-label='Add Shift'
-            title='Add Shift'
-            onClick={handleAddShift}
-            size='medium'
-            color='primary'
-            type='button'
-          >
-            <AddIcon />
-          </Fab>
+          <Grid item>
+            <Button
+              data-cy='add-shift'
+              color='secondary'
+              variant='contained'
+              fullWidth
+              onClick={handleAddShift}
+              endIcon={<ArrowRightAltIcon />}
+            >
+              Add Shift
+            </Button>
+          </Grid>
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listOuterContainer}>
+        <Grid item xs={6} className={classes.listOuterContainer}>
           <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
               value={value}

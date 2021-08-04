@@ -1,33 +1,28 @@
 import { DateTime } from 'luxon'
 
-// getStartOfWeek
-// Given a luxon DateTime, this yields a luxon DateTime set to the previous Sunday at 12am.
-// If no date is provided, default to now
-// This is excluded from Luxon core since certain countries start the week on Saturday or Sunday
-// (Conventionally, weeks start on a Monday)
-export function getStartOfWeek(luxonDateTime = DateTime.local()): DateTime {
-  // 1-based i.e. [Mon=1, Tues=2, ... Sat=6, Sun=7]
-  const _weekdayIndex = luxonDateTime.toLocal().weekday
-  const weekdayIndex = _weekdayIndex === 7 ? 0 : _weekdayIndex
+// getStartOfWeek returns the current or previous sunday at 00:00:00
+// In GoAlert, weeks begin on Sunday
+export function getStartOfWeek(dt = DateTime.now()): DateTime {
+  // sunday
+  if (dt.weekday === 7) {
+    return dt.startOf('day')
+  }
 
-  return luxonDateTime
-    .toLocal()
-    .minus({
-      days: weekdayIndex,
-    })
-    .startOf('day')
+  return dt.startOf('week').minus({ day: 1 })
 }
 
-// getEndOfWeek
-export function getEndOfWeek(luxonDateTime = DateTime.local()): DateTime {
-  // 1-based i.e. [Mon=1, Tues=2, ... Sat=6, Sun=7]
-  const _weekdayIndex = luxonDateTime.toLocal().weekday
-  const weekdayIndex = _weekdayIndex === 7 ? 0 : _weekdayIndex
+// getEndOfWeek returns the current or next saturday at 23:59:59:999
+// In GoAlert, weeks end on Saturday
+export function getEndOfWeek(dt = DateTime.now()): DateTime {
+  // sunday
+  if (dt.weekday === 7) {
+    return dt.plus({ day: 1 }).endOf('week').minus({ day: 1 })
+  }
 
-  return luxonDateTime
-    .toLocal()
-    .plus({
-      days: 6 - weekdayIndex,
-    })
-    .endOf('day')
+  // saturday
+  if (dt.weekday === 6) {
+    return dt.endOf('day')
+  }
+
+  return dt.endOf('week').minus({ day: 1 })
 }
