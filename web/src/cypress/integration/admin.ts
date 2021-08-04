@@ -187,7 +187,7 @@ function testAdmin(): void {
       )
       cy.dialogContains("display_name: 'GoAlert'")
 
-      // open slack config page
+      // verify button routing to slack config page
       cy.get('[data-cy="configure-in-slack"]').should(
         'have.attr',
         'href',
