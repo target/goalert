@@ -383,7 +383,7 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		return result, nil
 	}
 
-	p, err := a.NotificationStore.FindPendingNotifications(ctx, obj.ID, obj.ServiceID)
+	p, err := a.NotificationStore.FindPendingNotifications(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
