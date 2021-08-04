@@ -44,23 +44,14 @@ func TestTwilioSMSReplyLimit(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
-	d1.SendSMS("nonsense")
+	for i := 0; i < 10; i++ {
+		d1.SendSMS("nonsense")
+	}
 
 	// only expect 5 replies before we hit the limit
-	d1.ExpectSMS("sorry")
-	d1.ExpectSMS("sorry")
-	d1.ExpectSMS("sorry")
-	d1.ExpectSMS("sorry")
-	d1.ExpectSMS("sorry")
+	for i := 0; i < 5; i++ {
+		d1.ExpectSMS("sorry")
+	}
 
 	h.CreateAlert(h.UUID("sid"), "test1")
 	d1.ExpectSMS("test1", "1c", "1a").
