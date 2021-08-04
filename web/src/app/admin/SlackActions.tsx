@@ -14,6 +14,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import Markdown from '../util/Markdown'
 import CopyText from '../util/CopyText'
+import AppLink from '../util/AppLink'
 
 const query = gql`
   query {
@@ -85,13 +86,9 @@ export default function SlackActions(): JSX.Element {
           {renderContent()}
           <DialogContentText>
             Learn more about manifests{' '}
-            <a
-              href='https://api.slack.com/reference/manifests'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
+            <AppLink to='https://api.slack.com/reference/manifests' newTab>
               here
-            </a>
+            </AppLink>
             .
           </DialogContentText>
         </DialogContent>
@@ -103,10 +100,9 @@ export default function SlackActions(): JSX.Element {
             variant='contained'
             color='primary'
             endIcon={<OpenInNewIcon />}
-            component='a'
-            href='https://api.slack.com/apps'
-            target='_blank'
-            rel='noopener noreferrer'
+            component={AppLink}
+            to='https://api.slack.com/apps'
+            newTab
             data-cy='configure-in-slack'
           >
             Configure in Slack
