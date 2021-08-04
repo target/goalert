@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { setFavorites } from './util'
 
 const c = new Chance()
 
@@ -20,7 +21,10 @@ function createManyUsers(
       .join(',') +
     `;`
 
-  return cy.sql(dbQuery).then(() => profiles)
+  return cy.sql(dbQuery).then(() => {
+    const userIDs = profiles.filter((p) => p.isFavorite).map((u) => u.id)
+    setFavorites(userIDs).then(() => profiles)
+  })
 }
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {
@@ -172,43 +176,8 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
   })
 }
 
-function getUserFavorites(id: string): Cypress.Chainable<Profile> {
-  const query = `
-  query getUser($id: ID!) {
-    user(id: $id) {
-        {
-          id
-          isFavorite
-        }
-      }
-    }
-  `
-
-  const mutation = `
-    mutation GetFavorites($input: [TargetInput!]!) {
-      getFavorites(input: $input)
-    }
-  `
-
-  return cy.graphql(query, { id: id }).then((res: GraphQLResponse) => {
-    if (!res.user.isFavorite) return
-
-    res.user.forEach((user: Profile) => {
-      return cy.graphql(mutation, {
-        input: [
-          {
-            id: user.id,
-            isFavorite: Boolean(user.isFavorite),
-          },
-        ],
-      })
-    })
-  })
-}
-
 Cypress.Commands.add('createUser', createUser)
 Cypress.Commands.add('createManyUsers', createManyUsers)
 Cypress.Commands.add('resetProfile', resetProfile)
 Cypress.Commands.add('addContactMethod', addContactMethod)
 Cypress.Commands.add('addNotificationRule', addNotificationRule)
-Cypress.Commands.add('getUserFavorites', getUserFavorites)
