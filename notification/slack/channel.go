@@ -322,7 +322,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
 			// only if escalation results in second notification to channel
-			vals.Set("text", "Notified.")
+			vals.Set("text", "Broadcasting to channel, due to repeat notification.")
 			vals.Set("reply_broadcast", "true")
 			break
 		}
@@ -330,7 +330,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertStatus:
 		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-		vals.Set("text", t.LogEntry)
+		text := "Status Update: " + t.Status + "\n" + t.LogEntry
+		vals.Set("text", text)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallUsers:

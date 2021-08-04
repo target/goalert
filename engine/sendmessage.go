@@ -102,6 +102,16 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if stat == nil {
 			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
 		}
+		var status string
+		switch e.Type() {
+		case alertlog.TypeAcknowledged:
+			status = "Acknowledged"
+		case alertlog.TypeEscalated:
+			status = "Unacknowledged"
+		case alertlog.TypeClosed:
+			status = "Closed"
+		default:
+		}
 		notifMsg = notification.AlertStatus{
 			Dest:           msg.Dest,
 			AlertID:        e.AlertID(),
@@ -109,6 +119,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			LogEntry:       e.String(),
 			Summary:        a.Summary,
 			Details:        a.Details,
+			Status:         status,
 			OriginalStatus: *stat,
 		}
 	case notification.MessageTypeTest:
