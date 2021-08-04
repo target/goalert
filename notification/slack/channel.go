@@ -321,7 +321,6 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			// only if escalation results in second notification to channel
 			vals.Set("text", "Broadcasting to channel, due to repeat notification.")
 			vals.Set("reply_broadcast", "true")
 			break
