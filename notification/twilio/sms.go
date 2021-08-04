@@ -35,6 +35,8 @@ type SMS struct {
 	c *Config
 	r notification.Receiver
 
+	limit *replyLimiter
+
 	ban *dbBan
 }
 
@@ -53,6 +55,8 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 	s := &SMS{
 		b: b,
 		c: c,
+
+		limit: newReplyLimiter(),
 	}
 	s.ban, err = newBanDB(ctx, db, c, "twilio_sms_errors")
 	if err != nil {
@@ -165,6 +169,9 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 		return "", nil, errors.Wrap(err, "send message")
 	}
 
+	// If the message was sent successfully, reset reply limits.
+	s.limit.Reset(destNumber)
+
 	return resp.SID, resp.messageStatus(), nil
 }
 
@@ -250,17 +257,22 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	respond := func(errMsg string, msg string) {
 		if errMsg != "" {
+			s.limit.RecordError(from)
 			err := s.ban.RecordError(context.Background(), from, false, errMsg)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "record error"))
 			}
 		}
+
+		if !s.limit.RecordAndCheck(from, msg) {
+			log.Debugf(ctx, "SMS reply limit reached for %s, not replying.", from)
+			return
+		}
+
 		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "send response"))
 		}
-		// TODO: we should track & queue these
-		// (maybe the engine should generate responses instead)
 	}
 	var banned bool
 	var err error
