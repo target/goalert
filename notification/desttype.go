@@ -15,6 +15,7 @@ type Dest struct {
 	Value string
 }
 
+// DestType represents the type of destination, it is a combination of available contact methods and notification channels.
 type DestType int
 
 const (
@@ -33,15 +34,16 @@ func (t DestType) IsUserCM() bool { return t.CMType() != contactmethod.TypeUnkno
 
 // ScannableDestType allows scanning a DestType from separate columns for user contact methods and notification channels.
 type ScannableDestType struct {
+	// CM is the contactmethod.Type and should be scanned from the `type` column from `user_contact_methods`.
 	CM contactmethod.Type
+
+	// NC is the notificationchannel.Type and should be scanned from the `type` column from `notification_channels`.
 	NC notificationchannel.Type
 }
 
 // DestType returns a DestType from the scanned values.
-func (t ScannableDestType) DestType() DestType { return coalesceDestType(t.CM, t.NC) }
-
-func destTypeFromCM(t contactmethod.Type) DestType {
-	switch t {
+func (t ScannableDestType) DestType() DestType {
+	switch t.CM {
 	case contactmethod.TypeSMS:
 		return DestTypeSMS
 	case contactmethod.TypeVoice:
@@ -52,24 +54,12 @@ func destTypeFromCM(t contactmethod.Type) DestType {
 		return DestTypeUserWebhook
 	}
 
-	return DestTypeUnknown
-}
-
-func destTypeFromNC(t notificationchannel.Type) DestType {
-	switch t {
+	switch t.NC {
 	case notificationchannel.TypeSlack:
 		return DestTypeSlackChannel
 	}
 
 	return DestTypeUnknown
-}
-
-func coalesceDestType(cm contactmethod.Type, nc notificationchannel.Type) DestType {
-	if nc != notificationchannel.TypeUnknown {
-		return destTypeFromNC(nc)
-	}
-
-	return destTypeFromCM(cm)
 }
 
 // NCType returns the notificationchannel.Type associated with the DestType.
