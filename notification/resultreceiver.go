@@ -12,5 +12,5 @@ type ResultReceiver interface {
 	Start(context.Context, Dest) error
 	Stop(context.Context, Dest) error
 
-	IsValidDest(ctx context.Context, destType DestType, destValue string) (bool, error)
+	IsKnownDest(ctx context.Context, destType DestType, destValue string) (bool, error)
 }

@@ -16,6 +16,6 @@ type Receiver interface {
 	// Stop indicates a user has opted-out of notifications from a contact method.
 	Stop(context.Context, Dest) error
 
-	// IsValidDest checks if the given destination is valid/known.
-	IsValidDest(ctx context.Context, value string) (bool, error)
+	// IsKnownDest checks if the given destination is known/not disabled.
+	IsKnownDest(ctx context.Context, value string) (bool, error)
 }

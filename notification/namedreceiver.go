@@ -9,9 +9,9 @@ type namedReceiver struct {
 
 var _ Receiver = &namedReceiver{}
 
-// IsValidDest calls the underlying ResultReceiver.IsValidDest method for the current type.
-func (nr *namedReceiver) IsValidDest(ctx context.Context, value string) (bool, error) {
-	return nr.r.IsValidDest(ctx, nr.ns.destType, value)
+// IsKnownDest calls the underlying ResultReceiver.IsKnownDest method for the current type.
+func (nr *namedReceiver) IsKnownDest(ctx context.Context, value string) (bool, error) {
+	return nr.r.IsKnownDest(ctx, nr.ns.destType, value)
 }
 
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
