@@ -363,7 +363,9 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	result := make([]Message, 0, len(db.sentMessages))
 	for rows.Next() {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, scheduleID sql.NullString
+		var destID, destValue, verifyID, userID, serviceID, scheduleID sql.NullString
+		var cmType contactmethod.Type
+		var chanType notificationchannel.Type
 		var alertID, logID sql.NullInt64
 		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
@@ -398,18 +400,12 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.Dest.Value = destValue.String
 		msg.StatusAlertIDs = statusAlertIDs
 		msg.ScheduleID = scheduleID.String
-		switch {
-		case cmType.String == string(contactmethod.TypeSMS):
-			msg.Dest.Type = notification.DestTypeSMS
-		case cmType.String == string(contactmethod.TypeVoice):
-			msg.Dest.Type = notification.DestTypeVoice
-		case chanType.String == string(notificationchannel.TypeSlack):
-			msg.Dest.Type = notification.DestTypeSlackChannel
-		case cmType.String == string(contactmethod.TypeEmail):
-			msg.Dest.Type = notification.DestTypeUserEmail
-		case cmType.String == string(contactmethod.TypeWebhook):
-			msg.Dest.Type = notification.DestTypeUserWebhook
-		default:
+
+		if cmType.Valid() {
+			msg.Dest.Type = cmType.DestType()
+		} else if chanType.Valid() {
+			msg.Dest.Type = chanType.DestType()
+		} else {
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue
 		}

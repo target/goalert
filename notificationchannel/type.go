@@ -14,6 +14,11 @@ const (
 	TypeSlack   Type = "SLACK"
 )
 
+// Valid returns true if t is a known Type.
+func (t Type) Valid() bool {
+	return t == TypeSlack
+}
+
 // TypeFromDestType will return the Type associated with a
 // notification.DestType.
 func TypeFromDestType(t notification.DestType) Type {

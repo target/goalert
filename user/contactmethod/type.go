@@ -20,6 +20,11 @@ const (
 	TypeWebhook Type = "WEBHOOK"
 )
 
+// Valid returns true if t is a known Type.
+func (t Type) Valid() bool {
+	return t == TypeVoice || t == TypeSMS || t == TypeEmail || t == TypePush || t == TypeWebhook
+}
+
 // TypeFromDestType will return the Type associated with a
 // notification.DestType.
 func TypeFromDestType(t notification.DestType) Type {
