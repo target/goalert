@@ -162,8 +162,10 @@ function FormDialog(props) {
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
-      onExited={handleOnExited}
       {...dialogProps}
+      TransitionProps={{
+        onExited: handleOnExited,
+      }}
     >
       <Notices notices={notices} />
       <DialogTitleWrapper
