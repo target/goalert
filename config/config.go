@@ -80,8 +80,9 @@ type Config struct {
 	Slack struct {
 		Enable bool `public:"true"`
 
-		ClientID     string
-		ClientSecret string `password:"true"`
+		ClientID      string
+		ClientSecret  string `password:"true"`
+		SigningSecret string `password:"true"`
 
 		// The `xoxb-` prefix is documented by Slack.
 		// https://api.slack.com/docs/token-types#bot
@@ -366,6 +367,7 @@ func (cfg Config) Validate() error {
 		validateKey("Mailgun.APIKey", cfg.Mailgun.APIKey),
 		validateKey("Slack.ClientID", cfg.Slack.ClientID),
 		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
+		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
@@ -409,6 +411,7 @@ func (cfg Config) Validate() error {
 		validateEnable("Slack", cfg.Slack.Enable,
 			"ClientID", cfg.Slack.ClientID,
 			"ClientSecret", cfg.Slack.ClientSecret,
+			"SigningSecret", cfg.Slack.SigningSecret,
 		),
 
 		validateEnable("Twilio", cfg.Twilio.Enable,
