@@ -1,5 +1,14 @@
 package notification
 
+type RecentStatus string
+
+// Notification status types
+const (
+	RecentStatusClosed         RecentStatus = "Closed"
+	RecentStatusAcknowledged   RecentStatus = "Acknowledged"
+	RecentStatusUnacknowledged RecentStatus = "Unacknowledged"
+)
+
 type AlertStatus struct {
 	Dest       Dest
 	CallbackID string
@@ -14,8 +23,8 @@ type AlertStatus struct {
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus SendResult
 
-	// Status is the most recent status of the Alert.
-	Status string
+	// FriendlyStatus is the most recent status of the Alert, which is to be used for display purposes only.
+	FriendlyStatus RecentStatus
 }
 
 var _ Message = &AlertStatus{}
