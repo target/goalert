@@ -11,4 +11,6 @@ type ResultReceiver interface {
 	Receive(ctx context.Context, callbackID string, result Result) error
 	Start(context.Context, Dest) error
 	Stop(context.Context, Dest) error
+
+	IsValidDest(ctx context.Context, destType DestType, destValue string) (bool, error)
 }

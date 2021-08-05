@@ -9,6 +9,11 @@ type namedReceiver struct {
 
 var _ Receiver = &namedReceiver{}
 
+// IsValidDest calls the underlying ResultReceiver.IsValidDest method for the current type.
+func (nr *namedReceiver) IsValidDest(ctx context.Context, value string) (bool, error) {
+	return nr.r.IsValidDest(ctx, nr.ns.destType, value)
+}
+
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
 // namedSender.
 func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string, status *Status) error {
