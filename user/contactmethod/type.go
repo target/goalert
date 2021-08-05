@@ -3,8 +3,6 @@ package contactmethod
 import (
 	"database/sql/driver"
 	"fmt"
-
-	"github.com/target/goalert/notification"
 )
 
 // Type specifies the medium a ContactMethod is notified.
@@ -25,43 +23,12 @@ func (t Type) Valid() bool {
 	return t == TypeVoice || t == TypeSMS || t == TypeEmail || t == TypePush || t == TypeWebhook
 }
 
-// TypeFromDestType will return the Type associated with a
-// notification.DestType.
-func TypeFromDestType(t notification.DestType) Type {
-	switch t {
-	case notification.DestTypeSMS:
-		return TypeSMS
-	case notification.DestTypeVoice:
-		return TypeVoice
-	case notification.DestTypeUserEmail:
-		return TypeEmail
-	case notification.DestTypeUserWebhook:
-		return TypeWebhook
-	}
-
-	return TypeUnknown
-}
-
 func (t Type) Value() (driver.Value, error) {
 	if t == TypeUnknown {
 		return nil, nil
 	}
 
 	return string(t), nil
-}
-
-func (t Type) DestType() notification.DestType {
-	switch t {
-	case TypeSMS:
-		return notification.DestTypeSMS
-	case TypeVoice:
-		return notification.DestTypeVoice
-	case TypeEmail:
-		return notification.DestTypeUserEmail
-	case TypeWebhook:
-		return notification.DestTypeUserWebhook
-	}
-	return 0
 }
 
 // Scan handles reading a Type from the DB format

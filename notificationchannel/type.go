@@ -3,8 +3,6 @@ package notificationchannel
 import (
 	"database/sql/driver"
 	"fmt"
-
-	"github.com/target/goalert/notification"
 )
 
 type Type string
@@ -19,31 +17,12 @@ func (t Type) Valid() bool {
 	return t == TypeSlack
 }
 
-// TypeFromDestType will return the Type associated with a
-// notification.DestType.
-func TypeFromDestType(t notification.DestType) Type {
-	switch t {
-	case notification.DestTypeSlackChannel:
-		return TypeSlack
-	}
-
-	return TypeUnknown
-}
-
 func (t Type) Value() (driver.Value, error) {
 	if t == TypeUnknown {
 		return nil, nil
 	}
 
 	return string(t), nil
-}
-
-func (t Type) DestType() notification.DestType {
-	switch t {
-	case TypeSlack:
-		return notification.DestTypeSlackChannel
-	}
-	return 0
 }
 
 // Scan handles reading a Type from the DB format
