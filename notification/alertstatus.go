@@ -1,13 +1,6 @@
 package notification
 
-type RecentStatus string
-
-// Notification status types
-const (
-	RecentStatusClosed         RecentStatus = "Closed"
-	RecentStatusAcknowledged   RecentStatus = "Acknowledged"
-	RecentStatusUnacknowledged RecentStatus = "Unacknowledged"
-)
+import "github.com/target/goalert/alert"
 
 type AlertStatus struct {
 	Dest       Dest
@@ -23,8 +16,8 @@ type AlertStatus struct {
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus SendResult
 
-	// FriendlyStatus is the most recent status of the Alert, which is to be used for display purposes only.
-	FriendlyStatus RecentStatus
+	// NewState contains the most recent status for the alert.
+	NewAlertStatus alert.Status
 }
 
 var _ Message = &AlertStatus{}

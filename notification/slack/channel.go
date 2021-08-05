@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -329,7 +330,17 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertStatus:
 		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-		text := "Status Update: " + string(t.FriendlyStatus) + "\n" + t.LogEntry
+		var status string
+		switch t.NewAlertStatus {
+		case alert.StatusActive:
+			status = "Acknowledged"
+		case alert.StatusTriggered:
+			status = "Unacknowledged"
+		case alert.StatusClosed:
+			status = "Closed"
+		}
+
+		text := "Status Update: " + status + "\n" + t.LogEntry
 		vals.Set("text", text)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
