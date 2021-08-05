@@ -1,6 +1,7 @@
 package contactmethod
 
 import (
+	"database/sql/driver"
 	"fmt"
 
 	"github.com/target/goalert/notification"
@@ -11,6 +12,7 @@ type Type string
 
 // ContactMethod types
 const (
+	TypeUnknown Type = ""
 	TypeVoice   Type = "VOICE"
 	TypeSMS     Type = "SMS"
 	TypeEmail   Type = "EMAIL"
@@ -26,9 +28,21 @@ func TypeFromDestType(t notification.DestType) Type {
 		return TypeSMS
 	case notification.DestTypeVoice:
 		return TypeVoice
+	case notification.DestTypeUserEmail:
+		return TypeEmail
+	case notification.DestTypeUserWebhook:
+		return TypeWebhook
 	}
 
-	return ""
+	return TypeUnknown
+}
+
+func (t Type) Value() (driver.Value, error) {
+	if t == TypeUnknown {
+		return nil, nil
+	}
+
+	return string(t), nil
 }
 
 func (t Type) DestType() notification.DestType {
@@ -37,6 +51,10 @@ func (t Type) DestType() notification.DestType {
 		return notification.DestTypeSMS
 	case TypeVoice:
 		return notification.DestTypeVoice
+	case TypeEmail:
+		return notification.DestTypeUserEmail
+	case TypeWebhook:
+		return notification.DestTypeUserWebhook
 	}
 	return 0
 }
@@ -44,6 +62,8 @@ func (t Type) DestType() notification.DestType {
 // Scan handles reading a Type from the DB format
 func (r *Type) Scan(value interface{}) error {
 	switch t := value.(type) {
+	case nil:
+		*r = TypeUnknown
 	case []byte:
 		*r = Type(t)
 	case string:
