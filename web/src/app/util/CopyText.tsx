@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import p from 'prop-types'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'
@@ -12,6 +11,7 @@ const useStyles = makeStyles({
     display: 'flex',
     width: 'fit-content',
     wordBreak: 'break-all',
+    cursor: 'pointer',
   },
   icon: {
     paddingRight: 4,
@@ -22,7 +22,7 @@ interface CopyTextProps {
   placement?: TooltipProps['placement']
   title?: string
   value: string
-  textOnly?: boolean
+  asURL?: boolean
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
@@ -30,9 +30,30 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
   const [copied, setCopied] = useState(false)
 
   let content
-  if (props.textOnly) {
+  if (props.asURL) {
+    content = (
+      <AppLink
+        className={classes.copyContainer}
+        to={props.value}
+        onClick={(e) => {
+          const tgt = e.currentTarget.href
+
+          e.preventDefault()
+          copyToClipboard(tgt.replace(/^mailto:/, ''))
+          setCopied(true)
+        }}
+      >
+        <ContentCopy
+          className={props.title ? classes.icon : undefined}
+          fontSize='small'
+        />
+        {props.title}
+      </AppLink>
+    )
+  } else {
     content = (
       <span
+        className={classes.copyContainer}
         role='button'
         tabIndex={0}
         onClick={() => {
@@ -56,26 +77,6 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
         {props.title}
       </span>
     )
-  } else {
-    content = (
-      <AppLink
-        className={classes.copyContainer}
-        to={props.value}
-        onClick={(e) => {
-          const tgt = e.currentTarget.href
-
-          e.preventDefault()
-          copyToClipboard(tgt.replace(/^mailto:/, ''))
-          setCopied(true)
-        }}
-      >
-        <ContentCopy
-          className={props.title ? classes.icon : undefined}
-          fontSize='small'
-        />
-        {props.title}
-      </AppLink>
-    )
   }
 
   return (
@@ -87,10 +88,4 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
       {content}
     </Tooltip>
   )
-}
-
-CopyText.propTypes = {
-  placement: p.string,
-  title: p.string,
-  value: p.string.isRequired,
 }

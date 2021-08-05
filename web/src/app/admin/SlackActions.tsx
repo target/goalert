@@ -48,7 +48,7 @@ export default function SlackActions(): JSX.Element {
     return (
       <div>
         <div className={classes.copyButton}>
-          <CopyText value={manifest} placement='left' textOnly />
+          <CopyText value={manifest} placement='left' />
         </div>
         <Markdown value={'```\n' + manifest + '\n```'} />
       </div>
