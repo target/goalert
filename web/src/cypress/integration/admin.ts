@@ -167,6 +167,33 @@ function testAdmin(): void {
       cy.get('input[name="Auth.RefererURLs-2"]').should('have.value', domain3)
       cy.get('input[name="Auth.RefererURLs-new-item"]').should('have.value', '')
     })
+
+    it('should generate a slack manifest', () => {
+      const publicURL = cfg.General.PublicURL
+      cy.get('[id="accordion-Slack"]').click()
+      cy.get('button').contains('Create New Slack App').click()
+      cy.dialogTitle('Create New Slack App')
+
+      // verify data integrity from pulled values
+      cy.dialogContains("name: 'GoAlert'")
+      cy.dialogContains(
+        `request_url: '${publicURL}/api/v2/slack/message-action'`,
+      )
+      cy.dialogContains(
+        `message_menu_options_url: '${publicURL}/api/v2/slack/menu-options'`,
+      )
+      cy.dialogContains(
+        `'${publicURL}/api/v2/identity/providers/oidc/callback'`,
+      )
+      cy.dialogContains("display_name: 'GoAlert'")
+
+      // verify button routing to slack config page
+      cy.get('[data-cy="configure-in-slack"]').should(
+        'have.attr',
+        'href',
+        'https://api.slack.com/apps',
+      )
+    })
   })
 }
 
