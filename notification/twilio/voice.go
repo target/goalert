@@ -69,6 +69,7 @@ type Voice struct {
 var _ notification.ReceiverSetter = &Voice{}
 var _ notification.Sender = &Voice{}
 var _ notification.StatusChecker = &Voice{}
+var _ notification.FriendlyValuer = &Voice{}
 
 type gather struct {
 	XMLName   xml.Name `xml:"Gather,omitempty"`
