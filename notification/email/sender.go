@@ -27,16 +27,16 @@ func NewSender(ctx context.Context) *Sender {
 var _ notification.Sender = &Sender{}
 
 // Send will send an for the provided message type.
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	fromAddr, err := mail.ParseAddress(cfg.SMTP.From)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	toAddr, err := mail.ParseAddress(msg.Destination().Value)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	h := hermes.Hermes{
@@ -93,16 +93,16 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 		}}
 		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
 	default:
-		return "", nil, errors.New("message type not supported")
+		return nil, errors.New("message type not supported")
 	}
 
 	htmlBody, err := h.GenerateHTML(e)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	textBody, err := h.GeneratePlainText(e)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	g := gomail.NewMessage()
@@ -116,7 +116,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 
 	_, err = g.WriteTo(&buf)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	host, port, _ := net.SplitHostPort(cfg.SMTP.Address)
@@ -156,8 +156,11 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 
 	err = sendFn(ctx, net.JoinHostPort(host, port), authFn, fromAddr.Address, []string{toAddr.Address}, buf.Bytes(), tlsCfg)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return "", &notification.Status{State: notification.StateSent}, nil
+	return &notification.SentMessage{
+		State:    notification.StateSent,
+		SrcValue: fromAddr.String(),
+	}, nil
 }
