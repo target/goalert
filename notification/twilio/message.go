@@ -69,36 +69,41 @@ type Message struct {
 	ErrorMessage *string
 }
 
-func (msg *Message) messageStatus() *notification.SentMessage {
+func (msg *Message) sentMessage() *notification.SentMessage {
+	stat := msg.messageStatus()
+
+	return &notification.SentMessage{
+		ExternalID:   msg.SID,
+		State:        stat.State,
+		StateDetails: stat.Details,
+		SrcValue:     msg.From,
+	}
+}
+func (msg *Message) messageStatus() *notification.Status {
 	if msg == nil {
 		return nil
 	}
 
-	sent := notification.SentMessage{
-		ExternalID: msg.SID,
-		SrcValue:   msg.From,
-	}
-
+	var status notification.Status
 	if msg.ErrorMessage != nil && msg.ErrorCode != nil {
-		sent.StateDetails = fmt.Sprintf("%s: [%d] %s", msg.Status, *msg.ErrorCode, *msg.ErrorMessage)
+		status.Details = fmt.Sprintf("%s: [%d] %s", msg.Status, *msg.ErrorCode, *msg.ErrorMessage)
 	} else {
-		sent.StateDetails = string(msg.Status)
+		status.Details = string(msg.Status)
 	}
 	switch msg.Status {
 	case MessageStatusFailed:
 		if msg.ErrorCode != nil &&
 			(*msg.ErrorCode == 30008 || *msg.ErrorCode == 30001) {
 
-			sent.State = notification.StateFailedTemp
+			status.State = notification.StateFailedTemp
 		}
-		sent.State = notification.StateFailedPerm
+		status.State = notification.StateFailedPerm
 	case MessageStatusDelivered:
-		sent.State = notification.StateDelivered
+		status.State = notification.StateDelivered
 	case MessageStatusSent, MessageStatusUndelivered:
-		sent.State = notification.StateSent
+		status.State = notification.StateSent
 	default:
-		sent.State = notification.StateSending
+		status.State = notification.StateSending
 	}
-
-	return &sent
+	return &status
 }

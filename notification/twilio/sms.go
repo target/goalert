@@ -69,9 +69,8 @@ func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Stat
 	if err != nil {
 		return nil, err
 	}
-	sent := msg.messageStatus()
 
-	return &notification.Status{State: sent.State, Details: sent.StateDetails}, nil
+	return msg.messageStatus(), nil
 }
 
 // Send implements the notification.Sender interface.
@@ -162,7 +161,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	// If the message was sent successfully, reset reply limits.
 	s.limit.Reset(destNumber)
 
-	return resp.messageStatus(), nil
+	return resp.sentMessage(), nil
 }
 
 func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
@@ -188,9 +187,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 
-	sent := msg.messageStatus()
-
-	err := s.r.SetMessageStatus(ctx, sid, &notification.Status{State: sent.State, Details: sent.StateDetails})
+	err := s.r.SetMessageStatus(ctx, sid, msg.messageStatus())
 	if err != nil {
 		// log and continue
 		log.Log(ctx, err)
