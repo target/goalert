@@ -10,7 +10,7 @@ import (
 
 var _ notification.FriendlyValuer = Sender{}
 
-// MaskURLPass will mask the password (if any) in the URL>
+// MaskURLPass will mask the password (if any) in the URL.
 func MaskURLPass(u *url.URL) string {
 	if u.User == nil {
 		return u.String()
