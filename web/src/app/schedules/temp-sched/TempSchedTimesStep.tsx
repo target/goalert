@@ -6,15 +6,24 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import { FormField } from '../../forms'
-import { ISODateTimePicker } from '../../util/ISOPickers'
+import { ISOKeyboardDateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
+import { gql, useQuery } from '@apollo/client'
 
 const useStyles = makeStyles({
   contentText,
 })
+
+const schedTZQuery = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      id
+      timeZone
+    }
+  }
+`
 
 type TempSchedTimesStepProps = {
   scheduleID: string
@@ -30,6 +39,12 @@ export default function TempSchedTimesStep({
   edit,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+  const { data, error, loading } = useQuery(schedTZQuery, {
+    variables: { id: scheduleID },
+  })
+  const zone = data?.schedule?.timeZone
+  console.log(zone === undefined)
+
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
@@ -54,30 +69,26 @@ export default function TempSchedTimesStep({
             entire duration (ignoring all rules/overrides).
           </DialogContentText>
         </Grid>
-        <Grid item xs={12}>
-          <ScheduleTZFilter
-            label={(tz) => `Configure in ${tz}`}
-            scheduleID={scheduleID}
-          />
-        </Grid>
         <Grid item xs={6}>
           <FormField
             fullWidth
-            component={ISODateTimePicker}
+            component={ISOKeyboardDateTimePicker}
             required
             name='start'
             min={edit ? value.start : now}
             validate={() => validate()}
+            timeZone={zone}
           />
         </Grid>
         <Grid item xs={6}>
           <FormField
             fullWidth
-            component={ISODateTimePicker}
+            component={ISOKeyboardDateTimePicker}
             required
             name='end'
             min={edit ? value.start : now}
             validate={() => validate()}
+            timeZone={zone}
           />
         </Grid>
       </Grid>

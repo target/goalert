@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
+import {
+  DatePicker,
+  TimePicker,
+  DateTimePicker,
+  KeyboardDateTimePicker,
+} from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
@@ -95,15 +100,18 @@ function useISOPicker(
     )
   }
 
-  let emptyLabel = 'Select a time...'
-  const extraProps = {}
-  if (type !== 'time') {
-    emptyLabel = 'Select a date...'
-    extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
-    extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
-  }
+  const [emptyLabel, extraProps, FallbackIcon] =
+    type === 'time'
+      ? ['Select a time...', {}, AccessTime]
+      : [
+          'Select a date...',
+          {
+            leftArrowButtonProps: { 'data-cy': 'month-back' },
+            rightArrowButtonProps: { 'data-cy': 'month-next' },
+          },
+          DateRange,
+        ]
 
-  const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={value ? dtValue : null}
@@ -145,6 +153,15 @@ export function ISODateTimePicker(props) {
   return useISOPicker(props, {
     format: `yyyy-MM-dd'T'HH:mm`,
     Fallback: DateTimePicker,
+    truncateTo: 'minute',
+    type: 'datetime-local',
+  })
+}
+
+export function ISOKeyboardDateTimePicker(props) {
+  return useISOPicker(props, {
+    format: `yyyy-MM-dd'T'HH:mm`,
+    Fallback: KeyboardDateTimePicker,
     truncateTo: 'minute',
     type: 'datetime-local',
   })
