@@ -15,7 +15,7 @@ function check(
   ) => Cypress.Chainable<JQuery<HTMLElement>>,
 ): void {
   describe(typeName + ' Favorites', () => {
-    it.only('should allow setting and unsetting as a favorite from details page ', () => {
+    it('should allow setting and unsetting as a favorite from details page ', () => {
       createFunc('', false).then((id) => {
         cy.visit(`/${urlPrefix}/${id}`)
         typeName = typeName.toLowerCase()
@@ -149,8 +149,8 @@ function testFavorites(): void {
     (name: string, favorite: boolean) =>
       cy.createUser({ name, favorite }).then((user: Profile) => user.id),
     () => {
-      cy.visit('/users')
-      return cy.pageFab().get('input[name=users]')
+      cy.visit('/wizard')
+      return cy.get('input[name=primarySchedule\\.users]')
     },
   )
 }

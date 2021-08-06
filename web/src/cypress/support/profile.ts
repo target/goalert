@@ -23,7 +23,7 @@ function createManyUsers(
 
   return cy.sql(dbQuery).then(() => {
     const userIDs = profiles.filter((p) => p.isFavorite).map((u) => u.id)
-    setFavorites(userIDs).then(() => profiles)
+    return setFavorites(userIDs).then(() => profiles)
   })
 }
 
