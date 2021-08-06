@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
 )
@@ -213,6 +214,15 @@ func isStartMessage(body string) bool {
 	}
 
 	return false
+}
+
+// FriendlyValue will return the international formatting of the phone number.
+func (s *SMS) FriendlyValue(ctx context.Context, value string) (string, error) {
+	num, err := libphonenumber.Parse(value, "")
+	if err != nil {
+		return "", fmt.Errorf("parse number for formatting: %w", err)
+	}
+	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }
 
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {

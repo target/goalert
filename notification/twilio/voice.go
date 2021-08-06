@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -702,4 +703,13 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+}
+
+// FriendlyValue will return the international formatting of the phone number.
+func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
+	num, err := libphonenumber.Parse(value, "")
+	if err != nil {
+		return "", fmt.Errorf("parse number for formatting: %w", err)
+	}
+	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }
