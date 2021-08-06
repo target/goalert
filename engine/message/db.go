@@ -114,7 +114,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			fired_at = null,
 			provider_msg_id = coalesce($2, provider_msg_id),
 			provider_seq = CASE WHEN $3 = -1 THEN provider_seq ELSE $3 END,
-			next_retry_at = null
+			next_retry_at = null,
+			src_value = coalesce($6, src_value)
 		where
 			(id = $1 or provider_msg_id = $2) and
 			(provider_seq <= $3 or $3 = -1) and
@@ -539,7 +540,13 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		s = StatusDelivered
 	}
 
-	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details)
+	var srcValue sql.NullString
+	if status.SrcValue != "" {
+		srcValue.Valid = true
+		srcValue.String = status.SrcValue
+	}
+
+	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details, srcValue)
 	return err
 }
 
