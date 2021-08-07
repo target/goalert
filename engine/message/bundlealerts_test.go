@@ -9,56 +9,109 @@ import (
 )
 
 func TestBundleAlertMessages(t *testing.T) {
-	n := time.Now()
-	msg := []Message{
-		{
-			ID:        "a",
-			AlertID:   1,
-			Type:      notification.MessageTypeAlert,
-			CreatedAt: n,
-		},
-		{
-			ID:        "b",
-			AlertID:   2,
-			Type:      notification.MessageTypeAlert,
-			CreatedAt: n.Add(time.Minute),
-		},
-		{
-			ID:        "c",
-			AlertID:   3,
-			Type:      notification.MessageTypeAlert,
-			CreatedAt: n.Add(-time.Hour),
-		},
-		{
-			ID:        "d",
-			AlertID:   4,
-			Type:      notification.MessageTypeAlert,
-			CreatedAt: n.Add(time.Hour),
-		},
-		{
+	t.Run("existing bundle", func(t *testing.T) {
+
+		n := time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)
+		bundle := Message{
 			ID: "e",
 			// bundles for alerts should also be joined
 			Type:      notification.MessageTypeAlertBundle,
 			CreatedAt: n.Add(time.Hour),
-		},
-	}
-
-	var bundleID string
-	out, err := bundleAlertMessages(msg, func(b Message, ids []string) error {
-		if bundleID != "" {
-			t.Error("got multiple bundles; expected 1")
 		}
-		bundleID = b.ID
-		assert.ElementsMatch(t, []string{"a", "b", "c", "d", "e"}, ids)
+		msg := []Message{
+			{
+				ID:        "a",
+				AlertID:   1,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n,
+			},
+			{
+				ID:        "b",
+				AlertID:   2,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(time.Minute),
+			},
+			{
+				ID:        "c",
+				AlertID:   3,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(-time.Hour),
+			},
+			{
+				ID:        "d",
+				AlertID:   4,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(time.Hour),
+			},
+			bundle,
+		}
 
-		return nil
+		out, err := bundleAlertMessages(msg, func(b Message) (string, error) {
+			t.Helper()
+			// should use existing bundle
+			t.Fail()
+			return "", nil
+		}, func(parentID string, ids []string) error {
+			t.Helper()
+			assert.Equal(t, "e", parentID)
+			assert.ElementsMatch(t, []string{"a", "b", "c", "d"}, ids)
+
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Len(t, out, 1)
+		assert.EqualValues(t, bundle, out[0])
 	})
-	assert.NoError(t, err)
-	assert.Len(t, out, 1)
-	assert.NotEmpty(t, bundleID, "bundled output")
-	assert.Equal(t, []Message{{
-		ID:        bundleID,
-		Type:      notification.MessageTypeAlertBundle,
-		CreatedAt: n.Add(-time.Hour), // oldest CreatedAt
-	}}, out)
+
+	t.Run("new bundle", func(t *testing.T) {
+
+		n := time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		msg := []Message{
+			{
+				ID:        "a",
+				AlertID:   1,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n,
+			},
+			{
+				ID:        "b",
+				AlertID:   2,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(time.Minute),
+			},
+			{
+				ID:        "c",
+				AlertID:   3,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(-time.Hour),
+			},
+			{
+				ID:        "d",
+				AlertID:   4,
+				Type:      notification.MessageTypeAlert,
+				CreatedAt: n.Add(time.Hour),
+			},
+		}
+
+		out, err := bundleAlertMessages(msg, func(b Message) (string, error) {
+			t.Helper()
+
+			return "e", nil
+		}, func(parentID string, ids []string) error {
+			t.Helper()
+			assert.Equal(t, "e", parentID)
+			assert.ElementsMatch(t, []string{"a", "b", "c", "d"}, ids)
+
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Len(t, out, 1)
+		assert.EqualValues(t, Message{
+			ID:        "e",
+			Type:      notification.MessageTypeAlertBundle,
+			CreatedAt: n.Add(-time.Hour),
+		}, out[0])
+	})
+
 }

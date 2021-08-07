@@ -75,9 +75,7 @@ export default function AdminNumberLookup(): JSX.Element {
         <ListItem>
           <ListItemText
             primary={label}
-            secondary={
-              (text && <CopyText title={text} value={text} textOnly />) || '?'
-            }
+            secondary={(text && <CopyText title={text} value={text} />) || '?'}
           />
         </ListItem>
       </React.Fragment>

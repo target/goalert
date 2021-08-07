@@ -54,7 +54,7 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html
+GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
@@ -135,9 +135,9 @@ $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 system.ca.pem:
 	go run ./cmd/goalert gen-cert ca

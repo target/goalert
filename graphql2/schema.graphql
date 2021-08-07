@@ -101,6 +101,8 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  generateSlackAppManifest: String!
 }
 
 input SlackChannelSearchOptions {
@@ -1084,6 +1086,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.

@@ -3,6 +3,7 @@ package smoketest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -43,6 +44,8 @@ func TestOnCallNotify(t *testing.T) {
 	defer h.Close()
 
 	h.Slack().Channel("test").ExpectMessage("on-call", "testschedule", "bob")
+
+	h.FastForward(time.Hour)
 
 	ctx := permission.SystemContext(context.Background(), "Test")
 	_, err := h.App().ScheduleRuleStore.CreateRuleTx(ctx, nil, &rule.Rule{

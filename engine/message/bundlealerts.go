@@ -1,63 +1,80 @@
 package message
 
 import (
-	"github.com/google/uuid"
+	"sort"
+
 	"github.com/target/goalert/notification"
 )
+
+func typeOrder(msg Message) int {
+	if msg.Type == notification.MessageTypeAlertBundle {
+		return 0
+	}
+
+	return 1
+}
 
 // bundleAlertMessages will bundle status updates for the same Dest value. It will add any new messages to an existing bundle.
 // A single contact-method will only ever have a single alert notification per-service in the result.
 //
 // It also handles updating the outgoing_messages table by marking bundled messages with the `bundled`
 // status and creating a new bundled message placeholder.
-func bundleAlertMessages(messages []Message, bundleFunc func(Message, []string) error) ([]Message, error) {
-	type bundleID struct {
+func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string, error), bundleFunc func(string, []string) error) ([]Message, error) {
+	toProcess, result := splitPendingByType(messages, notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
+	// sort by type, then CreatedAt
+	sort.Slice(toProcess, func(i, j int) bool {
+		if toProcess[i].Type != toProcess[j].Type {
+			return typeOrder(toProcess[i]) < typeOrder(toProcess[j])
+		}
+		return toProcess[i].CreatedAt.Before(toProcess[j].CreatedAt)
+	})
+
+	type key struct {
 		notification.Dest
 		ServiceID string
 	}
-	type bundle struct {
-		Message
-		IDs []string
-	}
-	byID := make(map[bundleID]*bundle)
-	filtered := messages[:0]
-	for _, msg := range messages {
-		if (msg.Type != notification.MessageTypeAlert && msg.Type != notification.MessageTypeAlertBundle) || !msg.SentAt.IsZero() {
-			filtered = append(filtered, msg)
-			continue
-		}
 
-		id := bundleID{Dest: msg.Dest, ServiceID: msg.ServiceID}
-		old, ok := byID[id]
-		if !ok {
-			cpy := bundle{Message: msg, IDs: []string{msg.ID}}
-			byID[id] = &cpy
-			continue
+	groups := make(map[key][]Message)
+	for _, msg := range toProcess {
+		key := key{
+			Dest:      msg.Dest,
+			ServiceID: msg.ServiceID,
 		}
-
-		// duplicate alert
-		old.IDs = append(old.IDs, msg.ID)
-
-		if msg.CreatedAt.Before(old.CreatedAt) {
-			old.CreatedAt = msg.CreatedAt
-		}
+		groups[key] = append(groups[key], msg)
 	}
 
-	for _, msg := range byID {
-		if len(msg.IDs) == 1 {
-			filtered = append(filtered, msg.Message)
+	for _, msgs := range groups {
+		// skip single messages
+		if len(msgs) == 1 {
+			result = append(result, msgs[0])
 			continue
 		}
 
-		msg.Type = notification.MessageTypeAlertBundle
-		msg.AlertID = 0
-		msg.ID = uuid.New().String()
-		err := bundleFunc(msg.Message, msg.IDs)
+		ids := make([]string, len(msgs))
+		for i, msg := range msgs {
+			ids[i] = msg.ID
+		}
+
+		bundleID := msgs[0].ID
+		var err error
+		if msgs[0].Type != notification.MessageTypeAlertBundle {
+			bundleID, err = newBundleFunc(msgs[0])
+			if err != nil {
+				return nil, err
+			}
+			msgs[0].Type = notification.MessageTypeAlertBundle
+			msgs[0].ID = bundleID
+			msgs[0].AlertID = 0
+		} else {
+			ids = ids[1:]
+		}
+
+		err = bundleFunc(bundleID, ids)
 		if err != nil {
 			return nil, err
 		}
-		filtered = append(filtered, msg.Message)
+		result = append(result, msgs[0])
 	}
 
-	return filtered, nil
+	return result, nil
 }

@@ -80,7 +80,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
     }
   }
 
-  const getKey = () => {
+const getKey = () => {
     return secondary ? 'secondarySchedule' : 'primarySchedule'
   }
 

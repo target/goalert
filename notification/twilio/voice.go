@@ -61,9 +61,8 @@ var pRx = regexp.MustCompile(`\((.*?)\)`)
 
 // Voice implements a notification.Sender for Twilio voice calls.
 type Voice struct {
-	c   *Config
-	r   notification.Receiver
-	ban *dbBan
+	c *Config
+	r notification.Receiver
 }
 
 var _ notification.ReceiverSetter = &Voice{}
@@ -142,12 +141,6 @@ func NewVoice(ctx context.Context, db *sql.DB, c *Config) (*Voice, error) {
 		c: c,
 	}
 
-	var err error
-	v.ban, err = newBanDB(ctx, db, c, "twilio_voice_errors")
-	if err != nil {
-		return nil, errors.Wrap(err, "init voice ban DB")
-	}
-
 	return v, nil
 }
 
@@ -213,13 +206,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *no
 		"Number": toNumber,
 		"Type":   "TwilioVoice",
 	})
-	b, err := v.ban.IsBanned(ctx, toNumber, true)
-	if err != nil {
-		return "", nil, errors.Wrap(err, "check ban status")
-	}
-	if b {
-		return "", nil, errors.New("number had too many outgoing errors recently")
-	}
 
 	opts := &VoiceOptions{
 		ValidityPeriod: time.Second * 10,
@@ -233,15 +219,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *no
 		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
-	case notification.AlertStatusBundle:
-		plural := "s have"
-		if t.Count == 2 { // count is the total number
-			plural = " has"
-		}
-		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.LogEntry, ""), t.Count-1, plural)
-		opts.CallType = CallTypeAlertStatus
-		subID = t.AlertID
-		opts.Params.Set(msgParamBundle, "1")
 	case notification.Alert:
 		message = t.Summary
 		opts.CallType = CallTypeAlert
@@ -332,15 +309,6 @@ func (v *Voice) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		log.Log(ctx, err)
 	}
 
-	// Only update current call we are on, except for failed call
-	if status != CallStatusFailed {
-		return
-	}
-
-	err = v.ban.RecordError(context.Background(), number, true, "send failed")
-	if err != nil {
-		log.Log(ctx, errors.Wrap(err, "record error"))
-	}
 }
 
 type call struct {
@@ -499,12 +467,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		if err == nil {
 			return false
 		}
-		if userErr {
-			rerr := v.ban.RecordError(context.Background(), phoneNumber, isOutbound, msg)
-			if rerr != nil {
-				log.Log(ctx, errors.Wrap(rerr, "record error"))
-			}
-		}
 
 		// always log the failure
 		log.Log(ctx, err)
@@ -661,13 +623,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var err error
 	if !call.Outbound {
-		// v.serveVoiceUI(w, req)
-		err = v.ban.RecordError(context.Background(), call.Number, false, "incoming calls not supported")
-		if err != nil {
-			log.Log(ctx, errors.Wrap(err, "record error"))
-		}
 		renderXML(w, req, twiMLEnd{
 			Say: "Please login to the dashboard to manage alerts. Goodbye.",
 		})

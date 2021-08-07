@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"golang.org/x/net/context/ctxhttp"
@@ -332,45 +330,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallUsers:
-		var userStr string
-		if len(t.Users) == 0 {
-			userStr = "No users"
-		} else {
-			teamID, err := s.TeamID(ctx)
-			if err != nil {
-				log.Log(ctx, fmt.Errorf("lookup team ID: %w", err))
-			}
-
-			m := make(map[string]string, len(t.Users))
-			if teamID != "" {
-				userIDs := make([]string, len(t.Users))
-				for i, u := range t.Users {
-					userIDs[i] = u.ID
-				}
-				err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, func(sub user.AuthSubject) error {
-					m[sub.UserID] = sub.SubjectID
-					return nil
-				}, userIDs...)
-				if err != nil {
-					log.Log(ctx, fmt.Errorf("lookup auth subjects for slack: %w", err))
-				}
-			}
-
-			var userLinks []string
-			for _, u := range t.Users {
-				subjectID := m[u.ID]
-				if subjectID == "" {
-					// fallback to a link to the GoAlert user
-					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
-					continue
-				}
-
-				userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
-			}
-			userStr = "Users: " + strings.Join(userLinks, ", ")
-		}
-
-		vals.Set("text", fmt.Sprintf("%s are on-call for Schedule: %s", userStr, fmt.Sprintf("<%s|%s>", t.ScheduleURL, t.ScheduleName)))
+		vals.Set("text", s.onCallNotificationText(ctx, t))
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
