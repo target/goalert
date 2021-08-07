@@ -13,7 +13,7 @@ import InfoIcon from '@material-ui/icons/Info'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
-import { set } from 'lodash'
+import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { makeStyles } from '@material-ui/core'
 import useWidth from '../util/useWidth'
@@ -86,13 +86,13 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
 
   const handleRotationTypeChange = (e) => {
     const newVal = _.cloneDeep(value)
-    newVal[this.getKey()].rotation.type = e.target.value
+    newVal[getKey()].rotation.type = e.target.value
     onChange(newVal)
   }
 
   const handleFollowTheSunToggle = (e) => {
     const newVal = _.cloneDeep(value)
-    newVal[this.getKey()].followTheSunRotation.enable = e.target.value
+    newVal[getKey()].followTheSunRotation.enable = e.target.value
     onChange(newVal)
   }
 
