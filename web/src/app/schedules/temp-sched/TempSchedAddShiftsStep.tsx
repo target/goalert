@@ -46,7 +46,6 @@ type AddShiftsStepProps = {
   end: string
 
   scheduleID: string
-  stepText: string
   edit?: boolean
 }
 
@@ -99,7 +98,6 @@ function mergeShifts(_shifts: Shift[]): Shift[] {
 
 export default function TempSchedAddShiftsStep({
   scheduleID,
-  stepText,
   onChange,
   start,
   end,
@@ -177,7 +175,7 @@ export default function TempSchedAddShiftsStep({
           className={classes.shiftFormContainer}
         >
           <Grid item>
-            <Typography variant='body2'>{stepText}</Typography>
+            {!edit && <Typography variant='body2'>STEP 2 OF 2</Typography>}
             <Typography variant='h6' component='h2'>
               Specify on-call shifts.
             </Typography>

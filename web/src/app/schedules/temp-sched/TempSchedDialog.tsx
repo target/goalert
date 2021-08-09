@@ -89,7 +89,6 @@ export default function TempSchedDialog({
           key={key}
           value={value.shifts}
           onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-          stepText={edit ? '' : 'STEP 2 OF 2'}
           scheduleID={scheduleID}
           start={value.start}
           end={value.end}
