@@ -9,10 +9,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -411,26 +409,26 @@ func (db *DB) FindPendingNotifications(ctx context.Context, alertID int) ([]Aler
 
 	var result []AlertPendingNotification
 	for rows.Next() {
-		var cmType, ncType, destType, destName string
-		err := rows.Scan(&cmType, &ncType, &destName)
+		var destName string
+		var destType ScannableDestType
+		err := rows.Scan(&destType.CM, &destType.NC, &destName)
 		if err != nil {
 			return nil, err
 		}
-		switch {
-		case cmType == string(contactmethod.TypeSMS):
-			destType = string(contactmethod.TypeSMS)
-		case cmType == string(contactmethod.TypeVoice):
-			destType = string(contactmethod.TypeVoice)
-		case ncType == string(notificationchannel.TypeSlack):
-			destType = string(notificationchannel.TypeSlack)
-		default:
+		if destType.DestType().CMType().Valid() {
+			result = append(result, AlertPendingNotification{
+				DestType: string(destType.DestType().CMType()),
+				DestName: destName,
+			})
+		} else if destType.DestType().NCType().Valid() {
+			result = append(result, AlertPendingNotification{
+				DestType: string(destType.DestType().NCType()),
+				DestName: destName,
+			})
+		} else {
 			log.Debugf(ctx, "unknown destination type for pending notification for alert %s", alertID)
-			continue
 		}
-		result = append(result, AlertPendingNotification{
-			DestType: destType,
-			DestName: destName,
-		})
+
 	}
 
 	return result, err
