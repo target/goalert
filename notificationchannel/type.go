@@ -1,27 +1,35 @@
 package notificationchannel
 
 import (
+	"database/sql/driver"
 	"fmt"
-	"github.com/target/goalert/notification"
 )
 
 type Type string
 
 const (
-	TypeSlack Type = "SLACK"
+	TypeUnknown Type = ""
+	TypeSlack   Type = "SLACK"
 )
 
-func (t Type) DestType() notification.DestType {
-	switch t {
-	case TypeSlack:
-		return notification.DestTypeSlackChannel
+// Valid returns true if t is a known Type.
+func (t Type) Valid() bool {
+	return t == TypeSlack
+}
+
+func (t Type) Value() (driver.Value, error) {
+	if t == TypeUnknown {
+		return nil, nil
 	}
-	return 0
+
+	return string(t), nil
 }
 
 // Scan handles reading a Type from the DB format
 func (r *Type) Scan(value interface{}) error {
 	switch t := value.(type) {
+	case nil:
+		*r = TypeUnknown
 	case []byte:
 		*r = Type(t)
 	case string:
