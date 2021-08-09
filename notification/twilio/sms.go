@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +42,7 @@ type SMS struct {
 var _ notification.ReceiverSetter = &SMS{}
 var _ notification.Sender = &SMS{}
 var _ notification.StatusChecker = &SMS{}
+var _ notification.FriendlyValuer = &SMS{}
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
@@ -214,6 +216,15 @@ func isStartMessage(body string) bool {
 	}
 
 	return false
+}
+
+// FriendlyValue will return the international formatting of the phone number.
+func (s *SMS) FriendlyValue(ctx context.Context, value string) (string, error) {
+	num, err := libphonenumber.Parse(value, "")
+	if err != nil {
+		return "", fmt.Errorf("parse number for formatting: %w", err)
+	}
+	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }
 
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {

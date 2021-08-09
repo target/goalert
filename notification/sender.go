@@ -30,6 +30,14 @@ type StatusChecker interface {
 	Status(ctx context.Context, externalID string) (*Status, error)
 }
 
+// A FriendlyValuer is an optional interface a Sender can implement that
+// allows retrieving a friendly name for a destination value.
+//
+// For example, a formatted phone number or username for a Slack ID.
+type FriendlyValuer interface {
+	FriendlyValue(context.Context, string) (string, error)
+}
+
 // ErrStatusUnsupported should be returned when a Status() check is not supported by the provider.
 var ErrStatusUnsupported = errors.New("status check unsupported by provider")
 
