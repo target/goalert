@@ -69,21 +69,22 @@ func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Stat
 	if err != nil {
 		return nil, err
 	}
+
 	return msg.messageStatus(), nil
 }
 
 // Send implements the notification.Sender interface.
-func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
-		return "", nil, errors.New("Twilio provider is disabled")
+		return nil, errors.New("Twilio provider is disabled")
 	}
 	if msg.Destination().Type != notification.DestTypeSMS {
-		return "", nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
 	destNumber := msg.Destination().Value
 	if destNumber == cfg.Twilio.FromNumber {
-		return "", nil, errors.New("refusing to send outgoing SMS to FromNumber")
+		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
 
 	ctx = log.WithFields(ctx, log.Fields{
@@ -140,10 +141,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 	case notification.Verification:
 		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:
-		return "", nil, errors.Errorf("unhandled message type %T", t)
+		return nil, errors.Errorf("unhandled message type %T", t)
 	}
 	if err != nil {
-		return "", nil, errors.Wrap(err, "render message")
+		return nil, errors.Wrap(err, "render message")
 	}
 
 	opts := &SMSOptions{
@@ -154,13 +155,13 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 	// Actually send notification to end user & receive Message Status
 	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "send message")
+		return nil, errors.Wrap(err, "send message")
 	}
 
 	// If the message was sent successfully, reset reply limits.
 	s.limit.Reset(destNumber)
 
-	return resp.SID, resp.messageStatus(), nil
+	return resp.sentMessage(), nil
 }
 
 func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
