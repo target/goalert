@@ -33,7 +33,7 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	return a.FormatDestFunc(ctx, obj.Type.DestType(), obj.Value), nil
+	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
