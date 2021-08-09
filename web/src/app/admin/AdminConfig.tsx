@@ -23,6 +23,7 @@ import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { ConfigValue, ConfigHint } from '../../schema'
+import SlackActions from './SlackActions'
 
 const query = gql`
   query getConfig {
@@ -48,6 +49,7 @@ const mutation = gql`
 const useStyles = makeStyles((theme) => ({
   accordionDetails: {
     padding: 0,
+    display: 'block',
   },
   form: {
     width: '100%',
@@ -229,25 +231,26 @@ export default function AdminConfig(): JSX.Element {
                       value: f.value,
                     }))}
                 />
-                {hintGroups[groupID] &&
-                  hintGroups[groupID].map((h: ConfigHint) => (
-                    <TextField
-                      key={h.id}
-                      label={hintName(h.id)}
-                      value={h.value}
-                      variant='filled'
-                      margin='none'
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>
-                            <CopyText value={h.value} placement='left' />
-                          </InputAdornment>
-                        ),
-                      }}
-                      fullWidth
-                    />
-                  ))}
               </Form>
+              {hintGroups[groupID] &&
+                hintGroups[groupID].map((h: ConfigHint) => (
+                  <TextField
+                    key={h.id}
+                    label={hintName(h.id)}
+                    value={h.value}
+                    variant='filled'
+                    margin='none'
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <CopyText value={h.value} placement='left' asURL />
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                  />
+                ))}
+              {groupID === 'Slack' && <SlackActions />}
             </AccordionDetails>
           </Accordion>
         ))}

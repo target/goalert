@@ -19,10 +19,10 @@ require (
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.11.0
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.5.0
 	github.com/google/go-github v17.0.0+incompatible
