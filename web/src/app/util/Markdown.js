@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core'
 
 const useStyles = makeStyles({
   markdown: {
+    overflowWrap: 'break-word',
     '& td, th': {
       textAlign: 'left',
       padding: '0.25rem 1rem',

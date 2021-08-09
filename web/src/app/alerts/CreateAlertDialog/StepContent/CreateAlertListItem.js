@@ -44,7 +44,7 @@ export default function CreateAlertListItem(props) {
         </span>
 
         <span className={classes.endLinks}>
-          <CopyText value={alertURL} placement='left' />
+          <CopyText value={alertURL} placement='left' asURL />
           <AppLink to={alertURL} newTab className={classes.openInNewTab}>
             <OpenInNewIcon fontSize='small' />
           </AppLink>

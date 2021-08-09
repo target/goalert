@@ -35,7 +35,7 @@ type SMS struct {
 	c *Config
 	r notification.Receiver
 
-	ban *dbBan
+	limit *replyLimiter
 }
 
 var _ notification.ReceiverSetter = &SMS{}
@@ -53,10 +53,8 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 	s := &SMS{
 		b: b,
 		c: c,
-	}
-	s.ban, err = newBanDB(ctx, db, c, "twilio_sms_errors")
-	if err != nil {
-		return nil, errors.Wrap(err, "init Twilio SMS DB")
+
+		limit: newReplyLimiter(),
 	}
 
 	return s, nil
@@ -93,16 +91,9 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 		"Type":  "TwilioSMS",
 	})
 
-	b, err := s.ban.IsBanned(ctx, destNumber, true)
-	if err != nil {
-		return "", nil, errors.Wrap(err, "check ban status")
-	}
-	if b {
-		return "", nil, errors.New("number had too many outgoing errors recently")
-	}
-
 	makeSMSCode := func(alertID int, serviceID string) int {
 		var code int
+		var err error
 		if hasTwoWaySMSSupport(ctx, destNumber) {
 			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
 			if err != nil {
@@ -113,6 +104,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 	}
 
 	var message string
+	var err error
 	switch t := msg.(type) {
 	case notification.AlertStatus:
 		message, err = alertSMS{
@@ -165,6 +157,9 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 		return "", nil, errors.Wrap(err, "send message")
 	}
 
+	// If the message was sent successfully, reset reply limits.
+	s.limit.Reset(destNumber)
+
 	return resp.SID, resp.messageStatus(), nil
 }
 
@@ -196,17 +191,6 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		// log and continue
 		log.Log(ctx, err)
 	}
-
-	if status != MessageStatusFailed {
-		// ignore other types
-		return
-	}
-
-	err = s.ban.RecordError(context.Background(), number, true, "send failed")
-	if err != nil {
-		log.Log(ctx, errors.Wrap(err, "record error"))
-	}
-
 }
 
 // isStopMessage checks the body of the message against single-word matches
@@ -248,40 +232,38 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		"Type":   "TwilioSMS",
 	})
 
-	respond := func(errMsg string, msg string) {
-		if errMsg != "" {
-			err := s.ban.RecordError(context.Background(), from, false, errMsg)
-			if err != nil {
-				log.Log(ctx, errors.Wrap(err, "record error"))
-			}
+	respond := func(isPassive bool, msg string) {
+		if !isPassive {
+			// always reset if an action was taken
+			s.limit.Reset(from)
 		}
+
+		if s.limit.ShouldDrop(from) {
+			log.Debugf(ctx, "SMS passive reply limit reached for %s, not replying.", from)
+			return
+		}
+
+		if isPassive {
+			valid, err := s.r.IsKnownDest(ctx, from)
+			if err != nil {
+				log.Log(ctx, fmt.Errorf("check if known SMS number: %w", err))
+			} else if !valid {
+				// don't respond if the number is not known
+				return
+			}
+			s.limit.RecordPassiveReply(from)
+		}
+
 		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "send response"))
 		}
-		// TODO: we should track & queue these
-		// (maybe the engine should generate responses instead)
 	}
-	var banned bool
 	var err error
 	retryOpts := []retry.Option{
 		retry.Log(ctx),
 		retry.Limit(10),
 		retry.FibBackoff(time.Second),
-	}
-
-	err = retry.DoTemporaryError(func(int) error {
-		banned, err = s.ban.IsBanned(ctx, from, false)
-		return errors.Wrap(err, "look up ban status")
-	}, retryOpts...)
-	if err != nil {
-		log.Log(ctx, err)
-		respond("", "System error. Visit the dashboard to manage alerts.")
-		return
-	}
-	if banned {
-		http.Error(w, "", http.StatusTooManyRequests)
-		return
 	}
 
 	// handle start and stop codes from user
@@ -303,7 +285,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if cfg.Twilio.DisableTwoWaySMS {
-		respond("response codes disabled", "Response codes are currently disabled. Visit the dashboard to manage alerts.")
+		respond(true, "Response codes are currently disabled. Visit the dashboard to manage alerts.")
 		return
 	}
 
@@ -362,7 +344,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if lookupFn == nil {
-		respond("unknown action", "Sorry, but that isn't a request GoAlert understood. Visit the Web UI for more information. To unsubscribe, reply with STOP.")
+		respond(true, "Sorry, but that isn't a request GoAlert understood. Visit the Web UI for more information. To unsubscribe, reply with STOP.")
 		ctx = log.WithField(ctx, "SMSBody", body)
 		log.Debug(ctx, errors.Wrap(err, "parse alert action"))
 		return
@@ -391,7 +373,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}, retryOpts...)
 
 	if errors.Is(err, sql.ErrNoRows) || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
-		respond("unknown callbackID", "Unknown reply code for this action. Visit the dashboard to manage alerts.")
+		respond(true, "Unknown reply code for this action. Visit the dashboard to manage alerts.")
 		return
 	}
 
@@ -408,7 +390,6 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		var e alert.LogEntryFetcher
 		// alert store returns the special error struct, twilio checks if it's special, and if so, pulls the log entry
 		if errors.As(err, &e) {
-			err = nil
 			// we pass a 'sudo' context to give permission
 			permission.SudoContext(ctx, func(sCtx context.Context) {
 				entry, err := e.LogEntry(sCtx)
@@ -418,21 +399,22 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 					msg += "\n\n" + entry.String()
 				}
 			})
+		} else {
+			log.Log(ctx, errors.Wrap(err, "process notification response"))
 		}
-		log.Log(ctx, errors.Wrap(err, "process notification response"))
-		respond("", msg)
+		respond(true, msg)
 		return
 	}
 
 	if err != nil {
 		log.Log(ctx, err)
-		respond("", msg)
+		respond(true, msg)
 		return
 	}
 
 	if info.ServiceName != "" {
-		respond("", fmt.Sprintf("%s all alerts for service '%s'", prefix, info.ServiceName))
+		respond(false, fmt.Sprintf("%s all alerts for service '%s'", prefix, info.ServiceName))
 	} else {
-		respond("", fmt.Sprintf("%s alert #%d", prefix, info.AlertID))
+		respond(false, fmt.Sprintf("%s alert #%d", prefix, info.AlertID))
 	}
 }

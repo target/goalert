@@ -42,7 +42,12 @@ export default function CalenderSuccessForm(props) {
       </Grid>
       <Grid item xs={12}>
         <Typography>
-          <CopyText title={props.url} value={props.url} placement='bottom' />
+          <CopyText
+            title={props.url}
+            value={props.url}
+            placement='bottom'
+            asURL
+          />
         </Typography>
         <FormHelperText>
           Some applications require you copy and paste the URL directly

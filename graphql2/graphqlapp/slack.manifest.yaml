@@ -1,0 +1,26 @@
+_metadata:
+  major_version: 1
+  minor_version: 1
+display_information:
+  name: '{{appName}}'
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: '{{.CallbackURL "/api/v2/slack/message-action"}}'
+    message_menu_options_url: '{{.CallbackURL "/api/v2/slack/menu-options"}}'
+features:
+  bot_user:
+    display_name: '{{appName}}'
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - links:read
+      - chat:write
+      - channels:read
+      - groups:read
+      - im:read
+      - im:write
+      - users:read
+  redirect_urls:
+    - '{{.CallbackURL "/api/v2/identity/providers/oidc/callback"}}'
