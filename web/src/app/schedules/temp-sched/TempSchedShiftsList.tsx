@@ -8,7 +8,7 @@ import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
 
-import { schedTZQuery, Shift } from './sharedUtils'
+import { Shift } from './sharedUtils'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
@@ -16,7 +16,7 @@ import { DateTime, Interval } from 'luxon'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
-import { useQuery } from '@apollo/client'
+import { useScheduleTZ } from './hooks'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -55,11 +55,7 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const _shifts = useUserInfo(value)
-  const { data } = useQuery(schedTZQuery, {
-    variables: { id: scheduleID },
-  })
-  const zone = data?.schedule?.timeZone
-  const isLocalZone = zone === DateTime.local().zoneName
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const timeFmt = 'h:mm a' + (isLocalZone ? '' : ' ZZZZ')
 
   const schedInterval = parseInterval({ start, end })

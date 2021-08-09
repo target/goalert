@@ -1,4 +1,3 @@
-import { gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import React, { ReactNode } from 'react'
 
@@ -18,15 +17,6 @@ export type Shift = {
     name: string
   }
 }
-
-export const schedTZQuery = gql`
-  query ($id: ID!) {
-    schedule(id: $id) {
-      id
-      timeZone
-    }
-  }
-`
 
 const parseInterval = (start: string, end: string): Interval =>
   Interval.fromDateTimes(DateTime.fromISO(start), DateTime.fromISO(end))

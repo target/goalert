@@ -6,9 +6,9 @@ import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { schedTZQuery, Value } from './sharedUtils'
+import { Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
-import { useQuery } from '@apollo/client'
+import { useScheduleTZ } from './hooks'
 
 export default function TempSchedAddShiftForm({
   min,
@@ -19,12 +19,7 @@ export default function TempSchedAddShiftForm({
 }): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
-  const { data, loading } = useQuery(schedTZQuery, {
-    variables: { id: scheduleID },
-  })
-  const zone = data?.schedule?.timeZone
-  const zoneAbbr = DateTime.fromObject({ zone }).toFormat('ZZZZ')
-  const isLocalZone = zone === DateTime.local().zoneName
+  const { q, zone, isLocalZone, zoneAbbr } = useScheduleTZ(scheduleID)
 
   return (
     <React.Fragment>
@@ -53,7 +48,7 @@ export default function TempSchedAddShiftForm({
             return value
           }}
           timeZone={zone}
-          disabled={loading}
+          disabled={q.loading}
         />
       </Grid>
       <Grid item>
@@ -74,7 +69,7 @@ export default function TempSchedAddShiftForm({
               </ClickableText>
             }
             timeZone={zone}
-            disabled={loading}
+            disabled={q.loading}
           />
         ) : (
           <FormField

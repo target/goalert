@@ -7,10 +7,10 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, schedTZQuery, StepContainer, Value } from './sharedUtils'
+import { contentText, StepContainer, Value } from './sharedUtils'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
-import { useQuery } from '@apollo/client'
+import { useScheduleTZ } from './hooks'
 
 const useStyles = makeStyles({
   contentText,
@@ -28,12 +28,7 @@ export default function TempSchedTimesStep({
   edit,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
-  const { data, loading, error } = useQuery(schedTZQuery, {
-    variables: { id: scheduleID },
-  })
-  const zone = data?.schedule?.timeZone
-  const zoneAbbr = DateTime.fromObject({ zone }).toFormat('ZZZZ')
-  const isLocalZone = zone === DateTime.local().zoneName
+  const { q, zone, zoneAbbr, isLocalZone } = useScheduleTZ(scheduleID)
 
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
@@ -41,7 +36,7 @@ export default function TempSchedTimesStep({
     if (isISOAfter(value.start, value.end)) {
       return new Error('Start date/time cannot be after end date/time.')
     }
-    if (error) {
+    if (q.error) {
       return new Error('Issue getting schedule time zone.')
     }
     return null
@@ -72,7 +67,7 @@ export default function TempSchedTimesStep({
             min={edit ? value.start : now}
             validate={() => validate()}
             timeZone={zone}
-            disabled={loading}
+            disabled={q.loading}
           />
         </Grid>
         <Grid item xs={6}>
@@ -85,7 +80,7 @@ export default function TempSchedTimesStep({
             min={edit ? value.start : now}
             validate={() => validate()}
             timeZone={zone}
-            disabled={loading}
+            disabled={q.loading}
           />
         </Grid>
       </Grid>
