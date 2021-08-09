@@ -27,6 +27,7 @@ const sendSMSMutation = gql`
     debugSendSMS(input: $input) {
       id
       providerURL
+      fromNumber
     }
   }
 `
@@ -109,7 +110,10 @@ export default function AdminSMSSend(): JSX.Element {
             {sendStatus.data?.debugSendSMS && (
               <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
-                  <Typography>Open in Twilio&nbsp;</Typography>
+                  <Typography>
+                    Sent from {sendStatus.data.debugSendSMS.fromNumber}. Open in
+                    Twilio&nbsp;
+                  </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
               </AppLink>

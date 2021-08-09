@@ -259,6 +259,7 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
 }
 
 type TemporarySchedule {

@@ -201,6 +201,7 @@ type DebugCarrierInfoInput struct {
 type DebugSendSMSInfo struct {
 	ID          string `json:"id"`
 	ProviderURL string `json:"providerURL"`
+	FromNumber  string `json:"fromNumber"`
 }
 
 type DebugSendSMSInput struct {
