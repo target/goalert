@@ -95,18 +95,15 @@ function useISOPicker(
     )
   }
 
-  const [emptyLabel, extraProps, FallbackIcon] =
-    type === 'time'
-      ? ['Select a time...', {}, AccessTime]
-      : [
-          'Select a date...',
-          {
-            leftArrowButtonProps: { 'data-cy': 'month-back' },
-            rightArrowButtonProps: { 'data-cy': 'month-next' },
-          },
-          DateRange,
-        ]
+  let emptyLabel = 'Select a time...'
+  const extraProps = {}
+  if (type !== 'time') {
+    emptyLabel = 'Select a date...'
+    extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
+    extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
+  }
 
+  const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={value ? dtValue : null}
