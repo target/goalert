@@ -8,15 +8,15 @@ import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
 
-import { Shift } from './sharedUtils'
+import { schedTZQuery, Shift } from './sharedUtils'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
-import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
+import { useQuery } from '@apollo/client'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -41,6 +41,8 @@ type TempSchedShiftsListProps = {
   end: string
 
   edit?: boolean
+
+  scheduleID: string
 }
 
 export default function TempSchedShiftsList({
@@ -49,10 +51,17 @@ export default function TempSchedShiftsList({
   end,
   value,
   onRemove,
+  scheduleID,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const _shifts = useUserInfo(value)
-  const [zone] = useURLParam('tz', 'local')
+  const { data } = useQuery(schedTZQuery, {
+    variables: { id: scheduleID },
+  })
+  const zone = data?.schedule?.timeZone
+  const isLocalZone = zone === DateTime.local().zoneName
+  const timeFmt = 'h:mm a' + (isLocalZone ? '' : ' ZZZZ')
+
   const schedInterval = parseInterval({ start, end })
 
   function items(): FlatListListItem[] {
@@ -135,7 +144,7 @@ export default function TempSchedShiftsList({
       if (dayStart.day === schedInterval.start.day) {
         let details = `Starts at ${DateTime.fromISO(start)
           .setZone(zone)
-          .toFormat('h:mm a')}`
+          .toFormat(timeFmt)}`
         let message = ''
 
         if (edit && DateTime.fromISO(start) < DateTime.utc()) {
@@ -176,7 +185,7 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage until ${s.start
               .setZone(zone)
-              .toFormat('h:mm a')}`,
+              .toFormat(timeFmt)}`,
           })
         }
 
@@ -245,8 +254,8 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage from ${s.end
               .setZone(zone)
-              .toFormat('h:mm a')} to 
-            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat('h:mm a')}`,
+              .toFormat(timeFmt)} to 
+            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat(timeFmt)}`,
           })
         }
 
@@ -270,7 +279,7 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage after ${s.end
               .setZone(zone)
-              .toFormat('h:mm a')}`,
+              .toFormat(timeFmt)}`,
           })
         }
       })
@@ -284,7 +293,7 @@ export default function TempSchedShiftsList({
       message: '',
       details: `Ends at ${DateTime.fromISO(end)
         .setZone(zone)
-        .toFormat('h:mm a')}`,
+        .toFormat(timeFmt)}`,
     })
 
     return result

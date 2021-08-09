@@ -6,16 +6,25 @@ import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { Value } from './sharedUtils'
+import { schedTZQuery, Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
+import { useQuery } from '@apollo/client'
 
 export default function TempSchedAddShiftForm({
   min,
+  scheduleID,
 }: {
   min?: string
+  scheduleID: string
 }): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const { data, loading } = useQuery(schedTZQuery, {
+    variables: { id: scheduleID },
+  })
+  const zone = data?.schedule?.timeZone
+  const zoneAbbr = DateTime.fromObject({ zone }).toFormat('ZZZZ')
+  const isLocalZone = zone === DateTime.local().zoneName
 
   return (
     <React.Fragment>
@@ -31,7 +40,7 @@ export default function TempSchedAddShiftForm({
         <FormField
           fullWidth
           component={ISODateTimePicker}
-          label='Shift Start'
+          label={'Shift Start' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
           name='start'
           min={min ?? now}
           mapOnChangeValue={(value: string, formValue: Value) => {
@@ -43,6 +52,8 @@ export default function TempSchedAddShiftForm({
             }
             return value
           }}
+          timeZone={zone}
+          disabled={loading}
         />
       </Grid>
       <Grid item>
@@ -50,7 +61,7 @@ export default function TempSchedAddShiftForm({
           <FormField
             fullWidth
             component={ISODateTimePicker}
-            label='Shift End'
+            label={'Shift End' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
             name='end'
             min={min ?? now}
             hint={
@@ -62,6 +73,8 @@ export default function TempSchedAddShiftForm({
                 Configure as duration
               </ClickableText>
             }
+            timeZone={zone}
+            disabled={loading}
           />
         ) : (
           <FormField

@@ -12,7 +12,6 @@ import { FormContainer } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
@@ -186,18 +185,15 @@ export default function TempSchedAddShiftsStep({
               duration (ignoring all assignments and overrides).
             </DialogContentText>
           </Grid>
-          <Grid item>
-            <ScheduleTZFilter
-              label={(tz) => `Configure in ${tz}`}
-              scheduleID={scheduleID}
-            />
-          </Grid>
           <FormContainer
             errors={fieldErrors()}
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <TempSchedAddShiftForm min={edit ? start : undefined} />
+            <TempSchedAddShiftForm
+              min={edit ? start : undefined}
+              scheduleID={scheduleID}
+            />
           </FormContainer>
           <Grid item>
             <Button
@@ -217,6 +213,7 @@ export default function TempSchedAddShiftsStep({
         <Grid item xs={6} className={classes.listOuterContainer}>
           <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
+              scheduleID={scheduleID}
               value={value}
               start={start}
               end={end}

@@ -7,23 +7,14 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer, Value } from './sharedUtils'
+import { contentText, schedTZQuery, StepContainer, Value } from './sharedUtils'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
-import { gql, useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 
 const useStyles = makeStyles({
   contentText,
 })
-
-const schedTZQuery = gql`
-  query ($id: ID!) {
-    schedule(id: $id) {
-      id
-      timeZone
-    }
-  }
-`
 
 type TempSchedTimesStepProps = {
   scheduleID: string
