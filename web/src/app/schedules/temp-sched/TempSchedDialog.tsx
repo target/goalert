@@ -76,7 +76,6 @@ export default function TempSchedDialog({
       return (
         <TempSchedTimesStep
           key={key}
-          stepText='STEP 1 OF 2'
           scheduleID={scheduleID}
           value={value}
           edit={edit}

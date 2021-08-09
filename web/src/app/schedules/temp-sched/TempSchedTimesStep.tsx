@@ -27,7 +27,6 @@ const schedTZQuery = gql`
 
 type TempSchedTimesStepProps = {
   scheduleID: string
-  stepText: string
   value: Value
   edit?: boolean
 }
