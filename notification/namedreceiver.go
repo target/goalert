@@ -9,6 +9,11 @@ type namedReceiver struct {
 
 var _ Receiver = &namedReceiver{}
 
+// IsKnownDest calls the underlying ResultReceiver.IsKnownDest method for the current type.
+func (nr *namedReceiver) IsKnownDest(ctx context.Context, value string) (bool, error) {
+	return nr.r.IsKnownDest(ctx, nr.ns.destType, value)
+}
+
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
 // namedSender.
 func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string, status *Status) error {
