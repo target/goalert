@@ -22,7 +22,6 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"go.opencensus.io/trace"
@@ -371,7 +370,7 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByValue(ctx, d.Type.CMType(), d.Value)
 	})
 
 	return err
@@ -386,7 +385,7 @@ func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByValue(ctx, d.Type.CMType(), d.Value)
 	})
 
 	return err

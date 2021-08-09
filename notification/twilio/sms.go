@@ -244,6 +244,13 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if isPassive {
+			valid, err := s.r.IsKnownDest(ctx, from)
+			if err != nil {
+				log.Log(ctx, fmt.Errorf("check if known SMS number: %w", err))
+			} else if !valid {
+				// don't respond if the number is not known
+				return
+			}
 			s.limit.RecordPassiveReply(from)
 		}
 
