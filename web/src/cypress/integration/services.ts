@@ -216,7 +216,7 @@ function testServices(screen: ScreenFormat): void {
         const description = c.word({ length: 10 })
 
         cy.pageFab()
-        cy.dialogForm({ name, 'escalation-policy': svc.ep.name, description })
+        cy.dialogForm({ name, description })
         cy.dialogFinish('Submit')
 
         // should be on details page
