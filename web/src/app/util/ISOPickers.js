@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  DatePicker,
-  TimePicker,
-  DateTimePicker,
-  KeyboardDateTimePicker,
-} from '@material-ui/pickers'
+import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
@@ -153,15 +148,6 @@ export function ISODateTimePicker(props) {
   return useISOPicker(props, {
     format: `yyyy-MM-dd'T'HH:mm`,
     Fallback: DateTimePicker,
-    truncateTo: 'minute',
-    type: 'datetime-local',
-  })
-}
-
-export function ISOKeyboardDateTimePicker(props) {
-  return useISOPicker(props, {
-    format: `yyyy-MM-dd'T'HH:mm`,
-    Fallback: KeyboardDateTimePicker,
     truncateTo: 'minute',
     type: 'datetime-local',
   })

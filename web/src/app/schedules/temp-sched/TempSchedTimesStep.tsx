@@ -6,7 +6,7 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import { FormField } from '../../forms'
-import { ISOKeyboardDateTimePicker } from '../../util/ISOPickers'
+import { ISODateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
@@ -72,7 +72,7 @@ export default function TempSchedTimesStep({
         <Grid item xs={6}>
           <FormField
             fullWidth
-            component={ISOKeyboardDateTimePicker}
+            component={ISODateTimePicker}
             required
             name='start'
             min={edit ? value.start : now}
@@ -83,7 +83,7 @@ export default function TempSchedTimesStep({
         <Grid item xs={6}>
           <FormField
             fullWidth
-            component={ISOKeyboardDateTimePicker}
+            component={ISODateTimePicker}
             required
             name='end'
             min={edit ? value.start : now}
