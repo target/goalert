@@ -11,6 +11,8 @@ import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
 import { parseInterval } from '../../util/shifts'
 import { DateTime } from 'luxon'
+import { getNextWeekday } from '../../util/luxon-helpers'
+import { useScheduleTZ } from './hooks'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
@@ -32,11 +34,14 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
+  const { zone } = useScheduleTZ(scheduleID)
+  const nextSunday = getNextWeekday(7, DateTime.now(), zone)
+  const followingSunday = nextSunday.plus({ week: 1 })
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
-    start: _value?.start ?? '',
-    end: _value?.end ?? '',
+    start: _value?.start ?? nextSunday.toISO(),
+    end: _value?.end ?? followingSunday.toISO(),
     shifts: (_value?.shifts ?? []).map((s) =>
       _.pick(s, 'start', 'end', 'userID'),
     ),
