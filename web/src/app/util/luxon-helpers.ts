@@ -35,6 +35,11 @@ export function getNextWeekday(
   since: DateTime,
   zone: string,
 ): DateTime {
+  if (weekday < 1 || weekday > 7) {
+    console.error(
+      `getNextWeekday: out of bounds. got ${weekday}; want 1 <= weekday <= 7`,
+    )
+  }
   const start = since.setZone(zone)
 
   if (start.weekday === weekday) {

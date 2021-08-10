@@ -29,5 +29,11 @@ export function useScheduleTZ(scheduleID: string): ScheduleTZResult {
   const isLocalZone = zone === DateTime.local().zoneName
   const zoneAbbr = zone ? DateTime.fromObject({ zone }).toFormat('ZZZZ') : ''
 
+  if (q.error) {
+    console.error(
+      `useScheduleTZ: issue getting timezone for schedule ${scheduleID}: ${q.error.message}`,
+    )
+  }
+
   return { q, zone, isLocalZone, zoneAbbr }
 }

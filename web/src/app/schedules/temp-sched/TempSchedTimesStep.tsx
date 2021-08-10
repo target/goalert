@@ -37,9 +37,6 @@ export default function TempSchedTimesStep({
     if (isISOAfter(value.start, value.end)) {
       return new Error('Start date/time cannot be after end date/time.')
     }
-    if (q.error) {
-      return new Error('Issue getting schedule time zone.')
-    }
     return null
   }
 
