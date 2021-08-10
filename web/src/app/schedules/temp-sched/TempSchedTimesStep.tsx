@@ -68,7 +68,6 @@ export default function TempSchedTimesStep({
             fullWidth
             component={ISODateTimePicker}
             required
-            label='Start'
             name='start'
             min={edit ? value.start : now}
             validate={() => validate()}
@@ -82,7 +81,6 @@ export default function TempSchedTimesStep({
             fullWidth
             component={ISODateTimePicker}
             required
-            label='End'
             name='end'
             min={edit ? value.start : now}
             validate={() => validate()}
