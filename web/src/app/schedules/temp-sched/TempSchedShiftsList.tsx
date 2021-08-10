@@ -62,7 +62,7 @@ export default function TempSchedShiftsList({
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const timeFmt = 'h:mm a' + (isLocalZone || q.loading ? '' : ' ZZZZ')
 
-  const schedInterval = parseInterval({ start, end })
+  const schedInterval = parseInterval({ start, end }, zone)
 
   function items(): FlatListListItem[] {
     // render helpful message if interval is invalid
@@ -142,12 +142,12 @@ export default function TempSchedShiftsList({
       // add start time of temp schedule to top of list
       // for day that it will start on
       if (dayStart.day === schedInterval.start.day) {
-        let details = `Starts at ${DateTime.fromISO(start)
-          .setZone(zone)
-          .toFormat(timeFmt)}`
+        let details = `Starts at ${DateTime.fromISO(start, { zone }).toFormat(
+          timeFmt,
+        )}`
         let message = ''
 
-        if (edit && DateTime.fromISO(start) < DateTime.utc()) {
+        if (edit && DateTime.fromISO(start, { zone }) < DateTime.utc()) {
           message = 'Currently active'
           details = 'Historical shifts will not be displayed'
         }
@@ -291,9 +291,7 @@ export default function TempSchedShiftsList({
       type: 'OK',
       icon: <ScheduleIcon />,
       message: '',
-      details: `Ends at ${DateTime.fromISO(end)
-        .setZone(zone)
-        .toFormat(timeFmt)}`,
+      details: `Ends at ${DateTime.fromISO(end, { zone }).toFormat(timeFmt)}`,
     })
 
     return result
