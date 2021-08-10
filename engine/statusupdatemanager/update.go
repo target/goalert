@@ -94,10 +94,10 @@ func (db *DB) update(ctx context.Context) error {
 		}
 	}
 
-	if newStatus == alert.StatusClosed {
-		_, err = tx.StmtContext(ctx, db.cleanupClosed).ExecContext(ctx, id)
+	if newStatus == alert.StatusClosed || !isSubscribed {
+		_, err = tx.StmtContext(ctx, db.deleteSub).ExecContext(ctx, id)
 		if err != nil {
-			return fmt.Errorf("delete subscription for closed alert #%d (id=%d): %w", alertID, id, err)
+			return fmt.Errorf("delete subscription for alert #%d (id=%d): %w", alertID, id, err)
 		}
 	} else {
 		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id, newStatus)

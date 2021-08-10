@@ -16,7 +16,7 @@ type DB struct {
 	needsUpdate    *sql.Stmt
 	insertMessage  *sql.Stmt
 	updateStatus   *sql.Stmt
-	cleanupClosed  *sql.Stmt
+	deleteSub      *sql.Stmt
 	cmWantsUpdates *sql.Stmt
 }
 
@@ -71,7 +71,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			limit 1
 		`),
 
-		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
-		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
+		updateStatus: p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
+		deleteSub:    p.P(`delete from alert_status_subscriptions where id = $1`),
 	}, p.Err
 }
