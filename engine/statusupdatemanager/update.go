@@ -83,14 +83,18 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("unknown alert status: %v", newStatus)
 		}
 
-		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID)
+		var logUserID sql.NullString
+		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID, &logUserID)
 		if err != nil {
 			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
-		if err != nil {
-			return fmt.Errorf("insert status update message for id=%d: %w", id, err)
+		// Only insert message if the user is not the same as the log event user.
+		if !userID.Valid || userID.String != logUserID.String {
+			_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
+			if err != nil {
+				return fmt.Errorf("insert status update message for id=%d: %w", id, err)
+			}
 		}
 	}
 
