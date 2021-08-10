@@ -45,9 +45,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		needsUpdate: p.P(`
-			select sub.id, channel_id, contact_method_id, alert_id, a.status
+			select sub.id, channel_id, contact_method_id, alert_id, (select status from alerts a where a.id = sub.alert_id)
 			from alert_status_subscriptions sub
-			join alerts a on a.id = sub.alert_id and a.status != sub.last_alert_status
+			where sub.last_alert_status != (select status from alerts a where a.id = sub.alert_id)
 			limit 1
 			for update skip locked
 		`),
