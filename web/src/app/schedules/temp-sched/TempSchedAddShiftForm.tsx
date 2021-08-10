@@ -20,6 +20,7 @@ export default function TempSchedAddShiftForm({
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const { q, zone, isLocalZone, zoneAbbr } = useScheduleTZ(scheduleID)
+  const labelSuffix = isLocalZone || q.loading ? '' : ` (${zoneAbbr})`
 
   return (
     <React.Fragment>
@@ -35,7 +36,7 @@ export default function TempSchedAddShiftForm({
         <FormField
           fullWidth
           component={ISODateTimePicker}
-          label={'Shift Start' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
+          label={'Shift Start' + labelSuffix}
           name='start'
           min={min ?? now}
           mapOnChangeValue={(value: string, formValue: Value) => {
@@ -56,7 +57,7 @@ export default function TempSchedAddShiftForm({
           <FormField
             fullWidth
             component={ISODateTimePicker}
-            label={'Shift End' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
+            label={'Shift End' + labelSuffix}
             name='end'
             min={min ?? now}
             hint={

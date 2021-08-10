@@ -17,6 +17,7 @@ import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
+import Spinner from '../../loading/components/Spinner'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -29,6 +30,9 @@ const useStyles = makeStyles((theme) => {
     },
     shiftsContainer: {
       paddingRight: '0.5rem',
+    },
+    listSpinner: {
+      marginTop: '20rem',
     },
   }
 })
@@ -55,8 +59,8 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const _shifts = useUserInfo(value)
-  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
-  const timeFmt = 'h:mm a' + (isLocalZone ? '' : ' ZZZZ')
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const timeFmt = 'h:mm a' + (isLocalZone || q.loading ? '' : ' ZZZZ')
 
   const schedInterval = parseInterval({ start, end })
 
@@ -300,13 +304,19 @@ export default function TempSchedShiftsList({
       <Typography variant='subtitle1' component='h3'>
         Shifts
       </Typography>
-      <FlatList
-        data-cy='shifts-list'
-        items={items()}
-        emptyMessage='Add a user to the left to get started.'
-        dense
-        transition
-      />
+      {q.loading ? (
+        <div className={classes.listSpinner}>
+          <Spinner />
+        </div>
+      ) : (
+        <FlatList
+          data-cy='shifts-list'
+          items={items()}
+          emptyMessage='Add a user to the left to get started.'
+          dense
+          transition
+        />
+      )}
     </div>
   )
 }

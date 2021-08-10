@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -34,18 +34,28 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
-  const { zone } = useScheduleTZ(scheduleID)
+  const { q, zone } = useScheduleTZ(scheduleID)
   const nextSunday = getNextWeekday(7, DateTime.now(), zone)
   const followingSunday = nextSunday.plus({ week: 1 })
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
-    start: _value?.start ?? nextSunday.toISO(),
-    end: _value?.end ?? followingSunday.toISO(),
+    start: _value?.start ?? '',
+    end: _value?.end ?? '',
     shifts: (_value?.shifts ?? []).map((s) =>
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+
+  useEffect(() => {
+    if (!value.start && !value.end && !q.loading && zone) {
+      setValue({
+        ...value,
+        start: nextSunday.toISO(),
+        end: followingSunday.toISO(),
+      })
+    }
+  }, [q.loading, zone])
 
   const schedInterval = parseInterval(value)
   const hasInvalidShift = value.shifts.some(

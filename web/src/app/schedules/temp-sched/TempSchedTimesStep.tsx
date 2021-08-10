@@ -29,6 +29,7 @@ export default function TempSchedTimesStep({
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
   const { q, zone, zoneAbbr, isLocalZone } = useScheduleTZ(scheduleID)
+  const labelSuffix = isLocalZone || q.loading ? '' : ` (${zoneAbbr})`
 
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
@@ -62,7 +63,7 @@ export default function TempSchedTimesStep({
             fullWidth
             component={ISODateTimePicker}
             required
-            label={'Start' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
+            label={'Start' + labelSuffix}
             name='start'
             min={edit ? value.start : now}
             validate={() => validate()}
@@ -75,7 +76,7 @@ export default function TempSchedTimesStep({
             fullWidth
             component={ISODateTimePicker}
             required
-            label={'End' + (isLocalZone ? '' : ` (${zoneAbbr})`)}
+            label={'End' + labelSuffix}
             name='end'
             min={edit ? value.start : now}
             validate={() => validate()}
