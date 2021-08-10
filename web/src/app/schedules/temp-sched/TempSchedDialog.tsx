@@ -35,9 +35,6 @@ export default function TempSchedDialog({
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
   const { q, zone } = useScheduleTZ(scheduleID)
-  const nextSunday = getNextWeekday(7, DateTime.now(), zone)
-  const followingSunday = nextSunday.plus({ week: 1 })
-
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
@@ -49,6 +46,8 @@ export default function TempSchedDialog({
 
   useEffect(() => {
     if (!value.start && !value.end && !q.loading && zone) {
+      const nextSunday = getNextWeekday(7, DateTime.now(), zone)
+      const followingSunday = nextSunday.plus({ week: 1 })
       setValue({
         ...value,
         start: nextSunday.toISO(),
