@@ -45,6 +45,7 @@ export default function TempSchedDialog({
   })
 
   useEffect(() => {
+    // set default start, end times when zone is ready
     if (!value.start && !value.end && !q.loading && zone) {
       const nextSunday = getNextWeekday(7, DateTime.now(), zone)
       const followingSunday = nextSunday.plus({ week: 1 })
