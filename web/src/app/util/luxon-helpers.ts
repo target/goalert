@@ -27,7 +27,7 @@ export function getEndOfWeek(dt = DateTime.now()): DateTime {
   return dt.endOf('week').minus({ day: 1 })
 }
 
-// getNextWeekday returns 12am of the first instance of the given `weekday` after `since`.
+// getNextWeekday returns the first instance of the given `weekday` after `since`.
 // 1 is Monday and 7 is Sunday.
 // Because the weekday depends on one's physical location, `zone` is an explicit parameter
 export function getNextWeekday(
