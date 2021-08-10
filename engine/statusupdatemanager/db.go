@@ -66,7 +66,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		latestLogEntry: p.P(`
 			select id, sub_user_id from alert_logs
-			where alert_id = $1 and event = $2
+			where alert_id = $1 and event = $2 and timestamp > now() - '1 hour'::interval
 			order by id desc
 			limit 1
 		`),

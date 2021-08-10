@@ -85,12 +85,16 @@ func (db *DB) update(ctx context.Context) error {
 
 		var logUserID sql.NullString
 		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID, &logUserID)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil
+			logID = 0
+		}
 		if err != nil {
 			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
 		}
 
-		// Only insert message if the user is not the same as the log event user.
-		if !userID.Valid || userID.String != logUserID.String {
+		// Only insert message if the user is not the same as the log event user and we have a recent log entry.
+		if logID > 0 && (!userID.Valid || userID.String != logUserID.String) {
 			_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
 			if err != nil {
 				return fmt.Errorf("insert status update message for id=%d: %w", id, err)
