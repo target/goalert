@@ -308,6 +308,14 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	return false
 }
 
+// ApplicationName will return the General.ApplicationName and set to 'GoAlert' if previously empty
+func (cfg Config) ApplicationName() string {
+	if cfg.General.ApplicationName == "" {
+		cfg.General.ApplicationName = "GoAlert"
+	}
+	return cfg.General.ApplicationName
+}
+
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
 	if cfg.General.PublicURL == "" {

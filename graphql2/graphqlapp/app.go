@@ -100,7 +100,7 @@ func (a *App) PlayHandler() http.Handler {
 		Version         string
 		PackageName     string
 	}
-	data.ApplicationName = a.ConfigStore.Config().General.ApplicationName
+	data.ApplicationName = a.ConfigStore.Config().ApplicationName()
 	data.Version = playVersion
 	data.PackageName = playPackageName
 	return mustAuth(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
