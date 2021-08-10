@@ -191,6 +191,7 @@ export default function TempSchedAddShiftsStep({
             onChange={(val: Shift) => setShift(val)}
           >
             <TempSchedAddShiftForm
+              value={shift}
               min={edit ? start : undefined}
               scheduleID={scheduleID}
             />

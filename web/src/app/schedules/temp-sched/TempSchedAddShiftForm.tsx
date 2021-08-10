@@ -6,24 +6,38 @@ import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { Value } from './sharedUtils'
+import { fmtLocal, Shift, Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
 import { useScheduleTZ } from './hooks'
+import { makeStyles, Typography } from '@material-ui/core'
 
-export default function TempSchedAddShiftForm({
-  min,
-  scheduleID,
-}: {
+const useStyles = makeStyles({ tzNote: { fontStyle: 'italic' } })
+
+interface TempSchedAddShiftFormProps {
+  value?: Shift | null
   min?: string
   scheduleID: string
-}): JSX.Element {
+}
+
+export default function TempSchedAddShiftForm({
+  value,
+  min,
+  scheduleID,
+}: TempSchedAddShiftFormProps): JSX.Element {
+  const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
-  const { q, zone, isLocalZone, zoneAbbr } = useScheduleTZ(scheduleID)
-  const labelSuffix = isLocalZone || q.loading ? '' : ` (${zoneAbbr})`
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   return (
     <React.Fragment>
+      {!isLocalZone && (
+        <Grid item>
+          <Typography color='textSecondary' className={classes.tzNote}>
+            All times are displayed in {zone}
+          </Typography>
+        </Grid>
+      )}
       <Grid item>
         <FormField
           fullWidth
@@ -36,7 +50,7 @@ export default function TempSchedAddShiftForm({
         <FormField
           fullWidth
           component={ISODateTimePicker}
-          label={'Shift Start' + labelSuffix}
+          label='Shift Start'
           name='start'
           min={min ?? now}
           mapOnChangeValue={(value: string, formValue: Value) => {
@@ -50,6 +64,7 @@ export default function TempSchedAddShiftForm({
           }}
           timeZone={zone}
           disabled={q.loading}
+          hint={isLocalZone ? '' : fmtLocal(value?.start)}
         />
       </Grid>
       <Grid item>
@@ -57,17 +72,22 @@ export default function TempSchedAddShiftForm({
           <FormField
             fullWidth
             component={ISODateTimePicker}
-            label={'Shift End' + labelSuffix}
+            label='Shift End'
             name='end'
             min={min ?? now}
             hint={
-              <ClickableText
-                data-cy='toggle-duration-on'
-                onClick={() => setManualEntry(false)}
-                endIcon={<ToggleIcon />}
-              >
-                Configure as duration
-              </ClickableText>
+              <React.Fragment>
+                {!isLocalZone && fmtLocal(value?.end)}
+                <div>
+                  <ClickableText
+                    data-cy='toggle-duration-on'
+                    onClick={() => setManualEntry(false)}
+                    endIcon={<ToggleIcon />}
+                  >
+                    Configure as duration
+                  </ClickableText>
+                </div>
+              </React.Fragment>
             }
             timeZone={zone}
             disabled={q.loading}

@@ -7,13 +7,16 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer, Value } from './sharedUtils'
+import { contentText, fmtLocal, StepContainer, Value } from './sharedUtils'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './hooks'
 
 const useStyles = makeStyles({
   contentText,
+  tzNote: {
+    fontStyle: 'italic',
+  },
 })
 
 type TempSchedTimesStepProps = {
@@ -28,9 +31,7 @@ export default function TempSchedTimesStep({
   edit,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
-  const { q, zone, zoneAbbr, isLocalZone } = useScheduleTZ(scheduleID)
-  const labelSuffix = isLocalZone || q.loading ? '' : ` (${zoneAbbr})`
-
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
@@ -55,17 +56,25 @@ export default function TempSchedTimesStep({
             entire duration (ignoring all rules/overrides).
           </DialogContentText>
         </Grid>
+        {!isLocalZone && (
+          <Grid item xs={12}>
+            <Typography color='textSecondary' className={classes.tzNote}>
+              Configuring in {zone}
+            </Typography>
+          </Grid>
+        )}
         <Grid item xs={6}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
             required
-            label={'Start' + labelSuffix}
+            label='Start'
             name='start'
             min={edit ? value.start : now}
             validate={() => validate()}
             timeZone={zone}
             disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.start)}
           />
         </Grid>
         <Grid item xs={6}>
@@ -73,12 +82,13 @@ export default function TempSchedTimesStep({
             fullWidth
             component={ISODateTimePicker}
             required
-            label={'End' + labelSuffix}
+            label='End'
             name='end'
             min={edit ? value.start : now}
             validate={() => validate()}
             timeZone={zone}
             disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.end)}
           />
         </Grid>
       </Grid>
