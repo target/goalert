@@ -59,8 +59,8 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const _shifts = useUserInfo(value)
-  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
-  const timeFmt = 'h:mm a' + (isLocalZone || q.loading ? '' : ' ZZZZ')
+  const { q, zone } = useScheduleTZ(scheduleID)
+  const timeFmt = 'h:mm a'
 
   const schedInterval = parseInterval({ start, end }, zone)
 
