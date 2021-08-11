@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 // getStartOfWeek returns the current or previous sunday at 00:00:00
 // In GoAlert, weeks begin on Sunday
@@ -25,4 +25,23 @@ export function getEndOfWeek(dt = DateTime.now()): DateTime {
   }
 
   return dt.endOf('week').minus({ day: 1 })
+}
+
+// splitAtMidnight divides an interval at each midnight between interval's start and end
+//
+// same day -> [inv]
+// 2 days -> [inv.start -> midnight, midnight -> inv.end]
+// 3 days -> [inv.start -> midnight, midnight -> midnight, midnight -> inv.end]
+export function splitAtMidnight(inv: Interval): Interval[] {
+  // dummy interval shifted forward 1 day
+  const dummy = inv.mapEndpoints((e) => e.plus({ day: 1 }))
+
+  const midnights: DateTime[] = []
+  let iter = dummy.start
+  while (iter < dummy.end) {
+    midnights.push(iter.startOf('day'))
+    iter = iter.plus({ day: 1 })
+  }
+
+  return inv.splitAt(...midnights)
 }

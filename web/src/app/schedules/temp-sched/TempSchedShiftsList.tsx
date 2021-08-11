@@ -17,6 +17,7 @@ import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
+import { splitAtMidnight } from '../../util/luxon-helpers'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -113,7 +114,7 @@ export default function TempSchedShiftsList({
 
     const result: FlatListListItem[] = []
 
-    const days = displaySpan.splitBy({ days: 1 })
+    const days = splitAtMidnight(displaySpan)
     days.forEach((dayInterval, dayIdx) => {
       const dayShifts = sortedShifts.filter((s) =>
         dayInterval.overlaps(s.interval),
