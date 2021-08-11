@@ -26,3 +26,29 @@ export function getEndOfWeek(dt = DateTime.now()): DateTime {
 
   return dt.endOf('week').minus({ day: 1 })
 }
+
+// getNextWeekday returns the first instance of the given `weekday` after `since`.
+// 1 is Monday and 7 is Sunday.
+// Because the weekday depends on one's physical location, `zone` is an explicit parameter
+export function getNextWeekday(
+  weekday: number,
+  since: DateTime,
+  zone: string,
+): DateTime {
+  if (weekday < 1 || weekday > 7) {
+    console.error(
+      `getNextWeekday: out of bounds. got ${weekday}; want 1 <= weekday <= 7`,
+    )
+  }
+  const start = since.setZone(zone)
+
+  if (start.weekday === weekday) {
+    return start.plus({ week: 1 }).startOf('day')
+  }
+
+  if (start.weekday < weekday) {
+    return start.plus({ days: weekday - start.weekday }).startOf('day')
+  }
+
+  return start.plus({ days: weekday + (7 - start.weekday) }).startOf('day')
+}
