@@ -44,5 +44,8 @@
     "stylelint": "13.13.1",
     "stylelint-config-standard": "22.0.0",
     "typescript": "4.2.4"
+  },
+  "dependencies": {
+    "react-error-boundary": "^3.1.3"
   }
 }

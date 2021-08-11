@@ -4,7 +4,7 @@ import Hidden from '@material-ui/core/Hidden'
 import Toolbar from '@material-ui/core/Toolbar'
 import ToolbarTitle from './components/ToolbarTitle'
 import ToolbarAction from './components/ToolbarAction'
-import ErrorBoundary from './ErrorBoundary'
+import ErrorBoundaryWrapper from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
 import { Switch, Route } from 'react-router-dom'
 import Grid from '@material-ui/core/Grid'
@@ -111,7 +111,7 @@ export default function App() {
           <URLErrorDialog />
 
           <main id='content' className={classes.main} style={{ marginLeft }}>
-            <ErrorBoundary>
+            <ErrorBoundaryWrapper>
               <LazyNewUserSetup />
               <Grid
                 container
@@ -125,7 +125,7 @@ export default function App() {
                   </Switch>
                 </Grid>
               </Grid>
-            </ErrorBoundary>
+            </ErrorBoundaryWrapper>
           </main>
         </SearchProvider>
       </PageActionProvider>

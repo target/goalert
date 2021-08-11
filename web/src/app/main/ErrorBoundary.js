@@ -1,20 +1,9 @@
 import React from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { GenericError } from '../error-pages'
 
-export default class ErrorBoundary extends React.PureComponent {
-  state = { hasError: false }
-
-  componentDidCatch(error, info) {
-    // Display fallback UI
-    this.setState({ hasError: true })
-    console.error(error, info)
-    // TODO: log and/or call some API
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <GenericError />
-    }
-    return this.props.children
-  }
+export default function ErrorBoundaryWrapper({ children }) {
+  return (
+    <ErrorBoundary FallbackComponent={GenericError}>{children}</ErrorBoundary>
+  )
 }

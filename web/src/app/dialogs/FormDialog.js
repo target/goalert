@@ -14,7 +14,7 @@ import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { Form } from '../forms'
-import ErrorBoundary from '../main/ErrorBoundary'
+import ErrorBoundaryWrapper from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
 import useWidth from '../util/useWidth'
 
@@ -178,7 +178,7 @@ function FormDialog(props) {
             }
           }}
         >
-          <ErrorBoundary>{renderForm()}</ErrorBoundary>
+          <ErrorBoundaryWrapper>{renderForm()}</ErrorBoundaryWrapper>
         </Form>
       </DialogContent>
       {renderCaption()}
