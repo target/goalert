@@ -111,29 +111,17 @@ export default function CalendarEventWrapper({ children, event }) {
   function renderOverrideButtons() {
     return (
       <React.Fragment>
-        <Grid item>
-          <Button
-            data-cy='replace-override'
-            size='small'
-            onClick={() => handleShowOverrideForm('replace')}
-            variant='contained'
-            color='primary'
-            title={`Temporarily replace ${event.title} from this schedule`}
-          >
-            Replace
-          </Button>
-        </Grid>
         <Grid item className={classes.flexGrow} />
         <Grid item>
           <Button
             data-cy='remove-override'
             size='small'
-            onClick={() => handleShowOverrideForm('remove')}
+            onClick={() => handleShowOverrideForm('choose')}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${event.title} from this schedule`}
           >
-            Remove
+            Override Shift
           </Button>
         </Grid>
       </React.Fragment>

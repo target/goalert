@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-
+import Button from '@material-ui/core/Button'
 import FormDialog from '../dialogs/FormDialog'
 import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
@@ -20,6 +20,10 @@ const copyText = {
   replace: {
     title: 'Temporarily Replace a User',
     desc: 'This will replace the selected user with another during any existing shifts, while the override is active. No new shifts will be created, only who is on-call will be changed.',
+  },
+  choose: {
+    title: 'Choose an override action',
+    desc: 'bla bla bla desc',
   },
 }
 
@@ -52,6 +56,51 @@ export default function ScheduleOverrideCreateDialog(props) {
     onCompleted: props.onClose,
   })
 
+  function handleChoose(type) {
+    console.log('SPENCER', type)
+    props.onChooseOverrideType({
+      variant: type,
+      // defaultValue: {
+      //   addUserID: '',
+      //   removeUserID: '',
+      //   start: DateTime.local().startOf('hour').toISO(),
+      //   end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
+      //   ...props.defaultValue,
+      // },
+    })
+  }
+
+  function renderFormContent() {
+    if (props.variant === 'choose') {
+      return (
+        <div>
+          <Button color='primary' onClick={() => handleChoose('add')}>
+            Add person to shift
+          </Button>
+          <Button color='primary' onClick={handleChoose('remove')}>
+            Remove person from shift
+          </Button>
+          <Button color='primary' onClick={handleChoose('replace')}>
+            Replace person on shift
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <ScheduleOverrideForm
+        add={value.variant !== 'remove'}
+        remove={value.variant !== 'add'}
+        scheduleID={props.scheduleID}
+        disabled={loading}
+        errors={fieldErrors(error)}
+        value={value}
+        onChange={(newValue) => setValue(newValue)}
+        removeUserReadOnly={props.removeUserReadOnly}
+      />
+    )
+  }
+
   return (
     <FormDialog
       onClose={props.onClose}
@@ -60,18 +109,7 @@ export default function ScheduleOverrideCreateDialog(props) {
       errors={nonFieldErrors(error)}
       notices={notices} // create and edit dialogue
       onSubmit={() => mutate()}
-      form={
-        <ScheduleOverrideForm
-          add={props.variant !== 'remove'}
-          remove={props.variant !== 'add'}
-          scheduleID={props.scheduleID}
-          disabled={loading}
-          errors={fieldErrors(error)}
-          value={value}
-          onChange={(newValue) => setValue(newValue)}
-          removeUserReadOnly={props.removeUserReadOnly}
-        />
-      }
+      form={renderFormContent()}
     />
   )
 }
@@ -82,7 +120,7 @@ ScheduleOverrideCreateDialog.defaultProps = {
 
 ScheduleOverrideCreateDialog.propTypes = {
   scheduleID: p.string.isRequired,
-  variant: p.oneOf(['add', 'remove', 'replace']).isRequired,
+  variant: p.oneOf(['add', 'remove', 'replace', 'choose']).isRequired,
   onClose: p.func,
   removeUserReadOnly: p.bool,
   defaultValue: p.shape({
@@ -91,4 +129,5 @@ ScheduleOverrideCreateDialog.propTypes = {
     start: p.string,
     end: p.string,
   }),
+  onChooseOverrideType: p.func,
 }

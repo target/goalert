@@ -218,6 +218,7 @@ function ScheduleCalendar(props) {
           variant={overrideDialog.variant}
           scheduleID={props.scheduleID}
           onClose={() => setOverrideDialog(null)}
+          onChooseOverrideType={(override) => setOverrideDialog(override)}
           removeUserReadOnly
         />
       )}
