@@ -91,6 +91,6 @@ func TestStatusUpdatesCancel(t *testing.T) {
 	d2.SendSMS("start")
 
 	doClose("second")
-	// contact method was canceled, so no status updates should not be sent.
+	// contact method was canceled, so no status updates should be sent.
 
 }
