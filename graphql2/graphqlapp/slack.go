@@ -2,7 +2,7 @@ package graphqlapp
 
 import (
 	"bytes"
-	context "context"
+	"context"
 	_ "embed"
 	"html/template"
 	"sort"
@@ -103,11 +103,7 @@ func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelS
 //go:embed slack.manifest.yaml
 var manifestYAML string
 
-var tmpl = template.Must(template.New("slack.manifest.yaml").Funcs(template.FuncMap{
-	"appName": func() string {
-		return "GoAlert" // todo: use Application Name cfg value
-	},
-}).Parse(manifestYAML))
+var tmpl = template.Must(template.New("slack.manifest.yaml").Parse(manifestYAML))
 
 func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
@@ -116,6 +112,7 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	}
 	var t bytes.Buffer
 	cfg := config.FromContext(ctx)
+	// sets ApplicationName and CallbackURL from config
 	err = tmpl.Execute(&t, cfg)
 	if err != nil {
 		return "", err
