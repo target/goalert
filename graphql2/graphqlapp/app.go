@@ -81,6 +81,8 @@ type App struct {
 	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store
+
+	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
 func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {

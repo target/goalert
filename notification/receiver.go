@@ -15,4 +15,7 @@ type Receiver interface {
 
 	// Stop indicates a user has opted-out of notifications from a contact method.
 	Stop(context.Context, Dest) error
+
+	// IsKnownDest checks if the given destination is known/not disabled.
+	IsKnownDest(ctx context.Context, value string) (bool, error)
 }

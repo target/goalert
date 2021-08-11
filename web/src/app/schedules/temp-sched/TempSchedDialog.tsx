@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -11,6 +11,8 @@ import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
 import { parseInterval } from '../../util/shifts'
 import { DateTime } from 'luxon'
+import { getNextWeekday } from '../../util/luxon-helpers'
+import { useScheduleTZ } from './hooks'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
@@ -32,7 +34,7 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
-
+  const { q, zone } = useScheduleTZ(scheduleID)
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
@@ -41,6 +43,19 @@ export default function TempSchedDialog({
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+
+  useEffect(() => {
+    // set default start, end times when zone is ready
+    if (!value.start && !value.end && !q.loading && zone) {
+      const nextSunday = getNextWeekday(7, DateTime.now(), zone)
+      const followingSunday = nextSunday.plus({ week: 1 })
+      setValue({
+        ...value,
+        start: nextSunday.toISO(),
+        end: followingSunday.toISO(),
+      })
+    }
+  }, [q.loading, zone])
 
   const schedInterval = parseInterval(value)
   const hasInvalidShift = value.shifts.some(
@@ -76,7 +91,6 @@ export default function TempSchedDialog({
       return (
         <TempSchedTimesStep
           key={key}
-          stepText='STEP 1 OF 2'
           scheduleID={scheduleID}
           value={value}
           edit={edit}
@@ -90,7 +104,6 @@ export default function TempSchedDialog({
           key={key}
           value={value.shifts}
           onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-          stepText={edit ? '' : 'STEP 2 OF 2'}
           scheduleID={scheduleID}
           start={value.start}
           end={value.end}

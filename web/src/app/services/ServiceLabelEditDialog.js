@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 
 import p from 'prop-types'
@@ -26,87 +26,27 @@ const query = gql`
   }
 `
 
-export default class ServiceLabelCreateDialog extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-    labelKey: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function ServiceLabelEditDialog(props) {
+  const { onClose, labelKey, serviceID } = props
+  const [value, setValue] = useState(null)
 
-  state = {
-    value: null,
-    errors: [],
-  }
-
-  render() {
-    return this.renderQuery()
-  }
-
-  renderQuery() {
-    return (
-      <Query
-        noPoll
-        query={query}
-        variables={{ serviceID: this.props.serviceID }}
-        render={({ data }) =>
-          this.renderMutation(
-            data.service.labels.find((l) => l.key === this.props.labelKey),
-          )
-        }
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        update={(cache) => {
-          const { service } = cache.readQuery({
-            query,
-            variables: { serviceID: this.props.serviceID },
-          })
-          const labels = (service.labels || []).filter(
-            (l) => l.key !== this.state.value.key,
-          )
-          if (this.state.value.value) {
-            labels.push({ ...this.state.value, __typename: 'Label' })
-          }
-          cache.writeQuery({
-            query,
-            variables: { serviceID: this.props.serviceID },
-            data: {
-              service: {
-                ...service,
-                labels,
-              },
-            },
-          })
-        }}
-      >
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, status) {
+  function renderDialog(data, commit, status) {
     const { loading, error } = status
     return (
       <FormDialog
         title='Update Label Value'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={onClose}
         onSubmit={() => {
-          if (!this.state.value) {
-            return this.props.onClose()
+          if (!value) {
+            return onClose()
           }
           return commit({
             variables: {
               input: {
-                ...this.state.value,
-                target: { type: 'service', id: this.props.serviceID },
+                ...value,
+                target: { type: 'service', id: serviceID },
               },
             },
           })
@@ -116,11 +56,65 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
             errors={fieldErrors(error)}
             editValueOnly
             disabled={loading}
-            value={this.state.value || { key: data.key, value: data.value }}
-            onChange={(value) => this.setState({ value })}
+            value={value || { key: data.key, value: data.value }}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  function renderMutation(data) {
+    return (
+      <Mutation
+        mutation={mutation}
+        onCompleted={onClose}
+        update={(cache) => {
+          const { service } = cache.readQuery({
+            query,
+            variables: { serviceID },
+          })
+          const labels = (service.labels || []).filter(
+            (l) => l.key !== value.key,
+          )
+          if (value.value) {
+            labels.push({ ...value, __typename: 'Label' })
+          }
+          cache.writeQuery({
+            query,
+            variables: { serviceID },
+            data: {
+              service: {
+                ...service,
+                labels,
+              },
+            },
+          })
+        }}
+      >
+        {(commit, status) => renderDialog(data, commit, status)}
+      </Mutation>
+    )
+  }
+
+  function renderQuery() {
+    return (
+      <Query
+        noPoll
+        query={query}
+        variables={{ serviceID }}
+        render={({ data }) =>
+          renderMutation(data.service.labels.find((l) => l.key === labelKey))
+        }
+      />
+    )
+  }
+
+  return renderQuery()
+}
+
+ServiceLabelEditDialog.propTypes = {
+  serviceID: p.string.isRequired,
+  labelKey: p.string.isRequired,
+  onClose: p.func,
 }
