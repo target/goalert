@@ -24,12 +24,14 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 type ViewType = 'month' | 'week'
-interface CalendarToolbarProps {
+interface ScheduleCalendarToolbarProps {
   filter?: React.ReactNode
   endAdornment?: React.ReactNode
 }
 
-function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
+function ScheduleCalendarToolbar(
+  props: ScheduleCalendarToolbarProps,
+): JSX.Element {
   const classes = useStyles()
   const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
@@ -187,4 +189,4 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   )
 }
 
-export default CalendarToolbar
+export default ScheduleCalendarToolbar
