@@ -48,14 +48,10 @@ const query = gql`
 
 interface ScheduleCalendarQueryProps {
   scheduleID: string
-  onNewTempSched: () => void
-  onEditTempSched: () => void
-  onDeleteTempSched: () => void
 }
 
 function ScheduleCalendarQuery({
   scheduleID,
-  ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
   const width = useWidth()
   const isMobile = isWidthDown('sm', width)
@@ -86,11 +82,9 @@ function ScheduleCalendarQuery({
 
   return (
     <ScheduleCalendar
-      scheduleID={scheduleID}
       loading={loading && !data}
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
-      {...other}
     />
   )
 }
