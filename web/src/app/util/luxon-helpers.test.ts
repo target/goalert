@@ -1,6 +1,11 @@
 import { DateTime, Interval } from 'luxon'
 import { Chance } from 'chance'
-import { getStartOfWeek, getEndOfWeek, splitAtMidnight } from './luxon-helpers'
+import {
+  getStartOfWeek,
+  getEndOfWeek,
+  splitAtMidnight,
+  getNextWeekday,
+} from './luxon-helpers'
 
 const getNativeStartOfWeek = (dt = new Date()): Date => {
   const weekdayIndex = dt.getDay() // Sun - Sat : 0 - 6
@@ -86,6 +91,175 @@ test('it should yield almost midnight on Saturday of the week of the date given'
   expect(getEndOfWeek(DateTime.fromJSDate(almostMidnight)).toMillis()).toBe(
     almostMidnight.getTime(),
   )
+})
+
+describe('getNextWeekday', () => {
+  const chicago = 'America/Chicago'
+  const singapore = 'Asia/Singapore'
+
+  it('get next monday from sunday', () => {
+    const result = getNextWeekday(
+      1, // monday
+      DateTime.fromObject({ year: 2021, month: 8, day: 8 }), // sunday
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 9,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next tues from sunday', () => {
+    const result = getNextWeekday(
+      2, // tues
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }), // sunday
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 10,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next sat from sunday', () => {
+    const result = getNextWeekday(
+      6, // saturday
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }), // sunday
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next sun from sunday', () => {
+    const result = getNextWeekday(
+      7,
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }),
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next friday from saturday', () => {
+    const result = getNextWeekday(
+      5,
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 7,
+        zone: chicago,
+      }),
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 13,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next sunday from tues', () => {
+    const result = getNextWeekday(
+      7,
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 10,
+        zone: chicago,
+      }),
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
+    )
+  })
+
+  it('get next sunday in asia from late-night saturday in america', () => {
+    const result = getNextWeekday(
+      7,
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        hour: 23,
+        zone: chicago,
+      }),
+      singapore,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 22,
+        zone: singapore,
+      }),
+    )
+  })
+
+  it('get next sunday in america from saturday in asia', () => {
+    const result = getNextWeekday(
+      7,
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        zone: singapore,
+      }),
+      chicago,
+    )
+    expect(result).toEqual(
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
+    )
+  })
 })
 
 describe('splitAtMidnight', () => {
