@@ -38,9 +38,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		lock: lock,
 
 		cmWantsUpdates: p.P(`
-			select coalesce(u.alert_status_log_contact_method_id = $1, false), u.id
+			select u.id
 			from user_contact_methods cm
-			join users u on u.id = cm.user_id
+			join users u on u.id = cm.user_id and u.alert_status_log_contact_method_id = $1
 			where cm.id = $1 and not cm.disabled
 		`),
 

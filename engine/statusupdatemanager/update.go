@@ -59,7 +59,8 @@ func (db *DB) update(ctx context.Context) error {
 	isSubscribed := chanID.Valid
 	var userID sql.NullString
 	if cmID.Valid {
-		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&isSubscribed, &userID)
+		isSubscribed = true
+		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&userID)
 		if errors.Is(err, sql.ErrNoRows) {
 			isSubscribed = false
 			err = nil
