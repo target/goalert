@@ -6,6 +6,8 @@ import (
 	"embed"
 	"encoding/hex"
 	"fmt"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/log"
 	"io/fs"
 	"net/http"
 	"net/http/httputil"
@@ -22,7 +24,7 @@ var bundleFS embed.FS
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or by proxying to urlStr if set.
-func NewHandler(urlStr, prefix, applicationName string) (http.Handler, error) {
+func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
 	etags := make(map[string]string)
@@ -67,20 +69,23 @@ func NewHandler(urlStr, prefix, applicationName string) (http.Handler, error) {
 		extraScripts = []string{"vendor.js"}
 	}
 
-	var buf bytes.Buffer
-	err := indexTmpl.Execute(&buf, renderData{
-		ApplicationName: applicationName,
-		Prefix:          prefix,
-		ExtraScripts:    extraScripts,
-	})
-	if err != nil {
-		return nil, err
-	}
-	h := sha256.New()
-	h.Write(buf.Bytes())
-	indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
-
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		cfg := config.FromContext(req.Context())
+
+		var buf bytes.Buffer
+		err := indexTmpl.Execute(&buf, renderData{
+			ApplicationName: cfg.ApplicationName(),
+			Prefix:          prefix,
+			ExtraScripts:    extraScripts,
+		})
+		if err != nil {
+			log.Log(req.Context(), err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+		h := sha256.New()
+		h.Write(buf.Bytes())
+		indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
+
 		w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", indexETag)
 		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))

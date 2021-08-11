@@ -166,7 +166,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())
-	mux.Handle("/api/graphql/explore", app.graphql2.PlayHandler())
+	mux.HandleFunc("/api/graphql/explore", app.graphql2.PlayHandler)
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 
@@ -251,7 +251,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/health", app.healthCheck)
 	mux.HandleFunc("/health/engine", app.engineStatus)
 
-	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix, app.ConfigStore.Config().ApplicationName())
+	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix)
 	if err != nil {
 		return err
 	}

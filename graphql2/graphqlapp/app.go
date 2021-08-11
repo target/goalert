@@ -83,18 +83,7 @@ type App struct {
 	TimeZoneStore *timezone.Store
 }
 
-func mustAuth(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		err := permission.LimitCheckAny(req.Context())
-		if errutil.HTTPError(req.Context(), w, err) {
-			return
-		}
-
-		h.ServeHTTP(w, req)
-	})
-}
-
-func (a *App) PlayHandler() http.Handler {
+func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 	var data struct {
 		ApplicationName string
 		Version         string
@@ -103,13 +92,19 @@ func (a *App) PlayHandler() http.Handler {
 	data.ApplicationName = a.ConfigStore.Config().ApplicationName()
 	data.Version = playVersion
 	data.PackageName = playPackageName
-	return mustAuth(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		err := playTmpl.Execute(w, data)
-		if err != nil {
-			log.Log(req.Context(), err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	}))
+
+
+	err := permission.LimitCheckAny(req.Context())
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	err = playTmpl.Execute(w, data)
+	if err != nil {
+		log.Log(req.Context(), err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }
 
 type fieldErr struct {
