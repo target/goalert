@@ -182,6 +182,7 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
 }
 
 export interface TemporarySchedule {
