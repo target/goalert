@@ -4,7 +4,6 @@ import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
-import { useConfigValue } from '../util/RequireConfig'
 
 /*
  * Reactivates a cm if disabled and the verification code matches
