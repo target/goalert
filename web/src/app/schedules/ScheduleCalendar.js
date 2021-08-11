@@ -54,6 +54,7 @@ function ScheduleCalendar(props) {
     onEditTempSched,
     onDeleteTempSched,
   } = props
+  //
 
   const eventStyleGetter = (event, start, end, isSelected) => {
     if (event.fixed) {
