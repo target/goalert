@@ -42,7 +42,7 @@ type SearchCursor struct {
 	IsFavorite bool   `json:"f"`
 }
 
-var searchTemplate = template.Must(template.New("search").Parse(`
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
 	SELECT{{if .LabelKey}} DISTINCT ON ({{ .OrderBy }}){{end}}
 		svc.id,
 		svc.name,
@@ -72,7 +72,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		)
 	{{end}}
 	{{- if and .Search (not .LabelKey)}}
-		AND (svc.name ILIKE :search OR svc.description ILIKE :search)
+		AND {{textSearch "search" "svc.name" "svc.description"}}
 	{{- end}}
 	{{- if .After.Name}}
 		AND
