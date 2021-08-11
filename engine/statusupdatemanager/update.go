@@ -21,6 +21,19 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	log.Debugf(ctx, "Processing status updates.")
+
+	_, err = db.lock.Exec(ctx, db.cmUnsub)
+	if err != nil {
+		// okay to proceed
+		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
+	}
+
+	_, err = db.lock.Exec(ctx, db.usrUnsub)
+	if err != nil {
+		// okay to proceed
+		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled users: %w", err))
+	}
+
 	// process up to 100
 	for i := 0; i < 100; i++ {
 		err = db.update(ctx)
