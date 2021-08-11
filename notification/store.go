@@ -79,7 +79,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_msg_id,
 				provider_seq,
 				next_retry_at notnull,
-				created_at
+				created_at,
+				src_value
 			from outgoing_messages
 			where
 				message_type = 'alert_notification' and
@@ -159,7 +160,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					status_details,
 					provider_msg_id,
 					provider_seq,
-					next_retry_at notnull
+					next_retry_at notnull,
+					created_at,
+					src_value
 				from outgoing_messages
 				where id = any($1)
 		`),
@@ -171,7 +174,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_msg_id,
 				provider_seq,
 				next_retry_at notnull,
-				created_at
+				created_at,
+				src_value
 			from outgoing_messages msg
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
@@ -409,20 +413,12 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Sen
 	defer rows.Close()
 
 	var result []SendResult
-	var s SendResult
 	for rows.Next() {
-		var lastStatus string
-		var hasNextRetry bool
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
+		res, _, err := scanStatus(rows)
 		if err != nil {
 			return nil, err
 		}
-		s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, s)
+		result = append(result, *res)
 	}
 
 	return result, nil
@@ -446,12 +442,18 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 
 	return s, createdAt, nil
 }
-func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
+
+type scannable interface {
+	Scan(...interface{}) error
+}
+
+func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	var s SendResult
 	var lastStatus string
 	var hasNextRetry bool
 	var createdAt sql.NullTime
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt)
+	var srcValue sql.NullString
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
@@ -462,6 +464,7 @@ func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
 	if err != nil {
 		return nil, time.Time{}, err
 	}
+	s.SrcValue = srcValue.String
 
 	return &s, createdAt.Time, nil
 }

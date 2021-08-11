@@ -69,6 +69,16 @@ type Message struct {
 	ErrorMessage *string
 }
 
+func (msg *Message) sentMessage() *notification.SentMessage {
+	stat := msg.messageStatus()
+
+	return &notification.SentMessage{
+		ExternalID:   msg.SID,
+		State:        stat.State,
+		StateDetails: stat.Details,
+		SrcValue:     msg.From,
+	}
+}
 func (msg *Message) messageStatus() *notification.Status {
 	if msg == nil {
 		return nil
