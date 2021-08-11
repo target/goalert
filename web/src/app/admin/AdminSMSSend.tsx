@@ -105,6 +105,7 @@ export default function AdminSMSSend(): JSX.Element {
                 send()
               }}
               loading={sendStatus.loading}
+              noSubmit
             />
             {sendStatus.data?.debugSendSMS && (
               <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
