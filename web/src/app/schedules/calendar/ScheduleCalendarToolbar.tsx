@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { getEndOfWeek, getStartOfWeek } from '../util/luxon-helpers'
+import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
