@@ -148,10 +148,16 @@ function testFavorites(): void {
     'users',
     (name: string, favorite: boolean) =>
       cy.createUser({ name, favorite }).then((user: Profile) => user.id),
-    () => {
-      cy.visit('/wizard')
-      return cy.get('input[name=primarySchedule\\.users]')
-    },
+    () =>
+      cy
+        .createEP()
+        .then((e: EP) => {
+          return cy.visit(`/escalation-policies/${e.id}`)
+        })
+        .pageFab()
+        .get('[data-cy="users-step"]')
+        .click()
+        .get('input[name=users]'),
   )
 }
 
