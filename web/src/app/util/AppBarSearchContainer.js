@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import p from 'prop-types'
 import { debounce } from 'lodash'
 
@@ -76,34 +76,26 @@ export class SearchProvider extends React.PureComponent {
   }
 }
 
-class SearchUpdater extends React.PureComponent {
-  static propTypes = {
-    setActions: p.func.isRequired,
+function SearchUpdater(props) {
+  const { trackMount, setActions, children } = props
+  const mounted = useRef(false)
+
+  useEffect(() => {
+    mounted.current = true
+    trackMount(true)
+    setActions(children)
+  }, [])
+
+  if (mounted) {
+    setActions(children)
   }
 
-  _mounted = false
-
-  componentDidMount() {
-    this._mounted = true
-    this.props.trackMount(true)
-    this.props.setActions(this.props.children)
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-    this.props.trackMount(false)
-    this.props.setActions(null)
-  }
-
-  render() {
-    if (this._mounted) {
-      this.props.setActions(this.props.children)
-    }
-
-    return null
-  }
+  return null
 }
 
+SearchUpdater.propTypes = {
+  setActions: p.func.isRequired,
+}
 /*
  * Usage:
  *
