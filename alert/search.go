@@ -74,7 +74,7 @@ type SearchCursor struct {
 	Created time.Time `json:"c,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("search").Parse(`
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
 	SELECT
 		a.id,
 		a.summary,
@@ -94,9 +94,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ end }}
 	{{ if .Search }}
 		AND (
-			a.id = :searchID OR
-			a.summary ilike :search OR
-			svc.name ilike :search
+			a.id = :searchID OR {{textSearch "search" "a.summary" "svc.name"}}
 		)
 	{{ end }}
 	{{ if .Status }}
@@ -147,14 +145,6 @@ func (opts renderData) SortStr() string {
 	return "status, id DESC"
 }
 
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
-}
-
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
@@ -198,7 +188,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 
 	return []sql.NamedArg{
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
 		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
