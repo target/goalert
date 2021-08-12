@@ -52,7 +52,7 @@
     "react-swipeable-views": "0.14.0",
     "react-transition-group": "4.4.2",
     "redux-thunk": "2.3.0",
-    "remark-gfm": "1.0.0",
+    "remark-gfm": "2.0.0",
     "reselect": "4.0.0",
     "strict-loader": "1.2.0"
   },
