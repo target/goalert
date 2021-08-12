@@ -571,6 +571,20 @@ func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) (
 	return result, nil
 }
 
+func (s *Store) FindAuthSubjectForUser(ctx context.Context, providerID, userID string) (*AuthSubject, error) {
+	var result AuthSubject
+	err := s.AuthSubjectsFunc(ctx, "", func(sub AuthSubject) error {
+		if sub.ProviderID == providerID {
+			result = sub
+		}
+		return nil
+	}, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // FindAll returns all users.
 func (s *Store) FindAll(ctx context.Context) ([]User, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)

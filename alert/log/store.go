@@ -22,6 +22,7 @@ import (
 type Store interface {
 	FindOne(ctx context.Context, logID int) (*Entry, error)
 	FindAll(ctx context.Context, alertID int) ([]Entry, error)
+	FindNCByValue(ctx context.Context, tx *sql.Tx, value string) (string, string, error)
 	Log(ctx context.Context, alertID int, _type Type, meta interface{}) error
 	LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error
 	LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error
@@ -47,11 +48,12 @@ type DB struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupCallbackType *sql.Stmt
-	lookupIKeyType     *sql.Stmt
-	lookupCMType       *sql.Stmt
-	lookupNCTypeName   *sql.Stmt
-	lookupHBInterval   *sql.Stmt
+	lookupCallbackType    *sql.Stmt
+	lookupIKeyType        *sql.Stmt
+	lookupCMType          *sql.Stmt
+	lookupNCTypeName      *sql.Stmt
+	lookupNCIdNameByValue *sql.Stmt
+	lookupHBInterval      *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -70,6 +72,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		lookupNCTypeName: p.P(`
 			select "type", name from notification_channels where id = $1
+		`),
+		lookupNCIdNameByValue: p.P(`
+			select id, name from notification_channels where value = $1
 		`),
 		lookupHBInterval: p.P(`
 			select extract(epoch from heartbeat_interval)/60 from heartbeat_monitors where id = $1
@@ -260,6 +265,20 @@ func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
+
+func (db *DB) FindNCByValue(ctx context.Context, tx *sql.Tx, value string) (string, string, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return "", "", err
+	}
+	var channelID, name string
+	err = txWrap(ctx, tx, db.lookupNCIdNameByValue).QueryRowContext(ctx, value).Scan(&channelID, &name)
+	if err != nil {
+		return "", "", errors.Wrap(err, "lookup notification channel by value")
+	}
+	return channelID, name, nil
+}
+
 func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -293,9 +312,9 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			r.subject._type = SubjectTypeChannel
 			var ncType notificationchannel.Type
 			var name string
-			err = txWrap(ctx, tx, db.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			err = db.lookupNCTypeName.QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
-				return errors.Wrap(err, "lookup contact method type for callback ID")
+				return errors.Wrap(err, "lookup notification channel type and name for callback ID")
 			}
 
 			switch ncType {
