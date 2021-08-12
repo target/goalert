@@ -25,7 +25,7 @@ func NewNotificationMessageStatusLoader(ctx context.Context, store notification.
 	return p
 }
 
-func (l *NotificationMessageStatusLoader) FetchOne(ctx context.Context, id string) (*notification.Status, error) {
+func (l *NotificationMessageStatusLoader) FetchOne(ctx context.Context, id string) (*notification.SendResult, error) {
 	ls, err := l.loader.FetchOne(ctx, id)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (l *NotificationMessageStatusLoader) FetchOne(ctx context.Context, id strin
 	if ls == nil {
 		return nil, err
 	}
-	return &ls.(*notification.SendResult).Status, nil
+	return ls.(*notification.SendResult), nil
 }
 
 func (l *NotificationMessageStatusLoader) fetch(ctx context.Context, ids []string) ([]interface{}, error) {
