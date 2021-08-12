@@ -47,7 +47,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
 	{{end}}
-	{{if .SearchStr}}
+	{{if .Search}}
 		AND {{textSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
@@ -64,14 +64,6 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 `))
 
 type renderData SearchOptions
-
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
-}
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
