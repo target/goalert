@@ -124,13 +124,6 @@ func (opts renderData) LabelNegate() bool {
 
 	return opts.Search[idx-1] == '!'
 }
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
-}
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
@@ -172,7 +165,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("labelKey", opts.LabelKey()),
 		sql.Named("labelValue", opts.LabelValue()),
 		sql.Named("labelNegate", opts.LabelNegate()),
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 	}
