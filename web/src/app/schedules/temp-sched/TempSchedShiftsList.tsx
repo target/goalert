@@ -142,7 +142,7 @@ export default function TempSchedShiftsList({
         const at = day.start
         return {
           id: 'header_' + at.toISO(),
-          subHeader: day.start.toFormat('cccc, LLLL d'), // TODO: use relativeDate(at) when its time zone bugs are fixed
+          subHeader: day.start.toFormat('cccc, LLLL d'),
           at,
           itemType: 'subheader',
         } as SortableItem
