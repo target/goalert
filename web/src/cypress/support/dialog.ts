@@ -31,9 +31,9 @@ function dialogClick(s: string): Cypress.Chainable {
 }
 
 function dialogFinish(s: string): Cypress.Chainable {
-  return dialogClick(s)
-    .get(`[role=dialog]`)
-    .should('not.exist', { timeout: 15000 })
+  const open = dialog()
+  dialogClick(s)
+  return open.should('not.exist', { timeout: 15000 })
 }
 
 Cypress.Commands.add('dialogFinish', dialogFinish)
