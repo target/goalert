@@ -179,15 +179,15 @@ export default function TempSchedShiftsList({
 
           let subText = ''
           if (inv.length('hours') === 24) {
+            // shift spans all day
             subText = 'All day'
-          } else if (shiftInv.start.day === shiftInv.end.day) {
+          } else if (inv.engulfs(shiftInv)) {
+            // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
-          } else if (
-            inv.end === shiftInv.end
-            // TODO bug inv.end !== inv.end.startOf('day')
-          ) {
+          } else if (inv.end === shiftInv.end) {
             subText = `Active until ${endTime}`
           } else {
+            // shift starts and continues on for the rest of the day
             subText = `Active starting at ${startTime}\n`
           }
 
