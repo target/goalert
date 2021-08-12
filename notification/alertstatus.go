@@ -16,7 +16,7 @@ type AlertStatus struct {
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus SendResult
 
-	// NewState contains the most recent status for the alert.
+	// NewAlertStatus contains the most recent status for the alert.
 	NewAlertStatus alert.Status
 }
 
