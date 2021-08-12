@@ -6,13 +6,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SentMessage contains information about a message that was sent to a remote
+// system.
+type SentMessage struct {
+	ExternalID   string
+	State        State
+	StateDetails string
+	SrcValue     string
+}
+
 // A Sender can send notifications.
 type Sender interface {
 	// Send should return nil error if the notification was sent successfully. It should be expected
 	// that a returned error means that the notification should be attempted again.
 	//
 	// If the sent message can have its status tracked, a unique externalID should be returned.
-	Send(context.Context, Message) (externalID string, status *Status, err error)
+	Send(context.Context, Message) (*SentMessage, error)
 }
 
 // A StatusChecker is an optional interface a Sender can implement that allows checking the status
