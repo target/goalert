@@ -338,22 +338,30 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, msgOpt...)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
-		return ts, &notification.Status{State: notification.StateDelivered}, nil
+		return &notification.SentMessage{
+			ExternalID: ts,
+			State:      notification.StateDelivered,
+			SrcValue:   "",
+		}, nil
 	case notification.AlertStatus:
 		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 		a = *_a
 
 		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 		_, ts, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
-		return ts, &notification.Status{State: notification.StateDelivered}, nil
+		return &notification.SentMessage{
+			ExternalID: ts,
+			State:      notification.StateDelivered,
+			SrcValue:   "",
+		}, nil
 	case notification.AlertBundle:
 		vals.Set("token", cfg.Slack.AccessToken)
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
@@ -363,10 +371,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		return post(s, vals)
 	}
 
-	return "", nil, errors.Errorf("unsupported message type: %T", msg.Type())
+	return nil, errors.Errorf("unsupported message type: %T", msg.Type())
 }
 
-func post(s *ChannelSender, vals url.Values) (string, *notification.Status, error) {
+func post(s *ChannelSender, vals url.Values) (*notification.SentMessage, error) {
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
 		return nil, err
