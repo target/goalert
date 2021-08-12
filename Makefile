@@ -54,7 +54,7 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html
+GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
@@ -265,7 +265,7 @@ web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell
 	rm -rf web/src/build/static
 	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
-notification/desttype_string.go: notification/dest.go
+notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice

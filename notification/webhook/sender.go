@@ -62,7 +62,7 @@ func NewSender(ctx context.Context) *Sender {
 }
 
 // Send will send an alert for the provided message type
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	var payload interface{}
 	switch m := msg.(type) {
 	case notification.Test:
@@ -95,12 +95,12 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 			LogEntry: m.LogEntry,
 		}
 	default:
-		return "", nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
+		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
 	}
 
 	data, err := json.Marshal(payload)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -109,23 +109,23 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 	cfg := config.FromContext(ctx)
 	if !cfg.ValidWebhookURL(msg.Destination().Value) {
 		// fail permanently if the URL is not currently valid/allowed
-		return "", &notification.Status{
-			State:   notification.StateFailedPerm,
-			Details: "invalid or not allowed URL",
+		return &notification.SentMessage{
+			State:        notification.StateFailedPerm,
+			StateDetails: "invalid or not allowed URL",
 		}, nil
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return "", &notification.Status{State: notification.StateSent}, nil
+	return &notification.SentMessage{State: notification.StateSent}, nil
 }

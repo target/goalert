@@ -100,7 +100,6 @@ export default function App() {
               open={showMobile}
               onOpen={() => setShowMobile(true)}
               onClose={() => setShowMobile(false)}
-              onEscapeKeyDown={() => setShowMobile(false)}
             >
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}

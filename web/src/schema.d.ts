@@ -31,6 +31,7 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  generateSlackAppManifest: string
 }
 
 export interface SlackChannelSearchOptions {

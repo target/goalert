@@ -311,7 +311,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
@@ -369,27 +369,34 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 func post(s *ChannelSender, vals url.Values) (string, *notification.Status, error) {
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return "", nil, errors.Errorf("non-200 response: %s", resp.Status)
+		return nil, errors.Errorf("non-200 response: %s", resp.Status)
 	}
 
 	var resData struct {
-		OK    bool
-		Error string
-		TS    string
+		OK      bool
+		Error   string
+		TS      string
+		Message struct {
+			BotID string `json:"bot_id"`
+		}
 	}
 	err = json.NewDecoder(resp.Body).Decode(&resData)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "decode response")
+		return nil, errors.Wrap(err, "decode response")
 	}
 	if !resData.OK {
-		return "", nil, errors.Errorf("Slack error: %s", resData.Error)
+		return nil, errors.Errorf("Slack error: %s", resData.Error)
 	}
 
-	return resData.TS, &notification.Status{State: notification.StateDelivered}, nil
+	return &notification.SentMessage{
+		ExternalID: resData.TS,
+		State:      notification.StateDelivered,
+		SrcValue:   resData.Message.BotID,
+	}, nil
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {

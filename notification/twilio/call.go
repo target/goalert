@@ -57,6 +57,16 @@ type Call struct {
 	ErrorCode      *CallErrorCode
 }
 
+func (call *Call) sentMessage() *notification.SentMessage {
+	stat := call.messageStatus()
+
+	return &notification.SentMessage{
+		ExternalID:   call.SID,
+		State:        stat.State,
+		StateDetails: stat.Details,
+		SrcValue:     call.From,
+	}
+}
 func (call *Call) messageStatus() *notification.Status {
 	if call == nil {
 		return nil

@@ -6,10 +6,10 @@ export interface SpanISO {
   end: string
 }
 
-export function parseInterval(s: SpanISO): Interval {
+export function parseInterval(s: SpanISO, zone = 'local'): Interval {
   return Interval.fromDateTimes(
-    DateTime.fromISO(s.start),
-    DateTime.fromISO(s.end),
+    DateTime.fromISO(s.start, { zone }),
+    DateTime.fromISO(s.end, { zone }),
   )
 }
 

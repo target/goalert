@@ -101,6 +101,8 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  generateSlackAppManifest: String!
 }
 
 input SlackChannelSearchOptions {
