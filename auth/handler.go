@@ -575,7 +575,10 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 // Updating and clearing the session cookie is automatically handled.
 func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.URL.Path == "/api/v2/mailgun/incoming" || req.URL.Path == "/v1/webhooks/mailgun" {
+		if req.URL.Path == "/api/v2/mailgun/incoming" ||
+			req.URL.Path == "/v1/webhooks/mailgun" ||
+			req.URL.Path == "/api/v2/slack/message-action" ||
+			req.URL.Path == "/api/v2/slack/menu-option" {
 			// Mailgun handles it's own auth and has special
 			// requirements on status codes, so we pass it through
 			// untouched.
