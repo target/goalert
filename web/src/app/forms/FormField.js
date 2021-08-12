@@ -56,11 +56,8 @@ export function FormField(props) {
   }
 
   useEffect(() => {
-    // on mount
-    const unregister = () => addField(fieldName, validateField)
-    // on unmount
-    return () => unregister
-  }, [])
+    return addField(fieldName, validateField)
+  }, [required])
 
   const baseLabel = typeof _label === 'string' ? _label : startCase(name)
   const label =
