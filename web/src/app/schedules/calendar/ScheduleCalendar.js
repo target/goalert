@@ -7,21 +7,21 @@ import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import CalendarEventWrapper, {
+import ScheduleCalendarEventWrapper, {
   EventHandlerContext,
-} from './CalendarEventWrapper'
-import CalendarToolbar from './CalendarToolbar'
-import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
-import { useResetURLParams, useURLParam } from '../actions'
+} from './ScheduleCalendarEventWrapper'
+import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
+import ScheduleOverrideCreateDialog from '../ScheduleOverrideCreateDialog'
+import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import { theme } from '../mui'
-import LuxonLocalizer from '../util/LuxonLocalizer'
-import { parseInterval, trimSpans } from '../util/shifts'
+import { theme } from '../../mui'
+import LuxonLocalizer from '../../util/LuxonLocalizer'
+import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
-import FilterContainer from '../util/FilterContainer'
-import { UserSelect } from '../selection'
-import SpinContainer from '../loading/components/SpinContainer'
+import FilterContainer from '../../util/FilterContainer'
+import { UserSelect } from '../../selection'
+import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
@@ -135,7 +135,7 @@ function ScheduleCalendar(props) {
         </i>
       </Typography>
       <Card className={classes.card} data-cy='calendar'>
-        <CalendarToolbar
+        <ScheduleCalendarToolbar
           filter={
             <FilterContainer
               onReset={resetFilter}
@@ -205,7 +205,7 @@ function ScheduleCalendar(props) {
               onNavigate={() => {}} // stub to hide false console err
               onView={() => {}} // stub to hide false console err
               components={{
-                eventWrapper: CalendarEventWrapper,
+                eventWrapper: ScheduleCalendarEventWrapper,
                 toolbar: () => null,
               }}
             />

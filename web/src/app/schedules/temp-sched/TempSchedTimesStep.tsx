@@ -7,29 +7,31 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer, Value } from './sharedUtils'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
+import { contentText, fmtLocal, StepContainer, Value } from './sharedUtils'
 import { isISOAfter } from '../../util/shifts'
 import { DateTime } from 'luxon'
+import { useScheduleTZ } from './hooks'
 
 const useStyles = makeStyles({
   contentText,
+  tzNote: {
+    fontStyle: 'italic',
+  },
 })
 
 type TempSchedTimesStepProps = {
   scheduleID: string
-  stepText: string
   value: Value
   edit?: boolean
 }
 
 export default function TempSchedTimesStep({
   scheduleID,
-  stepText,
   value,
   edit,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
@@ -43,7 +45,7 @@ export default function TempSchedTimesStep({
     <StepContainer width='35%' data-cy='sched-times-step'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant='body2'>{stepText}</Typography>
+          <Typography variant='body2'>STEP 1 OF 2</Typography>
           <Typography variant='h6' component='h2'>
             Determine start and end times.
           </Typography>
@@ -54,12 +56,13 @@ export default function TempSchedTimesStep({
             entire duration (ignoring all rules/overrides).
           </DialogContentText>
         </Grid>
-        <Grid item xs={12}>
-          <ScheduleTZFilter
-            label={(tz) => `Configure in ${tz}`}
-            scheduleID={scheduleID}
-          />
-        </Grid>
+        {!isLocalZone && (
+          <Grid item xs={12}>
+            <Typography color='textSecondary' className={classes.tzNote}>
+              Configuring in {zone}
+            </Typography>
+          </Grid>
+        )}
         <Grid item xs={6}>
           <FormField
             fullWidth
@@ -68,6 +71,9 @@ export default function TempSchedTimesStep({
             name='start'
             min={edit ? value.start : now}
             validate={() => validate()}
+            timeZone={zone}
+            disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.start)}
           />
         </Grid>
         <Grid item xs={6}>
@@ -78,6 +84,9 @@ export default function TempSchedTimesStep({
             name='end'
             min={edit ? value.start : now}
             validate={() => validate()}
+            timeZone={zone}
+            disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.end)}
           />
         </Grid>
       </Grid>

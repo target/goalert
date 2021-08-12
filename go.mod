@@ -32,7 +32,7 @@ require (
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/graphql-go/graphql v0.7.9
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // pinned version - see https://github.com/target/goalert/issues/1239
+	github.com/hashicorp/yamux v0.0.0-20210707203944-259a57b3608c // pinned version - see https://github.com/target/goalert/issues/1239
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
 	github.com/ian-kent/go-log v0.0.0-20160113211217-5731446c36ab // indirect
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad // indirect
