@@ -451,8 +451,7 @@ func (h *Handler) escalateAlertField() *g.Field {
 				return nil, errors.New("invalid input type")
 			}
 			id, _ := m["id"].(int)
-			lvl, _ := m["current_escalation_level"].(int)
-			err := h.c.AlertStore.Escalate(p.Context, id, lvl)
+			err := h.c.AlertStore.Escalate(p.Context, id)
 			if err != nil {
 				return newScrubber(p.Context).scrub(nil, err)
 			}
