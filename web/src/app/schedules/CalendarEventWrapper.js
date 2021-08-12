@@ -55,11 +55,10 @@ export default function CalendarEventWrapper({ children, event }) {
     }
   }
 
-  function handleShowOverrideForm(type) {
+  function handleShowOverrideForm() {
     handleCloseShiftInfo()
 
     onOverrideClick({
-      variant: type,
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),
@@ -116,7 +115,7 @@ export default function CalendarEventWrapper({ children, event }) {
           <Button
             data-cy='remove-override'
             size='small'
-            onClick={() => handleShowOverrideForm('choose')}
+            onClick={() => handleShowOverrideForm()}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${event.title} from this schedule`}
