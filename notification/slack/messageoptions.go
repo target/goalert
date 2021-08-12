@@ -51,24 +51,17 @@ func openLinkButton(url string) *slack.ButtonBlockElement {
 	return s
 }
 
-func alertLastStatusContext(lastStatus string) *slack.ContextBlock {
-	lastStatusText := slack.NewTextBlockObject("plain_text", lastStatus, true, true)
-	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
+// func alertLastStatusContext(lastStatus string) *slack.ContextBlock {
+// 	lastStatusText := slack.NewTextBlockObject("plain_text", lastStatus, true, true)
+// 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
+// }
+
+func needsAuthMsgOpt() slack.MsgOption {
+	msg := slack.NewTextBlockObject("plain_text", "Unauthorized. Please link your GoAlert account to continue", false, false)
+	return slack.MsgOptionBlocks(slack.NewSectionBlock(msg, nil, nil))
 }
 
-func userAuthMessageOption(clientID, alertID, uri string) slack.MsgOption {
-	msg := slack.NewTextBlockObject("plain_text", "Please link your GoAlert account to continue", false, false)
-
-	btnTxt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
-	btn := slack.NewButtonBlockElement("auth", alertID, btnTxt)
-	btn.URL = "https://slack.com/oauth/v2/authorize?user_scope=identity.basic&client_id=" + clientID + "&redirect_uri=" + uri // slack oauth endpoint
-	accessory := slack.NewAccessory(btn)
-
-	section := slack.NewSectionBlock(msg, nil, accessory)
-	return slack.MsgOptionBlocks(section)
-}
-
-func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
+func CraftAlertMessage(a alert.Alert, url, responseURL string) []slack.MsgOption {
 	var msgOpt []slack.MsgOption
 	var actions *slack.ActionBlock
 
@@ -80,6 +73,10 @@ func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
 		actions = slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
 	} else {
 		actions = slack.NewActionBlock("", openLinkButton(url))
+	}
+
+	if responseURL != "" {
+		msgOpt = append(msgOpt, slack.MsgOptionReplaceOriginal(responseURL))
 	}
 
 	msgOpt = append(msgOpt,
