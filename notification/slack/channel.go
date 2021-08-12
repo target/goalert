@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -311,6 +313,9 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
 	cfg := config.FromContext(ctx)
+	var api = slack.New(cfg.Slack.AccessToken)
+
+	var a alert.Alert
 
 	vals := make(url.Values)
 	// Parameters & URL documented here:
@@ -326,16 +331,42 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 			break
 		}
 
-		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+		a.Summary = t.Summary
+		a.ID = t.AlertID
+		a.Status = alert.StatusTriggered
+
+		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, msgOpt...)
+		if err != nil {
+			return "", nil, err
+		}
+		return ts, &notification.Status{State: notification.StateDelivered}, nil
+	case notification.AlertStatus:
+		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
+		if err != nil {
+			return "", nil, err
+		}
+		a = *_a
+
+		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+		_, ts, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
+		if err != nil {
+			return "", nil, err
+		}
+		return ts, &notification.Status{State: notification.StateDelivered}, nil
 	case notification.AlertBundle:
+		vals.Set("token", cfg.Slack.AccessToken)
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+		return post(s, vals)
 	case notification.ScheduleOnCallUsers:
 		vals.Set("text", s.onCallNotificationText(ctx, t))
-	default:
-		return "", nil, errors.Errorf("unsupported message type: %T", t)
+		return post(s, vals)
 	}
-	vals.Set("token", cfg.Slack.AccessToken)
 
+	return "", nil, errors.Errorf("unsupported message type: %T", msg.Type())
+}
+
+func post(s *ChannelSender, vals url.Values) (string, *notification.Status, error) {
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
 		return "", nil, err

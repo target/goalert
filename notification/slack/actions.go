@@ -16,7 +16,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 )
 
@@ -92,16 +91,16 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 	return hmac.Equal(signature, []byte(calculatedSignature))
 }
 
-func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, action *slack.BlockAction, alertIDStr, userID, channelID string) error {
+func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, payload slack.InteractionCallback, action *slack.BlockAction, alertIDStr string) error {
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
 	// add source info to ctx to enable writing to alert log
-	ncID, _, err := h.c.AlertLogStore.FindNCBySlackChanID(ctx, nil, channelID)
+	ncID, _, err := h.c.AlertLogStore.FindNCByValue(ctx, nil, payload.Channel.ID)
 	if err != nil {
 		return err
 	}
-	ctx = permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
+	ctx = permission.UserSourceContext(ctx, payload.User.ID, permission.RoleUser, &permission.SourceInfo{
 		Type: permission.SourceTypeNotificationChannel,
 		ID:   ncID,
 	})
@@ -128,18 +127,12 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, acti
 	if err != nil {
 		return err
 	}
-	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+alertIDStr))
+	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+alertIDStr), payload.ResponseURL)
 
-	// if the alert was ever escalated, the alert may have multiple same-messages in for a given channel
-	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, nil, alertID)
+	// update original message in Slack
+	_, _, err = api.PostMessageContext(ctx, payload.Channel.ID, msgOpt...)
 	if err != nil {
-		return err
-	}
-	for _, ts := range timestamps {
-		_, _, _, err := api.UpdateMessageContext(ctx, channelID, ts, msgOpt...)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		}
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
 	return nil
@@ -148,7 +141,9 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, acti
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Action received")
 	if !validRequest(w, req) {
+		fmt.Println("not a valid request")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
@@ -156,6 +151,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	var payload slack.InteractionCallback
 	err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if err != nil {
+		fmt.Println("error unmarshalling")
 		panic(err)
 	}
 
@@ -165,39 +161,33 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 		// actions may come in batches, range over
 		for _, action := range payload.ActionCallback.BlockActions {
-			alertIDStr := action.Value
-
-			if action.ActionID == "auth" {
-				_, err = h.c.NotificationStore.InsertUnlinkedSlackAccount(ctx, nil, payload.Team.ID, payload.User.ID, notification.UserLinkedAccountMetaData{
-					ChannelID:   payload.Channel.ID,
-					ResponseURL: payload.ResponseURL,
-					AlertID:     alertIDStr,
-				})
-				if err != nil {
-					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-					return
-				}
-				return
-			}
 			if action.ActionID == "openLink" {
 				return
 			}
 
-			// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
-			u, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
+			// check if user has linked Slack with their GoAlert account
+			authSubj, err := h.c.UserStore.FindAuthSubjectForUser(ctx, "slack"+payload.Team.ID, payload.User.ID)
 			if err != nil {
-				uri := cfg.General.PublicURL + "/api/v2/slack/auth"
-				msg := userAuthMessageOption(cfg.Slack.ClientID, alertIDStr, uri)
-				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
+				fmt.Println("error finding user")
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				panic(err)
+			}
+
+			// send Unauthorized message if user is not linked
+			if authSubj == nil {
+				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
 				if err != nil {
+					fmt.Println("error posting ephemeral auth msg")
 					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-					return
+					panic(err)
 				}
 				return
 			}
 
-			err = h.processAction(ctx, w, action, alertIDStr, u.ID, payload.Channel.ID)
+			alertIDStr := action.Value
+			err = h.processAction(ctx, w, payload, action, alertIDStr)
 			if err != nil {
+				fmt.Println("error processing action")
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				panic(err)
 			}
