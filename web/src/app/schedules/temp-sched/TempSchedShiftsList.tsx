@@ -13,11 +13,11 @@ import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
-import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
 import Spinner from '../../loading/components/Spinner'
+import { splitAtMidnight } from '../../util/luxon-helpers'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -49,6 +49,40 @@ type TempSchedShiftsListProps = {
   scheduleID: string
 }
 
+type SortableItem = FlatListListItem & {
+  // at is the earliest point in time for a given list item
+  at: DateTime
+  // itemType categorizes list item
+  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end'
+}
+
+export function sortItems(items: SortableItem[]): FlatListListItem[] {
+  return items.sort((a, b) => {
+    if (a.at < b.at) return -1
+    if (a.at > b.at) return 1
+
+    // a and b are at same time; use item type priority instead
+    // subheaders first
+    if (a.itemType === 'subheader') return -1
+    if (b.itemType === 'subheader') return 1
+    // then start notice
+    if (a.itemType === 'start') return -1
+    if (b.itemType === 'start') return 1
+    // then gaps
+    if (a.itemType === 'gap') return -1
+    if (b.itemType === 'gap') return 1
+    // then shifts
+    if (a.itemType === 'shift') return -1
+    if (b.itemType === 'shift') return 1
+    // then end notice
+    if (a.itemType === 'end') return -1
+    if (b.itemType === 'end') return 1
+
+    // identical items; should never get to this point
+    return 0
+  })
+}
+
 export default function TempSchedShiftsList({
   edit,
   start,
@@ -58,9 +92,16 @@ export default function TempSchedShiftsList({
   scheduleID,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  const _shifts = useUserInfo(value)
   const { q, zone } = useScheduleTZ(scheduleID)
-  const timeFmt = 'h:mm a'
+  let shifts = useUserInfo(value)
+  if (edit) {
+    shifts = shifts.filter(
+      (s) => DateTime.fromISO(s.start, { zone }) > DateTime.now().setZone(zone),
+    )
+  }
+
+  const fmtTime = (dt: DateTime): string =>
+    dt.toLocaleString(DateTime.TIME_SIMPLE)
 
   const schedInterval = parseInterval({ start, end }, zone)
 
@@ -80,221 +121,149 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const sortedShifts = _shifts.length
-      ? _.sortBy(_shifts, 'start').map((s) => ({
-          id: s.start + s.userID,
-          shift: s,
-          start: DateTime.fromISO(s.start, { zone }),
-          end: DateTime.fromISO(s.end, { zone }),
-          added: false,
-          interval: Interval.fromDateTimes(
-            DateTime.fromISO(s.start, { zone }),
-            DateTime.fromISO(s.end, { zone }),
-          ),
-          isValid: schedInterval.engulfs(parseInterval(s)),
-        }))
-      : []
+    const subheaderItems = (() => {
+      let lowerBound = schedInterval.start
+      let upperBound = schedInterval.end
 
-    const firstShiftStart = sortedShifts.length
-      ? sortedShifts[0].start
-      : schedInterval.start
+      // loop once to set timespan
+      for (const s of shifts) {
+        lowerBound = DateTime.min(
+          lowerBound,
+          DateTime.fromISO(s.start, { zone }),
+        )
+        upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
+      }
 
-    // get farthest out end time
-    // although shifts are sorted, the last shift may not necessarily end last
-    const lastShiftEnd = sortedShifts.length
-      ? sortedShifts.reduce(
-          (result, candidate) =>
-            candidate.end > result.end ? candidate : result,
-          sortedShifts[0],
-        ).end
-      : schedInterval.end
-
-    let spanStart = DateTime.min(schedInterval.start, firstShiftStart).startOf(
-      'day',
-    )
-    if (edit)
-      spanStart = DateTime.max(spanStart, DateTime.utc().startOf('hour'))
-
-    const displaySpan = Interval.fromDateTimes(
-      spanStart,
-      DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
-    )
-
-    const result: FlatListListItem[] = []
-
-    const days = displaySpan.splitBy({ days: 1 })
-    days.forEach((dayInterval, dayIdx) => {
-      const dayShifts = sortedShifts.filter((s) =>
-        dayInterval.overlaps(s.interval),
+      const dayInvs = splitAtMidnight(
+        Interval.fromDateTimes(lowerBound, upperBound),
       )
 
-      // render subheader for each day
-      result.push({
-        id: 'header_' + dayInterval.start,
-        subHeader: relativeDate(dayInterval.start),
+      return dayInvs.map((day) => {
+        const at = day.start
+        return {
+          id: 'header_' + at.toISO(),
+          subHeader: day.start.toFormat('cccc, LLLL d'), // TODO: use relativeDate(at) when its time zone bugs are fixed
+          at,
+          itemType: 'subheader',
+        } as SortableItem
       })
+    })()
 
-      let dayStart = dayInterval.start
-      if (dayIdx === 0 && firstShiftStart.day === schedInterval.start.day) {
-        dayStart = schedInterval.start
-      }
-
-      // add start time of temp schedule to top of list
-      // for day that it will start on
-      if (dayStart.day === schedInterval.start.day) {
-        let details = `Starts at ${DateTime.fromISO(start, { zone }).toFormat(
-          timeFmt,
-        )}`
-        let message = ''
-
-        if (edit && DateTime.fromISO(start, { zone }) < DateTime.utc()) {
-          message = 'Currently active'
-          details = 'Historical shifts will not be displayed'
-        }
-
-        result.push({
-          id: 'day-start_' + start,
-          type: 'OK',
-          icon: <ScheduleIcon />,
-          message,
-          details,
-        })
-      }
-
-      // render no coverage and continue if no shifts for the given day
-      if (dayShifts.length === 0) {
-        return result.push({
-          id: 'day-no-coverage_' + start,
+    const coverageGapItems = (() => {
+      const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
+      const gapIntervals = _.flatMap(
+        schedInterval.difference(...shiftIntervals),
+        (inv) => splitAtMidnight(inv),
+      )
+      return gapIntervals.map((gap) => {
+        return {
+          id: 'day-no-coverage_' + gap.start.toISO(),
           type: 'WARNING',
           message: '',
           details: 'No coverage',
-        })
-      }
-
-      // checkCoverage will determine if there is a gap of 1 minute or more between the given datetimes
-      const checkCoverage = (s: DateTime, e: DateTime): boolean => {
-        return Interval.fromDateTimes(s, e).length('minutes') >= 1
-      }
-
-      // craft list item JSX for each day
-      dayShifts.forEach((s, shiftIdx) => {
-        if (s.isValid && shiftIdx === 0 && checkCoverage(dayStart, s.start)) {
-          result.push({
-            id: 'no-coverage-until_' + s.start,
-            type: 'WARNING',
-            message: '',
-            details: `No coverage until ${s.start
-              .setZone(zone)
-              .toFormat(timeFmt)}`,
-          })
-        }
-
-        let shiftDetails = ''
-        const startTime = s.start.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        const endTime = s.end.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-
-        if (s.interval.engulfs(dayInterval)) {
-          // shift (s.interval) spans all day
-          shiftDetails = 'All day'
-        } else if (dayInterval.engulfs(s.interval)) {
-          // shift is inside the day
-          shiftDetails = `From ${startTime} to ${endTime}`
-        } else if (dayInterval.contains(s.end)) {
-          shiftDetails = `Active until ${endTime}`
-        } else {
-          // shift starts and continues on for the rest of the day
-          shiftDetails = `Active starting at ${startTime}`
-        }
-
-        result.push({
-          scrollIntoView: true,
-          id: s.start + s.shift.userID,
-          title: s.shift.user?.name,
-          subText: shiftDetails,
-          icon: <UserAvatar userID={s.shift.userID} />,
-          secondaryAction: s.added ? null : (
-            <div className={classes.secondaryActionWrapper}>
-              {!s.isValid && (
-                <Tooltip
-                  title='This shift extends beyond the start and/or end of this temporary schedule'
-                  placement='left'
-                >
-                  <Error className={classes.secondaryActionError} />
-                </Tooltip>
-              )}
-              <IconButton
-                aria-label='delete shift'
-                onClick={() => onRemove(s.shift)}
-              >
-                <Delete />
-              </IconButton>
-            </div>
-          ),
-        })
-
-        // signify that a portion of the shift is now added to the list
-        // prevents actions from rendering on subsequent list items for the same shift timespan
-        s.added = true
-
-        // check coverage until the next shift (if there is one) within the current day
-        if (
-          s.isValid &&
-          shiftIdx < dayShifts.length - 1 &&
-          checkCoverage(s.end, dayShifts[shiftIdx + 1].start)
-        ) {
-          result.push({
-            id: 'no-coverage-from_' + s.end,
-            type: 'WARNING',
-            message: '',
-            details: `No coverage from ${s.end
-              .setZone(zone)
-              .toFormat(timeFmt)} to 
-            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat(timeFmt)}`,
-          })
-        }
-
-        // check end of day/temp sched coverage
-        // if on the day of temp sched's end, temp sched end is used
-        let dayEnd = dayInterval.end
-        if (
-          dayIdx === days.length - 1 &&
-          lastShiftEnd.day === schedInterval.end.day
-        ) {
-          dayEnd = schedInterval.end
-        }
-        if (
-          s.isValid &&
-          shiftIdx === dayShifts.length - 1 &&
-          checkCoverage(s.end, dayEnd)
-        ) {
-          result.push({
-            id: 'no-coverage-after_' + s.end,
-            type: 'WARNING',
-            message: '',
-            details: `No coverage after ${s.end
-              .setZone(zone)
-              .toFormat(timeFmt)}`,
-          })
-        }
+          at: gap.start,
+          itemType: 'gap',
+        } as SortableItem
       })
-    })
+    })()
 
-    // add end time of temp schedule to bottom of list
-    result.push({
+    const shiftItems = (() => {
+      return _.flatMap(shifts, (s) => {
+        const shiftInv = parseInterval(s, zone)
+        const isValid = schedInterval.engulfs(shiftInv)
+        const dayInvs = splitAtMidnight(shiftInv)
+
+        return dayInvs.map((inv, index) => {
+          const startTime = fmtTime(inv.start)
+          const endTime = fmtTime(inv.end)
+
+          let subText = ''
+          if (inv.length('hours') === 24) {
+            subText = 'All day'
+          } else if (shiftInv.start.day === shiftInv.end.day) {
+            subText = `From ${startTime} to ${endTime}`
+          } else if (
+            inv.end === shiftInv.end
+            // TODO bug inv.end !== inv.end.startOf('day')
+          ) {
+            subText = `Active until ${endTime}`
+          } else {
+            subText = `Active starting at ${startTime}\n`
+          }
+
+          return {
+            scrollIntoView: true,
+            id: s.start + s.userID,
+            title: s.user.name,
+            subText,
+            userID: s.userID,
+            icon: <UserAvatar userID={s.userID} />,
+            secondaryAction:
+              index === 0 ? (
+                <div className={classes.secondaryActionWrapper}>
+                  {!isValid && (
+                    <Tooltip
+                      title='This shift extends beyond the start and/or end of this temporary schedule'
+                      placement='left'
+                    >
+                      <Error color='error' />
+                    </Tooltip>
+                  )}
+                  <IconButton
+                    aria-label='delete shift'
+                    onClick={() => onRemove(s)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </div>
+              ) : null,
+            at: inv.start,
+            itemType: 'shift',
+          } as SortableItem
+        })
+      })
+    })()
+
+    const startItem = (() => {
+      let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
+      let message = ''
+
+      if (
+        edit &&
+        DateTime.fromISO(start, { zone }) < DateTime.now().setZone(zone)
+      ) {
+        message = 'Currently active'
+        details = 'Historical shifts will not be displayed'
+      }
+
+      return {
+        id: 'day-start_' + start,
+        type: 'OK',
+        icon: <ScheduleIcon />,
+        message,
+        details,
+        at: DateTime.fromISO(start, { zone }),
+        itemType: 'start',
+      } as SortableItem
+    })()
+
+    const endItem: SortableItem = {
       id: 'ends-at_' + end,
       type: 'OK',
       icon: <ScheduleIcon />,
       message: '',
-      details: `Ends at ${DateTime.fromISO(end, { zone }).toFormat(timeFmt)}`,
-    })
+      details: `Ends at ${fmtTime(DateTime.fromISO(end, { zone }))}`,
+      at: DateTime.fromISO(end, { zone }),
+      itemType: 'end',
+    }
 
-    return result
+    return sortItems([
+      ...shiftItems,
+      ...coverageGapItems,
+      ...subheaderItems,
+      startItem,
+      endItem,
+    ])
   }
 
   return (
