@@ -1,5 +1,11 @@
-import { getStartOfWeek, getEndOfWeek, getNextWeekday } from './luxon-helpers'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
+import { Chance } from 'chance'
+import {
+  getStartOfWeek,
+  getEndOfWeek,
+  splitAtMidnight,
+  getNextWeekday,
+} from './luxon-helpers'
 
 const getNativeStartOfWeek = (dt = new Date()): Date => {
   const weekdayIndex = dt.getDay() // Sun - Sat : 0 - 6
@@ -252,6 +258,91 @@ describe('getNextWeekday', () => {
         day: 15,
         zone: chicago,
       }),
+    )
+  })
+})
+
+describe('splitAtMidnight', () => {
+  function rand(): DateTime {
+    const c = new Chance()
+    return DateTime.fromJSDate(c.date())
+  }
+
+  it('should handle interval that does not span midnight', () => {
+    const hour = Interval.fromDateTimes(
+      DateTime.fromObject({ hour: 1 }),
+      DateTime.fromObject({ hour: 2 }),
+    )
+    const result = splitAtMidnight(hour)
+    expect(result.length).toEqual(1)
+    expect(result[0]).toEqual(hour)
+  })
+
+  it('should handle interval that begins at midnight, ends same day', () => {
+    const startOfDay = Interval.fromDateTimes(
+      DateTime.fromObject({ hour: 0 }).startOf('day'),
+      DateTime.fromObject({ hour: 2 }),
+    )
+    const result = splitAtMidnight(startOfDay)
+    expect(result.length).toEqual(1)
+    expect(result[0]).toEqual(startOfDay)
+  })
+
+  it('should handle interval that begins at midnight, ends at midnight', () => {
+    const start = rand().startOf('day')
+    const end = start.plus({ day: 1 }).startOf('day')
+    const inv = Interval.fromDateTimes(start, end)
+    const result = splitAtMidnight(inv)
+
+    expect(result.length).toEqual(1)
+    expect(result[0]).toEqual(inv)
+  })
+
+  it('should handle interval that begins midday, ends at midnight', () => {
+    const start = rand().set({ hour: 4 })
+    const end = start.plus({ day: 1 }).startOf('day')
+    const inv = Interval.fromDateTimes(start, end)
+    const result = splitAtMidnight(inv)
+
+    expect(result.length).toEqual(1)
+    expect(result[0]).toEqual(inv)
+  })
+
+  it('should handle interval that begins at midnight, ends next day', () => {
+    const start = rand().startOf('day')
+    const end = start.plus({ day: 1, hour: 4 })
+    const inv = Interval.fromDateTimes(start, end)
+    const result = splitAtMidnight(inv)
+
+    expect(result.length).toEqual(2)
+    expect(result[0]).toEqual(Interval.fromDateTimes(start, end.startOf('day')))
+    expect(result[1]).toEqual(Interval.fromDateTimes(end.startOf('day'), end))
+  })
+
+  it('should handle interval that spans multiple days', () => {
+    const start = rand().set({ hour: 4 })
+    const end = start.plus({ day: 3 })
+    const inv = Interval.fromDateTimes(start, end)
+    const result = splitAtMidnight(inv)
+
+    expect(result.length).toEqual(4)
+    expect(result[0]).toEqual(
+      Interval.fromDateTimes(start, start.plus({ day: 1 }).startOf('day')),
+    )
+    expect(result[1]).toEqual(
+      Interval.fromDateTimes(
+        start.plus({ day: 1 }).startOf('day'),
+        start.plus({ day: 2 }).startOf('day'),
+      ),
+    )
+    expect(result[2]).toEqual(
+      Interval.fromDateTimes(
+        start.plus({ day: 2 }).startOf('day'),
+        start.plus({ day: 3 }).startOf('day'),
+      ),
+    )
+    expect(result[3]).toEqual(
+      Interval.fromDateTimes(start.plus({ day: 3 }).startOf('day'), end),
     )
   })
 })
