@@ -3,16 +3,13 @@ package slack
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
@@ -45,57 +42,46 @@ func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
 
-func abs(x int64) int64 {
-	if x < 0 {
-		return -x
-	}
-	return x
+func httpErr(w http.ResponseWriter, err error) error {
+	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	panic(err)
 }
 
 // validRequest is used to validate a request from Slack.
 // If the request is validated true is returned, false otherwise.
 // https://api.slack.com/authentication/verifying-requests-from-slack
-func validRequest(w http.ResponseWriter, req *http.Request) bool {
+func validRequest(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return false
+		return httpErr(w, errors.New("not a post"))
 	}
 
-	ts := req.Header.Get("X-Slack-Request-Timestamp")
-
-	// ignore request if more than 5 minutes from local time
-	_ts, err := strconv.ParseInt(ts, 10, 64)
+	secret := config.FromContext(req.Context()).Slack.SigningSecret
+	sv, err := slack.NewSecretsVerifier(req.Header, secret)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		return false
-	}
-	if abs(time.Now().Unix()-_ts) > 60*5 {
-		return false
+		return err
 	}
 
 	defer req.Body.Close()
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-		return false
+		return httpErr(w, err)
 	}
 	req.Body.Close()
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-	secret := config.FromContext(req.Context()).Slack.SigningSecret
-	h := hmac.New(sha256.New, []byte(secret))
-	fmt.Fprintf(h, "v0:%s:%s", ts, body)
-	calculatedSignature := "v0=" + hex.EncodeToString(h.Sum(nil))
-	signature := []byte(req.Header.Get("X-Slack-Signature"))
+	_, err = sv.Write(body)
+	if err != nil {
+		return httpErr(w, err)
+	}
 
-	return hmac.Equal(signature, []byte(calculatedSignature))
+	return sv.Ensure()
 }
 
 func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, payload slack.InteractionCallback, action *slack.BlockAction, alertIDStr string) error {
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
-	// add source info to ctx to enable writing to alert log
+	// add source info to ctx to enable writing the action to alert log
 	ncID, _, err := h.c.AlertLogStore.FindNCByValue(ctx, nil, payload.Channel.ID)
 	if err != nil {
 		return err
@@ -142,17 +128,15 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, payl
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("Action received")
-	if !validRequest(w, req) {
-		fmt.Println("not a valid request")
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
+	err := validRequest(w, req)
+	if err != nil {
+		httpErr(w, err)
 	}
 
 	var payload slack.InteractionCallback
-	err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
+	err = json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if err != nil {
-		fmt.Println("error unmarshalling")
-		panic(err)
+		httpErr(w, err)
 	}
 
 	process := func(ctx context.Context) {
@@ -166,20 +150,18 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			}
 
 			// check if user has linked Slack with their GoAlert account
-			authSubj, err := h.c.UserStore.FindAuthSubjectForUser(ctx, "slack"+payload.Team.ID, payload.User.ID)
+			userID, err := h.c.AuthHandler.FindUserIDForAuthSubject(ctx, "slack:"+payload.Team.ID, payload.User.ID)
 			if err != nil {
 				fmt.Println("error finding user")
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				panic(err)
+				httpErr(w, err)
 			}
 
 			// send Unauthorized message if user is not linked
-			if authSubj == nil {
+			if userID == "" {
 				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
 				if err != nil {
 					fmt.Println("error posting ephemeral auth msg")
-					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-					panic(err)
+					httpErr(w, err)
 				}
 				return
 			}
@@ -188,8 +170,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			err = h.processAction(ctx, w, payload, action, alertIDStr)
 			if err != nil {
 				fmt.Println("error processing action")
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				panic(err)
+				httpErr(w, err)
 			}
 		}
 	}

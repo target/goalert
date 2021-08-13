@@ -182,6 +182,18 @@ func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+func (h *Handler) FindUserIDForAuthSubject(ctx context.Context, providerID, subjectID string) (string, error) {
+	var userID string
+	err := h.userLookup.QueryRowContext(ctx, providerID, subjectID).Scan(&userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return userID, nil
+}
+
 func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]UserSession, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
@@ -577,7 +589,7 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/api/v2/mailgun/incoming" ||
 			req.URL.Path == "/v1/webhooks/mailgun" ||
-			req.URL.Path == "/api/v2/slack/message-action" ||
+			req.URL.Path == "/api/v2/slack/action" ||
 			req.URL.Path == "/api/v2/slack/menu-option" {
 			// Mailgun handles it's own auth and has special
 			// requirements on status codes, so we pass it through

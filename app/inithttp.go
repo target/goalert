@@ -170,6 +170,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		AlertStore:    app.AlertStore,
 		AlertLogStore: app.AlertLogStore,
 		UserStore:     *app.UserStore,
+		AuthHandler:   *app.AuthHandler,
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())

@@ -5,6 +5,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/user"
 )
 
@@ -14,6 +15,7 @@ type Config struct {
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
 	UserStore     user.Store
+	AuthHandler   auth.Handler
 }
 
 func (c Config) url(path string) string {
