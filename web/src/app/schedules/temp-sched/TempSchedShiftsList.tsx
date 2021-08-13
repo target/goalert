@@ -9,15 +9,25 @@ import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
 
 import { Shift } from './sharedUtils'
-import FlatList, { FlatListListItem } from '../../lists/FlatList'
+import FlatList, {
+  FlatListItem,
+  FlatListListItem,
+  FlatListNotice,
+} from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
 import Spinner from '../../loading/components/Spinner'
 import { splitAtMidnight } from '../../util/luxon-helpers'
+import {
+  getCoverageGapItems,
+  getSubheaderItems,
+  Sortable,
+  sortItems,
+} from './shiftsListUtil'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -47,40 +57,6 @@ type TempSchedShiftsListProps = {
   edit?: boolean
 
   scheduleID: string
-}
-
-type SortableItem = FlatListListItem & {
-  // at is the earliest point in time for a given list item
-  at: DateTime
-  // itemType categorizes list item
-  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end'
-}
-
-export function sortItems(items: SortableItem[]): FlatListListItem[] {
-  return items.sort((a, b) => {
-    if (a.at < b.at) return -1
-    if (a.at > b.at) return 1
-
-    // a and b are at same time; use item type priority instead
-    // subheaders first
-    if (a.itemType === 'subheader') return -1
-    if (b.itemType === 'subheader') return 1
-    // then start notice
-    if (a.itemType === 'start') return -1
-    if (b.itemType === 'start') return 1
-    // then gaps
-    if (a.itemType === 'gap') return -1
-    if (b.itemType === 'gap') return 1
-    // then shifts
-    if (a.itemType === 'shift') return -1
-    if (b.itemType === 'shift') return 1
-    // then end notice
-    if (a.itemType === 'end') return -1
-    if (b.itemType === 'end') return 1
-
-    // identical items; should never get to this point
-    return 0
-  })
 }
 
 export default function TempSchedShiftsList({
@@ -121,51 +97,8 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const subheaderItems = (() => {
-      let lowerBound = schedInterval.start
-      let upperBound = schedInterval.end
-
-      // loop once to set timespan
-      for (const s of shifts) {
-        lowerBound = DateTime.min(
-          lowerBound,
-          DateTime.fromISO(s.start, { zone }),
-        )
-        upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
-      }
-
-      const dayInvs = splitAtMidnight(
-        Interval.fromDateTimes(lowerBound, upperBound),
-      )
-
-      return dayInvs.map((day) => {
-        const at = day.start
-        return {
-          id: 'header_' + at.toISO(),
-          subHeader: day.start.toFormat('cccc, LLLL d'),
-          at,
-          itemType: 'subheader',
-        } as SortableItem
-      })
-    })()
-
-    const coverageGapItems = (() => {
-      const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
-      const gapIntervals = _.flatMap(
-        schedInterval.difference(...shiftIntervals),
-        (inv) => splitAtMidnight(inv),
-      )
-      return gapIntervals.map((gap) => {
-        return {
-          id: 'day-no-coverage_' + gap.start.toISO(),
-          type: 'WARNING',
-          message: '',
-          details: 'No coverage',
-          at: gap.start,
-          itemType: 'gap',
-        } as SortableItem
-      })
-    })()
+    const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
+    const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s) => {
@@ -219,7 +152,7 @@ export default function TempSchedShiftsList({
               ) : null,
             at: inv.start,
             itemType: 'shift',
-          } as SortableItem
+          } as Sortable<FlatListItem>
         })
       })
     })()
@@ -244,10 +177,10 @@ export default function TempSchedShiftsList({
         details,
         at: DateTime.fromISO(start, { zone }),
         itemType: 'start',
-      } as SortableItem
+      } as Sortable<FlatListNotice>
     })()
 
-    const endItem: SortableItem = {
+    const endItem: Sortable<FlatListNotice> = {
       id: 'ends-at_' + end,
       type: 'OK',
       icon: <ScheduleIcon />,
