@@ -15,8 +15,10 @@ var PerCMThrottle ThrottleConfig
 func init() {
 	var perCM ThrottleConfigBuilder
 
-	// all message types
-	perCM.AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
+	// Rate limit sms, voice and email types
+	perCM.
+		WithDestTypes(notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
+		AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
 	// On-Call Status Notifications
 	perCM.
@@ -28,7 +30,8 @@ func init() {
 
 	// status notifications
 	perCM.
-		WithMsgTypes(notification.MessageTypeAlertStatus, notification.MessageTypeAlertStatusBundle).
+		WithMsgTypes(notification.MessageTypeAlertStatus).
+		WithDestTypes(notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: 3 * time.Minute},
 			{Count: 3, Per: 20 * time.Minute},

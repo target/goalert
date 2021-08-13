@@ -32,7 +32,7 @@ export const EventHandlerContext = React.createContext({
   onDeleteTempSched: () => {},
 })
 
-export default function CalendarEventWrapper({ children, event }) {
+export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
   const { onOverrideClick, onEditTempSched, onDeleteTempSched } =
@@ -207,6 +207,6 @@ export default function CalendarEventWrapper({ children, event }) {
   )
 }
 
-CalendarEventWrapper.propTypes = {
+ScheduleCalendarEventWrapper.propTypes = {
   event: p.object.isRequired,
 }

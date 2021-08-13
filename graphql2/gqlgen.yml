@@ -16,6 +16,9 @@ models:
         fieldName: AlertStatusCMID
   UserContactMethod:
     model: github.com/target/goalert/user/contactmethod.ContactMethod
+    fields:
+      value:
+        resolver: true
   UserNotificationRule:
     model: github.com/target/goalert/user/notificationrule.NotificationRule
   Target:

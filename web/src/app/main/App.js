@@ -100,7 +100,6 @@ export default function App() {
               open={showMobile}
               onOpen={() => setShowMobile(true)}
               onClose={() => setShowMobile(false)}
-              onEscapeKeyDown={() => setShowMobile(false)}
             >
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}
@@ -115,7 +114,7 @@ export default function App() {
               <LazyNewUserSetup />
               <Grid
                 container
-                justify='center'
+                justifyContent='center'
                 className={classes.mainContainer}
               >
                 <Grid className={classes.containerClass} item>

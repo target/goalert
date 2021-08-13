@@ -19,10 +19,10 @@ require (
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.11.0
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.5.0
 	github.com/google/go-github v17.0.0+incompatible
@@ -32,7 +32,7 @@ require (
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/graphql-go/graphql v0.7.9
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864 // pinned version - see https://github.com/target/goalert/issues/1239
+	github.com/hashicorp/yamux v0.0.0-20210707203944-259a57b3608c // pinned version - see https://github.com/target/goalert/issues/1239
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
 	github.com/ian-kent/go-log v0.0.0-20160113211217-5731446c36ab // indirect
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad // indirect

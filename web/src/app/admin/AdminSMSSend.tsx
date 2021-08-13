@@ -27,6 +27,7 @@ const sendSMSMutation = gql`
     debugSendSMS(input: $input) {
       id
       providerURL
+      fromNumber
     }
   }
 `
@@ -41,9 +42,7 @@ const useStyles = makeStyles({
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
-  const [fromNumber, setFromNumber] = useState(
-    (cfgFromNumber as string).replace(/^\+/, ''),
-  )
+  const [fromNumber, setFromNumber] = useState(cfgFromNumber as string)
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -51,8 +50,8 @@ export default function AdminSMSSend(): JSX.Element {
   const [send, sendStatus] = useMutation(sendSMSMutation, {
     variables: {
       input: {
-        from: '+' + fromNumber,
-        to: '+' + toNumber,
+        from: fromNumber,
+        to: toNumber,
         body,
       },
     },
@@ -107,11 +106,15 @@ export default function AdminSMSSend(): JSX.Element {
                 send()
               }}
               loading={sendStatus.loading}
+              noSubmit
             />
             {sendStatus.data?.debugSendSMS && (
               <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
-                  <Typography>Open in Twilio&nbsp;</Typography>
+                  <Typography>
+                    Sent from {sendStatus.data.debugSendSMS.fromNumber}. Open in
+                    Twilio&nbsp;
+                  </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
               </AppLink>

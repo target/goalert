@@ -31,6 +31,7 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  generateSlackAppManifest: string
 }
 
 export interface SlackChannelSearchOptions {
@@ -181,6 +182,7 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
 }
 
 export interface TemporarySchedule {
@@ -670,6 +672,7 @@ export interface AlertLogEntry {
 export interface NotificationState {
   details: string
   status?: NotificationStatus
+  formattedSrcValue: string
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
@@ -858,7 +861,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string
@@ -967,5 +970,7 @@ type ConfigID =
   | 'SMTP.SkipVerify'
   | 'SMTP.Username'
   | 'SMTP.Password'
+  | 'Webhook.Enable'
+  | 'Webhook.AllowedURLs'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

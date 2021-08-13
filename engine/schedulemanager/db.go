@@ -21,6 +21,8 @@ type DB struct {
 	data        *sql.Stmt
 	updateData  *sql.Stmt
 
+	schedTZ *sql.Stmt
+
 	scheduleOnCallNotification *sql.Stmt
 }
 
@@ -51,6 +53,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		data:       p.P(`select schedule_id, data from schedule_data where data notnull for update`),
 		updateData: p.P(`update schedule_data set data = $2 where schedule_id = $1`),
+		schedTZ:    p.P(`select id, time_zone from schedules`),
 		rules: p.P(`
 			select
 				rule.schedule_id,
@@ -65,10 +68,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				],
 				start_time,
 				end_time,
-				sched.time_zone,
 				coalesce(rule.tgt_user_id, part.user_id)
 			from schedule_rules rule
-			join schedules sched on sched.id = rule.schedule_id
 			left join rotation_state rState on rState.rotation_id = rule.tgt_rotation_id
 			left join rotation_participants part on part.id = rState.rotation_participant_id
 			where

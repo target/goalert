@@ -2,9 +2,11 @@ package engine
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
@@ -38,6 +40,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	}
 
 	var notifMsg notification.Message
+	var isFirstAlertMessage bool
 	switch msg.Type {
 	case notification.MessageTypeAlertBundle:
 		name, count, err := p.am.ServiceInfo(ctx, msg.ServiceID)
@@ -83,28 +86,43 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 			OriginalStatus: stat,
 		}
-	case notification.MessageTypeAlertStatusBundle:
-		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
-		if err != nil {
-			return nil, errors.Wrap(err, "lookup alert log entry")
-		}
-		notifMsg = notification.AlertStatusBundle{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
-			LogEntry:   e.String(),
-			AlertID:    e.AlertID(),
-			Count:      len(msg.StatusAlertIDs),
-		}
+		isFirstAlertMessage = stat == nil
 	case notification.MessageTypeAlertStatus:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
+		a, err := p.cfg.AlertStore.FindOne(ctx, msg.AlertID)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original alert: %w", err)
+		}
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original message: %w", err)
+		}
+		if stat == nil {
+			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
+		}
+
+		var status alert.Status
+		switch e.Type() {
+		case alertlog.TypeAcknowledged:
+			status = alert.StatusActive
+		case alertlog.TypeEscalated:
+			status = alert.StatusTriggered
+		case alertlog.TypeClosed:
+			status = alert.StatusClosed
+		}
+
 		notifMsg = notification.AlertStatus{
-			Dest:       msg.Dest,
-			AlertID:    e.AlertID(),
-			CallbackID: msg.ID,
-			LogEntry:   e.String(),
+			Dest:           msg.Dest,
+			AlertID:        e.AlertID(),
+			CallbackID:     msg.ID,
+			LogEntry:       e.String(),
+			Summary:        a.Summary,
+			Details:        a.Details,
+			NewAlertStatus: status,
+			OriginalStatus: *stat,
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
@@ -169,6 +187,22 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, meta)
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "append alert log"))
+		}
+	}
+
+	if isFirstAlertMessage && res.State.IsOK() {
+		var chanID, cmID sql.NullString
+		if msg.Dest.Type.IsUserCM() {
+			cmID.Valid = true
+			cmID.String = msg.Dest.ID
+		} else {
+			chanID.Valid = true
+			chanID.String = msg.Dest.ID
+		}
+		_, err = p.b.trackStatus.ExecContext(ctx, chanID, cmID, msg.AlertID)
+		if err != nil {
+			// non-fatal, but log because it means status updates will not work for that alert/dest.
+			log.Log(ctx, fmt.Errorf("track status updates for alert #%d for %s: %w", msg.AlertID, msg.Dest.String(), err))
 		}
 	}
 

@@ -20,7 +20,7 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
 )
 

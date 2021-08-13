@@ -7,15 +7,14 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"golang.org/x/net/context/ctxhttp"
@@ -311,7 +310,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	vals := make(url.Values)
@@ -323,82 +322,65 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Escalated.")
+			vals.Set("text", "Broadcasting to channel due to repeat notification.")
 			vals.Set("reply_broadcast", "true")
 			break
 		}
 
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+	case notification.AlertStatus:
+		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+		var status string
+		switch t.NewAlertStatus {
+		case alert.StatusActive:
+			status = "Acknowledged"
+		case alert.StatusTriggered:
+			status = "Unacknowledged"
+		case alert.StatusClosed:
+			status = "Closed"
+		}
+
+		text := "Status Update: " + status + "\n" + t.LogEntry
+		vals.Set("text", text)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallUsers:
-		var userStr string
-		if len(t.Users) == 0 {
-			userStr = "No users"
-		} else {
-			teamID, err := s.TeamID(ctx)
-			if err != nil {
-				log.Log(ctx, fmt.Errorf("lookup team ID: %w", err))
-			}
-
-			m := make(map[string]string, len(t.Users))
-			if teamID != "" {
-				userIDs := make([]string, len(t.Users))
-				for i, u := range t.Users {
-					userIDs[i] = u.ID
-				}
-				err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, func(sub user.AuthSubject) error {
-					m[sub.UserID] = sub.SubjectID
-					return nil
-				}, userIDs...)
-				if err != nil {
-					log.Log(ctx, fmt.Errorf("lookup auth subjects for slack: %w", err))
-				}
-			}
-
-			var userLinks []string
-			for _, u := range t.Users {
-				subjectID := m[u.ID]
-				if subjectID == "" {
-					// fallback to a link to the GoAlert user
-					userLinks = append(userLinks, fmt.Sprintf("<%s|%s>", u.URL, u.Name))
-					continue
-				}
-
-				userLinks = append(userLinks, fmt.Sprintf("<@%s>", subjectID))
-			}
-			userStr = "Users: " + strings.Join(userLinks, ", ")
-		}
-
-		vals.Set("text", fmt.Sprintf("%s are on-call for Schedule: %s", userStr, fmt.Sprintf("<%s|%s>", t.ScheduleURL, t.ScheduleName)))
+		vals.Set("text", s.onCallNotificationText(ctx, t))
 	default:
-		return "", nil, errors.Errorf("unsupported message type: %T", t)
+		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 	vals.Set("token", cfg.Slack.AccessToken)
 
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return "", nil, errors.Errorf("non-200 response: %s", resp.Status)
+		return nil, errors.Errorf("non-200 response: %s", resp.Status)
 	}
 
 	var resData struct {
-		OK    bool
-		Error string
-		TS    string
+		OK      bool
+		Error   string
+		TS      string
+		Message struct {
+			BotID string `json:"bot_id"`
+		}
 	}
 	err = json.NewDecoder(resp.Body).Decode(&resData)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "decode response")
+		return nil, errors.Wrap(err, "decode response")
 	}
 	if !resData.OK {
-		return "", nil, errors.Errorf("Slack error: %s", resData.Error)
+		return nil, errors.Errorf("Slack error: %s", resData.Error)
 	}
 
-	return resData.TS, &notification.Status{State: notification.StateDelivered}, nil
+	return &notification.SentMessage{
+		ExternalID: resData.TS,
+		State:      notification.StateDelivered,
+		SrcValue:   resData.Message.BotID,
+	}, nil
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {

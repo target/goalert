@@ -1,32 +1,23 @@
 import React, { useEffect, useState } from 'react'
 import {
+  Button,
   DialogContentText,
-  Fab,
   Grid,
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { Add as AddIcon } from '@material-ui/icons'
+import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
-import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
-  addButton: {
-    boxShadow: 'none',
-  },
-  addButtonContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
@@ -43,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
   },
   shiftFormContainer: {
     maxHeight: '100%',
+    paddingRight: '2rem',
   },
 }))
 
@@ -53,7 +45,6 @@ type AddShiftsStepProps = {
   end: string
 
   scheduleID: string
-  stepText: string
   edit?: boolean
 }
 
@@ -106,7 +97,6 @@ function mergeShifts(_shifts: Shift[]): Shift[] {
 
 export default function TempSchedAddShiftsStep({
   scheduleID,
-  stepText,
   onChange,
   start,
   end,
@@ -177,14 +167,14 @@ export default function TempSchedAddShiftsStep({
         {/* title + fields container */}
         <Grid
           item
-          xs={5}
+          xs={6}
           container
           spacing={2}
           direction='column'
           className={classes.shiftFormContainer}
         >
           <Grid item>
-            <Typography variant='body2'>{stepText}</Typography>
+            {!edit && <Typography variant='body2'>STEP 2 OF 2</Typography>}
             <Typography variant='h6' component='h2'>
               Specify on-call shifts.
             </Typography>
@@ -192,43 +182,39 @@ export default function TempSchedAddShiftsStep({
           <Grid item>
             <DialogContentText className={classes.contentText}>
               The schedule will be exactly as configured here for the entire
-              duration (ignoring all rules/overrides).
+              duration (ignoring all assignments and overrides).
             </DialogContentText>
-          </Grid>
-          <Grid item>
-            <ScheduleTZFilter
-              label={(tz) => `Configure in ${tz}`}
-              scheduleID={scheduleID}
-            />
           </Grid>
           <FormContainer
             errors={fieldErrors()}
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <TempSchedAddShiftForm min={edit ? start : undefined} />
+            <TempSchedAddShiftForm
+              value={shift}
+              min={edit ? start : undefined}
+              scheduleID={scheduleID}
+            />
           </FormContainer>
-        </Grid>
-
-        {/* add button container */}
-        <Grid item xs={2} className={classes.addButtonContainer}>
-          <Fab
-            className={classes.addButton}
-            aria-label='Add Shift'
-            title='Add Shift'
-            onClick={handleAddShift}
-            size='medium'
-            color='primary'
-            type='button'
-          >
-            <AddIcon />
-          </Fab>
+          <Grid item>
+            <Button
+              data-cy='add-shift'
+              color='secondary'
+              variant='contained'
+              fullWidth
+              onClick={handleAddShift}
+              endIcon={<ArrowRightAltIcon />}
+            >
+              Add Shift
+            </Button>
+          </Grid>
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listOuterContainer}>
+        <Grid item xs={6} className={classes.listOuterContainer}>
           <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
+              scheduleID={scheduleID}
               value={value}
               start={start}
               end={end}
