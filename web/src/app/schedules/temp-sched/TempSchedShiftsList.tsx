@@ -87,7 +87,7 @@ export default function TempSchedShiftsList({
     if (!schedInterval.isValid) {
       return [
         {
-          id: 'invalid',
+          id: 'invalid-sched-interval',
           type: 'ERROR',
           message: 'Invalid Start/End',
           transition: true,
@@ -170,7 +170,7 @@ export default function TempSchedShiftsList({
       }
 
       return {
-        id: 'day-start_' + start,
+        id: 'sched-start_' + start,
         type: 'OK',
         icon: <ScheduleIcon />,
         message,
@@ -181,7 +181,7 @@ export default function TempSchedShiftsList({
     })()
 
     const endItem: Sortable<FlatListNotice> = {
-      id: 'ends-at_' + end,
+      id: 'sched-end_' + end,
       type: 'OK',
       icon: <ScheduleIcon />,
       message: '',
