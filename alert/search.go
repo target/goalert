@@ -3,6 +3,7 @@ package alert
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"text/template"
 	"time"
@@ -61,6 +62,9 @@ type SearchOptions struct {
 
 	// Before will only include alerts that were created before the provided time.
 	Before time.Time `json:"b,omitempty"`
+
+	// serviceNameIDs is used internally to store IDs for services matching the query name.
+	serviceNameIDs []string
 }
 
 type IDFilter struct {
@@ -74,7 +78,13 @@ type SearchCursor struct {
 	Created time.Time `json:"c,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
+var serviceSearchTemplate = template.Must(template.New("alert-search-services").Funcs(search.Helpers()).Parse(`
+	SELECT id
+	FROM services
+	WHERE {{textSearch "search" "name"}}
+`))
+
+var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Helpers()).Parse(`
 	SELECT
 		a.id,
 		a.summary,
@@ -85,16 +95,13 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		created_at,
 		a.dedup_key
 	FROM alerts a
-	{{ if .Search }}
-		JOIN services svc ON svc.id = a.service_id
-	{{ end }}
 	WHERE true
 	{{ if .Omit }}
 		AND not a.id = any(:omit)
 	{{ end }}
 	{{ if .Search }}
 		AND (
-			a.id = :searchID OR {{textSearch "search" "a.summary" "svc.name"}}
+			a.id = :searchID OR {{textSearch "search" "a.summary"}} OR a.service_id = any(:svcNameMatchIDs)
 		)
 	{{ end }}
 	{{ if .Status }}
@@ -192,6 +199,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
 		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
+		sql.Named("svcNameMatchIDs", sqlutil.UUIDArray(opts.serviceNameIDs)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
 		sql.Named("afterCreated", opts.After.Created),
@@ -200,6 +208,41 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("beforeTime", opts.Before),
 		sql.Named("notBeforeTime", opts.NotBefore),
 	}
+}
+
+func (db *DB) serviceNameSearch(ctx context.Context, data *renderData) error {
+	if data.Search == "" {
+		data.serviceNameIDs = nil
+		return nil
+	}
+
+	query, args, err := search.RenderQuery(ctx, serviceSearchTemplate, data)
+	if err != nil {
+		return fmt.Errorf("render service-search query: %w", err)
+	}
+
+	rows, err := db.db.QueryContext(ctx, query, args...)
+	if errors.Is(err, sql.ErrNoRows) {
+		data.serviceNameIDs = nil
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("search for services with '%s': %w", data.Search, err)
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("scan service-search query: %w", err)
+		}
+		ids = append(ids, id)
+	}
+
+	data.serviceNameIDs = ids
+
+	return nil
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) {
@@ -212,6 +255,11 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) 
 	}
 
 	data, err := (*renderData)(opts).Normalize()
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.serviceNameSearch(ctx, data)
 	if err != nil {
 		return nil, err
 	}
