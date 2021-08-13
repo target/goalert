@@ -18,10 +18,10 @@ func TestStatusUpdatesCancel(t *testing.T) {
 	insert into users (id, name, email, role) 
 	values 
 		({{uuid "user"}}, 'bob', 'joe@test.com', 'admin');
-	insert into user_contact_methods (id, user_id, name, type, value) 
+	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
 	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}),
-		({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}});
+		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, false),
+		({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, false);
 
 	update users set alert_status_log_contact_method_id = {{uuid "cm1"}}
 	where id = {{uuid "user"}};
