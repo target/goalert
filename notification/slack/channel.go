@@ -326,7 +326,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Escalated.")
+			vals.Set("text", "Broadcasting to channel due to repeat notification.")
 			vals.Set("reply_broadcast", "true")
 			break
 		}
@@ -357,6 +357,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		if err != nil {
 			return nil, err
 		}
+		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+		// todo, post to thread
 		return &notification.SentMessage{
 			ExternalID: ts,
 			State:      notification.StateDelivered,
