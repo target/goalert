@@ -2,6 +2,7 @@ import { DateTime, Interval } from 'luxon'
 import { Shift } from './sharedUtils'
 import { getCoverageGapItems, getSubheaderItems } from './shiftsListUtil'
 import { Chance } from 'chance'
+import * as _ from 'lodash'
 
 const c = new Chance()
 const chicago = 'America/Chicago'
@@ -19,6 +20,7 @@ describe('getSubheaderItems', () => {
       const result = getSubheaderItems(schedInterval, shifts, zone)
 
       expect(result).toHaveLength(expected.length)
+      expect(_.uniq(result.map((r) => r.id))).toHaveLength(expected.length)
 
       result.forEach((r, i) => {
         expect(r.at.zoneName).toEqual(zone)
@@ -173,6 +175,7 @@ describe('getCoverageGapItems', () => {
       const result = getCoverageGapItems(schedInterval, shifts, zone)
 
       expect(result).toHaveLength(expected.length)
+      expect(_.uniq(result.map((r) => r.id))).toHaveLength(expected.length)
 
       result.forEach((r, i) => {
         expect(r.at.zoneName).toEqual(zone)
