@@ -308,7 +308,7 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	return false
 }
 
-// ApplicationName will return the General.ApplicationName and set to 'GoAlert' if previously empty
+// ApplicationName will return the General.ApplicationName
 func (cfg Config) ApplicationName() string {
 	if cfg.General.ApplicationName == "" {
 		cfg.General.ApplicationName = "GoAlert"
