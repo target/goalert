@@ -95,7 +95,6 @@ func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 	data.Version = playVersion
 	data.PackageName = playPackageName
 
-
 	err := permission.LimitCheckAny(req.Context())
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
