@@ -2,6 +2,7 @@ package smoketest
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -9,28 +10,26 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestStatusUpdates checks basic functionality of status updates:
-//
-// - If alert_status_log_contact_method_id isnull, no notifications are sent
-// - When alert_status_log_contact_method_id is set, old notifications are NOT sent
-// - Status changes, when/after alert_status_log_contact_method_id is set, are sent.
-func TestStatusUpdates(t *testing.T) {
+// TestStatusUpdatesCancel checks that status updates are unsubscribed when updates, or the contact method, are disabled.
+func TestStatusUpdatesCancel(t *testing.T) {
 	t.Parallel()
 
 	sql := `
 	insert into users (id, name, email, role) 
 	values 
 		({{uuid "user"}}, 'bob', 'joe@test.com', 'admin');
-	insert into user_contact_methods (id, user_id, name, type, value) 
+	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
 	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
+		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, false),
+		({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, false);
 
 	update users set alert_status_log_contact_method_id = {{uuid "cm1"}}
 	where id = {{uuid "user"}};
 
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
-		({{uuid "user"}}, {{uuid "cm1"}}, 0);
+		({{uuid "user"}}, {{uuid "cm1"}}, 0),
+		({{uuid "user"}}, {{uuid "cm2"}}, 0);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -49,12 +48,6 @@ func TestStatusUpdates(t *testing.T) {
 	insert into integration_keys (id, service_id, type, name)
 	values
 		({{uuid "int1"}}, {{uuid "sid"}}, 'generic', 'test');
-
-	insert into alerts (service_id, source, description) 
-	values
-		({{uuid "sid"}}, 'manual', 'first alert'),
-		({{uuid "sid"}}, 'manual', 'second alert');
-
 `
 	h := harness.NewHarness(t, sql, "alert-status-updates")
 	defer h.Close()
@@ -75,17 +68,29 @@ func TestStatusUpdates(t *testing.T) {
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
+	d2 := tw.Device(h.Phone("2"))
 
-	d1.ExpectSMS("first alert")
-	d1.ExpectSMS("second alert")
+	h.CreateAlert(h.UUID("sid"), "first")
+	d1.ExpectSMS("first")
+	d2.ExpectSMS("first")
+	h.Trigger() // cleanup subscription to cm2, since only cm1 is configured
 
-	doClose("first alert")
-	d1.ExpectSMS("closed")
+	h.GraphQLQueryUserT(t, h.UUID("user"), fmt.Sprintf(`mutation{updateUser(input:{id:"%s",statusUpdateContactMethodID:"%s"})}`, h.UUID("user"), h.UUID("cm2")))
 
-	doClose("second alert")
-	d1.ExpectSMS("closed")
+	h.Trigger() // cleanup subscription to cm1, now that cm2 is the only one configured
+	doClose("first")
+	// no status update as only cm1 was subscribed, and the setting change
+	// should have canceled the subscription.
 
-	// Ensure status updates are not sent to the user that caused them.
-	h.CreateAlert(h.UUID("sid"), "third alert")
-	d1.ExpectSMS("third alert").ThenReply("c").ThenExpect("closed")
+	h.CreateAlert(h.UUID("sid"), "second")
+	d1.ExpectSMS("second")
+	d2.ExpectSMS("second")
+
+	d2.SendSMS("stop")
+	h.Trigger() // cleanup subscription to cm2
+	d2.SendSMS("start")
+
+	doClose("second")
+	// contact method was canceled, so no status updates should be sent.
+
 }
