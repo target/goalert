@@ -315,6 +315,9 @@ func (s *Store) updateConfigTx(ctx context.Context, tx *sql.Tx, fn func(Config) 
 func (s *Store) Config() Config {
 	s.mx.RLock()
 	cfg := s.rawCfg
+
+	cfg.General.ApplicationName = cfg.ApplicationName()
+
 	s.mx.RUnlock()
 	return cfg
 }
