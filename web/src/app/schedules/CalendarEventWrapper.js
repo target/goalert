@@ -6,6 +6,7 @@ import Popover from '@material-ui/core/Popover'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
+import { ScheduleCalendarContext } from './ScheduleDetails'
 
 const useStyles = makeStyles({
   button: {
@@ -26,17 +27,12 @@ const useStyles = makeStyles({
   },
 })
 
-export const EventHandlerContext = React.createContext({
-  onOverrideClick: () => {},
-  onEditTempSched: () => {},
-  onDeleteTempSched: () => {},
-})
-
 export default function CalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
-  const { onOverrideClick, onEditTempSched, onDeleteTempSched } =
-    useContext(EventHandlerContext)
+  const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
+    ScheduleCalendarContext,
+  )
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
@@ -58,7 +54,8 @@ export default function CalendarEventWrapper({ children, event }) {
   function handleShowOverrideForm() {
     handleCloseShiftInfo()
 
-    onOverrideClick({
+    setOverrideDialog({
+      variantOptions: ['remove', 'replace'],
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),

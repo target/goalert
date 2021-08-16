@@ -5,12 +5,21 @@ import {
   Grid,
   RadioGroup,
   FormControlLabel,
-  FormLabel,
   Radio,
+  FormHelperText,
 } from '@material-ui/core'
+import { variantDetails } from './ScheduleCalendarOverrideDialog'
 
 export default function ChooseOverrideForm(props) {
-  const { scheduleID, value, removeUserReadOnly, ...formProps } = props
+  const {
+    scheduleID,
+    value,
+    errors = [],
+    removeUserReadOnly,
+    ...formProps
+  } = props
+
+  console.log('errors', errors)
 
   const handleVariantChange = (e) => {
     if (e.target.value) {
@@ -19,29 +28,30 @@ export default function ChooseOverrideForm(props) {
   }
 
   return (
-    <FormContainer optionalLabels value={value} {...formProps}>
+    <FormContainer optionalLabels errors={errors} value={value} {...formProps}>
       <Grid item xs={12}>
         <RadioGroup
-          isRequired
+          required
           aria-label='Choose an override action'
           name='variant'
           onChange={handleVariantChange}
         >
-          <FormControlLabel
-            data-cy='variant.replace'
-            value='replace'
-            control={<Radio />}
-            label='Replace'
-          />
-          <FormLabel>This will replace a user from the schedule</FormLabel>
-
-          <FormControlLabel
-            data-cy='variant.remove'
-            value='remove'
-            control={<Radio />}
-            label='Remove'
-          />
-          <FormLabel>This will remove a user from the schedule</FormLabel>
+          {props.variantOptions.map((variant) => (
+            <FormControlLabel
+              key={variant}
+              data-cy={`variant.${variant}`}
+              value={variant}
+              control={<Radio />}
+              label={
+                <React.Fragment>
+                  {variantDetails[variant].name}
+                  <FormHelperText>
+                    {variantDetails[variant].helperText}
+                  </FormHelperText>
+                </React.Fragment>
+              }
+            />
+          ))}
         </RadioGroup>
       </Grid>
     </FormContainer>
@@ -62,4 +72,5 @@ ChooseOverrideForm.propTypes = {
 
   onChange: p.func.isRequired,
   removeUserReadOnly: p.bool,
+  variantOptions: p.arrayOf(p.string),
 }
