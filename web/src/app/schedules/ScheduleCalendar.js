@@ -170,7 +170,7 @@ function ScheduleCalendar(props) {
               data-cy='new-temp-sched'
               onClick={() =>
                 setOverrideDialog({
-                  variantOptions: ['remove', 'replace', 'add', 'temp'],
+                  variantOptions: ['replace', 'remove', 'add', 'temp'],
                 })
               }
               className={classes.tempSchedBtn}

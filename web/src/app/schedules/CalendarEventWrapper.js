@@ -55,7 +55,7 @@ export default function CalendarEventWrapper({ children, event }) {
     handleCloseShiftInfo()
 
     setOverrideDialog({
-      variantOptions: ['remove', 'replace'],
+      variantOptions: ['replace', 'remove'],
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),

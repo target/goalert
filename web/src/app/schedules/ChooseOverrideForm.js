@@ -11,13 +11,7 @@ import {
 import { variantDetails } from './ScheduleCalendarOverrideDialog'
 
 export default function ChooseOverrideForm(props) {
-  const {
-    scheduleID,
-    value,
-    errors = [],
-    removeUserReadOnly,
-    ...formProps
-  } = props
+  const { value, errors = [], removeUserReadOnly, ...formProps } = props
 
   console.log('errors', errors)
 
@@ -35,6 +29,7 @@ export default function ChooseOverrideForm(props) {
           aria-label='Choose an override action'
           name='variant'
           onChange={handleVariantChange}
+          value={value.variant}
         >
           {props.variantOptions.map((variant) => (
             <FormControlLabel
@@ -59,8 +54,6 @@ export default function ChooseOverrideForm(props) {
 }
 
 ChooseOverrideForm.propTypes = {
-  scheduleID: p.string.isRequired,
-
   value: p.shape({
     addUserID: p.string.isRequired,
     removeUserID: p.string.isRequired,

@@ -50,14 +50,14 @@ const mutation = gql`
 `
 
 export default function ScheduleCalendarOverrideDialog(props) {
-  const { variantOptions = ['remove', 'replace', 'add', 'temp'] } = props
+  const { variantOptions = ['replace', 'remove', 'add', 'temp'] } = props
   const [step, setStep] = useState(0)
   const [value, setValue] = useState({
     addUserID: '',
     removeUserID: '',
     start: DateTime.local().startOf('hour').toISO(),
     end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
-    variant: null,
+    variant: variantOptions[0] || 'remove', // Default to first variant on the list.
     ...props.defaultValue,
   })
 
@@ -76,15 +76,16 @@ export default function ScheduleCalendarOverrideDialog(props) {
   })
 
   const onNext = () => {
-    setStep(step + 1)
+    if (value.variant === 'temp') {
+      onNewTempSched()
+      props.onClose()
+    } else {
+      setStep(step + 1)
+    }
   }
 
   const handleVariantChange = (newValue) => {
-    if (newValue.variant === 'temp') {
-      onNewTempSched()
-    } else {
-      setValue(newValue) // todo, move variant out of here and up to context;
-    }
+    setValue(newValue)
   }
 
   return (

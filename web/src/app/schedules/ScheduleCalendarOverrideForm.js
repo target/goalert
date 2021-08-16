@@ -11,7 +11,6 @@ export function ScheduleCalendarOverrideForm(props) {
     <FormContainer optionalLabels {...otherProps}>
       {activeStep === 0 && (
         <ChooseOverrideForm
-          scheduleID={props.scheduleID} // todo
           disabled={props.disabled}
           value={props.value}
           errors={props.errors}
@@ -24,7 +23,7 @@ export function ScheduleCalendarOverrideForm(props) {
         <ScheduleOverrideForm
           add={props.value.variant !== 'remove'}
           remove={props.value.variant !== 'add'}
-          scheduleID={props.scheduleID} // todo
+          scheduleID={props.scheduleID}
           disabled={props.disabled}
           errors={props.errors}
           value={props.value}
