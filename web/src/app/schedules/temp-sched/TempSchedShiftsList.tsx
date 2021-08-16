@@ -72,7 +72,9 @@ export default function TempSchedShiftsList({
   let shifts = useUserInfo(value)
   if (edit) {
     shifts = shifts.filter(
-      (s) => DateTime.fromISO(s.start, { zone }) > DateTime.now().setZone(zone),
+      (s) =>
+        DateTime.fromISO(s.start, { zone }) >
+        DateTime.now().setZone(zone).startOf('hour'),
     )
   }
 
