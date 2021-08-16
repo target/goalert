@@ -19,7 +19,7 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
-		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\".`
+		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID            string `public:"true"`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
