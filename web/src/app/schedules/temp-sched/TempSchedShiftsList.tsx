@@ -23,6 +23,7 @@ import { useScheduleTZ } from './hooks'
 import Spinner from '../../loading/components/Spinner'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
+  fmtTime,
   getCoverageGapItems,
   getSubheaderItems,
   Sortable,
@@ -77,9 +78,6 @@ export default function TempSchedShiftsList({
         DateTime.now().setZone(zone).startOf('hour'),
     )
   }
-
-  const fmtTime = (dt: DateTime): string =>
-    dt.toLocaleString(DateTime.TIME_SIMPLE)
 
   const schedInterval = parseInterval({ start, end }, zone)
 
