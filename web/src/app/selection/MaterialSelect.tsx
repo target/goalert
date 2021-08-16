@@ -211,7 +211,11 @@ export default function MaterialSelect(
         )
       }}
       renderOption={({ label, icon }) => (
-        <MenuItem component='span' className={classes.menuItem}>
+        <MenuItem
+          component='span'
+          className={classes.menuItem}
+          data-cy='search-select-item'
+        >
           <Typography noWrap>{label}</Typography>
           {icon && (
             <ListItemIcon className={classes.listItemIcon}>{icon}</ListItemIcon>
