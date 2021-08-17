@@ -62,15 +62,21 @@ all: test install
 release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz
 docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/resetdb-linux-amd64 bin/resetdb-linux-arm bin/resetdb-linux-arm64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
-docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
+docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/goalert-slack-email-sync-linux-amd64 bin/goalert-slack-email-sync-linux-arm bin/goalert-slack-email-sync-linux-arm64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 docker-util: bin/goalert-slack-email-sync-linux-amd64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64 -t $(DOCKER_IMAGE_PREFIX)/util:$(DOCKER_TAG) -f devtools/ci/dockerfiles/util/Dockerfile.buildx .
 
 $(BIN_DIR)/goalert: go.sum $(GOALERT_DEPS) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+
 $(BIN_DIR)/goalert-slack-email-sync-linux-amd64: pkg/sysapi/* cmd/goalert-slack-email-sync/*
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -o $@ ./cmd/goalert-slack-email-sync
+$(BIN_DIR)/goalert-slack-email-sync-linux-arm: pkg/sysapi/* cmd/goalert-slack-email-sync/*
+	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -o $@ ./cmd/goalert-slack-email-sync
+$(BIN_DIR)/goalert-slack-email-sync-linux-arm64: pkg/sysapi/* cmd/goalert-slack-email-sync/*
+	GOOS=linux GOARCH=arm64 go build -trimpath $(BUILD_FLAGS) -o $@ ./cmd/goalert-slack-email-sync
+
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
