@@ -1,9 +1,0 @@
-FROM --platform=$BUILDPLATFORM goalert/build-env:go1.16.4-postgres13 AS binaries
-ARG BUILDPLATFORM
-COPY bin/goalert-slack-email-sync-linux-amd64 /linux/amd64/goalert-slack-email-sync
-
-FROM alpine
-ARG TARGETPLATFORM
-RUN apk --no-cache add ca-certificates
-
-COPY --from=binaries /$TARGETPLATFORM/goalert-slack-email-sync /usr/bin/goalert-slack-email-sync
