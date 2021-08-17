@@ -1,26 +1,17 @@
-import React from 'react'
+import { useEffect } from 'react'
 import p from 'prop-types'
 
-export default class MountWatcher extends React.PureComponent {
-  static propTypes = {
-    onMount: p.func,
-    onUnmount: p.func,
-  }
+export default function MountWatcher({ children, onMount, onUnmount }) {
+  useEffect(() => {
+    onMount()
+    return () => {
+      onUnmount()
+    }
+  }, [])
+  return children
+}
 
-  static defaultProps = {
-    onMount: () => {},
-    onUnmount: () => {},
-  }
-
-  componentDidMount() {
-    this.props.onMount()
-  }
-
-  componentWillUnmount() {
-    this.props.onUnmount()
-  }
-
-  render() {
-    return this.props.children
-  }
+MountWatcher.p = {
+  onMount: p.func,
+  onUnmount: p.func,
 }
