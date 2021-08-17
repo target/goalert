@@ -57,7 +57,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
     removeUserID: '',
     start: DateTime.local().startOf('hour').toISO(),
     end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
-    variant: variantOptions[0] || 'remove', // Default to first variant on the list.
+    variant: variantOptions[0] || 'remove', // Default to first variant on the list. Otherwise 'remove'.
     ...props.defaultValue,
   })
 

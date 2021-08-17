@@ -13,8 +13,6 @@ import { variantDetails } from './ScheduleCalendarOverrideDialog'
 export default function ChooseOverrideForm(props) {
   const { value, errors = [], removeUserReadOnly, ...formProps } = props
 
-  console.log('errors', errors)
-
   const handleVariantChange = (e) => {
     if (e.target.value) {
       props.onChange({ ...value, variant: e.target.value })
