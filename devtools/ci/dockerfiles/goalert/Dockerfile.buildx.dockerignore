@@ -1,4 +1,3 @@
 *
-!/bin/goalert-linux-arm
-!/bin/goalert-linux-arm64
-!/bin/goalert-linux-amd64
+!/bin/goalert-linux-*
+!/bin/goalert-slack-email-sync-linux-*

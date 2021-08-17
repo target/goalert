@@ -3,6 +3,9 @@ ARG BUILDPLATFORM
 COPY bin/goalert-linux-arm /linux/arm/v7/goalert
 COPY bin/goalert-linux-arm64 /linux/arm64/goalert
 COPY bin/goalert-linux-amd64 /linux/amd64/goalert
+COPY bin/goalert-slack-email-sync-linux-arm /linux/arm/v7/goalert-slack-email-sync
+COPY bin/goalert-slack-email-sync-linux-arm64 /linux/arm64/goalert-slack-email-sync
+COPY bin/goalert-slack-email-sync-linux-amd64 /linux/amd64/goalert-slack-email-sync
 
 FROM alpine
 ARG TARGETPLATFORM
@@ -11,5 +14,5 @@ ENV GOALERT_LISTEN :8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 
-COPY --from=binaries /$TARGETPLATFORM/goalert /usr/bin/goalert
+COPY --from=binaries /$TARGETPLATFORM/goalert /$TARGETPLATFORM/goalert-slack-email-sync /usr/bin/
 RUN /usr/bin/goalert self-test
