@@ -163,7 +163,7 @@ export function testScreen(
   })
 }
 
-export function setFavorites(ids: Array<string>): Promise<any> {
+export function setFavorites(ids: Array<string>): Promise<unknown> {
   const query = `
     mutation setFavorite($input: SetFavoriteInput!){
       setFavorite(input: $input)
