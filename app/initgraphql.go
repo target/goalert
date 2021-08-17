@@ -46,6 +46,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		NoticeStore:       *app.NoticeStore,
 		Twilio:            app.twilioConfig,
 		AuthHandler:       app.AuthHandler,
+		FormatDestFunc:    app.notificationManager.FormatDestValue,
 	}
 
 	var err error

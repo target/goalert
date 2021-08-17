@@ -276,7 +276,7 @@ web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell
 	rm -rf web/src/build/static
 	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
-notification/desttype_string.go: notification/dest.go
+notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice

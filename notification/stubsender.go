@@ -8,6 +8,6 @@ type stubSender struct{}
 
 var _ Sender = stubSender{}
 
-func (stubSender) Send(ctx context.Context, msg Message) (string, *Status, error) {
-	return "", &Status{State: StateDelivered}, nil
+func (stubSender) Send(ctx context.Context, msg Message) (*SentMessage, error) {
+	return &SentMessage{State: StateDelivered}, nil
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -68,6 +69,7 @@ type Voice struct {
 var _ notification.ReceiverSetter = &Voice{}
 var _ notification.Sender = &Voice{}
 var _ notification.StatusChecker = &Voice{}
+var _ notification.FriendlyValuer = &Voice{}
 
 type gather struct {
 	XMLName   xml.Name `xml:"Gather,omitempty"`
@@ -192,15 +194,15 @@ func spellNumber(n int) string {
 }
 
 // Send implements the notification.Sender interface.
-func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
-		return "", nil, errors.New("Twilio provider is disabled")
+		return nil, errors.New("Twilio provider is disabled")
 	}
 	toNumber := msg.Destination().Value
 
 	if toNumber == cfg.Twilio.FromNumber {
-		return "", nil, errors.New("refusing to make outgoing call to FromNumber")
+		return nil, errors.New("refusing to make outgoing call to FromNumber")
 	}
 	ctx = log.WithFields(ctx, log.Fields{
 		"Number": toNumber,
@@ -234,7 +236,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *no
 		message = "This is a message from GoAlert to verify your voice contact method. Your verification code is: " + spellNumber(t.Code) + ". Again, your verification code is: " + spellNumber(t.Code)
 		opts.CallType = CallTypeVerify
 	default:
-		return "", nil, errors.Errorf("unhandled message type: %T", t)
+		return nil, errors.Errorf("unhandled message type: %T", t)
 	}
 
 	if message == "" {
@@ -250,10 +252,10 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *no
 	voiceResponse, err := v.c.StartVoice(ctx, toNumber, opts)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "call user"))
-		return "", nil, err
+		return nil, err
 	}
 
-	return voiceResponse.SID, voiceResponse.messageStatus(), nil
+	return voiceResponse.sentMessage(), nil
 }
 
 func disabled(w http.ResponseWriter, req *http.Request) bool {
@@ -702,4 +704,13 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+}
+
+// FriendlyValue will return the international formatting of the phone number.
+func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
+	num, err := libphonenumber.Parse(value, "")
+	if err != nil {
+		return "", fmt.Errorf("parse number for formatting: %w", err)
+	}
+	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }

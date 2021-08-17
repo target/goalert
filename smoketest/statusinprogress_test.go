@@ -47,6 +47,10 @@ func TestStatusInProgress(t *testing.T) {
 		insert into user_last_alert_log (user_id, alert_id, log_id, next_log_id)
 		values
 			({{uuid "u1"}}, 1, 102, 103);
+
+		insert into outgoing_messages(message_type, user_id, contact_method_id, alert_id, service_id, escalation_policy_id, last_status, sent_at)
+		values
+			('alert_notification', {{uuid "u1"}}, {{uuid "c1"}}, 1, {{uuid "sid"}}, {{uuid "eid"}}, 'sent', now());
 	`
 
 	h := harness.NewHarness(t, sql, "sched-module-v3")
