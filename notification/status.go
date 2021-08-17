@@ -26,6 +26,7 @@ type SendResult struct {
 
 	Status
 
+	DestType DestType
 	SrcValue string
 }
 

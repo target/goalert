@@ -259,6 +259,7 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
 }
 
 type TemporarySchedule {
@@ -870,6 +871,7 @@ type AlertLogEntry {
 type NotificationState {
   details: String!
   status: NotificationStatus
+  formattedSrcValue: String!
 }
 
 enum NotificationStatus {

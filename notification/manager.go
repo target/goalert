@@ -43,6 +43,9 @@ func (mgr *Manager) SetStubNotifiers() {
 // FormatDestValue will format the destination value if an available FriendlyValuer exists
 // for the destType or return the original.
 func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, value string) string {
+	if value == "" {
+		return ""
+	}
 	mgr.mx.RLock()
 	defer mgr.mx.RUnlock()
 
