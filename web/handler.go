@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/errutil"
 	"io/fs"
 	"net/http"
 	"net/http/httputil"
@@ -78,9 +78,8 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 			Prefix:          prefix,
 			ExtraScripts:    extraScripts,
 		})
-		if err != nil {
-			log.Log(req.Context(), err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		if errutil.HTTPError(req.Context(), w, err) {
+			return
 		}
 		h := sha256.New()
 		h.Write(buf.Bytes())
