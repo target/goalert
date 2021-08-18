@@ -112,7 +112,6 @@ func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
 	}
 	var t bytes.Buffer
 	cfg := config.FromContext(ctx)
-	// sets ApplicationName and CallbackURL from config
 	err = tmpl.Execute(&t, cfg)
 	if err != nil {
 		return "", err
