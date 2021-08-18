@@ -44,7 +44,6 @@ func NewHandler(c Config) *Handler {
 
 func httpErr(w http.ResponseWriter, err error) error {
 	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	panic(err)
 }
 
 // validRequest is used to validate a request from Slack.
