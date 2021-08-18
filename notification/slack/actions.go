@@ -61,17 +61,11 @@ func validRequest(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	defer req.Body.Close()
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := ioutil.ReadAll(io.TeeReader(req.Body, sv))
 	if err != nil {
 		return httpErr(w, err)
 	}
-	req.Body.Close()
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	_, err = sv.Write(body)
-	if err != nil {
-		return httpErr(w, err)
-	}
 
 	return sv.Ensure()
 }
