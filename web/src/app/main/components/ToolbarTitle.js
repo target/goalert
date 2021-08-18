@@ -98,7 +98,7 @@ function ToolbarTitle() {
   const [applicationName] = useConfigValue('General.ApplicationName')
 
   const renderTitle = (title) => {
-    document.title = `${applicationName} - ${title}`
+    document.title = `${applicationName || document.title} - ${title}`
 
     return (
       <Typography
