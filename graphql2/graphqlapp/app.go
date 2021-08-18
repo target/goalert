@@ -91,15 +91,18 @@ func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 		Version         string
 		PackageName     string
 	}
-	data.ApplicationName = a.ConfigStore.Config().ApplicationName()
-	data.Version = playVersion
-	data.PackageName = playPackageName
 
 	err := permission.LimitCheckAny(req.Context())
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
+
+	cfg := config.FromContext(req.Context())
+
+	data.ApplicationName = cfg.ApplicationName()
+	data.Version = playVersion
+	data.PackageName = playPackageName
 
 	err = playTmpl.Execute(w, data)
 	if err != nil {
