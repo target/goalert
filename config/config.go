@@ -311,7 +311,7 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 // ApplicationName will return the General.ApplicationName
 func (cfg Config) ApplicationName() string {
 	if cfg.General.ApplicationName == "" {
-		cfg.General.ApplicationName = "GoAlert"
+		return "GoAlert"
 	}
 	return cfg.General.ApplicationName
 }
