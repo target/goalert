@@ -80,8 +80,7 @@ function testCalendar(screen: ScreenFormat): void {
 
     cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="replace-override"]').should('be.visible')
-    cy.get('button[data-cy="remove-override"]').should('be.visible')
+    cy.get('button[data-cy="override"]').should('be.visible')
   })
 
   it('should navigate by month', () => {
@@ -176,7 +175,11 @@ function testCalendar(screen: ScreenFormat): void {
         .contains('div', name)
         .click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="replace-override"]').click()
+      cy.get('button[data-cy="override"]').click()
+      cy.dialogTitle('Choose an override action')
+      cy.dialogForm({ variant: 'replace' })
+      cy.dialogClick('Next')
+
       cy.dialogTitle('Replace a User')
       cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
@@ -192,7 +195,11 @@ function testCalendar(screen: ScreenFormat): void {
       .contains('div', name)
       .click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="remove-override"]').click()
+    cy.get('button[data-cy="override"]').click()
+    cy.dialogTitle('Choose an override action')
+    cy.dialogForm({ variant: 'remove' })
+    cy.dialogClick('Next')
+
     cy.dialogTitle('Remove a User')
     cy.dialogFinish('Submit')
   })

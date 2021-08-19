@@ -57,9 +57,12 @@ export default function ScheduleCalendarOverrideDialog(props) {
     removeUserID: '',
     start: DateTime.local().startOf('hour').toISO(),
     end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
-    variant: variantOptions[0] || 'remove', // Default to first variant on the list. Otherwise 'remove'.
     ...props.defaultValue,
   })
+
+  const [activeVariant, setActiveVariant] = useState(
+    variantOptions[0] || 'replace',
+  )
 
   const { onNewTempSched } = useContext(ScheduleCalendarContext)
 
@@ -76,7 +79,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
   })
 
   const onNext = () => {
-    if (value.variant === 'temp') {
+    if (activeVariant === 'temp') {
       onNewTempSched()
       props.onClose()
     } else {
@@ -84,8 +87,12 @@ export default function ScheduleCalendarOverrideDialog(props) {
     }
   }
 
-  const handleVariantChange = (newValue) => {
+  const handleChange = (newValue) => {
     setValue(newValue)
+  }
+
+  const handleVariantChange = (newVariant) => {
+    setActiveVariant(newVariant)
   }
 
   return (
@@ -94,12 +101,12 @@ export default function ScheduleCalendarOverrideDialog(props) {
       title={
         step === 0
           ? variantDetails.choose.title
-          : variantDetails[value.variant].title
+          : variantDetails[activeVariant].title
       }
       subTitle={
         step === 0
           ? variantDetails.choose.desc
-          : variantDetails[value.variant].desc
+          : variantDetails[activeVariant].desc
       }
       errors={nonFieldErrors(error)}
       notices={notices} // create and edit dialogue
@@ -109,7 +116,9 @@ export default function ScheduleCalendarOverrideDialog(props) {
           scheduleID={props.scheduleID}
           activeStep={step}
           value={value}
-          onChange={handleVariantChange}
+          onChange={handleChange}
+          onVariantChange={handleVariantChange}
+          activeVariant={activeVariant}
           disabled={loading}
           errors={fieldErrors(error)}
           variantOptions={variantOptions}

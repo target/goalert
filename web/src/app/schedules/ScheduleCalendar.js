@@ -167,7 +167,7 @@ function ScheduleCalendar(props) {
             <Button
               variant='contained'
               color='primary'
-              data-cy='new-temp-sched'
+              data-cy='new-override'
               onClick={() =>
                 setOverrideDialog({
                   variantOptions: ['replace', 'remove', 'add', 'temp'],

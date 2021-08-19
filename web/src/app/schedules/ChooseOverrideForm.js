@@ -15,7 +15,7 @@ export default function ChooseOverrideForm(props) {
 
   const handleVariantChange = (e) => {
     if (e.target.value) {
-      props.onChange({ ...value, variant: e.target.value })
+      props.onVariantChange(e.target.value)
     }
   }
 
@@ -27,7 +27,7 @@ export default function ChooseOverrideForm(props) {
           aria-label='Choose an override action'
           name='variant'
           onChange={handleVariantChange}
-          value={value.variant}
+          value={props.activeVariant}
         >
           {props.variantOptions.map((variant) => (
             <FormControlLabel
@@ -60,8 +60,8 @@ ChooseOverrideForm.propTypes = {
   }).isRequired,
 
   disabled: p.bool.isRequired,
-
-  onChange: p.func.isRequired,
+  activeVariant: p.string.isRequired,
+  onVariantChange: p.func.isRequired,
   removeUserReadOnly: p.bool,
   variantOptions: p.arrayOf(p.string),
 }

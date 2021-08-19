@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import { FormContainer } from '../forms'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
@@ -14,15 +14,16 @@ export function ScheduleCalendarOverrideForm(props) {
           disabled={props.disabled}
           value={props.value}
           errors={props.errors}
-          onChange={props.onChange}
+          onVariantChange={props.onVariantChange}
+          activeVariant={props.activeVariant}
           removeUserReadOnly={props.removeUserReadOnly}
           variantOptions={props.variantOptions}
         />
       )}
       {activeStep === 1 && (
         <ScheduleOverrideForm
-          add={props.value.variant !== 'remove'}
-          remove={props.value.variant !== 'add'}
+          add={props.activeVariant !== 'remove'}
+          remove={props.activeVariant !== 'add'}
           scheduleID={props.scheduleID}
           disabled={props.disabled}
           errors={props.errors}
@@ -50,4 +51,6 @@ ScheduleCalendarOverrideForm.propTypes = {
   ),
   scheduleID: p.string.isRequired,
   variantOptions: p.arrayOf(p.string),
+  activeVariant: p.string.isRequired,
+  onVariantChange: p.func.isRequired,
 }

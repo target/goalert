@@ -110,7 +110,7 @@ export default function CalendarEventWrapper({ children, event }) {
         <Grid item className={classes.flexGrow} />
         <Grid item>
           <Button
-            data-cy='remove-override'
+            data-cy='override'
             size='small'
             onClick={() => handleShowOverrideForm()}
             variant='contained'
