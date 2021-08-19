@@ -377,7 +377,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			return errors.Wrap(err, "lookup code")
 		}
 
-		err = s.r.Receive(ctx, info.CallbackID, result)
+		_, err = s.r.Receive(ctx, info.CallbackID, result)
 		if err != nil {
 			return fmt.Errorf("process notification response: %w", err)
 		}

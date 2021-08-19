@@ -306,13 +306,19 @@ func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult
 	return err
 }
 
-// Receive will process a notification result.
-func (p *Engine) Receive(ctx context.Context, callbackID string, result notification.Result) error {
+// Receive will process a notification result for a contact method.
+func (p *Engine) Receive(ctx context.Context, callbackID string, result notification.Result) (*alert.Alert, error) {
+	return p.ReceiveFor(ctx, callbackID, "", "", result)
+}
+
+// Receive will process a notification result for a contact method or notification channel.
+// if contact method ID and subject ID are both empty or full, reject (must be one or other)
+func (p *Engine) ReceiveFor(ctx context.Context, callbackID, providerID, subjectID string, result notification.Result) (*alert.Alert, error) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.Receive")
 	defer sp.End()
 	cb, err := p.b.FindOne(ctx, callbackID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if cb.ServiceID != "" {
 		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
@@ -321,9 +327,49 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		ctx = log.WithField(ctx, "AlertID", cb.AlertID)
 	}
 
+	switch {
+	case cb.ContactMethodID != "" && subjectID == "":
+		ctx, err = p.ctxForCM(ctx, cb.ContactMethodID, callbackID)
+	case subjectID != "" && cb.ContactMethodID == "":
+		ctx, err = p.ctxForSubjectID(ctx, providerID, subjectID, callbackID)
+	default:
+		return nil, errors.New("expected one of subject ID or contact method ID")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var newStatus alert.Status
+	switch result {
+	case notification.ResultAcknowledge:
+		newStatus = alert.StatusActive
+	case notification.ResultResolve:
+		newStatus = alert.StatusClosed
+	default:
+		return nil, errors.New("unknown result type")
+	}
+
+	switch {
+	case cb.AlertID != 0:
+		err = errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+	case cb.ServiceID != "":
+		err = errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+	default:
+		return nil, errors.New("unknown callback type")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return p.cfg.AlertStore.FindOne(ctx, cb.AlertID)
+}
+
+// ctxForSubjectID returns a context for a user for the given contact method ID
+func (p *Engine) ctxForCM(ctx context.Context, cmID, callbackID string) (context.Context, error) {
 	var usr *user.User
+	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
+		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cmID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup contact method")
 			return
@@ -334,31 +380,37 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		}
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
 		Type: permission.SourceTypeNotificationCallback,
 		ID:   callbackID,
 	})
+	return ctx, nil
+}
 
-	var newStatus alert.Status
-	switch result {
-	case notification.ResultAcknowledge:
-		newStatus = alert.StatusActive
-	case notification.ResultResolve:
-		newStatus = alert.StatusClosed
-	default:
-		return errors.New("unknown result type")
+// ctxForSubjectID returns a context for a user for the given subject and provider IDs
+func (p *Engine) ctxForSubjectID(ctx context.Context, providerID, subjectID, callbackID string) (context.Context, error) {
+	var usr *user.User
+	var err error
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		u, serr := p.cfg.UserStore.FindBySubjectID(ctx, providerID, subjectID)
+		if serr != nil {
+			err = errors.Wrap(serr, "lookup user")
+			return
+		}
+		usr = u
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if cb.AlertID != 0 {
-		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
-	}
-	if cb.ServiceID != "" {
-		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
-	}
-
-	return errors.New("unknown callback type")
+	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
+		Type: permission.SourceTypeNotificationCallback,
+		ID:   callbackID,
+	})
+	return ctx, nil
 }
 
 // Start will enable all associated contact methods of `value` with type `t`. This should

@@ -571,18 +571,18 @@ func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) (
 	return result, nil
 }
 
-func (s *Store) FindAuthSubjectForUser(ctx context.Context, providerID, userID string) (*AuthSubject, error) {
-	var result AuthSubject
-	err := s.AuthSubjectsFunc(ctx, "", func(sub AuthSubject) error {
-		if sub.ProviderID == providerID {
-			result = sub
+func (s *Store) FindBySubjectID(ctx context.Context, providerID, subjectID string) (*User, error) {
+	var userID string
+	err := s.AuthSubjectsFunc(ctx, providerID, func(sub AuthSubject) error {
+		if sub.SubjectID == subjectID {
+			userID = sub.UserID
 		}
 		return nil
-	}, userID)
+	})
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return s.FindOne(ctx, userID)
 }
 
 // FindAll returns all users.

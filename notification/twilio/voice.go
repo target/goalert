@@ -690,7 +690,8 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			msg += ". Goodbye."
 		}
 		err := doDeadline(ctx, func() error {
-			return v.r.Receive(ctx, call.msgID, result)
+			_, err := v.r.Receive(ctx, call.msgID, result)
+			return err
 		})
 		if err != nil {
 			msg, err = voiceErrorMessage(ctx, err)

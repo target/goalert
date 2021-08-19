@@ -1,6 +1,10 @@
 package notification
 
-import "context"
+import (
+	"context"
+
+	"github.com/target/goalert/alert"
+)
 
 // A Receiver processes incoming messages and responses.
 type Receiver interface {
@@ -8,7 +12,8 @@ type Receiver interface {
 	SetMessageStatus(ctx context.Context, externalID string, status *Status) error
 
 	// Receive records a response to a previously sent message.
-	Receive(ctx context.Context, callbackID string, result Result) error
+	Receive(ctx context.Context, callbackID string, result Result) (*alert.Alert, error)
+	ReceiveFor(ctx context.Context, callbackID, providerID, subjectID string, result Result) (*alert.Alert, error)
 
 	// Start indicates a user has opted-in for notifications to this contact method.
 	Start(context.Context, Dest) error

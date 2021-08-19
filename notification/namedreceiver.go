@@ -1,6 +1,10 @@
 package notification
 
-import "context"
+import (
+	"context"
+
+	"github.com/target/goalert/alert"
+)
 
 type namedReceiver struct {
 	r  ResultReceiver
@@ -36,7 +40,12 @@ func (nr *namedReceiver) Stop(ctx context.Context, d Dest) error {
 }
 
 // Receive implements the Receiver interface by calling the underlying Receiver.Receive method.
-func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result Result) error {
+func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result Result) (*alert.Alert, error) {
 	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
 	return nr.r.Receive(ctx, callbackID, result)
+}
+
+func (nr *namedReceiver) ReceiveFor(ctx context.Context, callbackID, providerID, subjectID string, result Result) (*alert.Alert, error) {
+	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
+	return nr.r.ReceiveFor(ctx, callbackID, providerID, subjectID, result)
 }
