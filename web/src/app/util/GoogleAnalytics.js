@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
-import ReactGA from 'react-ga'
+import { event, set, pageview, initialize } from 'react-ga'
 import { Route } from 'react-router-dom'
 
 let isInitialized = false
@@ -13,7 +13,7 @@ sendGAEvent({
 })
 */
 export function sendGAEvent(eventProps) {
-  if (isInitialized) ReactGA.event(eventProps)
+  if (isInitialized) event(eventProps)
 }
 
 class GoogleAnalytics extends Component {
@@ -36,12 +36,12 @@ class GoogleAnalytics extends Component {
   logPageChange(pathname, search = '') {
     const page = pathname + search
     const { location } = window
-    ReactGA.set({
+    set({
       page,
       location: `${location.origin}${page}`,
       ...this.props.options,
     })
-    ReactGA.pageview(page)
+    pageview(page)
   }
 
   render() {
@@ -60,7 +60,7 @@ GoogleAnalytics.propTypes = {
 const RouteTracker = () => <Route component={GoogleAnalytics} />
 
 const init = (trackingID, options = {}) => {
-  ReactGA.initialize(trackingID, {
+  initialize(trackingID, {
     ...options,
   })
 
