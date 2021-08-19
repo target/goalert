@@ -315,8 +315,6 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
-	var a alert.Alert
-
 	vals := make(url.Values)
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
@@ -331,6 +329,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
+		var a alert.Alert
 		a.Summary = t.Summary
 		a.ID = t.AlertID
 		a.Status = alert.StatusTriggered
@@ -346,13 +345,12 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			SrcValue:   "",
 		}, nil
 	case notification.AlertStatus:
-		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
+		a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
 			return nil, err
 		}
-		a = *_a
 
-		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 		_, ts, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
 		if err != nil {
 			return nil, err
