@@ -21,22 +21,6 @@ type Handler struct {
 	c Config
 }
 
-// Payload represents the relevant payload information sent from Slack
-type Payload struct {
-	ResponseURL string `json:"response_url"`
-	Actions     []Action
-	Channel     slack.Channel
-}
-
-// Action represents the information given from an action event within Slack
-// e.g. clicking to acknowledge an alert from slack
-type Action struct {
-	ActionID string `json:"action_id"`
-	ActionTS string `json:"action_ts"`
-	BlockID  string `json:"block_id"`
-	Value    string
-}
-
 // NewHandler creates a new Handler, registering API routes using chi.
 func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
