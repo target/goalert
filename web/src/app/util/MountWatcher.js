@@ -1,7 +1,11 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import p from 'prop-types'
 
-export default function MountWatcher({ children, onMount, onUnmount }) {
+export default function MountWatcher({
+  children,
+  onMount = () => {},
+  onUnmount = () => {},
+}) {
   useEffect(() => {
     onMount()
     return () => {
@@ -11,7 +15,7 @@ export default function MountWatcher({ children, onMount, onUnmount }) {
   return children
 }
 
-MountWatcher.p = {
+MountWatcher.propTypes = {
   onMount: p.func,
   onUnmount: p.func,
 }
