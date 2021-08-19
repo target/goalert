@@ -345,14 +345,16 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		}
 		sentTS = ts
 	case notification.AlertStatus:
-		a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
-		if err != nil {
-			return nil, err
+		a := alert.Alert{
+			ID:      t.AlertID,
+			Summary: t.Summary,
+			Status:  t.NewAlertStatus,
 		}
-		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+
+		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 
 		// update original alert message
-		_, _, _, err = api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
+		_, _, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
 		if err != nil {
 			return nil, err
 		}

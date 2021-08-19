@@ -167,7 +167,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	slack := slack.NewHandler(slack.Config{
-		AlertStore:  app.AlertStore,
 		UserStore:   *app.UserStore,
 		AuthHandler: *app.AuthHandler,
 	})

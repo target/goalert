@@ -3,7 +3,6 @@ package slack
 import (
 	"strings"
 
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user"
@@ -12,7 +11,6 @@ import (
 // Config contains values used for the Slack notification sender and handler.
 type Config struct {
 	BaseURL     string
-	AlertStore  alert.Store
 	UserStore   user.Store // ok to have
 	AuthHandler auth.Handler
 }
