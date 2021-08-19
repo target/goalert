@@ -9,7 +9,6 @@ import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
-import ScheduleOverrideCreateDialog from '../ScheduleOverrideCreateDialog'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../../mui'
@@ -21,8 +20,8 @@ import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
-import ScheduleCalendarOverrideDialog from './ScheduleCalendarOverrideDialog'
-import { ScheduleCalendarContext } from './ScheduleDetails'
+import { ScheduleCalendarContext } from '../ScheduleDetails'
+import ScheduleCalendarOverrideDialog from '../ScheduleCalendarOverrideDialog'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 

@@ -75,57 +75,6 @@ function testTemporarySchedule(screen: string): void {
     cy.get('@step2').find('input[name="end"]').should('have.value', 12)
   })
 
-  it('should toggle timezone switches', () => {
-    const { start, end } = randInterval()
-
-    cy.get('[data-cy="new-override"]').click()
-    cy.dialogTitle('Choose an override action')
-    cy.dialogForm({ variant: 'temp' })
-    cy.dialogClick('Next')
-    cy.get(schedTimesSelector).as('step1')
-    cy.get(addShiftsSelector).as('step2')
-    cy.dialogForm(
-      { start: schedTZ(start), end: schedTZ(end) },
-      schedTimesSelector,
-    )
-    cy.get('@step1')
-      .find('input[name="start"]')
-      .should('have.value', schedTZ(start))
-    cy.get('@step1')
-      .find('input[name="end"]')
-      .should('have.value', schedTZ(end))
-    cy.get('@step1').find('[data-cy="tz-switch"]').click()
-    cy.get('@step1')
-      .find('input[name="start"]')
-      .should('have.value', schedTZ(start))
-    cy.get('@step1')
-      .find('input[name="end"]')
-      .should('have.value', schedTZ(end))
-    cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.get('@step2').should('be.visible.and.contain', 'STEP 2 OF 2')
-    cy.get('@step2').find('[data-cy="toggle-duration-off"]').click()
-    cy.get('@step2')
-      .find('input[name="start"]')
-      .should('have.value', schedTZ(start))
-    cy.get('@step2')
-      .find('input[name="end"]')
-      .should('have.value', schedTZ(start.plus({ hours: 8 })))
-    cy.get('@step2').find('[data-cy="tz-switch"]').click()
-    cy.get('@step2')
-      .find('input[name="start"]')
-      .should('have.value', schedTZ(start))
-    cy.get('@step2')
-      .find('input[name="end"]')
-      .should('have.value', schedTZ(start.plus({ hours: 8 })))
-    cy.dialogClick('Back')
-    cy.get('@step1')
-      .find('input[name="start"]')
-      .should('have.value', schedTZ(start))
-    cy.get('@step1')
-      .find('input[name="end"]')
-      .should('have.value', schedTZ(end))
-  })
-
   it("should add shift's info to form after deleting it from shift list", () => {
     cy.createTemporarySchedule({
       scheduleID: schedule.id,

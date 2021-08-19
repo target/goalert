@@ -6,7 +6,7 @@ import Popover from '@material-ui/core/Popover'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { ScheduleCalendarContext } from './ScheduleDetails'
+import { ScheduleCalendarContext } from '../ScheduleDetails'
 
 const useStyles = makeStyles({
   button: {
