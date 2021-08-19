@@ -167,10 +167,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	slack := slack.NewHandler(slack.Config{
-		AlertStore:    app.AlertStore,
-		AlertLogStore: app.AlertLogStore,
-		UserStore:     *app.UserStore,
-		AuthHandler:   *app.AuthHandler,
+		AlertStore:  app.AlertStore,
+		UserStore:   *app.UserStore,
+		AuthHandler: *app.AuthHandler,
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())

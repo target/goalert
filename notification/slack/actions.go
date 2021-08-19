@@ -6,12 +6,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 )
@@ -96,16 +95,9 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			return
 		}
 
-		alertIDStr := action.Value
-
-		// add source info to ctx to enable writing the action to alert log
-		ncID, _, err := h.c.AlertLogStore.FindNCByValue(ctx, nil, payload.Channel.ID)
-		if err != nil {
-			errutil.HTTPError(ctx, w, err)
-		}
 		ctx = permission.UserSourceContext(ctx, payload.User.ID, permission.RoleUser, &permission.SourceInfo{
 			Type: permission.SourceTypeNotificationChannel,
-			ID:   ncID,
+			ID:   payload.Channel.ID,
 		})
 
 		// process action
