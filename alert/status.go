@@ -1,7 +1,6 @@
 package alert
 
 import (
-	"database/sql/driver"
 	"fmt"
 )
 
@@ -15,12 +14,12 @@ const (
 	StatusClosed    Status = "closed"
 )
 
-func (s Status) Value() (driver.Value, error) {
+func (s Status) Value() string {
 	str := string(s)
 	if str == "" {
 		str = string(StatusTriggered)
 	}
-	return str, nil
+	return str
 }
 
 func (s *Status) Scan(value interface{}) error {
