@@ -16,8 +16,11 @@ type DB struct {
 	needsUpdate    *sql.Stmt
 	insertMessage  *sql.Stmt
 	updateStatus   *sql.Stmt
-	cleanupClosed  *sql.Stmt
+	deleteSub      *sql.Stmt
 	cmWantsUpdates *sql.Stmt
+
+	cmUnsub  *sql.Stmt
+	usrUnsub *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -37,17 +40,35 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		lock: lock,
 
+		cmUnsub: p.P(`
+			delete from alert_status_subscriptions where id in (
+				select stat.id from alert_status_subscriptions stat
+				where not exists (select true from user_contact_methods cm where cm.id = stat.contact_method_id and cm.disabled = false)
+				limit 100
+				for update skip locked
+			)
+		`),
+
+		usrUnsub: p.P(`
+			delete from alert_status_subscriptions where id in (
+				select stat.id from alert_status_subscriptions stat
+				where not exists (select true from users u where u.alert_status_log_contact_method_id = stat.contact_method_id)
+				limit 100
+				for update skip locked
+			)
+		`),
+
 		cmWantsUpdates: p.P(`
-			select coalesce(u.alert_status_log_contact_method_id = $1, false), u.id
+			select u.id
 			from user_contact_methods cm
-			join users u on u.id = cm.user_id
+			join users u on u.id = cm.user_id and u.alert_status_log_contact_method_id = $1
 			where cm.id = $1 and not cm.disabled
 		`),
 
 		needsUpdate: p.P(`
-			select sub.id, channel_id, contact_method_id, alert_id, a.status
+			select sub.id, channel_id, contact_method_id, alert_id, (select status from alerts a where a.id = sub.alert_id)
 			from alert_status_subscriptions sub
-			join alerts a on a.id = sub.alert_id and a.status != sub.last_alert_status
+			where sub.last_alert_status != (select status from alerts a where a.id = sub.alert_id)
 			limit 1
 			for update skip locked
 		`),
@@ -65,13 +86,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		latestLogEntry: p.P(`
-			select id from alert_logs
-			where alert_id = $1 and event = $2
+			select id, sub_user_id from alert_logs
+			where alert_id = $1 and event = $2 and timestamp > now() - '1 hour'::interval
 			order by id desc
 			limit 1
 		`),
 
-		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
-		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
+		updateStatus: p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
+		deleteSub:    p.P(`delete from alert_status_subscriptions where id = $1`),
 	}, p.Err
 }

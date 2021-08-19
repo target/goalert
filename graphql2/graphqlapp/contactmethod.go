@@ -3,18 +3,15 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"github.com/ttacon/libphonenumber"
 )
 
 type ContactMethod App
@@ -32,53 +29,11 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 	if err != nil {
 		return "", err
 	}
-	return maskURLPass(u), nil
-}
-
-func maskURLPass(u *url.URL) string {
-	if u.User == nil {
-		return u.String()
-	}
-
-	_, ok := u.User.Password()
-	if !ok {
-		return u.String()
-	}
-
-	u.User = url.UserPassword(u.User.Username(), "")
-
-	parts := strings.SplitN(u.String(), "@", 2)
-	parts[0] += "***"
-	return strings.Join(parts, "@")
+	return webhook.MaskURLPass(u), nil
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	formatted, err := a.Value(ctx, obj)
-	if err != nil {
-		return "", err
-	}
-
-	switch obj.Type {
-	case contactmethod.TypeSMS, contactmethod.TypeVoice:
-		num, err := libphonenumber.Parse(formatted, "")
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("parse number for formatting: %w", err))
-			break
-		}
-		formatted = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
-	case contactmethod.TypeWebhook:
-		u, err := url.Parse(formatted)
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("parse url for formatting: %w", err))
-			break
-		}
-		u.RawQuery = ""
-		if len(u.Path) > 15 {
-			u.Path = u.Path[:12] + "..."
-		}
-		formatted = maskURLPass(u)
-	}
-	return formatted, nil
+	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -95,7 +50,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(status.Status), nil
+	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
 	t := obj.LastTestVerifyAt()
@@ -111,7 +66,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(status.Status), nil
+	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
 
 func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {

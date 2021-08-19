@@ -31,6 +31,7 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  generateSlackAppManifest: string
 }
 
 export interface SlackChannelSearchOptions {
@@ -181,6 +182,7 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
 }
 
 export interface TemporarySchedule {
@@ -670,6 +672,7 @@ export interface AlertLogEntry {
 export interface NotificationState {
   details: string
   status?: NotificationStatus
+  formattedSrcValue: string
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'

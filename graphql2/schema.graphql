@@ -101,6 +101,8 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  generateSlackAppManifest: String!
 }
 
 input SlackChannelSearchOptions {
@@ -257,6 +259,7 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
 }
 
 type TemporarySchedule {
@@ -861,6 +864,7 @@ type AlertLogEntry {
 type NotificationState {
   details: String!
   status: NotificationStatus
+  formattedSrcValue: String!
 }
 
 enum NotificationStatus {

@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CalendarEventWrapper({ children, event }) {
+export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
@@ -191,6 +191,6 @@ export default function CalendarEventWrapper({ children, event }) {
   )
 }
 
-CalendarEventWrapper.propTypes = {
+ScheduleCalendarEventWrapper.propTypes = {
   event: p.object.isRequired,
 }
