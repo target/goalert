@@ -298,7 +298,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			r.subject._type = SubjectTypeChannel
 			var ncType notificationchannel.Type
 			var name string
-			err = db.lookupNCTypeName.QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			err = txWrap(ctx, tx, db.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
 				return errors.Wrap(err, "lookup notification channel type and name for callback ID")
 			}
