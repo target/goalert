@@ -6,3 +6,4 @@ ALTER TABLE user_favorites
 ALTER TABLE user_favorites
     DROP CONSTRAINT user_favories_user_id_tgt_user_id_key, 
     DROP COLUMN tgt_user_id;
+    

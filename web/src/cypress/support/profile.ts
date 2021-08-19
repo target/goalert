@@ -1,7 +1,21 @@
 import { Chance } from 'chance'
-import { setFavorites } from './util'
 
 const c = new Chance()
+
+function setFavoriteUser(id: string): Cypress.Chainable {
+  const query = `
+    mutation setFavorite($input: SetFavoriteInput!){
+      setFavorite(input: $input)
+    }
+  `
+
+  return cy.graphql(query, {
+    input: {
+      target: { type: 'user', id: id },
+      favorite: true,
+    },
+  })
+}
 
 function createManyUsers(
   users: Array<UserOptions>,
@@ -21,10 +35,13 @@ function createManyUsers(
       .join(',') +
     `;`
 
-  return cy.sql(dbQuery).then(() => {
-    const userIDs = profiles.filter((p) => p.isFavorite).map((u) => u.id)
-    return setFavorites(userIDs).then(() => profiles)
-  })
+  return cy
+    .sql(dbQuery)
+    .then(() =>
+      Promise.all(
+        profiles.filter((p) => p.isFavorite).map((u) => setFavoriteUser(u.id)),
+      ).then(() => profiles),
+    )
 }
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {
