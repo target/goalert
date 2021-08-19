@@ -35,7 +35,6 @@ type Store interface {
 	CreateOrUpdateTx(context.Context, *sql.Tx, *Alert) (a *Alert, isNew bool, err error)
 
 	FindAllSummary(ctx context.Context) ([]Summary, error)
-	Escalate(ctx context.Context, alertID int) error
 	EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	GetCreationTime(ctx context.Context, alertID int) (time.Time, error)
 
@@ -46,6 +45,7 @@ type Store interface {
 type Manager interface {
 	FindOne(context.Context, int) (*Alert, error)
 	FindMany(context.Context, []int) ([]Alert, error)
+	Escalate(ctx context.Context, alertID int) error
 	UpdateStatus(context.Context, int, Status) error
 	UpdateStatusByService(ctx context.Context, serviceID string, status Status) error
 	UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) (updatedAlertIDs []int, err error)

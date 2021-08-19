@@ -343,6 +343,8 @@ func (p *Engine) ReceiveFor(ctx context.Context, callbackID, providerID, subject
 	switch result {
 	case notification.ResultAcknowledge:
 		newStatus = alert.StatusActive
+	case notification.ResultEscalate:
+		newStatus = alert.StatusTriggered
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
 	default:
@@ -350,6 +352,8 @@ func (p *Engine) ReceiveFor(ctx context.Context, callbackID, providerID, subject
 	}
 
 	switch {
+	case newStatus == alert.StatusTriggered && cb.AlertID != 0:
+		err = errors.Wrap(p.am.Escalate(ctx, cb.AlertID), "escalate alert")
 	case cb.AlertID != 0:
 		err = errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	case cb.ServiceID != "":

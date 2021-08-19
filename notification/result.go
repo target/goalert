@@ -9,4 +9,5 @@ type Result int
 const (
 	ResultAcknowledge Result = iota
 	ResultResolve
+	ResultEscalate
 )
