@@ -28,3 +28,8 @@ func (c Config) url(path string) string {
 
 	return "https://slack.com" + path
 }
+
+// ReceiverSetter is an optional interface a Sender can implement for use with two-way interactions.
+type ReceiverSetter interface {
+	SetReceiver(notification.Receiver)
+}

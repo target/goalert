@@ -19,12 +19,16 @@ import (
 // Handler responds to API requests from Slack
 type Handler struct {
 	c Config
+	r notification.Receiver
 }
 
 // NewHandler creates a new Handler, registering API routes using chi.
 func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
+
+// SetReceiver sets the notification.Receiver for incoming messages and status updates.
+func (h *Handler) SetReceiver(r notification.Receiver) { h.r = r }
 
 // validRequest is used to validate a request from Slack.
 // If the request is validated true is returned, false otherwise.
@@ -104,32 +108,25 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			ID:   ncID,
 		})
 
-		// handle button clicked within Slack
-		alertID, err := strconv.Atoi(alertIDStr)
-		if err != nil {
-			errutil.HTTPError(ctx, w, err)
-		}
-
-		var actionErr error
+		// process action
+		var actionType notification.Result
 		switch action.ActionID {
 		case "ack":
-			actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
+			actionType = notification.ResultAcknowledge
 		case "esc":
-			actionErr = h.c.AlertStore.Escalate(ctx, alertID)
+			actionType = notification.ResultEscalate
 		case "close":
-			actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+			actionType = notification.ResultResolve
+		default:
+			errutil.HTTPError(ctx, w, errors.New("unknown action"))
 		}
-		if actionErr != nil {
-			errutil.HTTPError(ctx, w, err)
-		}
-
-		a, err := h.c.AlertStore.FindOne(ctx, alertID)
+		a, err := h.r.ReceiveFor(ctx, "callbackID", "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		if err != nil {
 			errutil.HTTPError(ctx, w, err)
 		}
-		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+alertIDStr), payload.ResponseURL)
 
 		// update original message in Slack
+		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
 		_, _, err = api.PostMessageContext(ctx, payload.Channel.ID, msgOpt...)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
