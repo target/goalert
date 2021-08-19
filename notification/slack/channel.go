@@ -315,95 +315,77 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
-	vals := make(url.Values)
+	var sentTS string
+
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
-	vals.Set("channel", msg.Destination().Value)
 	switch t := msg.(type) {
 	case notification.Alert:
 		if t.OriginalStatus != nil {
-			// Reply in thread if we already sent a message for this alert.
-			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Broadcasting to channel due to repeat notification.")
-			vals.Set("reply_broadcast", "true")
+			// Reply in thread and broadcast to channel if we already sent a message for this alert.
+			threadTS := t.OriginalStatus.ProviderMessageID.ExternalID
+			text := "Broadcasting to channel due to repeat notification."
+			_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, slack.MsgOptionTS(threadTS), slack.MsgOptionBroadcast(), slack.MsgOptionText(text, false))
+			if err != nil {
+				return nil, err
+			}
+			sentTS = ts
 			break
 		}
 
-		var a alert.Alert
-		a.Summary = t.Summary
-		a.ID = t.AlertID
-		a.Status = alert.StatusTriggered
-
+		a := alert.Alert{
+			ID:      t.AlertID,
+			Summary: t.Summary,
+			Status:  alert.StatusTriggered,
+		}
 		msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
-		return &notification.SentMessage{
-			ExternalID: ts,
-			State:      notification.StateDelivered,
-			SrcValue:   "",
-		}, nil
+		sentTS = ts
 	case notification.AlertStatus:
 		a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
 			return nil, err
 		}
-
 		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
-		_, ts, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
+
+		// update original alert message
+		_, _, _, err = api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
-		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-		// todo, post to thread
-		return &notification.SentMessage{
-			ExternalID: ts,
-			State:      notification.StateDelivered,
-			SrcValue:   "",
-		}, nil
-	case notification.AlertBundle:
-		vals.Set("token", cfg.Slack.AccessToken)
-		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
-		return post(s, vals)
-	case notification.ScheduleOnCallUsers:
-		vals.Set("text", s.onCallNotificationText(ctx, t))
-		return post(s, vals)
-	}
 
-	return nil, errors.Errorf("unsupported message type: %T", msg.Type())
-}
-
-func post(s *ChannelSender, vals url.Values) (*notification.SentMessage, error) {
-	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("non-200 response: %s", resp.Status)
-	}
-
-	var resData struct {
-		OK      bool
-		Error   string
-		TS      string
-		Message struct {
-			BotID string `json:"bot_id"`
+		// send status update message as a thread reply to the original alert message
+		threadTS := t.OriginalStatus.ProviderMessageID.ExternalID
+		text := "Status Update: " + t.NewAlertStatus.Value() + "\n" + t.LogEntry
+		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, slack.MsgOptionTS(threadTS), slack.MsgOptionText(text, false))
+		if err != nil {
+			return nil, err
 		}
-	}
-	err = json.NewDecoder(resp.Body).Decode(&resData)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode response")
-	}
-	if !resData.OK {
-		return nil, errors.Errorf("Slack error: %s", resData.Error)
+		sentTS = ts
+	case notification.AlertBundle:
+		text := fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts"))
+		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, slack.MsgOptionText(text, false))
+		if err != nil {
+			return nil, err
+		}
+		sentTS = ts
+	case notification.ScheduleOnCallUsers:
+		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
+		if err != nil {
+			return nil, err
+		}
+		sentTS = ts
+	default:
+		return nil, errors.Errorf("unsupported message type: %T", msg.Type())
 	}
 
 	return &notification.SentMessage{
-		ExternalID: resData.TS,
+		ExternalID: sentTS,
 		State:      notification.StateDelivered,
-		SrcValue:   resData.Message.BotID,
+		SrcValue:   "",
 	}, nil
 }
 
