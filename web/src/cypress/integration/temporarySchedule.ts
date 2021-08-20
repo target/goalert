@@ -108,7 +108,10 @@ function testTemporarySchedule(screen: string): void {
 
   it('should create a temporary schedule', () => {
     const { start, end } = randInterval()
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose an override action')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.dialogForm(
       { start: schedTZ(start), end: schedTZ(end) },
       schedTimesSelector,

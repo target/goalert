@@ -112,7 +112,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
           <Button
             data-cy='override'
             size='small'
-            onClick={() => handleShowOverrideForm()}
+            onClick={handleShowOverrideForm}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${event.title} from this schedule`}
