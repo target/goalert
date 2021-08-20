@@ -46,9 +46,15 @@ type SearchCursor struct {
 	IsFavorite bool   `json:"f,omitempty"`
 }
 
+<<<<<<< HEAD
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT DISTINCT ON ({{ .OrderBy }})
 		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
+=======
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
+	SELECT DISTINCT ON (lower(usr.name))
+		usr.id, usr.name, usr.email, usr.role
+>>>>>>> 04022b57d63659dde128463ace077a462f90170e
 	FROM users usr
 	{{ if .CMValue }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
@@ -60,8 +66,8 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
 	{{end}}
-	{{if .SearchStr}}
-		AND usr.name ILIKE :search
+	{{if .Search}}
+		AND {{textSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
 	AND {{if not .FavoritesFirst}}
@@ -84,6 +90,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 
 type renderData SearchOptions
 
+<<<<<<< HEAD
 func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
 		return "fav isnull, lower(usr.name)"
@@ -99,6 +106,8 @@ func (opts renderData) SearchStr() string {
 	return "%" + search.Escape(opts.Search) + "%"
 }
 
+=======
+>>>>>>> 04022b57d63659dde128463ace077a462f90170e
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
@@ -133,7 +142,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("CMValue", opts.CMValue),

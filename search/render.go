@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,6 +15,25 @@ import (
 // of all possible arguments.
 type RenderData interface {
 	QueryArgs() []sql.NamedArg
+}
+
+// Helpers returns a map of all the helper functions that can be used in a template.
+func Helpers() template.FuncMap {
+	return template.FuncMap{
+		"textSearch": func(argName string, columnNames ...string) string {
+			var buf strings.Builder
+			buf.WriteRune('(')
+			for i, columnName := range columnNames {
+				if i > 0 {
+					buf.WriteString(" OR ")
+				}
+				buf.WriteString(fmt.Sprintf("to_tsvector('english', replace(lower(%s), '.', ' ')) @@ plainto_tsquery('english', replace(lower(:%s),'.',' '))", columnName, argName))
+			}
+
+			buf.WriteRune(')')
+			return buf.String()
+		},
+	}
 }
 
 // RenderQuery will render a search query with the given template and data.
