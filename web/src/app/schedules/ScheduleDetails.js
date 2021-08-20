@@ -8,7 +8,7 @@ import { Edit, Delete } from '@material-ui/icons'
 import DetailsPage from '../details/DetailsPage'
 import ScheduleEditDialog from './ScheduleEditDialog'
 import ScheduleDeleteDialog from './ScheduleDeleteDialog'
-import ScheduleCalendarQuery from './ScheduleCalendarQuery'
+import ScheduleCalendarQuery from './calendar/ScheduleCalendarQuery'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
@@ -16,6 +16,7 @@ import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 import { ScheduleAvatar } from '../util/avatars'
+import { useConfigValue } from '../util/RequireConfig'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -36,6 +37,8 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+
+  const [slackEnabled] = useConfigValue('Slack.Enable')
 
   const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
   const onEditTempSched = useCallback(setConfigTempSchedule, [])
@@ -142,6 +145,13 @@ export default function ScheduleDetails({ scheduleID }) {
             label: 'Shifts',
             url: 'shifts',
             subText: 'Review a list of past and future on-call shifts',
+          },
+
+          // only slack is supported ATM, so hide the link if disabled
+          slackEnabled && {
+            label: 'On-Call Notifications',
+            url: 'on-call-notifications',
+            subText: 'Set up notifications to know who is on-call',
           },
         ]}
       />

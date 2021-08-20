@@ -52,7 +52,7 @@ import (
 type App struct {
 	DB             *sql.DB
 	AuthBasicStore *basic.Store
-	UserStore      user.Store
+	UserStore      *user.Store
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
 	NCStore        notificationchannel.Store
@@ -72,7 +72,7 @@ type App struct {
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
-	HeartbeatStore heartbeat.Store
+	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
 	AuthHandler *auth.Handler
@@ -81,6 +81,8 @@ type App struct {
 	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store
+
+	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
 func mustAuth(h http.Handler) http.Handler {

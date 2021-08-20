@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { useURLParam } from '../actions'
-import { getStartOfWeek } from '../util/luxon-helpers'
+import { useURLParam } from '../../actions'
+import { getStartOfWeek } from '../../util/luxon-helpers'
 
 interface CalendarNavigation {
   weekly: boolean
@@ -14,8 +14,8 @@ export function useCalendarNavigation(): CalendarNavigation {
   const [start, setStart] = useURLParam(
     'start',
     weekly
-      ? getStartOfWeek().toUTC().toISO()
-      : DateTime.local().startOf('month').toUTC().toISO(),
+      ? getStartOfWeek().toISODate()
+      : DateTime.now().startOf('month').toISODate(),
   )
 
   return {

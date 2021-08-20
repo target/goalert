@@ -31,6 +31,7 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  generateSlackAppManifest: string
 }
 
 export interface SlackChannelSearchOptions {
@@ -181,6 +182,7 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
 }
 
 export interface TemporarySchedule {
@@ -211,6 +213,7 @@ export interface SetScheduleShiftInput {
 export interface Mutation {
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
+  setScheduleOnCallNotificationRules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -458,6 +461,26 @@ export interface Schedule {
   target?: ScheduleTarget
   isFavorite: boolean
   temporarySchedules: TemporarySchedule[]
+  onCallNotificationRules: OnCallNotificationRule[]
+}
+
+export interface SetScheduleOnCallNotificationRulesInput {
+  scheduleID: string
+  rules: OnCallNotificationRuleInput[]
+}
+
+export interface OnCallNotificationRuleInput {
+  id?: string
+  target: TargetInput
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
+}
+
+export interface OnCallNotificationRule {
+  id: string
+  target: Target
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface OnCallShift {
@@ -649,6 +672,7 @@ export interface AlertLogEntry {
 export interface NotificationState {
   details: string
   status?: NotificationStatus
+  formattedSrcValue: string
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
@@ -837,7 +861,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string
@@ -946,5 +970,7 @@ type ConfigID =
   | 'SMTP.SkipVerify'
   | 'SMTP.Username'
   | 'SMTP.Password'
+  | 'Webhook.Enable'
+  | 'Webhook.AllowedURLs'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

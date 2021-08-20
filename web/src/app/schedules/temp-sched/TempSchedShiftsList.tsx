@@ -13,10 +13,11 @@ import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
-import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
+import { useScheduleTZ } from './hooks'
+import Spinner from '../../loading/components/Spinner'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -30,6 +31,9 @@ const useStyles = makeStyles((theme) => {
     shiftsContainer: {
       paddingRight: '0.5rem',
     },
+    listSpinner: {
+      marginTop: '20rem',
+    },
   }
 })
 
@@ -41,6 +45,8 @@ type TempSchedShiftsListProps = {
   end: string
 
   edit?: boolean
+
+  scheduleID: string
 }
 
 export default function TempSchedShiftsList({
@@ -49,11 +55,14 @@ export default function TempSchedShiftsList({
   end,
   value,
   onRemove,
+  scheduleID,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const _shifts = useUserInfo(value)
-  const [zone] = useURLParam('tz', 'local')
-  const schedInterval = parseInterval({ start, end })
+  const { q, zone } = useScheduleTZ(scheduleID)
+  const timeFmt = 'h:mm a'
+
+  const schedInterval = parseInterval({ start, end }, zone)
 
   function items(): FlatListListItem[] {
     // render helpful message if interval is invalid
@@ -133,12 +142,12 @@ export default function TempSchedShiftsList({
       // add start time of temp schedule to top of list
       // for day that it will start on
       if (dayStart.day === schedInterval.start.day) {
-        let details = `Starts at ${DateTime.fromISO(start)
-          .setZone(zone)
-          .toFormat('h:mm a')}`
+        let details = `Starts at ${DateTime.fromISO(start, { zone }).toFormat(
+          timeFmt,
+        )}`
         let message = ''
 
-        if (edit && DateTime.fromISO(start) < DateTime.utc()) {
+        if (edit && DateTime.fromISO(start, { zone }) < DateTime.utc()) {
           message = 'Currently active'
           details = 'Historical shifts will not be displayed'
         }
@@ -176,7 +185,7 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage until ${s.start
               .setZone(zone)
-              .toFormat('h:mm a')}`,
+              .toFormat(timeFmt)}`,
           })
         }
 
@@ -245,8 +254,8 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage from ${s.end
               .setZone(zone)
-              .toFormat('h:mm a')} to 
-            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat('h:mm a')}`,
+              .toFormat(timeFmt)} to 
+            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat(timeFmt)}`,
           })
         }
 
@@ -270,7 +279,7 @@ export default function TempSchedShiftsList({
             message: '',
             details: `No coverage after ${s.end
               .setZone(zone)
-              .toFormat('h:mm a')}`,
+              .toFormat(timeFmt)}`,
           })
         }
       })
@@ -282,9 +291,7 @@ export default function TempSchedShiftsList({
       type: 'OK',
       icon: <ScheduleIcon />,
       message: '',
-      details: `Ends at ${DateTime.fromISO(end)
-        .setZone(zone)
-        .toFormat('h:mm a')}`,
+      details: `Ends at ${DateTime.fromISO(end, { zone }).toFormat(timeFmt)}`,
     })
 
     return result
@@ -295,13 +302,19 @@ export default function TempSchedShiftsList({
       <Typography variant='subtitle1' component='h3'>
         Shifts
       </Typography>
-      <FlatList
-        data-cy='shifts-list'
-        items={items()}
-        emptyMessage='Add a user to the left to get started.'
-        dense
-        transition
-      />
+      {q.loading ? (
+        <div className={classes.listSpinner}>
+          <Spinner />
+        </div>
+      ) : (
+        <FlatList
+          data-cy='shifts-list'
+          items={items()}
+          emptyMessage='Add a user to the left to get started.'
+          dense
+          transition
+        />
+      )}
     </div>
   )
 }

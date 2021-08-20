@@ -25,60 +25,25 @@ const mutation = gql`
   }
 `
 
-export default class ServiceLabelDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-    labelKey: p.string.isRequired,
-    onClose: p.func,
-  }
-
-  renderMutation() {
-    return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        update={(cache) => {
-          const { service } = cache.readQuery({
-            query: updateQuery,
-            variables: { id: this.props.serviceID },
-          })
-          cache.writeQuery({
-            query: updateQuery,
-            variables: { id: this.props.serviceID },
-            data: {
-              service: {
-                ...service,
-                labels: (service.labels || []).filter(
-                  (l) => l.key !== this.props.labelKey,
-                ),
-              },
-            },
-          })
-        }}
-      >
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, mutStatus) {
+export default function ServiceLabelDeleteDialog(props) {
+  const { labelKey, onClose, serviceID } = props
+  function renderDialog(commit, mutStatus) {
     const { loading, error } = mutStatus
-
     return (
       <FormDialog
         title='Are you sure?'
         confirm
-        subTitle={`This will delete the label: ${this.props.labelKey}`}
+        subTitle={`This will delete the label: ${labelKey}`}
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={onClose}
         onSubmit={() => {
           const input = {
-            key: this.props.labelKey,
+            key: labelKey,
             value: '',
             target: {
               type: 'service',
-              id: this.props.serviceID,
+              id: serviceID,
             },
           }
           return commit({
@@ -91,7 +56,40 @@ export default class ServiceLabelDeleteDialog extends React.PureComponent {
     )
   }
 
-  render() {
-    return this.renderMutation()
+  function renderMutation() {
+    return (
+      <Mutation
+        mutation={mutation}
+        onCompleted={onClose}
+        update={(cache) => {
+          const { service } = cache.readQuery({
+            query: updateQuery,
+            variables: { id: serviceID },
+          })
+          cache.writeQuery({
+            query: updateQuery,
+            variables: { id: serviceID },
+            data: {
+              service: {
+                ...service,
+                labels: (service.labels || []).filter(
+                  (l) => l.key !== labelKey,
+                ),
+              },
+            },
+          })
+        }}
+      >
+        {(commit, status) => renderDialog(commit, status)}
+      </Mutation>
+    )
   }
+
+  return renderMutation()
+}
+
+ServiceLabelDeleteDialog.propTypes = {
+  serviceID: p.string.isRequired,
+  labelKey: p.string.isRequired,
+  onClose: p.func,
 }

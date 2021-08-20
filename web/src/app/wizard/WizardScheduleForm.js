@@ -14,7 +14,7 @@ import InfoIcon from '@material-ui/icons/Info'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
-import { set } from 'lodash'
+import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 
 const styles = {
@@ -50,20 +50,16 @@ export default class WizardScheduleForm extends React.Component {
 
   handleRotationTypeChange = (e) => {
     const { onChange, value } = this.props
-    onChange(set(value, [this.getKey(), 'rotation', 'type'], e.target.value))
-    this.forceUpdate()
+    const newVal = _.cloneDeep(value)
+    newVal[this.getKey()].rotation.type = e.target.value
+    onChange(newVal)
   }
 
   handleFollowTheSunToggle = (e) => {
     const { onChange, value } = this.props
-    onChange(
-      set(
-        value,
-        [this.getKey(), 'followTheSunRotation', 'enable'],
-        e.target.value,
-      ),
-    )
-    this.forceUpdate()
+    const newVal = _.cloneDeep(value)
+    newVal[this.getKey()].followTheSunRotation.enable = e.target.value
+    onChange(newVal)
   }
 
   /*

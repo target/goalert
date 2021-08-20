@@ -78,7 +78,7 @@ export default function HeartbeatMonitorList(props) {
               monitor.timeoutMinutes > 1 ? 's' : ''
             }`}
             <br />
-            <CopyText title='Copy URL' value={monitor.href} />
+            <CopyText title='Copy URL' value={monitor.href} asURL />
           </React.Fragment>
         ),
         secondaryAction: (

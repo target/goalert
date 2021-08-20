@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"

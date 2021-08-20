@@ -1,13 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
-import Query from '../util/Query'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Grid, Card } from '@material-ui/core'
 import FilterContainer from '../util/FilterContainer'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { startCase, sortBy } from 'lodash'
 import { RotationAvatar, UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
@@ -17,7 +14,9 @@ import ScheduleRuleCreateDialog from './ScheduleRuleCreateDialog'
 import { ruleSummary } from './util'
 import ScheduleRuleEditDialog from './ScheduleRuleEditDialog'
 import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
-import { resetURLParams } from '../actions'
+import { useResetURLParams, useURLParam } from '../actions'
+import { GenericError } from '../error-pages'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -41,39 +40,32 @@ const query = gql`
   }
 `
 
-@connect(
-  (state) => ({ zone: urlParamSelector(state)('tz', 'local') }),
-  (dispatch) => ({ resetFilter: () => dispatch(resetURLParams('tz')) }),
-)
-export default class ScheduleRuleList extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
+export default function ScheduleRuleList(props) {
+  const [editTarget, setEditTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [createType, setCreateType] = useState(null)
+
+  const [zone] = useURLParam('tz', 'local')
+  const resetFilter = useResetURLParams('tz')
+
+  const { data, loading, error } = useQuery(query, {
+    variables: { id: props.scheduleID },
+    pollInterval: 0,
+  })
+
+  if (error) {
+    return <GenericError error={error.message} />
   }
 
-  state = {
-    editTarget: null,
-    deleteTarget: null,
-    createType: null,
+  if (loading && !data) {
+    return <Spinner />
   }
 
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        render={({ data }) =>
-          this.renderList(data.schedule.targets, data.schedule.timeZone)
-        }
-      />
-    )
-  }
-
-  getHeaderNote() {
-    const zone = this.props.zone
+  function getHeaderNote() {
     return `Showing times in ${zone === 'local' ? 'local time' : zone}.`
   }
 
-  renderList(targets, timeZone) {
+  function renderList(targets, timeZone) {
     const items = []
 
     let lastType
@@ -87,7 +79,7 @@ export default class ScheduleRuleList extends React.PureComponent {
       items.push({
         title: name,
         url: (type === 'rotation' ? '/rotations/' : '/users/') + id,
-        subText: ruleSummary(tgt.rules, timeZone, this.props.zone),
+        subText: ruleSummary(tgt.rules, timeZone, zone),
         icon:
           type === 'rotation' ? <RotationAvatar /> : <UserAvatar userID={id} />,
         secondaryAction: (
@@ -95,11 +87,11 @@ export default class ScheduleRuleList extends React.PureComponent {
             actions={[
               {
                 label: 'Edit',
-                onClick: () => this.setState({ editTarget: { type, id } }),
+                onClick: () => setEditTarget({ type, id }),
               },
               {
                 label: 'Delete',
-                onClick: () => this.setState({ deleteTarget: { type, id } }),
+                onClick: () => setDeleteTarget({ type, id }),
               },
             ]}
           />
@@ -114,23 +106,23 @@ export default class ScheduleRuleList extends React.PureComponent {
           actions={[
             {
               label: 'Add Rotation',
-              onClick: () => this.setState({ createType: 'rotation' }),
+              onClick: () => setCreateType('rotation'),
               icon: <AccountMultiplePlus />,
             },
             {
               label: 'Add User',
-              onClick: () => this.setState({ createType: 'user' }),
+              onClick: () => setCreateType('user'),
               icon: <AccountPlus />,
             },
           ]}
         />
         <Card style={{ width: '100%', marginBottom: 64 }}>
           <FlatList
-            headerNote={this.getHeaderNote()}
+            headerNote={getHeaderNote()}
             headerAction={
-              <FilterContainer onReset={() => this.props.resetFilter()}>
+              <FilterContainer onReset={() => resetFilter()}>
                 <Grid item xs={12}>
-                  <ScheduleTZFilter scheduleID={this.props.scheduleID} />
+                  <ScheduleTZFilter scheduleID={props.scheduleID} />
                 </Grid>
               </FilterContainer>
             }
@@ -138,28 +130,34 @@ export default class ScheduleRuleList extends React.PureComponent {
           />
         </Card>
 
-        {this.state.createType && (
+        {createType && (
           <ScheduleRuleCreateDialog
-            targetType={this.state.createType}
-            scheduleID={this.props.scheduleID}
-            onClose={() => this.setState({ createType: null })}
+            targetType={createType}
+            scheduleID={props.scheduleID}
+            onClose={() => setCreateType(null)}
           />
         )}
-        {this.state.editTarget && (
+        {editTarget && (
           <ScheduleRuleEditDialog
-            target={this.state.editTarget}
-            scheduleID={this.props.scheduleID}
-            onClose={() => this.setState({ editTarget: null })}
+            target={editTarget}
+            scheduleID={props.scheduleID}
+            onClose={() => setEditTarget(null)}
           />
         )}
-        {this.state.deleteTarget && (
+        {deleteTarget && (
           <ScheduleRuleDeleteDialog
-            target={this.state.deleteTarget}
-            scheduleID={this.props.scheduleID}
-            onClose={() => this.setState({ deleteTarget: null })}
+            target={deleteTarget}
+            scheduleID={props.scheduleID}
+            onClose={() => setDeleteTarget(null)}
           />
         )}
       </React.Fragment>
     )
   }
+
+  return renderList(data.schedule.targets, data.schedule.timeZone)
+}
+
+ScheduleRuleList.propTypes = {
+  scheduleID: p.string.isRequired,
 }

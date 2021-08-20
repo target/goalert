@@ -4,7 +4,10 @@ import "time"
 
 // Data contains configuration for a single schedule.
 type Data struct {
-	V1 struct{ TemporarySchedules []TemporarySchedule }
+	V1 struct {
+		TemporarySchedules      []TemporarySchedule
+		OnCallNotificationRules []OnCallNotificationRule
+	}
 }
 
 // TempOnCall will calculate any on-call users for the given time. isActive will
