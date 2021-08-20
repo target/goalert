@@ -84,9 +84,15 @@ function SearchUpdater(props) {
     mounted.current = true
     trackMount(true)
     setActions(children)
+
+    return () => {
+      mounted.current = false
+      trackMount(false)
+      setActions(null)
+    }
   }, [])
 
-  if (mounted) {
+  if (mounted.current) {
     setActions(children)
   }
 
