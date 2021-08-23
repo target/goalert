@@ -47,8 +47,8 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
-	SELECT DISTINCT ON (lower(usr.name))
-		usr.id, usr.name, usr.email, usr.role
+	SELECT DISTINCT ON ({{ .OrderBy }})
+		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
 	FROM users usr
 	{{ if .CMValue }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
