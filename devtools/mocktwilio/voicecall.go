@@ -150,7 +150,7 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		hangupCh:  make(chan struct{}),
 	}
 
-	vc.call.From = req.FormValue("From")
+	vc.call.From = s.getFromNumber(req.FormValue("From"))
 	s.mx.RLock()
 	_, hasCallback := s.callbacks["VOICE:"+vc.call.From]
 	s.mx.RUnlock()

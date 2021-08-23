@@ -29,7 +29,8 @@ type SMS struct {
 	doneCh   chan struct{}
 }
 
-func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error) {
+func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, error) {
+	fromNumber := s.getFromNumber(fromValue)
 	if statusURL != "" {
 		err := validate.URL("StatusCallback", statusURL)
 		if err != nil {
@@ -39,7 +40,7 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 			}
 		}
 		s.mx.RLock()
-		_, hasCallback := s.callbacks["SMS:"+from]
+		_, hasCallback := s.callbacks["SMS:"+fromNumber]
 		s.mx.RUnlock()
 
 		if !hasCallback {
@@ -63,7 +64,7 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 		s: s,
 		msg: twilio.Message{
 			To:     to,
-			From:   from,
+			From:   fromNumber,
 			Status: twilio.MessageStatusAccepted,
 			SID:    s.id("SM"),
 		},
