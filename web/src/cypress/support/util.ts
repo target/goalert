@@ -162,16 +162,3 @@ export function testScreen(
     describe(screenName(), () => fn(screen()))
   })
 }
-
-export function setFavorites(ids: Array<string>): Promise<unknown> {
-  const query = `
-    mutation setFavorite($input: SetFavoriteInput!){
-      setFavorite(input: $input)
-    }
-  `
-  const promises = ids.map((id) => {
-    const input = { target: { type: 'user', id: id }, favorite: true }
-    return cy.graphql(query, { input })
-  })
-  return Promise.all(promises)
-}

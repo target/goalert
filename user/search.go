@@ -46,9 +46,9 @@ type SearchCursor struct {
 	IsFavorite bool   `json:"f,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("search").Parse(`
-	SELECT DISTINCT ON ({{ .OrderBy }})
-		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
+	SELECT DISTINCT ON (lower(usr.name))
+		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
 	{{ if .CMValue }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
@@ -60,8 +60,8 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
 	{{end}}
-	{{if .SearchStr}}
-		AND usr.name ILIKE :search
+	{{if .Search}}
+		AND {{textSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
 	AND {{if not .FavoritesFirst}}
@@ -133,7 +133,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("CMValue", opts.CMValue),
