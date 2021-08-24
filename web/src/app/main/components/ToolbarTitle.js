@@ -99,7 +99,6 @@ function ToolbarTitle() {
   const [applicationName] = useConfigValue('General.ApplicationName')
 
   const renderTitle = (title) => {
-    console.log('here', appName)
     document.title = `${applicationName || appName} - ${title}`
 
     return (
