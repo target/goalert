@@ -92,22 +92,22 @@ func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 		PackageName     string
 	}
 
-	err := permission.LimitCheckAny(req.Context())
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+	ctx := req.Context()
+
+	err := permission.LimitCheckAny(ctx)
+	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
-	cfg := config.FromContext(req.Context())
+	cfg := config.FromContext(ctx)
 
 	data.ApplicationName = cfg.ApplicationName()
 	data.Version = playVersion
 	data.PackageName = playPackageName
 
 	err = playTmpl.Execute(w, data)
-	if err != nil {
-		log.Log(req.Context(), err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	if errutil.HTTPError(ctx, w, err) {
+		return
 	}
 }
 
