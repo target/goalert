@@ -43,7 +43,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		cmUnsub: p.P(`
 			delete from alert_status_subscriptions where id in (
 				select stat.id from alert_status_subscriptions stat
-				where not exists (select true from user_contact_methods cm where cm.id = stat.contact_method_id and cm.disabled = false)
+				where stat.contact_method_id notnull and exists (
+					select true from user_contact_methods cm where cm.id = stat.contact_method_id and cm.disabled
+				)
 				limit 100
 				for update skip locked
 			)
@@ -52,7 +54,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		usrUnsub: p.P(`
 			delete from alert_status_subscriptions where id in (
 				select stat.id from alert_status_subscriptions stat
-				where not exists (select true from users u where u.alert_status_log_contact_method_id = stat.contact_method_id)
+				where stat.contact_method_id notnull and not exists (
+					select true from users u where u.alert_status_log_contact_method_id = stat.contact_method_id
+				)
 				limit 100
 				for update skip locked
 			)
