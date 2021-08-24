@@ -4,6 +4,6 @@ ALTER TABLE user_favorites
     ADD CONSTRAINT user_favorites_user_id_tgt_user_id_key UNIQUE(user_id, tgt_user_id);
 -- +migrate Down
 ALTER TABLE user_favorites
-    DROP CONSTRAINT user_favories_user_id_tgt_user_id_key, 
+    DROP CONSTRAINT user_favorites_user_id_tgt_user_id_key, 
     DROP COLUMN tgt_user_id;
     
