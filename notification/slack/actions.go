@@ -111,6 +111,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			actionType = notification.ResultResolve
 		default:
 			errutil.HTTPError(ctx, w, errors.New("unknown action"))
+			return
 		}
 		a, err := h.r.ReceiveFor(ctx, "callbackID", "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		a, err := h.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
