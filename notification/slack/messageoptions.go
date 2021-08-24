@@ -1,8 +1,6 @@
 package slack
 
 import (
-	"strconv"
-
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
 )
@@ -29,19 +27,19 @@ func alertSummarySection(summary string) *slack.SectionBlock {
 	return slack.NewSectionBlock(summaryText, nil, nil)
 }
 
-func ackButton(alertID string) slack.ButtonBlockElement {
+func ackButton(callbackID string) slack.ButtonBlockElement {
 	txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
-	return *slack.NewButtonBlockElement("ack", alertID, txt)
+	return *slack.NewButtonBlockElement("ack", callbackID, txt)
 }
 
-func escButton(alertID string) *slack.ButtonBlockElement {
+func escButton(callbackID string) *slack.ButtonBlockElement {
 	txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, false)
-	return slack.NewButtonBlockElement("esc", alertID, txt)
+	return slack.NewButtonBlockElement("esc", callbackID, txt)
 }
 
-func closeButton(alertID string) *slack.ButtonBlockElement {
+func closeButton(callbackID string) *slack.ButtonBlockElement {
 	txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, false)
-	return slack.NewButtonBlockElement("close", alertID, txt)
+	return slack.NewButtonBlockElement("close", callbackID, txt)
 }
 
 func openLinkButton(url string) *slack.ButtonBlockElement {
@@ -61,16 +59,14 @@ func needsAuthMsgOpt() slack.MsgOption {
 	return slack.MsgOptionBlocks(slack.NewSectionBlock(msg, nil, nil))
 }
 
-func CraftAlertMessage(a alert.Alert, url, responseURL string) []slack.MsgOption {
+func CraftAlertMessage(a alert.Alert, callbackID, url, responseURL string) []slack.MsgOption {
 	var msgOpt []slack.MsgOption
 	var actions *slack.ActionBlock
 
-	alertID := strconv.Itoa(a.ID)
-
 	if a.Status == alert.StatusTriggered {
-		actions = slack.NewActionBlock("", ackButton(alertID), escButton(alertID), closeButton(alertID), openLinkButton(url))
+		actions = slack.NewActionBlock("", ackButton(callbackID), escButton(callbackID), closeButton(callbackID), openLinkButton(url))
 	} else if a.Status == alert.StatusActive {
-		actions = slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
+		actions = slack.NewActionBlock("", escButton(callbackID), closeButton(callbackID), openLinkButton(url))
 	} else {
 		actions = slack.NewActionBlock("", openLinkButton(url))
 	}
@@ -85,7 +81,7 @@ func CraftAlertMessage(a alert.Alert, url, responseURL string) []slack.MsgOption
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			alertIDAndStatusSection(alertID, a.Status),
+			alertIDAndStatusSection(callbackID, a.Status),
 			alertSummarySection(a.Summary),
 			actions,
 		),

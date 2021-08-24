@@ -113,12 +113,13 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			errutil.HTTPError(ctx, w, errors.New("unknown action"))
 		}
 		a, err := h.r.ReceiveFor(ctx, "callbackID", "slack:"+payload.Team.ID, payload.User.ID, actionType)
+		a, err := h.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		if err != nil {
 			errutil.HTTPError(ctx, w, err)
 		}
 
 		// update original message in Slack
-		msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
+		msgOpt := CraftAlertMessage(*a, action.Value, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
 		_, _, err = api.PostMessageContext(ctx, payload.Channel.ID, msgOpt...)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
