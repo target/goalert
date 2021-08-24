@@ -201,6 +201,7 @@ type DebugCarrierInfoInput struct {
 type DebugSendSMSInfo struct {
 	ID          string `json:"id"`
 	ProviderURL string `json:"providerURL"`
+	FromNumber  string `json:"fromNumber"`
 }
 
 type DebugSendSMSInput struct {
@@ -252,8 +253,9 @@ type LabelValueSearchOptions struct {
 }
 
 type NotificationState struct {
-	Details string              `json:"details"`
-	Status  *NotificationStatus `json:"status"`
+	Details           string              `json:"details"`
+	Status            *NotificationStatus `json:"status"`
+	FormattedSrcValue string              `json:"formattedSrcValue"`
 }
 
 type PageInfo struct {
