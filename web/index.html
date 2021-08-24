@@ -40,6 +40,7 @@
     <div id="graceful-unmount"></div>
     <script>
       pathPrefix = {{.PathPrefix}};
+      applicationName = {{.ApplicationName}};
     </script>
     {{- $prefix := .Prefix}} {{- range .ExtraScripts}}
     <script src="{{$prefix}}/static/{{.}}"></script>

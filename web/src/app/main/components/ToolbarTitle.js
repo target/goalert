@@ -10,6 +10,7 @@ import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
 import useWidth from '../../util/useWidth'
 import { useConfigValue } from '../../util/RequireConfig'
+import { applicationName as appName } from '../../env'
 
 const useStyles = makeStyles(() => ({
   backPage: {
@@ -98,7 +99,8 @@ function ToolbarTitle() {
   const [applicationName] = useConfigValue('General.ApplicationName')
 
   const renderTitle = (title) => {
-    document.title = `${applicationName || document.title} - ${title}`
+    console.log('here', appName)
+    document.title = `${applicationName || appName} - ${title}`
 
     return (
       <Typography
