@@ -356,7 +356,7 @@ func (cfg Config) Validate() error {
 	}
 
 	if cfg.General.ApplicationName != "" {
-		err = validate.ASCII("General.ApplicationName", cfg.General.ApplicationName, 0, 32)
+		err = validate.Many(err, validate.ASCII("General.ApplicationName", cfg.General.ApplicationName, 0, 32))
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
