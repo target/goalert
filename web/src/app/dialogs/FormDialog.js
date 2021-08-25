@@ -101,14 +101,19 @@ function FormDialog(props) {
   }
 
   function renderErrors() {
-    return props.errors.map((err, idx) => (
-      <DialogContentError
-        className={classes.errorContainer}
-        error={err.message || err}
-        key={idx}
-        noPadding
-      />
-    ))
+    return props.errors.map((err, idx) => {
+      if (err.render) {
+        return err.render
+      }
+      return (
+        <DialogContentError
+          className={classes.errorContainer}
+          error={err.message || err}
+          key={idx}
+          noPadding
+        />
+      )
+    })
   }
 
   function renderActions() {
@@ -202,6 +207,7 @@ FormDialog.propTypes = {
 
   errors: p.arrayOf(
     p.shape({
+      render: p.elementType,
       message: p.string.isRequired,
       nonSubmit: p.bool, // indicates that it is a non-submit related error
     }),

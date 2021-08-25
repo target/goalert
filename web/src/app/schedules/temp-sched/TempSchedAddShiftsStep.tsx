@@ -4,18 +4,19 @@ import {
   DialogContentText,
   Grid,
   Typography,
+  Checkbox,
+  FormControlLabel,
   makeStyles,
 } from '@material-ui/core'
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
-import { FormContainer } from '../../forms'
+import { FormContainer, FormField } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
-
 const useStyles = makeStyles((theme) => ({
   contentText,
   avatar: {
@@ -195,6 +196,19 @@ export default function TempSchedAddShiftsStep({
               min={edit ? start : undefined}
               scheduleID={scheduleID}
             />
+            <Grid item>
+              <FormControlLabel
+                control={
+                  <FormField
+                    component={Checkbox}
+                    checkbox
+                    name='isAwareOfNoCoverage'
+                  />
+                }
+                label='Allow gaps in coverage'
+                labelPlacement='end'
+              />
+            </Grid>
           </FormContainer>
           <Grid item>
             <Button
