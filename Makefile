@@ -5,6 +5,8 @@
 .PHONY: docker-goalert docker-all-in-one release force-yarn
 .SUFFIXES:
 
+include Makefile.binaries.mk
+
 GOALERT_DEPS := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
@@ -65,34 +67,8 @@ docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-lin
 docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
-$(BIN_DIR)/goalert: go.sum $(GOALERT_DEPS) graphql2/mapconfig.go
-	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
-	GOOS=linux go test ./smoketest -c -o $@
-$(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux GOARCH=arm64 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-
-$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux GOARCH=arm go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-
-$(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
-	rm -rf $(BIN_DIR)/$*
-	mkdir -p $(BIN_DIR)/$*/goalert/bin
-	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
-	tar czvf $@ -C $(BIN_DIR)/$* goalert
-
-$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
+Makefile.binaries.mk: devtools/genmake/*
+	go run ./devtools/genmake >$@
 
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
@@ -103,12 +79,6 @@ $(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js 
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/goalert-smoketest-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/pgdump-lite-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
-	rm -rf $@
-	mkdir -p bin/integration/goalert/bin
-	cp bin/*-linux-amd64 bin/integration/goalert/bin/
-	for f in bin/integration/goalert/bin/*-linux-amd64; do ln -s $$(basename $$f) bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
-	touch $@
 
 $(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
 	rm -rf $@
@@ -206,7 +176,7 @@ force-yarn:
 	yarn install --no-progress --silent --frozen-lockfile --check-files
 
 check: force-yarn generate node_modules
-	# go run devtools/ordermigrations/main.go -check
+	# go run ./devtools/ordermigrations -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign ./...
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
@@ -217,11 +187,11 @@ check: force-yarn generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
-	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
+graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
+	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
-graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/main.go
-	(cd ./graphql2 && go run ../devtools/limitapigen/main.go -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
+graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
+	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
