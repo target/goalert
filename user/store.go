@@ -42,9 +42,9 @@ type Store struct {
 	insertUserAuthSubject *sql.Stmt
 	deleteUserAuthSubject *sql.Stmt
 
+	findOneForAuthSubject  *sql.Stmt
 	findAuthSubjectsByUser *sql.Stmt
-
-	findAuthSubjects *sql.Stmt
+	findAuthSubjects       *sql.Stmt
 
 	grp *groupcache.Group
 
@@ -107,6 +107,13 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				id, name, email, avatar_url, role, alert_status_log_contact_method_id
 			FROM users
 			WHERE id = $1
+		`),
+		findOneForAuthSubject: p.P(`
+			select user_id
+			from auth_subjects
+			where
+				provider_id = $1 and
+				subject_id = $2
 		`),
 		findOneForUpdate: p.P(`
 			SELECT
@@ -503,6 +510,18 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (s *Store) FindOneForAuthSubject(ctx context.Context, providerID, subjectID string) (*User, error) {
+	var userID string
+	err := s.findOneForAuthSubject.QueryRowContext(ctx, providerID, subjectID).Scan(&userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return s.FindOne(ctx, userID)
 }
 
 // FindSomeAuthSubjectsForProvider returns up to `limit` auth subjects associated with a given providerID.

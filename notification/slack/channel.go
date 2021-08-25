@@ -36,9 +36,15 @@ type ChannelSender struct {
 	listMx sync.Mutex
 	chanMx sync.Mutex
 	teamMx sync.Mutex
+
+	r notification.Receiver
 }
 
 var _ notification.Sender = &ChannelSender{}
+var _ notification.ReceiverSetter = &ChannelSender{}
+
+// SetReceiver sets the notification.Receiver for incoming messages and status updates.
+func (s *ChannelSender) SetReceiver(r notification.Receiver) { s.r = r }
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{

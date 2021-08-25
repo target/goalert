@@ -3,6 +3,7 @@ package slack
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -25,9 +26,6 @@ type Handler struct {
 func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
-
-// SetReceiver sets the notification.Receiver for incoming messages and status updates.
-func (h *Handler) SetReceiver(r notification.Receiver) { h.r = r }
 
 // validRequest is used to validate a request from Slack.
 // If the request is validated true is returned, false otherwise.
@@ -55,7 +53,7 @@ func validRequest(w http.ResponseWriter, req *http.Request) error {
 
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
-func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
+func (s *ChannelSender) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
 	err := validRequest(w, req)
 	if err != nil {
 		errutil.HTTPError(req.Context(), w, err)
@@ -74,31 +72,16 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
+	ctx = permission.UserSourceContext(ctx, payload.User.ID, permission.RoleUser, &permission.SourceInfo{
+		Type: permission.SourceTypeNotificationChannel,
+		ID:   payload.Channel.ID,
+	})
+
 	// actions may come in batches, range over
 	for _, action := range payload.ActionCallback.BlockActions {
 		if action.ActionID == "openLink" {
 			return
 		}
-
-		// check if user has linked Slack with their GoAlert account
-		userID, err := h.c.AuthHandler.FindUserIDForAuthSubject(ctx, "slack:"+payload.Team.ID, payload.User.ID)
-		if err != nil {
-			errutil.HTTPError(ctx, w, err)
-		}
-
-		// send Unauthorized message if user is not linked
-		if userID == "" {
-			_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
-			if err != nil {
-				errutil.HTTPError(ctx, w, err)
-			}
-			return
-		}
-
-		ctx = permission.UserSourceContext(ctx, payload.User.ID, permission.RoleUser, &permission.SourceInfo{
-			Type: permission.SourceTypeNotificationChannel,
-			ID:   payload.Channel.ID,
-		})
 
 		// process action
 		var actionType notification.Result
@@ -111,18 +94,34 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			actionType = notification.ResultResolve
 		default:
 			errutil.HTTPError(ctx, w, errors.New("unknown action"))
+			fmt.Println("unknown action")
 			return
 		}
-		a, err := h.r.ReceiveFor(ctx, "callbackID", "slack:"+payload.Team.ID, payload.User.ID, actionType)
-		a, err := h.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
+
+		fmt.Println("attempting receive for")
+		a, err := s.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		if err != nil {
+			fmt.Println("error: receive for func")
+
+			// todo: if error = not authorized, return ephemeral msg here
+			// _, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
+			// if err != nil {
+			// 	fmt.Println("error: sending unauthed messaged")
+			// 	errutil.HTTPError(ctx, w, err)
+			// }
+			// return
+
 			errutil.HTTPError(ctx, w, err)
+			return
 		}
+
+		fmt.Println("attempting update slack msg")
 
 		// update original message in Slack
 		msgOpt := CraftAlertMessage(*a, action.Value, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
 		_, _, err = api.PostMessageContext(ctx, payload.Channel.ID, msgOpt...)
 		if err != nil {
+			fmt.Println("error: updating original msg in Slack")
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		}
 	}

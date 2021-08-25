@@ -182,18 +182,6 @@ func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
-func (h *Handler) FindUserIDForAuthSubject(ctx context.Context, providerID, subjectID string) (string, error) {
-	var userID string
-	err := h.userLookup.QueryRowContext(ctx, providerID, subjectID).Scan(&userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		err = nil
-	}
-	if err != nil {
-		return "", err
-	}
-	return userID, nil
-}
-
 func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]UserSession, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {

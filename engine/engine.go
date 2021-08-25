@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -329,8 +330,16 @@ func (p *Engine) ReceiveFor(ctx context.Context, callbackID, providerID, subject
 
 	switch {
 	case cb.ContactMethodID != "" && subjectID == "":
+		fmt.Println("thinks contact method")
 		ctx, err = p.ctxForCM(ctx, cb.ContactMethodID, callbackID)
-	case subjectID != "" && cb.ContactMethodID == "":
+	case subjectID != "" && providerID != "" && cb.ContactMethodID == "":
+		fmt.Println("thinks channel")
+		// check if user has linked Slack with their GoAlert account
+		_, err = p.cfg.UserStore.FindOneForAuthSubject(ctx, providerID, subjectID)
+		if err != nil {
+			return nil, errors.New("user not found for subject and provider ID")
+		}
+
 		ctx, err = p.ctxForSubjectID(ctx, providerID, subjectID, callbackID)
 	default:
 		return nil, errors.New("expected one of subject ID or contact method ID")
