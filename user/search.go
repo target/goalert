@@ -91,14 +91,6 @@ func (opts renderData) OrderBy() string {
 	return "lower(usr.name)"
 }
 
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
-}
-
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
