@@ -19,19 +19,20 @@ export const variantDetails = {
     title: 'Temporarily Remove a User',
     desc: 'This will remove (or split/shorten) shifts belonging to the selected user, while the override is active.',
     name: 'Remove Coverage',
-    helperText: 'Remove one user's shifts for a specified time.',
+    helperText: "Remove one user's shifts for a specified time.",
   },
   replace: {
     title: 'Temporarily Replace a User',
     desc: 'This will replace the selected user with another during any existing shifts, while the override is active. No new shifts will be created, only who is on-call will be changed.',
-    name: 'Cover Someone's Shifts',
-    helperText: 'Have a user take over another's shifts for a specified time.',
+    name: "Cover Someone's Shifts",
+    helperText: "Have a user take over another's shifts for a specified time.",
   },
   temp: {
     title: 'Create a temporary schedule',
     desc: 'Replace the entire schedule for a given period of time',
     name: 'Temporary Schedule',
-    helperText: 'Define a fixed shift-by-shift schedule to use for a specified time.',
+    helperText:
+      'Define a fixed shift-by-shift schedule to use for a specified time.',
   },
   choose: {
     title: 'Choose an override action',
