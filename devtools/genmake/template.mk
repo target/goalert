@@ -5,6 +5,10 @@ GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path .
 GO_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
+ifdef BUNDLE
+	GO_DEPS += web/src/build/static/app.js
+endif
+
 GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')
 GIT_TREE:=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))

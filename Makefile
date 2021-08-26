@@ -41,14 +41,6 @@ export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
-ifeq ($(shell test -d vendor && echo -n yes), yes)
-export GOFLAGS=-mod=vendor
-endif
-
-ifdef BUNDLE
-	GOALERT_DEPS += web/src/build/static/app.js
-endif
-
 DOCKER_IMAGE_PREFIX=docker.io/goalert
 DOCKER_TAG=$(GIT_VERSION)
 
@@ -56,15 +48,13 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
-GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
 
 release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz
-docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/resetdb-linux-amd64 bin/resetdb-linux-arm bin/resetdb-linux-arm64
+docker-all-in-one: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/resetdb bin/linux-arm64/resetdb bin/linux-arm/resetdb
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
-docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
+docker-goalert: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
 Makefile.binaries.mk: devtools/genmake/*
@@ -131,9 +121,6 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
-
-install: $(GOALERT_DEPS)
-	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
 cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
