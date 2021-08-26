@@ -7,26 +7,11 @@
 
 include Makefile.binaries.mk
 
-GOALERT_DEPS := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-BIN_DIR=bin
-
-GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')
-GIT_TREE:=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
-GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
-BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-BUILD_FLAGS=
-
-export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
-
-LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
-LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
-LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
-LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
