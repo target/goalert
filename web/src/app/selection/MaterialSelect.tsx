@@ -150,6 +150,7 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       getOptionSelected={(opt, val) => opt.value === val.value}
+      filterOptions={(options) => options}
       noOptionsText={
         noOptionsError ? (
           <Alert severity='error'>{noOptionsError.message}</Alert>
