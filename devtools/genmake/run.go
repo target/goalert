@@ -26,6 +26,7 @@ type Tool struct {
 type Build struct {
 	Name string
 	Env  string
+	Ext  string
 }
 type Bundle struct {
 	Name     string
@@ -61,6 +62,7 @@ func main() {
 		{Name: "linux-arm", Env: "GOOS=linux GOARCH=arm GOARM=7"},
 		{Name: "linux-arm64", Env: "GOOS=linux GOARCH=arm64"},
 		{Name: "darwin-amd64", Env: "GOOS=darwin GOARCH=amd64"},
+		{Name: "windows-amd64", Env: "GOOS=windows GOARCH=amd64", Ext: ".exe"},
 	}
 	data.Bundles = []Bundle{
 		{Name: "goalert", Binaries: []string{"goalert"}},

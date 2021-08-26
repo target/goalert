@@ -26,13 +26,13 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 $(BIN_DIR)/{{$tool.Name}}: $(GO_DEPS) {{$tool.Deps}}
 	go build -o $@ ./{{$tool.Dir}}
 {{range $build := $.Builds}}
-$(BIN_DIR)/{{$build.Name}}/{{$tool.Name}}: $(GO_DEPS) {{$tool.Deps}} {{$tool.ProdDeps}}
+$(BIN_DIR)/{{$build.Name}}/{{$tool.Name}}{{$build.Ext}}: $(GO_DEPS) {{$tool.Deps}} {{$tool.ProdDeps}}
 	{{$build.Env}} go build -trimpath {{$tool.Flags}} -o $@ ./{{$tool.Dir}}
 {{end}}
 {{end}}
 
 {{range $build := $.Builds}}
-$(BIN_DIR)/{{$build.Name}}/_all: $(BIN_DIR)/{{$build.Name}}/goalert-smoketest{{range $tool := $.Tools}} $(BIN_DIR)/{{$build.Name}}/{{$tool.Name}}{{end}}
+$(BIN_DIR)/{{$build.Name}}/_all: $(BIN_DIR)/{{$build.Name}}/goalert-smoketest{{range $tool := $.Tools}} $(BIN_DIR)/{{$build.Name}}/{{$tool.Name}}{{$build.Ext}}{{end}}
 
 $(BIN_DIR)/{{$build.Name}}/goalert-smoketest: $(GO_DEPS)
 	{{$build.Env}} go test ./smoketest -c -o $@
@@ -42,13 +42,20 @@ $(BIN_DIR)/goalert-smoketest: $(GO_DEPS)
 
 {{range $bundle := $.Bundles}}
 {{range $build := $.Builds}}
-$(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}.tgz:{{range $name := $bundle.Binaries}} $(BIN_DIR)/{{$build.Name}}/{{$name}}{{end}}{{range $bundle.Copy}} {{.}}{{end}}
-	rm -rf $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}/
-	mkdir -p $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}/{{$bundle.DirName}}/bin/
-	cp {{range $name := $bundle.Binaries}} $(BIN_DIR)/{{$build.Name}}/{{$name}}{{end}} $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}/{{$bundle.DirName}}/bin/
+$(BIN_DIR)/build/{{$bundle.Name}}-{{$build.Name}}:{{range $name := $bundle.Binaries}} $(BIN_DIR)/{{$build.Name}}/{{$name}}{{$build.Ext}}{{end}}{{range $bundle.Copy}} {{.}}{{end}}
+	rm -rf $@
+	mkdir -p $@/{{$bundle.DirName}}/bin/
+	cp {{range $name := $bundle.Binaries}} $(BIN_DIR)/{{$build.Name}}/{{$name}}{{$build.Ext}}{{end}} $@/{{$bundle.DirName}}/bin/
 	{{- if $bundle.Copy}}
-	cp -r {{range $bundle.Copy}} {{.}}{{end}} $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}/{{$bundle.DirName}}/
+	cp -r {{range $bundle.Copy}} {{.}}{{end}} $@/{{$bundle.DirName}}/
 	{{- end}}
-	tar -czvf $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}.tgz -C $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}/ .
+	touch $@
+
+$(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}.tgz: $(BIN_DIR)/build/{{$bundle.Name}}-{{$build.Name}}
+	tar -czvf $(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}.tgz -C $(BIN_DIR)/build/{{$bundle.Name}}-{{$build.Name}}/ .
+
+$(BIN_DIR)/{{$bundle.Name}}-{{$build.Name}}.zip: $(BIN_DIR)/build/{{$bundle.Name}}-{{$build.Name}}
+	rm -f $@
+	cd $(BIN_DIR)/build/{{$bundle.Name}}-{{$build.Name}} && zip -r $(abspath $@) .
 {{end}}
 {{end}}
