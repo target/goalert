@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -321,12 +322,26 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Escalated.")
+			vals.Set("text", "Broadcasting to channel due to repeat notification.")
 			vals.Set("reply_broadcast", "true")
 			break
 		}
 
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+	case notification.AlertStatus:
+		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+		var status string
+		switch t.NewAlertStatus {
+		case alert.StatusActive:
+			status = "Acknowledged"
+		case alert.StatusTriggered:
+			status = "Unacknowledged"
+		case alert.StatusClosed:
+			status = "Closed"
+		}
+
+		text := "Status Update: " + status + "\n" + t.LogEntry
+		vals.Set("text", text)
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallUsers:

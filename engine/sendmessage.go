@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
@@ -91,11 +92,37 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
+		a, err := p.cfg.AlertStore.FindOne(ctx, msg.AlertID)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original alert: %w", err)
+		}
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original message: %w", err)
+		}
+		if stat == nil {
+			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
+		}
+
+		var status alert.Status
+		switch e.Type() {
+		case alertlog.TypeAcknowledged:
+			status = alert.StatusActive
+		case alertlog.TypeEscalated:
+			status = alert.StatusTriggered
+		case alertlog.TypeClosed:
+			status = alert.StatusClosed
+		}
+
 		notifMsg = notification.AlertStatus{
-			Dest:       msg.Dest,
-			AlertID:    e.AlertID(),
-			CallbackID: msg.ID,
-			LogEntry:   e.String(),
+			Dest:           msg.Dest,
+			AlertID:        e.AlertID(),
+			CallbackID:     msg.ID,
+			LogEntry:       e.String(),
+			Summary:        a.Summary,
+			Details:        a.Details,
+			NewAlertStatus: status,
+			OriginalStatus: *stat,
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
