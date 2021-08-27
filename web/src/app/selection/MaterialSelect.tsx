@@ -109,7 +109,7 @@ export default function MaterialSelect(
     onInputChange(input)
   }
 
-  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
+  const multi = multiple ? { multiple: true } : {}
 
   useEffect(() => {
     if (!focus) setInputValue(getInputLabel())
@@ -122,11 +122,7 @@ export default function MaterialSelect(
   let options = _options
   if (value && Array.isArray(value)) {
     options = [...options, ...value]
-  } else if (
-    value &&
-    !Array.isArray(value) &&
-    options.every((opt) => opt.value !== value.value)
-  ) {
+  } else if (!inputValue && value && !Array.isArray(value) && !options.length) {
     options = [value, ...options]
   }
 
@@ -150,7 +146,6 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       getOptionSelected={(opt, val) => opt.value === val.value}
-      filterSelectedOptions
       filterOptions={(options) => options}
       noOptionsText={
         noOptionsError ? (
