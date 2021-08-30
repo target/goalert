@@ -31,7 +31,7 @@ func TestOnCallNotifyTOD(t *testing.T) {
 	
 	insert into schedule_data (schedule_id, data)
 	values
-		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "chan1"}}, "Time": "00:00" },{"ChannelID": {{uuidJSON "chan2"}}, "Time": "00:00" }]}}');
+		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "chan1"}}, "Time": "00:00" },{"ChannelID": {{uuidJSON "chan1"}}, "Time": "01:00" },{"ChannelID": {{uuidJSON "chan2"}}, "Time": "00:00" }]}}');
 `
 	h := harness.NewHarness(t, sql, "outgoing-messages-schedule-id")
 	defer h.Close()
@@ -40,6 +40,7 @@ func TestOnCallNotifyTOD(t *testing.T) {
 
 	h.FastForward(24 * time.Hour)
 
+	// should only send 1 message to each channel
 	h.Slack().Channel("test1").ExpectMessage("on-call", "testschedule", "bob")
 	h.Slack().Channel("test2").ExpectMessage("on-call", "testschedule", "bob")
 }
