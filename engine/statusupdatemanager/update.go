@@ -21,6 +21,19 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	log.Debugf(ctx, "Processing status updates.")
+
+	_, err = db.lock.Exec(ctx, db.cmUnsub)
+	if err != nil {
+		// okay to proceed
+		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
+	}
+
+	_, err = db.lock.Exec(ctx, db.usrUnsub)
+	if err != nil {
+		// okay to proceed
+		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled users: %w", err))
+	}
+
 	// process up to 100
 	for i := 0; i < 100; i++ {
 		err = db.update(ctx)
@@ -59,7 +72,8 @@ func (db *DB) update(ctx context.Context) error {
 	isSubscribed := chanID.Valid
 	var userID sql.NullString
 	if cmID.Valid {
-		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&isSubscribed, &userID)
+		isSubscribed = true
+		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&userID)
 		if errors.Is(err, sql.ErrNoRows) {
 			isSubscribed = false
 			err = nil
@@ -83,21 +97,29 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("unknown alert status: %v", newStatus)
 		}
 
-		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID)
+		var logUserID sql.NullString
+		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID, &logUserID)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil
+			logID = 0
+		}
 		if err != nil {
 			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
-		if err != nil {
-			return fmt.Errorf("insert status update message for id=%d: %w", id, err)
+		// Only insert message if the user is not the same as the log event user and we have a recent log entry.
+		if logID > 0 && (!userID.Valid || userID.String != logUserID.String) {
+			_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
+			if err != nil {
+				return fmt.Errorf("insert status update message for id=%d: %w", id, err)
+			}
 		}
 	}
 
-	if newStatus == alert.StatusClosed {
-		_, err = tx.StmtContext(ctx, db.cleanupClosed).ExecContext(ctx, id)
+	if newStatus == alert.StatusClosed || !isSubscribed {
+		_, err = tx.StmtContext(ctx, db.deleteSub).ExecContext(ctx, id)
 		if err != nil {
-			return fmt.Errorf("delete subscription for closed alert #%d (id=%d): %w", alertID, id, err)
+			return fmt.Errorf("delete subscription for alert #%d (id=%d): %w", alertID, id, err)
 		}
 	} else {
 		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id, newStatus)

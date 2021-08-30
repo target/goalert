@@ -80,8 +80,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_seq,
 				next_retry_at notnull,
 				created_at,
-				src_value
-			from outgoing_messages
+				src_value,
+				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+				(select type from notification_channels ch where ch.id = om.channel_id)
+			from outgoing_messages om
 			where
 				message_type = 'alert_notification' and
 				alert_id = $1 and
@@ -162,8 +164,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					provider_seq,
 					next_retry_at notnull,
 					created_at,
-					src_value
-				from outgoing_messages
+					src_value,
+					(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+					(select type from notification_channels ch where ch.id = om.channel_id)
+				from outgoing_messages om
 				where id = any($1)
 		`),
 		lastMessageStatus: p.P(`
@@ -175,8 +179,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_seq,
 				next_retry_at notnull,
 				created_at,
-				src_value
-			from outgoing_messages msg
+				src_value,
+				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+				(select type from notification_channels ch where ch.id = om.channel_id)
+			from outgoing_messages om
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
 	}, p.Err
@@ -453,7 +459,8 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	var hasNextRetry bool
 	var createdAt sql.NullTime
 	var srcValue sql.NullString
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue)
+	var dt ScannableDestType
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue, &dt.CM, &dt.NC)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
@@ -465,6 +472,7 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 		return nil, time.Time{}, err
 	}
 	s.SrcValue = srcValue.String
+	s.DestType = dt.DestType()
 
 	return &s, createdAt.Time, nil
 }

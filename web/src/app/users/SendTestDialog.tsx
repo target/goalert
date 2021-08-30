@@ -14,14 +14,13 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
 
 import { DateTime } from 'luxon'
 import { ContactMethodType } from '../../schema'
 
 const query = gql`
-  query ($id: ID!, $number: String!) {
+  query ($id: ID!) {
     userContactMethod(id: $id) {
       id
       type
@@ -30,10 +29,8 @@ const query = gql`
       lastTestMessageState {
         details
         status
+        formattedSrcValue
       }
-    }
-    phoneNumberInfo(number: $number) {
-      formatted
     }
   }
 `
@@ -55,11 +52,6 @@ export default function SendTestDialog(
 
   const { title = 'Test Delivery Status', onClose, messageID } = props
 
-  const [_twilioFrom, smtpFrom] = useConfigValue(
-    'Twilio.FromNumber',
-    'SMTP.From',
-  )
-
   const [now] = useState(DateTime.local())
 
   const [sendTest, sendTestStatus] = useMutation(mutation, {
@@ -71,7 +63,6 @@ export default function SendTestDialog(
   const { data, loading, error } = useQuery(query, {
     variables: {
       id: messageID,
-      number: _twilioFrom,
     },
     fetchPolicy: 'network-only',
   })
@@ -81,7 +72,8 @@ export default function SendTestDialog(
   const cmType: ContactMethodType = data?.userContactMethod?.type ?? ''
   const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
   const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
-  const twilioFrom = data?.phoneNumberInfo?.formatted ?? ''
+  const fromValue =
+    data?.userContactMethod?.lastTestMessageState?.formattedSrcValue ?? ''
   const errorMessage = error?.message ?? ''
 
   useEffect(() => {
@@ -120,9 +112,9 @@ export default function SendTestDialog(
       case 'VOICE':
         return `${
           cmType === 'SMS' ? 'SMS message' : 'voice call'
-        } to ${cmDestValue} from ${twilioFrom}`
+        } to ${cmDestValue}`
       case 'EMAIL':
-        return `email to ${cmDestValue} from ${smtpFrom}`
+        return `email to ${cmDestValue}`
       default:
         return `to ${cmDestValue}`
     }
@@ -136,6 +128,11 @@ export default function SendTestDialog(
         <DialogContentText>
           GoAlert is sending a test {msg()}.
         </DialogContentText>
+        {fromValue && (
+          <DialogContentText>
+            The test message was sent from {fromValue}.
+          </DialogContentText>
+        )}
         {details && (
           <DialogContentText className={getTestStatusClass(status)}>
             {toTitleCase(details)}

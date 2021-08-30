@@ -41,6 +41,7 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 	return &graphql2.DebugSendSMSInfo{
 		ID:          msg.SID,
 		ProviderURL: "https://www.twilio.com/console/sms/logs/" + url.PathEscape(msg.SID),
+		FromNumber:  msg.From,
 	}, nil
 }
 

@@ -36,7 +36,7 @@ type SearchCursor struct {
 	Name string `json:"n,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("search").Parse(`
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
 	SELECT DISTINCT ON (lower(usr.name))
 		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
@@ -47,8 +47,8 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
 	{{end}}
-	{{if .SearchStr}}
-		AND usr.name ILIKE :search
+	{{if .Search}}
+		AND {{prefixSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
 		AND lower(usr.name) > lower(:afterName)
@@ -64,14 +64,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 `))
 
 type renderData SearchOptions
-
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
-}
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
@@ -101,7 +93,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("CMValue", opts.CMValue),
