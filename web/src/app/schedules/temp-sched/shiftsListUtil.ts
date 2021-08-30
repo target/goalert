@@ -100,6 +100,18 @@ export function sortItems(
     if (a.itemType === 'gap') return -1
     if (b.itemType === 'gap') return 1
     // then shifts
+    if (
+      // both shifts
+      a.itemType === 'shift' &&
+      b.itemType === 'shift' &&
+      // typescript hints
+      'title' in a &&
+      'title' in b &&
+      a.title &&
+      b.title
+    ) {
+      return a.title < b.title ? -1 : 1
+    }
     if (a.itemType === 'shift') return -1
     if (b.itemType === 'shift') return 1
     // then end notice
