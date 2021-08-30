@@ -6,6 +6,8 @@ import (
 	"embed"
 	"encoding/hex"
 	"fmt"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/errutil"
 	"io/fs"
 	"net/http"
 	"net/http/httputil"
@@ -67,19 +69,22 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		extraScripts = []string{"vendor.js"}
 	}
 
-	var buf bytes.Buffer
-	err := indexTmpl.Execute(&buf, renderData{
-		Prefix:       prefix,
-		ExtraScripts: extraScripts,
-	})
-	if err != nil {
-		return nil, err
-	}
-	h := sha256.New()
-	h.Write(buf.Bytes())
-	indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
-
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		cfg := config.FromContext(req.Context())
+
+		var buf bytes.Buffer
+		err := indexTmpl.Execute(&buf, renderData{
+			ApplicationName: cfg.ApplicationName(),
+			Prefix:          prefix,
+			ExtraScripts:    extraScripts,
+		})
+		if errutil.HTTPError(req.Context(), w, err) {
+			return
+		}
+		h := sha256.New()
+		h.Write(buf.Bytes())
+		indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
+
 		w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", indexETag)
 		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
