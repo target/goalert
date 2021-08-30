@@ -222,7 +222,10 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
-		message = fmt.Sprintf("%s alert: %s", cfg.ApplicationName(), t.Summary)
+		if t.Summary == "" {
+			t.Summary = "No summary provided"
+		}
+		message = fmt.Sprintf("%s alert: %s.", cfg.ApplicationName(), t.Summary)
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
@@ -241,10 +244,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
-	}
-
-	if message == "" {
-		message = "No summary provided."
 	}
 
 	opts.Params.Set(msgParamSubID, strconv.Itoa(subID))
