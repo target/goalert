@@ -44,7 +44,8 @@ func TestOnCallNotify(t *testing.T) {
 	h := harness.NewHarness(t, sql, "outgoing-messages-schedule-id")
 	defer h.Close()
 
-	h.Slack().Channel("test").ExpectMessage("on-call", "testschedule", "bob")
+	h.Slack().Channel("test1").ExpectMessage("on-call", "testschedule", "bob")
+	h.Slack().Channel("test2").ExpectMessage("on-call", "testschedule", "bob")
 
 	h.FastForward(time.Hour)
 
