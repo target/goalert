@@ -24,7 +24,7 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 {{range $tool := $.Tools}}
 $(BIN_DIR)/{{$tool.Name}}: $(GO_DEPS) {{$tool.Deps}}
-	go build -o $@ ./{{$tool.Dir}}
+	go build {{$tool.Flags}} -o $@ ./{{$tool.Dir}}
 {{range $build := $.Builds}}
 $(BIN_DIR)/{{$build.Name}}/{{$tool.Name}}{{$build.Ext}}: $(GO_DEPS) {{$tool.Deps}} {{$tool.ProdDeps}}
 	{{$build.Env}} go build -trimpath {{$tool.Flags}} -o $@ ./{{$tool.Dir}}

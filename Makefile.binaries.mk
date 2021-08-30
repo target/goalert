@@ -26,7 +26,7 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 
 $(BIN_DIR)/goalert: $(GO_DEPS) graphql2/mapconfig.go
-	go build -o $@ ./cmd/goalert
+	go build -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 $(BIN_DIR)/darwin-amd64/goalert: $(GO_DEPS) graphql2/mapconfig.go web/src/build/static/app.js
 	GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
@@ -45,7 +45,7 @@ $(BIN_DIR)/windows-amd64/goalert.exe: $(GO_DEPS) graphql2/mapconfig.go web/src/b
 
 
 $(BIN_DIR)/mockslack: $(GO_DEPS) 
-	go build -o $@ ./devtools/mockslack/cmd/mockslack
+	go build  -o $@ ./devtools/mockslack/cmd/mockslack
 
 $(BIN_DIR)/darwin-amd64/mockslack: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
@@ -64,7 +64,7 @@ $(BIN_DIR)/windows-amd64/mockslack.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/pgdump-lite: $(GO_DEPS) 
-	go build -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
+	go build  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
 
 $(BIN_DIR)/darwin-amd64/pgdump-lite: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
@@ -83,7 +83,7 @@ $(BIN_DIR)/windows-amd64/pgdump-lite.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/procwrap: $(GO_DEPS) 
-	go build -o $@ ./devtools/procwrap
+	go build  -o $@ ./devtools/procwrap
 
 $(BIN_DIR)/darwin-amd64/procwrap: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/procwrap
@@ -102,7 +102,7 @@ $(BIN_DIR)/windows-amd64/procwrap.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/psql-lite: $(GO_DEPS) 
-	go build -o $@ ./devtools/psql-lite
+	go build  -o $@ ./devtools/psql-lite
 
 $(BIN_DIR)/darwin-amd64/psql-lite: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/psql-lite
@@ -121,7 +121,7 @@ $(BIN_DIR)/windows-amd64/psql-lite.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/resetdb: $(GO_DEPS) 
-	go build -o $@ ./devtools/resetdb
+	go build  -o $@ ./devtools/resetdb
 
 $(BIN_DIR)/darwin-amd64/resetdb: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/resetdb
@@ -140,7 +140,7 @@ $(BIN_DIR)/windows-amd64/resetdb.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/runjson: $(GO_DEPS) 
-	go build -o $@ ./devtools/runjson
+	go build  -o $@ ./devtools/runjson
 
 $(BIN_DIR)/darwin-amd64/runjson: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/runjson
@@ -159,7 +159,7 @@ $(BIN_DIR)/windows-amd64/runjson.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/sendit: $(GO_DEPS) 
-	go build -o $@ ./devtools/sendit/cmd/sendit
+	go build  -o $@ ./devtools/sendit/cmd/sendit
 
 $(BIN_DIR)/darwin-amd64/sendit: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
@@ -178,7 +178,7 @@ $(BIN_DIR)/windows-amd64/sendit.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/sendit-server: $(GO_DEPS) 
-	go build -o $@ ./devtools/sendit/cmd/sendit-server
+	go build  -o $@ ./devtools/sendit/cmd/sendit-server
 
 $(BIN_DIR)/darwin-amd64/sendit-server: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
@@ -197,7 +197,7 @@ $(BIN_DIR)/windows-amd64/sendit-server.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/sendit-token: $(GO_DEPS) 
-	go build -o $@ ./devtools/sendit/cmd/sendit-token
+	go build  -o $@ ./devtools/sendit/cmd/sendit-token
 
 $(BIN_DIR)/darwin-amd64/sendit-token: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
@@ -216,7 +216,7 @@ $(BIN_DIR)/windows-amd64/sendit-token.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/simpleproxy: $(GO_DEPS) 
-	go build -o $@ ./devtools/simpleproxy
+	go build  -o $@ ./devtools/simpleproxy
 
 $(BIN_DIR)/darwin-amd64/simpleproxy: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/simpleproxy
@@ -235,7 +235,7 @@ $(BIN_DIR)/windows-amd64/simpleproxy.exe: $(GO_DEPS)
 
 
 $(BIN_DIR)/waitfor: $(GO_DEPS) 
-	go build -o $@ ./devtools/waitfor
+	go build  -o $@ ./devtools/waitfor
 
 $(BIN_DIR)/darwin-amd64/waitfor: $(GO_DEPS)  
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/waitfor
