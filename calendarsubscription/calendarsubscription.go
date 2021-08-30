@@ -33,6 +33,7 @@ type CalendarSubscription struct {
 }
 
 type iCalRenderData struct {
+	ApplicationName string
 	Shifts          []oncall.Shift
 	ReminderMinutes []int
 	Version         string
@@ -42,7 +43,7 @@ type iCalRenderData struct {
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
 var iCalTemplate = template.Must(template.New("ical").Parse(strings.ReplaceAll(`BEGIN:VCALENDAR
-PRODID:-//GoAlert//{{.Version}}//EN
+PRODID:-//{{.ApplicationName}}//{{.Version}}//EN
 VERSION:2.0
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
@@ -93,7 +94,7 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
+func (cs CalendarSubscription) renderICalFromShifts(appName string, shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
 	var eventUIDs []string
 	for _, s := range shifts {
 		t := s.End
@@ -104,6 +105,7 @@ func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, gener
 		eventUIDs = append(eventUIDs, hex.EncodeToString(sum[:]))
 	}
 	data := iCalRenderData{
+		ApplicationName: appName,
 		Shifts:          shifts,
 		ReminderMinutes: cs.Config.ReminderMinutes,
 		Version:         version.GitVersion(),

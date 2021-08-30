@@ -38,10 +38,13 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	if err != nil {
 		return nil, err
 	}
+	if fromAddr.Name == "" {
+		fromAddr.Name = cfg.ApplicationName()
+	}
 
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name: "GoAlert",
+			Name: cfg.ApplicationName(),
 			Link: cfg.General.PublicURL,
 			Logo: cfg.CallbackURL("/static/goalert-alt-logo.png"),
 		},
@@ -50,11 +53,11 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	var subject string
 	switch m := msg.(type) {
 	case notification.Test:
-		subject = "GoAlert: Test Message"
+		subject = "Test Message"
 		e.Body.Title = "Test Message"
 		e.Body.Intros = []string{"This is a test message from GoAlert."}
 	case notification.Verification:
-		subject = "GoAlert: Verification Message"
+		subject = "Verification Message"
 		e.Body.Title = "Verification Message"
 		e.Body.Intros = []string{"This is a verification message from GoAlert."}
 		e.Body.Actions = []hermes.Action{{
@@ -62,7 +65,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			InviteCode:   strconv.Itoa(m.Code),
 		}}
 	case notification.Alert:
-		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.Summary)
+		subject = fmt.Sprintf("Alert #%d: %s", m.AlertID, m.Summary)
 		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
 		e.Body.Intros = []string{m.Summary, m.Details}
 		e.Body.Actions = []hermes.Action{{
@@ -72,7 +75,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			},
 		}}
 	case notification.AlertBundle:
-		subject = fmt.Sprintf("GoAlert: Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
+		subject = fmt.Sprintf("Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
 		e.Body.Title = "Multiple Unacknowledged Alerts"
 		e.Body.Intros = []string{fmt.Sprintf("The GoAlert service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
 		e.Body.Actions = []hermes.Action{{
@@ -82,7 +85,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			},
 		}}
 	case notification.AlertStatus:
-		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.LogEntry)
+		subject = fmt.Sprintf("Alert #%d: %s", m.AlertID, m.LogEntry)
 		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
 		e.Body.Intros = []string{m.LogEntry}
 		e.Body.Actions = []hermes.Action{{

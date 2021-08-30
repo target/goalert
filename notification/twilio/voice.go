@@ -218,22 +218,26 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		message = fmt.Sprintf("%s Service '%s' has %d unacknowledged alerts.", cfg.ApplicationName(), t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
-		message = t.Summary
+		message = fmt.Sprintf("%s alert: %s", cfg.ApplicationName(), t.Summary)
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.LogEntry, "")
+		message = fmt.Sprintf("%s update: %s", cfg.ApplicationName(), message)
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
-		message = "This is a test message from GoAlert."
+		message = fmt.Sprintf("This is a test message from %s.", cfg.ApplicationName())
 		opts.CallType = CallTypeTest
 	case notification.Verification:
-		message = "This is a message from GoAlert to verify your voice contact method. Your verification code is: " + spellNumber(t.Code) + ". Again, your verification code is: " + spellNumber(t.Code)
+		message = fmt.Sprintf(
+			"This is a message from %s to verify your voice contact method. Your verification code is: %s. Again, your verification code is: %s.",
+			cfg.ApplicationName(), spellNumber(t.Code), spellNumber(t.Code),
+		)
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
