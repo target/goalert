@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -330,10 +329,8 @@ func (p *Engine) ReceiveFor(ctx context.Context, callbackID, providerID, subject
 
 	switch {
 	case cb.ContactMethodID != "" && subjectID == "":
-		fmt.Println("thinks contact method")
 		ctx, err = p.ctxForCM(ctx, cb.ContactMethodID, callbackID)
 	case subjectID != "" && providerID != "" && cb.ContactMethodID == "":
-		fmt.Println("thinks channel")
 		// check if user has linked Slack with their GoAlert account
 		_, err = p.cfg.UserStore.FindOneForAuthSubject(ctx, providerID, subjectID)
 		if err != nil {
