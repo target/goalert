@@ -344,7 +344,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			Summary: t.Summary,
 			Status:  alert.StatusTriggered,
 		}
-		msgOpt := CraftAlertMessage(a, t.CallbackID, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+		msgOpt := makeAlertMessageOptions(a, t.CallbackID, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 		_, ts, _, err := api.SendMessageContext(ctx, msg.Destination().Value, msgOpt...)
 		if err != nil {
 			return nil, err
@@ -357,7 +357,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			Status:  t.NewAlertStatus,
 		}
 
-		msgOpt := CraftAlertMessage(a, t.CallbackID, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
+		msgOpt := makeAlertMessageOptions(a, t.CallbackID, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)), "")
 
 		// update original alert message
 		_, _, _, err := api.UpdateMessageContext(ctx, msg.Destination().Value, t.Dest.Value, msgOpt...)

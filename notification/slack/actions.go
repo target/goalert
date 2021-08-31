@@ -3,7 +3,6 @@ package slack
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -26,6 +25,15 @@ type Handler struct {
 func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
+
+type buttonType int
+
+const (
+	buttonTypeAck buttonType = iota
+	buttonTypeEsc
+	buttonTypeClose
+	buttonTypeOpenLink
+)
 
 // validRequest is used to validate a request from Slack.
 // If the request is validated true is returned, false otherwise.
@@ -94,15 +102,11 @@ func (s *ChannelSender) ServeActionCallback(w http.ResponseWriter, req *http.Req
 			actionType = notification.ResultResolve
 		default:
 			errutil.HTTPError(ctx, w, errors.New("unknown action"))
-			fmt.Println("unknown action")
 			return
 		}
 
-		fmt.Println("attempting receive for")
 		a, err := s.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		if err != nil {
-			fmt.Println("error: receive for func")
-
 			// todo: if error = not authorized, return ephemeral msg here
 			// _, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
 			// if err != nil {
@@ -115,13 +119,10 @@ func (s *ChannelSender) ServeActionCallback(w http.ResponseWriter, req *http.Req
 			return
 		}
 
-		fmt.Println("attempting update slack msg")
-
 		// update original message in Slack
-		msgOpt := CraftAlertMessage(*a, action.Value, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
+		msgOpt := makeAlertMessageOptions(*a, action.Value, cfg.CallbackURL("/alerts/"+action.Value), payload.ResponseURL)
 		_, _, err = api.PostMessageContext(ctx, payload.Channel.ID, msgOpt...)
 		if err != nil {
-			fmt.Println("error: updating original msg in Slack")
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		}
 	}
