@@ -7,13 +7,8 @@ import (
 	"github.com/target/goalert/alert"
 )
 
-// func alertLastStatusContext(lastStatus string) *slack.ContextBlock {
-// 	lastStatusText := slack.NewTextBlockObject("plain_text", lastStatus, true, true)
-// 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
-// }
-
 func needsAuthMsgOpt() slack.MsgOption {
-	msg := slack.NewTextBlockObject("plain_text", "Unauthorized. Please link your GoAlert account to continue", false, false)
+	msg := slack.NewTextBlockObject("plain_text", "Unauthorized. Please link your GoAlert account to continue.", false, false)
 	return slack.MsgOptionBlocks(slack.NewSectionBlock(msg, nil, nil))
 }
 

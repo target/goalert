@@ -107,13 +107,14 @@ func (s *ChannelSender) ServeActionCallback(w http.ResponseWriter, req *http.Req
 
 		a, err := s.r.ReceiveFor(ctx, action.Value, "slack:"+payload.Team.ID, payload.User.ID, actionType)
 		if err != nil {
-			// todo: if error = not authorized, return ephemeral msg here
-			// _, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
-			// if err != nil {
-			// 	fmt.Println("error: sending unauthed messaged")
-			// 	errutil.HTTPError(ctx, w, err)
-			// }
-			// return
+			// Send Unauthorized message back to user in slack if no user is found
+			if err.Error() == "user not found for subject and provider ID" {
+				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, needsAuthMsgOpt())
+				if err != nil {
+					errutil.HTTPError(ctx, w, err)
+				}
+				return
+			}
 
 			errutil.HTTPError(ctx, w, err)
 			return
