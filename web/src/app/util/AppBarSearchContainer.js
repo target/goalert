@@ -22,7 +22,7 @@ export function SearchProvider(props) {
   const pending = useRef(null)
 
   const _setActions = (actions) => {
-    if (!mounted) {
+    if (!mounted.current) {
       pending.current = actions
       return
     }
@@ -35,7 +35,7 @@ export function SearchProvider(props) {
   useEffect(() => {
     mounted.current = true
     if (pending.current) {
-      setActions(pending.current)
+      debouncedSetActions(pending.current)
       pending.current = null
       // Cleanup function
       return () => {
