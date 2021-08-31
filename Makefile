@@ -45,34 +45,6 @@ docker-goalert: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/go
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
 
-$(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
-	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
-
-$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
-	rm -rf $@
-	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
-	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
-	touch $@
-
-
-$(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
-	rm -rf $@
-	mkdir -p bin/integration/goalert/devtools
-	cp -r devtools/ci bin/integration/goalert/devtools/
-	touch $@
-
-$(BIN_DIR)/integration/goalert/.git: $(shell find ./.git)
-	rm -rf $@
-	mkdir -p bin/integration/goalert/.git
-	git rev-parse HEAD >bin/integration/goalert/COMMIT
-	test -d .git/resource && cp -r .git/resource bin/integration/goalert/.git/ || true
-
-$(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
-	touch $@
-
-$(BIN_DIR)/integration.tgz: bin/integration
-	tar czvf bin/integration.tgz -C bin/integration goalert
-
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 
