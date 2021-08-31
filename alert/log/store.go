@@ -335,6 +335,8 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				r.subject.classifier = "SMS"
 			case contactmethod.TypeEmail:
 				r.subject.classifier = "Email"
+			case contactmethod.TypeWebhook:
+				r.subject.classifier = "Webhook"
 			}
 
 		case permission.SourceTypeNotificationCallback:
@@ -351,6 +353,8 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				r.subject.classifier = "SMS"
 			case contactmethod.TypeEmail:
 				r.subject.classifier = "Email"
+			case contactmethod.TypeWebhook:
+				r.subject.classifier = "Webhook"
 			}
 			r.subject.userID.String = permission.UserID(ctx)
 			if r.subject.userID.String != "" {

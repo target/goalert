@@ -3,6 +3,7 @@ declare namespace NodeJS {
   export interface Global {
     __webpack_public_path__: string
     pathPrefix: string
+    applicationName: string
     GOALERT_VERSION: string
   }
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
 import { Mutation } from '@apollo/client/react/components'
@@ -25,42 +25,14 @@ const mutation = gql`
   }
 `
 
-export default class UserContactMethodEditDialog extends React.PureComponent {
-  static propTypes = {
-    contactMethodID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function UserContactMethodEditDialog({
+  onClose,
+  contactMethodID,
+}) {
+  const [value, setValue] = useState(null)
 
-  state = {
-    value: null,
-    errors: [],
-    edit: true,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.contactMethodID }}
-        render={({ data }) => this.renderMutation(data.userContactMethod)}
-        noPoll
-      />
-    )
-  }
-
-  renderMutation({ name, type, value }) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) =>
-          this.renderDialog(commit, status, { name, type, value })
-        }
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, status, defaultValue) {
+  function renderDialog(commit, status, defaultValue) {
     const { loading, error } = status
-
     const fieldErrs = fieldErrors(error)
 
     return (
@@ -68,14 +40,14 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
         title='Edit Contact Method'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={onClose}
         onSubmit={() => {
           return commit({
             variables: {
               // only pass 'name'
               input: {
-                ...pick(this.state.value, 'name'),
-                id: this.props.contactMethodID,
+                ...pick(value, 'name'),
+                id: contactMethodID,
               },
             },
           })
@@ -84,12 +56,36 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
           <UserContactMethodForm
             errors={fieldErrs}
             disabled={loading}
-            edit={this.state.edit}
-            value={this.state.value || defaultValue}
-            onChange={(value) => this.setState({ value })}
+            edit
+            value={value || defaultValue}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  function renderMutation({ name, type, value }) {
+    return (
+      <Mutation mutation={mutation} onCompleted={onClose}>
+        {(commit, status) =>
+          renderDialog(commit, status, { name, type, value })
+        }
+      </Mutation>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: contactMethodID }}
+      render={({ data }) => renderMutation(data.userContactMethod)}
+      noPoll
+    />
+  )
+}
+
+UserContactMethodEditDialog.propTypes = {
+  contactMethodID: p.string.isRequired,
+  onClose: p.func,
 }

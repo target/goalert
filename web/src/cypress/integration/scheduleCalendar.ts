@@ -76,6 +76,8 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it(`should view a shift's tooltip`, () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
+
     cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="replace-override"]').should('be.visible')
@@ -163,6 +165,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a replace override from a shift tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
     const name = rot.users[0].name
 
     cy.fixture('users').then((users) => {
@@ -181,6 +184,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a remove override from a shift tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
     const name = rot.users[0].name
 
     cy.get('[data-cy=calendar]')

@@ -15,10 +15,11 @@ type Message struct {
 	AlertLogID int
 	VerifyID   string
 
-	UserID    string
-	ServiceID string
-	CreatedAt time.Time
-	SentAt    time.Time
+	UserID     string
+	ServiceID  string
+	ScheduleID string
+	CreatedAt  time.Time
+	SentAt     time.Time
 
 	StatusAlertIDs []int
 }

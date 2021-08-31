@@ -24,6 +24,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
+		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
@@ -75,6 +76,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
 		{ID: "SMTP.Password", Type: ConfigTypeString, Description: "Password for authentication.", Value: cfg.SMTP.Password, Password: true},
+		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
+		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -83,6 +86,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 // MapPublicConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
+		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
@@ -102,6 +106,8 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
+		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
+		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -137,6 +143,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 	}
 	for _, v := range vals {
 		switch v.ID {
+		case "General.ApplicationName":
+			cfg.General.ApplicationName = v.Value
 		case "General.PublicURL":
 			cfg.General.PublicURL = v.Value
 		case "General.GoogleAnalyticsID":
@@ -319,6 +327,14 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.SMTP.Username = v.Value
 		case "SMTP.Password":
 			cfg.SMTP.Password = v.Value
+		case "Webhook.Enable":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Webhook.Enable = val
+		case "Webhook.AllowedURLs":
+			cfg.Webhook.AllowedURLs = parseStringList(v.Value)
 		case "Feedback.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

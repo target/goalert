@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestSlackAddToEPStep tests that slack channels can be added to an EPStep.
@@ -51,7 +52,7 @@ func TestSlackAddToEPStep(t *testing.T) {
 		}
 	`, h.UUID("eid"), channel.ID()))
 
-	channel.ExpectMessage("testing")
 	h.CreateAlert(h.UUID("sid"), "testing")
+	channel.ExpectMessage("testing")
 
 }

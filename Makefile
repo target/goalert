@@ -54,7 +54,7 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html
+GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
@@ -135,9 +135,9 @@ $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 system.ca.pem:
 	go run ./cmd/goalert gen-cert ca
@@ -265,7 +265,7 @@ web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell
 	rm -rf web/src/build/static
 	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
-notification/desttype_string.go: notification/dest.go
+notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice
@@ -284,9 +284,9 @@ postgres:
 		postgres:13-alpine || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
-	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000000 --user admin --pass admin123 "--db-url=$(DB_URL)"
+	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
 resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate

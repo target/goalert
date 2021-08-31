@@ -101,6 +101,8 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  generateSlackAppManifest: String!
 }
 
 input SlackChannelSearchOptions {
@@ -257,6 +259,7 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
 }
 
 type TemporarySchedule {
@@ -289,6 +292,10 @@ input SetScheduleShiftInput {
 type Mutation {
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
+
+  setScheduleOnCallNotificationRules(
+    input: SetScheduleOnCallNotificationRulesInput!
+  ): Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
@@ -592,6 +599,36 @@ type Schedule {
   isFavorite: Boolean!
 
   temporarySchedules: [TemporarySchedule!]!
+  onCallNotificationRules: [OnCallNotificationRule!]!
+}
+
+input SetScheduleOnCallNotificationRulesInput {
+  scheduleID: ID!
+  rules: [OnCallNotificationRuleInput!]!
+}
+
+input OnCallNotificationRuleInput {
+  id: ID
+  target: TargetInput!
+
+  # time indicates a time-of-day (in the schedule's time zone)
+  # to send a message of current on-call users.
+  #
+  # If time is null, a notification will be sent any time the set of on-call users
+  # changes for this schedule.
+  time: ClockTime
+
+  # weekdayFilter indicates which days of the week this rule is evaluated.
+  #
+  # It is required for time-of-day notifications and must be null if time is null.
+  weekdayFilter: WeekdayFilter
+}
+
+type OnCallNotificationRule {
+  id: ID!
+  target: Target!
+  time: ClockTime
+  weekdayFilter: WeekdayFilter
 }
 
 type OnCallShift {
@@ -787,6 +824,7 @@ scalar ISOTimestamp
 scalar ClockTime
 
 # WeekdayFilter is an array of 7 true/false values representing days of the week.
+# The first index (0) represents Sunday.
 scalar WeekdayFilter
 
 type Alert {
@@ -826,6 +864,7 @@ type AlertLogEntry {
 type NotificationState {
   details: String!
   status: NotificationStatus
+  formattedSrcValue: String!
 }
 
 enum NotificationStatus {
@@ -1049,6 +1088,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.

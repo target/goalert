@@ -31,8 +31,8 @@ function check(
     })
     it('should list favorites at the top', () => {
       const prefix = c.word({ length: 12 })
-      const name1 = prefix + 'A'
-      const name2 = prefix + 'Z'
+      const name1 = prefix + ' A'
+      const name2 = prefix + ' Z'
       createFunc(name1, false)
       createFunc(name2, true)
       cy.visit(`/${urlPrefix}?search=${encodeURIComponent(prefix)}`)
@@ -49,15 +49,15 @@ function check(
     if (getSearchSelectFunc) {
       it('should sort favorites-first in a search-select', () => {
         const prefix = c.word({ length: 20 })
-        const name1 = prefix + 'A'
-        const name2 = prefix + 'Z'
+        const name1 = prefix + ' A'
+        const name2 = prefix + ' Z'
         createFunc(name1, false)
         createFunc(name2, true)
 
         const sel = getSearchSelectFunc()
         const items = getSearchSelectItemsFunc
           ? getSearchSelectItemsFunc(sel, prefix)
-          : sel.findByLabel(prefix).parent().parent().parent().children()
+          : sel.findByLabel(prefix).get('[data-cy=search-select-item]')
 
         items.should('have.length', 2).as('items')
 

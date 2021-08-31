@@ -17,8 +17,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 const minTimeBetweenTests = time.Minute
@@ -79,8 +79,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_msg_id,
 				provider_seq,
 				next_retry_at notnull,
-				created_at
-			from outgoing_messages
+				created_at,
+				src_value,
+				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+				(select type from notification_channels ch where ch.id = om.channel_id)
+			from outgoing_messages om
 			where
 				message_type = 'alert_notification' and
 				alert_id = $1 and
@@ -159,8 +162,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					status_details,
 					provider_msg_id,
 					provider_seq,
-					next_retry_at notnull
-				from outgoing_messages
+					next_retry_at notnull,
+					created_at,
+					src_value,
+					(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+					(select type from notification_channels ch where ch.id = om.channel_id)
+				from outgoing_messages om
 				where id = any($1)
 		`),
 		lastMessageStatus: p.P(`
@@ -171,8 +178,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_msg_id,
 				provider_seq,
 				next_retry_at notnull,
-				created_at
-			from outgoing_messages msg
+				created_at,
+				src_value,
+				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
+				(select type from notification_channels ch where ch.id = om.channel_id)
+			from outgoing_messages om
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
 	}, p.Err
@@ -291,7 +301,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 		return validation.NewFieldError("ContactMethod", "test message rate-limit exceeded")
 	}
 
-	vID := uuid.NewV4().String()
+	vID := uuid.New().String()
 	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
@@ -324,7 +334,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %.0f minute(s)", minTimeBetweenTests.Minutes()))
 	}
 
-	vcID := uuid.NewV4().String()
+	vcID := uuid.New().String()
 	code := db.rand.Intn(900000) + 100000
 	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
@@ -409,20 +419,12 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Sen
 	defer rows.Close()
 
 	var result []SendResult
-	var s SendResult
 	for rows.Next() {
-		var lastStatus string
-		var hasNextRetry bool
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
+		res, _, err := scanStatus(rows)
 		if err != nil {
 			return nil, err
 		}
-		s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, s)
+		result = append(result, *res)
 	}
 
 	return result, nil
@@ -446,12 +448,19 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 
 	return s, createdAt, nil
 }
-func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
+
+type scannable interface {
+	Scan(...interface{}) error
+}
+
+func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	var s SendResult
 	var lastStatus string
 	var hasNextRetry bool
 	var createdAt sql.NullTime
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt)
+	var srcValue sql.NullString
+	var dt ScannableDestType
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue, &dt.CM, &dt.NC)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
@@ -462,6 +471,8 @@ func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
 	if err != nil {
 		return nil, time.Time{}, err
 	}
+	s.SrcValue = srcValue.String
+	s.DestType = dt.DestType()
 
 	return &s, createdAt.Time, nil
 }

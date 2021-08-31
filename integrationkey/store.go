@@ -11,8 +11,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Store interface {
@@ -117,7 +117,7 @@ func (db *DB) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*
 		stmt = tx.Stmt(stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
+	n.ID = uuid.New().String()
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Type, n.ServiceID)
 	if err != nil {
 		return nil, err
@@ -163,6 +163,9 @@ func (db *DB) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
 	row := db.findOne.QueryRowContext(ctx, id)
 	var i IntegrationKey
 	err = scanFrom(&i, row.Scan)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
