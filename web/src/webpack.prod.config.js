@@ -1,10 +1,7 @@
 /* eslint @typescript-eslint/no-var-requires: 0 */
-// Initialization
+const path = require('path')
 const webpack = require('webpack')
 const CopyPlugin = require('copy-webpack-plugin')
-
-// Folder ops
-const path = require('path')
 
 // Constants
 const APP = path.join(__dirname, 'app')

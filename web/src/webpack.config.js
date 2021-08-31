@@ -1,5 +1,4 @@
 /* eslint @typescript-eslint/no-var-requires: 0 */
-// Folder ops
 const path = require('path')
 const webpack = require('webpack')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -7,7 +6,6 @@ const CopyPlugin = require('copy-webpack-plugin')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
-const PORT = process.env.PORT || 3032
 
 module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   mode: 'development',
@@ -61,15 +59,13 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   },
 
   // Source maps used for debugging information
-  devtool: 'inline-source-map',
+  devtool: 'eval-source-map',
   // webpack-dev-server configuration
   devServer: {
     disableHostCheck: true,
-
     stats: 'errors-only',
-
-    // host: HOST,
-    port: PORT,
+    port: 3035,
+    allowedHosts: ['docker.for.mac.host.internal'],
   },
   optimization: {
     splitChunks: {
