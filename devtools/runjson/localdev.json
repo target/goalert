@@ -50,6 +50,7 @@
       "goalert-web",
       "webpack",
       "serve",
+      "--env=GOALERT_VERSION=$GOALERT_VERSION",
       "--config",
       "./webpack.config.js"
     ]

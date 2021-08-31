@@ -7,7 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 
-module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
+module.exports = (env) => ({
   mode: 'development',
   // Paths and extensions
   entry: {
