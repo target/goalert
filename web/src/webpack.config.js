@@ -81,11 +81,6 @@ module.exports = (env) => ({
 
   // Webpack plugins
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify('development'), // eslint-disable-line quote-props
-      },
-    }),
     new CopyPlugin({
       patterns: [
         'favicon-16.png',

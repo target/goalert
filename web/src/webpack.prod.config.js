@@ -54,18 +54,11 @@ module.exports = (env) => ({
     ],
   },
 
-  // Remove comment if you require sourcemaps for your production code
+  // Comment out for maximum performance; else get high quality SourceMaps
   devtool: 'source-map',
+
   plugins: [
-    // Required to inject NODE_ENV within React app.
-    // Redundant package.json script entry does not do that, but required for .babelrc
-    // Optimizes React for use in production mode
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify('production'), // eslint-disable-line quote-props
-        GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
-      },
-    }),
+    new webpack.EnvironmentPlugin({ GOALERT_VERSION: env.GOALERT_VERSION }),
     new CopyPlugin({
       patterns: [
         'favicon-16.png',
