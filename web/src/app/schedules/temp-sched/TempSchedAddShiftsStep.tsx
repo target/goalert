@@ -196,19 +196,6 @@ export default function TempSchedAddShiftsStep({
               min={edit ? start : undefined}
               scheduleID={scheduleID}
             />
-            <Grid item>
-              <FormControlLabel
-                control={
-                  <FormField
-                    component={Checkbox}
-                    checkbox
-                    name='isAwareOfNoCoverage'
-                  />
-                }
-                label='Allow gaps in coverage'
-                labelPlacement='end'
-              />
-            </Grid>
           </FormContainer>
           <Grid item>
             <Button
