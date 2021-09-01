@@ -25,6 +25,35 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 
+
+$(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
+	sed 's/\.ts/\.js/' web/src/cypress.json >$@
+
+$(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(shell find ./web/src/cypress)
+	rm -rf $@
+	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
+	cp -r web/src/cypress/fixtures $@/
+	touch $@
+
+
+$(BIN_DIR)/build/integration/devtools: $(shell find ./devtools/ci)
+	rm -rf $@
+	mkdir -p $@
+	cp -r devtools/ci $@/
+	touch $@
+
+$(BIN_DIR)/build/integration/.git: $(shell find ./.git)
+	rm -rf $@
+	mkdir -p $@
+	test -d .git/resource && cp -r $@/ || true
+
+$(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
+	git rev-parse HEAD >$@
+
+$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress
+	touch $@
+
+
 $(BIN_DIR)/goalert: $(GO_DEPS) graphql2/mapconfig.go
 	go build -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
@@ -352,11 +381,11 @@ $(BIN_DIR)/goalert-windows-amd64.zip: $(BIN_DIR)/build/goalert-windows-amd64
 
 
 
-$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json
+$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
 	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $@/goalert/bin/
-	cp -r  $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json $@/goalert/
+	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
 $(BIN_DIR)/integration-darwin-amd64.tgz: $(BIN_DIR)/build/integration-darwin-amd64
@@ -366,11 +395,11 @@ $(BIN_DIR)/integration-darwin-amd64.zip: $(BIN_DIR)/build/integration-darwin-amd
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-darwin-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json
+$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
 	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $@/goalert/bin/
-	cp -r  $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json $@/goalert/
+	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
 $(BIN_DIR)/integration-linux-amd64.tgz: $(BIN_DIR)/build/integration-linux-amd64
@@ -380,11 +409,11 @@ $(BIN_DIR)/integration-linux-amd64.zip: $(BIN_DIR)/build/integration-linux-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json
+$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
 	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $@/goalert/bin/
-	cp -r  $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json $@/goalert/
+	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
 $(BIN_DIR)/integration-linux-arm.tgz: $(BIN_DIR)/build/integration-linux-arm
@@ -394,11 +423,11 @@ $(BIN_DIR)/integration-linux-arm.zip: $(BIN_DIR)/build/integration-linux-arm
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json
+$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
 	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $@/goalert/bin/
-	cp -r  $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json $@/goalert/
+	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
 $(BIN_DIR)/integration-linux-arm64.tgz: $(BIN_DIR)/build/integration-linux-arm64
@@ -408,11 +437,11 @@ $(BIN_DIR)/integration-linux-arm64.zip: $(BIN_DIR)/build/integration-linux-arm64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json
+$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
 	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $@/goalert/bin/
-	cp -r  $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/cypress.json $@/goalert/
+	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
 $(BIN_DIR)/integration-windows-amd64.tgz: $(BIN_DIR)/build/integration-windows-amd64

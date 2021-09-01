@@ -30,7 +30,7 @@ type Build struct {
 }
 type Bundle struct {
 	Name     string
-	Copy     []string
+	CopyDir  []string
 	SubDir   string
 	Binaries []string
 }
@@ -69,12 +69,8 @@ func main() {
 		{
 			Name:   "integration",
 			SubDir: "goalert",
-			Copy: []string{
-				"$(BIN_DIR)/integration/goalert/devtools",
-				"$(BIN_DIR)/integration/goalert/.git",
-				"$(BIN_DIR)/integration/goalert/COMMIT",
-				"$(BIN_DIR)/integration/goalert/cypress",
-				"$(BIN_DIR)/integration/goalert/cypress.json",
+			CopyDir: []string{
+				"$(BIN_DIR)/build/integration",
 			},
 			Binaries: []string{
 				"goalert",
