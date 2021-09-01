@@ -42,6 +42,9 @@ type Store struct {
 	insertUserAuthSubject *sql.Stmt
 	deleteUserAuthSubject *sql.Stmt
 
+	usersMissingProvider *sql.Stmt
+	setAuthSubject       *sql.Stmt
+
 	findAuthSubjectsByUser *sql.Stmt
 
 	findAuthSubjects *sql.Stmt
@@ -87,6 +90,19 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			where
 				(provider_id = $1 or $1 isnull) and
 				(user_id = any($2) or $2 isnull)
+		`),
+
+		usersMissingProvider: p.P(`
+			SELECT
+				id, name, email, avatar_url, role, alert_status_log_contact_method_id
+			FROM users
+			WHERE id not in (select user_id from auth_subjects where provider_id = $1)
+		`),
+		setAuthSubject: p.P(`
+			INSERT INTO auth_subjects (provider_id, subject_id, user_id)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (provider_id, subject_id) DO UPDATE
+			SET user_id = $3
 		`),
 
 		findMany: p.P(`
@@ -153,6 +169,65 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
 
 	return store, nil
+}
+
+// SetAuthSubject will add or update the auth subject for the provider/subject pair to point to the provided user ID.
+func (s *Store) SetAuthSubject(ctx context.Context, providerID, subjectID, userID string) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return err
+	}
+
+	err = validate.Many(
+		validate.SubjectID("ProviderID", providerID),
+		validate.SubjectID("SubjectID", subjectID),
+		validate.UUID("UserID", userID),
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.setAuthSubject.ExecContext(ctx, providerID, subjectID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WithoutAuthProviderFunc will call forEachFn for each user that is missing an auth subject for the given provider ID.
+// If an error is returned by forEachFn it will stop reading and be returned.
+func (s *Store) WithoutAuthProviderFunc(ctx context.Context, providerID string, forEachFn func(User) error) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return err
+	}
+	err = validate.SubjectID("ProviderID", providerID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := s.usersMissingProvider.QueryContext(ctx, providerID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var u User
+		err = u.scanFrom(rows.Scan)
+		if err != nil {
+			return fmt.Errorf("scan user row with missing provider '%s': %w", providerID, err)
+		}
+		err = forEachFn(u)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // AuthSubjectsFunc will call the provided forEachFn for each AuthSubject.
