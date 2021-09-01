@@ -12,7 +12,7 @@ module.exports = {
   },
   target: 'node',
   output: {
-    path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
+    path: path.join(__dirname, '../../bin/build/integration/cypress'),
     libraryTarget: 'commonjs-module',
     libraryExport: 'default',
   },
