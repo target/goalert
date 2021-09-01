@@ -99,6 +99,7 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go d
 	go generate ./web/src
 
 start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+	bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -188,14 +189,14 @@ config.json.bak: bin/goalert
 	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
-postgres:
-	docker run -d \
+postgres: bin/waitfor
+	(docker run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:13-alpine || docker start goalert-postgres
+		postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
