@@ -39,7 +39,7 @@ all: test install
 release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
 docker-all-in-one: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/resetdb bin/linux-arm64/resetdb bin/linux-arm/resetdb
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
-docker-goalert: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/goalert-slack-email-sync bin/linux-arm64/goalert-slack-email-sync bin/linux-arm/goalert-slack-email-sync
+docker-goalert: bin/build/goalert-linux-amd64 bin/build/goalert-linux-arm64 bin/build/goalert-linux-arm
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
 Makefile.binaries.mk: devtools/genmake/*

@@ -1,4 +1,2 @@
 *
-!/bin/linux-arm/goalert*
-!/bin/linux-arm64/goalert*
-!/bin/linux-amd64/goalert*
+!/bin/build/goalert-linux-*
