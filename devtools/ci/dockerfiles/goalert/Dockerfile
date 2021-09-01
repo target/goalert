@@ -4,6 +4,5 @@ ENV GOALERT_LISTEN :8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 
-COPY bin/goalert-linux-amd64 /usr/bin/goalert
-COPY bin/goalert-slack-email-sync-linux-amd64 /usr/bin/goalert-slack-email-sync
+COPY bin/linux-amd64/goalert* /usr/bin/
 RUN /usr/bin/goalert self-test

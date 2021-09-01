@@ -1,11 +1,9 @@
 FROM --platform=$BUILDPLATFORM goalert/build-env:go1.16.4-postgres13 AS binaries
 ARG BUILDPLATFORM
-COPY bin/goalert-linux-arm /linux/arm/v7/goalert
-COPY bin/goalert-linux-arm64 /linux/arm64/goalert
-COPY bin/goalert-linux-amd64 /linux/amd64/goalert
-COPY bin/goalert-slack-email-sync-linux-arm /linux/arm/v7/goalert-slack-email-sync
-COPY bin/goalert-slack-email-sync-linux-arm64 /linux/arm64/goalert-slack-email-sync
-COPY bin/goalert-slack-email-sync-linux-amd64 /linux/amd64/goalert-slack-email-sync
+
+COPY bin/linux-arm/goalert* /linux/arm/v7/
+COPY bin/linux-arm64/goalert* /linux/arm64/
+COPY bin/linux-amd64/goalert* /linux/amd64/
 
 FROM alpine
 ARG TARGETPLATFORM
