@@ -1,10 +1,10 @@
 import React, { useState, ReactNode, useEffect } from 'react'
-import { useMutation, gql, ApolloError } from '@apollo/client'
+import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash'
-import { FormContainer, FormField } from '../../forms'
+import { FormContainer } from '../../forms'
 import { virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
@@ -41,14 +41,14 @@ type TempScheduleDialogProps = {
   value?: Value
 }
 
-const useStyles = makeStyles((theme) => {
-  const { error } = globalStyles(theme)
-
+const useStyles = makeStyles(() => {
   return {
-    error,
-    errorContainer: {
+    warningContainer: {
       flexGrow: 0,
       overflowY: 'visible',
+    },
+    warning: {
+      color: '#ff9800',
     },
   }
 })
@@ -61,7 +61,7 @@ export default function TempSchedDialog({
   const classes = useStyles()
   const edit = Boolean(_value)
   const { q, zone } = useScheduleTZ(scheduleID)
-  const [step, setStep] = useState(edit ? 1 : 1) // edit starting on 2nd step
+  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -162,35 +162,32 @@ export default function TempSchedDialog({
     ? [
         {
           render: (
-            <DialogContent className={classes.errorContainer}>
+            <DialogContent className={classes.warningContainer}>
               <Zoom in>
-                <Box width={1 / 3}>
+                <Box width={1 / 3} className={classes.warning}>
                   <Typography
                     component='div'
                     variant='subtitle1'
                     style={{ display: 'flex' }}
                   >
-                    <Error className={classes.error} />
+                    <Error />
                     &nbsp;
-                    <div className={classes.error}>
-                      <div>There are gaps in coverage.</div>
-                    </div>
+                    <div>There are gaps in coverage.</div>
                   </Typography>
                   <Typography
                     component='p'
                     variant='caption'
                     style={{ display: 'flex' }}
-                    className={classes.error}
                   >
-                    This means there could be time periods where your alerts are
-                    sent to your entire team instead of a designated on-call
-                    person.
+                    This means there are periods of time where no user will be
+                    on-call to receive alerts during this temporary schedule. If
+                    you would like to continue anyways, press the checkbox then
+                    click Retry.
                   </Typography>
                   <Typography
                     component='div'
                     variant='subtitle1'
                     style={{ display: 'flex' }}
-                    className={classes.error}
                   >
                     <FormControlLabel
                       control={
