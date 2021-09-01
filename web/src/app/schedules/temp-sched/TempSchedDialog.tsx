@@ -25,6 +25,7 @@ import {
 } from '@material-ui/core'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Error from '@material-ui/icons/Error'
+import { getCoverageGapItems } from './shiftsListUtil'
 
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
@@ -109,11 +110,15 @@ export default function TempSchedDialog({
   })
 
   const [isAllowingNoCoverage, setIsAllowingNoCoverage] = useState(false)
-  const [isNoCoverage, setIsNoCoverage] = useState(false)
+  const [isShowingNoCoverageWarning, setIsShowingNoCoverageWarning] =
+    useState(false)
+
+  const hasNoCoverageGaps =
+    getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
 
   const handleSubmit = (): void => {
-    if (!isAllowingNoCoverage) {
-      setIsNoCoverage(true)
+    if (hasNoCoverageGaps && !isAllowingNoCoverage) {
+      setIsShowingNoCoverageWarning(true)
       return
     }
 
@@ -158,58 +163,59 @@ export default function TempSchedDialog({
     message: e.message,
   }))
 
-  const noCoverageErrs = isNoCoverage
-    ? [
-        {
-          render: (
-            <DialogContent className={classes.warningContainer}>
-              <Zoom in>
-                <Box width={1 / 3} className={classes.warning}>
-                  <Typography
-                    component='div'
-                    variant='subtitle1'
-                    style={{ display: 'flex' }}
-                  >
-                    <Error />
-                    &nbsp;
-                    <div>There are gaps in coverage.</div>
-                  </Typography>
-                  <Typography
-                    component='p'
-                    variant='caption'
-                    style={{ display: 'flex' }}
-                  >
-                    This means there are periods of time where no user will be
-                    on-call to receive alerts during this temporary schedule. If
-                    you would like to continue anyways, press the checkbox then
-                    click Retry.
-                  </Typography>
-                  <Typography
-                    component='div'
-                    variant='subtitle1'
-                    style={{ display: 'flex' }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          onChange={(e) =>
-                            setIsAllowingNoCoverage(e.target.checked)
-                          }
-                          value={isAllowingNoCoverage}
-                        />
-                      }
-                      label='I would like to allow gaps in coverage'
-                      labelPlacement='end'
-                    />
-                  </Typography>
-                </Box>
-              </Zoom>
-            </DialogContent>
-          ),
-          message: 'You have shifts with no coverage.',
-        },
-      ]
-    : []
+  const noCoverageErrs =
+    hasNoCoverageGaps && isShowingNoCoverageWarning
+      ? [
+          {
+            render: (
+              <DialogContent className={classes.warningContainer}>
+                <Zoom in>
+                  <Box width={1 / 3} className={classes.warning}>
+                    <Typography
+                      component='div'
+                      variant='subtitle1'
+                      style={{ display: 'flex' }}
+                    >
+                      <Error />
+                      &nbsp;
+                      <div>There are gaps in coverage.</div>
+                    </Typography>
+                    <Typography
+                      component='p'
+                      variant='caption'
+                      style={{ display: 'flex' }}
+                    >
+                      This means there are periods of time where no user will be
+                      on-call to receive alerts during this temporary schedule.
+                      If you would like to continue anyways, press the checkbox
+                      then click Retry.
+                    </Typography>
+                    <Typography
+                      component='div'
+                      variant='subtitle1'
+                      style={{ display: 'flex' }}
+                    >
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            onChange={(e) =>
+                              setIsAllowingNoCoverage(e.target.checked)
+                            }
+                            value={isAllowingNoCoverage}
+                          />
+                        }
+                        label='I would like to allow gaps in coverage'
+                        labelPlacement='end'
+                      />
+                    </Typography>
+                  </Box>
+                </Zoom>
+              </DialogContent>
+            ),
+            message: 'You have shifts with no coverage.',
+          },
+        ]
+      : []
 
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
