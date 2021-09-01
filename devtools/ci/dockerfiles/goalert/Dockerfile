@@ -1,7 +1,6 @@
 FROM goalert/build-env:go1.16.4-postgres13 AS build
 COPY / /build/
 WORKDIR /build
-RUN ls
 RUN make bin/build/goalert-linux-amd64
 
 FROM alpine
