@@ -34,6 +34,12 @@ $(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(
 	touch $@
 
 
+$(BIN_DIR)/build/integration/linux-amd64: $(BIN_DIR)/linux-amd64/goalert
+	rm -rf $(BIN_DIR)/build/integration/linux-amd64
+	mkdir -p $(BIN_DIR)/build/integration/linux-amd64
+	cp $(BIN_DIR)/linux-amd64/goalert $@
+	touch $@
+
 $(BIN_DIR)/build/integration/devtools: $(shell find ./devtools/ci)
 	rm -rf $@
 	mkdir -p $@
@@ -48,7 +54,7 @@ $(BIN_DIR)/build/integration/.git: $(shell find ./.git)
 $(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
 	git rev-parse HEAD >$@
 
-$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress
+$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress $(BIN_DIR)/build/integration/linux-amd64
 	touch $@
 
 {{range $tool := $.Tools}}
