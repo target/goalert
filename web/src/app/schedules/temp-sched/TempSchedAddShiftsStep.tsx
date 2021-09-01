@@ -5,23 +5,33 @@ import {
   Grid,
   Typography,
   makeStyles,
+  FormControlLabel,
+  Checkbox,
+  FormHelperText,
 } from '@material-ui/core'
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
-import { FormContainer } from '../../forms'
+import { FormContainer, FormField } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
+import { Alert, AlertTitle } from '@material-ui/lab'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
+  shiftsListContainer: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   listOuterContainer: {
+    height: '100%',
     position: 'relative',
     overflowY: 'auto',
   },
@@ -36,6 +46,9 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: '100%',
     paddingRight: '2rem',
   },
+  testerror: {
+    margin: '.5rem',
+  },
 }))
 
 type AddShiftsStepProps = {
@@ -46,6 +59,11 @@ type AddShiftsStepProps = {
 
   scheduleID: string
   edit?: boolean
+
+  isAllowingNoCoverage: boolean
+  setIsAllowingNoCoverage: (isAllowing: boolean) => void
+  isShowingNoCoverageWarning: boolean
+  hasNoCoverageGaps: boolean
 }
 
 type DTShift = {
@@ -102,6 +120,10 @@ export default function TempSchedAddShiftsStep({
   end,
   value,
   edit,
+  isAllowingNoCoverage,
+  setIsAllowingNoCoverage,
+  isShowingNoCoverageWarning,
+  hasNoCoverageGaps,
 }: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
@@ -211,21 +233,46 @@ export default function TempSchedAddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={6} className={classes.listOuterContainer}>
-          <div className={classes.listInnerContainer}>
-            <TempSchedShiftsList
-              scheduleID={scheduleID}
-              value={value}
-              start={start}
-              end={end}
-              onRemove={(shift: Shift) => {
-                setShift(shift)
-                onChange(value.filter((s) => !shiftEquals(shift, s)))
-              }}
-              edit={edit}
-            />
+        <Grid item xs={6} className={classes.shiftsListContainer}>
+          <div className={classes.listOuterContainer}>
+            <div className={classes.listInnerContainer}>
+              <TempSchedShiftsList
+                scheduleID={scheduleID}
+                value={value}
+                start={start}
+                end={end}
+                onRemove={(shift: Shift) => {
+                  setShift(shift)
+                  onChange(value.filter((s) => !shiftEquals(shift, s)))
+                }}
+                edit={edit}
+              />
+            </div>
           </div>
+          {isShowingNoCoverageWarning && hasNoCoverageGaps && (
+            <Alert severity='error' className={classes.testerror}>
+              <AlertTitle>There are gaps in coverage</AlertTitle>
+              <FormHelperText>
+                asd sdasdasdas dasdas dasdsadsadas dasdasdassa ddsadasdas asd
+                sdasdasdas dasdas dasdsadsadas dasdasdassa ddsadasdas{' '}
+              </FormHelperText>
+              <FormControlLabel
+                label='Allow gaps in coverage'
+                labelPlacement='end'
+                control={
+                  <Checkbox
+                    checked={isAllowingNoCoverage}
+                    onChange={(e) => setIsAllowingNoCoverage(e.target.checked)}
+                    name='isAwareOfNoCoverage'
+                  />
+                }
+              />
+            </Alert>
+          )}
         </Grid>
+        {/* <Grid item>
+          
+        </Grid> */}
       </Grid>
     </StepContainer>
   )

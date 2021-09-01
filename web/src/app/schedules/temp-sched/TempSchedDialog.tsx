@@ -13,6 +13,7 @@ import { parseInterval } from '../../util/shifts'
 import { DateTime } from 'luxon'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
+import { getCoverageGapItems } from './shiftsListUtil'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
@@ -82,6 +83,25 @@ export default function TempSchedDialog({
     },
   })
 
+  const [isAllowingNoCoverage, setIsAllowingNoCoverage] = useState(false)
+  const [isShowingNoCoverageWarning, setIsShowingNoCoverageWarning] =
+    useState(false)
+
+  const hasNoCoverageGaps =
+    getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+
+  const handleSubmit = (): void => {
+    if (hasNoCoverageGaps && !isAllowingNoCoverage) {
+      setIsShowingNoCoverageWarning(true)
+      return
+    }
+    if (isShowingNoCoverageWarning && isAllowingNoCoverage) {
+      setIsShowingNoCoverageWarning(false)
+    }
+
+    submit()
+  }
+
   type SlideRenderer = {
     index: number
     key: number
@@ -108,6 +128,10 @@ export default function TempSchedDialog({
           start={value.start}
           end={value.end}
           edit={edit}
+          isAllowingNoCoverage={isAllowingNoCoverage}
+          setIsAllowingNoCoverage={setIsAllowingNoCoverage}
+          isShowingNoCoverageWarning={isShowingNoCoverageWarning}
+          hasNoCoverageGaps={hasNoCoverageGaps}
         />
       )
     }
@@ -116,13 +140,24 @@ export default function TempSchedDialog({
     return <div />
   }
 
+  const noCoverageErrs =
+    hasNoCoverageGaps && isShowingNoCoverageWarning
+      ? [
+          new Error(
+            'There are gaps in coverage. You must check to confirm you are ok with this',
+          ),
+        ]
+      : []
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
   }))
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
+  const errs = nonFieldErrs
+    .concat(fieldErrs)
+    .concat(shiftErrors)
+    .concat(noCoverageErrs)
 
   return (
     <FormDialog
@@ -171,7 +206,7 @@ export default function TempSchedDialog({
           />
         </FormContainer>
       }
-      onSubmit={() => submit()}
+      onSubmit={handleSubmit}
       onNext={step === 1 ? null : () => setStep(step + 1)}
       onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
