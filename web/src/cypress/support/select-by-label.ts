@@ -46,7 +46,9 @@ function findByLabel(
 
       cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
 
-      return cy.get('[data-cy=select-dropdown] [role=menuitem]').contains(label)
+      return cy
+        .get('body')
+        .contains('[data-cy=select-dropdown] [role=menuitem]', label)
     }
 
     cy.wrap(sub).parent().find('[role=button]').click()

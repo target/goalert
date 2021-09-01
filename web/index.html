@@ -8,7 +8,7 @@
     <meta http-equiv="x-goalert-git-commit" content="{{.GitCommit}}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{.GitTreeState}}" />
 
-    <title>GoAlert</title>
+    <title>{{.ApplicationName}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preconnect" href="https://gravatar.com" />
     <link
@@ -40,6 +40,7 @@
     <div id="graceful-unmount"></div>
     <script>
       pathPrefix = {{.PathPrefix}};
+      applicationName = {{.ApplicationName}};
     </script>
     {{- $prefix := .Prefix}} {{- range .ExtraScripts}}
     <script src="{{$prefix}}/static/{{.}}"></script>
