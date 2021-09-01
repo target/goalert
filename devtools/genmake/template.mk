@@ -27,7 +27,7 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >$@
 
-$(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/build/integration/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
 	cp -r web/src/cypress/fixtures $@/
