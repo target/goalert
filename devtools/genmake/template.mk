@@ -49,7 +49,7 @@ $(BIN_DIR)/build/integration/devtools: $(shell find ./devtools/ci)
 $(BIN_DIR)/build/integration/.git: $(shell find ./.git)
 	rm -rf $@
 	mkdir -p $@
-	test -d .git/resource && cp -r $@/ || true
+	test -d .git/resource && cp -r .git/resource $@/ || true
 
 $(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
 	git rev-parse HEAD >$@
