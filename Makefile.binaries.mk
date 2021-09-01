@@ -79,6 +79,25 @@ $(BIN_DIR)/windows-amd64/goalert.exe: $(GO_DEPS) graphql2/mapconfig.go web/src/b
 	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 
+$(BIN_DIR)/goalert-slack-email-sync: $(GO_DEPS) 
+	go build  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/darwin-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-arm/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-arm64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)  
+	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+
 $(BIN_DIR)/mockslack: $(GO_DEPS) 
 	go build  -o $@ ./devtools/mockslack/cmd/mockslack
 
@@ -290,27 +309,27 @@ $(BIN_DIR)/windows-amd64/waitfor.exe: $(GO_DEPS)
 
 
 
-$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runjson $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
+$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runjson $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
 
 $(BIN_DIR)/darwin-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=darwin GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runjson $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
+$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runjson $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
 
 $(BIN_DIR)/linux-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runjson $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
+$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runjson $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
 
 $(BIN_DIR)/linux-arm/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm GOARM=7 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runjson $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
+$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runjson $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
 
 $(BIN_DIR)/linux-arm64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runjson.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
+$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runjson.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
 
 $(BIN_DIR)/windows-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go test ./smoketest -c -o $@
