@@ -496,11 +496,21 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 		return nil, err
 	}
 
+	userID := permission.UserID(ctx)
 	stmt := s.findOne
 	if forUpdate {
 		stmt = s.findOneForUpdate
+		row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id)
+		var u User
+		var statusCM sql.NullString
+		err = row.Scan(&u.ID, &u.Name, &u.Email, &u.AvatarURL, &u.Role, &statusCM)
+		u.AlertStatusCMID = statusCM.String
+		if err != nil {
+			return nil, err
+		}
+		return &u, nil
 	}
-	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id)
+	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id, userID)
 	var u User
 	err = u.scanFrom(row.Scan)
 	if err != nil {
