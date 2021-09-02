@@ -24,6 +24,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
+		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
@@ -85,6 +86,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 // MapPublicConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
+		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
@@ -141,6 +143,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 	}
 	for _, v := range vals {
 		switch v.ID {
+		case "General.ApplicationName":
+			cfg.General.ApplicationName = v.Value
 		case "General.PublicURL":
 			cfg.General.PublicURL = v.Value
 		case "General.GoogleAnalyticsID":

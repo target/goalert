@@ -923,6 +923,7 @@ export interface Notice {
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
 
 type ConfigID =
+  | 'General.ApplicationName'
   | 'General.PublicURL'
   | 'General.GoogleAnalyticsID'
   | 'General.NotificationDisclaimer'

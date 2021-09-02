@@ -122,12 +122,8 @@ export default function MaterialSelect(
   let options = _options
   if (value && Array.isArray(value)) {
     options = [...options, ...value]
-  } else if (
-    value &&
-    !Array.isArray(value) &&
-    options.every((opt) => opt.value !== value.value)
-  ) {
-    options = [value, ...options]
+  } else if (!inputValue && value && !Array.isArray(value) && !options.length) {
+    options = [value]
   }
 
   const customCSS: Record<string, string> = {
@@ -150,6 +146,7 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       getOptionSelected={(opt, val) => opt.value === val.value}
+      filterOptions={(options) => options}
       noOptionsText={
         noOptionsError ? (
           <Alert severity='error'>{noOptionsError.message}</Alert>
