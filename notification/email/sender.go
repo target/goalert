@@ -55,11 +55,11 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	case notification.Test:
 		subject = "Test Message"
 		e.Body.Title = "Test Message"
-		e.Body.Intros = []string{"This is a test message from GoAlert."}
+		e.Body.Intros = []string{"This is a test message."}
 	case notification.Verification:
 		subject = "Verification Message"
 		e.Body.Title = "Verification Message"
-		e.Body.Intros = []string{"This is a verification message from GoAlert."}
+		e.Body.Intros = []string{"This is your contact method verification code."}
 		e.Body.Actions = []hermes.Action{{
 			Instructions: "Click the REACTIVATE link on your profile page and enter the verification code.",
 			InviteCode:   strconv.Itoa(m.Code),
@@ -77,7 +77,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	case notification.AlertBundle:
 		subject = fmt.Sprintf("Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
 		e.Body.Title = "Multiple Unacknowledged Alerts"
-		e.Body.Intros = []string{fmt.Sprintf("The GoAlert service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
+		e.Body.Intros = []string{fmt.Sprintf("The service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
 		e.Body.Actions = []hermes.Action{{
 			Button: hermes.Button{
 				Text: "Open Alert List",
