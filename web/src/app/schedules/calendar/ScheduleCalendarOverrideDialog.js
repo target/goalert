@@ -28,9 +28,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
     ...props.defaultValue,
   })
 
-  const [activeVariant, setActiveVariant] = useState(
-    variantOptions[0] || 'replace',
-  )
+  const [activeVariant, setActiveVariant] = useState(variantOptions[0])
 
   const { onNewTempSched } = useContext(ScheduleCalendarContext)
 

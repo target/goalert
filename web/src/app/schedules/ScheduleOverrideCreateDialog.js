@@ -9,20 +9,20 @@ import useOverrideNotices from './useOverrideNotices'
 
 export const variantDetails = {
   add: {
-    title: 'Temporarily Add a User',
-    desc: 'This will add a new shift for the selected user, while the override is active. Existing shifts will remain unaffected.',
+    title: 'Temporarily Add User',
+    desc: 'This will add a new shift for the selected user while the override is active. Existing shifts will remain unaffected.',
     name: 'Additional Coverage',
     helperText: 'Add an additional on-call user for a specified time.',
   },
   remove: {
-    title: 'Temporarily Remove a User',
-    desc: 'This will remove (or split/shorten) shifts belonging to the selected user, while the override is active.',
+    title: 'Temporarily Remove User',
+    desc: 'This will remove (or split/shorten) shifts belonging to the selected user while the override is active.',
     name: 'Remove Coverage',
     helperText: "Remove one user's shifts for a specified time.",
   },
   replace: {
-    title: 'Temporarily Replace a User',
-    desc: 'This will replace the selected user with another during any existing shifts, while the override is active. No new shifts will be created, only who is on-call will be changed.',
+    title: 'Temporarily Replace User',
+    desc: 'This will replace the selected user with another during any existing shifts while the override is active. No new shifts will be created. Only who is on-call will be changed.',
     name: "Cover Someone's Shifts",
     helperText: "Have a user take over another's shifts for a specified time.",
   },
@@ -34,7 +34,7 @@ export const variantDetails = {
       'Define a fixed shift-by-shift schedule to use for a specified time.',
   },
   choose: {
-    title: 'Choose an override action',
+    title: 'Choose Override Action',
     desc: 'This will create a temporary override to the existing schedule.',
     name: 'Choose',
     helperText: 'This will determine which override action you want to take',
