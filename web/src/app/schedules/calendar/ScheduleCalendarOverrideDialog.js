@@ -1,12 +1,12 @@
 import React, { useContext, useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import FormDialog from '../dialogs/FormDialog'
+import FormDialog from '../../dialogs/FormDialog'
 import { DateTime } from 'luxon'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import useOverrideNotices from './useOverrideNotices'
+import { fieldErrors, nonFieldErrors } from '../../util/errutil'
+import useOverrideNotices from '../useOverrideNotices'
 import { ScheduleCalendarOverrideForm } from './ScheduleCalendarOverrideForm'
-import { ScheduleCalendarContext } from './ScheduleDetails'
+import { ScheduleCalendarContext } from '../ScheduleDetails'
 
 export const variantDetails = {
   add: {

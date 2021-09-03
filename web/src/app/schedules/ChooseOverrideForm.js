@@ -8,16 +8,10 @@ import {
   Radio,
   FormHelperText,
 } from '@material-ui/core'
-import { variantDetails } from './ScheduleCalendarOverrideDialog'
+import { variantDetails } from './calendar/ScheduleCalendarOverrideDialog'
 
 export default function ChooseOverrideForm(props) {
   const { value, errors = [], removeUserReadOnly, ...formProps } = props
-
-  const handleVariantChange = (e) => {
-    if (e.target.value) {
-      props.onVariantChange(e.target.value)
-    }
-  }
 
   return (
     <FormContainer optionalLabels errors={errors} value={value} {...formProps}>
@@ -26,7 +20,7 @@ export default function ChooseOverrideForm(props) {
           required
           aria-label='Choose an override action'
           name='variant'
-          onChange={handleVariantChange}
+          onChange={(e) => props.onVariantChange(e.target.value)}
           value={props.activeVariant}
         >
           {props.variantOptions.map((variant) => (

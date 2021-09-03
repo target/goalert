@@ -21,7 +21,7 @@ import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
-import ScheduleCalendarOverrideDialog from '../ScheduleCalendarOverrideDialog'
+import ScheduleCalendarOverrideDialog from '../calendar/ScheduleCalendarOverrideDialog'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 

@@ -6,7 +6,7 @@ import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import useOverrideNotices from './useOverrideNotices'
-import { variantDetails } from './ScheduleCalendarOverrideDialog'
+import { variantDetails } from './calendar/ScheduleCalendarOverrideDialog'
 
 const mutation = gql`
   mutation ($input: CreateUserOverrideInput!) {

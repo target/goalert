@@ -1,8 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
-import { FormContainer } from '../forms'
-import ScheduleOverrideForm from './ScheduleOverrideForm'
-import ChooseOverrideForm from './ChooseOverrideForm'
+import { FormContainer } from '../../forms'
+import ScheduleOverrideForm from '../ScheduleOverrideForm'
+import ChooseOverrideForm from '../ChooseOverrideForm'
 
 export function ScheduleCalendarOverrideForm(props) {
   const { activeStep, ...otherProps } = props
