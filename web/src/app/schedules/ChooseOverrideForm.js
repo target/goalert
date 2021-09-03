@@ -8,7 +8,7 @@ import {
   Radio,
   FormHelperText,
 } from '@material-ui/core'
-import { variantDetails } from './calendar/ScheduleCalendarOverrideDialog'
+import { variantDetails } from './ScheduleOverrideCreateDialog'
 
 export default function ChooseOverrideForm(props) {
   const { value, errors = [], removeUserReadOnly, ...formProps } = props
