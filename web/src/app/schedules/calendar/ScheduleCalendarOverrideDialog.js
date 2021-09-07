@@ -15,6 +15,7 @@ import {
   FormControlLabel,
   FormHelperText,
   Grid,
+  makeStyles,
   Radio,
   RadioGroup,
 } from '@material-ui/core'
@@ -26,8 +27,16 @@ const mutation = gql`
     }
   }
 `
+
+const useStyles = makeStyles({
+  variantItem: {
+    marginBottom: '.3rem',
+    marginTop: '.3rem',
+  },
+})
 export default function ScheduleCalendarOverrideDialog(props) {
   const { variantOptions = ['replace', 'remove', 'add', 'temp'] } = props
+  const classes = useStyles()
 
   const initialValue = {
     addUserID: '',
@@ -106,12 +115,12 @@ export default function ScheduleCalendarOverrideDialog(props) {
                     value={variant}
                     control={<Radio />}
                     label={
-                      <React.Fragment>
-                        {variantDetails[variant].name}
+                      <div className={classes.variantItem}>
+                        <div>{variantDetails[variant].name}</div>
                         <FormHelperText>
                           {variantDetails[variant].helperText}
                         </FormHelperText>
-                      </React.Fragment>
+                      </div>
                     }
                   />
                 ))}
