@@ -19,6 +19,7 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
+		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID            string `public:"true"`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
@@ -308,6 +309,14 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	return false
 }
 
+// ApplicationName will return the General.ApplicationName
+func (cfg Config) ApplicationName() string {
+	if cfg.General.ApplicationName == "" {
+		return "GoAlert"
+	}
+	return cfg.General.ApplicationName
+}
+
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
 	if cfg.General.PublicURL == "" {
@@ -345,6 +354,10 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL("General.PublicURL", cfg.General.PublicURL),
 		)
+	}
+
+	if cfg.General.ApplicationName != "" {
+		err = validate.Many(err, validate.ASCII("General.ApplicationName", cfg.General.ApplicationName, 0, 32))
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }

@@ -9,6 +9,8 @@ import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
 import useWidth from '../../util/useWidth'
+import { useConfigValue } from '../../util/RequireConfig'
+import { applicationName as appName } from '../../env'
 
 const useStyles = makeStyles(() => ({
   backPage: {
@@ -94,9 +96,10 @@ NameLoader.propTypes = {
 function ToolbarTitle() {
   const width = useWidth()
   const classes = useStyles()
+  const [applicationName] = useConfigValue('General.ApplicationName')
 
   const renderTitle = (title) => {
-    document.title = `GoAlert - ${title}`
+    document.title = `${applicationName || appName} - ${title}`
 
     return (
       <Typography
