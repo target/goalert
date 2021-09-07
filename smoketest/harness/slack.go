@@ -24,7 +24,8 @@ type SlackChannel interface {
 type slackServer struct {
 	h *Harness
 	*mockslack.Server
-	channels map[string]*slackChannel
+	hasFailure bool
+	channels   map[string]*slackChannel
 }
 
 type slackChannel struct {
@@ -47,7 +48,7 @@ func (s *slackServer) WaitAndAssert() {
 		s.h.Trigger()
 		var hasFailure bool
 		for _, ch := range s.channels {
-			hasFailure = hasFailure || ch.hasUnexpectedMessages()
+			hasFailure = s.hasFailure || hasFailure || ch.hasUnexpectedMessages()
 		}
 
 		if hasFailure {
@@ -95,6 +96,7 @@ func (ch *slackChannel) ExpectMessage(keywords ...string) {
 
 		select {
 		case <-timeout.C:
+			ch.h.slack.hasFailure = true
 			ch.h.t.Fatalf("timeout waiting for slack message: Channel=%s; ID=%s; keywords=%v\nGot: %#v", ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
 		default:
 		}
