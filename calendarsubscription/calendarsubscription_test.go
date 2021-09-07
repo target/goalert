@@ -24,7 +24,7 @@ func TestCalendarSubscription_RenderICalFromShifts(t *testing.T) {
 	}}
 	generatedAt := time.Date(2020, 1, 1, 5, 0, 0, 0, time.UTC)
 	cs.ScheduleID = "100f0e0d-0c0b-0a09-0807-060504030201"
-	iCal, err := cs.renderICalFromShifts(shifts, generatedAt)
+	iCal, err := cs.renderICalFromShifts("GoAlert", shifts, generatedAt)
 	assert.NoError(t, err)
 	expected := strings.Join([]string{
 		"BEGIN:VCALENDAR",

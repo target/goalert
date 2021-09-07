@@ -313,6 +313,8 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
+	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
+
 	vals := make(url.Values)
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
