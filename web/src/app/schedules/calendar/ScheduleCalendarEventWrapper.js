@@ -56,6 +56,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
     setOverrideDialog({
       variantOptions: ['replace', 'remove'],
+      removeUserReadOnly: true,
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),

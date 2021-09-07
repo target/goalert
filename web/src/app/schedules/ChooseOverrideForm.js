@@ -11,19 +11,19 @@ import {
 import { variantDetails } from './ScheduleOverrideCreateDialog'
 
 export default function ChooseOverrideForm(props) {
-  const { value, errors = [], removeUserReadOnly, ...formProps } = props
+  const { onVariantChange, activeVariant, variantOptions, ...formProps } = props
 
   return (
-    <FormContainer optionalLabels errors={errors} value={value} {...formProps}>
+    <FormContainer {...formProps} optionalLabels>
       <Grid item xs={12}>
         <RadioGroup
           required
           aria-label='Choose an override action'
           name='variant'
-          onChange={(e) => props.onVariantChange(e.target.value)}
-          value={props.activeVariant}
+          onChange={(e) => onVariantChange(e.target.value)}
+          value={activeVariant}
         >
-          {props.variantOptions.map((variant) => (
+          {variantOptions.map((variant) => (
             <FormControlLabel
               key={variant}
               data-cy={`variant.${variant}`}
@@ -56,6 +56,5 @@ ChooseOverrideForm.propTypes = {
   disabled: p.bool.isRequired,
   activeVariant: p.string.isRequired,
   onVariantChange: p.func.isRequired,
-  removeUserReadOnly: p.bool,
   variantOptions: p.arrayOf(p.string),
 }

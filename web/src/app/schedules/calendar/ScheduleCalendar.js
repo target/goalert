@@ -171,6 +171,7 @@ function ScheduleCalendar(props) {
               onClick={() =>
                 setOverrideDialog({
                   variantOptions: ['replace', 'remove', 'add', 'temp'],
+                  removeUserReadOnly: false,
                 })
               }
               className={classes.tempSchedBtn}
@@ -211,7 +212,7 @@ function ScheduleCalendar(props) {
           variantOptions={overrideDialog.variantOptions}
           scheduleID={props.scheduleID}
           onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly
+          removeUserReadOnly={overrideDialog.removeUserReadOnly}
         />
       )}
     </React.Fragment>

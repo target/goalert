@@ -16,7 +16,6 @@ export function ScheduleCalendarOverrideForm(props) {
           errors={props.errors}
           onVariantChange={props.onVariantChange}
           activeVariant={props.activeVariant}
-          removeUserReadOnly={props.removeUserReadOnly}
           variantOptions={props.variantOptions}
         />
       )}
@@ -53,4 +52,5 @@ ScheduleCalendarOverrideForm.propTypes = {
   variantOptions: p.arrayOf(p.string),
   activeVariant: p.string.isRequired,
   onVariantChange: p.func.isRequired,
+  removeUserReadOnly: p.bool,
 }

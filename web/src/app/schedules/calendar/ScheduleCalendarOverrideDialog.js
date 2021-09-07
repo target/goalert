@@ -88,6 +88,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
           disabled={loading}
           errors={fieldErrors(error)}
           variantOptions={variantOptions}
+          removeUserReadOnly={props.removeUserReadOnly}
         />
       }
       onSubmit={() => mutate()}
