@@ -11,7 +11,7 @@ import {
 } from '@material-ui/core'
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
-import { FormContainer, FormField } from '../../forms'
+import { FormContainer } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
@@ -46,8 +46,9 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: '100%',
     paddingRight: '2rem',
   },
-  testerror: {
-    margin: '.5rem',
+  noCoverageError: {
+    marginTop: '.5rem',
+    marginBottom: '.5rem',
   },
 }))
 
@@ -250,17 +251,19 @@ export default function TempSchedAddShiftsStep({
             </div>
           </div>
           {isShowingNoCoverageWarning && hasNoCoverageGaps && (
-            <Alert severity='error' className={classes.testerror}>
-              <AlertTitle>There are gaps in coverage</AlertTitle>
+            <Alert severity='error' className={classes.noCoverageError}>
+              <AlertTitle>Gaps in coverage</AlertTitle>
               <FormHelperText>
-                asd sdasdasdas dasdas dasdsadsadas dasdasdassa ddsadasdas asd
-                sdasdasdas dasdas dasdsadsadas dasdasdassa ddsadasdas{' '}
+                There are gaps in coverage. During these gaps nobody will
+                receive alerts. If you still want to proceed, check the box and
+                then click Retry.
               </FormHelperText>
               <FormControlLabel
                 label='Allow gaps in coverage'
                 labelPlacement='end'
                 control={
                   <Checkbox
+                    data-cy='no-coverage-checkbox'
                     checked={isAllowingNoCoverage}
                     onChange={(e) => setIsAllowingNoCoverage(e.target.checked)}
                     name='isAwareOfNoCoverage'

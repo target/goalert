@@ -142,11 +142,7 @@ export default function TempSchedDialog({
 
   const noCoverageErrs =
     hasNoCoverageGaps && isShowingNoCoverageWarning
-      ? [
-          new Error(
-            'There are gaps in coverage. You must check to confirm you are ok with this',
-          ),
-        ]
+      ? [new Error('This temporary schedule has gaps in coverage.')]
       : []
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
