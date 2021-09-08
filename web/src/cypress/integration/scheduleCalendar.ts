@@ -176,11 +176,11 @@ function testCalendar(screen: ScreenFormat): void {
         .click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="override"]').click()
-      cy.dialogTitle('Choose an override action')
+      cy.dialogTitle('Choose')
       cy.dialogForm({ variant: 'replace' })
       cy.dialogClick('Next')
 
-      cy.dialogTitle('Replace a User')
+      cy.dialogTitle('Replace')
       cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
     })
@@ -196,11 +196,11 @@ function testCalendar(screen: ScreenFormat): void {
       .click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="override"]').click()
-    cy.dialogTitle('Choose an override action')
+    cy.dialogTitle('Choose')
     cy.dialogForm({ variant: 'remove' })
     cy.dialogClick('Next')
 
-    cy.dialogTitle('Remove a User')
+    cy.dialogTitle('Remove')
     cy.dialogFinish('Submit')
   })
 }
