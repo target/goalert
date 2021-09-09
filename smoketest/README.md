@@ -5,7 +5,6 @@ A suite of tests to check that notifications get sent properly.
 ## Setup
 
 1. Ensure you have postgres running locally, the test suite will create timestamped databases while running.
-1. Make sure you have the `goalert` binary installed and up-to-date. (run `make install` from the root of the repo)
 
 ## Running Tests
 

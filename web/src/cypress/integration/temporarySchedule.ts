@@ -28,7 +28,10 @@ function testTemporarySchedule(screen: string): void {
 
   it('should go back and forth between steps', () => {
     const { start, end } = randInterval()
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.get(schedTimesSelector).as('step1')
     cy.get(addShiftsSelector).as('step2')
     cy.get('@step1').should('be.visible.and.contain', 'STEP 1 OF 2')
@@ -48,7 +51,10 @@ function testTemporarySchedule(screen: string): void {
   it('should toggle duration field', () => {
     const { start, end } = randInterval()
     const shiftEnd = start.plus({ hours: 8 }) // default shift length is 8 hours
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.get(addShiftsSelector).as('step2')
     cy.dialogForm(
       { start: schedTZ(start), end: schedTZ(end) },
@@ -91,7 +97,10 @@ function testTemporarySchedule(screen: string): void {
 
   it('should cancel and close form', () => {
     cy.get('[role="dialog"]').should('not.exist')
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.get('[role="dialog"]').should('be.visible')
     cy.dialogFinish('Cancel')
     cy.get('[role="dialog"]').should('not.exist')
@@ -99,7 +108,10 @@ function testTemporarySchedule(screen: string): void {
 
   it('should create a temporary schedule', () => {
     const { start, end } = randInterval()
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.dialogForm(
       { start: schedTZ(start), end: schedTZ(end) },
       schedTimesSelector,
@@ -178,7 +190,10 @@ function testTemporarySchedule(screen: string): void {
 
   it('should be able to add multiple shifts on step 2', () => {
     const ivl = randInterval()
-    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
     cy.dialogForm(
       {
         start: schedTZ(ivl.start),

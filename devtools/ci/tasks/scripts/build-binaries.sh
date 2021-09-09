@@ -15,6 +15,6 @@ done
 
 if [ "$BUILD_INTEGRATION" = "1" ]
 then
-    make bin/integration.tgz BUNDLE=1 BUILD_FLAGS=-trimpath
-    cp bin/integration.tgz ${PREFIX}integration-${BVERSION}-linux-amd64.tgz
+    make bin/integration-linux-amd64.tgz BUNDLE=1 BUILD_FLAGS=-trimpath
+    cp bin/integration-linux-amd64.tgz ${PREFIX}integration-${BVERSION}-linux-amd64.tgz
 fi
