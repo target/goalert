@@ -61,10 +61,9 @@ type AddShiftsStepProps = {
   scheduleID: string
   edit?: boolean
 
-  isAllowingNoCoverage: boolean
-  setIsAllowingNoCoverage: (isAllowing: boolean) => void
-  isShowingNoCoverageWarning: boolean
-  hasNoCoverageGaps: boolean
+  showCoverageGapsWarning?: boolean
+  coverageGapsAllowed?: boolean
+  setCoverageGapsAllowed: (isAllowed: boolean) => void
 }
 
 type DTShift = {
@@ -121,10 +120,9 @@ export default function TempSchedAddShiftsStep({
   end,
   value,
   edit,
-  isAllowingNoCoverage,
-  setIsAllowingNoCoverage,
-  isShowingNoCoverageWarning,
-  hasNoCoverageGaps,
+  coverageGapsAllowed,
+  setCoverageGapsAllowed,
+  showCoverageGapsWarning,
 }: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
@@ -250,7 +248,7 @@ export default function TempSchedAddShiftsStep({
               />
             </div>
           </div>
-          {isShowingNoCoverageWarning && hasNoCoverageGaps && (
+          {showCoverageGapsWarning && (
             <Alert severity='error' className={classes.noCoverageError}>
               <AlertTitle>Gaps in coverage</AlertTitle>
               <FormHelperText>
@@ -264,8 +262,8 @@ export default function TempSchedAddShiftsStep({
                 control={
                   <Checkbox
                     data-cy='no-coverage-checkbox'
-                    checked={isAllowingNoCoverage}
-                    onChange={(e) => setIsAllowingNoCoverage(e.target.checked)}
+                    checked={coverageGapsAllowed}
+                    onChange={(e) => setCoverageGapsAllowed(e.target.checked)}
                     name='isAwareOfNoCoverage'
                   />
                 }

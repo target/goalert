@@ -87,11 +87,11 @@ export default function TempSchedDialog({
   const [isShowingNoCoverageWarning, setIsShowingNoCoverageWarning] =
     useState(false)
 
-  const hasNoCoverageGaps =
+  const hasCoverageGaps =
     getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
 
   const handleSubmit = (): void => {
-    if (hasNoCoverageGaps && !isAllowingNoCoverage) {
+    if (hasCoverageGaps && !isAllowingNoCoverage) {
       setIsShowingNoCoverageWarning(true)
       return
     }
@@ -128,10 +128,11 @@ export default function TempSchedDialog({
           start={value.start}
           end={value.end}
           edit={edit}
-          isAllowingNoCoverage={isAllowingNoCoverage}
-          setIsAllowingNoCoverage={setIsAllowingNoCoverage}
-          isShowingNoCoverageWarning={isShowingNoCoverageWarning}
-          hasNoCoverageGaps={hasNoCoverageGaps}
+          coverageGapsAllowed={isAllowingNoCoverage}
+          setCoverageGapsAllowed={setIsAllowingNoCoverage}
+          showCoverageGapsWarning={
+            isShowingNoCoverageWarning && hasCoverageGaps
+          }
         />
       )
     }
@@ -141,7 +142,7 @@ export default function TempSchedDialog({
   }
 
   const noCoverageErrs =
-    hasNoCoverageGaps && isShowingNoCoverageWarning
+    hasCoverageGaps && isShowingNoCoverageWarning
       ? [new Error('This temporary schedule has gaps in coverage.')]
       : []
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
