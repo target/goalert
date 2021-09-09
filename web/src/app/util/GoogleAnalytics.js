@@ -17,20 +17,17 @@ export function sendGAEvent(eventProps) {
 }
 
 function GoogleAnalytics(props) {
-  const logPageChange = (pathname, search = '') => {
+  const { pathname, search } = props.location
+
+  useEffect(() => {
     const page = pathname + search
-    const { location } = window
     set({
       page,
-      location: `${location.origin}${page}`,
+      location: `${window.location.origin}${page}`,
       ...props.options,
     })
     pageview(page)
-  }
-
-  useEffect(() => {
-    logPageChange(props.location.pathname, props.location.search)
-  }, [props.location.pathname, props.location.search])
+  }, [pathname, search])
 
   return null
 }
