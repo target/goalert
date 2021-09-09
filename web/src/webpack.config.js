@@ -66,10 +66,11 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   devServer: {
     allowedHosts: 'all',
 
-    stats: 'errors-only',
-
     // host: HOST,
     port: PORT,
+    devMiddleware: {
+      stats: 'errors-only',
+    },
   },
   optimization: {
     splitChunks: {
