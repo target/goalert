@@ -64,7 +64,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   devtool: 'inline-source-map',
   // webpack-dev-server configuration
   devServer: {
-    disableHostCheck: true,
+    allowedHosts: 'all',
 
     stats: 'errors-only',
 
