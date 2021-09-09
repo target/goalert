@@ -7,7 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 
-module.exports = (env) => ({
+module.exports = () => ({
   mode: 'production',
   entry: {
     app: APP,
@@ -58,7 +58,6 @@ module.exports = (env) => ({
   devtool: 'source-map',
 
   plugins: [
-    new webpack.EnvironmentPlugin({ GOALERT_VERSION: env.GOALERT_VERSION }),
     new CopyPlugin({
       patterns: [
         'favicon-16.png',
@@ -72,9 +71,12 @@ module.exports = (env) => ({
       })),
     }),
     new webpack.BannerPlugin({
-      banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
+      banner: `var GOALERT_VERSION=${JSON.stringify(
+        process.env.GOALERT_VERSION,
+      )};`,
       raw: true,
     }),
+    new webpack.EnvironmentPlugin({ GOALERT_VERSION: 'prod' }),
   ],
 
   optimization: {
