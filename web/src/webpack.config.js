@@ -7,6 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
+const CYPRESS = path.join(__dirname, 'cypress')
 const PORT = process.env.PORT || 3032
 
 module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
@@ -65,6 +66,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   // webpack-dev-server configuration
   devServer: {
     allowedHosts: 'all',
+    watchFiles: [APP, CYPRESS],
 
     // host: HOST,
     port: PORT,
