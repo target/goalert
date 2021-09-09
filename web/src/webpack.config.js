@@ -8,7 +8,7 @@ const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 const CYPRESS = path.join(__dirname, 'cypress')
 
-module.exports = (env) => ({
+module.exports = () => ({
   mode: 'development',
   // Paths and extensions
   entry: {
@@ -98,7 +98,9 @@ module.exports = (env) => ({
       })),
     }),
     new webpack.BannerPlugin({
-      banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
+      banner: `var GOALERT_VERSION=${JSON.stringify(
+        process.env.GOALERT_VERSION,
+      )};`,
       raw: true,
     }),
     new webpack.EnvironmentPlugin({
