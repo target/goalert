@@ -266,7 +266,7 @@ export default function TempSchedAddShiftsStep({
                     data-cy='no-coverage-checkbox'
                     checked={isAllowingNoCoverage}
                     onChange={(e) => setIsAllowingNoCoverage(e.target.checked)}
-                    name='isAwareOfNoCoverage'
+                    name='allowCoverageGaps'
                   />
                 }
               />
