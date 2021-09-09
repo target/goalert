@@ -273,9 +273,6 @@ export default function TempSchedAddShiftsStep({
             </Alert>
           )}
         </Grid>
-        {/* <Grid item>
-          
-        </Grid> */}
       </Grid>
     </StepContainer>
   )
