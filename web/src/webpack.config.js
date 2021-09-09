@@ -64,7 +64,7 @@ module.exports = (env) => ({
   // webpack-dev-server configuration
   devServer: {
     port: 3035,
-    allowedHosts: ['docker.for.mac.host.internal'],
+    allowedHosts: 'all',
     watchFiles: [APP, CYPRESS],
 
     devMiddleware: {
