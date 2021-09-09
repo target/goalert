@@ -264,16 +264,13 @@ export default function TempSchedAddShiftsStep({
                     data-cy='no-coverage-checkbox'
                     checked={coverageGapsAllowed}
                     onChange={(e) => setCoverageGapsAllowed(e.target.checked)}
-                    name='isAwareOfNoCoverage'
+                    name='allowCoverageGaps'
                   />
                 }
               />
             </Alert>
           )}
         </Grid>
-        {/* <Grid item>
-          
-        </Grid> */}
       </Grid>
     </StepContainer>
   )
