@@ -6,6 +6,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
+const CYPRESS = path.join(__dirname, 'cypress')
 
 module.exports = (env) => ({
   mode: 'development',
@@ -62,10 +63,13 @@ module.exports = (env) => ({
   devtool: 'eval-source-map',
   // webpack-dev-server configuration
   devServer: {
-    disableHostCheck: true,
-    stats: 'errors-only',
     port: 3035,
     allowedHosts: ['docker.for.mac.host.internal'],
+    watchFiles: [APP, CYPRESS],
+
+    devMiddleware: {
+      stats: 'errors-only',
+    },
   },
   optimization: {
     splitChunks: {

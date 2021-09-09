@@ -3,7 +3,7 @@ ARG BUILDPLATFORM
 
 COPY bin/build/goalert-linux-arm/goalert/bin /linux/arm/v7
 COPY bin/build/goalert-linux-arm64/goalert/bin /linux/arm64
-COPY bin/build/goalert-linux-arm/goalert/bin /linux/amd64
+COPY bin/build/goalert-linux-amd64/goalert/bin /linux/amd64
 
 FROM alpine
 ARG TARGETPLATFORM
