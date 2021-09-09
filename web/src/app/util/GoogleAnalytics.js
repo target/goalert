@@ -17,7 +17,7 @@ export function sendGAEvent(eventProps) {
 }
 
 function GoogleAnalytics(props) {
-  const { pathname, search } = props.location
+  const { pathname = '', search = '' } = props.location
 
   useEffect(() => {
     const page = pathname + search
