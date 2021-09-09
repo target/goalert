@@ -101,5 +101,8 @@ module.exports = (env) => ({
       banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
       raw: true,
     }),
+    new webpack.EnvironmentPlugin({
+      GOALERT_VERSION: 'dev',
+    }),
   ],
 })
