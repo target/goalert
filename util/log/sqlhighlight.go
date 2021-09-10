@@ -1,3 +1,4 @@
+//go:build sql_highlight
 // +build sql_highlight
 
 package log
