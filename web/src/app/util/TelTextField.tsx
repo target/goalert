@@ -36,6 +36,10 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 
+  const onlyTel = inputTypes.includes('tel') && inputTypes.length === 1
+  const onlySID = inputTypes.includes('sid') && inputTypes.length === 1
+  const hasSID = inputTypes.includes('sid') && value.startsWith('MG')
+
   // debounce to set the phone number
   useEffect(() => {
     const t = setTimeout(() => {
@@ -44,12 +48,28 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
     return () => clearTimeout(t)
   }, [value])
 
+  const skipValidatePhoneNumber = (): boolean => {
+    if (!phoneNumber || props.disabled) {
+      return true
+    }
+    if (onlyTel && !value.match('/(^[0-9])|(^\\+)/')) {
+      return true
+    }
+    if (onlySID) {
+      return true
+    }
+    if (hasSID) {
+      return true
+    }
+    return false
+  }
+
   // check validation of the input phoneNumber through graphql
   const { data } = useQuery(isValidNumber, {
     pollInterval: 0,
-    variables: { number: '+' + phoneNumber },
+    variables: { number: phoneNumber },
     fetchPolicy: 'cache-first',
-    skip: !phoneNumber || props.disabled,
+    skip: skipValidatePhoneNumber(),
   })
 
   // fetch validation
@@ -76,7 +96,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   }
 
   // add live validation icon to the right of the textfield as an endAdornment
-  if (adorn) {
+  if (adorn && !props.disabled) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
       ...iprops,
