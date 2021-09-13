@@ -325,6 +325,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
+	// Note: We don't use cfg.ApplicationName() since that is configured in the Slack app as the bot name.
 	switch t := msg.(type) {
 	case notification.Alert:
 		if t.OriginalStatus != nil {

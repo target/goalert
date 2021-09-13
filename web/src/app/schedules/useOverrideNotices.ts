@@ -42,7 +42,7 @@ export default function useOverrideNotices(
     {
       type: 'WARNING',
       message: 'This override overlaps with one or more temporary schedules',
-      details: 'Overrides do not take affect during temporary schedules',
+      details: 'Overrides do not take effect during temporary schedules',
     },
   ]
 }

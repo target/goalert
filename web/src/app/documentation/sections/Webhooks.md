@@ -10,6 +10,7 @@ Triggered upon creating a Contact Method of type Webhook.
 
 ```
 {
+    "AppName": "GoAlert",
     "Type": "Verification",
     "Code": "283917"
 }
@@ -21,6 +22,7 @@ Triggered on the profile page by clicking "Send Test".
 
 ```
 {
+    "AppName": "GoAlert",
     "Type": "Test"
 }
 ```
@@ -31,6 +33,7 @@ Triggered for notification of a single alert.
 
 ```
 {
+    "AppName": "GoAlert",
     "Type": "Alert",
     "AlertID": 79685,
     "Summary": "Example Summary",
@@ -46,6 +49,7 @@ Triggered for notification of multiple alerts for a given service.
 
 ```
 {
+    "AppName": "GoAlert",
     "Type": "AlertBundle",
     "ServiceID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "ServiceName": "Example Service",
@@ -61,6 +65,7 @@ Triggered for notification of a single alert status update.
 
 ```
 {
+    "AppName": "GoAlert",
     "Type": "AlertStatus",
     "AlertID": 79694,
     "LogEntry": "Closed via test integration (Generic API)"

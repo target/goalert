@@ -34,10 +34,10 @@ $(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(
 	touch $@
 
 {{range $.Builds}}
-$(BIN_DIR)/build/integration/{{.Name}}: $(BIN_DIR)/build/goalert-{{.Name}}
+$(BIN_DIR)/build/integration/bin/build/goalert-{{.Name}}: $(BIN_DIR)/build/goalert-{{.Name}}
 	rm -rf $@
 	mkdir -p $@
-	cp $(BIN_DIR)/build/goalert-{{.Name}}/goalert/bin/* $@/
+	cp -r $(BIN_DIR)/build/goalert-{{.Name}}/goalert $@/
 	touch $@
 {{end}}
 
@@ -56,7 +56,7 @@ $(BIN_DIR)/build/integration/.git: $(shell find ./.git)
 $(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
 	git rev-parse HEAD >$@
 
-$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress {{- range $.Builds}} $(BIN_DIR)/build/integration/{{.Name}}{{end}}
+$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress {{- range $.Builds}} $(BIN_DIR)/build/integration/bin/build/goalert-{{.Name}}{{end}}
 	touch $@
 
 {{range $tool := $.Tools}}
