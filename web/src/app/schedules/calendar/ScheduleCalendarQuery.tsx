@@ -15,6 +15,27 @@ const query = gql`
     $start: ISOTimestamp!
     $end: ISOTimestamp!
   ) {
+      userOverrides(input: {scheduleID: $id, start: $start, end: $end}) {
+      nodes {
+        id
+        start
+        end
+        addUser {
+          id
+          name
+        }
+        removeUser {
+          id
+          name
+        }
+      }
+
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+
     schedule(id: $id) {
       id
       shifts(start: $start, end: $end) {
@@ -87,6 +108,7 @@ function ScheduleCalendarQuery({
       loading={loading && !data}
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
+      overrides = {data?.userOverrides?.nodes ?? []}
       {...other}
     />
   )

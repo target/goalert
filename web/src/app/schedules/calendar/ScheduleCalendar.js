@@ -52,7 +52,7 @@ function ScheduleCalendar(props) {
 
   const { shifts, temporarySchedules } = props
 
-  const eventStyleGetter = (event, start, end, isSelected) => {
+  const eventStyleGetter = (event, start, end, isSelected,) => {
     if (event.fixed) {
       return {
         style: {
@@ -61,9 +61,17 @@ function ScheduleCalendar(props) {
         },
       }
     }
+    if (event.isOverride) {
+      return {
+        style: {
+          backgroundColor: '#FF0000',
+          borderColor: '#FF0000',
+        },
+      }
+    }
   }
 
-  const getCalEvents = (shifts, _tempScheds) => {
+  const getCalEvents = (shifts, _tempScheds, userOverrides) => {
     const tempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
       end: sched.end,
@@ -71,6 +79,17 @@ function ScheduleCalendar(props) {
       tempSched: sched,
       fixed: true,
     }))
+
+    const overrides = userOverrides.map((o) => ({    
+      user: { name:"Override"},
+      start: o.start,
+      end:o.end,
+      fixed: false,
+      isTempSchedShift: false,
+      tempSched: false,
+      isOverride: true,
+    })
+    )
 
     // flat list of all fixed shifts, with `fixed` set to true
     const fixedShifts = _.flatten(
@@ -88,10 +107,13 @@ function ScheduleCalendar(props) {
     let filteredShifts = [
       ...tempSchedules,
       ...fixedShifts,
+      ...overrides,
 
       // Remove shifts within a temporary schedule, and trim any that overlap
       ...trimSpans(shifts, ...fixedIntervals),
     ]
+
+    console.log('Overrides =', props.overrides)
 
     // if any users in users array, only show the ids present
     if (userFilter.length > 0) {
@@ -120,6 +142,7 @@ function ScheduleCalendar(props) {
         fixed: shift.fixed,
         isTempSchedShift: shift.isTempSchedShift,
         tempSched: shift.tempSched,
+        isOverride: shift.isOverride,
       }
     })
   }
@@ -186,7 +209,7 @@ function ScheduleCalendar(props) {
           <Calendar
             date={DateTime.fromISO(start).toJSDate()}
             localizer={localizer}
-            events={getCalEvents(shifts, temporarySchedules)}
+            events={getCalEvents(shifts, temporarySchedules, props.overrides)}
             style={{
               height: weekly ? '100%' : '45rem',
               fontFamily: theme.typography.body2.fontFamily,
@@ -222,6 +245,7 @@ function ScheduleCalendar(props) {
 ScheduleCalendar.propTypes = {
   scheduleID: p.string.isRequired,
   shifts: p.array.isRequired,
+  overrides: p.array.isRequired,
   temporarySchedules: p.array,
   loading: p.bool,
 }
