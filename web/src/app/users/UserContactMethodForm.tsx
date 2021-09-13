@@ -48,15 +48,9 @@ function renderPhoneField(edit: boolean): JSX.Element {
         name='value'
         required
         label='Phone Number'
-        type='tel'
         component={TelTextField}
         disabled={edit}
       />
-      {!edit && (
-        <Typography variant='caption' component='p' id='countryCodeIndicator'>
-          Please provide your country code e.g. +1 (USA), +91 (India), +44 (UK)
-        </Typography>
-      )}
     </React.Fragment>
   )
 }

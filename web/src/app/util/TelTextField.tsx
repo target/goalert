@@ -3,7 +3,6 @@ import { useQuery, gql } from '@apollo/client'
 import TextField, { TextFieldProps } from '@material-ui/core/TextField'
 import { InputProps } from '@material-ui/core/Input'
 import { Check, Close } from '@material-ui/icons'
-import _ from 'lodash'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import { makeStyles } from '@material-ui/core'
 import { DEBOUNCE_DELAY } from '../config'
@@ -26,19 +25,24 @@ const useStyles = makeStyles({
   },
 })
 
-export default function TelTextField(
-  props: TextFieldProps & { value: string },
-): JSX.Element {
+type InputType = 'tel' | 'sid'
+type TelTextFieldProps = TextFieldProps & {
+  value: string
+  inputTypes?: InputType[]
+}
+
+export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
+  const { inputTypes = ['tel'], value = '', helperText = '', ...props } = _props
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 
   // debounce to set the phone number
   useEffect(() => {
     const t = setTimeout(() => {
-      setPhoneNumber(props.value)
+      setPhoneNumber(value)
     }, DEBOUNCE_DELAY)
     return () => clearTimeout(t)
-  }, [props.value])
+  }, [value])
 
   // check validation of the input phoneNumber through graphql
   const { data } = useQuery(isValidNumber, {
@@ -49,10 +53,10 @@ export default function TelTextField(
   })
 
   // fetch validation
-  const valid = _.get(data, 'phoneNumberInfo.valid', null)
+  const valid = Boolean(data?.phoneNumberInfo?.valid)
 
   let adorn
-  if (!props.value) {
+  if (value === '') {
     // no adornment if empty
   } else if (valid) {
     adorn = <Check className={classes.valid} />
@@ -61,13 +65,7 @@ export default function TelTextField(
   }
 
   let iprops: Partial<InputProps>
-  iprops = {
-    startAdornment: (
-      <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
-        +
-      </InputAdornment>
-    ),
-  }
+  iprops = {}
 
   // if has inputProps from parent commponent, spread it in the iprops
   if (props.InputProps !== undefined) {
@@ -89,8 +87,18 @@ export default function TelTextField(
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
-    e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
+    // e.target.value = e.target.value
     return props.onChange(e)
+  }
+
+  const getHelperText = (): TextFieldProps['helperText'] => {
+    if (helperText) {
+      return helperText
+    }
+    if (inputTypes.includes('tel') && inputTypes.length === 1) {
+      return 'Please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
+    }
+    return 'For phone numbers, please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
   }
 
   return (
@@ -98,9 +106,8 @@ export default function TelTextField(
       fullWidth
       {...props}
       InputProps={iprops}
-      type={props.type || 'tel'}
       onChange={handleChange}
-      value={(props.value || '').replace(/[^0-9]/g, '')}
+      helperText={getHelperText()}
     />
   )
 }

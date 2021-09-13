@@ -69,9 +69,8 @@ export default function AdminSMSSend(): JSX.Element {
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
-                  label='From Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
+                  label='From Number or SID'
+                  inputTypes={['tel', 'sid']}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
@@ -80,8 +79,6 @@ export default function AdminSMSSend(): JSX.Element {
                   value={toNumber}
                   fullWidth
                   label='To Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
                 />
               </Grid>
               <Grid item xs={12}>
@@ -90,9 +87,6 @@ export default function AdminSMSSend(): JSX.Element {
                   value={body}
                   fullWidth
                   label='Body'
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
                   multiline
                 />
               </Grid>
