@@ -126,6 +126,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
       {...props}
       InputProps={iprops}
       onChange={handleChange}
+      value={value}
       helperText={getHelperText()}
     />
   )

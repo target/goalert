@@ -80,6 +80,7 @@ type ConfigHint struct {
 
 type ConfigValue struct {
 	ID          string     `json:"id"`
+	DisplayName string     `json:"displayName"`
 	Description string     `json:"description"`
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`

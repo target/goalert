@@ -65,6 +65,7 @@ export interface SystemLimitInput {
 
 export interface ConfigValue {
   id: string
+  displayName: string
   description: string
   value: string
   type: ConfigType

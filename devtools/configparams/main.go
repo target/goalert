@@ -48,7 +48,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{{- range .ConfigFields }}
-		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
+		{ID: {{quote .ID}},Type: {{.Type}}, DisplayName: {{quote .DisplayName}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
 		{{- end}}
 	}
 }
@@ -58,7 +58,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{{- range .ConfigFields }}
 		{{- if .Public}}
-		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
+		{ID: {{quote .ID}}, Type: {{.Type}}, DisplayName: {{quote .DisplayName}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
 		{{- end}}
 		{{- end}}
 	}
@@ -129,7 +129,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 `))
 
 type field struct {
-	ID, Type, Desc, Value string
+	ID, DisplayName, Type, Desc, Value string
 	Public, Password      bool
 }
 
@@ -155,8 +155,8 @@ package graphql2`)
 		ConfigFields []field
 		HintFields   []field
 	}
-	input.ConfigFields = printType("", reflect.TypeOf(config.Config{}), "", false, false)
-	input.HintFields = printType("", reflect.TypeOf(config.Hints{}), "", false, false)
+	input.ConfigFields = printType("", reflect.TypeOf(config.Config{}), "", "", false, false)
+	input.HintFields = printType("", reflect.TypeOf(config.Hints{}), "", "", false, false)
 
 	err := tmpl.Execute(w, input)
 	if err != nil {
@@ -169,9 +169,9 @@ func printField(prefix string, f reflect.StructField) []field {
 	if f.Type.Kind() == reflect.Slice && f.Type.Elem().Kind() == reflect.Struct {
 		fPrefix = prefix + f.Name + "[]."
 	}
-	return printType(fPrefix, f.Type, f.Tag.Get("info"), f.Tag.Get("public") == "true", f.Tag.Get("password") == "true")
+	return printType(fPrefix, f.Type, f.Tag.Get("displayName"), f.Tag.Get("info"), f.Tag.Get("public") == "true", f.Tag.Get("password") == "true")
 }
-func printType(prefix string, v reflect.Type, details string, public, pass bool) []field {
+func printType(prefix string, v reflect.Type, displayName string, info string, public, pass bool) []field {
 	var f []field
 	key := strings.TrimSuffix(prefix, ".")
 
@@ -207,6 +207,10 @@ func printType(prefix string, v reflect.Type, details string, public, pass bool)
 		panic(fmt.Sprintf("not implemented for type %T", v.Kind()))
 	}
 
-	f = append(f, field{ID: key, Type: typ, Desc: details, Value: value, Public: public, Password: pass})
+	if displayName ==  "" {
+		displayName = key
+	}
+
+	f = append(f, field{ID: key, Type: typ, DisplayName: displayName, Desc: info, Value: value, Public: public, Password: pass})
 	return f
 }

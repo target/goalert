@@ -29,6 +29,7 @@ const query = gql`
   query getConfig {
     config(all: true) {
       id
+      displayName
       description
       password
       type
@@ -224,7 +225,8 @@ export default function AdminConfig(): JSX.Element {
                     )
                     .map((f: ConfigValue) => ({
                       id: f.id,
-                      label: formatHeading(_.last(f.id.split('.'))),
+                      displayName: f.displayName,
+                      label: formatHeading(_.last(f.displayName.split('.'))),
                       description: f.description,
                       password: f.password,
                       type: f.type,

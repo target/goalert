@@ -136,6 +136,7 @@ input SystemLimitInput {
 
 type ConfigValue {
   id: String!
+  displayName: String!
   description: String!
   value: String!
   type: ConfigType!

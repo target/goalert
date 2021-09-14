@@ -36,8 +36,14 @@ export function StringInput(props: InputProps): JSX.Element {
     )
   }
 
-  if (type === 'tel') {
-    return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
+  if (props.name === 'Twilio.FromNumber') {
+    return (
+      <TelTextField
+        onChange={(e) => onChange(e.target.value)}
+        {...rest}
+        inputTypes={['tel', 'sid']}
+      />
+    )
   }
   return (
     <Input
