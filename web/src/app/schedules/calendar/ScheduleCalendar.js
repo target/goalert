@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Card, Button, makeStyles } from '@material-ui/core'
+import { darken } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
@@ -52,20 +53,22 @@ function ScheduleCalendar(props) {
 
   const { shifts, temporarySchedules } = props
 
-  const eventStyleGetter = (event, start, end, isSelected,) => {
+  const eventStyleGetter = (event, start, end, isSelected) => {
+    const green = '#0C6618'
     if (event.fixed) {
       return {
         style: {
-          backgroundColor: isSelected ? '#094F13' : '#0C6618',
-          borderColor: '#094F13',
+          backgroundColor: isSelected ? darken(green, 0.3) : green,
+          borderColor: darken(green, 0.3),
         },
       }
     }
     if (event.isOverride) {
+      const lavender = '#BB7E8C'
       return {
         style: {
-          backgroundColor: '#FF0000',
-          borderColor: '#FF0000',
+          backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
+          borderColor: darken(lavender, 0.3),
         },
       }
     }
@@ -80,16 +83,15 @@ function ScheduleCalendar(props) {
       fixed: true,
     }))
 
-    const overrides = userOverrides.map((o) => ({    
-      user: { name:"Override"},
+    const overrides = userOverrides.map((o) => ({
+      user: { name: 'Override' },
       start: o.start,
-      end:o.end,
+      end: o.end,
       fixed: false,
       isTempSchedShift: false,
       tempSched: false,
       isOverride: true,
-    })
-    )
+    }))
 
     // flat list of all fixed shifts, with `fixed` set to true
     const fixedShifts = _.flatten(

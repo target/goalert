@@ -7,6 +7,8 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
+import CardActions from '../../details/CardActions'
+import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
 
 const useStyles = makeStyles({
   button: {
@@ -30,6 +32,9 @@ const useStyles = makeStyles({
 export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
+  // toDo setState for edit and delete
+  // user setOverrideDialog() to open the edit
+  // delete to be done manually
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
   )
@@ -107,6 +112,25 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
   function renderOverrideButtons() {
     return (
+      <CardActions
+        secondaryActions={[
+          {
+            icon: <EditIcon />,
+            label: 'Edit',
+            //  handleOnClick: () => close(),
+          },
+          {
+            icon: <DeleteIcon />,
+            label: 'Delete',
+            // handleOnClick: () => escalate(),
+          },
+        ]}
+      />
+    )
+  }
+
+  function renderShiftButtons() {
+    return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
         <Grid item>
@@ -129,8 +153,9 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
     if (event.tempSched) return renderTempSchedButtons()
     if (event.fixed) return null
+    if (event.isOverride) return renderOverrideButtons()
 
-    return renderOverrideButtons()
+    return renderShiftButtons()
   }
 
   /*
