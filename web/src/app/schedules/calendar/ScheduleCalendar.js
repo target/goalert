@@ -84,7 +84,7 @@ function ScheduleCalendar(props) {
       }),
     )
 
-    const fixedIntervals = tempSchedules.map(parseInterval)
+    const fixedIntervals = tempSchedules.map((t) => parseInterval(t, 'local'))
     let filteredShifts = [
       ...tempSchedules,
       ...fixedShifts,
