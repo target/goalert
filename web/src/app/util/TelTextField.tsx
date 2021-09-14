@@ -127,6 +127,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
     <TextField
       fullWidth
       {...props}
+      type={onlyTel ? 'tel' : props.type}
       InputProps={iprops}
       onChange={handleChange}
       value={value}
