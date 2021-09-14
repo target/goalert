@@ -38,7 +38,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
 
   const onlyTel = inputTypes.includes('tel') && inputTypes.length === 1
   const onlySID = inputTypes.includes('sid') && inputTypes.length === 1
-  const hasSID = inputTypes.includes('sid') && value.startsWith('MG')
+  const isSID = inputTypes.includes('sid') && value.match(/^MG[a-zA-Z0-9]+$/)
 
   // debounce to set the phone number
   useEffect(() => {
@@ -52,13 +52,13 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
     if (!phoneNumber || props.disabled) {
       return true
     }
-    if (onlyTel && !value.match('/(^[0-9])|(^\\+)/')) {
+    if (onlyTel && !value.match(/(^\+)[0-9]+$/)) {
       return true
     }
     if (onlySID) {
       return true
     }
-    if (hasSID) {
+    if (isSID) {
       return true
     }
     return false
@@ -76,7 +76,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   const valid = Boolean(data?.phoneNumberInfo?.valid)
 
   let adorn
-  if (value === '') {
+  if (value === '' || isSID || props.disabled) {
     // no adornment if empty
   } else if (valid) {
     adorn = <Check className={classes.valid} />
@@ -96,7 +96,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   }
 
   // add live validation icon to the right of the textfield as an endAdornment
-  if (adorn && !props.disabled) {
+  if (adorn) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
       ...iprops,
@@ -107,7 +107,6 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
-    // e.target.value = e.target.value
     return props.onChange(e)
   }
 
