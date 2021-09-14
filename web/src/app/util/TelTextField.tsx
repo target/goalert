@@ -36,8 +36,8 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 
-  const onlyTel = inputTypes.includes('tel') && inputTypes.length === 1
-  const onlySID = inputTypes.includes('sid') && inputTypes.length === 1
+  const onlyTel = inputTypes.length === 1 && inputTypes[0] === 'tel'
+  const onlySID = inputTypes.length === 1 && inputTypes[0] === 'sid'
   const isSID = inputTypes.includes('sid') && value.match(/^MG[a-zA-Z0-9]+$/)
 
   // debounce to set the phone number
@@ -49,7 +49,7 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
   }, [value])
 
   const skipValidatePhoneNumber = (): boolean => {
-    if (!phoneNumber || props.disabled) {
+    if (!phoneNumber || props.disabled || !inputTypes.includes('tel')) {
       return true
     }
     if (onlyTel && !value.match(/(^\+)[0-9]+$/)) {
@@ -114,8 +114,11 @@ export default function TelTextField(_props: TelTextFieldProps): JSX.Element {
     if (helperText) {
       return helperText
     }
-    if (inputTypes.includes('tel') && inputTypes.length === 1) {
+    if (onlyTel) {
       return 'Please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
+    }
+    if (onlySID) {
+      return ''
     }
     return 'For phone numbers, please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
   }
