@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"github.com/ttacon/libphonenumber"
 )
@@ -22,9 +23,14 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 		return nil, err
 	}
 
+	var fromErr error
+	if validate.Phone("From", input.From) != nil && validate.SID("From", input.From) != nil {
+		fromErr = validation.NewFieldError("From", "is not a valid phone number or alphanumeric sender ID.")
+	}
+
 	err = validate.Many(
 		validate.Phone("To", input.To),
-		validate.Phone("From", input.From),
+		fromErr,
 		validate.Text("Body", input.Body, 1, 1000),
 	)
 	if err != nil {

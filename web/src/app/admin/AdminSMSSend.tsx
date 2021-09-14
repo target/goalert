@@ -106,8 +106,11 @@ export default function AdminSMSSend(): JSX.Element {
               <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
                   <Typography>
-                    Sent from {sendStatus.data.debugSendSMS.fromNumber}. Open in
-                    Twilio&nbsp;
+                    {/* TODO: query for message status if from number / SID not immediately available */}
+                    {sendStatus.data.debugSendSMS.fromNumber
+                      ? `Sent from ${sendStatus.data.debugSendSMS.fromNumber}. `
+                      : ''}
+                    Open in Twilio&nbsp;
                   </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
