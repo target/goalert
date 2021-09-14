@@ -243,7 +243,7 @@ function testProfile(): void {
     countryCodeCheck('UK', '+44', '7911123456', '+44 7911 123456')
 
     it('should not allow fake country codes', () => {
-      const value = '810' + c.integer({ min: 3000000, max: 3999999 })
+      const value = '+810' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'CM SM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
 
