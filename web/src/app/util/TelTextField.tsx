@@ -100,6 +100,17 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
     return ''
   }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (!props.onChange) return
+    if (!e.target.value) return props.onChange(e)
+
+    if (onlyTel) {
+      e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
+    }
+
+    return props.onChange(e)
+  }
+
   return (
     <TextField
       fullWidth
@@ -108,6 +119,7 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
       InputProps={InputProps}
       value={value}
       helperText={getHelperText()}
+      onChange={handleChange}
     />
   )
 }
