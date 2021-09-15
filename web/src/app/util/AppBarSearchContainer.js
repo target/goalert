@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+
 import p from 'prop-types'
 import { debounce } from 'lodash'
 
@@ -14,96 +15,91 @@ export function SearchContainer() {
   )
 }
 
-export class SearchProvider extends React.PureComponent {
-  state = {
-    actions: null,
-  }
+export function SearchProvider(props) {
+  const [actions, setActions] = useState(null)
 
-  _mountCount = 0
-  _mounted = false
+  const mountCount = useRef(0)
+  const mounted = useRef(false)
+  const pending = useRef(null)
 
-  componentDidMount() {
-    this._mounted = true
-    if (this._pending) {
-      this.setActions(this._pending)
-      this._pending = null
-    }
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-    this._pending = false
-    this.setActions.cancel()
-  }
-
-  _setActions = (actions) => {
-    if (!this._mounted) {
-      this._pending = actions
+  const _setActions = (actions) => {
+    if (!mounted.current) {
+      pending.current = actions
       return
     }
 
-    this.setState({ actions })
+    setActions(actions)
   }
 
-  setActions = debounce(this._setActions)
+  const debouncedSetActions = debounce(_setActions)
 
-  updateMounted = (mount) => {
+  useEffect(() => {
+    mounted.current = true
+    if (pending.current) {
+      debouncedSetActions(pending.current)
+      pending.current = null
+      // Cleanup function
+      return () => {
+        mounted.current = false
+        pending.current = false
+        debouncedSetActions.cancel()
+      }
+    }
+  }, [])
+
+  const updateMounted = (mount) => {
     if (mount) {
-      this._mountCount++
+      mountCount.current++
     } else {
-      this._mountCount--
+      mountCount.current--
     }
 
-    if (this._mountCount > 1 && global.console && console.error) {
+    if (mountCount.current > 1 && global.console && console.error) {
       console.error(
         'Search: Found more than one <AppBarSearchContainer> component mounted within the same provider.',
       )
     }
   }
 
-  render() {
-    return (
-      <SearchContext.Provider
-        value={{
-          actions: this.state.actions,
-          setActions: this.setActions,
-          trackMount: this.updateMounted,
-        }}
-      >
-        {this.props.children}
-      </SearchContext.Provider>
-    )
-  }
+  return (
+    <SearchContext.Provider
+      value={{
+        actions: actions,
+        setActions: debouncedSetActions,
+        trackMount: updateMounted,
+      }}
+    >
+      {props.children}
+    </SearchContext.Provider>
+  )
 }
 
-class SearchUpdater extends React.PureComponent {
-  static propTypes = {
-    setActions: p.func.isRequired,
-  }
+function SearchUpdater(props) {
+  const { trackMount, setActions, children } = props
+  const mounted = useRef(false)
 
-  _mounted = false
+  useEffect(() => {
+    mounted.current = true
+    trackMount(true)
+    setActions(children)
 
-  componentDidMount() {
-    this._mounted = true
-    this.props.trackMount(true)
-    this.props.setActions(this.props.children)
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-    this.props.trackMount(false)
-    this.props.setActions(null)
-  }
-
-  render() {
-    if (this._mounted) {
-      this.props.setActions(this.props.children)
+    return () => {
+      mounted.current = false
+      trackMount(false)
+      setActions(null)
     }
+  }, [])
 
-    return null
+  if (mounted.current) {
+    setActions(children)
   }
+
+  return null
 }
 
+SearchUpdater.propTypes = {
+  setActions: p.func.isRequired,
+}
 /*
  * Usage:
  *

@@ -121,7 +121,7 @@ function testTimePickers(): void {
         )
 
         cy.pageFab('Add a User')
-        cy.dialogTitle('Temporarily Add a User')
+        cy.dialogTitle('Add')
         const start = DateTime.fromJSDate(
           c.date({
             year: DateTime.utc().year + 2,

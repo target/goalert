@@ -48,7 +48,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND not usr.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND {{textSearch "search" "usr.name"}} 
+		AND {{prefixSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
 		AND lower(usr.name) > lower(:afterName)

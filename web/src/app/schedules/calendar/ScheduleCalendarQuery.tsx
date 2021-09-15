@@ -48,9 +48,6 @@ const query = gql`
 
 interface ScheduleCalendarQueryProps {
   scheduleID: string
-  onNewTempSched: () => void
-  onEditTempSched: () => void
-  onDeleteTempSched: () => void
 }
 
 function ScheduleCalendarQuery({

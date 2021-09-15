@@ -411,6 +411,34 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	}
 }
 
+func (h *Harness) CloseAlert(serviceID, summary string) {
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		h.t.Helper()
+		tx, err := h.backend.DB().BeginTx(ctx, nil)
+		if err != nil {
+			h.t.Fatalf("failed to start tx: %v", err)
+		}
+		defer tx.Rollback()
+
+		a := &alert.Alert{
+			ServiceID: serviceID,
+			Summary:   summary,
+			Status:    alert.StatusClosed,
+		}
+
+		h.t.Logf("close alert: %v", a)
+		_, _, err = h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
+		if err != nil {
+			h.t.Fatalf("failed to close alert: %v", err)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			h.t.Fatalf("failed to commit tx: %v", err)
+		}
+	})
+}
+
 // CreateAlert will create one or more unacknowledged alerts for a service.
 func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 	h.t.Helper()
