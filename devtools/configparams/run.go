@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -39,7 +40,7 @@ import (
 func MapConfigHints(cfg config.Hints) []ConfigHint {
 	return []ConfigHint{
 		{{- range .HintFields }}
-		{ID: {{quote .ID}}, Value: {{.Value}}},
+		{ID: {{quote .ID}}, DisplayName: {{quote .DisplayName}}, Value: {{.Value}}},
 		{{- end}}
 	}
 }
@@ -207,10 +208,29 @@ func printType(prefix string, v reflect.Type, displayName string, info string, p
 		panic(fmt.Sprintf("not implemented for type %T", v.Kind()))
 	}
 
-	if displayName ==  "" {
-		displayName = key
+	f = append(f, field{ID: key, Type: typ, DisplayName: printDisplayName(key, displayName), Desc: info, Value: value, Public: public, Password: pass})
+	return f
+}
+
+func printDisplayName(key, displayName string) string {
+	format := func(str string) string {
+		var formattedStr []string
+		pattern := regexp.MustCompile("(^[^A-Z]*|[A-Z]*)([A-Z][^A-Z]+|$)")
+		for _, subStr := range pattern.FindAllStringSubmatch(str, -1) {
+			if subStr[1] != "" {
+				formattedStr = append(formattedStr, subStr[1])
+			}
+			if subStr[2] != "" {
+				formattedStr = append(formattedStr, subStr[2])
+			}
+		}
+		return strings.Title(strings.Join(formattedStr, " "))
 	}
 
-	f = append(f, field{ID: key, Type: typ, DisplayName: displayName, Desc: info, Value: value, Public: public, Password: pass})
-	return f
+	if displayName == "" {
+		fieldKey := strings.Split(key, ".")
+		displayName = format(fieldKey[len(fieldKey)-1])
+	}
+
+	return displayName
 }
