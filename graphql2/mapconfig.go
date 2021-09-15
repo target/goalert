@@ -36,7 +36,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.EnableV1GraphQL", Type: ConfigTypeBoolean, DisplayName: "Enable V1 Graph QL", Description: "Enables the deprecated /v1/graphql endpoint (replaced by /api/graphql).", Value: fmt.Sprintf("%t", cfg.General.EnableV1GraphQL)},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, DisplayName: "Alert Cleanup Days", Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, DisplayName: "API Key Expire Days", Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
-		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, DisplayName: "Referer UR Ls", Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n")},
+		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, DisplayName: "Referer URLs", Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n")},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, DisplayName: "Disable Basic", Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "GitHub.NewUsers", Type: ConfigTypeBoolean, DisplayName: "New Users", Description: "Allow new user creation via GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.NewUsers)},
@@ -77,7 +77,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "SMTP.Username", Type: ConfigTypeString, DisplayName: "Username", Description: "Username for authentication.", Value: cfg.SMTP.Username},
 		{ID: "SMTP.Password", Type: ConfigTypeString, DisplayName: "Password", Description: "Password for authentication.", Value: cfg.SMTP.Password, Password: true},
 		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
-		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, DisplayName: "Allowed UR Ls", Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
+		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, DisplayName: "Allowed URLs", Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, DisplayName: "Override URL", Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -107,7 +107,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, DisplayName: "From", Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
 		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
-		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, DisplayName: "Allowed UR Ls", Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
+		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, DisplayName: "Allowed URLs", Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, DisplayName: "Enable", Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, DisplayName: "Override URL", Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}

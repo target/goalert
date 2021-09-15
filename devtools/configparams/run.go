@@ -213,10 +213,16 @@ func printType(prefix string, v reflect.Type, displayName string, info string, p
 }
 
 func printDisplayName(key, displayName string) string {
+	// format reformats string with spaces, i.e. GoogleAnalyticsID -> Google Analytics ID
 	format := func(str string) string {
 		var formattedStr []string
-		pattern := regexp.MustCompile("(^[^A-Z]*|[A-Z]*)([A-Z][^A-Z]+|$)")
+		// pattern groups words in string by capital letters
+		pattern := regexp.MustCompile("([A-Z]*)([A-Z][^A-Z]+|$)")
 		for _, subStr := range pattern.FindAllStringSubmatch(str, -1) {
+			if subStr[0] == "URLs" {
+				formattedStr = append(formattedStr, subStr[0])
+				continue
+			}
 			if subStr[1] != "" {
 				formattedStr = append(formattedStr, subStr[1])
 			}
@@ -224,7 +230,7 @@ func printDisplayName(key, displayName string) string {
 				formattedStr = append(formattedStr, subStr[2])
 			}
 		}
-		return strings.Title(strings.Join(formattedStr, " "))
+		return strings.Join(formattedStr, " ")
 	}
 
 	if displayName == "" {
