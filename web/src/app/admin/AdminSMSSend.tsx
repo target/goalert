@@ -69,7 +69,7 @@ export default function AdminSMSSend(): JSX.Element {
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
-                  label='From Number or SID'
+                  label='From Number or Twilio Messaging Service SID'
                   inputTypes={['tel', 'sid']}
                 />
               </Grid>
