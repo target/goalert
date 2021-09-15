@@ -43,18 +43,25 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
     return () => clearTimeout(t)
   }, [value])
 
+  const reTel = /^\+\d+/
+  const reSID = /^MG[a-zA-Z0-9]+/
   const onlyTel = inputTypes.length === 1 && inputTypes[0] === 'tel'
   const onlySID = inputTypes.length === 1 && inputTypes[0] === 'sid'
-  const isSID = inputTypes.includes('sid') && value.match(/^MG[a-zA-Z0-9]+$/)
+  const isSID = (s: string): boolean => {
+    return inputTypes.includes('sid') && reSID.test(s)
+  }
 
   const skipValidation = (): boolean => {
     if (!debouncedValue || props.disabled || !inputTypes.includes('tel')) {
       return true
     }
-    if (onlyTel && !value.match(/(^\+)[0-9]+$/)) {
+    if (onlyTel && !reTel.test(debouncedValue)) {
       return true
     }
-    if (onlySID || isSID) {
+    if (isSID(debouncedValue)) {
+      return true
+    }
+    if (onlySID) {
       return true
     }
     return false
@@ -71,7 +78,7 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
   const valid = Boolean(data?.phoneNumberInfo?.valid)
 
   let adorn
-  if (value === '' || isSID || props.disabled) {
+  if (value === '' || isSID(value) || props.disabled) {
     // no adornment
   } else if (valid) {
     adorn = <Check className={classes.valid} />
