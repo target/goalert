@@ -84,7 +84,7 @@ function ScheduleCalendar(props) {
     }))
 
     const overrides = userOverrides.map((o) => ({
-      user: { name: 'Override' },
+      user: { name: 'Override', id: o.id },
       start: o.start,
       end: o.end,
       fixed: false,
@@ -115,7 +115,7 @@ function ScheduleCalendar(props) {
       ...trimSpans(shifts, ...fixedIntervals),
     ]
 
-    console.log('Overrides =', props.overrides)
+    console.log('Overrides =', overrides)
 
     // if any users in users array, only show the ids present
     if (userFilter.length > 0) {

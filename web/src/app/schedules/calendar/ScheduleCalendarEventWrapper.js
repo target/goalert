@@ -9,6 +9,8 @@ import { DateTime } from 'luxon'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
 import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
+import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
 
 const useStyles = makeStyles({
   button: {
@@ -35,6 +37,9 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
   // toDo setState for edit and delete
   // user setOverrideDialog() to open the edit
   // delete to be done manually
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
   )
@@ -110,22 +115,39 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderOverrideButtons() {
+  function renderOverrideButtons(event) {
     return (
-      <CardActions
-        secondaryActions={[
-          {
-            icon: <EditIcon />,
-            label: 'Edit',
-            //  handleOnClick: () => close(),
-          },
-          {
-            icon: <DeleteIcon />,
-            label: 'Delete',
-            // handleOnClick: () => escalate(),
-          },
-        ]}
-      />
+      <React.Fragment>
+        <CardActions
+          secondaryActions={[
+            {
+              icon: <EditIcon />,
+              label: 'Edit',
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowEditDialog(true)
+              },
+            },
+            {
+              icon: <DeleteIcon />,
+              label: 'Delete',
+              handleOnClick: () => setShowDeleteDialog(true),
+            },
+          ]}
+        />
+        {showEditDialog && (
+          <ScheduleOverrideEditDialog
+            overrideID={event.userID}
+            onClose={() => setShowEditDialog(false)}
+          />
+        )}
+        {showDeleteDialog && (
+          <ScheduleOverrideDeleteDialog
+            overrideID={event.userID}
+            onClose={() => setShowDeleteDialog(false)}
+          />
+        )}
+      </React.Fragment>
     )
   }
 
@@ -153,7 +175,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
     if (event.tempSched) return renderTempSchedButtons()
     if (event.fixed) return null
-    if (event.isOverride) return renderOverrideButtons()
+    if (event.isOverride) return renderOverrideButtons(event)
 
     return renderShiftButtons()
   }
