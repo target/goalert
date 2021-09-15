@@ -131,7 +131,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 
 type field struct {
 	ID, DisplayName, Type, Desc, Value string
-	Public, Password      bool
+	Public, Password                   bool
 }
 
 func main() {
