@@ -84,13 +84,14 @@ function ScheduleCalendar(props) {
     }))
 
     const overrides = userOverrides.map((o) => ({
-      user: { name: 'Override', id: o.id },
+      user: { name: 'Override' },
       start: o.start,
       end: o.end,
       fixed: false,
       isTempSchedShift: false,
       tempSched: false,
       isOverride: true,
+      override: o,
     }))
 
     // flat list of all fixed shifts, with `fixed` set to true
@@ -145,6 +146,7 @@ function ScheduleCalendar(props) {
         isTempSchedShift: shift.isTempSchedShift,
         tempSched: shift.tempSched,
         isOverride: shift.isOverride,
+        override: shift.override,
       }
     })
   }

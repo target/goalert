@@ -115,7 +115,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderOverrideButtons(event) {
+  function renderOverrideButtons() {
     return (
       <React.Fragment>
         <CardActions
@@ -131,22 +131,13 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
             {
               icon: <DeleteIcon />,
               label: 'Delete',
-              handleOnClick: () => setShowDeleteDialog(true),
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowDeleteDialog(true)
+              },
             },
           ]}
         />
-        {showEditDialog && (
-          <ScheduleOverrideEditDialog
-            overrideID={event.userID}
-            onClose={() => setShowEditDialog(false)}
-          />
-        )}
-        {showDeleteDialog && (
-          <ScheduleOverrideDeleteDialog
-            overrideID={event.userID}
-            onClose={() => setShowDeleteDialog(false)}
-          />
-        )}
       </React.Fragment>
     )
   }
@@ -235,6 +226,18 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
         'aria-pressed': open,
         'aria-describedby': id,
       })}
+      {showEditDialog && (
+        <ScheduleOverrideEditDialog
+          overrideID={event.override.id}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
+      {showDeleteDialog && (
+        <ScheduleOverrideDeleteDialog
+          overrideID={event.override.id}
+          onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
     </React.Fragment>
   )
 }
