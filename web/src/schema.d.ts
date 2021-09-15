@@ -74,6 +74,7 @@ export interface ConfigValue {
 
 export interface ConfigHint {
   id: string
+  displayName: string
   value: string
 }
 
