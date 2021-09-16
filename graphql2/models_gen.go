@@ -74,12 +74,14 @@ type ClearTemporarySchedulesInput struct {
 }
 
 type ConfigHint struct {
-	ID    string `json:"id"`
-	Value string `json:"value"`
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	Value       string `json:"value"`
 }
 
 type ConfigValue struct {
 	ID          string     `json:"id"`
+	DisplayName string     `json:"displayName"`
 	Description string     `json:"description"`
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`

@@ -136,6 +136,7 @@ input SystemLimitInput {
 
 type ConfigValue {
   id: String!
+  displayName: String!
   description: String!
   value: String!
   type: ConfigType!
@@ -143,6 +144,7 @@ type ConfigValue {
 }
 type ConfigHint {
   id: String!
+  displayName: String!
   value: String!
 }
 enum ConfigType {
