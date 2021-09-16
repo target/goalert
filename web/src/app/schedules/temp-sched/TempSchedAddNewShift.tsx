@@ -144,7 +144,9 @@ export default function TempSchedAddNewShift({
     >
       <Accordion variant='outlined'>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography style={{ width: '100%' }}>Add New Shift</Typography>
+          <Typography color='primary' style={{ width: '100%' }}>
+            ADD SHIFT
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2}>
