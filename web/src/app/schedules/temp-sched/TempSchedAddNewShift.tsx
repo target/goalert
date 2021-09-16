@@ -142,7 +142,7 @@ export default function TempSchedAddNewShift({
       value={shift}
       onChange={(val: Shift) => setShift(val)}
     >
-      <Accordion>
+      <Accordion variant='outlined'>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography style={{ width: '100%' }}>Add New Shift</Typography>
         </AccordionSummary>
