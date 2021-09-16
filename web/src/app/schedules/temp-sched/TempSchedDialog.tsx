@@ -58,7 +58,6 @@ export default function TempSchedDialog({
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
-  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -229,8 +228,6 @@ export default function TempSchedDialog({
         </FormContainer>
       }
       onSubmit={() => submit()}
-      onNext={step === 1 ? null : () => setStep(step + 1)}
-      onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
   )
 }
