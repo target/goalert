@@ -39,9 +39,6 @@ const useStyles = makeStyles((theme) => {
     secondaryActionError: {
       color: styles(theme).error.color,
     },
-    shiftsContainer: {
-      paddingRight: '0.5rem',
-    },
     listSpinner: {
       marginTop: '20rem',
     },
@@ -200,7 +197,7 @@ export default function TempSchedShiftsList({
   }
 
   return (
-    <div className={classes.shiftsContainer}>
+    <div>
       <Typography variant='subtitle1' component='h3'>
         Shifts
       </Typography>

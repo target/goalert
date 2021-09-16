@@ -1,26 +1,47 @@
-import React, { useState, ReactNode, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { Shift, Value } from './sharedUtils'
+import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
 import _ from 'lodash'
-import { FormContainer } from '../../forms'
-import { virtualize } from 'react-swipeable-views-utils'
-import SwipeableViews from 'react-swipeable-views'
-import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
-import TempSchedTimesStep from './TempSchedTimesStep'
-import { parseInterval } from '../../util/shifts'
+import { FormContainer, FormField } from '../../forms'
+import TempSchedAddNewShift from './TempSchedAddNewShift'
+import { isISOAfter, parseInterval } from '../../util/shifts'
 import { DateTime } from 'luxon'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
-// allows changing the index programatically
-const VirtualizeAnimatedViews = virtualize(SwipeableViews)
+import {
+  DialogContentText,
+  Grid,
+  makeStyles,
+  Typography,
+} from '@material-ui/core'
+import TempSchedShiftsList from './TempSchedShiftsList'
+import { ISODateTimePicker } from '../../util/ISOPickers'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
   }
 `
+
+function shiftEquals(a: Shift, b: Shift): boolean {
+  return a.start === b.start && a.end === b.end && a.userID === b.userID
+}
+
+const useStyles = makeStyles((theme) => ({
+  contentText,
+  avatar: {
+    backgroundColor: theme.palette.primary.main,
+  },
+  mainContainer: {
+    height: '100%',
+    padding: '0.5rem',
+  },
+  tzNote: {
+    fontStyle: 'italic',
+  },
+}))
 
 type TempScheduleDialogProps = {
   onClose: () => void
@@ -33,8 +54,10 @@ export default function TempSchedDialog({
   scheduleID,
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
+  const classes = useStyles()
   const edit = Boolean(_value)
-  const { q, zone } = useScheduleTZ(scheduleID)
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
@@ -48,14 +71,21 @@ export default function TempSchedDialog({
     // set default start, end times when zone is ready
     if (!value.start && !value.end && !q.loading && zone) {
       const nextSunday = getNextWeekday(7, DateTime.now(), zone)
-      const followingSunday = nextSunday.plus({ week: 1 })
+      const nextTuesday = nextSunday.plus({ days: 3 })
       setValue({
         ...value,
         start: nextSunday.toISO(),
-        end: followingSunday.toISO(),
+        end: nextTuesday.toISO(),
       })
     }
   }, [q.loading, zone])
+
+  function validate(): Error | null {
+    if (isISOAfter(value.start, value.end)) {
+      return new Error('Start date/time cannot be after end date/time.')
+    }
+    return null
+  }
 
   const schedInterval = parseInterval(value)
   const hasInvalidShift = value.shifts.some(
@@ -82,40 +112,6 @@ export default function TempSchedDialog({
     },
   })
 
-  type SlideRenderer = {
-    index: number
-    key: number
-  }
-  function renderSlide({ index, key }: SlideRenderer): ReactNode {
-    if (index === 0) {
-      return (
-        <TempSchedTimesStep
-          key={key}
-          scheduleID={scheduleID}
-          value={value}
-          edit={edit}
-        />
-      )
-    }
-
-    if (index === 1) {
-      return (
-        <TempSchedAddShiftsStep
-          key={key}
-          value={value.shifts}
-          onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-          scheduleID={scheduleID}
-          start={value.start}
-          end={value.end}
-          edit={edit}
-        />
-      )
-    }
-
-    // fallback empty div
-    return <div />
-  }
-
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
   }))
@@ -126,8 +122,7 @@ export default function TempSchedDialog({
 
   return (
     <FormDialog
-      fullScreen
-      disableGutters
+      maxWidth='lg'
       title='Define a Temporary Schedule'
       onClose={onClose}
       loading={loading}
@@ -153,22 +148,84 @@ export default function TempSchedDialog({
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
         >
-          <VirtualizeAnimatedViews
-            index={step}
-            onChangeIndex={(i: number) => {
-              if (i < 0 || i > 1) return
-              if (edit) {
-                setStep(1)
-                return
-              }
-              setStep(i)
-            }}
-            slideCount={2}
-            slideRenderer={renderSlide}
-            disabled // disables slides from changing outside of action buttons
-            containerStyle={{ height: '100%' }}
-            style={{ height: '100%' }}
-          />
+          <Grid container className={classes.mainContainer}>
+            <Grid
+              item
+              xs={6}
+              container
+              alignContent='flex-start'
+              spacing={2}
+              style={{ paddingRight: '1rem' }}
+            >
+              <Grid item xs={12}>
+                <DialogContentText className={classes.contentText}>
+                  The schedule will be exactly as configured here for the entire
+                  duration (ignoring all assignments and overrides).
+                </DialogContentText>
+              </Grid>
+
+              {!isLocalZone && (
+                <Grid item xs={12}>
+                  <Typography color='textSecondary' className={classes.tzNote}>
+                    Configuring in {zone}
+                  </Typography>
+                </Grid>
+              )}
+
+              <Grid item xs={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  required
+                  name='start'
+                  min={edit ? value.start : now}
+                  validate={() => validate()}
+                  timeZone={zone}
+                  disabled={q.loading}
+                  hint={isLocalZone ? '' : fmtLocal(value.start)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  required
+                  name='end'
+                  min={edit ? value.start : now}
+                  validate={() => validate()}
+                  timeZone={zone}
+                  disabled={q.loading}
+                  hint={isLocalZone ? '' : fmtLocal(value.end)}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TempSchedAddNewShift
+                  value={value}
+                  onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
+                  scheduleID={scheduleID}
+                  edit={edit}
+                />
+              </Grid>
+            </Grid>
+
+            {/* shifts list container */}
+            <Grid item xs={6}>
+              <TempSchedShiftsList
+                scheduleID={scheduleID}
+                value={value.shifts}
+                start={value.start}
+                end={value.end}
+                onRemove={(shift: Shift) => {
+                  setValue({
+                    ...value,
+                    shifts: value.shifts.filter((s) => !shiftEquals(shift, s)),
+                  })
+                }}
+                edit={edit}
+              />
+            </Grid>
+          </Grid>
         </FormContainer>
       }
       onSubmit={() => submit()}
