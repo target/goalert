@@ -144,7 +144,7 @@ export default function TempSchedAddNewShift({
     >
       <Accordion variant='outlined'>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography color='primary' style={{ width: '100%' }}>
+          <Typography color='secondary' style={{ width: '100%' }}>
             ADD SHIFT
           </Typography>
         </AccordionSummary>
