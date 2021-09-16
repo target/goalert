@@ -90,7 +90,7 @@ function ScheduleCalendar(props) {
       ...fixedShifts,
 
       // Remove shifts within a temporary schedule, and trim any that overlap
-      ...trimSpans(shifts, ...fixedIntervals),
+      ...trimSpans(shifts, ...fixedIntervals, 'local'),
     ]
 
     // if any users in users array, only show the ids present
