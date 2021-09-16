@@ -29,6 +29,7 @@ const query = gql`
   query getConfig {
     config(all: true) {
       id
+      displayName
       description
       password
       type
@@ -36,6 +37,7 @@ const query = gql`
     }
     configHints {
       id
+      displayName
       value
     }
   }
@@ -121,8 +123,6 @@ export default function AdminConfig(): JSX.Element {
   const hintGroups = chain(data.configHints)
     .groupBy((f: ConfigHint) => f.id.split('.')[0])
     .value()
-
-  const hintName = (id: string): string => startCase(id.split('.')[1])
 
   const handleExpandChange = (id: string) => () =>
     setSection(id === section ? false : id)
@@ -224,7 +224,7 @@ export default function AdminConfig(): JSX.Element {
                     )
                     .map((f: ConfigValue) => ({
                       id: f.id,
-                      label: formatHeading(_.last(f.id.split('.'))),
+                      displayName: f.displayName,
                       description: f.description,
                       password: f.password,
                       type: f.type,
@@ -236,7 +236,7 @@ export default function AdminConfig(): JSX.Element {
                 hintGroups[groupID].map((h: ConfigHint) => (
                   <TextField
                     key={h.id}
-                    label={hintName(h.id)}
+                    label={h.displayName}
                     value={h.value}
                     variant='filled'
                     margin='none'
