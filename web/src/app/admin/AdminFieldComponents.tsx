@@ -41,7 +41,7 @@ export function StringInput(props: InputProps): JSX.Element {
       <TelTextField
         onChange={(e) => onChange(e.target.value)}
         {...rest}
-        inputTypes={['tel', 'sid']}
+        inputTypes={['tel']}
       />
     )
   }

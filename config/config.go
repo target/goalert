@@ -94,7 +94,7 @@ type Config struct {
 
 		AccountSID string
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
-		FromNumber string `displayName:"From Number or Twilio Messaging Service SID" public:"true" info:"The Twilio number or Messaging Service SID to use for outgoing notifications."`
+		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
@@ -402,9 +402,7 @@ func (cfg Config) Validate() error {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))
 	}
 	if cfg.Twilio.FromNumber != "" {
-		if validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber) != nil && validate.SID("Twilio.FromNumber", cfg.Twilio.FromNumber) != nil {
-			err = validation.NewFieldError("Twilio.FromNumber", "is not a valid phone number or alphanumeric sender ID.")
-		}
+		err = validate.Many(err, validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber))
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
