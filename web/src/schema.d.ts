@@ -65,7 +65,6 @@ export interface SystemLimitInput {
 
 export interface ConfigValue {
   id: string
-  displayName: string
   description: string
   value: string
   type: ConfigType
@@ -74,7 +73,6 @@ export interface ConfigValue {
 
 export interface ConfigHint {
   id: string
-  displayName: string
   value: string
 }
 

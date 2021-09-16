@@ -22,10 +22,14 @@ const components = {
   boolean: BoolInput,
 }
 
+interface FieldProps extends ConfigValue {
+  label: string
+}
+
 interface AdminSectionProps {
   headerNote?: string
   value: { [id: string]: string }
-  fields: ConfigValue[]
+  fields: FieldProps[]
   onChange: (id: string, value: null | string) => void
 }
 
@@ -74,7 +78,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
             />
           </ListItem>
         )}
-        {fields.map((f: ConfigValue, idx: number) => {
+        {fields.map((f: FieldProps, idx: number) => {
           const Field = components[f.type]
           return (
             <ListItem
@@ -88,7 +92,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
             >
               <ListItemText
                 className={classes.listItemText}
-                primary={f.displayName}
+                primary={f.label}
                 secondary={f.description}
               />
               <div className={classes.listItemAction}>
