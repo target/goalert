@@ -402,7 +402,9 @@ func (cfg Config) Validate() error {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))
 	}
 	if cfg.Twilio.FromNumber != "" {
-		err = validate.Many(err, validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber))
+		if validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber) != nil && validate.SID("Twilio.FromNumber", cfg.Twilio.FromNumber) != nil {
+			err = validation.NewFieldError("Twilio.FromNumber", "is not a valid phone number or alphanumeric sender ID.")
+		}
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
