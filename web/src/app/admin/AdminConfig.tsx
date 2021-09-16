@@ -6,7 +6,7 @@ import Divider from '@material-ui/core/Divider'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import _, { startCase, isEmpty, uniq, chain } from 'lodash'
+import _, { isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
@@ -76,14 +76,6 @@ const useStyles = makeStyles((theme) => ({
 
 interface ConfigValues {
   [id: string]: string
-}
-
-function formatHeading(s = ''): string {
-  return startCase(s)
-    .replace(/\bTwo Way\b/, 'Two-Way')
-    .replace('Enable V 1 Graph QL', 'Enable V1 GraphQL')
-    .replace('Git Hub', 'GitHub')
-    .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
 }
 
 export default function AdminConfig(): JSX.Element {
@@ -188,7 +180,7 @@ export default function AdminConfig(): JSX.Element {
                 variant='subtitle1'
                 className={classes.heading}
               >
-                {formatHeading(groupID)}
+                {groupID}
               </Typography>
               <Typography className={classes.secondaryHeading}>
                 {hasEnable(groupID) &&

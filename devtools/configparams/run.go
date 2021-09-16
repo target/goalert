@@ -219,10 +219,6 @@ func printDisplayName(key, displayName string) string {
 		// pattern groups words in string by capital letters
 		pattern := regexp.MustCompile("([A-Z]*)([A-Z][^A-Z]+|$)")
 		for _, subStr := range pattern.FindAllStringSubmatch(str, -1) {
-			if subStr[0] == "URLs" {
-				formattedStr = append(formattedStr, subStr[0])
-				continue
-			}
 			if subStr[1] != "" {
 				formattedStr = append(formattedStr, subStr[1])
 			}
@@ -230,7 +226,15 @@ func printDisplayName(key, displayName string) string {
 				formattedStr = append(formattedStr, subStr[2])
 			}
 		}
-		return strings.Join(formattedStr, " ")
+
+		finalStr := strings.Join(formattedStr, " ")
+
+		finalStr = strings.Replace(finalStr, "Two Way", "Two-Way", -1)
+		finalStr = strings.Replace(finalStr, "Enable V 1 Graph QL", "Enable V1 GraphQL", -1)
+		finalStr = strings.Replace(finalStr, "Git Hub", "GitHub", -1)
+		finalStr = strings.Replace(finalStr, "R Ls", "RLs", -1) // fix usages of `URLs`
+
+		return finalStr
 	}
 
 	if displayName == "" {
