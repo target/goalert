@@ -48,7 +48,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{{- range .ConfigFields }}
-		{ID: {{quote .ID}},Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
+		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
 		{{- end}}
 	}
 }
