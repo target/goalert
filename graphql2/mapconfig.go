@@ -3,10 +3,6 @@
 package graphql2
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/validation"
 )
@@ -127,7 +123,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 		}
 		val, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
-			return 0, validation.NewFieldError("\""+id+"\".Value", "integer value invalid: "+err.Error())
+			return 0, validation.NewFieldError("\""+id+"\".Value", "integer value invalid: " + err.Error())
 		}
 		return int(val), nil
 	}
