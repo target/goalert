@@ -210,18 +210,9 @@ export default function AdminConfig(): JSX.Element {
                   onChange={(id: string, value: null | string) =>
                     updateValue(id, value)
                   }
-                  fields={configValues
-                    .filter(
-                      (f: ConfigValue) => f.id.split('.')[0] === groups[index],
-                    )
-                    .map((f: ConfigValue) => ({
-                      id: f.id,
-                      displayName: f.displayName,
-                      description: f.description,
-                      password: f.password,
-                      type: f.type,
-                      value: f.value,
-                    }))}
+                  fields={configValues.filter(
+                    (f: ConfigValue) => f.id.split('.')[0] === groups[index],
+                  )}
                 />
               </Form>
               {hintGroups[groupID] &&
