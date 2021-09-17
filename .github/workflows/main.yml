@@ -23,3 +23,17 @@ jobs:
           fail_on_error: true
       - name: tsc
         run: yarn workspaces run check
+  golang-checks:
+    name: Golang checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: get-golang-version
+      run: |
+        echo "GO_VERSION=$(grep 'go ' go.mod -m 1 | awk '{print $2}')" >> $GITHUB_ENV
+      - uses: reviewdog/action-golangci-lint@v2
+        with:
+          reporter: github-pr-review
+          level: warning
+          fail_on_error: true
+          go_version: ${{ env.GO_VERSION }}

@@ -1,0 +1,14 @@
+{
+  "severity": {
+    "default-severity": "warning"
+  },
+  "linters": {
+    "disable": [
+      "errcheck",
+      "structcheck",
+      "deadcode",
+      "varcheck",
+      "staticcheck"
+    ]
+  }
+}
