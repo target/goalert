@@ -213,31 +213,27 @@ func printType(prefix string, v reflect.Type, displayName string, details string
 }
 
 func printDisplayName(key, displayName string) string {
-	// format reformats string with spaces, i.e. GoogleAnalyticsID -> Google Analytics ID
-	format := func(str string) string {
-		var formattedGroups []string
-		// pattern groups words in string by capital letters
-		pattern := regexp.MustCompile("([A-Z]*)([A-Z][^A-Z]+|$)")
-		for _, subStr := range pattern.FindAllStringSubmatch(str, -1) {
-			if subStr[1] != "" {
-				formattedGroups = append(formattedGroups, subStr[1])
-			}
-			if subStr[2] != "" {
-				formattedGroups = append(formattedGroups, subStr[2])
-			}
+	if displayName != "" {
+		return displayName
+	}
+
+	var formattedGroups []string
+	// pattern groups words in string by capital letters
+	pattern := regexp.MustCompile("([A-Z]*)([A-Z][^A-Z]+|$)")
+	keyField := strings.Split(key, ".")[1]
+	for _, subStr := range pattern.FindAllStringSubmatch(keyField, -1) {
+		if subStr[1] != "" {
+			formattedGroups = append(formattedGroups, subStr[1])
 		}
-		formattedStr := strings.Join(formattedGroups, " ")
-
-		formattedStr = strings.Replace(formattedStr, "Two Way", "Two-Way", -1)
-		formattedStr = strings.Replace(formattedStr, "Enable V 1 Graph QL", "Enable V1 GraphQL", -1)
-		formattedStr = strings.Replace(formattedStr, "R Ls", "RLs", -1) // fix usages of `URLs`
-
-		return formattedStr
+		if subStr[2] != "" {
+			formattedGroups = append(formattedGroups, subStr[2])
+		}
 	}
+	formattedStr := strings.Join(formattedGroups, " ")
 
-	if displayName == "" {
-		displayName = format(strings.Split(key, ".")[1])
-	}
+	formattedStr = strings.Replace(formattedStr, "Two Way", "Two-Way", -1)
+	formattedStr = strings.Replace(formattedStr, "Enable V 1 Graph QL", "Enable V1 GraphQL", -1)
+	formattedStr = strings.Replace(formattedStr, "R Ls", "RLs", -1) // fix usages of `URLs`
 
-	return displayName
+	return formattedStr
 }
