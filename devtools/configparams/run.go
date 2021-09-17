@@ -232,7 +232,7 @@ func printDisplayName(key, displayName string) string {
 	formattedStr := strings.Join(formattedGroups, " ")
 
 	formattedStr = strings.Replace(formattedStr, "Two Way", "Two-Way", -1)
-	formattedStr = strings.Replace(formattedStr, "Enable V 1 Graph QL", "Enable V1 GraphQL", -1)
+	formattedStr = strings.Replace(formattedStr, "Enable V1 Graph QL", "Enable V1 GraphQL", -1)
 	formattedStr = strings.Replace(formattedStr, "R Ls", "RLs", -1) // fix usages of `URLs`
 
 	return formattedStr
