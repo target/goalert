@@ -88,7 +88,8 @@ export default function TempSchedDialog({
     useState(false)
 
   const hasCoverageGaps =
-    !q.loading && getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+    !q.loading &&
+    getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
 
   const handleSubmit = (): void => {
     if (hasCoverageGaps && !shouldAllowNoCoverage) {

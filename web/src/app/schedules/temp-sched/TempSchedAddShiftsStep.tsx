@@ -183,12 +183,10 @@ export default function TempSchedAddShiftsStep({
     })
     setSubmitted(false)
   }
-  const schedInterval = parseInterval({ start: start, end: end })
-
   const hasCoverageGaps = (() => {
-  if (q.loading) return false
-  const schedInterval = parseInterval({ start: start, end: end }, zone)
-  return getCoverageGapItems(schedInterval, value, zone).length > 0
+    if (q.loading) return false
+    const schedInterval = parseInterval({ start: start, end: end }, zone)
+    return getCoverageGapItems(schedInterval, value, zone).length > 0
   })()
 
   return (
