@@ -76,7 +76,6 @@ module.exports = () => ({
       )};`,
       raw: true,
     }),
-    new webpack.EnvironmentPlugin({ GOALERT_VERSION: 'prod' }),
   ],
 
   optimization: {

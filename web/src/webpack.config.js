@@ -103,6 +103,5 @@ module.exports = () => ({
       )};`,
       raw: true,
     }),
-    new webpack.EnvironmentPlugin({ GOALERT_VERSION: 'dev' }),
   ],
 })
