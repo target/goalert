@@ -147,7 +147,11 @@ export default function TempSchedAddNewShift({
           expandIcon={<ExpandMoreIcon />}
           data-cy='add-shift-expander'
         >
-          <Typography color='secondary' style={{ width: '100%' }}>
+          <Typography
+            color='textSecondary'
+            variant='button'
+            style={{ width: '100%' }}
+          >
             ADD SHIFT
           </Typography>
         </AccordionSummary>
