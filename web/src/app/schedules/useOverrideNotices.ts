@@ -1,14 +1,13 @@
-import { Notice } from '../../schema'
+import { Notice, TemporarySchedule } from '../../schema'
 import { parseInterval, SpanISO } from '../util/shifts'
 import { useQuery, gql } from '@apollo/client'
-import _ from 'lodash'
-import { Interval } from 'luxon'
 
 const scheduleQuery = gql`
   query ($id: ID!) {
     schedule(id: $id) {
       id
       name
+      timeZone
       temporarySchedules {
         start
         end
@@ -29,11 +28,12 @@ export default function useOverrideNotices(
   if (loading) {
     return []
   }
-  const tempSchedules = _.get(data, 'schedule.temporarySchedules')
-  const valueInterval = parseInterval(value)
-  const doesOverlap = tempSchedules
-    .map(parseInterval)
-    .some((invl: Interval) => invl.overlaps(valueInterval))
+  const tempSchedules = data?.schedule?.temporarySchedules
+  const zone = data?.schedule?.timeZone
+  const valueInterval = parseInterval(value, zone)
+  const doesOverlap = tempSchedules.some((t: TemporarySchedule) =>
+    parseInterval(t, zone).overlaps(valueInterval),
+  )
 
   if (!doesOverlap) {
     return []
