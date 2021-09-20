@@ -13,6 +13,9 @@ import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
 import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
 
 const useStyles = makeStyles({
+  cardActionContainer: {
+    width: '100%',
+  },
   button: {
     padding: '4px',
     minHeight: 0,
@@ -37,8 +40,8 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
   // toDo setState for edit and delete
   // user setOverrideDialog() to open the edit
   // delete to be done manually
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(null)
 
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
@@ -117,7 +120,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
   function renderOverrideButtons() {
     return (
-      <React.Fragment>
+      <div className={classes.cardActionContainer}>
         <CardActions
           secondaryActions={[
             {
@@ -125,7 +128,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
               label: 'Edit',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowEditDialog(true)
+                setShowEditDialog(event?.override?.id)
               },
             },
             {
@@ -133,12 +136,12 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
               label: 'Delete',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowDeleteDialog(true)
+                setShowDeleteDialog(event?.override?.id)
               },
             },
           ]}
         />
-      </React.Fragment>
+      </div>
     )
   }
 
@@ -171,6 +174,34 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     return renderShiftButtons()
   }
 
+  function renderText() {
+    if (event.isOverride) {
+      if (event.override.addUser && event.override.removeUser) {
+        return (
+          <Grid item xs={12}>
+            <Typography variant='body2'>{`${event.override.removeUser.name} replaces ${event.override.addUser.name}.`}</Typography>
+          </Grid>
+        )
+      }
+      if (event.override.addUser) {
+        return (
+          <Grid item xs={12}>
+            <Typography variant='body2'>{`Adds ${event.override.addUser.name}.`}</Typography>
+          </Grid>
+        )
+      }
+      if (event.override.removeUser) {
+        return (
+          <Grid item xs={12}>
+            <Typography variant='body2'>{`Removes ${event.override.removeUser.name}.`}</Typography>
+          </Grid>
+        )
+      }
+    }
+
+    return null
+  }
+
   /*
    * Renders an interactive tooltip when selecting
    * an event in the calendar that will show
@@ -188,6 +219,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
         </Grid>
+        {renderText()}
         {renderButtons()}
       </Grid>
     )
@@ -228,14 +260,14 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
       })}
       {showEditDialog && (
         <ScheduleOverrideEditDialog
-          overrideID={event.override.id}
-          onClose={() => setShowEditDialog(false)}
+          overrideID={showEditDialog}
+          onClose={() => setShowEditDialog(null)}
         />
       )}
       {showDeleteDialog && (
         <ScheduleOverrideDeleteDialog
-          overrideID={event.override.id}
-          onClose={() => setShowDeleteDialog(false)}
+          overrideID={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(null)}
         />
       )}
     </React.Fragment>

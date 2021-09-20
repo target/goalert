@@ -84,7 +84,7 @@ function ScheduleCalendar(props) {
     }))
 
     const overrides = userOverrides.map((o) => ({
-      user: { name: 'Override' },
+      user: { name: 'foobar replaces abc' },
       start: o.start,
       end: o.end,
       fixed: false,
@@ -115,8 +115,6 @@ function ScheduleCalendar(props) {
       // Remove shifts within a temporary schedule, and trim any that overlap
       ...trimSpans(shifts, ...fixedIntervals),
     ]
-
-    console.log('Overrides =', overrides)
 
     // if any users in users array, only show the ids present
     if (userFilter.length > 0) {
