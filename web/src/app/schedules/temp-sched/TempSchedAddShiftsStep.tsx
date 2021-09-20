@@ -17,8 +17,10 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
-import { isISOAfter } from '../../util/shifts'
+import { isISOAfter, parseInterval } from '../../util/shifts'
 import { Alert, AlertTitle } from '@material-ui/lab'
+import { useScheduleTZ } from './hooks'
+import { getCoverageGapItems } from './shiftsListUtil'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -61,9 +63,9 @@ type AddShiftsStepProps = {
   scheduleID: string
   edit?: boolean
 
-  showCoverageGapsWarning?: boolean
   coverageGapsAllowed?: boolean
   setCoverageGapsAllowed: (isAllowed: boolean) => void
+  isShowingCoverageGapsWarning: boolean
 }
 
 type DTShift = {
@@ -122,11 +124,12 @@ export default function TempSchedAddShiftsStep({
   edit,
   coverageGapsAllowed,
   setCoverageGapsAllowed,
-  showCoverageGapsWarning,
+  isShowingCoverageGapsWarning,
 }: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
+  const { zone } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -180,6 +183,10 @@ export default function TempSchedAddShiftsStep({
     })
     setSubmitted(false)
   }
+  const schedInterval = parseInterval({ start: start, end: end })
+
+  const hasCoverageGaps =
+    getCoverageGapItems(schedInterval, value, zone).length > 0
 
   return (
     <StepContainer data-cy='add-shifts-step'>
@@ -248,13 +255,13 @@ export default function TempSchedAddShiftsStep({
               />
             </div>
           </div>
-          {showCoverageGapsWarning && (
+          {isShowingCoverageGapsWarning && hasCoverageGaps && (
             <Alert severity='error' className={classes.noCoverageError}>
               <AlertTitle>Gaps in coverage</AlertTitle>
               <FormHelperText>
-                There are gaps in coverage. During these gaps nobody will
-                receive alerts. If you still want to proceed, check the box and
-                then click Retry.
+                There are gaps in coverage. During these gaps, nobody on the
+                schedule will receive alerts. If you still want to proceed,
+                check the box and retry.
               </FormHelperText>
               <FormControlLabel
                 label='Allow gaps in coverage'
