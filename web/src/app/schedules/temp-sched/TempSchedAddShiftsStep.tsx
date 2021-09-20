@@ -129,7 +129,7 @@ export default function TempSchedAddShiftsStep({
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
-  const { zone } = useScheduleTZ(scheduleID)
+  const { zone, q } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -185,8 +185,11 @@ export default function TempSchedAddShiftsStep({
   }
   const schedInterval = parseInterval({ start: start, end: end })
 
-  const hasCoverageGaps =
-    getCoverageGapItems(schedInterval, value, zone).length > 0
+  const hasCoverageGaps = (() => {
+  if (q.loading) return false
+  const schedInterval = parseInterval({ start: start, end: end }, zone)
+  return getCoverageGapItems(schedInterval, value, zone).length > 0
+  })()
 
   return (
     <StepContainer data-cy='add-shifts-step'>
