@@ -143,12 +143,15 @@ export default function TempSchedAddNewShift({
       onChange={(val: Shift) => setShift(val)}
     >
       <Accordion variant='outlined'>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          data-cy='add-shift-expander'
+        >
           <Typography color='secondary' style={{ width: '100%' }}>
             ADD SHIFT
           </Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails data-cy='add-shift-container'>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <FormField
@@ -163,7 +166,8 @@ export default function TempSchedAddNewShift({
                 fullWidth
                 component={ISODateTimePicker}
                 label='Shift Start'
-                name='start'
+                name='shift-start'
+                fieldName='start'
                 min={edit ? value.start : now}
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
@@ -187,7 +191,8 @@ export default function TempSchedAddNewShift({
                   fullWidth
                   component={ISODateTimePicker}
                   label='Shift End'
-                  name='end'
+                  name='shift-end'
+                  fieldName='end'
                   min={edit ? value.start : now}
                   hint={
                     <React.Fragment>
@@ -211,7 +216,8 @@ export default function TempSchedAddNewShift({
                   fullWidth
                   component={NumberField}
                   label='Shift Duration (hours)'
-                  name='end'
+                  name='shift-end'
+                  fieldName='end'
                   float
                   // value held in form input
                   mapValue={(nextVal: string, formValue: Value) => {
