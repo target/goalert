@@ -171,7 +171,6 @@ export default function TempSchedAddNewShift({
                 component={ISODateTimePicker}
                 label='Shift Start'
                 name='shift-start'
-                fieldName='start'
                 min={edit ? value.start : now}
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
@@ -196,7 +195,6 @@ export default function TempSchedAddNewShift({
                   component={ISODateTimePicker}
                   label='Shift End'
                   name='shift-end'
-                  fieldName='end'
                   min={edit ? value.start : now}
                   hint={
                     <React.Fragment>
@@ -221,7 +219,6 @@ export default function TempSchedAddNewShift({
                   component={NumberField}
                   label='Shift Duration (hours)'
                   name='shift-end'
-                  fieldName='end'
                   float
                   // value held in form input
                   mapValue={(nextVal: string, formValue: Value) => {
