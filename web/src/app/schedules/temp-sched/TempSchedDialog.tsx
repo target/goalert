@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
-  mainContainer: {
+  formContainer: {
     height: '100%',
     padding: '0.5rem',
   },
@@ -122,9 +122,8 @@ export default function TempSchedDialog({
     },
   })
 
-  const [shouldAllowNoCoverage, setShouldAllowNoCoverage] = useState(false)
-  const [isShowingCoverageGapsWarning, setIsShowingCoverageGapsWarning] =
-    useState(false)
+  const [allowNoCoverage, setAllowNoCoverage] = useState(false)
+  const [submitCount, setSubmitCount] = useState(0)
 
   const hasCoverageGaps = (() => {
     if (q.loading) return false
@@ -133,19 +132,17 @@ export default function TempSchedDialog({
   })()
 
   const handleSubmit = (): void => {
-    if (hasCoverageGaps && !shouldAllowNoCoverage) {
-      setIsShowingCoverageGapsWarning(true)
+    setSubmitCount(submitCount + 1)
+
+    if (hasCoverageGaps && !allowNoCoverage) {
       return
-    }
-    if (isShowingCoverageGapsWarning && shouldAllowNoCoverage) {
-      setIsShowingCoverageGapsWarning(false)
     }
 
     submit()
   }
 
   const noCoverageErrs =
-    hasCoverageGaps && isShowingCoverageGapsWarning
+    submitCount > 0 && hasCoverageGaps && !allowNoCoverage
       ? [new Error('This temporary schedule has gaps in coverage.')]
       : []
 
@@ -188,10 +185,11 @@ export default function TempSchedDialog({
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
         >
-          <Grid container className={classes.mainContainer}>
+          <Grid container className={classes.formContainer}>
             <Grid
               item
-              xs={6}
+              xs={12}
+              md={6}
               container
               alignContent='flex-start'
               spacing={2}
@@ -212,7 +210,7 @@ export default function TempSchedDialog({
                 </Grid>
               )}
 
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <FormField
                   fullWidth
                   component={ISODateTimePicker}
@@ -225,7 +223,7 @@ export default function TempSchedDialog({
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <FormField
                   fullWidth
                   component={ISODateTimePicker}
@@ -250,7 +248,35 @@ export default function TempSchedDialog({
             </Grid>
 
             {/* shifts list container */}
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
+              <Typography variant='subtitle1' component='h3'>
+                Shifts
+              </Typography>
+
+              {/* coverage warning */}
+              {submitCount > 0 && hasCoverageGaps && (
+                <Alert severity='error' className={classes.noCoverageError}>
+                  <AlertTitle>Gaps in coverage</AlertTitle>
+                  <FormHelperText>
+                    There are gaps in coverage. During these gaps, nobody on the
+                    schedule will receive alerts. If you still want to proceed,
+                    check the box below and retry.
+                  </FormHelperText>
+                  <FormControlLabel
+                    label='Allow gaps in coverage'
+                    labelPlacement='end'
+                    control={
+                      <Checkbox
+                        data-cy='no-coverage-checkbox'
+                        checked={allowNoCoverage}
+                        onChange={(e) => setAllowNoCoverage(e.target.checked)}
+                        name='allowCoverageGaps'
+                      />
+                    }
+                  />
+                </Alert>
+              )}
+
               <TempSchedShiftsList
                 scheduleID={scheduleID}
                 value={value.shifts}
@@ -264,30 +290,6 @@ export default function TempSchedDialog({
                 }}
                 edit={edit}
               />
-              {isShowingCoverageGapsWarning && hasCoverageGaps && (
-                <Alert severity='error' className={classes.noCoverageError}>
-                  <AlertTitle>Gaps in coverage</AlertTitle>
-                  <FormHelperText>
-                    There are gaps in coverage. During these gaps, nobody on the
-                    schedule will receive alerts. If you still want to proceed,
-                    check the box and retry.
-                  </FormHelperText>
-                  <FormControlLabel
-                    label='Allow gaps in coverage'
-                    labelPlacement='end'
-                    control={
-                      <Checkbox
-                        data-cy='no-coverage-checkbox'
-                        checked={shouldAllowNoCoverage}
-                        onChange={(e) =>
-                          setShouldAllowNoCoverage(e.target.checked)
-                        }
-                        name='allowCoverageGaps'
-                      />
-                    }
-                  />
-                </Alert>
-              )}
             </Grid>
           </Grid>
         </FormContainer>

@@ -1,6 +1,5 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
-import Typography from '@material-ui/core/Typography'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 import ScheduleIcon from '@material-ui/icons/Schedule'
@@ -196,24 +195,17 @@ export default function TempSchedShiftsList({
     ])
   }
 
-  return (
-    <div>
-      <Typography variant='subtitle1' component='h3'>
-        Shifts
-      </Typography>
-      {q.loading ? (
-        <div className={classes.listSpinner}>
-          <Spinner />
-        </div>
-      ) : (
-        <FlatList
-          data-cy='shifts-list'
-          items={items()}
-          emptyMessage='Add a user to the left to get started.'
-          dense
-          transition
-        />
-      )}
+  return q.loading ? (
+    <div className={classes.listSpinner}>
+      <Spinner />
     </div>
+  ) : (
+    <FlatList
+      data-cy='shifts-list'
+      items={items()}
+      emptyMessage='Add a user to the left to get started.'
+      dense
+      transition
+    />
   )
 }
