@@ -332,7 +332,7 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Add')
-        cy.dialogTitle('Add a User')
+        cy.dialogTitle('Add')
         cy.dialogForm({ addUserID: users[0].name })
         cy.dialogFinish('Submit')
 
@@ -347,7 +347,7 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Remove')
-        cy.dialogTitle('Remove a User')
+        cy.dialogTitle('Remove')
         cy.dialogForm({ removeUserID: users[0].name })
         cy.dialogFinish('Submit')
 
@@ -362,7 +362,7 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Replace')
-        cy.dialogTitle('Replace a User')
+        cy.dialogTitle('Replace')
         cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
         cy.dialogFinish('Submit')
 
@@ -377,7 +377,7 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('body').should('contain', 'No results')
 
         cy.pageFab('Add')
-        cy.dialogTitle('Add a User')
+        cy.dialogTitle('Add')
         cy.dialogForm({ addUserID: users[0].name })
         cy.dialogFinish('Submit')
 

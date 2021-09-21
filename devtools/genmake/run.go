@@ -65,7 +65,7 @@ func main() {
 		{Name: "windows-amd64", Env: "GOOS=windows GOARCH=amd64", Ext: ".exe"},
 	}
 	data.Bundles = []Bundle{
-		{Name: "goalert", Binaries: []string{"goalert"}},
+		{Name: "goalert", Binaries: []string{"goalert", "goalert-slack-email-sync"}},
 		{
 			Name:   "integration",
 			SubDir: "goalert",

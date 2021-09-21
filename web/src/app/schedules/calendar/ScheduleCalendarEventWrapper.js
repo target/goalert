@@ -6,6 +6,7 @@ import Popover from '@material-ui/core/Popover'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
+import { ScheduleCalendarContext } from '../ScheduleDetails'
 
 const useStyles = makeStyles({
   button: {
@@ -26,17 +27,12 @@ const useStyles = makeStyles({
   },
 })
 
-export const EventHandlerContext = React.createContext({
-  onOverrideClick: () => {},
-  onEditTempSched: () => {},
-  onDeleteTempSched: () => {},
-})
-
 export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
-  const { onOverrideClick, onEditTempSched, onDeleteTempSched } =
-    useContext(EventHandlerContext)
+  const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
+    ScheduleCalendarContext,
+  )
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
@@ -55,11 +51,12 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     }
   }
 
-  function handleShowOverrideForm(type) {
+  function handleShowOverrideForm() {
     handleCloseShiftInfo()
 
-    onOverrideClick({
-      variant: type,
+    setOverrideDialog({
+      variantOptions: ['replace', 'remove'],
+      removeUserReadOnly: true,
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),
@@ -111,29 +108,17 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
   function renderOverrideButtons() {
     return (
       <React.Fragment>
-        <Grid item>
-          <Button
-            data-cy='replace-override'
-            size='small'
-            onClick={() => handleShowOverrideForm('replace')}
-            variant='contained'
-            color='primary'
-            title={`Temporarily replace ${event.title} from this schedule`}
-          >
-            Replace
-          </Button>
-        </Grid>
         <Grid item className={classes.flexGrow} />
         <Grid item>
           <Button
-            data-cy='remove-override'
+            data-cy='override'
             size='small'
-            onClick={() => handleShowOverrideForm('remove')}
+            onClick={handleShowOverrideForm}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${event.title} from this schedule`}
           >
-            Remove
+            Override Shift
           </Button>
         </Grid>
       </React.Fragment>
