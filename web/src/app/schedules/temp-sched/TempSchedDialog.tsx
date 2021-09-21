@@ -90,9 +90,11 @@ export default function TempSchedDialog({
   const [isShowingCoverageGapsWarning, setIsShowingCoverageGapsWarning] =
     useState(false)
 
-  const hasCoverageGaps =
-    !q.loading &&
-    getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  })()
 
   const handleSubmit = (): void => {
     if (hasCoverageGaps && !shouldAllowNoCoverage) {
