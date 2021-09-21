@@ -105,5 +105,7 @@ func (msg *Message) messageStatus() *notification.Status {
 	default:
 		status.State = notification.StateSending
 	}
+
+	status.SrcValue = msg.From
 	return &status
 }

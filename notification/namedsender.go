@@ -17,11 +17,11 @@ func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error
 	}
 
 	return &SendResult{
-		ID:       msg.ID(),
-		SrcValue: sent.SrcValue,
+		ID: msg.ID(),
 		Status: Status{
-			State:   sent.State,
-			Details: sent.StateDetails,
+			State:    sent.State,
+			Details:  sent.StateDetails,
+			SrcValue: sent.SrcValue,
 		},
 		ProviderMessageID: ProviderMessageID{
 			ProviderName: s.name,

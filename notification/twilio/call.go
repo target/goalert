@@ -94,5 +94,7 @@ func (call *Call) messageStatus() *notification.Status {
 	default:
 		status.State = notification.StateSent
 	}
+
+	status.SrcValue = call.From
 	return &status
 }
