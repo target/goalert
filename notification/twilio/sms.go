@@ -188,7 +188,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		"Phone":  number,
 		"Type":   "TwilioSMS",
 	})
-	msg := Message{SID: sid, Status: status}
+	msg := Message{SID: sid, Status: status, From: req.FormValue("From")}
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 
