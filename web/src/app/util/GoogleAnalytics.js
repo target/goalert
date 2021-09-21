@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useEffect } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { event, set, pageview, initialize } from 'react-ga'
 import { Route } from 'react-router-dom'
@@ -16,37 +16,20 @@ export function sendGAEvent(eventProps) {
   if (isInitialized) event(eventProps)
 }
 
-class GoogleAnalytics extends Component {
-  componentDidMount() {
-    this.logPageChange(this.props.location.pathname, this.props.location.search)
-  }
+function GoogleAnalytics(props) {
+  const { pathname = '', search = '' } = props.location
 
-  componentDidUpdate({ location: prevLocation }) {
-    const {
-      location: { pathname, search },
-    } = this.props
-    const isDifferentPathname = pathname !== prevLocation.pathname
-    const isDifferentSearch = search !== prevLocation.search
-
-    if (isDifferentPathname || isDifferentSearch) {
-      this.logPageChange(pathname, search)
-    }
-  }
-
-  logPageChange(pathname, search = '') {
+  useEffect(() => {
     const page = pathname + search
-    const { location } = window
     set({
       page,
-      location: `${location.origin}${page}`,
-      ...this.props.options,
+      location: `${window.location.origin}${page}`,
+      ...props.options,
     })
     pageview(page)
-  }
+  }, [pathname, search])
 
-  render() {
-    return null
-  }
+  return null
 }
 
 GoogleAnalytics.propTypes = {

@@ -1,8 +1,9 @@
 FROM --platform=$BUILDPLATFORM goalert/build-env:go1.16.4-postgres13 AS binaries
 ARG BUILDPLATFORM
-COPY bin/linux-arm/goalert /linux/arm/v7/goalert
-COPY bin/linux-arm64/goalert /linux/arm64/goalert
-COPY bin/linux-amd64/goalert /linux/amd64/goalert
+
+COPY bin/build/goalert-linux-arm/goalert/bin /linux/arm/v7
+COPY bin/build/goalert-linux-arm64/goalert/bin /linux/arm64
+COPY bin/build/goalert-linux-amd64/goalert/bin /linux/amd64
 
 FROM alpine
 ARG TARGETPLATFORM
@@ -11,5 +12,5 @@ ENV GOALERT_LISTEN :8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 
-COPY --from=binaries /$TARGETPLATFORM/goalert /usr/bin/goalert
+COPY --from=binaries /$TARGETPLATFORM/* /usr/bin/
 RUN /usr/bin/goalert self-test

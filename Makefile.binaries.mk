@@ -36,11 +36,36 @@ $(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(
 	touch $@
 
 
-$(BIN_DIR)/build/integration/linux-amd64: $(BIN_DIR)/linux-amd64/goalert
-	rm -rf $(BIN_DIR)/build/integration/linux-amd64
-	mkdir -p $(BIN_DIR)/build/integration/linux-amd64
-	cp $(BIN_DIR)/linux-amd64/goalert $@
+$(BIN_DIR)/build/integration/bin/build/goalert-darwin-amd64: $(BIN_DIR)/build/goalert-darwin-amd64
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-darwin-amd64/goalert $@/
 	touch $@
+
+$(BIN_DIR)/build/integration/bin/build/goalert-linux-amd64: $(BIN_DIR)/build/goalert-linux-amd64
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-linux-amd64/goalert $@/
+	touch $@
+
+$(BIN_DIR)/build/integration/bin/build/goalert-linux-arm: $(BIN_DIR)/build/goalert-linux-arm
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-linux-arm/goalert $@/
+	touch $@
+
+$(BIN_DIR)/build/integration/bin/build/goalert-linux-arm64: $(BIN_DIR)/build/goalert-linux-arm64
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-linux-arm64/goalert $@/
+	touch $@
+
+$(BIN_DIR)/build/integration/bin/build/goalert-windows-amd64: $(BIN_DIR)/build/goalert-windows-amd64
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-windows-amd64/goalert $@/
+	touch $@
+
 
 $(BIN_DIR)/build/integration/devtools: $(shell find ./devtools/ci)
 	rm -rf $@
@@ -52,11 +77,12 @@ $(BIN_DIR)/build/integration/.git: $(shell find ./.git)
 	rm -rf $@
 	mkdir -p $@
 	test -d .git/resource && cp -r .git/resource $@/ || true
+	touch $@
 
 $(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
 	git rev-parse HEAD >$@
 
-$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress $(BIN_DIR)/build/integration/linux-amd64
+$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress $(BIN_DIR)/build/integration/bin/build/goalert-darwin-amd64 $(BIN_DIR)/build/integration/bin/build/goalert-linux-amd64 $(BIN_DIR)/build/integration/bin/build/goalert-linux-arm $(BIN_DIR)/build/integration/bin/build/goalert-linux-arm64 $(BIN_DIR)/build/integration/bin/build/goalert-windows-amd64
 	touch $@
 
 
@@ -77,6 +103,25 @@ $(BIN_DIR)/linux-arm64/goalert: $(GO_DEPS) graphql2/mapconfig.go web/src/build/s
 
 $(BIN_DIR)/windows-amd64/goalert.exe: $(GO_DEPS) graphql2/mapconfig.go web/src/build/static/app.js
 	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+
+
+$(BIN_DIR)/goalert-slack-email-sync: $(GO_DEPS) 
+	go build  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/darwin-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-arm/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/linux-arm64/goalert-slack-email-sync: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
+
+$(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)  
+	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
 
 $(BIN_DIR)/mockslack: $(GO_DEPS) 
@@ -290,27 +335,27 @@ $(BIN_DIR)/windows-amd64/waitfor.exe: $(GO_DEPS)
 
 
 
-$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runjson $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
+$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runjson $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
 
 $(BIN_DIR)/darwin-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=darwin GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runjson $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
+$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runjson $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
 
 $(BIN_DIR)/linux-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runjson $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
+$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runjson $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
 
 $(BIN_DIR)/linux-arm/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm GOARM=7 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runjson $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
+$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runjson $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
 
 $(BIN_DIR)/linux-arm64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runjson.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
+$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runjson.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
 
 $(BIN_DIR)/windows-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go test ./smoketest -c -o $@
@@ -320,10 +365,10 @@ $(BIN_DIR)/goalert-smoketest: $(GO_DEPS)
 
 
 
-$(BIN_DIR)/build/goalert-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert
+$(BIN_DIR)/build/goalert-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/darwin-amd64/goalert $@/goalert/bin/
+	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $@/goalert/bin/
 	touch $@
 
 $(BIN_DIR)/goalert-darwin-amd64.tgz: $(BIN_DIR)/build/goalert-darwin-amd64
@@ -333,10 +378,10 @@ $(BIN_DIR)/goalert-darwin-amd64.zip: $(BIN_DIR)/build/goalert-darwin-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/goalert-darwin-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/goalert-linux-amd64: $(BIN_DIR)/linux-amd64/goalert
+$(BIN_DIR)/build/goalert-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-amd64/goalert $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $@/goalert/bin/
 	touch $@
 
 $(BIN_DIR)/goalert-linux-amd64.tgz: $(BIN_DIR)/build/goalert-linux-amd64
@@ -346,10 +391,10 @@ $(BIN_DIR)/goalert-linux-amd64.zip: $(BIN_DIR)/build/goalert-linux-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/goalert-linux-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/goalert-linux-arm: $(BIN_DIR)/linux-arm/goalert
+$(BIN_DIR)/build/goalert-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm/goalert $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $@/goalert/bin/
 	touch $@
 
 $(BIN_DIR)/goalert-linux-arm.tgz: $(BIN_DIR)/build/goalert-linux-arm
@@ -359,10 +404,10 @@ $(BIN_DIR)/goalert-linux-arm.zip: $(BIN_DIR)/build/goalert-linux-arm
 	rm -f $@
 	cd $(BIN_DIR)/build/goalert-linux-arm && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/goalert-linux-arm64: $(BIN_DIR)/linux-arm64/goalert
+$(BIN_DIR)/build/goalert-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm64/goalert $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $@/goalert/bin/
 	touch $@
 
 $(BIN_DIR)/goalert-linux-arm64.tgz: $(BIN_DIR)/build/goalert-linux-arm64
@@ -372,10 +417,10 @@ $(BIN_DIR)/goalert-linux-arm64.zip: $(BIN_DIR)/build/goalert-linux-arm64
 	rm -f $@
 	cd $(BIN_DIR)/build/goalert-linux-arm64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/goalert-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe
+$(BIN_DIR)/build/goalert-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/windows-amd64/goalert.exe $@/goalert/bin/
+	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $@/goalert/bin/
 	touch $@
 
 $(BIN_DIR)/goalert-windows-amd64.tgz: $(BIN_DIR)/build/goalert-windows-amd64

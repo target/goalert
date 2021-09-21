@@ -58,10 +58,13 @@ export default function TempSchedDialog({
     }
   }, [q.loading, zone])
 
-  const schedInterval = parseInterval(value)
-  const hasInvalidShift = value.shifts.some(
-    (s) => !schedInterval.engulfs(parseInterval(s)),
-  )
+  const hasInvalidShift = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return value.shifts.some(
+      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+    )
+  })()
 
   const shiftErrors = hasInvalidShift
     ? [

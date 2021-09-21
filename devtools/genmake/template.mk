@@ -33,12 +33,13 @@ $(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(
 	cp -r web/src/cypress/fixtures $@/
 	touch $@
 
-
-$(BIN_DIR)/build/integration/linux-amd64: $(BIN_DIR)/linux-amd64/goalert
-	rm -rf $(BIN_DIR)/build/integration/linux-amd64
-	mkdir -p $(BIN_DIR)/build/integration/linux-amd64
-	cp $(BIN_DIR)/linux-amd64/goalert $@
+{{range $.Builds}}
+$(BIN_DIR)/build/integration/bin/build/goalert-{{.Name}}: $(BIN_DIR)/build/goalert-{{.Name}}
+	rm -rf $@
+	mkdir -p $@
+	cp -r $(BIN_DIR)/build/goalert-{{.Name}}/goalert $@/
 	touch $@
+{{end}}
 
 $(BIN_DIR)/build/integration/devtools: $(shell find ./devtools/ci)
 	rm -rf $@
@@ -50,11 +51,12 @@ $(BIN_DIR)/build/integration/.git: $(shell find ./.git)
 	rm -rf $@
 	mkdir -p $@
 	test -d .git/resource && cp -r .git/resource $@/ || true
+	touch $@
 
 $(BIN_DIR)/build/integration/COMMIT: $(BIN_DIR)/build/integration/.git
 	git rev-parse HEAD >$@
 
-$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress $(BIN_DIR)/build/integration/linux-amd64
+$(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build/integration/COMMIT $(BIN_DIR)/build/integration/devtools $(BIN_DIR)/build/integration/cypress {{- range $.Builds}} $(BIN_DIR)/build/integration/bin/build/goalert-{{.Name}}{{end}}
 	touch $@
 
 {{range $tool := $.Tools}}
