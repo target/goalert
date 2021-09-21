@@ -11,13 +11,18 @@ import { DateTime } from 'luxon'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
 import {
+  Checkbox,
   DialogContentText,
+  FormControlLabel,
+  FormHelperText,
   Grid,
   makeStyles,
   Typography,
 } from '@material-ui/core'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
+import { getCoverageGapItems } from './shiftsListUtil'
+import { Alert, AlertTitle } from '@material-ui/lab'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -37,6 +42,10 @@ const useStyles = makeStyles((theme) => ({
   mainContainer: {
     height: '100%',
     padding: '0.5rem',
+  },
+  noCoverageError: {
+    marginTop: '.5rem',
+    marginBottom: '.5rem',
   },
   tzNote: {
     fontStyle: 'italic',
@@ -86,10 +95,13 @@ export default function TempSchedDialog({
     return null
   }
 
-  const schedInterval = parseInterval(value)
-  const hasInvalidShift = value.shifts.some(
-    (s) => !schedInterval.engulfs(parseInterval(s)),
-  )
+  const hasInvalidShift = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return value.shifts.some(
+      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+    )
+  })()
 
   const shiftErrors = hasInvalidShift
     ? [
@@ -110,13 +122,43 @@ export default function TempSchedDialog({
     },
   })
 
+  const [shouldAllowNoCoverage, setShouldAllowNoCoverage] = useState(false)
+  const [isShowingCoverageGapsWarning, setIsShowingCoverageGapsWarning] =
+    useState(false)
+
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  })()
+
+  const handleSubmit = (): void => {
+    if (hasCoverageGaps && !shouldAllowNoCoverage) {
+      setIsShowingCoverageGapsWarning(true)
+      return
+    }
+    if (isShowingCoverageGapsWarning && shouldAllowNoCoverage) {
+      setIsShowingCoverageGapsWarning(false)
+    }
+
+    submit()
+  }
+
+  const noCoverageErrs =
+    hasCoverageGaps && isShowingCoverageGapsWarning
+      ? [new Error('This temporary schedule has gaps in coverage.')]
+      : []
+
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
   }))
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
+  const errs = nonFieldErrs
+    .concat(fieldErrs)
+    .concat(shiftErrors)
+    .concat(noCoverageErrs)
 
   return (
     <FormDialog
@@ -222,11 +264,35 @@ export default function TempSchedDialog({
                 }}
                 edit={edit}
               />
+              {isShowingCoverageGapsWarning && hasCoverageGaps && (
+                <Alert severity='error' className={classes.noCoverageError}>
+                  <AlertTitle>Gaps in coverage</AlertTitle>
+                  <FormHelperText>
+                    There are gaps in coverage. During these gaps, nobody on the
+                    schedule will receive alerts. If you still want to proceed,
+                    check the box and retry.
+                  </FormHelperText>
+                  <FormControlLabel
+                    label='Allow gaps in coverage'
+                    labelPlacement='end'
+                    control={
+                      <Checkbox
+                        data-cy='no-coverage-checkbox'
+                        checked={shouldAllowNoCoverage}
+                        onChange={(e) =>
+                          setShouldAllowNoCoverage(e.target.checked)
+                        }
+                        name='allowCoverageGaps'
+                      />
+                    }
+                  />
+                </Alert>
+              )}
             </Grid>
           </Grid>
         </FormContainer>
       }
-      onSubmit={() => submit()}
+      onSubmit={handleSubmit}
     />
   )
 }

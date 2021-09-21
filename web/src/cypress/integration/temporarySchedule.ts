@@ -69,15 +69,32 @@ function testTemporarySchedule(screen: string): void {
     cy.dialogTitle('Choose')
     cy.dialogForm({ variant: 'temp' })
     cy.dialogClick('Next')
+<<<<<<< HEAD
     cy.dialogForm({ start: schedTZ(start), end: schedTZ(end) })
     cy.get('[data-cy="add-shift-expander"]').click()
 
+=======
+    cy.dialogForm(
+      { start: schedTZ(start), end: schedTZ(end) },
+      schedTimesSelector,
+    )
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get(addShiftsSelector).should('be.visible.and.contain', 'STEP 2 OF 2')
+    cy.get('[data-cy="no-coverage-checkbox"]').should('not.exist')
+    cy.dialogForm({ userID: manualAddUser.name }, addShiftsSelector)
+>>>>>>> 7d576bb79c6624465b925c4ce9cce18857fe18bf
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
     cy.dialogForm({ userID: manualAddUser.name })
     cy.get('button[data-cy="add-shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+<<<<<<< HEAD
 
     cy.dialogFinish('Submit')
+=======
+    cy.get('[data-cy="loading-button"]').contains('Submit').click()
+    cy.get('[data-cy="no-coverage-checkbox"]').should('be.visible').click()
+    cy.dialogFinish('Retry')
+>>>>>>> 7d576bb79c6624465b925c4ce9cce18857fe18bf
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
     cy.get('div').contains('Temporary Schedule').click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -121,7 +138,9 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.dialogFinish('Submit')
+      cy.get('[data-cy="loading-button"]').contains('Submit').click()
+      cy.get('[data-cy="no-coverage-checkbox"]').should('be.visible').click()
+      cy.dialogFinish('Retry')
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
