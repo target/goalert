@@ -1,4 +1,4 @@
-FROM goalert/build-env:go1.16.4-postgres13 AS build
+FROM goalert/build-env:go1.17.1-postgres13 AS build
 COPY / /build/
 WORKDIR /build
 RUN make bin/build/goalert-linux-amd64
