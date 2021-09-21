@@ -13,6 +13,7 @@ import { parseInterval } from '../../util/shifts'
 import { DateTime } from 'luxon'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
+import { getCoverageGapItems } from './shiftsListUtil'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
@@ -57,10 +58,13 @@ export default function TempSchedDialog({
     }
   }, [q.loading, zone])
 
-  const schedInterval = parseInterval(value)
-  const hasInvalidShift = value.shifts.some(
-    (s) => !schedInterval.engulfs(parseInterval(s)),
-  )
+  const hasInvalidShift = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return value.shifts.some(
+      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+    )
+  })()
 
   const shiftErrors = hasInvalidShift
     ? [
@@ -81,6 +85,28 @@ export default function TempSchedDialog({
       },
     },
   })
+
+  const [shouldAllowNoCoverage, setShouldAllowNoCoverage] = useState(false)
+  const [isShowingCoverageGapsWarning, setIsShowingCoverageGapsWarning] =
+    useState(false)
+
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  })()
+
+  const handleSubmit = (): void => {
+    if (hasCoverageGaps && !shouldAllowNoCoverage) {
+      setIsShowingCoverageGapsWarning(true)
+      return
+    }
+    if (isShowingCoverageGapsWarning && shouldAllowNoCoverage) {
+      setIsShowingCoverageGapsWarning(false)
+    }
+
+    submit()
+  }
 
   type SlideRenderer = {
     index: number
@@ -108,6 +134,9 @@ export default function TempSchedDialog({
           start={value.start}
           end={value.end}
           edit={edit}
+          coverageGapsAllowed={shouldAllowNoCoverage}
+          setCoverageGapsAllowed={setShouldAllowNoCoverage}
+          isShowingCoverageGapsWarning={isShowingCoverageGapsWarning}
         />
       )
     }
@@ -116,13 +145,20 @@ export default function TempSchedDialog({
     return <div />
   }
 
+  const noCoverageErrs =
+    hasCoverageGaps && isShowingCoverageGapsWarning
+      ? [new Error('This temporary schedule has gaps in coverage.')]
+      : []
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
   }))
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
+  const errs = nonFieldErrs
+    .concat(fieldErrs)
+    .concat(shiftErrors)
+    .concat(noCoverageErrs)
 
   return (
     <FormDialog
@@ -171,7 +207,7 @@ export default function TempSchedDialog({
           />
         </FormContainer>
       }
-      onSubmit={() => submit()}
+      onSubmit={handleSubmit}
       onNext={step === 1 ? null : () => setStep(step + 1)}
       onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
