@@ -6,6 +6,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
+import { DateTime } from 'luxon'
 
 import { Shift } from './sharedUtils'
 import FlatList, {
@@ -15,7 +16,6 @@ import FlatList, {
 } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { DateTime } from 'luxon'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
@@ -47,12 +47,9 @@ const useStyles = makeStyles((theme) => {
 type TempSchedShiftsListProps = {
   value: Shift[]
   onRemove: (shift: Shift) => void
-
   start: string
   end: string
-
   edit?: boolean
-
   scheduleID: string
 }
 

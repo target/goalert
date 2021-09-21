@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
+import Checkbox from '@material-ui/core/Checkbox'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Grid from '@material-ui/core/Grid'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core'
+import Alert from '@material-ui/lab/Alert'
+import AlertTitle from '@material-ui/lab/AlertTitle'
+import _ from 'lodash'
+import { DateTime } from 'luxon'
+
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
-import _ from 'lodash'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
-import { DateTime } from 'luxon'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
-import {
-  Checkbox,
-  DialogContentText,
-  FormControlLabel,
-  FormHelperText,
-  Grid,
-  makeStyles,
-  Typography,
-} from '@material-ui/core'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
-import { Alert, AlertTitle } from '@material-ui/lab'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -74,6 +74,8 @@ export default function TempSchedDialog({
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+  const [allowNoCoverage, setAllowNoCoverage] = useState(false)
+  const [submitCount, setSubmitCount] = useState(0)
 
   useEffect(() => {
     // set default start, end times when zone is ready
@@ -112,6 +114,12 @@ export default function TempSchedDialog({
       ]
     : []
 
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  })()
+
   const [submit, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {
@@ -121,15 +129,6 @@ export default function TempSchedDialog({
       },
     },
   })
-
-  const [allowNoCoverage, setAllowNoCoverage] = useState(false)
-  const [submitCount, setSubmitCount] = useState(0)
-
-  const hasCoverageGaps = (() => {
-    if (q.loading) return false
-    const schedInterval = parseInterval(value, zone)
-    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
-  })()
 
   const handleSubmit = (): void => {
     setSubmitCount(submitCount + 1)
@@ -141,17 +140,16 @@ export default function TempSchedDialog({
     submit()
   }
 
-  const noCoverageErrs =
-    submitCount > 0 && hasCoverageGaps && !allowNoCoverage
-      ? [new Error('This temporary schedule has gaps in coverage.')]
-      : []
-
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
     message: e.message,
   }))
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
+  const noCoverageErrs =
+    submitCount > 0 && hasCoverageGaps && !allowNoCoverage
+      ? [new Error('This temporary schedule has gaps in coverage.')]
+      : []
   const errs = nonFieldErrs
     .concat(fieldErrs)
     .concat(shiftErrors)
