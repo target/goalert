@@ -1,8 +1,9 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
 	"fmt"
+	"github.com/target/goalert/notification"
 	"net/url"
 
 	"github.com/target/goalert/graphql2"
@@ -15,6 +16,25 @@ import (
 type safeErr struct{ error }
 
 func (safeErr) ClientError() bool { return true }
+
+func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMessageStatusInput) (*graphql2.DebugMessageStatusInfo, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := q.NotificationManager.MessageStatus(ctx, "", notification.ProviderMessageID{ExternalID: input.ProviderMessageID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var debugStatus graphql2.DebugMessageStatusInfo
+	debugStatus.MessageStatus.Details = status.Details
+	debugStatus.MessageStatus.FormattedSrcValue = status.SrcValue
+
+	return &debugStatus, nil
+}
 
 func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMSInput) (*graphql2.DebugSendSMSInfo, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)

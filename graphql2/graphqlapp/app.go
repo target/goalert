@@ -75,6 +75,8 @@ type App struct {
 	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
+	NotificationManager *notification.Manager
+
 	AuthHandler *auth.Handler
 
 	NotificationStore notification.Store
