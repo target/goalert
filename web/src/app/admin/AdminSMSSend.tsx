@@ -21,6 +21,7 @@ import AppLink from '../util/AppLink'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import FromValueField from '../util/FromValueField'
 
 const sendSMSMutation = gql`
   mutation DebugSendSMS($input: DebugSendSMSInput!) {
@@ -65,12 +66,10 @@ export default function AdminSMSSend(): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TelTextField
+                <FromValueField
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
-                  label='From Number or Twilio Messaging Service SID'
-                  inputTypes={['tel', 'sid']}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>

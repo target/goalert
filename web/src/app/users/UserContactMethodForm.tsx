@@ -42,7 +42,7 @@ function renderPhoneField(edit: boolean): JSX.Element {
   return (
     <React.Fragment>
       <FormField
-        placeholder='+11235550123'
+        placeholder='11235550123'
         aria-labelledby='countryCodeIndicator'
         fullWidth
         name='value'

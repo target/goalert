@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import TextField, { TextFieldProps } from '@material-ui/core/TextField'
+import { InputProps } from '@material-ui/core/Input'
 import { Check, Close } from '@material-ui/icons'
+import _ from 'lodash'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import { makeStyles } from '@material-ui/core'
 import { DEBOUNCE_DELAY } from '../config'
@@ -24,113 +26,89 @@ const useStyles = makeStyles({
   },
 })
 
-type InputType = 'tel' | 'sid'
-type TelTextFieldProps = TextFieldProps & {
-  value: string
-  inputTypes?: InputType[]
-}
-
-export default function TelTextField(props: TelTextFieldProps): JSX.Element {
-  const { inputTypes = ['tel'], value = '', ...textFieldProps } = props
+export default function TelTextField(
+  props: TextFieldProps & { value: string },
+): JSX.Element {
   const classes = useStyles()
-  const [debouncedValue, setDebouncedValue] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
 
   // debounce to set the phone number
   useEffect(() => {
     const t = setTimeout(() => {
-      setDebouncedValue(value)
+      setPhoneNumber(props.value)
     }, DEBOUNCE_DELAY)
     return () => clearTimeout(t)
-  }, [value])
+  }, [props.value])
 
-  const reTel = /^\+\d+/
-  const reSID = /^MG[a-zA-Z0-9]+/
-  const onlyTel = inputTypes.length === 1 && inputTypes[0] === 'tel'
-  const onlySID = inputTypes.length === 1 && inputTypes[0] === 'sid'
-  const isSID = (s: string): boolean => {
-    return inputTypes.includes('sid') && reSID.test(s)
-  }
-
-  const skipValidation = (): boolean => {
-    if (!debouncedValue || props.disabled || !inputTypes.includes('tel')) {
-      return true
-    }
-    if (onlyTel && !reTel.test(debouncedValue)) {
-      return true
-    }
-    if (isSID(debouncedValue)) {
-      return true
-    }
-    if (onlySID) {
-      return true
-    }
-    return false
-  }
-
-  // validate the input value
+  // check validation of the input phoneNumber through graphql
   const { data } = useQuery(isValidNumber, {
     pollInterval: 0,
-    variables: { number: debouncedValue },
+    variables: { number: '+' + phoneNumber },
     fetchPolicy: 'cache-first',
-    skip: skipValidation(),
+    skip: !phoneNumber || props.disabled,
   })
 
-  const valid = Boolean(data?.phoneNumberInfo?.valid)
+  // fetch validation
+  const valid = _.get(data, 'phoneNumberInfo.valid', null)
 
   let adorn
-  if (value === '' || isSID(value) || props.disabled) {
-    // no adornment
+  if (!props.value) {
+    // no adornment if empty
   } else if (valid) {
     adorn = <Check className={classes.valid} />
-  } else {
+  } else if (valid === false) {
     adorn = <Close className={classes.invalid} />
   }
 
-  // add live validation icon to the right of the textfield
-  const InputProps = adorn
-    ? {
-        endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
-        ...props.InputProps,
-      }
-    : props.InputProps
-
-  const getHelperText = (): TextFieldProps['helperText'] => {
-    if (props.helperText) {
-      return props.helperText
-    }
-    if (onlyTel) {
-      return 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)'
-    }
-    if (inputTypes.includes('tel')) {
-      return 'For phone numbers, include country code e.g. +1 (USA), +91 (India), +44 (UK)'
-    }
-    return ''
+  let iprops: Partial<InputProps>
+  iprops = {
+    startAdornment: (
+      <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
+        +
+      </InputAdornment>
+    ),
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  // if has inputProps from parent commponent, spread it in the iprops
+  if (props.InputProps !== undefined) {
+    iprops = {
+      ...iprops,
+      ...props.InputProps,
+    }
+  }
+
+  // add live validation icon to the right of the textfield as an endAdornment
+  if (adorn) {
+    iprops = {
+      endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
+      ...iprops,
+    }
+  }
+
+  // remove unwanted character
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
 
-    const isLikeTel = /^[+\d(]/.test(e.target.value.trimLeft())
+    // ignore SID being pasted in
+    if (e.target.value.toLowerCase().startsWith('mg')) return
 
-    if (onlyTel || isLikeTel) {
-      e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
-    } else {
-      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '')
-    }
-
+    e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
 
   return (
     <TextField
       fullWidth
-      {...textFieldProps}
-      type={onlyTel ? 'tel' : props.type}
-      InputProps={InputProps}
-      value={value}
-      helperText={getHelperText()}
+      {...props}
+      InputProps={iprops}
+      type={props.type || 'tel'}
+      helperText={
+        props.helperText ||
+        'Include country code e.g. +1 (USA), +91 (India), +44 (UK)'
+      }
       onChange={handleChange}
+      value={(props.value || '').replace(/[^0-9]/g, '')}
     />
   )
 }
