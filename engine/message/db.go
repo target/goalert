@@ -113,7 +113,7 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			provider_msg_id = coalesce($2, provider_msg_id),
 			provider_seq = CASE WHEN $3 = -1 THEN provider_seq ELSE $3 END,
 			next_retry_at = null,
-			src_value = coalesce($6, src_value)
+			src_value = coalesce(src_value, $6)
 		where
 			(id = $1 or provider_msg_id = $2) and
 			(provider_seq <= $3 or $3 = -1) and
