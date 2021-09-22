@@ -150,9 +150,10 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		hangupCh:  make(chan struct{}),
 	}
 
-	vc.call.From = s.getFromNumber(req.FormValue("From"))
+	fromValue := req.FormValue("From")
+	fromNumber := s.getFromNumber(fromValue)
 	s.mx.RLock()
-	_, hasCallback := s.callbacks["VOICE:"+vc.call.From]
+	_, hasCallback := s.callbacks["VOICE:"+fromNumber]
 	s.mx.RUnlock()
 	if !hasCallback {
 		apiError(400, w, &twilio.Exception{
@@ -160,6 +161,13 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+
+	if strings.HasPrefix(fromValue, "MG") {
+		vc.call.MessagingServiceSID = fromValue
+	} else {
+		vc.call.From = fromValue
+	}
+
 	vc.s = s
 	vc.call.To = req.FormValue("To")
 	vc.call.SID = s.id("CA")
@@ -211,10 +219,20 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 	// move to queued
 	vc.mx.Lock()
 	vc.call.Status = stat
-	if stat == twilio.CallStatusInProgress {
-		vc.callStart = time.Now()
+	switch stat {
+	case twilio.CallStatusQueued, twilio.CallStatusInitiated:
+	default:
+		if vc.call.MessagingServiceSID == "" {
+			break
+		}
+
+		vc.call.From = vc.s.getFromNumber(vc.call.MessagingServiceSID)
 	}
-	if stat == twilio.CallStatusCompleted {
+
+	switch stat {
+	case twilio.CallStatusInProgress:
+		vc.callStart = time.Now()
+	case twilio.CallStatusCompleted:
 		vc.call.CallDuration = time.Since(vc.callStart)
 	}
 	*vc.call.SequenceNumber++

@@ -55,6 +55,8 @@ type Call struct {
 	CallDuration   time.Duration
 	ErrorMessage   *string
 	ErrorCode      *CallErrorCode
+
+	MessagingServiceSID string `json:"messaging_service_sid"`
 }
 
 func (call *Call) sentMessage() *notification.SentMessage {
