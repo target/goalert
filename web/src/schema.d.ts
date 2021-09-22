@@ -28,6 +28,7 @@ export interface Query {
   config: ConfigValue[]
   configHints: ConfigHint[]
   systemLimits: SystemLimit[]
+  debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
@@ -183,6 +184,14 @@ export interface DebugSendSMSInfo {
   id: string
   providerURL: string
   fromNumber: string
+}
+
+export interface DebugMessageStatusInput {
+  providerMessageID: string
+}
+
+export interface DebugMessageStatusInfo {
+  messageStatus: NotificationState
 }
 
 export interface TemporarySchedule {

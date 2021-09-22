@@ -198,6 +198,14 @@ type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
 }
 
+type DebugMessageStatusInfo struct {
+	MessageStatus *NotificationState `json:"messageStatus"`
+}
+
+type DebugMessageStatusInput struct {
+	ProviderMessageID string `json:"providerMessageID"`
+}
+
 type DebugSendSMSInfo struct {
 	ID          string `json:"id"`
 	ProviderURL string `json:"providerURL"`
