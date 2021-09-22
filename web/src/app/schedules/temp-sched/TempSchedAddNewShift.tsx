@@ -172,7 +172,6 @@ export default function TempSchedAddNewShift({
                 label='Shift Start'
                 name='shift-start'
                 fieldName='start'
-                noError
                 min={edit ? value.start : now}
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
@@ -198,7 +197,6 @@ export default function TempSchedAddNewShift({
                   label='Shift End'
                   name='shift-end'
                   fieldName='end'
-                  noError
                   min={edit ? value.start : now}
                   hint={
                     <React.Fragment>
@@ -224,7 +222,6 @@ export default function TempSchedAddNewShift({
                   label='Shift Duration (hours)'
                   name='shift-end'
                   fieldName='end'
-                  noError
                   float
                   // value held in form input
                   mapValue={(nextVal: string, formValue: Value) => {
