@@ -85,7 +85,7 @@ export default function TempSchedShiftsList({
           message: 'Invalid Start/End',
           transition: true,
           details:
-            'Oops! There was a problem with the interval selected in step 1. Please try again.',
+            'Oops! There was a problem with the interval selected for your temporary schedule. Please try again.',
         },
       ]
     }
