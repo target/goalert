@@ -6,7 +6,7 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-// TwlioFromValue will validate a from value as either a phone number, or messenger SID
+// TwlioFromValue will validate a from value as either a phone number, or messaging service SID starting with 'MG'.
 func TwilioFromValue(fname, value string) error {
 	switch {
 	case strings.HasPrefix(value, "+"):
