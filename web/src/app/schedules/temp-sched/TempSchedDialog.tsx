@@ -75,7 +75,7 @@ export default function TempSchedDialog({
     ),
   })
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
-  const [submitCount, setSubmitCount] = useState(0)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
 
   useEffect(() => {
     // set default start, end times when zone is ready
@@ -131,7 +131,7 @@ export default function TempSchedDialog({
   })
 
   const handleSubmit = (): void => {
-    setSubmitCount(submitCount + 1)
+    setHasSubmitted(true)
 
     if (hasCoverageGaps && !allowNoCoverage) {
       return
@@ -147,7 +147,7 @@ export default function TempSchedDialog({
     message: `${e.field}: ${e.message}`,
   }))
   const noCoverageErrs =
-    submitCount > 0 && hasCoverageGaps && !allowNoCoverage
+    hasSubmitted && hasCoverageGaps && !allowNoCoverage
       ? [new Error('This temporary schedule has gaps in coverage.')]
       : []
   const errs = nonFieldErrs
@@ -254,7 +254,7 @@ export default function TempSchedDialog({
               </Typography>
 
               {/* coverage warning */}
-              {submitCount > 0 && hasCoverageGaps && (
+              {hasSubmitted && hasCoverageGaps && (
                 <Alert severity='error' className={classes.noCoverageError}>
                   <AlertTitle>Gaps in coverage</AlertTitle>
                   <FormHelperText>
