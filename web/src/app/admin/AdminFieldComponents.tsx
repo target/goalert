@@ -9,7 +9,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import TelTextField from '../util/TelTextField'
 
 interface InputProps {
-  type: string
+  type?: string
   name: string
   value: string
   password?: boolean
