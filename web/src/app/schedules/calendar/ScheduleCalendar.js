@@ -17,6 +17,7 @@ import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
+import { PersonAdd as PersonAddIcon } from '@material-ui/icons'
 import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
@@ -35,6 +36,10 @@ const useStyles = makeStyles((theme) => ({
   },
   tempSchedBtn: {
     marginLeft: theme.spacing(1.75),
+  },
+  overrideTitle: {
+    display: 'inline',
+    verticalAlign: 'middle',
   },
 }))
 
@@ -84,7 +89,7 @@ function ScheduleCalendar(props) {
     }))
 
     const overrides = userOverrides.map((o) => ({
-      user: { name: 'foobar replaces abc' },
+      user: { name: 'foobar'},
       start: o.start,
       end: o.end,
       fixed: false,
@@ -136,7 +141,7 @@ function ScheduleCalendar(props) {
 
     return filteredShifts.map((shift) => {
       return {
-        title: shift.user.name,
+        title: <div><PersonAddIcon className={classes.overrideTitle} ></PersonAddIcon> {shift.user.name}</div>,
         userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
