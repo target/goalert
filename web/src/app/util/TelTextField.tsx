@@ -99,10 +99,10 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
       return props.helperText
     }
     if (onlyTel) {
-      return 'Please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
+      return 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)'
     }
     if (inputTypes.includes('tel')) {
-      return 'For phone numbers, please include a country code e.g. +1 (USA), +91 (India), +44 (UK)'
+      return 'For phone numbers, include country code e.g. +1 (USA), +91 (India), +44 (UK)'
     }
     return ''
   }
@@ -111,8 +111,12 @@ export default function TelTextField(props: TelTextFieldProps): JSX.Element {
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
 
-    if (onlyTel) {
+    const isLikeTel = /^[+\d(]/.test(e.target.value.trimLeft())
+
+    if (onlyTel || isLikeTel) {
       e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
+    } else {
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '')
     }
 
     return props.onChange(e)

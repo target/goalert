@@ -5,6 +5,9 @@ import {
   Grid,
   Typography,
   makeStyles,
+  FormControlLabel,
+  Checkbox,
+  FormHelperText,
 } from '@material-ui/core'
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt'
 import { contentText, Shift, StepContainer } from './sharedUtils'
@@ -14,14 +17,23 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
-import { isISOAfter } from '../../util/shifts'
+import { isISOAfter, parseInterval } from '../../util/shifts'
+import { Alert, AlertTitle } from '@material-ui/lab'
+import { useScheduleTZ } from './hooks'
+import { getCoverageGapItems } from './shiftsListUtil'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
+  shiftsListContainer: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   listOuterContainer: {
+    height: '100%',
     position: 'relative',
     overflowY: 'auto',
   },
@@ -36,6 +48,10 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: '100%',
     paddingRight: '2rem',
   },
+  noCoverageError: {
+    marginTop: '.5rem',
+    marginBottom: '.5rem',
+  },
 }))
 
 type AddShiftsStepProps = {
@@ -46,6 +62,10 @@ type AddShiftsStepProps = {
 
   scheduleID: string
   edit?: boolean
+
+  coverageGapsAllowed?: boolean
+  setCoverageGapsAllowed: (isAllowed: boolean) => void
+  isShowingCoverageGapsWarning: boolean
 }
 
 type DTShift = {
@@ -102,10 +122,14 @@ export default function TempSchedAddShiftsStep({
   end,
   value,
   edit,
+  coverageGapsAllowed,
+  setCoverageGapsAllowed,
+  isShowingCoverageGapsWarning,
 }: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
+  const { zone, q } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -160,6 +184,12 @@ export default function TempSchedAddShiftsStep({
     setSubmitted(false)
   }
 
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval({ start: start, end: end }, zone)
+    return getCoverageGapItems(schedInterval, value, zone).length > 0
+  })()
+
   return (
     <StepContainer data-cy='add-shifts-step'>
       {/* main container for fields | button | shifts */}
@@ -211,20 +241,44 @@ export default function TempSchedAddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={6} className={classes.listOuterContainer}>
-          <div className={classes.listInnerContainer}>
-            <TempSchedShiftsList
-              scheduleID={scheduleID}
-              value={value}
-              start={start}
-              end={end}
-              onRemove={(shift: Shift) => {
-                setShift(shift)
-                onChange(value.filter((s) => !shiftEquals(shift, s)))
-              }}
-              edit={edit}
-            />
+        <Grid item xs={6} className={classes.shiftsListContainer}>
+          <div className={classes.listOuterContainer}>
+            <div className={classes.listInnerContainer}>
+              <TempSchedShiftsList
+                scheduleID={scheduleID}
+                value={value}
+                start={start}
+                end={end}
+                onRemove={(shift: Shift) => {
+                  setShift(shift)
+                  onChange(value.filter((s) => !shiftEquals(shift, s)))
+                }}
+                edit={edit}
+              />
+            </div>
           </div>
+          {isShowingCoverageGapsWarning && hasCoverageGaps && (
+            <Alert severity='error' className={classes.noCoverageError}>
+              <AlertTitle>Gaps in coverage</AlertTitle>
+              <FormHelperText>
+                There are gaps in coverage. During these gaps, nobody on the
+                schedule will receive alerts. If you still want to proceed,
+                check the box and retry.
+              </FormHelperText>
+              <FormControlLabel
+                label='Allow gaps in coverage'
+                labelPlacement='end'
+                control={
+                  <Checkbox
+                    data-cy='no-coverage-checkbox'
+                    checked={coverageGapsAllowed}
+                    onChange={(e) => setCoverageGapsAllowed(e.target.checked)}
+                    name='allowCoverageGaps'
+                  />
+                }
+              />
+            </Alert>
+          )}
         </Grid>
       </Grid>
     </StepContainer>

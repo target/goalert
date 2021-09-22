@@ -40,7 +40,7 @@
     "modernizr-esm": "^2.0.0",
     "react": "17.0.2",
     "react-beautiful-dnd": "13.1.0",
-    "react-big-calendar": "0.33.5",
+    "react-big-calendar": "0.35.0",
     "react-countdown-now": "2.1.2",
     "react-dom": "17.0.2",
     "react-ga": "3.3.0",
@@ -92,7 +92,7 @@
     "copy-webpack-plugin": "9.0.1",
     "css-loader": "6.2.0",
     "cssnano": "5.0.7",
-    "cypress": "8.2.0",
+    "cypress": "8.4.0",
     "jest": "27.0.6",
     "json-loader": "0.5.7",
     "postcss": "8.3.6",
@@ -102,7 +102,7 @@
     "redux": "4.1.1",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "3.2.1",
-    "webpack": "5.49.0",
+    "webpack": "5.53.0",
     "webpack-cli": "4.8.0",
     "webpack-dev-server": "4.2.0"
   }

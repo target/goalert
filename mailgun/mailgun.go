@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -91,12 +92,27 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Form == nil {
-		err := r.ParseMultipartForm(32 << 20)
-		if err != nil && !errors.Is(err, http.ErrNotMultipart) {
-			http.Error(w, err.Error(), http.StatusNotAcceptable)
-			return
-		}
+	ct := r.Header.Get("Content-Type")
+	// RFC 7231, section 3.1.1.5 - empty type
+	//   MAY be treated as application/octet-stream
+	if ct == "" {
+		ct = "application/octet-stream"
+	}
+	typ, _, err := mime.ParseMediaType(ct)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
+		return
+	}
+
+	switch typ {
+	case "application/x-www-form-urlencoded":
+		err = r.ParseForm()
+	case "multipart/form-data", "multipart/mixed":
+		err = r.ParseMultipartForm(32 << 20)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
+		return
 	}
 
 	if !validSignature(ctx, r, cfg.Mailgun.APIKey) {
