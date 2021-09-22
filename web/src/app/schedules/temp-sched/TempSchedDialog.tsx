@@ -215,7 +215,7 @@ export default function TempSchedDialog({
                   required
                   name='start'
                   label='Schedule Start'
-                  min={edit ? value.start : now}
+                  min={now}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
@@ -229,7 +229,7 @@ export default function TempSchedDialog({
                   required
                   name='end'
                   label='Schedule End'
-                  min={edit ? value.start : now}
+                  min={value.start}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
