@@ -214,6 +214,7 @@ export default function TempSchedDialog({
                   component={ISODateTimePicker}
                   required
                   name='start'
+                  label='Schedule Start'
                   min={edit ? value.start : now}
                   validate={() => validate()}
                   timeZone={zone}
@@ -227,6 +228,7 @@ export default function TempSchedDialog({
                   component={ISODateTimePicker}
                   required
                   name='end'
+                  label='Schedule End'
                   min={edit ? value.start : now}
                   validate={() => validate()}
                   timeZone={zone}
