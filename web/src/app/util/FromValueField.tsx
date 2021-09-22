@@ -7,13 +7,12 @@ import ToggleIcon from '@material-ui/icons/CompareArrows'
 export default function FromValueField(
   props: TextFieldProps & { value: string },
 ): JSX.Element {
-  const [phoneMode, setPhoneMode] = useState(!props.value.startsWith('M'))
+  const [phoneMode, setPhoneMode] = useState(
+    props.value === '' || props.value.startsWith('+'),
+  )
   useEffect(() => {
-    if (props.value.startsWith('M')) {
-      setPhoneMode(false)
-    } else if (props.value.startsWith('+')) {
-      setPhoneMode(true)
-    }
+    if (props.value === '') return // don't change phone mode if empty
+    setPhoneMode(props.value.startsWith('+'))
   }, [props.value])
 
   if (!phoneMode) {
