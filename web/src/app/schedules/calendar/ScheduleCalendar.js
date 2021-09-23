@@ -92,7 +92,7 @@ function ScheduleCalendar(props) {
             className={classes.overrideTitle}
             aria-label='Replace Override'
           />{' '}
-            Override
+          Override
            </div>
     }
     else if (o.addUser) {
