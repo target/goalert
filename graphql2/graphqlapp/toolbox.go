@@ -64,7 +64,10 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 	}
 
 	return &graphql2.DebugSendSMSInfo{
-		ID:          msg.SID,
+		ID: notification.ProviderMessageID{
+			ExternalID:   msg.SID,
+			ProviderName: "Twilio-SMS",
+		}.String(),
 		ProviderURL: "https://www.twilio.com/console/sms/logs/" + url.PathEscape(msg.SID),
 		FromNumber:  msg.From,
 	}, nil
