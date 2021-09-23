@@ -87,7 +87,11 @@ function ScheduleCalendar(props) {
     if (o.addUser && o.removeUser) {
       return (
         <div>
-           <AccountSwitch fontSize='small' className={classes.overrideTitle} aria-label='Replace Override'/>{' '}
+          <AccountSwitch
+            fontSize='small'
+            className={classes.overrideTitle}
+            aria-label='Replace Override'
+          />{' '}
             Override
            </div>
     }
