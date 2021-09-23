@@ -126,9 +126,7 @@ function ScheduleCalendar(props) {
 
     const overrides = userOverrides.map((o) => ({
       user: {
-        name: (
-         getIcon(o)
-        ),
+        name: getIcon(o),
       },
       start: o.start,
       end: o.end,
