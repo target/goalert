@@ -95,7 +95,8 @@ function ScheduleCalendar(props) {
           Override
         </div>
       )
-    } else if (o.addUser) {
+    }
+    if (o.addUser) {
       return (
         <div>
           <AccountPlus
@@ -106,18 +107,17 @@ function ScheduleCalendar(props) {
           Override
         </div>
       )
-    else {
-      return (
-        <div>
-          <AccountMinus
-            fontSize='small'
-            className={classes.overrideTitle}
-            aria-label='Remove Override'
-          />{' '}
-          Override
-        </div>
-      )
     }
+    return (
+      <div>
+        <AccountMinus
+          fontSize='small'
+          className={classes.overrideTitle}
+          aria-label='Remove Override'
+        />{' '}
+        Override
+      </div>
+    )
   }
 
   const getCalEvents = (shifts, _tempScheds, userOverrides) => {
