@@ -21,6 +21,7 @@ import AppLink from '../util/AppLink'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import FromValueField from '../util/FromValueField'
 import { POLL_INTERVAL } from '../config'
 
 const debugMessageStatusQuery = gql`
@@ -98,13 +99,10 @@ export default function AdminSMSSend(): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TelTextField
+                <FromValueField
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
-                  label='From Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
@@ -113,8 +111,6 @@ export default function AdminSMSSend(): JSX.Element {
                   value={toNumber}
                   fullWidth
                   label='To Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
                 />
               </Grid>
               <Grid item xs={12}>
@@ -123,9 +119,6 @@ export default function AdminSMSSend(): JSX.Element {
                   value={body}
                   fullWidth
                   label='Body'
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
                   multiline
                 />
               </Grid>
@@ -145,7 +138,11 @@ export default function AdminSMSSend(): JSX.Element {
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
                   <Typography>
-                    Sent from {getFromNumber()}. Open in Twilio&nbsp;
+                    {/* TODO: query for message status if from number / SID not immediately available */}
+                    {sendStatus.data.debugSendSMS.fromNumber
+                      ? `Sent from ${sendStatus.data.debugSendSMS.fromNumber}. `
+                      : ''}
+                    Open in Twilio&nbsp;
                   </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>

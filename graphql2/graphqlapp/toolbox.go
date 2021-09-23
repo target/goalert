@@ -49,7 +49,7 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 
 	err = validate.Many(
 		validate.Phone("To", input.To),
-		validate.Phone("From", input.From),
+		validate.TwilioFromValue("From", input.From),
 		validate.Text("Body", input.Body, 1, 1000),
 	)
 	if err != nil {
