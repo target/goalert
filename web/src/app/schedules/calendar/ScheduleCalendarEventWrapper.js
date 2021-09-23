@@ -169,35 +169,44 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
     if (event.tempSched) return renderTempSchedButtons()
     if (event.fixed) return null
-    if (event.isOverride) return renderOverrideButtons(event)
+    if (event.isOverride) return renderOverrideButtons()
 
     return renderShiftButtons()
   }
 
-  function renderText() {
-    if (event.isOverride) {
-      if (event.override.addUser && event.override.removeUser) {
+  function renderOverrideText() {
+    function getText(addUser, removeUser) {
+      if (addUser && removeUser)
         return (
-          <Grid item xs={12}>
-            <Typography variant='body2'>{`${event.override.removeUser.name} replaces ${event.override.addUser.name}.`}</Typography>
-          </Grid>
+          <React.Fragment>
+            <b>{removeUser.name}</b> replaces <b>{addUser.name}</b>.
+          </React.Fragment>
         )
-      }
-      if (event.override.addUser) {
+      if (addUser)
         return (
-          <Grid item xs={12}>
-            <Typography variant='body2'>{`Adds ${event.override.addUser.name}.`}</Typography>
-          </Grid>
+          <React.Fragment>
+            Adds <b>{addUser.name}</b>.
+          </React.Fragment>
         )
-      }
-      if (event.override.removeUser) {
+      if (removeUser)
         return (
-          <Grid item xs={12}>
-            <Typography variant='body2'>{`Removes ${event.override.removeUser.name}.`}</Typography>
-          </Grid>
+          <React.Fragment>
+            Removes <b>{removeUser.name}</b>.
+          </React.Fragment>
         )
-      }
     }
+
+    return (
+      <Grid item xs={12}>
+        <Typography variant='body2'>
+          {getText(event.override.addUser, event.override.removeUser)}
+        </Typography>
+      </Grid>
+    )
+  }
+
+  function renderText() {
+    if (event.isOverride) return renderOverrideText()
 
     return null
   }

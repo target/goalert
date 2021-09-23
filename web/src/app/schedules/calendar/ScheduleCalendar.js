@@ -38,8 +38,12 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1.75),
   },
   overrideTitle: {
-    display: 'inline',
     verticalAlign: 'middle',
+    borderRadius: '50%',
+    background: '#222222',
+    padding: '3px',
+    height: '100%',
+    width: '18px',
   },
 }))
 
@@ -89,7 +93,21 @@ function ScheduleCalendar(props) {
     }))
 
     const overrides = userOverrides.map((o) => ({
-      user: { name: 'foobar'},
+      user: {
+        name: (
+          <div>
+            <PersonAddIcon fontSize='small' className={classes.overrideTitle} />{' '}
+            {/* {o.addUser && o.removeUser
+              ? `${o.removeUser.name} replaces ${o.addUser.name}.`
+              : o.addUser
+              ? `Add ${o.addUser.name}`
+              : o.removeUser
+              ? `Remove ${o.removeUser.name}`
+              : null} */}
+            Override
+          </div>
+        ),
+      },
       start: o.start,
       end: o.end,
       fixed: false,
@@ -141,7 +159,7 @@ function ScheduleCalendar(props) {
 
     return filteredShifts.map((shift) => {
       return {
-        title: <div><PersonAddIcon className={classes.overrideTitle} ></PersonAddIcon> {shift.user.name}</div>,
+        title: shift.user.name,
         userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
