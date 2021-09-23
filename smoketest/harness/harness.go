@@ -73,6 +73,8 @@ type Harness struct {
 	t                       *testing.T
 	closing                 bool
 
+	msgSvcID string
+
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
 
@@ -639,6 +641,25 @@ func (h *Harness) TwilioNumber(id string) string {
 	}
 
 	return num
+}
+
+// TwilioMessagingService will return the id and phone numbers for the mock messaging service.
+func (h *Harness) TwilioMessagingService() string {
+	h.mx.Lock()
+	if h.msgSvcID != "" {
+		h.mx.Unlock()
+		return h.msgSvcID
+	}
+	defer h.mx.Unlock()
+
+	nums := []string{h.phoneCCG.Get(""), h.phoneCCG.Get(""), h.phoneCCG.Get("")}
+	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", h.URL()+"/v1/twilio/voice/call", nums...)
+	if err != nil {
+		panic(err)
+	}
+
+	h.msgSvcID = newID
+	return newID
 }
 
 // CreateUser generates a random user.

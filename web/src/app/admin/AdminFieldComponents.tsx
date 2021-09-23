@@ -9,7 +9,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import TelTextField from '../util/TelTextField'
 
 interface InputProps {
-  type: string
+  type?: string
   name: string
   value: string
   password?: boolean
@@ -36,7 +36,7 @@ export function StringInput(props: InputProps): JSX.Element {
     )
   }
 
-  if (type === 'tel') {
+  if (props.name === 'Twilio.FromNumber') {
     return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
   }
   return (
