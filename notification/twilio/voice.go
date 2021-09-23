@@ -1,12 +1,14 @@
 package twilio
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -56,6 +58,8 @@ const (
 	digitConfirm  = "3"
 	digitOldAck   = "8"
 	digitOldClose = "9"
+
+	sayRepeat = "star"
 )
 
 var pRx = regexp.MustCompile(`\((.*?)\)`)
@@ -165,6 +169,11 @@ func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 	case CallTypeVerify:
 		v.ServeVerify(w, req)
 	default:
+		_, call, _ := v.getCall(w, req)
+		if !call.Outbound {
+			v.ServeInbound(w, req)
+			return
+		}
 		http.NotFound(w, req)
 	}
 }
@@ -214,32 +223,36 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		CallbackParams: make(url.Values),
 		Params:         make(url.Values),
 	}
+
+	prefix := fmt.Sprintf("This is %s", cfg.ApplicationName())
+
 	var message string
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("%s Service '%s' has %d unacknowledged alerts.", cfg.ApplicationName(), t.ServiceName, t.Count)
+		message = fmt.Sprintf("%s with multiple notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
 		if t.Summary == "" {
 			t.Summary = "No summary provided"
 		}
-		message = fmt.Sprintf("%s alert: %s.", cfg.ApplicationName(), t.Summary)
+		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s update: %s", cfg.ApplicationName(), message)
+		message = fmt.Sprintf("%s with an alert status update. %s", prefix, message)
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
-		message = fmt.Sprintf("This is a test message from %s.", cfg.ApplicationName())
+		message = fmt.Sprintf("%s with a test message.", prefix)
 		opts.CallType = CallTypeTest
 	case notification.Verification:
+		count := int(math.Log10(float64(t.Code)) + 1)
 		message = fmt.Sprintf(
-			"This is a message from %s to verify your voice contact method. Your verification code is: %s. Again, your verification code is: %s.",
-			cfg.ApplicationName(), spellNumber(t.Code), spellNumber(t.Code),
+			"%s with your %d-digit verification code. The code is: %s. Again, your  %d-digit verification code is: %s.",
+			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
 		)
 		opts.CallType = CallTypeVerify
 	default:
@@ -376,7 +389,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 
 	case "", digitRepeat:
-		message := fmt.Sprintf("%sTo confirm unenrollment of this number, press %s. To go back to main menu, press %s. To repeat this message, press %s.", messagePrefix, digitConfirm, digitGoBack, digitRepeat)
+		message := fmt.Sprintf("%sTo confirm unenrollment of this number, press %s. To go back to main menu, press %s. To repeat this message, press %s.", messagePrefix, digitConfirm, digitGoBack, sayRepeat)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeStop),
 			Method:    "POST",
@@ -433,27 +446,16 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 	retryCount, _ := strconv.Atoi(q.Get("retry_count"))
 	q.Del("retry_count") // retry_count will only be set again if we go through the errResp
 
-	if !isOutbound {
-		return ctx, &call{
-			Number:     phoneNumber,
-			SID:        callSID,
-			RetryCount: retryCount,
-			Digits:     digits,
-			Outbound:   isOutbound,
-			Q:          q,
-		}, nil
-	}
-
 	msgID := q.Get(msgParamID)
 	subID, _ := strconv.Atoi(q.Get(msgParamSubID))
 	bodyData, _ := b64enc.DecodeString(q.Get(msgParamBody))
-	if msgID == "" {
+	if isOutbound && msgID == "" {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamID))
 	}
-	if subID == 0 {
+	if isOutbound && subID == 0 {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamSubID))
 	}
-	if len(bodyData) == 0 {
+	if isOutbound && len(bodyData) == 0 {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamBody))
 	}
 
@@ -519,6 +521,8 @@ func renderXML(w http.ResponseWriter, req *http.Request, v interface{}) {
 
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	io.WriteString(w, xml.Header)
+	data = bytes.Replace(data, []byte("<Say>"), []byte(`<Say><prosody rate="slow">`), 1)
+	data = bytes.Replace(data, []byte("</Say>"), []byte(`</prosody></Say>`), 1)
 	w.Write(data)
 }
 
@@ -537,7 +541,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		messagePrefix = "I am sorry. I didn't catch that. "
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, digitRepeat)
+		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, sayRepeat)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeTest),
 			Method:    "POST",
@@ -566,7 +570,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		messagePrefix = "I am sorry. I didn't catch that. "
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, digitRepeat)
+		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, sayRepeat)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeVerify),
 			Method:    "POST",
@@ -598,7 +602,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 	case "", digitRepeat:
 		message := fmt.Sprintf(
 			"%sStatus update for Alert number %d. %s. To repeat this message, press %s. To unenroll from voice notifications to this number, press %s. If you are done, you may simply hang up.",
-			messagePrefix, call.msgSubjectID, call.msgBody, digitRepeat, digitStop)
+			messagePrefix, call.msgSubjectID, call.msgBody, sayRepeat, digitStop)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),
 			Method:    "POST",
@@ -619,6 +623,46 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ServeInbound is the handler for inbound calls.
+func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
+	if disabled(w, req) {
+		return
+	}
+	ctx, call, _ := v.getCall(w, req)
+	if call == nil {
+		return
+	}
+	cfg := config.FromContext(ctx)
+
+	var messagePrefix string
+	switch call.Digits {
+	default:
+		messagePrefix = "I am sorry. I didn't catch that. "
+		fallthrough
+	case "", digitRepeat:
+		message := fmt.Sprintf(
+			"%sThis is %s. Please use the application dashboard to manage alerts. To disable voice notifications to this number, press %s. To repeat this message press %s.",
+			messagePrefix, cfg.ApplicationName(), digitStop, sayRepeat)
+		g := &gather{
+			Action:    v.callbackURL(ctx, call.Q, ""),
+			Method:    "POST",
+			NumDigits: 1,
+			Timeout:   10,
+			Say:       message,
+		}
+		renderXML(w, req, twiMLGather{
+			Gather: g,
+		})
+		return
+	case digitStop:
+		call.Q.Set("previous", "")
+		renderXML(w, req, twiMLRedirect{
+			RedirectURL: v.callbackURL(ctx, call.Q, CallTypeStop),
+		})
+		return
+	}
+}
+
 // ServeAlert serves a call for an alert notification.
 func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
@@ -626,13 +670,6 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	}
 	ctx, call, errResp := v.getCall(w, req)
 	if call == nil {
-		return
-	}
-
-	if !call.Outbound {
-		renderXML(w, req, twiMLEnd{
-			Say: "Please login to the dashboard to manage alerts. Goodbye.",
-		})
 		return
 	}
 
@@ -656,8 +693,8 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			suffix = " all"
 		}
 		message := fmt.Sprintf(
-			"%sMessage from Go Alert. %s. To acknowledge%s, press %s. To close%s, press %s. To unenroll from all notifications, press %s. To repeat this message, press %s",
-			messagePrefix, call.msgBody, suffix, digitAck, suffix, digitClose, digitStop, digitRepeat)
+			"%s%s. To acknowledge%s, press %s. To close%s, press %s. To unenroll from all notifications, press %s. To repeat this message, press %s",
+			messagePrefix, call.msgBody, suffix, digitAck, suffix, digitClose, digitStop, sayRepeat)
 		// User wants Twilio to repeat the message
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlert),
