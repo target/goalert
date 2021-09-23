@@ -103,7 +103,7 @@ function ScheduleCalendar(props) {
             className={classes.overrideTitle}
             aria-label='Add Override'
           />{' '}
-            Override
+          Override
            </div>
      }
     else {
