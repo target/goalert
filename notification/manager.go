@@ -71,7 +71,7 @@ func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, valu
 }
 
 // MessageStatus will return the current status of a message.
-func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, providerMsgID ProviderMessageID) (*Status, DestType, error) {
+func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
 
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {

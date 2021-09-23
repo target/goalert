@@ -30,11 +30,7 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 		return nil, validation.NewFieldError("ProviderMessageID", err.Error())
 	}
 
-	status, destType, err := q.NotificationManager.MessageStatus(
-		ctx,
-		"",
-		id,
-	)
+	status, destType, err := q.NotificationManager.MessageStatus(ctx, id)
 
 	if err != nil {
 		return nil, err
