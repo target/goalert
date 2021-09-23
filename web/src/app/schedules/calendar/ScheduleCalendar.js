@@ -104,7 +104,7 @@ function ScheduleCalendar(props) {
             aria-label='Add Override'
           />{' '}
           Override
-           </div>
+        </div>
      }
     else {
       return (
