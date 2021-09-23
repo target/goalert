@@ -49,7 +49,7 @@ export function getSubheaderItems(
   })
 }
 
-export function getOutOfBoundsItems(
+export function getOutOfBoundsDays(
   schedInterval: Interval,
   shifts: Shift[],
   zone: string,
@@ -109,7 +109,7 @@ export function getOutOfBoundsItems(
       type: 'INFO',
       message: '',
       details,
-      at: interval.start,
+      at: interval.start.startOf('day'),
       itemType: 'outOfBounds',
     }
   })
@@ -159,7 +159,7 @@ export function sortItems(
     // subheaders first
     if (a.itemType === 'subheader') return -1
     if (b.itemType === 'subheader') return 1
-    // then out of bounds info
+    // out of bounds info next
     if (a.itemType === 'outOfBounds') return -1
     if (b.itemType === 'outOfBounds') return 1
     // then start notice

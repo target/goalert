@@ -25,7 +25,7 @@ import {
   fmtTime,
   getCoverageGapItems,
   getSubheaderItems,
-  getOutOfBoundsItems,
+  getOutOfBoundsDays,
   Sortable,
   sortItems,
 } from './shiftsListUtil'
@@ -93,7 +93,7 @@ export default function TempSchedShiftsList({
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone)
-    const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
+    const outOfBoundsItems = getOutOfBoundsDays(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s) => {
