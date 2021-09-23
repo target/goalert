@@ -96,7 +96,8 @@ function ScheduleCalendar(props) {
         </div>
       )
     } else if (o.addUser) {
-    return <div>
+      return (
+        <div>
            <AccountPlus fontSize='small' className={classes.overrideTitle} aria-label='Add Override'/>{' '}
             Override
            </div>
