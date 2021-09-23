@@ -17,7 +17,7 @@ import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
-import { PersonAdd as PersonAddIcon } from '@material-ui/icons'
+import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
   overrideTitle: {
     verticalAlign: 'middle',
     borderRadius: '50%',
-    background: '#222222',
+    background: theme.palette.secondary.main,
     padding: '3px',
     height: '100%',
     width: '18px',
@@ -83,6 +83,27 @@ function ScheduleCalendar(props) {
     }
   }
 
+  const getIcon = (o) => {
+    if (o.addUser && o.removeUser) {
+    return <div>
+           <AccountSwitch fontSize='small' className={classes.overrideTitle} aria-label='Replace Override'/>{' '}
+            Override
+           </div>
+    }
+    else if (o.addUser) {
+    return <div>
+           <AccountPlus fontSize='small' className={classes.overrideTitle} aria-label='Add Override'/>{' '}
+            Override
+           </div>
+     }
+    else {
+    return <div>
+           <AccountMinus fontSize='small' className={classes.overrideTitle} aria-label='Remove Override'/>{' '}
+            Override
+           </div>
+    }
+  }
+
   const getCalEvents = (shifts, _tempScheds, userOverrides) => {
     const tempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
@@ -95,17 +116,7 @@ function ScheduleCalendar(props) {
     const overrides = userOverrides.map((o) => ({
       user: {
         name: (
-          <div>
-            <PersonAddIcon fontSize='small' className={classes.overrideTitle} />{' '}
-            {/* {o.addUser && o.removeUser
-              ? `${o.removeUser.name} replaces ${o.addUser.name}.`
-              : o.addUser
-              ? `Add ${o.addUser.name}`
-              : o.removeUser
-              ? `Remove ${o.removeUser.name}`
-              : null} */}
-            Override
-          </div>
+         getIcon(o)
         ),
       },
       start: o.start,
