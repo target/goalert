@@ -105,7 +105,7 @@ function ScheduleCalendar(props) {
           />{' '}
           Override
         </div>
-     }
+      )
     else {
       return (
         <div>
