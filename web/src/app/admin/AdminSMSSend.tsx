@@ -86,8 +86,8 @@ export default function AdminSMSSend(): JSX.Element {
     if (smsData?.debugSendSMS?.fromNumber) {
       return smsData?.debugSendSMS?.fromNumber
     }
-    if (data?.debugMessageStatus?.formattedSrcValue) {
-      return data?.debugMessageStatus?.formattedSrcValue
+    if (data?.debugMessageStatus?.messageStatus?.formattedSrcValue) {
+      return data?.debugMessageStatus?.messageStatus?.formattedSrcValue
     }
     return ''
   }
@@ -134,15 +134,11 @@ export default function AdminSMSSend(): JSX.Element {
               loading={smsLoading}
               noSubmit
             />
-            {getFromNumber() && (
+            {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
                   <Typography>
-                    {/* TODO: query for message status if from number / SID not immediately available */}
-                    {sendStatus.data.debugSendSMS.fromNumber
-                      ? `Sent from ${sendStatus.data.debugSendSMS.fromNumber}. `
-                      : ''}
-                    Open in Twilio&nbsp;
+                    Sent from {getFromNumber()}. Open in Twilio&nbsp;
                   </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
