@@ -103,7 +103,8 @@ function ScheduleCalendar(props) {
            </div>
      }
     else {
-    return <div>
+      return (
+        <div>
           <AccountMinus
             fontSize='small'
             className={classes.overrideTitle}
