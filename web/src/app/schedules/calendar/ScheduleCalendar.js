@@ -85,7 +85,8 @@ function ScheduleCalendar(props) {
 
   const getIcon = (o) => {
     if (o.addUser && o.removeUser) {
-    return <div>
+      return (
+        <div>
            <AccountSwitch fontSize='small' className={classes.overrideTitle} aria-label='Replace Override'/>{' '}
             Override
            </div>
