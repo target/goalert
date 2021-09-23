@@ -17,7 +17,7 @@ export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
   at: DateTime
   // itemType categorizes a list item
-  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end'
+  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end' | 'outOfBounds'
 }
 
 export function getSubheaderItems(
@@ -45,6 +45,72 @@ export function getSubheaderItems(
       subHeader: day.start.toFormat('cccc, LLLL d'),
       at,
       itemType: 'subheader',
+    }
+  })
+}
+
+export function getOutOfBoundsItems(
+  schedInterval: Interval,
+  shifts: Shift[],
+  zone: string,
+): Sortable<FlatListNotice>[] {
+  const sortedShifts = _.sortBy(shifts, 'start')
+  const firstShiftStart = sortedShifts[0]?.start
+    ? DateTime.fromISO(sortedShifts[0].start)
+    : null
+  const lastShiftEnd = firstShiftStart
+    ? DateTime.fromISO(
+        sortedShifts.reduce(
+          (result, candidate) =>
+            candidate.end > result.end ? candidate : result,
+          sortedShifts[0],
+        )?.end,
+      )
+    : null
+
+  // timezone is loaded in after initial render, check if sched interval is valid
+  if (!schedInterval.start || !schedInterval.end) {
+    return []
+  }
+
+  // get earliest start time
+  let intervalStart = schedInterval.start
+  if (firstShiftStart?.isValid && firstShiftStart < schedInterval.start) {
+    intervalStart = firstShiftStart
+  }
+
+  // get farthest out end time
+  let intervalEnd = schedInterval.end
+  if (lastShiftEnd?.isValid && lastShiftEnd > schedInterval.end) {
+    intervalEnd = lastShiftEnd
+  }
+  const fullInterval = Interval.fromDateTimes(intervalStart, intervalEnd)
+
+  const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
+  const splitIntervals = _.flatMap(
+    fullInterval.difference(...shiftIntervals),
+    (inv) => splitAtMidnight(inv),
+  ).filter(
+    (interval) =>
+      interval.end <= schedInterval.start ||
+      interval.start >= schedInterval.end,
+  )
+
+  let details = ''
+  return splitIntervals.map((interval) => {
+    if (interval.end <= schedInterval.start) {
+      details = 'This day is before the set start date.'
+    } else if (interval.start >= schedInterval.end) {
+      details = 'This day is after the set end date.'
+    }
+
+    return {
+      id: 'day-out-of-bounds_' + interval.start.toISO(),
+      type: 'INFO',
+      message: '',
+      details,
+      at: interval.start,
+      itemType: 'outOfBounds',
     }
   })
 }
@@ -93,6 +159,9 @@ export function sortItems(
     // subheaders first
     if (a.itemType === 'subheader') return -1
     if (b.itemType === 'subheader') return 1
+    // then out of bounds info
+    if (a.itemType === 'outOfBounds') return -1
+    if (b.itemType === 'outOfBounds') return 1
     // then start notice
     if (a.itemType === 'start') return -1
     if (b.itemType === 'start') return 1
