@@ -230,7 +230,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with multiple notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
+		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
