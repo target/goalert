@@ -3,8 +3,10 @@ package graphqlapp
 import (
 	"context"
 	"fmt"
-	"github.com/target/goalert/notification"
 	"net/url"
+
+	"github.com/target/goalert/notification"
+	"github.com/target/goalert/validation"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/twilio"
@@ -23,17 +25,24 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 		return nil, err
 	}
 
-	status, err := q.NotificationManager.MessageStatus(ctx, "", notification.ProviderMessageID{ExternalID: input.ProviderMessageID})
+	id, err := notification.ParseProviderMessageID(input.ProviderMessageID)
+	if err != nil {
+		return nil, validation.NewFieldError("ProviderMessageID", err.Error())
+	}
+
+	status, destType, err := q.NotificationManager.MessageStatus(
+		ctx,
+		"",
+		id,
+	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var debugStatus graphql2.DebugMessageStatusInfo
-	debugStatus.MessageStatus.Details = status.Details
-	debugStatus.MessageStatus.FormattedSrcValue = status.SrcValue
-
-	return &debugStatus, nil
+	return &graphql2.DebugMessageStatusInfo{
+		MessageStatus: notificationStateFromSendResult(*status, q.FormatDestFunc(ctx, destType, status.SrcValue)),
+	}, nil
 }
 
 func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMSInput) (*graphql2.DebugSendSMSInfo, error) {
