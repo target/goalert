@@ -242,7 +242,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with an alert status update. %s", prefix, message)
+		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
@@ -601,8 +601,8 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		message := fmt.Sprintf(
-			"%sStatus update for Alert number %d. %s. To repeat this message, press %s. To unenroll from voice notifications to this number, press %s. If you are done, you may simply hang up.",
-			messagePrefix, call.msgSubjectID, call.msgBody, sayRepeat, digitStop)
+			"%s%s. To repeat this message, press %s. To unenroll from voice notifications to this number, press %s. If you are done, you may simply hang up.",
+			messagePrefix, call.msgBody, sayRepeat, digitStop)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),
 			Method:    "POST",
