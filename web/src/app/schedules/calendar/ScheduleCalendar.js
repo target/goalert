@@ -104,7 +104,11 @@ function ScheduleCalendar(props) {
      }
     else {
     return <div>
-           <AccountMinus fontSize='small' className={classes.overrideTitle} aria-label='Remove Override'/>{' '}
+          <AccountMinus
+            fontSize='small'
+            className={classes.overrideTitle}
+            aria-label='Remove Override'
+          />{' '}
             Override
            </div>
     }
