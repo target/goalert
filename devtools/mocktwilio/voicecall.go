@@ -1,6 +1,7 @@
 package mocktwilio
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -319,6 +320,8 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 		Hangup      *struct{} `xml:"Hangup"`
 	}
 	var r resp
+	data = bytes.ReplaceAll(data, []byte(`<Say><prosody rate="slow">`), []byte("<Say>"))
+	data = bytes.ReplaceAll(data, []byte(`</prosody></Say>`), []byte("</Say>"))
 	err = xml.Unmarshal(data, &r)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal XML voice response: %w", err)
