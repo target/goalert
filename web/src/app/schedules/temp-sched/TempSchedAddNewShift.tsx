@@ -86,12 +86,14 @@ export default function TempSchedAddNewShift({
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
   useEffect(() => {
+    if (zone === '') return
+
     setShift({
       start: value.start,
-      end: DateTime.fromISO(value.start).plus({ hours: 8 }).toISO(),
+      end: DateTime.fromISO(value.start, { zone }).plus({ hours: 8 }).toISO(),
       userID: '',
     })
-  }, [value.start])
+  }, [value.start, zone])
 
   // fieldErrors handles errors manually through the client
   // as this step form is nested inside the greater form
@@ -126,8 +128,8 @@ export default function TempSchedAddNewShift({
     if (!shift) return // ts sanity check
 
     onChange(mergeShifts(value.shifts.concat(shift)))
-    const end = DateTime.fromISO(shift.end)
-    const diff = end.diff(DateTime.fromISO(shift.start))
+    const end = DateTime.fromISO(shift.end, { zone })
+    const diff = end.diff(DateTime.fromISO(shift.start, { zone }))
     setShift({
       userID: '',
       start: shift.end,
