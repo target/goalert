@@ -49,43 +49,25 @@ export function getSubheaderItems(
   })
 }
 
-export function getOutOfBoundsDays(
+export function getOutOfBoundsItems(
   schedInterval: Interval,
   shifts: Shift[],
   zone: string,
 ): Sortable<FlatListNotice>[] {
-  const sortedShifts = _.sortBy(shifts, 'start')
-  const firstShiftStart = sortedShifts[0]?.start
-    ? DateTime.fromISO(sortedShifts[0].start)
-    : null
-  const lastShiftEnd = firstShiftStart
-    ? DateTime.fromISO(
-        sortedShifts.reduce(
-          (result, candidate) =>
-            candidate.end > result.end ? candidate : result,
-          sortedShifts[0],
-        )?.end,
-      )
-    : null
-
-  // timezone is loaded in after initial render, check if sched interval is valid
-  if (!schedInterval.start || !schedInterval.end) {
+  // timezone is loaded in after initial render
+  if (zone === '') {
     return []
   }
 
-  // get earliest start time
-  let intervalStart = schedInterval.start
-  if (firstShiftStart?.isValid && firstShiftStart < schedInterval.start) {
-    intervalStart = firstShiftStart
+  // get earliest and farthest out start/end times
+  let lowerBound = schedInterval.start
+  let upperBound = schedInterval.end
+  for (const s of shifts) {
+    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
+    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
   }
 
-  // get farthest out end time
-  let intervalEnd = schedInterval.end
-  if (lastShiftEnd?.isValid && lastShiftEnd > schedInterval.end) {
-    intervalEnd = lastShiftEnd
-  }
-  const fullInterval = Interval.fromDateTimes(intervalStart, intervalEnd)
-
+  const fullInterval = Interval.fromDateTimes(lowerBound, upperBound)
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const splitIntervals = _.flatMap(
     fullInterval.difference(...shiftIntervals),
