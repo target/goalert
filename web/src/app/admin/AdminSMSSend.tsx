@@ -80,6 +80,14 @@ export default function AdminSMSSend(): JSX.Element {
     skip: !messageID,
   })
 
+  const isSent = data?.debugMessageStatus?.state?.status === 'OK'
+  let _details = data?.debugMessageStatus?.state?.details || 'Sending...'
+  _details = _details.charAt(0).toUpperCase() + _details.slice(1)
+
+  const details = isSent
+    ? `${_details} from ${data?.debugMessageStatus?.state?.formattedSrcValue}.`
+    : _details
+
   return (
     <React.Fragment>
       <Form>
@@ -125,11 +133,7 @@ export default function AdminSMSSend(): JSX.Element {
             {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
-                  <Typography>
-                    Sent from{' '}
-                    {data?.debugMessageStatus?.state?.formattedSrcValue}. Open
-                    in Twilio&nbsp;
-                  </Typography>
+                  <Typography>{details} Open in Twilio&nbsp;</Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
               </AppLink>
