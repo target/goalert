@@ -64,6 +64,8 @@ function ScheduleCalendar(props) {
 
   const eventStyleGetter = (event, start, end, isSelected) => {
     const green = '#0C6618'
+    const lavender = '#BB7E8C'
+
     if (event.fixed) {
       return {
         style: {
@@ -73,7 +75,6 @@ function ScheduleCalendar(props) {
       }
     }
     if (event.isOverride) {
-      const lavender = '#BB7E8C'
       return {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
@@ -83,8 +84,9 @@ function ScheduleCalendar(props) {
     }
   }
 
-  const getIcon = (o) => {
+  const getOverrideTitle = (o) => {
     if (o.addUser && o.removeUser) {
+      // replace override
       return (
         <div>
           <AccountSwitch
@@ -97,6 +99,7 @@ function ScheduleCalendar(props) {
       )
     }
     if (o.addUser) {
+      // add override
       return (
         <div>
           <AccountPlus
@@ -109,6 +112,7 @@ function ScheduleCalendar(props) {
       )
     }
     return (
+      // remove override
       <div>
         <AccountMinus
           fontSize='small'
@@ -131,7 +135,7 @@ function ScheduleCalendar(props) {
 
     const overrides = userOverrides.map((o) => ({
       user: {
-        name: getIcon(o),
+        name: getOverrideTitle(o),
       },
       start: o.start,
       end: o.end,

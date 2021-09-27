@@ -37,9 +37,7 @@ const useStyles = makeStyles({
 export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
-  // toDo setState for edit and delete
-  // user setOverrideDialog() to open the edit
-  // delete to be done manually
+
   const [showEditDialog, setShowEditDialog] = useState(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(null)
 
@@ -174,8 +172,8 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     return renderShiftButtons()
   }
 
-  function renderOverrideText() {
-    function getText(addUser, removeUser) {
+  function renderOverrideDescription() {
+    function getDesc(addUser, removeUser) {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -199,14 +197,14 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     return (
       <Grid item xs={12}>
         <Typography variant='body2'>
-          {getText(event.override.addUser, event.override.removeUser)}
+          {getDesc(event.override.addUser, event.override.removeUser)}
         </Typography>
       </Grid>
     )
   }
 
-  function renderText() {
-    if (event.isOverride) return renderOverrideText()
+  function renderDescription() {
+    if (event.isOverride) return renderOverrideDescription()
 
     return null
   }
@@ -228,7 +226,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
         </Grid>
-        {renderText()}
+        {renderDescription()}
         {renderButtons()}
       </Grid>
     )
