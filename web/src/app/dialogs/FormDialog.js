@@ -48,6 +48,7 @@ function FormDialog(props) {
   const width = useWidth()
   const isWideScreen = isWidthUp('md', width)
   const [open, setOpen] = useState(true)
+  const [attemptCount, setAttemptCount] = useState(0)
 
   const {
     alert,
@@ -135,7 +136,8 @@ function FormDialog(props) {
         </Button>
         <LoadingButton
           form='dialog-form'
-          attemptCount={errors.filter((e) => !e.nonSubmit).length ? 1 : 0}
+          onClick={() => setAttemptCount(attemptCount + 1)}
+          attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
           loading={loading}

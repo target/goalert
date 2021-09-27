@@ -77,8 +77,11 @@ function testTemporarySchedule(screen: string): void {
     cy.get('button[data-cy="add-shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
 
-    cy.dialogFinish('Submit')
-    cy.get('[data-cy="no-coverage-checkbox"]').should('be.visible').click()
+    cy.dialogClick('Submit')
+    cy.get('[data-cy="no-coverage-checkbox"]')
+      .should('be.visible')
+      .find('input[name="allowCoverageGaps"]')
+      .check()
     cy.dialogFinish('Retry')
 
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
@@ -124,8 +127,11 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.get('[data-cy="loading-button"]').contains('Submit').click()
-      cy.get('[data-cy="no-coverage-checkbox"]').should('be.visible').click()
+      cy.dialogClick('Submit')
+      cy.get('[data-cy="no-coverage-checkbox"]')
+        .should('be.visible')
+        .find('input[name="allowCoverageGaps"]')
+        .check()
       cy.dialogFinish('Retry')
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
