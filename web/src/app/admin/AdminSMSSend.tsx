@@ -80,16 +80,6 @@ export default function AdminSMSSend(): JSX.Element {
     skip: !messageID,
   })
 
-  const getFromNumber = (): string => {
-    if (smsData?.debugSendSMS?.fromNumber) {
-      return smsData?.debugSendSMS?.fromNumber
-    }
-    if (data?.debugMessageStatus?.state?.formattedSrcValue) {
-      return data?.debugMessageStatus?.state?.formattedSrcValue
-    }
-    return ''
-  }
-
   return (
     <React.Fragment>
       <Form>
@@ -136,7 +126,9 @@ export default function AdminSMSSend(): JSX.Element {
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
                   <Typography>
-                    Sent from {getFromNumber()}. Open in Twilio&nbsp;
+                    Sent from{' '}
+                    {data?.debugMessageStatus?.state?.formattedSrcValue}. Open
+                    in Twilio&nbsp;
                   </Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
