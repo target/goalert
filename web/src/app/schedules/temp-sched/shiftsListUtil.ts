@@ -67,19 +67,14 @@ export function getOutOfBoundsItems(
     upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
   }
 
-  const fullInterval = Interval.fromDateTimes(lowerBound, upperBound)
-  const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
-  const splitIntervals = _.flatMap(
-    fullInterval.difference(...shiftIntervals),
-    (inv) => splitAtMidnight(inv),
-  ).filter(
-    (interval) =>
-      interval.end <= schedInterval.start ||
-      interval.start >= schedInterval.end,
-  )
+  const beforeStart = Interval.fromDateTimes(lowerBound, schedInterval.start)
+  const afterEnd = Interval.fromDateTimes(schedInterval.end, upperBound)
+  const daysBeforeStart = splitAtMidnight(beforeStart)
+  const daysAfterEnd = splitAtMidnight(afterEnd)
+  const intervals = daysBeforeStart.concat(daysAfterEnd)
 
   let details = ''
-  return splitIntervals.map((interval) => {
+  return intervals.map((interval) => {
     if (interval.end <= schedInterval.start) {
       details = 'This day is before the set start date.'
     } else if (interval.start >= schedInterval.end) {
