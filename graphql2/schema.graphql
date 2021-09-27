@@ -270,7 +270,7 @@ input DebugMessageStatusInput {
 }
 
 type DebugMessageStatusInfo {
-  messageStatus: NotificationState!
+  state: NotificationState!
 }
 
 type TemporarySchedule {

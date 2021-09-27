@@ -191,7 +191,7 @@ export interface DebugMessageStatusInput {
 }
 
 export interface DebugMessageStatusInfo {
-  messageStatus: NotificationState
+  state: NotificationState
 }
 
 export interface TemporarySchedule {

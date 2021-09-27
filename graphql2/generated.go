@@ -154,7 +154,7 @@ type ComplexityRoot struct {
 	}
 
 	DebugMessageStatusInfo struct {
-		MessageStatus func(childComplexity int) int
+		State func(childComplexity int) int
 	}
 
 	DebugSendSMSInfo struct {
@@ -1003,12 +1003,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugCarrierInfo.Type(childComplexity), true
 
-	case "DebugMessageStatusInfo.messageStatus":
-		if e.complexity.DebugMessageStatusInfo.MessageStatus == nil {
+	case "DebugMessageStatusInfo.state":
+		if e.complexity.DebugMessageStatusInfo.State == nil {
 			break
 		}
 
-		return e.complexity.DebugMessageStatusInfo.MessageStatus(childComplexity), true
+		return e.complexity.DebugMessageStatusInfo.State(childComplexity), true
 
 	case "DebugSendSMSInfo.fromNumber":
 		if e.complexity.DebugSendSMSInfo.FromNumber == nil {
@@ -3473,7 +3473,7 @@ input DebugMessageStatusInput {
 }
 
 type DebugMessageStatusInfo {
-  messageStatus: NotificationState!
+  state: NotificationState!
 }
 
 type TemporarySchedule {
@@ -6902,7 +6902,7 @@ func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Cont
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessageStatusInfo_messageStatus(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6920,7 +6920,7 @@ func (ec *executionContext) _DebugMessageStatusInfo_messageStatus(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.MessageStatus, nil
+		return obj.State, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20391,8 +20391,8 @@ func (ec *executionContext) _DebugMessageStatusInfo(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DebugMessageStatusInfo")
-		case "messageStatus":
-			out.Values[i] = ec._DebugMessageStatusInfo_messageStatus(ctx, field, obj)
+		case "state":
+			out.Values[i] = ec._DebugMessageStatusInfo_state(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

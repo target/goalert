@@ -22,12 +22,11 @@ import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import FromValueField from '../util/FromValueField'
-import { POLL_INTERVAL } from '../config'
 
 const debugMessageStatusQuery = gql`
   query DebugMessageStatus($input: DebugMessageStatusInput!) {
     debugMessageStatus(input: $input) {
-      messageStatus {
+      state {
         details
         status
         formattedSrcValue
@@ -78,7 +77,6 @@ export default function AdminSMSSend(): JSX.Element {
     variables: {
       input: { providerMessageID: messageID },
     },
-    pollInterval: POLL_INTERVAL,
     skip: !messageID,
   })
 
@@ -86,8 +84,8 @@ export default function AdminSMSSend(): JSX.Element {
     if (smsData?.debugSendSMS?.fromNumber) {
       return smsData?.debugSendSMS?.fromNumber
     }
-    if (data?.debugMessageStatus?.messageStatus?.formattedSrcValue) {
-      return data?.debugMessageStatus?.messageStatus?.formattedSrcValue
+    if (data?.debugMessageStatus?.state?.formattedSrcValue) {
+      return data?.debugMessageStatus?.state?.formattedSrcValue
     }
     return ''
   }

@@ -199,7 +199,7 @@ type DebugCarrierInfoInput struct {
 }
 
 type DebugMessageStatusInfo struct {
-	MessageStatus *NotificationState `json:"messageStatus"`
+	State *NotificationState `json:"state"`
 }
 
 type DebugMessageStatusInput struct {

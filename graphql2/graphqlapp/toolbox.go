@@ -36,7 +36,7 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 	}
 
 	return &graphql2.DebugMessageStatusInfo{
-		MessageStatus: notificationStateFromSendResult(*status, q.FormatDestFunc(ctx, destType, status.SrcValue)),
+		State: notificationStateFromSendResult(*status, q.FormatDestFunc(ctx, destType, status.SrcValue)),
 	}, nil
 }
 
