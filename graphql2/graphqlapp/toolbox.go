@@ -31,7 +31,6 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 	}
 
 	status, destType, err := q.NotificationManager.MessageStatus(ctx, id)
-
 	if err != nil {
 		return nil, err
 	}

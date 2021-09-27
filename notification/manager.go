@@ -89,8 +89,8 @@ func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMes
 		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
 	)
 	defer sp.End()
-	status, err := checker.Status(ctx, providerMsgID.ExternalID)
 
+	status, err := checker.Status(ctx, providerMsgID.ExternalID)
 	return status, provider.destType, err
 }
 
