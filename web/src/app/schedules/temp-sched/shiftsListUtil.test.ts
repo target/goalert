@@ -1,6 +1,10 @@
 import { DateTime, Interval } from 'luxon'
 import { Shift } from './sharedUtils'
-import { getCoverageGapItems, getSubheaderItems } from './shiftsListUtil'
+import {
+  getCoverageGapItems,
+  getSubheaderItems,
+  getOutOfBoundsItems,
+} from './shiftsListUtil'
 import { Chance } from 'chance'
 import * as _ from 'lodash'
 
@@ -234,6 +238,106 @@ describe('getCoverageGapItems', () => {
       },
     ],
     expected: ['2021-08-13T01:00:00.000-05:00'],
+    zone: chicago,
+  })
+})
+
+describe('getOutOfBoundsItems', () => {
+  function check(tc: TestConfig): void {
+    it(tc.name, () => {
+      const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
+        zone: tc.zone,
+      })
+      const result = getOutOfBoundsItems(schedInterval, tc.shifts, tc.zone)
+
+      expect(result).toHaveLength(tc.expected.length)
+      expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
+
+      // expect to see start time of each out of bounds day
+      result.forEach((r, i) => {
+        expect(r.at.zoneName).toEqual(tc.zone)
+        expect(r.at.toISO()).toEqual(tc.expected[i])
+      })
+    })
+  }
+
+  check({
+    name: '0 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
+    shifts: [],
+    expected: [],
+    zone: chicago,
+  })
+
+  check({
+    name: '1 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
+    shifts: [],
+    expected: [],
+    zone: chicago,
+  })
+
+  check({
+    name: '24 hr sched interval; shift 1 day before sched start',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-08-12T00:00:00.000-05:00',
+        end: '2021-08-13T05:00:00.000-05:00',
+      },
+    ],
+    expected: ['2021-08-12T00:00:00.000-05:00'],
+    zone: chicago,
+  })
+
+  check({
+    name: '24 hr sched interval; shift the day the sched ends',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-08-14T00:00:00.000-05:00',
+        end: '2021-08-14T05:00:00.000-05:00',
+      },
+    ],
+    expected: ['2021-08-14T00:00:00.000-05:00'],
+    zone: chicago,
+  })
+
+  check({
+    name: '24 hr sched interval; shift 3 days before sched start',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-08-10T00:00:00.000-05:00',
+        end: '2021-08-10T05:00:00.000-05:00',
+      },
+    ],
+    expected: [
+      '2021-08-10T00:00:00.000-05:00',
+      '2021-08-11T00:00:00.000-05:00',
+      '2021-08-12T00:00:00.000-05:00',
+    ],
+    zone: chicago,
+  })
+
+  check({
+    name: '24 hr sched interval; shift 3 days after sched end',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-08-16T00:00:00.000-05:00',
+        end: '2021-08-16T05:00:00.000-05:00',
+      },
+    ],
+    expected: [
+      '2021-08-14T00:00:00.000-05:00',
+      '2021-08-15T00:00:00.000-05:00',
+      '2021-08-16T00:00:00.000-05:00',
+    ],
     zone: chicago,
   })
 })
