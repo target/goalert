@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import { Form } from '../forms'
 import {
   Button,
@@ -23,6 +23,17 @@ import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import FromValueField from '../util/FromValueField'
 
+const debugMessageStatusQuery = gql`
+  query DebugMessageStatus($input: DebugMessageStatusInput!) {
+    debugMessageStatus(input: $input) {
+      state {
+        details
+        status
+        formattedSrcValue
+      }
+    }
+  }
+`
 const sendSMSMutation = gql`
   mutation DebugSendSMS($input: DebugSendSMSInput!) {
     debugSendSMS(input: $input) {
@@ -43,21 +54,39 @@ const useStyles = makeStyles({
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
+  const [messageID, setMessageID] = useState('')
   const [fromNumber, setFromNumber] = useState(cfgFromNumber as string)
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
 
-  const [send, sendStatus] = useMutation(sendSMSMutation, {
-    variables: {
-      input: {
-        from: fromNumber,
-        to: toNumber,
-        body,
+  const [send, { data: smsData, loading: smsLoading, error: smsError }] =
+    useMutation(sendSMSMutation, {
+      variables: {
+        input: {
+          from: fromNumber,
+          to: toNumber,
+          body,
+        },
       },
+      onError: () => setShowErrorDialog(true),
+      onCompleted: (data) => setMessageID(data.debugSendSMS.id),
+    })
+
+  const { data } = useQuery(debugMessageStatusQuery, {
+    variables: {
+      input: { providerMessageID: messageID },
     },
-    onError: () => setShowErrorDialog(true),
+    skip: !messageID,
   })
+
+  const isSent = data?.debugMessageStatus?.state?.status === 'OK'
+  let _details = data?.debugMessageStatus?.state?.details || 'Sending...'
+  _details = _details.charAt(0).toUpperCase() + _details.slice(1)
+
+  const details = isSent
+    ? `${_details} from ${data?.debugMessageStatus?.state?.formattedSrcValue}.`
+    : _details
 
   return (
     <React.Fragment>
@@ -98,19 +127,13 @@ export default function AdminSMSSend(): JSX.Element {
               onClick={() => {
                 send()
               }}
-              loading={sendStatus.loading}
+              loading={smsLoading}
               noSubmit
             />
-            {sendStatus.data?.debugSendSMS && (
-              <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
+            {smsData?.debugSendSMS && (
+              <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
-                  <Typography>
-                    {/* TODO: query for message status if from number / SID not immediately available */}
-                    {sendStatus.data.debugSendSMS.fromNumber
-                      ? `Sent from ${sendStatus.data.debugSendSMS.fromNumber}. `
-                      : ''}
-                    Open in Twilio&nbsp;
-                  </Typography>
+                  <Typography>{details} Open in Twilio&nbsp;</Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
               </AppLink>
@@ -121,7 +144,7 @@ export default function AdminSMSSend(): JSX.Element {
 
       <Dialog open={showErrorDialog} onClose={() => setShowErrorDialog(false)}>
         <DialogTitle>An error occurred</DialogTitle>
-        <DialogContentError error={sendStatus.error?.message ?? ''} />
+        <DialogContentError error={smsError?.message ?? ''} />
         <DialogActions>
           <Button
             color='primary'
