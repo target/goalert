@@ -6,122 +6,135 @@ import * as _ from 'lodash'
 
 const c = new Chance()
 const chicago = 'America/Chicago'
-const newyork = 'America/New_York'
+const newYork = 'America/New_York'
+
+interface TestConfig {
+  name: string
+  schedIntervalISO: string
+  shifts: Shift[]
+  // expected is an array of start times for each coverage gap
+  expected: string[]
+  zone: string
+}
 
 describe('getSubheaderItems', () => {
-  function check(
-    name: string,
-    schedIntervalISO: string,
-    shifts: Shift[],
-    expected: string[],
-    zone = chicago,
-  ): void {
-    it(name, () => {
-      const schedInterval = Interval.fromISO(schedIntervalISO, { zone })
-      const result = getSubheaderItems(schedInterval, shifts, zone)
+  function check(tc: TestConfig): void {
+    it(tc.name, () => {
+      const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
+        zone: tc.zone,
+      })
+      const result = getSubheaderItems(schedInterval, tc.shifts, tc.zone)
 
-      expect(result).toHaveLength(expected.length)
-      expect(_.uniq(result.map((r) => r.id))).toHaveLength(expected.length)
+      expect(result).toHaveLength(tc.expected.length)
+      expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
 
       result.forEach((r, i) => {
-        expect(r.at.zoneName).toEqual(zone)
+        expect(r.at.zoneName).toEqual(tc.zone)
         expect(r.at).toEqual(r.at.startOf('day'))
-        expect(r.subHeader).toBe(expected[i])
+        expect(r.subHeader).toBe(tc.expected[i])
       })
     })
   }
 
-  check(
-    '0 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
-    [],
-    [],
-  )
+  check({
+    name: '0 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
+    shifts: [],
+    expected: [],
+    zone: chicago,
+  })
 
-  check(
-    '1 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
-    [],
-    ['Friday, August 13'],
-  )
+  check({
+    name: '1 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['Friday, August 13'],
+    zone: chicago,
+  })
 
-  check(
-    '1 hr sched interval; no shifts; alternate zone',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
-    [],
-    ['Friday, August 13'],
-    newyork,
-  )
+  check({
+    name: '1 hr sched interval; no shifts; alternate zone',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['Friday, August 13'],
+    zone: newYork,
+  })
 
-  check(
-    '24 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
-    [],
-    ['Friday, August 13'],
-  )
+  check({
+    name: '24 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['Friday, August 13'],
+    zone: chicago,
+  })
 
-  check(
-    '25 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T01:00:00.000-05:00'}`,
-    [],
-    ['Friday, August 13', 'Saturday, August 14'],
-  )
+  check({
+    name: '25 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T01:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['Friday, August 13', 'Saturday, August 14'],
+    zone: chicago,
+  })
 
-  check(
-    '50 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-15T02:00:00.000-05:00'}`,
-    [],
-    ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
-  )
+  check({
+    name: '50 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-15T02:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
+    zone: chicago,
+  })
 
-  check(
-    '24 hr sched interval; 1 shift before sched start',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
-    [
+  check({
+    name: '24 hr sched interval; 1 shift before sched start',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-12T00:00:00.000-05:00',
         end: '2021-08-13T05:00:00.000-05:00',
       },
     ],
-    ['Thursday, August 12', 'Friday, August 13'],
-  )
+    expected: ['Thursday, August 12', 'Friday, August 13'],
+    zone: chicago,
+  })
 
-  check(
-    '24 hr sched interval; 1 shift inside sched interval',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
-    [
+  check({
+    name: '24 hr sched interval; 1 shift inside sched interval',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-13T02:00:00.000-05:00',
         end: '2021-08-13T03:00:00.000-05:00',
       },
     ],
-    ['Friday, August 13'],
-  )
+    expected: ['Friday, August 13'],
+    zone: chicago,
+  })
 
-  check(
-    '24 hr sched interval; 1 shift after sched interval',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
-    [
+  check({
+    name: '24 hr sched interval; 1 shift after sched interval',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-15T02:00:00.000-05:00',
         end: '2021-08-16T04:00:00.000-05:00',
       },
     ],
-    [
+    expected: [
       'Friday, August 13',
       'Saturday, August 14',
       'Sunday, August 15',
       'Monday, August 16',
     ],
-  )
+    zone: chicago,
+  })
 
-  check(
-    '30 hr sched interval; 3 random shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T06:00:00.000-05:00'}`,
-    [
+  check({
+    name: '30 hr sched interval; 3 random shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T06:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-13T01:00:00.000-05:00',
@@ -138,87 +151,89 @@ describe('getSubheaderItems', () => {
         end: '2021-08-15T08:00:00.000-05:00',
       },
     ],
-    ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
-  )
+    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
+    zone: chicago,
+  })
 })
 
 describe('getCoverageGapItems', () => {
-  function check(
-    name: string,
-    schedIntervalISO: string,
-    shifts: Shift[],
-    // expected is an array of start times for each coverage gap
-    expected: string[],
-    zone = chicago,
-  ): void {
-    it(name, () => {
-      const schedInterval = Interval.fromISO(schedIntervalISO, { zone })
-      const result = getCoverageGapItems(schedInterval, shifts, zone)
+  function check(tc: TestConfig): void {
+    it(tc.name, () => {
+      const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
+        zone: tc.zone,
+      })
+      const result = getCoverageGapItems(schedInterval, tc.shifts, tc.zone)
 
-      expect(result).toHaveLength(expected.length)
-      expect(_.uniq(result.map((r) => r.id))).toHaveLength(expected.length)
+      expect(result).toHaveLength(tc.expected.length)
+      expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
 
       result.forEach((r, i) => {
-        expect(r.at.zoneName).toEqual(zone)
-        expect(r.at).toEqual(DateTime.fromISO(expected[i], { zone }))
+        expect(r.at.zoneName).toEqual(tc.zone)
+        expect(r.at).toEqual(
+          DateTime.fromISO(tc.expected[i], { zone: tc.zone }),
+        )
       })
     })
   }
 
-  check(
-    '0 hr sched interval; no shifts',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
-    [],
-    [],
-  )
+  check({
+    name: '0 hr sched interval; no shifts',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
+    shifts: [],
+    expected: [],
+    zone: chicago,
+  })
 
-  check(
-    '1 hr sched interval; no shifts; alternate zone',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
-    [],
-    ['2021-08-13T00:00:00.000-05:00'],
-    newyork,
-  )
+  check({
+    name: '1 hr sched interval; no shifts; alternate zone',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
+    shifts: [],
+    expected: ['2021-08-13T00:00:00.000-05:00'],
+    zone: newYork,
+  })
 
-  check(
-    '3 hr sched interval; 1 shift; 2 gaps',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
-    [
+  check({
+    name: '3 hr sched interval; 1 shift; 2 gaps',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-13T01:00:00.000-05:00',
         end: '2021-08-13T02:00:00.000-05:00',
       },
     ],
-    ['2021-08-13T00:00:00.000-05:00', '2021-08-13T02:00:00.000-05:00'],
-    newyork,
-  )
+    expected: [
+      '2021-08-13T00:00:00.000-05:00',
+      '2021-08-13T02:00:00.000-05:00',
+    ],
+    zone: chicago,
+  })
 
-  check(
-    '3 hr sched interval; 1 shift; 1 gap before',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
-    [
+  check({
+    name: '3 hr sched interval; 1 shift; 1 gap before',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-13T01:00:00.000-05:00',
         end: '2021-08-13T03:00:00.000-05:00',
       },
     ],
-    ['2021-08-13T00:00:00.000-05:00'],
-    newyork,
-  )
+    expected: ['2021-08-13T00:00:00.000-05:00'],
+    zone: chicago,
+  })
 
-  check(
-    '3 hr sched interval; 1 shift; 1 gap after',
-    `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
-    [
+  check({
+    name: '3 hr sched interval; 1 shift; 1 gap after',
+    schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T03:00:00.000-05:00'}`,
+    shifts: [
       {
         userID: c.guid(),
         start: '2021-08-13T00:00:00.000-05:00',
         end: '2021-08-13T01:00:00.000-05:00',
       },
     ],
-    ['2021-08-13T01:00:00.000-05:00'],
-    newyork,
-  )
+    expected: ['2021-08-13T01:00:00.000-05:00'],
+    zone: chicago,
+  })
 })
