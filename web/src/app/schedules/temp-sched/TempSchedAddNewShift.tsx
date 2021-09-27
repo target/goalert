@@ -178,7 +178,7 @@ export default function TempSchedAddNewShift({
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
                     const diff = DateTime.fromISO(value, { zone }).diff(
-                      DateTime.fromISO(formValue.start),
+                      DateTime.fromISO(formValue.start, { zone }),
                     )
                     formValue.end = DateTime.fromISO(formValue.end, { zone })
                       .plus(diff)
@@ -245,6 +245,7 @@ export default function TempSchedAddNewShift({
                   }}
                   step='any'
                   min={0}
+                  disabled={q.loading}
                   hint={
                     <ClickableText
                       data-cy='toggle-duration-off'
