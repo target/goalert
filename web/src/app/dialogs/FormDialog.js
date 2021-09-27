@@ -136,7 +136,11 @@ function FormDialog(props) {
         </Button>
         <LoadingButton
           form='dialog-form'
-          onClick={() => setAttemptCount(attemptCount + 1)}
+          onClick={() => {
+            if (!onNext) {
+              setAttemptCount(attemptCount + 1)
+            }
+          }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
