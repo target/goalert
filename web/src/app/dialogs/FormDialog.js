@@ -207,9 +207,9 @@ FormDialog.propTypes = {
   caption: p.node,
 
   errors: p.arrayOf(
+    // this is an Error interface
     p.shape({
       message: p.string.isRequired,
-      nonSubmit: p.bool, // indicates that it is a non-submit related error
     }),
   ),
 
