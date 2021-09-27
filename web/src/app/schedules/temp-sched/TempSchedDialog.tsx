@@ -81,7 +81,7 @@ export default function TempSchedDialog({
     // set default start, end times when zone is ready
     if (!value.start && !value.end && !q.loading && zone) {
       const nextMonday = getNextWeekday(1, DateTime.now(), zone)
-      const nextFriday = nextMonday.plus({ days: 5 })
+      const nextFriday = nextMonday.plus({ days: 5 }) // thru to the end of Friday
       setValue({
         ...value,
         start: nextMonday.toISO(),
