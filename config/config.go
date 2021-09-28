@@ -402,7 +402,7 @@ func (cfg Config) Validate() error {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))
 	}
 	if cfg.Twilio.FromNumber != "" {
-		err = validate.Many(err, validate.TwilioFromValue("Twilio.FromNumber", cfg.Twilio.FromNumber))
+		err = validate.Many(err, validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber))
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))

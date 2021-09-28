@@ -652,7 +652,7 @@ func (h *Harness) TwilioMessagingService() string {
 	}
 	defer h.mx.Unlock()
 
-	nums := []string{h.phoneCCG.Get("twilio_sid_1"), h.phoneCCG.Get("twilio_sid_2"), h.phoneCCG.Get("twilio_sid_3")}
+	nums := []string{h.phoneCCG.Get(""), h.phoneCCG.Get(""), h.phoneCCG.Get("")}
 	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", h.URL()+"/v1/twilio/voice/call", nums...)
 	if err != nil {
 		panic(err)

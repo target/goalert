@@ -6,7 +6,7 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
 import VisibilityOff from '@material-ui/icons/VisibilityOff'
-import FromValueField from '../util/FromValueField'
+import TelTextField from '../util/TelTextField'
 
 interface InputProps {
   type?: string
@@ -37,9 +37,7 @@ export function StringInput(props: InputProps): JSX.Element {
   }
 
   if (props.name === 'Twilio.FromNumber') {
-    return (
-      <FromValueField onChange={(e) => onChange(e.target.value)} {...rest} />
-    )
+    return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
   }
   return (
     <Input
