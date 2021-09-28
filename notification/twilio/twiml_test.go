@@ -90,8 +90,8 @@ func TestTwiMLResponse(t *testing.T) {
 <Gather numDigits="1" timeout="10" action="http://example.com">
 <Say><prosody rate="slow">Sorry, I didn&#39;t understand that.</prosody></Say>
 <Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
 <Say><prosody rate="slow">If you are done, you may simply hang up.</prosody></Say>
+<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
 </Gather>
 </Response>
 `, string(data))
