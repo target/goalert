@@ -173,6 +173,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
   }
 
   function renderOverrideDescription() {
+    if (!event.isOverride) return null
     function getDesc(addUser, removeUser) {
       if (addUser && removeUser)
         return (
@@ -203,12 +204,6 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderDescription() {
-    if (event.isOverride) return renderOverrideDescription()
-
-    return null
-  }
-
   /*
    * Renders an interactive tooltip when selecting
    * an event in the calendar that will show
@@ -226,7 +221,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
         </Grid>
-        {renderDescription()}
+        {renderOverrideDescription()}
         {renderButtons()}
       </Grid>
     )
