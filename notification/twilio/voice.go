@@ -348,11 +348,10 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		resp.Say("Sorry, I didn't understand that.")
+		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Sayf("To confirm unenrollment of this number, press %s. To go back to the main menu, press %s. To repeat this message, press %s.",
-			digitConfirm, digitGoBack, sayRepeat)
+		resp.AddOptions(optionConfirmStop, optionCancel)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 	case digitConfirm:
@@ -364,7 +363,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		resp.Say("Unenrolled. Goodbye.")
+		resp.Say("Unenrolled.")
 		resp.Hangup()
 		return
 	case digitGoBack: // Go back to main menu
@@ -444,7 +443,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			return true
 		}
 
-		newTwiMLResponse(w).Say("An error has occurred. Please login to the dashboard to manage alerts. Goodbye.").Hangup()
+		newTwiMLResponse(w).Say("An error has occurred. Please login to the dashboard to manage alerts.").Hangup()
 		return true
 	}
 
@@ -479,6 +478,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		resp.Say(call.msgBody)
+		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
 	}
@@ -520,8 +520,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		resp.Say(call.msgBody)
-		resp.Sayf("To unenroll from voice notifications to this number, press %s", digitStop)
-		resp.Say("If you are done, you may simply hang up.")
+		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
 	case digitStop:
@@ -550,7 +549,7 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 	case "", digitRepeat:
 		resp.Sayf("This is %s.", cfg.ApplicationName())
 		resp.Say("Please use the application dashboard to manage alerts.")
-		resp.Sayf("To disable voice notifications to this number, press %s.", digitStop)
+		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
 		return
 	case digitStop:
@@ -584,14 +583,13 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
-		var suffix string
-		if call.Q.Get(msgParamBundle) == "1" {
-			suffix = " all"
-		}
 		resp.Say(call.msgBody)
-		resp.Sayf("To acknowledge%s, press %s.", suffix, digitAck)
-		resp.Sayf("To close%s, press %s.", suffix, digitClose)
-		resp.Sayf("To unenroll from all notifications, press %s", digitStop)
+		if call.Q.Get(msgParamBundle) == "1" {
+			resp.AddOptions(optionAckAll, optionCloseAll)
+		} else {
+			resp.AddOptions(optionAck, optionClose)
+		}
+		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlert))
 		return
 
@@ -611,9 +609,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			msg = "Acknowledged"
 		}
 		if call.Q.Get(msgParamBundle) == "1" {
-			msg += " all alerts. Goodbye."
-		} else {
-			msg += ". Goodbye."
+			msg += " all alerts."
 		}
 		err := doDeadline(ctx, func() error {
 			return v.r.Receive(ctx, call.msgID, result)

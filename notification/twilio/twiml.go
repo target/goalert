@@ -15,6 +15,9 @@ type twiMLResponse struct {
 	redirectPauseSec int
 	hangup           bool
 
+	hasOptions     bool
+	expectResponse bool
+
 	sent bool
 
 	w http.ResponseWriter
@@ -36,8 +39,55 @@ func (t *twiMLResponse) RedirectPauseSec(url string, seconds int) {
 	t.sendResponse()
 }
 
+type menuOption int
+
+const (
+	optionUnknown menuOption = iota
+	optionCancel
+	optionConfirmStop
+	optionAck
+	optionClose
+	optionAckAll
+	optionCloseAll
+	optionStop
+	optionRepeat
+)
+
+func (t *twiMLResponse) AddOptions(options ...menuOption) {
+	t.hasOptions = true
+	for _, opt := range options {
+		switch opt {
+		case optionConfirmStop:
+			t.expectResponse = true
+			t.Sayf("To confirm unenrollment of this number, press %s.", digitConfirm)
+		case optionCancel:
+			t.expectResponse = true
+			t.Sayf("To go back to the previous menu, press %s.", digitGoBack)
+		case optionStop:
+			t.Sayf("To disable voice notifications to this number, press %s.", digitStop)
+		case optionRepeat:
+			t.Sayf("To repeat this message, press %s.", sayRepeat)
+		case optionAck:
+			t.expectResponse = true
+			t.Sayf("To acknowledge, press %s.", digitAck)
+		case optionClose:
+			t.expectResponse = true
+			t.Sayf("To close, press %s.", digitClose)
+		case optionAckAll:
+			t.expectResponse = true
+			t.Sayf("To acknowledge all, press %s.", digitAck)
+		case optionCloseAll:
+			t.expectResponse = true
+			t.Sayf("To close all, press %s.", digitClose)
+		default:
+			panic("Unknown option")
+		}
+	}
+}
+
 func (t *twiMLResponse) Gather(url string) {
 	t.gatherURL = url
+	t.AddOptions(optionRepeat)
 	t.sendResponse()
 }
 
@@ -56,6 +106,7 @@ func (t *twiMLResponse) Sayf(format string, args ...interface{}) *twiMLResponse 
 
 func (t *twiMLResponse) Hangup() {
 	t.hangup = true
+	t.Say("Goodbye.")
 	t.sendResponse()
 }
 
@@ -65,9 +116,13 @@ func (t *twiMLResponse) sendResponse() {
 	}
 	t.sent = true
 
-	// always offer repeat on gather
-	if t.gatherURL != "" {
-		t.Sayf("To repeat this message, press %s.", sayRepeat)
+	if t.hasOptions && t.gatherURL == "" {
+		// if we give the user options, we need to allow them to respond
+		panic("Options without gather")
+	}
+
+	if !t.expectResponse && t.hasOptions {
+		t.Say("If you are done, you may simply hang up.")
 	}
 
 	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
