@@ -1,13 +1,10 @@
 package twilio
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/base64"
-	"encoding/xml"
 	"fmt"
-	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -22,7 +19,6 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
-	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/ttacon/libphonenumber"
 )
@@ -74,39 +70,6 @@ var _ notification.ReceiverSetter = &Voice{}
 var _ notification.Sender = &Voice{}
 var _ notification.StatusChecker = &Voice{}
 var _ notification.FriendlyValuer = &Voice{}
-
-type gather struct {
-	XMLName   xml.Name `xml:"Gather,omitempty"`
-	Action    string   `xml:"action,attr,omitempty"`
-	Method    string   `xml:"method,attr,omitempty"`
-	NumDigits int      `xml:"numDigits,attr,omitempty"`
-	Timeout   int      `xml:"timeout,attr,omitempty"`
-	Say       string   `xml:"Say,omitempty"`
-}
-
-type twiMLRedirect struct {
-	XMLName     xml.Name `xml:"Response"`
-	RedirectURL string   `xml:"Redirect"`
-}
-
-type twiMLRetry struct {
-	XMLName xml.Name `xml:"Response"`
-	Say     string   `xml:"Say"`
-	Pause   struct {
-		Seconds int `xml:"length,attr"`
-	} `xml:"Pause"`
-	RedirectURL string `xml:"Redirect"`
-}
-
-type twiMLGather struct {
-	XMLName xml.Name `xml:"Response"`
-	Gather  *gather
-}
-type twiMLEnd struct {
-	XMLName xml.Name `xml:"Response"`
-	Say     string   `xml:"Say,omitempty"`
-	Hangup  struct{}
-}
 
 var rmParen = regexp.MustCompile(`\s*\(.*?\)`)
 
@@ -382,25 +345,16 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var messagePrefix string
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		messagePrefix = "I am sorry. I didn't catch that. "
+		resp.Say("Sorry, I didn't understand that.")
 		fallthrough
-
 	case "", digitRepeat:
-		message := fmt.Sprintf("%sTo confirm unenrollment of this number, press %s. To go back to main menu, press %s. To repeat this message, press %s.", messagePrefix, digitConfirm, digitGoBack, sayRepeat)
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, CallTypeStop),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
-
+		resp.Sayf("To confirm unenrollment of this number, press %s. To go back to the main menu, press %s. To repeat this message, press %s.",
+			digitConfirm, digitGoBack, sayRepeat)
+		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeStop))
+		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
 			return v.r.Stop(ctx, notification.Dest{Type: notification.DestTypeVoice, Value: call.Number})
@@ -410,13 +364,12 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		renderXML(w, req, twiMLEnd{
-			Say: "Unenrolled. Goodbye.",
-		})
+		resp.Say("Unenrolled. Goodbye.")
+		resp.Hangup()
+		return
 	case digitGoBack: // Go back to main menu
-		renderXML(w, req, twiMLRedirect{
-			RedirectURL: v.callbackURL(ctx, call.Q, CallType(call.Q.Get("previous"))),
-		})
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallType(call.Q.Get("previous"))))
+		return
 	}
 }
 
@@ -483,18 +436,15 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			// schedule a retry
 			q.Set("retry_count", strconv.Itoa(retryCount+1))
 			q.Set("retry_digits", digits)
-			retry := twiMLRetry{
-				Say:         "One moment please.",
-				RedirectURL: v.callbackURL(ctx, q, CallType(q.Get("type"))),
-			}
-			retry.Pause.Seconds = 5
-			renderXML(w, req, retry)
+
+			newTwiMLResponse(w).
+				Say("One moment please.").
+				RedirectPauseSec(v.callbackURL(ctx, q, CallType(q.Get("type"))), 5)
+
 			return true
 		}
 
-		renderXML(w, req, twiMLEnd{
-			Say: "An error has occurred. Please login to the dashboard to manage alerts. Goodbye.",
-		})
+		newTwiMLResponse(w).Say("An error has occurred. Please login to the dashboard to manage alerts. Goodbye.").Hangup()
 		return true
 	}
 
@@ -513,19 +463,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 
 }
 
-func renderXML(w http.ResponseWriter, req *http.Request, v interface{}) {
-	data, err := xml.Marshal(v)
-	if errutil.HTTPError(req.Context(), w, err) {
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	io.WriteString(w, xml.Header)
-	data = bytes.Replace(data, []byte("<Say>"), []byte(`<Say><prosody rate="slow">`), 1)
-	data = bytes.Replace(data, []byte("</Say>"), []byte(`</prosody></Say>`), 1)
-	w.Write(data)
-}
-
 func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -535,23 +472,14 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var messagePrefix string
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		messagePrefix = "I am sorry. I didn't catch that. "
+		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, sayRepeat)
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, CallTypeTest),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
+		resp.Say(call.msgBody)
+		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
 	}
 }
@@ -564,23 +492,14 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var messagePrefix string
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		messagePrefix = "I am sorry. I didn't catch that. "
+		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf("%s%s. To repeat this message, press %s.", messagePrefix, call.msgBody, sayRepeat)
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, CallTypeVerify),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
+		resp.Say(call.msgBody)
+		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeVerify))
 		return
 	}
 }
@@ -594,31 +513,20 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var messagePrefix string
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		messagePrefix = "I am sorry. I didn't catch that. "
+		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf(
-			"%s%s. To repeat this message, press %s. To unenroll from voice notifications to this number, press %s. If you are done, you may simply hang up.",
-			messagePrefix, call.msgBody, sayRepeat, digitStop)
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
+		resp.Say(call.msgBody)
+		resp.Sayf("To unenroll from voice notifications to this number, press %s", digitStop)
+		resp.Say("If you are done, you may simply hang up.")
+		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
 	case digitStop:
 		call.Q.Set("previous", string(CallTypeAlertStatus))
-		renderXML(w, req, twiMLRedirect{
-			RedirectURL: v.callbackURL(ctx, call.Q, CallTypeStop),
-		})
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 	}
 }
@@ -634,31 +542,20 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 	}
 	cfg := config.FromContext(ctx)
 
-	var messagePrefix string
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
-		messagePrefix = "I am sorry. I didn't catch that. "
+		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		message := fmt.Sprintf(
-			"%sThis is %s. Please use the application dashboard to manage alerts. To disable voice notifications to this number, press %s. To repeat this message, press %s.",
-			messagePrefix, cfg.ApplicationName(), digitStop, sayRepeat)
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, ""),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
+		resp.Sayf("This is %s.", cfg.ApplicationName())
+		resp.Say("Please use the application dashboard to manage alerts.")
+		resp.Sayf("To disable voice notifications to this number, press %s.", digitStop)
+		resp.Gather(v.callbackURL(ctx, call.Q, ""))
 		return
 	case digitStop:
 		call.Q.Set("previous", "")
-		renderXML(w, req, twiMLRedirect{
-			RedirectURL: v.callbackURL(ctx, call.Q, CallTypeStop),
-		})
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 	}
 }
@@ -675,16 +572,15 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 	// See Twilio Request Parameter documentation at
 	// https://www.twilio.com/docs/api/twiml/twilio_request#synchronous
-	var messagePrefix string
-
+	resp := newTwiMLResponse(w)
 	switch call.Digits {
 	default:
 		if call.Digits == digitOldAck {
-			messagePrefix = fmt.Sprintf("The menu options have changed. To acknowledge, press %s. ", digitAck)
+			resp.Sayf("The menu options have changed. To acknowledge, press %s.", digitAck)
 		} else if call.Digits == digitOldClose {
-			messagePrefix = fmt.Sprintf("The menu options have changed. To close, press %s. ", digitClose)
+			resp.Sayf("The menu options have changed. To close, press %s.", digitClose)
 		} else {
-			messagePrefix = "I am sorry. I didn't catch that. "
+			resp.SayUnknownDigit()
 		}
 		fallthrough
 	case "", digitRepeat:
@@ -692,27 +588,16 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		if call.Q.Get(msgParamBundle) == "1" {
 			suffix = " all"
 		}
-		message := fmt.Sprintf(
-			"%s%s. To acknowledge%s, press %s. To close%s, press %s. To unenroll from all notifications, press %s. To repeat this message, press %s",
-			messagePrefix, call.msgBody, suffix, digitAck, suffix, digitClose, digitStop, sayRepeat)
-		// User wants Twilio to repeat the message
-		g := &gather{
-			Action:    v.callbackURL(ctx, call.Q, CallTypeAlert),
-			Method:    "POST",
-			NumDigits: 1,
-			Timeout:   10,
-			Say:       message,
-		}
-		renderXML(w, req, twiMLGather{
-			Gather: g,
-		})
+		resp.Say(call.msgBody)
+		resp.Sayf("To acknowledge%s, press %s.", suffix, digitAck)
+		resp.Sayf("To close%s, press %s.", suffix, digitClose)
+		resp.Sayf("To unenroll from all notifications, press %s", digitStop)
+		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlert))
 		return
 
 	case digitStop:
 		call.Q.Set("previous", string(CallTypeAlert))
-		renderXML(w, req, twiMLRedirect{
-			RedirectURL: v.callbackURL(ctx, call.Q, CallTypeStop),
-		})
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 
 	case digitAck, digitClose: // Acknowledge and Close cases
@@ -740,9 +625,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		renderXML(w, req, twiMLEnd{
-			Say: msg,
-		})
+		resp.Say(msg).Hangup()
 		return
 	}
 }
