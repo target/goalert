@@ -96,7 +96,7 @@ type Config struct {
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
-		MessagingServiceSID string `info:"If set, replaces the use of From Number for SMS notifications."`
+		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
 
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`

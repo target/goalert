@@ -53,9 +53,12 @@ const useStyles = makeStyles({
 
 export default function AdminSMSSend(): JSX.Element {
   const classes = useStyles()
-  const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
+  const [cfgFromNumber, cfgSID] = useConfigValue(
+    'Twilio.FromNumber',
+    'Twilio.MessagingServiceSID',
+  ) as [string | null, string | null]
   const [messageID, setMessageID] = useState('')
-  const [fromNumber, setFromNumber] = useState(cfgFromNumber as string)
+  const [fromNumber, setFromNumber] = useState(cfgSID || cfgFromNumber || '')
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -98,6 +101,8 @@ export default function AdminSMSSend(): JSX.Element {
                 <FromValueField
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
+                  defaultPhone={cfgFromNumber}
+                  defaultSID={cfgSID}
                   fullWidth
                 />
               </Grid>

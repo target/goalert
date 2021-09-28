@@ -970,6 +970,7 @@ type ConfigID =
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.FromNumber'
+  | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'
