@@ -66,6 +66,7 @@ export default function TempSchedDialog({
   const classes = useStyles()
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -214,6 +215,7 @@ export default function TempSchedDialog({
                   required
                   name='start'
                   label='Schedule Start'
+                  min={now}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
