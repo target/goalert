@@ -1883,10 +1883,10 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.3.tgz#2ab0d5da2e5815f94b0b9d4b95d1e5f243ab2ca7"
   integrity sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
 
-"@types/react-beautiful-dnd@^13.1.1":
-  version "13.1.2"
-  resolved "https://registry.yarnpkg.com/@types/react-beautiful-dnd/-/react-beautiful-dnd-13.1.2.tgz#510405abb09f493afdfd898bf83995dc6385c130"
-  integrity sha512-+OvPkB8CdE/bGdXKyIhc/Lm2U7UAYCCJgsqmopFmh9gbAudmslkI8eOrPDjg4JhwSE6wytz4a3/wRjKtovHVJg==
+"@types/react-beautiful-dnd@13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@types/react-beautiful-dnd/-/react-beautiful-dnd-13.1.1.tgz#fb3fe24a334cc757d290e75722e4d3c8368ce3a3"
+  integrity sha512-1lBBxVSutE8CQM37Jq7KvJwuA94qaEEqsx+G0dnwzG6Sfwf6JGcNeFk5jjjhJli1q2naeMZm+D/dvT/zyX4QPw==
   dependencies:
     "@types/react" "*"
 
@@ -7345,7 +7345,7 @@ mkdirp@^0.5.5:
   dependencies:
     minimist "^1.2.5"
 
-modernizr-esm@^2.0.0:
+modernizr-esm@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/modernizr-esm/-/modernizr-esm-2.0.0.tgz#de44ebcd768fdcb2d38fb286cfd77c721c2432cf"
   integrity sha512-tSxxQ/PU90EBs9q6SOgWOYatnjnBvFvkSDVKfqeMbkF8igjPDA8yAmJaAIJbbrNDvtxhzyyqYCa5XxYbW/9/tg==
