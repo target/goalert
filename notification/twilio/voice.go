@@ -443,7 +443,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			return true
 		}
 
-		newTwiMLResponse(w).Say("An error has occurred. Please login to the dashboard to manage alerts.").Hangup()
+		newTwiMLResponse(w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
 		return true
 	}
 
