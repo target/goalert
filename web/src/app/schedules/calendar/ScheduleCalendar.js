@@ -37,13 +37,14 @@ const useStyles = makeStyles((theme) => ({
   tempSchedBtn: {
     marginLeft: theme.spacing(1.75),
   },
-  overrideTitle: {
+  overrideTitleIcon: {
     verticalAlign: 'middle',
     borderRadius: '50%',
     background: theme.palette.secondary.main,
     padding: '3px',
     height: '100%',
     width: '18px',
+    marginRight: '0.25rem',
   },
 }))
 
@@ -91,9 +92,9 @@ function ScheduleCalendar(props) {
         <div>
           <AccountSwitch
             fontSize='small'
-            className={classes.overrideTitle}
+            className={classes.overrideTitleIcon}
             aria-label='Replace Override'
-          />{' '}
+          />
           Override
         </div>
       )
@@ -104,9 +105,9 @@ function ScheduleCalendar(props) {
         <div>
           <AccountPlus
             fontSize='small'
-            className={classes.overrideTitle}
+            className={classes.overrideTitleIcon}
             aria-label='Add Override'
-          />{' '}
+          />
           Override
         </div>
       )
@@ -116,9 +117,9 @@ function ScheduleCalendar(props) {
       <div>
         <AccountMinus
           fontSize='small'
-          className={classes.overrideTitle}
+          className={classes.overrideTitleIcon}
           aria-label='Remove Override'
-        />{' '}
+        />
         Override
       </div>
     )

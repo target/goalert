@@ -122,7 +122,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
         <CardActions
           secondaryActions={[
             {
-              icon: <EditIcon />,
+              icon: <EditIcon fontSize='small' />,
               label: 'Edit',
               handleOnClick: () => {
                 handleCloseShiftInfo()
@@ -130,7 +130,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
               },
             },
             {
-              icon: <DeleteIcon />,
+              icon: <DeleteIcon fontSize='small' />,
               label: 'Delete',
               handleOnClick: () => {
                 handleCloseShiftInfo()
@@ -174,7 +174,8 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
   function renderOverrideDescription() {
     if (!event.isOverride) return null
-    function getDesc(addUser, removeUser) {
+
+    const getDesc = (addUser, removeUser) => {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -216,12 +217,12 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
     return (
       <Grid container spacing={1}>
+        {renderOverrideDescription()}
         <Grid item xs={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
         </Grid>
-        {renderOverrideDescription()}
         {renderButtons()}
       </Grid>
     )
