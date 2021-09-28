@@ -629,6 +629,9 @@ func (h *Harness) SetCarrierName(number, name string) {
 // TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
 // The default FromNumber will always be the empty ID.
 func (h *Harness) TwilioNumber(id string) string {
+	if id != "" {
+		id = ":" + id
+	}
 	num := h.phoneCCG.Get("twilio" + id)
 
 	err := h.tw.RegisterSMSCallback(num, h.URL()+"/v1/twilio/sms/messages")
@@ -652,8 +655,8 @@ func (h *Harness) TwilioMessagingService() string {
 	}
 	defer h.mx.Unlock()
 
-	nums := []string{h.phoneCCG.Get(""), h.phoneCCG.Get(""), h.phoneCCG.Get("")}
-	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", h.URL()+"/v1/twilio/voice/call", nums...)
+	nums := []string{h.phoneCCG.Get("twilio:sid1"), h.phoneCCG.Get("twilio:sid2"), h.phoneCCG.Get("twilio:sid3")}
+	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", nums...)
 	if err != nil {
 		panic(err)
 	}
