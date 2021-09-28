@@ -216,7 +216,7 @@ export default function TempSchedDialog({
                   label='Schedule Start'
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading}
+                  disabled={q.loading || edit}
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
                 />
               </Grid>
@@ -230,7 +230,7 @@ export default function TempSchedDialog({
                   min={value.start}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading}
+                  disabled={q.loading || edit}
                   hint={isLocalZone ? '' : fmtLocal(value.end)}
                 />
               </Grid>
