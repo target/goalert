@@ -641,7 +641,7 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		message := fmt.Sprintf(
-			"%sThis is %s. Please use the application dashboard to manage alerts. To disable voice notifications to this number, press %s. To repeat this message press %s.",
+			"%sThis is %s. Please use the application dashboard to manage alerts. To disable voice notifications to this number, press %s. To repeat this message, press %s.",
 			messagePrefix, cfg.ApplicationName(), digitStop, sayRepeat)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, ""),
