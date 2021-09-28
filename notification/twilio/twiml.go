@@ -87,9 +87,6 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 
 func (t *twiMLResponse) Gather(url string) {
 	t.gatherURL = url
-	if !t.hasOptions {
-		panic("Gather without options")
-	}
 	if !t.expectResponse {
 		t.Say("If you are done, you may simply hang up.")
 	}
