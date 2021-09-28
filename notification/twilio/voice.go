@@ -389,7 +389,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 
 	case "", digitRepeat:
-		message := fmt.Sprintf("%sTo confirm unenrollment of this number, press %s. To go back to main menu, press %s. To repeat this message, press %s.", messagePrefix, digitConfirm, digitGoBack, sayRepeat)
+		message := fmt.Sprintf("%sTo confirm unenrollment of this number, press %s. To go back to the main menu, press %s. To repeat this message, press %s.", messagePrefix, digitConfirm, digitGoBack, sayRepeat)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeStop),
 			Method:    "POST",
