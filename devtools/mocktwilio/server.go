@@ -234,6 +234,7 @@ func (s *Server) NewMessagingService(smsURL, voiceURL string, numbers ...string)
 		s.callbacks["SMS:"+num] = smsURL
 		s.callbacks["VOICE:"+num] = voiceURL
 	}
+	s.msgSvc[svcID] = numbers
 
 	return svcID, nil
 }
