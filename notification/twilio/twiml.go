@@ -87,6 +87,12 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 
 func (t *twiMLResponse) Gather(url string) {
 	t.gatherURL = url
+	if !t.hasOptions {
+		panic("Gather without options")
+	}
+	if !t.expectResponse {
+		t.Say("If you are done, you may simply hang up.")
+	}
 	t.AddOptions(optionRepeat)
 	t.sendResponse()
 }
@@ -119,10 +125,6 @@ func (t *twiMLResponse) sendResponse() {
 	if t.hasOptions && t.gatherURL == "" {
 		// if we give the user options, we need to allow them to respond
 		panic("Options without gather")
-	}
-
-	if !t.expectResponse && t.hasOptions {
-		t.Say("If you are done, you may simply hang up.")
 	}
 
 	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
