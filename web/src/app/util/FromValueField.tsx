@@ -18,6 +18,7 @@ export default function FromValueField(
   if (!phoneMode) {
     return (
       <TextField
+        fullWidth
         {...props}
         label='Messaging Service SID'
         InputLabelProps={{

@@ -71,16 +71,16 @@ func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, valu
 }
 
 // MessageStatus will return the current status of a message.
-func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, providerMsgID ProviderMessageID) (*Status, error) {
+func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
 
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
+		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
 	if !ok {
-		return nil, ErrStatusUnsupported
+		return nil, DestTypeUnknown, ErrStatusUnsupported
 	}
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
@@ -89,7 +89,9 @@ func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, provide
 		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
 	)
 	defer sp.End()
-	return checker.Status(ctx, providerMsgID.ExternalID)
+
+	status, err := checker.Status(ctx, providerMsgID.ExternalID)
+	return status, provider.destType, err
 }
 
 // RegisterSender will register a sender under a given DestType and name.
