@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
-import Input from '@material-ui/core/Input'
+import Input from '@material-ui/core/OutlinedInput'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
