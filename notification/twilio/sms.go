@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +42,7 @@ type SMS struct {
 var _ notification.ReceiverSetter = &SMS{}
 var _ notification.Sender = &SMS{}
 var _ notification.StatusChecker = &SMS{}
+var _ notification.FriendlyValuer = &SMS{}
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
@@ -69,21 +71,22 @@ func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Stat
 	if err != nil {
 		return nil, err
 	}
+
 	return msg.messageStatus(), nil
 }
 
 // Send implements the notification.Sender interface.
-func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
-		return "", nil, errors.New("Twilio provider is disabled")
+		return nil, errors.New("Twilio provider is disabled")
 	}
 	if msg.Destination().Type != notification.DestTypeSMS {
-		return "", nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
 	destNumber := msg.Destination().Value
 	if destNumber == cfg.Twilio.FromNumber {
-		return "", nil, errors.New("refusing to send outgoing SMS to FromNumber")
+		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
 
 	ctx = log.WithFields(ctx, log.Fields{
@@ -103,6 +106,9 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 		return code
 	}
 
+	prefix := cfg.ApplicationName() + ": "
+	maxLen := maxGSMLen - len(prefix)
+
 	var message string
 	var err error
 	switch t := msg.(type) {
@@ -110,7 +116,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 		message, err = alertSMS{
 			ID:   t.AlertID,
 			Body: t.LogEntry,
-		}.Render()
+		}.Render(maxLen)
 	case notification.AlertBundle:
 		var link string
 		if !cfg.General.DisableSMSLinks {
@@ -122,7 +128,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 			Body:  t.ServiceName,
 			Link:  link,
 			Code:  makeSMSCode(0, t.ServiceID),
-		}.Render()
+		}.Render(maxLen)
 	case notification.Alert:
 		var link string
 		if !cfg.General.DisableSMSLinks {
@@ -134,16 +140,16 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 			Body: t.Summary,
 			Link: link,
 			Code: makeSMSCode(t.AlertID, ""),
-		}.Render()
+		}.Render(maxLen)
 	case notification.Test:
-		message = "This is a test message from GoAlert."
+		message = "Test message."
 	case notification.Verification:
-		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
+		message = fmt.Sprintf("Verification code: %d", t.Code)
 	default:
-		return "", nil, errors.Errorf("unhandled message type %T", t)
+		return nil, errors.Errorf("unhandled message type %T", t)
 	}
 	if err != nil {
-		return "", nil, errors.Wrap(err, "render message")
+		return nil, errors.Wrap(err, "render message")
 	}
 
 	opts := &SMSOptions{
@@ -152,15 +158,15 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *noti
 	}
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Actually send notification to end user & receive Message Status
-	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
+	resp, err := s.c.SendSMS(ctx, destNumber, prefix+message, opts)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "send message")
+		return nil, errors.Wrap(err, "send message")
 	}
 
 	// If the message was sent successfully, reset reply limits.
 	s.limit.Reset(destNumber)
 
-	return resp.SID, resp.messageStatus(), nil
+	return resp.sentMessage(), nil
 }
 
 func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
@@ -182,7 +188,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		"Phone":  number,
 		"Type":   "TwilioSMS",
 	})
-	msg := Message{SID: sid, Status: status}
+	msg := Message{SID: sid, Status: status, From: req.FormValue("From")}
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 
@@ -213,6 +219,15 @@ func isStartMessage(body string) bool {
 	}
 
 	return false
+}
+
+// FriendlyValue will return the international formatting of the phone number.
+func (s *SMS) FriendlyValue(ctx context.Context, value string) (string, error) {
+	num, err := libphonenumber.Parse(value, "")
+	if err != nil {
+		return "", fmt.Errorf("parse number for formatting: %w", err)
+	}
+	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }
 
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {

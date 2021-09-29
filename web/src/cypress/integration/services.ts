@@ -38,11 +38,11 @@ function testServices(screen: ScreenFormat): void {
 
       cy.get('ul[data-cy=apollo-list]').should('exist')
       // by name with spaces before and after
-      // since search looks for literally the search string typed in, there would be no results for leading space + search string + 2 spaces
+      // search is based on word-matching so spaces are irrelevant
       cy.pageSearch(' ' + svc.name + '  ')
       cy.get('body')
-        .should('not.contain', svc.name)
-        .should('not.contain', svc.description)
+        .should('contain', svc.name)
+        .should('contain', svc.description)
 
       // since front-end no longer trims spaces for search arguments, the literal search result for search string should show up, if it exists.
       cy.pageSearch(' ' + secondHalf)

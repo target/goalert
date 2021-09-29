@@ -12,7 +12,7 @@ module.exports = {
   },
   target: 'node',
   output: {
-    path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
+    path: path.join(__dirname, '../../bin/build/integration/cypress'),
     libraryTarget: 'commonjs-module',
     libraryExport: 'default',
   },
@@ -40,6 +40,6 @@ module.exports = {
     ],
   },
 
-  // Source maps used for debugging information
-  devtool: 'eval-cheap-module-source-map',
+  // omit source maps for maximum performance; turn on for debugging
+  // devtool: 'eval-cheap-module-source-map',
 }

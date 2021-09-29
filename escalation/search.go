@@ -39,7 +39,7 @@ type SearchCursor struct {
 	IsFavorite bool   `json:"f,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("search").Parse(`
+var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
 	SELECT
 		pol.id,
 		pol.name,
@@ -54,8 +54,8 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .Omit}}
 		AND NOT pol.id = any(:omit)
 	{{end}}
-	{{if .SearchStr}}
-		AND (pol.name ILIKE :search OR pol.description ILIKE :search)
+	{{if .Search}}
+		AND {{textSearch "search" "pol.name" "pol.description"}}
 	{{end}}
 	{{if .After.Name}}
 		AND
@@ -78,14 +78,6 @@ func (opts renderData) OrderBy() string {
 		return "fav isnull, lower(pol.name)"
 	}
 	return "lower(pol.name)"
-}
-
-func (opts renderData) SearchStr() string {
-	if opts.Search == "" {
-		return ""
-	}
-
-	return "%" + search.Escape(opts.Search) + "%"
 }
 
 func (opts renderData) Normalize() (*renderData, error) {
@@ -113,7 +105,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
-		sql.Named("search", opts.SearchStr()),
+		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("favUserID", opts.FavoritesUserID),

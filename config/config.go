@@ -19,6 +19,7 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
+		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID            string `public:"true"`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
@@ -95,6 +96,8 @@ type Config struct {
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
+		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
+
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
 		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
@@ -126,19 +129,21 @@ type Config struct {
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
 func (cfg Config) TwilioSMSFromNumber(carrier string) string {
-	if carrier == "" {
-		return cfg.Twilio.FromNumber
+	if carrier != "" {
+		for _, s := range cfg.Twilio.SMSFromNumberOverride {
+			parts := strings.SplitN(s, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			if parts[0] != carrier {
+				continue
+			}
+			return parts[1]
+		}
 	}
 
-	for _, s := range cfg.Twilio.SMSFromNumberOverride {
-		parts := strings.SplitN(s, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		if parts[0] != carrier {
-			continue
-		}
-		return parts[1]
+	if cfg.Twilio.MessagingServiceSID != "" {
+		return cfg.Twilio.MessagingServiceSID
 	}
 
 	return cfg.Twilio.FromNumber
@@ -307,6 +312,14 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	return false
 }
 
+// ApplicationName will return the General.ApplicationName
+func (cfg Config) ApplicationName() string {
+	if cfg.General.ApplicationName == "" {
+		return "GoAlert"
+	}
+	return cfg.General.ApplicationName
+}
+
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
 	if cfg.General.PublicURL == "" {
@@ -344,6 +357,10 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL("General.PublicURL", cfg.General.PublicURL),
 		)
+	}
+
+	if cfg.General.ApplicationName != "" {
+		err = validate.Many(err, validate.ASCII("General.ApplicationName", cfg.General.ApplicationName, 0, 32))
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
@@ -390,6 +407,9 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.Twilio.FromNumber != "" {
 		err = validate.Many(err, validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber))
+	}
+	if cfg.Twilio.MessagingServiceSID != "" {
+		err = validate.Many(err, validate.TwilioSID("Twilio.MessagingServiceSID", "MG", cfg.Twilio.MessagingServiceSID))
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))

@@ -13,6 +13,9 @@ type Status struct {
 	// The Sequence number defaults to 0, and a status update is ignored unless its
 	// Sequence number is >= the current one.
 	Sequence int
+
+	// SrcValue can be used to set/update the source value of the message.
+	SrcValue string
 }
 
 // SendResult represents the result of a sent message.
@@ -25,6 +28,8 @@ type SendResult struct {
 	ProviderMessageID ProviderMessageID
 
 	Status
+
+	DestType DestType
 }
 
 // State represents the current state of an outgoing message.
@@ -34,9 +39,12 @@ type State int
 func (s State) IsOK() bool { return s == StateSending || s == StateSent || s == StateDelivered }
 
 const (
+	// StateUnknown is returned when the message has not yet been sent.
+	StateUnknown State = iota
+
 	// StateSending should be specified when a message is sending but has not been sent.
 	// This includes things like remotely queued, ringing, or in-progress calls.
-	StateSending State = iota
+	StateSending
 
 	// StatePending idicates a message waiting to be sent.
 	StatePending

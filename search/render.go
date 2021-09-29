@@ -4,16 +4,68 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/jackc/pgtype"
 )
 
 // RenderData is used as the data for a template with the ability to output a list
 // of all possible arguments.
 type RenderData interface {
 	QueryArgs() []sql.NamedArg
+}
+
+// Helpers returns a map of all the helper functions that can be used in a template.
+func Helpers() template.FuncMap {
+	return template.FuncMap{
+		"prefixSearch": func(argName string, columnName string) string {
+			return fmt.Sprintf("lower(%s) ~ all(:~%s)", columnName, argName)
+		},
+		"textSearch": func(argName string, columnNames ...string) string {
+			var buf strings.Builder
+			buf.WriteRune('(')
+			for i, columnName := range columnNames {
+				if i > 0 {
+					buf.WriteString(" OR ")
+				}
+				buf.WriteString(fmt.Sprintf("to_tsvector('english', replace(lower(%s), '.', ' ')) @@ plainto_tsquery('english', replace(lower(:%s),'.',' '))", columnName, argName))
+			}
+
+			buf.WriteRune(')')
+			return buf.String()
+		},
+	}
+}
+
+func splitRxTerms(rx string) pgtype.TextArray {
+	rx = strings.ToLower(rx)
+	var terms []string
+	var cur string
+	for _, r := range rx {
+		if r >= '0' && r <= '9' || r >= 'a' && r <= 'z' {
+			cur += string(r)
+			continue
+		}
+		if cur == "" {
+			continue
+		}
+
+		terms = append(terms, "\\m"+cur)
+		cur = ""
+	}
+
+	if cur != "" {
+		terms = append(terms, "\\m"+cur)
+	}
+
+	var t pgtype.TextArray
+	t.Set(terms)
+
+	return t
 }
 
 // RenderQuery will render a search query with the given template and data.
@@ -32,12 +84,23 @@ func RenderQuery(ctx context.Context, tmpl *template.Template, data RenderData) 
 	args = make([]interface{}, 0, len(nArgs))
 	query = buf.String()
 	n := 1
-	for _, arg := range nArgs {
+	for i, arg := range nArgs {
+		if strings.Contains(query, ":~"+arg.Name) {
+			// regex match
+			val, ok := arg.Value.(string)
+			if !ok {
+				return "", nil, fmt.Errorf("argument %d must be a string", i)
+			}
+
+			query = strings.ReplaceAll(query, ":~"+arg.Name, "$"+strconv.Itoa(n))
+			args = append(args, splitRxTerms(val))
+			n++
+		}
 		rep := ":" + arg.Name
 		if !strings.Contains(query, rep) {
 			continue
 		}
-		query = strings.Replace(query, rep, "$"+strconv.Itoa(n), -1)
+		query = strings.ReplaceAll(query, rep, "$"+strconv.Itoa(n))
 		args = append(args, arg.Value)
 		n++
 	}

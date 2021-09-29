@@ -93,6 +93,9 @@ type Query {
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
 
+  # Returns the message status
+  debugMessageStatus(input: DebugMessageStatusInput!): DebugMessageStatusInfo!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -259,6 +262,15 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
+}
+
+input DebugMessageStatusInput {
+  providerMessageID: ID!
+}
+
+type DebugMessageStatusInfo {
+  state: NotificationState!
 }
 
 type TemporarySchedule {
@@ -869,6 +881,7 @@ type AlertLogEntry {
 type NotificationState {
   details: String!
   status: NotificationStatus
+  formattedSrcValue: String!
 }
 
 enum NotificationStatus {

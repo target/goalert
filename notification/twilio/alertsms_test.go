@@ -26,7 +26,7 @@ func TestMapGSM(t *testing.T) {
 func TestAlertSMS_Render(t *testing.T) {
 	check := func(name string, a alertSMS, exp string) {
 		t.Run(name, func(t *testing.T) {
-			res, err := a.Render()
+			res, err := a.Render(maxGSMLen)
 			if len(res) > 160 {
 				t.Errorf("message exceeded 160 characters")
 			} else {

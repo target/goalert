@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -234,7 +235,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	// Notify changed schedules
-	needsOnCallNotification := make(map[string]uuid.UUID)
+	needsOnCallNotification := make(map[string][]uuid.UUID)
 	for schedID := range changedSchedules {
 		data := scheduleData[schedID]
 		if data == nil {
@@ -245,7 +246,7 @@ func (db *DB) update(ctx context.Context) error {
 				continue
 			}
 
-			needsOnCallNotification[schedID] = r.ChannelID
+			needsOnCallNotification[schedID] = append(needsOnCallNotification[schedID], r.ChannelID)
 		}
 	}
 
@@ -253,7 +254,7 @@ func (db *DB) update(ctx context.Context) error {
 		var hadChange bool
 		for i, r := range data.V1.OnCallNotificationRules {
 			if r.NextNotification != nil && !r.NextNotification.After(now) {
-				needsOnCallNotification[schedID] = r.ChannelID
+				needsOnCallNotification[schedID] = append(needsOnCallNotification[schedID], r.ChannelID)
 			}
 
 			newTime := nextOnCallNotification(now.In(tz[schedID]), r)
@@ -277,10 +278,18 @@ func (db *DB) update(ctx context.Context) error {
 		}
 	}
 
-	for schedID, chanID := range needsOnCallNotification {
-		_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.New(), chanID, schedID)
-		if err != nil {
-			return err
+	for schedID, chanIDs := range needsOnCallNotification {
+		sort.Slice(chanIDs, func(i, j int) bool { return chanIDs[i].String() < chanIDs[j].String() })
+		var lastID uuid.UUID
+		for _, chanID := range chanIDs {
+			if chanID == lastID {
+				continue
+			}
+			lastID = chanID
+			_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.New(), chanID, schedID)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

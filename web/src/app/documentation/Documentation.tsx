@@ -16,11 +16,17 @@ const useStyles = makeStyles({
 })
 
 export default function IntegrationKeyAPI(): JSX.Element {
-  const [publicURL] = useConfigValue('General.PublicURL')
+  const [publicURL, webhookEnabled] = useConfigValue(
+    'General.PublicURL',
+    'Webhook.Enable',
+  )
   const classes = useStyles()
 
   // NOTE list markdown documents here
-  let markdownDocs = [integrationKeys, webhooks]
+  let markdownDocs = [integrationKeys]
+  if (webhookEnabled) {
+    markdownDocs.push(webhooks)
+  }
 
   markdownDocs = markdownDocs.map((md) =>
     md.replaceAll(

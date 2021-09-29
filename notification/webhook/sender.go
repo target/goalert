@@ -17,6 +17,7 @@ type Sender struct{}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
+	AppName string
 	Type    string
 	AlertID int
 	Summary string
@@ -25,6 +26,7 @@ type POSTDataAlert struct {
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
 type POSTDataAlertBundle struct {
+	AppName     string
 	Type        string
 	ServiceID   string
 	ServiceName string
@@ -33,6 +35,7 @@ type POSTDataAlertBundle struct {
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
+	AppName  string
 	Type     string
 	AlertID  int
 	LogEntry string
@@ -40,6 +43,7 @@ type POSTDataAlertStatus struct {
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
 type POSTDataAlertStatusBundle struct {
+	AppName  string
 	Type     string
 	AlertID  int
 	LogEntry string
@@ -48,13 +52,15 @@ type POSTDataAlertStatusBundle struct {
 
 // POSTDataVerification represents fields in outgoing verification notification.
 type POSTDataVerification struct {
-	Type string
-	Code string
+	AppName string
+	Type    string
+	Code    string
 }
 
 // POSTDataTest represents fields in outgoing test notification.
 type POSTDataTest struct {
-	Type string
+	AppName string
+	Type    string
 }
 
 func NewSender(ctx context.Context) *Sender {
@@ -62,20 +68,24 @@ func NewSender(ctx context.Context) *Sender {
 }
 
 // Send will send an alert for the provided message type
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+	cfg := config.FromContext(ctx)
 	var payload interface{}
 	switch m := msg.(type) {
 	case notification.Test:
 		payload = POSTDataTest{
-			Type: "Test",
+			AppName: cfg.ApplicationName(),
+			Type:    "Test",
 		}
 	case notification.Verification:
 		payload = POSTDataVerification{
-			Type: "Verification",
-			Code: strconv.Itoa(m.Code),
+			AppName: cfg.ApplicationName(),
+			Type:    "Verification",
+			Code:    strconv.Itoa(m.Code),
 		}
 	case notification.Alert:
 		payload = POSTDataAlert{
+			AppName: cfg.ApplicationName(),
 			Type:    "Alert",
 			Details: m.Details,
 			AlertID: m.AlertID,
@@ -83,6 +93,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{
+			AppName:     cfg.ApplicationName(),
 			Type:        "AlertBundle",
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
@@ -90,42 +101,42 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
+			AppName:  cfg.ApplicationName(),
 			Type:     "AlertStatus",
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
 		}
 	default:
-		return "", nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
+		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
 	}
 
 	data, err := json.Marshal(payload)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	cfg := config.FromContext(ctx)
 	if !cfg.ValidWebhookURL(msg.Destination().Value) {
 		// fail permanently if the URL is not currently valid/allowed
-		return "", &notification.Status{
-			State:   notification.StateFailedPerm,
-			Details: "invalid or not allowed URL",
+		return &notification.SentMessage{
+			State:        notification.StateFailedPerm,
+			StateDetails: "invalid or not allowed URL",
 		}, nil
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return "", &notification.Status{State: notification.StateSent}, nil
+	return &notification.SentMessage{State: notification.StateSent}, nil
 }

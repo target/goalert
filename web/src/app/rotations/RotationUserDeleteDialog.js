@@ -32,12 +32,14 @@ const RotationUserDeleteDialog = (props) => {
       id: rotationID,
     },
   })
-  const { userIDs, users } = data.rotation
+  const { userIDs, users, activeUserIndex } = data.rotation
   const [deleteUserMutation] = useMutation(mutation, {
     onCompleted: onClose,
     variables: {
       input: {
         id: rotationID,
+        activeUserIndex:
+          activeUserIndex > userIndex ? activeUserIndex - 1 : activeUserIndex,
         userIDs: userIDs.filter((_, index) => index !== userIndex),
       },
     },

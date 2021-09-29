@@ -2,11 +2,11 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
 import { isWidthDown } from '@material-ui/core/withWidth/index'
-import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
+import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
-import useWidth from '../util/useWidth'
-import { Query } from '../../schema'
-import { GenericError, ObjectNotFound } from '../error-pages'
+import useWidth from '../../util/useWidth'
+import { Query } from '../../../schema'
+import { GenericError, ObjectNotFound } from '../../error-pages'
 import { useCalendarNavigation } from './hooks'
 
 const query = gql`
@@ -15,6 +15,27 @@ const query = gql`
     $start: ISOTimestamp!
     $end: ISOTimestamp!
   ) {
+    userOverrides(input: { scheduleID: $id, start: $start, end: $end }) {
+      nodes {
+        id
+        start
+        end
+        addUser {
+          id
+          name
+        }
+        removeUser {
+          id
+          name
+        }
+      }
+
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+
     schedule(id: $id) {
       id
       shifts(start: $start, end: $end) {
@@ -48,9 +69,6 @@ const query = gql`
 
 interface ScheduleCalendarQueryProps {
   scheduleID: string
-  onNewTempSched: () => void
-  onEditTempSched: () => void
-  onDeleteTempSched: () => void
 }
 
 function ScheduleCalendarQuery({
@@ -90,6 +108,7 @@ function ScheduleCalendarQuery({
       loading={loading && !data}
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
+      overrides={data?.userOverrides?.nodes ?? []}
       {...other}
     />
   )

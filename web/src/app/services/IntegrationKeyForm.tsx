@@ -2,20 +2,9 @@ import React from 'react'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import MenuItem from '@material-ui/core/MenuItem'
-import { Help } from '@material-ui/icons'
-import { makeStyles } from '@material-ui/core/styles'
-import Tooltip from '@material-ui/core/Tooltip'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
-import AppLink from '../util/AppLink'
 import { IntegrationKeyType } from '../../schema'
-
-const useStyles = makeStyles((theme) => ({
-  infoIcon: {
-    color: theme.palette.primary.main,
-  },
-}))
 
 interface Value {
   name: string
@@ -36,7 +25,6 @@ interface IntegrationKeyFormProps {
 export default function IntegrationKeyForm(
   props: IntegrationKeyFormProps,
 ): JSX.Element {
-  const classes = useStyles()
   const { ...formProps } = props
   return (
     <FormContainer {...formProps} optionalLabels>
@@ -60,17 +48,6 @@ export default function IntegrationKeyForm(
                 required
                 label='Type'
                 name='type'
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <Tooltip title='API Documentation' placement='right'>
-                        <AppLink to='/docs' newTab>
-                          <Help className={classes.infoIcon} />
-                        </AppLink>
-                      </Tooltip>
-                    </InputAdornment>
-                  ),
-                }}
               >
                 {cfg['Mailgun.Enable'] && (
                   <MenuItem value='email'>Email</MenuItem>

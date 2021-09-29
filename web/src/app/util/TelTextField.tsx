@@ -89,6 +89,10 @@ export default function TelTextField(
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
+
+    // ignore SID being pasted in
+    if (e.target.value.toLowerCase().startsWith('mg')) return
+
     e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
@@ -99,6 +103,10 @@ export default function TelTextField(
       {...props}
       InputProps={iprops}
       type={props.type || 'tel'}
+      helperText={
+        props.helperText ||
+        'Include country code e.g. +1 (USA), +91 (India), +44 (UK)'
+      }
       onChange={handleChange}
       value={(props.value || '').replace(/[^0-9]/g, '')}
     />

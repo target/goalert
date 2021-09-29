@@ -40,17 +40,47 @@ func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
 }
 
+// FormatDestValue will format the destination value if an available FriendlyValuer exists
+// for the destType or return the original.
+func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, value string) string {
+	if value == "" {
+		return ""
+	}
+	mgr.mx.RLock()
+	defer mgr.mx.RUnlock()
+
+	for _, s := range mgr.searchOrder {
+		if s.destType != destType {
+			continue
+		}
+
+		f, ok := s.Sender.(FriendlyValuer)
+		if !ok {
+			continue
+		}
+
+		newValue, err := f.FriendlyValue(ctx, value)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("format dest value with '%s': %w", s.name, err))
+			continue
+		}
+
+		return newValue
+	}
+	return value
+}
+
 // MessageStatus will return the current status of a message.
-func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, providerMsgID ProviderMessageID) (*Status, error) {
+func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
 
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
+		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
 	if !ok {
-		return nil, ErrStatusUnsupported
+		return nil, DestTypeUnknown, ErrStatusUnsupported
 	}
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
@@ -59,7 +89,9 @@ func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, provide
 		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
 	)
 	defer sp.End()
-	return checker.Status(ctx, providerMsgID.ExternalID)
+
+	status, err := checker.Status(ctx, providerMsgID.ExternalID)
+	return status, provider.destType, err
 }
 
 // RegisterSender will register a sender under a given DestType and name.

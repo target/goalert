@@ -28,6 +28,7 @@ export interface Query {
   config: ConfigValue[]
   configHints: ConfigHint[]
   systemLimits: SystemLimit[]
+  debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
@@ -182,6 +183,15 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
+}
+
+export interface DebugMessageStatusInput {
+  providerMessageID: string
+}
+
+export interface DebugMessageStatusInfo {
+  state: NotificationState
 }
 
 export interface TemporarySchedule {
@@ -676,6 +686,7 @@ export interface AlertLogEntry {
 export interface NotificationState {
   details: string
   status?: NotificationStatus
+  formattedSrcValue: string
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
@@ -922,6 +933,7 @@ export interface Notice {
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
 
 type ConfigID =
+  | 'General.ApplicationName'
   | 'General.PublicURL'
   | 'General.GoogleAnalyticsID'
   | 'General.NotificationDisclaimer'
@@ -963,6 +975,7 @@ type ConfigID =
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.FromNumber'
+  | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'
