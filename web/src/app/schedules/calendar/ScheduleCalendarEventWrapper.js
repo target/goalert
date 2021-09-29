@@ -7,8 +7,15 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
+import CardActions from '../../details/CardActions'
+import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
+import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
 
 const useStyles = makeStyles({
+  cardActionContainer: {
+    width: '100%',
+  },
   button: {
     padding: '4px',
     minHeight: 0,
@@ -30,6 +37,10 @@ const useStyles = makeStyles({
 export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
+
+  const [showEditDialog, setShowEditDialog] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(null)
+
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
   )
@@ -107,6 +118,33 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
   function renderOverrideButtons() {
     return (
+      <div className={classes.cardActionContainer}>
+        <CardActions
+          secondaryActions={[
+            {
+              icon: <EditIcon fontSize='small' />,
+              label: 'Edit',
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowEditDialog(event?.override?.id)
+              },
+            },
+            {
+              icon: <DeleteIcon fontSize='small' />,
+              label: 'Delete',
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowDeleteDialog(event?.override?.id)
+              },
+            },
+          ]}
+        />
+      </div>
+    )
+  }
+
+  function renderShiftButtons() {
+    return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
         <Grid item>
@@ -129,8 +167,42 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
     if (event.tempSched) return renderTempSchedButtons()
     if (event.fixed) return null
+    if (event.isOverride) return renderOverrideButtons()
 
-    return renderOverrideButtons()
+    return renderShiftButtons()
+  }
+
+  function renderOverrideDescription() {
+    if (!event.isOverride) return null
+
+    const getDesc = (addUser, removeUser) => {
+      if (addUser && removeUser)
+        return (
+          <React.Fragment>
+            <b>{removeUser.name}</b> replaces <b>{addUser.name}</b>.
+          </React.Fragment>
+        )
+      if (addUser)
+        return (
+          <React.Fragment>
+            Adds <b>{addUser.name}</b>.
+          </React.Fragment>
+        )
+      if (removeUser)
+        return (
+          <React.Fragment>
+            Removes <b>{removeUser.name}</b>.
+          </React.Fragment>
+        )
+    }
+
+    return (
+      <Grid item xs={12}>
+        <Typography variant='body2'>
+          {getDesc(event.override.addUser, event.override.removeUser)}
+        </Typography>
+      </Grid>
+    )
   }
 
   /*
@@ -145,6 +217,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
     return (
       <Grid container spacing={1}>
+        {renderOverrideDescription()}
         <Grid item xs={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
@@ -188,6 +261,18 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
         'aria-pressed': open,
         'aria-describedby': id,
       })}
+      {showEditDialog && (
+        <ScheduleOverrideEditDialog
+          overrideID={showEditDialog}
+          onClose={() => setShowEditDialog(null)}
+        />
+      )}
+      {showDeleteDialog && (
+        <ScheduleOverrideDeleteDialog
+          overrideID={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(null)}
+        />
+      )}
     </React.Fragment>
   )
 }
