@@ -425,18 +425,20 @@ func (db *DB) FindPendingNotifications(ctx context.Context, alertID int) ([]Aler
 		if err != nil {
 			return nil, err
 		}
-		if destType.DestType().CMType().Valid() {
+
+		switch {
+		case destType.DestType().CMType().Valid():
 			result = append(result, AlertPendingNotification{
 				DestType: string(destType.DestType().CMType()),
 				DestName: destName,
 			})
-		} else if destType.DestType().NCType().Valid() {
+		case destType.DestType().NCType().Valid():
 			result = append(result, AlertPendingNotification{
 				DestType: string(destType.DestType().NCType()),
 				DestName: destName,
 			})
-		} else {
-			log.Debugf(ctx, "unknown destination type for pending notification for alert %s", alertID)
+		default:
+			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", alertID)
 		}
 
 	}
