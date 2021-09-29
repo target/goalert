@@ -79,7 +79,7 @@
     "@types/react-dom": "17.0.9",
     "@types/react-redux": "7.1.18",
     "@types/react-router": "5.1.16",
-    "@types/react-router-dom": "5.1.8",
+    "@types/react-router-dom": "5.3.0",
     "babel-jest": "27.2.0",
     "babel-loader": "8.2.2",
     "babel-plugin-transform-class-properties": "6.24.1",
