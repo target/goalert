@@ -218,11 +218,11 @@ func (s *Server) getFromNumber(id string) string {
 }
 
 // NewMessagingService registers a new Messaging SID for the given numbers.
-func (s *Server) NewMessagingService(smsURL, voiceURL string, numbers ...string) (string, error) {
-	err := validate.Many(
-		validate.URL("SMS URL", smsURL),
-		validate.URL("Voice URL", voiceURL),
-	)
+func (s *Server) NewMessagingService(url string, numbers ...string) (string, error) {
+	err := validate.URL("URL", url)
+	for i, n := range numbers {
+		err = validate.Many(err, validate.Phone(fmt.Sprintf("Number[%d]", i), n))
+	}
 	if err != nil {
 		return "", err
 	}
@@ -231,8 +231,7 @@ func (s *Server) NewMessagingService(smsURL, voiceURL string, numbers ...string)
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	for _, num := range numbers {
-		s.callbacks["SMS:"+num] = smsURL
-		s.callbacks["VOICE:"+num] = voiceURL
+		s.callbacks["SMS:"+num] = url
 	}
 	s.msgSvc[svcID] = numbers
 

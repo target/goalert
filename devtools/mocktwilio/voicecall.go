@@ -151,9 +151,8 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fromValue := req.FormValue("From")
-	fromNumber := s.getFromNumber(fromValue)
 	s.mx.RLock()
-	_, hasCallback := s.callbacks["VOICE:"+fromNumber]
+	_, hasCallback := s.callbacks["VOICE:"+fromValue]
 	s.mx.RUnlock()
 	if !hasCallback {
 		apiError(400, w, &twilio.Exception{
@@ -162,14 +161,9 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if strings.HasPrefix(fromValue, "MG") {
-		vc.call.MessagingServiceSID = fromValue
-	} else {
-		vc.call.From = fromValue
-	}
-
 	vc.s = s
 	vc.call.To = req.FormValue("To")
+	vc.call.From = fromValue
 	vc.call.SID = s.id("CA")
 	vc.call.SequenceNumber = new(int)
 	vc.callbackURL = req.FormValue("StatusCallback")
@@ -219,15 +213,6 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 	// move to queued
 	vc.mx.Lock()
 	vc.call.Status = stat
-	switch stat {
-	case twilio.CallStatusQueued, twilio.CallStatusInitiated:
-	default:
-		if vc.call.MessagingServiceSID == "" {
-			break
-		}
-
-		vc.call.From = vc.s.getFromNumber(vc.call.MessagingServiceSID)
-	}
 
 	switch stat {
 	case twilio.CallStatusInProgress:

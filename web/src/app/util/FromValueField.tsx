@@ -5,7 +5,11 @@ import ClickableText from './ClickableText'
 import ToggleIcon from '@material-ui/icons/CompareArrows'
 
 export default function FromValueField(
-  props: TextFieldProps & { value: string },
+  props: TextFieldProps & {
+    value: string
+    defaultPhone?: string | null
+    defaultSID?: string | null
+  },
 ): JSX.Element {
   const [phoneMode, setPhoneMode] = useState(
     props.value === '' || props.value.startsWith('+'),
@@ -18,7 +22,6 @@ export default function FromValueField(
   if (!phoneMode) {
     return (
       <TextField
-        fullWidth
         {...props}
         label='Messaging Service SID'
         InputLabelProps={{
@@ -50,7 +53,7 @@ export default function FromValueField(
               if (!props.onChange) return
 
               const e = _e as React.ChangeEvent<HTMLInputElement>
-              e.target.value = ''
+              e.target.value = props.defaultPhone || ''
               props.onChange(e)
             }}
           >
@@ -74,7 +77,7 @@ export default function FromValueField(
             if (!props.onChange) return
 
             const e = _e as React.ChangeEvent<HTMLInputElement>
-            e.target.value = ''
+            e.target.value = props.defaultSID || ''
             props.onChange(e)
           }}
         >

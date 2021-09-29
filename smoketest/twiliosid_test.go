@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -44,15 +45,18 @@ func TestTwilioSID(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	h.SetConfigValue("Twilio.FromNumber", h.TwilioMessagingService())
+	h.SetConfigValue("Twilio.MessagingServiceSID", h.TwilioMessagingService())
 
 	h.CreateAlert(h.UUID("sid"), "testing")
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("testing").
-		ThenReply("ack 1").
+	sms := d1.ExpectSMS("testing")
+
+	// should use a messaging service number
+	assert.NotEqual(t, h.TwilioNumber(""), sms.From())
+	sms.ThenReply("ack 1").
 		ThenExpect("acknowledged")
 
 	d1.ExpectVoice("testing").
