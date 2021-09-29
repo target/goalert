@@ -41,7 +41,6 @@ const useStyles = makeStyles((theme) => ({
   },
   formContainer: {
     height: '100%',
-    padding: '0.5rem',
   },
   noCoverageError: {
     marginTop: '.5rem',
@@ -183,7 +182,12 @@ export default function TempSchedDialog({
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
         >
-          <Grid container className={classes.formContainer}>
+          <Grid
+            container
+            className={classes.formContainer}
+            justifyContent='space-between'
+          >
+            {/* left pane */}
             <Grid
               item
               xs={12}
@@ -191,7 +195,6 @@ export default function TempSchedDialog({
               container
               alignContent='flex-start'
               spacing={2}
-              style={{ paddingRight: '1rem' }}
             >
               <Grid item xs={12}>
                 <DialogContentText className={classes.contentText}>
@@ -247,13 +250,12 @@ export default function TempSchedDialog({
               </Grid>
             </Grid>
 
-            {/* shifts list container */}
+            {/* right pane */}
             <Grid item xs={12} md={6}>
               <Typography variant='subtitle1' component='h3'>
                 Shifts
               </Typography>
 
-              {/* coverage warning */}
               {hasSubmitted && hasCoverageGaps && (
                 <Alert severity='error' className={classes.noCoverageError}>
                   <AlertTitle>Gaps in coverage</AlertTitle>
