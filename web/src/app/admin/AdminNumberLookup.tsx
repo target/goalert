@@ -96,8 +96,6 @@ export default function AdminNumberLookup(): JSX.Element {
                   }}
                   value={number}
                   label='Phone Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
                 />
               </Grid>
             </Grid>

@@ -11,11 +11,6 @@ const useStyles = makeStyles((theme) => ({
       justifyContent: 'center',
     },
   },
-  gridItem: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '65%',
-    },
-  },
   groupTitle: {
     fontSize: '1.1rem',
   },
@@ -29,7 +24,7 @@ export default function AdminToolbox(): JSX.Element {
 
   return (
     <Grid container spacing={2} className={classes.gridContainer}>
-      <Grid container item xs={12} className={classes.gridItem}>
+      <Grid container item xs={12}>
         <Grid item xs={12}>
           <Typography
             component='h2'
@@ -44,7 +39,7 @@ export default function AdminToolbox(): JSX.Element {
           <AdminNumberLookup />
         </Grid>
       </Grid>
-      <Grid container item xs={12} className={classes.gridItem}>
+      <Grid container item xs={12}>
         <Grid item xs={12}>
           <Typography
             component='h2'

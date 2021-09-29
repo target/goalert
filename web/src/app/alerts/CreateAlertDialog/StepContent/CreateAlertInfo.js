@@ -19,7 +19,6 @@ export function CreateAlertInfo() {
           fullWidth
           multiline
           rows={7}
-          variant='outlined'
           placeholder='Alert Details'
           name='details'
           component={TextField}

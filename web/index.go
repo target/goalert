@@ -46,6 +46,9 @@ func AppVersion() string {
 }
 
 type renderData struct {
+	// Name set in config used for the application.
+	ApplicationName string
+
 	// Prefix is the URL prefix for the GoAlert application.
 	Prefix string
 

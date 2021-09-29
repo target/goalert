@@ -106,8 +106,8 @@ func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 // Render will render a single-segment SMS.
 //
 // Non-GSM characters will be replaced with '?' and Body will be
-// truncated (if needed) until the output is <= 160 characters.
-func (a alertSMS) Render() (string, error) {
+// truncated (if needed) until the output is <= maxLen characters.
+func (a alertSMS) Render(maxLen int) (string, error) {
 	a.Body = strings.Map(mapGSM, a.Body)
 	a.Body = strings.Replace(a.Body, "  ", " ", -1)
 	a.Body = strings.TrimSpace(a.Body)
@@ -118,8 +118,8 @@ func (a alertSMS) Render() (string, error) {
 		return "", err
 	}
 
-	if buf.Len() > maxGSMLen {
-		newBodyLen := len(a.Body) - (buf.Len() - maxGSMLen)
+	if buf.Len() > maxLen {
+		newBodyLen := len(a.Body) - (buf.Len() - maxLen)
 		if newBodyLen <= 0 {
 			return "", errors.New("message too long to include body")
 		}

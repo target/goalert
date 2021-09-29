@@ -109,7 +109,7 @@ export default function MaterialSelect(
     onInputChange(input)
   }
 
-  const multi = multiple ? { multiple: true } : {}
+  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
 
   useEffect(() => {
     if (!focus) setInputValue(getInputLabel())
@@ -123,7 +123,7 @@ export default function MaterialSelect(
   if (value && Array.isArray(value)) {
     options = [...options, ...value]
   } else if (!inputValue && value && !Array.isArray(value) && !options.length) {
-    options = [value, ...options]
+    options = [value]
   }
 
   const customCSS: Record<string, string> = {

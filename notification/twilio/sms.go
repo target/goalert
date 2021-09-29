@@ -106,6 +106,9 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return code
 	}
 
+	prefix := cfg.ApplicationName() + ": "
+	maxLen := maxGSMLen - len(prefix)
+
 	var message string
 	var err error
 	switch t := msg.(type) {
@@ -113,7 +116,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		message, err = alertSMS{
 			ID:   t.AlertID,
 			Body: t.LogEntry,
-		}.Render()
+		}.Render(maxLen)
 	case notification.AlertBundle:
 		var link string
 		if !cfg.General.DisableSMSLinks {
@@ -125,7 +128,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Body:  t.ServiceName,
 			Link:  link,
 			Code:  makeSMSCode(0, t.ServiceID),
-		}.Render()
+		}.Render(maxLen)
 	case notification.Alert:
 		var link string
 		if !cfg.General.DisableSMSLinks {
@@ -137,11 +140,11 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Body: t.Summary,
 			Link: link,
 			Code: makeSMSCode(t.AlertID, ""),
-		}.Render()
+		}.Render(maxLen)
 	case notification.Test:
-		message = "This is a test message from GoAlert."
+		message = "Test message."
 	case notification.Verification:
-		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
+		message = fmt.Sprintf("Verification code: %d", t.Code)
 	default:
 		return nil, errors.Errorf("unhandled message type %T", t)
 	}
@@ -155,7 +158,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	}
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Actually send notification to end user & receive Message Status
-	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
+	resp, err := s.c.SendSMS(ctx, destNumber, prefix+message, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "send message")
 	}
@@ -185,7 +188,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		"Phone":  number,
 		"Type":   "TwilioSMS",
 	})
-	msg := Message{SID: sid, Status: status}
+	msg := Message{SID: sid, Status: status, From: req.FormValue("From")}
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 

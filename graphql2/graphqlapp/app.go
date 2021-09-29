@@ -75,6 +75,8 @@ type App struct {
 	HeartbeatStore *heartbeat.Store
 	NoticeStore    notice.Store
 
+	NotificationManager notification.Manager
+
 	AuthHandler *auth.Handler
 
 	NotificationStore notification.Store
@@ -85,31 +87,30 @@ type App struct {
 	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
-func mustAuth(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		err := permission.LimitCheckAny(req.Context())
-		if errutil.HTTPError(req.Context(), w, err) {
-			return
-		}
-
-		h.ServeHTTP(w, req)
-	})
-}
-
-func (a *App) PlayHandler() http.Handler {
+func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 	var data struct {
-		Version     string
-		PackageName string
+		ApplicationName string
+		Version         string
+		PackageName     string
 	}
+
+	ctx := req.Context()
+
+	err := permission.LimitCheckAny(ctx)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	cfg := config.FromContext(ctx)
+
+	data.ApplicationName = cfg.ApplicationName()
 	data.Version = playVersion
 	data.PackageName = playPackageName
-	return mustAuth(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		err := playTmpl.Execute(w, data)
-		if err != nil {
-			log.Log(req.Context(), err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	}))
+
+	err = playTmpl.Execute(w, data)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
 }
 
 type fieldErr struct {

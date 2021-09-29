@@ -1,8 +1,8 @@
 *
-!/bin/goalert-linux-arm
-!/bin/goalert-linux-arm64
-!/bin/goalert-linux-amd64
-!/bin/resetdb-linux-arm
-!/bin/resetdb-linux-arm64
-!/bin/resetdb-linux-amd64
+!/bin/linux-arm/goalert
+!/bin/linux-arm64/goalert
+!/bin/linux-amd64/goalert
+!/bin/linux-arm/resetdb
+!/bin/linux-arm64/resetdb
+!/bin/linux-amd64/resetdb
 !/devtools/ci/dockerfiles/all-in-one/
