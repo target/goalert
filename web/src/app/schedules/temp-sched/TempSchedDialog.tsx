@@ -46,6 +46,11 @@ const useStyles = makeStyles((theme) => ({
     marginTop: '.5rem',
     marginBottom: '.5rem',
   },
+  rightPane: {
+    [theme.breakpoints.down('md')]: {
+      marginTop: '1rem',
+    },
+  },
   sticky: {
     position: 'sticky',
     top: 0,
@@ -256,7 +261,14 @@ export default function TempSchedDialog({
             </Grid>
 
             {/* right pane */}
-            <Grid item xs={12} md={6} container spacing={2}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              container
+              spacing={2}
+              className={classes.rightPane}
+            >
               <Grid item xs={12}>
                 <Typography variant='subtitle1' component='h3'>
                   Shifts
