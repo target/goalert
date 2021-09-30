@@ -16,7 +16,6 @@ import FlatList, {
 } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
 import { CircularProgress } from '@material-ui/core'
@@ -30,22 +29,17 @@ import {
   sortItems,
 } from './shiftsListUtil'
 
-const useStyles = makeStyles((theme) => {
-  return {
-    secondaryActionWrapper: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    secondaryActionError: {
-      color: styles(theme).error.color,
-    },
-    spinContainer: {
-      display: 'flex',
-      alignItems: 'center',
-      flexDirection: 'column',
-      marginTop: '15rem',
-    },
-  }
+const useStyles = makeStyles({
+  secondaryActionWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  spinContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'column',
+    marginTop: '15rem',
+  },
 })
 
 type TempSchedShiftsListProps = {
