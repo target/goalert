@@ -50,6 +50,7 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('md')]: {
       marginTop: '1rem',
     },
+    overflow: 'hidden',
   },
   sticky: {
     position: 'sticky',
