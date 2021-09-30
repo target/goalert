@@ -69,6 +69,8 @@ export default function ScheduleCalendarOverrideDialog(props) {
     setFieldErrors(getFieldErrors(error))
   }, [error])
 
+  onNewTempSched()
+
   const onNext = () => {
     if (activeVariant === 'temp') {
       onNewTempSched()
