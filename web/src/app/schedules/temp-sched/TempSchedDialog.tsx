@@ -156,6 +156,7 @@ export default function TempSchedDialog({
 
   return (
     <FormDialog
+      fullHeight
       maxWidth='lg'
       title='Define a Temporary Schedule'
       onClose={onClose}
