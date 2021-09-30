@@ -46,6 +46,10 @@ const useStyles = makeStyles((theme) => ({
     marginTop: '.5rem',
     marginBottom: '.5rem',
   },
+  sticky: {
+    position: 'sticky',
+    top: 0,
+  },
   tzNote: {
     fontStyle: 'italic',
   },
@@ -241,7 +245,7 @@ export default function TempSchedDialog({
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} className={classes.sticky}>
                 <TempSchedAddNewShift
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
