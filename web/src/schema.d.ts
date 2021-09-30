@@ -659,6 +659,11 @@ export interface Alert {
   service?: Service
   state?: AlertState
   recentEvents: AlertLogEntryConnection
+  pendingNotifications: AlertPendingNotification[]
+}
+
+export interface AlertPendingNotification {
+  destination: string
 }
 
 export interface AlertRecentEventsOptions {

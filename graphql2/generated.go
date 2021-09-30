@@ -87,16 +87,17 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Alert struct {
-		AlertID      func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		Details      func(childComplexity int) int
-		ID           func(childComplexity int) int
-		RecentEvents func(childComplexity int, input *AlertRecentEventsOptions) int
-		Service      func(childComplexity int) int
-		ServiceID    func(childComplexity int) int
-		State        func(childComplexity int) int
-		Status       func(childComplexity int) int
-		Summary      func(childComplexity int) int
+		AlertID              func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		Details              func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		PendingNotifications func(childComplexity int) int
+		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
+		Service              func(childComplexity int) int
+		ServiceID            func(childComplexity int) int
+		State                func(childComplexity int) int
+		Status               func(childComplexity int) int
+		Summary              func(childComplexity int) int
 	}
 
 	AlertConnection struct {
@@ -114,6 +115,10 @@ type ComplexityRoot struct {
 	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	AlertPendingNotification struct {
+		Destination func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -540,6 +545,7 @@ type AlertResolver interface {
 	Service(ctx context.Context, obj *alert.Alert) (*service.Service, error)
 	State(ctx context.Context, obj *alert.Alert) (*alert.State, error)
 	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
+	PendingNotifications(ctx context.Context, obj *alert.Alert) ([]AlertPendingNotification, error)
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
@@ -767,6 +773,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.ID(childComplexity), true
 
+	case "Alert.pendingNotifications":
+		if e.complexity.Alert.PendingNotifications == nil {
+			break
+		}
+
+		return e.complexity.Alert.PendingNotifications(childComplexity), true
+
 	case "Alert.recentEvents":
 		if e.complexity.Alert.RecentEvents == nil {
 			break
@@ -869,6 +882,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
+
+	case "AlertPendingNotification.destination":
+		if e.complexity.AlertPendingNotification.Destination == nil {
+			break
+		}
+
+		return e.complexity.AlertPendingNotification.Destination(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -4056,6 +4076,12 @@ type Alert {
 
   # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+
+  pendingNotifications: [AlertPendingNotification!]!
+}
+
+type AlertPendingNotification {
+  destination: String!
 }
 
 input AlertRecentEventsOptions {
@@ -5960,6 +5986,41 @@ func (ec *executionContext) _Alert_recentEvents(ctx context.Context, field graph
 	return ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Alert_pendingNotifications(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Alert().PendingNotifications(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]AlertPendingNotification)
+	fc.Result = res
+	return ec.marshalNAlertPendingNotification2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotificationᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AlertConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6235,6 +6296,41 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertPendingNotification_destination(ctx context.Context, field graphql.CollectedField, obj *AlertPendingNotification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertPendingNotification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -20021,6 +20117,20 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 				}
 				return res
 			})
+		case "pendingNotifications":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_pendingNotifications(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20139,6 +20249,33 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 			}
 		case "pageInfo":
 			out.Values[i] = ec._AlertLogEntryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertPendingNotificationImplementors = []string{"AlertPendingNotification"}
+
+func (ec *executionContext) _AlertPendingNotification(ctx context.Context, sel ast.SelectionSet, obj *AlertPendingNotification) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertPendingNotificationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertPendingNotification")
+		case "destination":
+			out.Values[i] = ec._AlertPendingNotification_destination(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -23562,6 +23699,47 @@ func (ec *executionContext) marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋta
 		return graphql.Null
 	}
 	return ec._AlertLogEntryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAlertPendingNotification2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotification(ctx context.Context, sel ast.SelectionSet, v AlertPendingNotification) graphql.Marshaler {
+	return ec._AlertPendingNotification(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertPendingNotification2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotificationᚄ(ctx context.Context, sel ast.SelectionSet, v []AlertPendingNotification) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlertPendingNotification2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx context.Context, v interface{}) (AlertStatus, error) {
