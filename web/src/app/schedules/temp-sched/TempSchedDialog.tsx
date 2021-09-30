@@ -252,47 +252,51 @@ export default function TempSchedDialog({
             </Grid>
 
             {/* right pane */}
-            <Grid item xs={12} md={6}>
-              <Typography variant='subtitle1' component='h3'>
-                Shifts
-              </Typography>
+            <Grid item xs={12} md={6} container spacing={2}>
+              <Grid item xs={12}>
+                <Typography variant='subtitle1' component='h3'>
+                  Shifts
+                </Typography>
 
-              {hasSubmitted && hasCoverageGaps && (
-                <Alert severity='error' className={classes.noCoverageError}>
-                  <AlertTitle>Gaps in coverage</AlertTitle>
-                  <FormHelperText>
-                    There are gaps in coverage. During these gaps, nobody on the
-                    schedule will receive alerts. If you still want to proceed,
-                    check the box below and retry.
-                  </FormHelperText>
-                  <FormControlLabel
-                    label='Allow gaps in coverage'
-                    labelPlacement='end'
-                    control={
-                      <Checkbox
-                        data-cy='no-coverage-checkbox'
-                        checked={allowNoCoverage}
-                        onChange={(e) => setAllowNoCoverage(e.target.checked)}
-                        name='allowCoverageGaps'
-                      />
-                    }
-                  />
-                </Alert>
-              )}
+                {hasSubmitted && hasCoverageGaps && (
+                  <Alert severity='error' className={classes.noCoverageError}>
+                    <AlertTitle>Gaps in coverage</AlertTitle>
+                    <FormHelperText>
+                      There are gaps in coverage. During these gaps, nobody on
+                      the schedule will receive alerts. If you still want to
+                      proceed, check the box below and retry.
+                    </FormHelperText>
+                    <FormControlLabel
+                      label='Allow gaps in coverage'
+                      labelPlacement='end'
+                      control={
+                        <Checkbox
+                          data-cy='no-coverage-checkbox'
+                          checked={allowNoCoverage}
+                          onChange={(e) => setAllowNoCoverage(e.target.checked)}
+                          name='allowCoverageGaps'
+                        />
+                      }
+                    />
+                  </Alert>
+                )}
 
-              <TempSchedShiftsList
-                scheduleID={scheduleID}
-                value={value.shifts}
-                start={value.start}
-                end={value.end}
-                onRemove={(shift: Shift) => {
-                  setValue({
-                    ...value,
-                    shifts: value.shifts.filter((s) => !shiftEquals(shift, s)),
-                  })
-                }}
-                edit={edit}
-              />
+                <TempSchedShiftsList
+                  scheduleID={scheduleID}
+                  value={value.shifts}
+                  start={value.start}
+                  end={value.end}
+                  onRemove={(shift: Shift) => {
+                    setValue({
+                      ...value,
+                      shifts: value.shifts.filter(
+                        (s) => !shiftEquals(shift, s),
+                      ),
+                    })
+                  }}
+                  edit={edit}
+                />
+              </Grid>
             </Grid>
           </Grid>
         </FormContainer>
