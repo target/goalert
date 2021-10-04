@@ -44,7 +44,6 @@ export default function CalendarSubscribeButton(props) {
       <Tooltip
         title={context}
         placement='top-start'
-        interactive
         PopperProps={{
           'data-cy': 'subscribe-btn-context',
         }}
