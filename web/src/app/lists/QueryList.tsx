@@ -6,7 +6,7 @@ import {
   DocumentNode,
 } from '@apollo/client'
 import { useSelector } from 'react-redux'
-import { Grid } from '@material-ui/core'
+import { Grid } from '@mui/material'
 import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'

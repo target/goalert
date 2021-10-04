@@ -3,10 +3,10 @@ import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
-import { TextField, InputAdornment, IconButton } from '@material-ui/core'
+import { TextField, InputAdornment, IconButton } from '@mui/material'
 
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
-import { DateRange, AccessTime } from '@material-ui/icons'
+import { DateRange, AccessTime } from '@mui/icons-material'
 
 function hasInputSupport(name) {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
@@ -119,7 +119,7 @@ function useISOPicker(
         'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
-            <IconButton>
+            <IconButton size="large">
               <FallbackIcon />
             </IconButton>
           </InputAdornment>
@@ -129,7 +129,7 @@ function useISOPicker(
       {...extraProps}
       {...otherProps}
     />
-  )
+  );
 }
 
 export function ISOTimePicker(props) {

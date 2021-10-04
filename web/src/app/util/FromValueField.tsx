@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import TextField, { TextFieldProps } from '@material-ui/core/TextField'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
 import TelTextField from './TelTextField'
 import ClickableText from './ClickableText'
-import ToggleIcon from '@material-ui/icons/CompareArrows'
+import ToggleIcon from '@mui/icons-material/CompareArrows'
 
 export default function FromValueField(
   props: TextFieldProps & {
@@ -61,7 +61,7 @@ export default function FromValueField(
           </ClickableText>
         }
       />
-    )
+    );
   }
 
   return (

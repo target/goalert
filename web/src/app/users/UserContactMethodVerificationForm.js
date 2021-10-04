@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
-import TextField from '@material-ui/core/TextField'
+import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 import { FormContainer, FormField } from '../forms'
 
 /*

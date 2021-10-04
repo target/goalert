@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
-import Drawer from '@material-ui/core/Drawer'
-import { makeStyles } from '@material-ui/core'
+import Drawer from '@mui/material/Drawer'
+import makeStyles from '@mui/styles/makeStyles';
 
 export const drawerWidth = '220px'
 

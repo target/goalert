@@ -2,7 +2,7 @@ import React from 'react'
 import { gql } from '@apollo/client'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
-import Card from '@material-ui/core/Card'
+import Card from '@mui/material/Card'
 import p from 'prop-types'
 
 const query = gql`

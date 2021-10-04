@@ -1,35 +1,37 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Grid from '@material-ui/core/Grid'
-import Hidden from '@material-ui/core/Hidden'
-import Switch from '@material-ui/core/Switch'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import Typography from '@material-ui/core/Typography'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Grid from '@mui/material/Grid'
+import Hidden from '@mui/material/Hidden'
+import Switch from '@mui/material/Switch'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Typography from '@mui/material/Typography'
 import Countdown from 'react-countdown-now'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 import { gql, useMutation } from '@apollo/client'
 import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import { makeStyles } from '@material-ui/core'
-import { isWidthDown } from '@material-ui/core/withWidth'
+import makeStyles from '@mui/styles/makeStyles';
 import useWidth from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)
@@ -432,7 +434,7 @@ function AlertDetails(props) {
   }))
 
   return (
-    <Grid container spacing={2} justify='center'>
+    <Grid container spacing={2} justifyContent='center'>
       <Grid item className={getCardClassName()}>
         <Notices notices={notices} />
       </Grid>
@@ -461,7 +463,7 @@ function AlertDetails(props) {
         </Card>
       </Grid>
       {renderAlertDetails()}
-      <Hidden smDown>
+      <Hidden mdDown>
         <Grid item xs={12} className={classes.cardContainer}>
           {renderEscalationPolicy()}
         </Grid>
@@ -470,7 +472,7 @@ function AlertDetails(props) {
         {renderAlertLogs()}
       </Grid>
     </Grid>
-  )
+  );
 }
 
 AlertDetails.propTypes = {

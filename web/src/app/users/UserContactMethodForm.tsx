@@ -1,9 +1,9 @@
 import React from 'react'
-import Grid from '@material-ui/core/Grid'
-import TextField from '@material-ui/core/TextField'
+import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import TelTextField from '../util/TelTextField'
-import { MenuItem, Typography } from '@material-ui/core'
+import { MenuItem, Typography } from '@mui/material'
 import { ContactMethodType } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
 

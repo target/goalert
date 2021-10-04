@@ -1,13 +1,14 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import AppBar from '@material-ui/core/AppBar'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import IconButton from '@material-ui/core/IconButton'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-import CloseIcon from '@material-ui/icons/Close'
+import AppBar from '@mui/material/AppBar'
+import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
 import { styles as globalStyles } from '../../styles/materialStyles'
-import { DialogContent, makeStyles } from '@material-ui/core'
+import { DialogContent } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import OtherActions from '../../util/OtherActions'
 
 const useStyles = makeStyles((theme) => {
@@ -63,7 +64,7 @@ function DialogTitleWrapper(props) {
   let closeButton
   if (onClose) {
     closeButton = (
-      <IconButton color='inherit' onClick={onClose} aria-label='Close'>
+      <IconButton color='inherit' onClick={onClose} aria-label='Close' size="large">
         {closeIcon || <CloseIcon />}
       </IconButton>
     )

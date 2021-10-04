@@ -2,14 +2,11 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 
-import {
-  ListItem,
-  ListItemText,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
+import { ListItem, ListItemText, Typography } from '@mui/material';
 
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import makeStyles from '@mui/styles/makeStyles';
+
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import AppLink from '../../../util/AppLink'
 
 const serviceQuery = gql`

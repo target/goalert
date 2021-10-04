@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 
 import { LabelKeySelect } from '../selection/LabelKeySelect'

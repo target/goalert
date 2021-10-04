@@ -1,5 +1,5 @@
 import React, { Ref, useEffect, useState } from 'react'
-import Grid from '@material-ui/core/Grid'
+import Grid from '@mui/material/Grid'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 import FilterContainer from '../util/FilterContainer'
 import TelTextField from '../util/TelTextField'
@@ -55,5 +55,5 @@ export default function UserPhoneNumberFilterContainer(
         />
       </Grid>
     </FilterContainer>
-  )
+  );
 }

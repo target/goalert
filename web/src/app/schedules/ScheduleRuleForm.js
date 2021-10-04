@@ -14,8 +14,8 @@ import {
   MenuItem,
   TextField,
   Typography,
-  makeStyles,
-} from '@material-ui/core'
+} from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
@@ -124,7 +124,7 @@ export default function ScheduleRuleForm(props) {
             name={`rules[${idx}].end`}
           />
         </TableCell>
-        <Hidden smDown>
+        <Hidden mdDown>
           {days.map((day, dayIdx) => (
             <TableCell key={dayIdx} padding='checkbox'>
               <FormField
@@ -177,13 +177,13 @@ export default function ScheduleRuleForm(props) {
                   rules: value.rules.filter((r, i) => i !== idx),
                 })
               }
-            >
+              size="large">
               <Trash />
             </IconButton>
           )}
         </TableCell>
       </TableRow>
-    )
+    );
   }
 
   function renderForm() {
@@ -221,7 +221,7 @@ export default function ScheduleRuleForm(props) {
                 <TableRow>
                   <TableCell className={classes.startEnd}>Start</TableCell>
                   <TableCell className={classes.startEnd}>End</TableCell>
-                  <Hidden smDown>
+                  <Hidden mdDown>
                     {days.map((d) => (
                       <TableCell key={d} padding='checkbox'>
                         {d.slice(0, 3)}
@@ -251,7 +251,7 @@ export default function ScheduleRuleForm(props) {
                           }),
                         })
                       }
-                    >
+                      size="large">
                       <Add />
                     </IconButton>
                   </TableCell>
@@ -264,7 +264,7 @@ export default function ScheduleRuleForm(props) {
           </Grid>
         </Grid>
       </FormContainer>
-    )
+    );
   }
 
   return (

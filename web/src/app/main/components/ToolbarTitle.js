@@ -1,16 +1,18 @@
 import React from 'react'
 import p from 'prop-types'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { Switch, Route } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles'
-import { isWidthUp } from '@material-ui/core/withWidth'
-import { ChevronRight } from '@material-ui/icons'
+import makeStyles from '@mui/styles/makeStyles';
+import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
 import useWidth from '../../util/useWidth'
 import { useConfigValue } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
 
 const useStyles = makeStyles(() => ({
   backPage: {

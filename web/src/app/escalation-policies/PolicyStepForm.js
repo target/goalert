@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import Badge from '@material-ui/core/Badge'
-import Grid from '@material-ui/core/Grid'
-import Stepper from '@material-ui/core/Stepper'
-import Step from '@material-ui/core/Step'
-import StepButton from '@material-ui/core/StepButton'
-import StepContent from '@material-ui/core/StepContent'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Badge from '@mui/material/Badge'
+import Grid from '@mui/material/Grid'
+import Stepper from '@mui/material/Stepper'
+import Step from '@mui/material/Step'
+import StepButton from '@mui/material/StepButton'
+import StepContent from '@mui/material/StepContent'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles';
 import {
   RotationSelect,
   ScheduleSelect,
@@ -20,7 +20,7 @@ import {
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   Group as UsersIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'

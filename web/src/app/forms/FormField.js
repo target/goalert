@@ -1,9 +1,9 @@
 import React from 'react'
 import p from 'prop-types'
 import MountWatcher from '../util/MountWatcher'
-import FormControl from '@material-ui/core/FormControl'
-import FormHelperText from '@material-ui/core/FormHelperText'
-import FormLabel from '@material-ui/core/FormLabel'
+import FormControl from '@mui/material/FormControl'
+import FormHelperText from '@mui/material/FormHelperText'
+import FormLabel from '@mui/material/FormLabel'
 import { get, isEmpty, startCase } from 'lodash'
 import shrinkWorkaround from '../util/shrinkWorkaround'
 import AppLink from '../util/AppLink'
@@ -215,7 +215,7 @@ export class FormField extends React.PureComponent {
             {error.message.replace(/^./, (str) => str.toUpperCase())}
           </AppLink>
         </FormHelperText>
-      )
+      );
     }
 
     if (error?.message) {
@@ -223,7 +223,7 @@ export class FormField extends React.PureComponent {
         <FormHelperText>
           {error.message.replace(/^./, (str) => str.toUpperCase())}
         </FormHelperText>
-      )
+      );
     }
 
     if (hint) {

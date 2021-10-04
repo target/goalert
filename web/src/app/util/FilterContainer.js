@@ -1,15 +1,8 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import {
-  Hidden,
-  Popover,
-  SwipeableDrawer,
-  IconButton,
-  Grid,
-  Button,
-  makeStyles,
-} from '@material-ui/core'
-import { FilterList as FilterIcon } from '@material-ui/icons'
+import { Hidden, Popover, SwipeableDrawer, IconButton, Grid, Button } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import { FilterList as FilterIcon } from '@mui/icons-material'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -23,12 +16,12 @@ const useStyles = makeStyles((theme) => {
     container: {
       padding: 8,
       [theme.breakpoints.up('md')]: { width: '22em' },
-      [theme.breakpoints.down('sm')]: { width: '100%' },
+      [theme.breakpoints.down('md')]: { width: '100%' },
     },
     formContainer: {
       margin: 0,
     },
-  }
+  };
 })
 
 export default function FilterContainer(props) {
@@ -70,10 +63,10 @@ export default function FilterContainer(props) {
         title={props.title}
         aria-expanded={Boolean(anchorEl)}
         {...iconButtonProps}
-      >
+        size="large">
         {icon}
       </IconButton>
-      <Hidden smDown>
+      <Hidden mdDown>
         <Popover
           anchorEl={anchorEl}
           classes={{
@@ -101,7 +94,7 @@ export default function FilterContainer(props) {
         </SwipeableDrawer>
       </Hidden>
     </React.Fragment>
-  )
+  );
 }
 
 FilterContainer.propTypes = {

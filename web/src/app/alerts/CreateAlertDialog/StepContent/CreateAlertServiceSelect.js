@@ -15,13 +15,13 @@ import {
   FormLabel,
   FormControl,
   Box,
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles';
 import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
-import { Search as SearchIcon } from '@material-ui/icons'
+import { Search as SearchIcon } from '@mui/icons-material'
 import { FavoriteIcon } from '../../../util/SetFavoriteButton'
 import { ServiceChip } from '../../../util/Chips'
-import AddIcon from '@material-ui/icons/Add'
+import AddIcon from '@mui/icons-material/Add'
 import _ from 'lodash'
 import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
@@ -255,7 +255,7 @@ export function CreateAlertServiceSelect(props) {
         </Box>
       </Box>
     </Box>
-  )
+  );
 }
 
 CreateAlertServiceSelect.propTypes = {

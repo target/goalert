@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
 import { ApolloProvider } from '@apollo/client'
-import { MuiThemeProvider } from '@material-ui/core/styles'
+import { ThemeProvider, Theme, StyledEngineProvider } from '@mui/material/styles';
 import { theme } from './mui'
 import { GraphQLClient } from './apollo'
 import './styles'
@@ -54,26 +54,28 @@ const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
 LazyGARouteTracker.displayName = 'LazyGARouteTracker'
 
 ReactDOM.render(
-  <MuiThemeProvider theme={theme}>
-    <ApolloProvider client={GraphQLClient}>
-      <ReduxProvider store={store}>
-        <ConnectedRouter history={history}>
-          <MuiPickersUtilsProvider>
-            <ConfigProvider>
-              <NewVersionCheck />
-              <Config>
-                {(config: ConfigData) => (
-                  <LazyGARouteTracker
-                    trackingID={config['General.GoogleAnalyticsID'] as string}
-                  />
-                )}
-              </Config>
-              <App />
-            </ConfigProvider>
-          </MuiPickersUtilsProvider>
-        </ConnectedRouter>
-      </ReduxProvider>
-    </ApolloProvider>
-  </MuiThemeProvider>,
+  <StyledEngineProvider injectFirst>
+    <ThemeProvider theme={theme}>
+      <ApolloProvider client={GraphQLClient}>
+        <ReduxProvider store={store}>
+          <ConnectedRouter history={history}>
+            <MuiPickersUtilsProvider>
+              <ConfigProvider>
+                <NewVersionCheck />
+                <Config>
+                  {(config: ConfigData) => (
+                    <LazyGARouteTracker
+                      trackingID={config['General.GoogleAnalyticsID'] as string}
+                    />
+                  )}
+                </Config>
+                <App />
+              </ConfigProvider>
+            </MuiPickersUtilsProvider>
+          </ConnectedRouter>
+        </ReduxProvider>
+      </ApolloProvider>
+    </ThemeProvider>
+  </StyledEngineProvider>,
   document.getElementById('app'),
 )

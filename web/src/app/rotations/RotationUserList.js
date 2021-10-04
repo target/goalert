@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
-import Card from '@material-ui/core/Card'
-import { makeStyles } from '@material-ui/core'
-import CardHeader from '@material-ui/core/CardHeader'
+import Card from '@mui/material/Card'
+import makeStyles from '@mui/styles/makeStyles';
+import CardHeader from '@mui/material/CardHeader'
 
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'

@@ -10,8 +10,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles';
 import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { textColors } from '../styles/statusStyles'

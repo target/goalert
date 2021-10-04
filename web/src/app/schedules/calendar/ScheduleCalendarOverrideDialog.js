@@ -11,14 +11,9 @@ import useOverrideNotices from '../useOverrideNotices'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
 import { variantDetails } from '../ScheduleOverrideCreateDialog'
 import ScheduleOverrideForm from '../ScheduleOverrideForm'
-import {
-  FormControlLabel,
-  FormHelperText,
-  Grid,
-  makeStyles,
-  Radio,
-  RadioGroup,
-} from '@material-ui/core'
+import { FormControlLabel, FormHelperText, Grid, Radio, RadioGroup } from '@mui/material';
+
+import makeStyles from '@mui/styles/makeStyles';
 
 const mutation = gql`
   mutation ($input: CreateUserOverrideInput!) {

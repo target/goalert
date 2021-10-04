@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import { makeStyles } from '@material-ui/core'
+import Grid from '@mui/material/Grid'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import makeStyles from '@mui/styles/makeStyles';
 import { gql } from '@apollo/client'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'

@@ -4,7 +4,7 @@ import p from 'prop-types'
 
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'
-import { Button, Dialog, DialogActions, DialogTitle } from '@material-ui/core'
+import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const queries = {

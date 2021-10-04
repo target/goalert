@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Grid, Card } from '@material-ui/core'
-import Avatar from '@material-ui/core/Avatar'
+import { Grid, Card } from '@mui/material'
+import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'

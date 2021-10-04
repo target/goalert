@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { TextField, TextFieldProps } from '@material-ui/core'
+import { TextField, TextFieldProps } from '@mui/material'
 
 type NumberFieldProps = TextFieldProps & {
   // float indicates that decimals should be accepted
@@ -62,5 +62,5 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
       }}
       inputProps={{ min, max, step }}
     />
-  )
+  );
 }

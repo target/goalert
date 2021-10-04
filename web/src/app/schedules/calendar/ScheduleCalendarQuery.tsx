@@ -1,7 +1,7 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
-import { isWidthDown } from '@material-ui/core/withWidth/index'
+import { isWidthDown } from '@mui/material/withWidth/index'
 import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import useWidth from '../../util/useWidth'

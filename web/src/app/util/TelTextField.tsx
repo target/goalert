@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import TextField, { TextFieldProps } from '@material-ui/core/TextField'
-import { InputProps } from '@material-ui/core/Input'
-import { Check, Close } from '@material-ui/icons'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
+import { InputProps } from '@mui/material/Input'
+import { Check, Close } from '@mui/icons-material'
 import _ from 'lodash'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import { makeStyles } from '@material-ui/core'
+import InputAdornment from '@mui/material/InputAdornment'
+import makeStyles from '@mui/styles/makeStyles';
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`
@@ -110,5 +110,5 @@ export default function TelTextField(
       onChange={handleChange}
       value={(props.value || '').replace(/[^0-9]/g, '')}
     />
-  )
+  );
 }

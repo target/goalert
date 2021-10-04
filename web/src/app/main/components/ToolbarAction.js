@@ -1,11 +1,13 @@
 import React from 'react'
 import { Switch, Route, useHistory } from 'react-router-dom'
-import Hidden from '@material-ui/core/Hidden'
-import IconButton from '@material-ui/core/IconButton'
-import { Menu as MenuIcon, ChevronLeft } from '@material-ui/icons'
-import { isWidthUp } from '@material-ui/core/withWidth'
+import Hidden from '@mui/material/Hidden'
+import IconButton from '@mui/material/IconButton'
+import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
 import useWidth from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
 
 function removeLastPartOfPath(path) {
   const parts = path.split('/')
@@ -29,10 +31,10 @@ function ToolbarAction(props) {
         color='inherit'
         data-cy='nav-back-icon'
         onClick={() => history.replace(route)}
-      >
+        size="large">
         <ChevronLeft />
       </IconButton>
-    )
+    );
   }
 
   const getRoute = (route) => (
@@ -65,14 +67,14 @@ function ToolbarAction(props) {
               color='inherit'
               data-cy='nav-menu-icon'
               onClick={() => props.openMobileSidebar(true)}
-            >
+              size="large">
               <MenuIcon />
             </IconButton>
           </Hidden>
         )}
       />
     </Switch>
-  )
+  );
 }
 
 ToolbarAction.propTypes = {

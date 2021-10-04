@@ -1,7 +1,7 @@
 import React from 'react'
-import Link from '@material-ui/core/Link'
-import { makeStyles } from '@material-ui/core'
-import Typography from '@material-ui/core/Typography'
+import Link from '@mui/material/Link'
+import makeStyles from '@mui/styles/makeStyles';
+import Typography from '@mui/material/Typography'
 
 const useStyles = makeStyles({
   skipLink: {

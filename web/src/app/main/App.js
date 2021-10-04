@@ -1,26 +1,27 @@
 import React, { useState } from 'react'
-import AppBar from '@material-ui/core/AppBar'
-import Hidden from '@material-ui/core/Hidden'
-import Toolbar from '@material-ui/core/Toolbar'
+import AppBar from '@mui/material/AppBar'
+import Hidden from '@mui/material/Hidden'
+import Toolbar from '@mui/material/Toolbar'
 import ToolbarTitle from './components/ToolbarTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
 import { Switch, Route } from 'react-router-dom'
-import Grid from '@material-ui/core/Grid'
+import Grid from '@mui/material/Grid'
 import { useSelector } from 'react-redux'
 import { authSelector } from '../selectors'
 import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
 import LazySideBarDrawerList from './components/SideBarDrawerList'
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
+import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { isWidthDown, makeStyles } from '@material-ui/core'
+import { isWidthDown } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import useWidth from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 
@@ -46,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   containerClass: {
     padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
-    [theme.breakpoints.down('sm')]: { width: '100%' },
+    [theme.breakpoints.down('md')]: { width: '100%' },
   },
 }))
 
@@ -87,7 +88,7 @@ export default function App() {
             </Toolbar>
           </AppBar>
 
-          <Hidden smDown>
+          <Hidden mdDown>
             <LazyWideSideBar>
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}
@@ -129,5 +130,5 @@ export default function App() {
         </SearchProvider>
       </PageActionProvider>
     </div>
-  )
+  );
 }

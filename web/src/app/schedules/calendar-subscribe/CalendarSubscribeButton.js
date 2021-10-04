@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import Button from '@material-ui/core/Button'
-import Tooltip from '@material-ui/core/Tooltip'
+import Button from '@mui/material/Button'
+import Tooltip from '@mui/material/Tooltip'
 
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'

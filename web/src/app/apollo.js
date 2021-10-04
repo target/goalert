@@ -69,11 +69,9 @@ const retryLink = new RetryLink({
     retryIf: (error) => {
       // Retry on any error except HTTP Response errors with the
       // exception of 502-504 response codes (e.g. no retry on 401/auth etc..).
-      return (
-        !!error &&
-        (!/^HTTP Response \d+:/.test(error.message) ||
-          /^HTTP Response 50[234]:/.test(error.message))
-      )
+      return !!error &&
+      (!/^HTTP Response \d+:/.test(error.message) ||
+        /^HTTP Response 50[234]:/.test(error.message));
     },
   },
 })

@@ -1,11 +1,11 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Divider from '@material-ui/core/Divider'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core'
+import Divider from '@mui/material/Divider'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles';
 import { styles as globalStyles } from '../../styles/materialStyles'
 import {
   Build as WizardIcon,
@@ -18,12 +18,12 @@ import {
   Today as SchedulesIcon,
   VpnKey as ServicesIcon,
   Settings as AdminIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 
 import routeConfig, { getPath } from '../routes'
 
 import { NavLink } from 'react-router-dom'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemIcon from '@mui/material/ListItemIcon'
 import { CurrentUserAvatar } from '../../util/avatars'
 import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'

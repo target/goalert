@@ -1,17 +1,13 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import {
-  Hidden,
-  ListItemText,
-  isWidthDown,
-  makeStyles,
-} from '@material-ui/core'
+import { Hidden, ListItemText, isWidthDown } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 import { useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 
@@ -288,7 +284,7 @@ export default function AlertsList(props) {
           )
         }
         cardHeader={
-          <Hidden mdDown>
+          <Hidden lgDown>
             <AlertsListControls />
           </Hidden>
         }
@@ -315,7 +311,7 @@ export default function AlertsList(props) {
         updateMessage={updateMessage}
       />
     </React.Fragment>
-  )
+  );
 }
 
 AlertsList.propTypes = {

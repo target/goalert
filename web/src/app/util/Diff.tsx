@@ -1,7 +1,7 @@
 import React from 'react'
 import { diffChars, diffWords, Change } from 'diff'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles';
 
 const useStyles = makeStyles({
   // bg color for the whole first line

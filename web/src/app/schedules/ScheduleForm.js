@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { TextField, Grid } from '@material-ui/core'
+import { TextField, Grid } from '@mui/material'
 import { TimeZoneSelect } from '../selection'
 
 export default function ScheduleForm(props) {

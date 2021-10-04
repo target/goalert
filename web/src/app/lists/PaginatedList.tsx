@@ -1,31 +1,33 @@
 import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
-import { isWidthUp } from '@material-ui/core/withWidth'
 
-import Avatar from '@material-ui/core/Avatar'
-import Card from '@material-ui/core/Card'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import Typography from '@material-ui/core/Typography'
+import Avatar from '@mui/material/Avatar'
+import Card from '@mui/material/Card'
+import CircularProgress from '@mui/material/CircularProgress'
+import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
+import Typography from '@mui/material/Typography'
 
-import LeftIcon from '@material-ui/icons/ChevronLeft'
-import RightIcon from '@material-ui/icons/ChevronRight'
+import LeftIcon from '@mui/icons-material/ChevronLeft'
+import RightIcon from '@mui/icons-material/ChevronRight'
 import useWidth from '../util/useWidth'
 
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
-import ListItemAvatar from '@material-ui/core/ListItemAvatar'
-import { makeStyles } from '@material-ui/core'
+import ListItemAvatar from '@mui/material/ListItemAvatar'
+import makeStyles from '@mui/styles/makeStyles';
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
 
 // gray boxes on load
 // disable overflow
@@ -56,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
     fontStyle: 'italic',
   },
   controls: {
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('md')]: {
       '&:not(:first-child)': {
         marginBottom: '4.5em',
         paddingBottom: '1em',
@@ -93,7 +95,7 @@ function PageControls(props: {
             onBack && onBack()
             window.scrollTo(0, 0)
           }}
-        >
+          size="large">
           <LeftIcon />
         </IconButton>
       </Grid>
@@ -106,7 +108,7 @@ function PageControls(props: {
             onNext && onNext()
             window.scrollTo(0, 0)
           }}
-        >
+          size="large">
           {isLoading && !onNext && (
             <CircularProgress
               color='secondary'
@@ -118,7 +120,7 @@ function PageControls(props: {
         </IconButton>
       </Grid>
     </Grid>
-  )
+  );
 }
 
 const loadingStyle = {

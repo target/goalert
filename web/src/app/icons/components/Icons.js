@@ -1,12 +1,12 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Tooltip from '@material-ui/core/Tooltip'
-import AddIcon from '@material-ui/icons/Add'
-import TrashIcon from '@material-ui/icons/Delete'
-import WarningIcon from '@material-ui/icons/Warning'
+import Tooltip from '@mui/material/Tooltip'
+import AddIcon from '@mui/icons-material/Add'
+import TrashIcon from '@mui/icons-material/Delete'
+import WarningIcon from '@mui/icons-material/Warning'
 import slackIcon from '../../public/slack.svg'
 import slackIconBW from '../../public/slack_monochrome_black.svg'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 
 const useStyles = makeStyles({
   trashIcon: {

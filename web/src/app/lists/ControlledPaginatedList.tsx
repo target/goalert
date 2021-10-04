@@ -1,12 +1,6 @@
 import React, { ReactElement, useState } from 'react'
-import {
-  Checkbox,
-  Grid,
-  Icon,
-  IconButton,
-  makeStyles,
-  Tooltip,
-} from '@material-ui/core'
+import { Checkbox, Grid, Icon, IconButton, Tooltip } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import {
   PaginatedList,
   PaginatedListItemProps,
@@ -16,7 +10,7 @@ import { useSelector } from 'react-redux'
 import { urlKeySelector } from '../selectors/url'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
-import { ArrowDropDown } from '@material-ui/icons'
+import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
 
 const useStyles = makeStyles({
@@ -207,14 +201,14 @@ export default function ControlledPaginatedList(
                     a.onClick(checkedItems)
                     setNone()
                   }}
-                >
+                  size="large">
                   {a.icon}
                 </IconButton>
               </Tooltip>
             </Grid>
           ))}
       </Grid>
-    )
+    );
   }
 
   function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {

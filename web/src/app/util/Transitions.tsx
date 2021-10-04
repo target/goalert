@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
-import Fade from '@material-ui/core/Fade'
-import Slide from '@material-ui/core/Slide'
+import Fade from '@mui/material/Fade'
+import Slide from '@mui/material/Slide'
 
 export const FadeTransition = React.forwardRef(
   ({ children, ...props }, ref) => (

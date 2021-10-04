@@ -1,17 +1,11 @@
 import React from 'react'
-import {
-  Button,
-  ButtonGroup,
-  Grid,
-  IconButton,
-  makeStyles,
-  Typography,
-} from '@material-ui/core'
+import { Button, ButtonGroup, Grid, IconButton, Typography } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import { DateTime } from 'luxon'
 import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
-import LeftIcon from '@material-ui/icons/ChevronLeft'
-import RightIcon from '@material-ui/icons/ChevronRight'
+import LeftIcon from '@mui/icons-material/ChevronLeft'
+import RightIcon from '@mui/icons-material/ChevronRight'
 
 const useStyles = makeStyles((theme) => ({
   arrowBtns: {
@@ -140,14 +134,14 @@ function ScheduleCalendarToolbar(
               title={`Previous ${weekly ? 'week' : 'month'}`}
               data-cy='back'
               onClick={handleBackClick}
-            >
+              size="large">
               <LeftIcon />
             </IconButton>
             <IconButton
               title={`Next ${weekly ? 'week' : 'month'}`}
               data-cy='next'
               onClick={handleNextClick}
-            >
+              size="large">
               <RightIcon />
             </IconButton>
           </div>
@@ -186,7 +180,7 @@ function ScheduleCalendarToolbar(
         </Grid>
       </Grid>
     </Grid>
-  )
+  );
 }
 
 export default ScheduleCalendarToolbar

@@ -7,8 +7,8 @@ import {
   ApolloError,
   gql,
 } from '@apollo/client'
-import { Button, Card, Grid, IconButton } from '@material-ui/core'
-import DeleteIcon from '@material-ui/icons/Delete'
+import { Button, Card, Grid, IconButton } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
@@ -147,7 +147,7 @@ export default function UserSessionList(
                         userAgent: s.userAgent,
                       })
                     }
-                  >
+                    size="large">
                     <DeleteIcon />
                   </IconButton>
                 ),
@@ -184,5 +184,5 @@ export default function UserSessionList(
         />
       )}
     </React.Fragment>
-  )
+  );
 }

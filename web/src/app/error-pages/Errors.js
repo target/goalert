@@ -1,9 +1,9 @@
 import React from 'react'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import {
   SentimentDissatisfied,
   SentimentVeryDissatisfied,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 import p from 'prop-types'
 
 export function PageNotFound() {

@@ -1,6 +1,5 @@
-import { useTheme } from '@material-ui/core/styles'
-import useMediaQuery from '@material-ui/core/useMediaQuery'
-import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
+import { useTheme, Breakpoint } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery'
 /**
  * Source: Material-UI Docs: https://material-ui.com/components/use-media-query/
  *

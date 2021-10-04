@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { GOALERT_VERSION, pathPrefix } from './env'
 import { DateTime } from 'luxon'
-import { Snackbar, Button } from '@material-ui/core'
+import { Snackbar, Button } from '@mui/material'
 import {
   UPDATE_CHECK_INTERVAL,
   UPDATE_FORCE_DURATION,

@@ -1,13 +1,14 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import Card from '@material-ui/core/Card'
-import CardHeader from '@material-ui/core/CardHeader'
+import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
-import { CircularProgress, makeStyles } from '@material-ui/core'
+import { CircularProgress } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
-import { Error } from '@material-ui/icons'
+import { Error } from '@mui/icons-material'
 import _ from 'lodash'
 
 const useStyles = makeStyles((theme) => {

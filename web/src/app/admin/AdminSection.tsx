@@ -1,11 +1,12 @@
 import React from 'react'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
 import { FormContainer } from '../forms'
 import _, { defaultTo } from 'lodash'
-import { makeStyles, Theme } from '@material-ui/core/styles'
+import { Theme } from '@mui/material/styles';
+import makeStyles from '@mui/styles/makeStyles';
 import {
   StringInput,
   StringListInput,
@@ -13,7 +14,7 @@ import {
   BoolInput,
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
-import { yellow } from '@material-ui/core/colors'
+import { yellow } from '@mui/material/colors'
 
 const components = {
   string: StringInput,

@@ -4,8 +4,9 @@ import { PropTypes as p } from 'prop-types'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
-import { makeStyles, Typography } from '@material-ui/core'
-import { CheckCircleOutline as SuccessIcon } from '@material-ui/icons'
+import { Typography } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import { CheckCircleOutline as SuccessIcon } from '@mui/icons-material'
 import CalenderSuccessForm from './CalendarSuccessForm'
 
 const mutation = gql`

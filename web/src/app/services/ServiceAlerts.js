@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import Button from '@material-ui/core/Button'
-import ButtonGroup from '@material-ui/core/ButtonGroup'
-import Grid from '@material-ui/core/Grid'
-import { makeStyles } from '@material-ui/core/styles'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Grid from '@mui/material/Grid'
+import makeStyles from '@mui/styles/makeStyles';
 
 import AlertsList from '../alerts/AlertsList'
 import FormDialog from '../dialogs/FormDialog'

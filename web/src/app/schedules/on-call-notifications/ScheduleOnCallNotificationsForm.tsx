@@ -1,10 +1,12 @@
 import React from 'react'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Grid from '@material-ui/core/Grid'
-import RadioGroup from '@material-ui/core/RadioGroup'
-import Radio from '@material-ui/core/Radio'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Grid from '@mui/material/Grid'
+import RadioGroup from '@mui/material/RadioGroup'
+import Radio from '@mui/material/Radio'
 import { DateTime } from 'luxon'
-import { Checkbox, makeStyles, Typography } from '@material-ui/core'
+import { Checkbox, Typography } from '@mui/material';
+
+import makeStyles from '@mui/styles/makeStyles';
 
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'

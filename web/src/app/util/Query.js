@@ -139,7 +139,7 @@ export function withQuery(
   mapPropsToQueryProps = () => ({}),
 ) {
   return (Component) =>
-    function WithQuery(componentProps) {
+    (function WithQuery(componentProps) {
       return (
         <Query
           {...mapPropsToQueryProps(componentProps)}
@@ -149,5 +149,5 @@ export function withQuery(
           )}
         />
       )
-    }
+    });
 }

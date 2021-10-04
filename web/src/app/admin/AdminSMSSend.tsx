@@ -12,9 +12,9 @@ import {
   Grid,
   TextField,
   Typography,
-  makeStyles,
-} from '@material-ui/core'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+} from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'

@@ -2,7 +2,7 @@ import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { UserSelect } from '../selection'
-import { Grid } from '@material-ui/core'
+import { Grid } from '@mui/material'
 
 export default function UserForm(props) {
   return (

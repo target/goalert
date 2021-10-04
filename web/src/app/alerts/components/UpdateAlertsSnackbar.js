@@ -1,12 +1,12 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Snackbar from '@material-ui/core/Snackbar'
-import SnackbarContent from '@material-ui/core/SnackbarContent'
-import CheckCircleIcon from '@material-ui/icons/CheckCircle'
-import CloseIcon from '@material-ui/icons/Close'
-import ErrorIcon from '@material-ui/icons/Error'
-import IconButton from '@material-ui/core/IconButton'
-import { makeStyles } from '@material-ui/core'
+import Snackbar from '@mui/material/Snackbar'
+import SnackbarContent from '@mui/material/SnackbarContent'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import CloseIcon from '@mui/icons-material/Close'
+import ErrorIcon from '@mui/icons-material/Error'
+import IconButton from '@mui/material/IconButton'
+import makeStyles from '@mui/styles/makeStyles';
 
 const icon = {
   fontSize: 20,
@@ -81,13 +81,13 @@ function UpdateAlertsSnackbar({
             aria-label='Close'
             color='inherit'
             onClick={onClose}
-          >
+            size="large">
             <CloseIcon className={classes.closeIcon} />
           </IconButton>,
         ]}
       />
     </Snackbar>
-  )
+  );
 }
 
 UpdateAlertsSnackbar.propTypes = {

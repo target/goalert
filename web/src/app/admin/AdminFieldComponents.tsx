@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
-import Input from '@material-ui/core/OutlinedInput'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import Switch from '@material-ui/core/Switch'
-import Visibility from '@material-ui/icons/Visibility'
-import VisibilityOff from '@material-ui/icons/VisibilityOff'
+import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
+import Input from '@mui/material/OutlinedInput'
+import InputAdornment from '@mui/material/InputAdornment'
+import Switch from '@mui/material/Switch'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import TelTextField from '../util/TelTextField'
 
 interface InputProps {
@@ -29,11 +29,11 @@ export function StringInput(props: InputProps): JSX.Element {
         <IconButton
           aria-label='Toggle password visibility'
           onClick={() => setShowPassword(!showPassword)}
-        >
+          size="large">
           {showPassword ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </InputAdornment>
-    )
+    );
   }
 
   if (props.name === 'Twilio.FromNumber') {

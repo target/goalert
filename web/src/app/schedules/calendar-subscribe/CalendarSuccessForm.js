@@ -1,13 +1,8 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import {
-  Button,
-  FormHelperText,
-  Grid,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import { Button, FormHelperText, Grid, Typography } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import CopyText from '../../util/CopyText'
 
 const useStyles = makeStyles((theme) => ({

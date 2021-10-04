@@ -5,17 +5,9 @@ import React, {
   ReactElement,
   ChangeEvent,
 } from 'react'
-import {
-  TextField,
-  makeStyles,
-  MenuItem,
-  ListItemIcon,
-  Typography,
-  Paper,
-  Chip,
-  InputProps,
-} from '@material-ui/core'
-import { Alert, Autocomplete } from '@material-ui/lab'
+import { TextField, MenuItem, ListItemIcon, Typography, Paper, Chip, InputProps } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import { Alert, Autocomplete } from '@mui/material';
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -145,7 +137,7 @@ export default function MaterialSelect(
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      getOptionSelected={(opt, val) => opt.value === val.value}
+      isOptionEqualToValue={(opt, val) => opt.value === val.value}
       filterOptions={(options) => options}
       noOptionsText={
         noOptionsError ? (
@@ -232,5 +224,5 @@ export default function MaterialSelect(
         ))
       }
     />
-  )
+  );
 }

@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
+import Grid from '@mui/material/Grid'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import IconButton from '@material-ui/core/IconButton'
+import IconButton from '@mui/material/IconButton'
 import { Trash } from '../icons'
 import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
@@ -14,7 +14,7 @@ import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles';
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
@@ -118,7 +118,7 @@ export default function IntegrationKeyList(props) {
         />
       ),
       secondaryAction: (
-        <IconButton onClick={() => setDeleteDialog(key.id)}>
+        <IconButton onClick={() => setDeleteDialog(key.id)} size="large">
           <Trash />
         </IconButton>
       ),

@@ -1,9 +1,9 @@
 import React from 'react'
-import IconButton from '@material-ui/core/IconButton'
-import MUIFavoriteIcon from '@material-ui/icons/Favorite'
-import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
-import Tooltip from '@material-ui/core/Tooltip'
-import { makeStyles } from '@material-ui/core/styles'
+import IconButton from '@mui/material/IconButton'
+import MUIFavoriteIcon from '@mui/icons-material/Favorite'
+import NotFavoriteIcon from '@mui/icons-material/FavoriteBorder'
+import Tooltip from '@mui/material/Tooltip'
+import makeStyles from '@mui/styles/makeStyles';
 import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
@@ -60,7 +60,7 @@ export function SetFavoriteButton({
         }
         type='submit'
         data-cy='set-fav'
-      >
+        size="large">
         {icon}
       </IconButton>
     </form>

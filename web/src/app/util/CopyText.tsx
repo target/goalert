@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
+import makeStyles from '@mui/styles/makeStyles';
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'
-import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
+import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
 
 const useStyles = makeStyles({
   copyContainer: {

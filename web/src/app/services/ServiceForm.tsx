@@ -1,6 +1,6 @@
 import React from 'react'
-import Grid from '@material-ui/core/Grid'
-import TextField from '@material-ui/core/TextField'
+import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
 

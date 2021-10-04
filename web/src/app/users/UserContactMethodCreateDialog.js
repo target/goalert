@@ -6,7 +6,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { useConfigValue } from '../util/RequireConfig'
-import { Dialog, DialogTitle, DialogActions, Button } from '@material-ui/core'
+import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const createMutation = gql`

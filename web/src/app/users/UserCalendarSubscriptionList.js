@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Card } from '@material-ui/core'
-import { Alert } from '@material-ui/lab'
+import { Card } from '@mui/material'
+import { Alert } from '@mui/material';
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'

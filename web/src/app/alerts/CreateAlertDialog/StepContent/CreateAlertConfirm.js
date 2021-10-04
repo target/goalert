@@ -1,6 +1,6 @@
 import React from 'react'
-import { Typography, Grid, Divider } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Typography, Grid, Divider } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles';
 import { ServiceChip } from '../../../util/Chips'
 import { FormField } from '../../../forms'
 import Markdown from '../../../util/Markdown'

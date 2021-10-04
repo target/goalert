@@ -1,8 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
 
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
 
 export default function OtherActionsMenuDesktop({
   placement,

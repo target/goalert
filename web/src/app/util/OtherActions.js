@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react'
 import p from 'prop-types'
-import IconButton from '@material-ui/core/IconButton'
-import { MoreHoriz as OptionsIcon } from '@material-ui/icons'
-import Hidden from '@material-ui/core/Hidden'
+import IconButton from '@mui/material/IconButton'
+import { MoreHoriz as OptionsIcon } from '@mui/icons-material'
+import Hidden from '@mui/material/Hidden'
 import OtherActionsDesktop from './OtherActionsDesktop'
 import OtherActionsMobile from './OtherActionsMobile'
 
@@ -34,7 +34,7 @@ export default function OtherActions({ color, icon, actions, placement }) {
           },
         })}
       </span>
-      <Hidden smDown>
+      <Hidden mdDown>
         <OtherActionsDesktop
           isOpen={Boolean(anchorEl)}
           onClose={onClose}
@@ -51,7 +51,7 @@ export default function OtherActions({ color, icon, actions, placement }) {
         />
       </Hidden>
     </React.Fragment>
-  )
+  );
 }
 
 OtherActions.propTypes = {
@@ -68,7 +68,7 @@ OtherActions.propTypes = {
 
 OtherActions.defaultProps = {
   icon: (
-    <IconButton>
+    <IconButton size="large">
       <OptionsIcon />
     </IconButton>
   ),

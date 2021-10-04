@@ -1,4 +1,4 @@
-import { green, red, yellow } from '@material-ui/core/colors'
+import { green, red, yellow } from '@mui/material/colors'
 
 export const colors = {
   noStatus: 'transparent',

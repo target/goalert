@@ -1,10 +1,10 @@
 import React, { useLayoutEffect } from 'react'
-import List, { ListProps } from '@material-ui/core/List'
-import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
+import List, { ListProps } from '@mui/material/List'
+import ListItem, { ListItemProps } from '@mui/material/ListItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
 import {
   DragDropContext,
   Droppable,
@@ -14,11 +14,12 @@ import {
   DraggableProvided,
   DroppableProvided,
 } from 'react-beautiful-dnd'
-import ListSubheader from '@material-ui/core/ListSubheader'
+import ListSubheader from '@mui/material/ListSubheader'
 import AppLink from '../util/AppLink'
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { Alert, AlertTitle, Color } from '@material-ui/lab'
+import { Alert, AlertTitle } from '@mui/material';
+import { Color } from '@mui/lab';
 import { Notice, NoticeType } from '../details/Notices'
 
 const lime = '#93ed94'

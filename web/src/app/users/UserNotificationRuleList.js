@@ -3,15 +3,10 @@ import p from 'prop-types'
 import Query from '../util/Query'
 import { gql } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import {
-  Grid,
-  Card,
-  CardHeader,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core'
+import { Grid, Card, CardHeader, IconButton } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import { formatNotificationRule, sortNotificationRules } from './util'
-import { Delete } from '@material-ui/icons'
+import { Delete } from '@mui/icons-material'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
 
@@ -62,7 +57,7 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
                 <IconButton
                   aria-label='Delete notification rule'
                   onClick={() => setDeleteID(nr.id)}
-                >
+                  size="large">
                   <Delete />
                 </IconButton>
               ),
@@ -77,7 +72,7 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
           />
         )}
       </Grid>
-    )
+    );
   }
   return (
     <Query

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import Button from '@material-ui/core/Button'
-import Grid from '@material-ui/core/Grid'
-import TextField from '@material-ui/core/TextField'
-import Typography from '@material-ui/core/Typography'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import Divider from '@material-ui/core/Divider'
-import Hidden from '@material-ui/core/Hidden'
-import { makeStyles, isWidthDown } from '@material-ui/core'
+import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Divider from '@mui/material/Divider'
+import Hidden from '@mui/material/Hidden'
+import { isWidthDown } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
 import useWidth from '../../util/useWidth'
 import { getParameterByName } from '../../util/query_param'
 import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
@@ -217,7 +218,7 @@ export default function Login() {
 
   return (
     <React.Fragment>
-      <Hidden smDown>
+      <Hidden mdDown>
         <div className={classes.center}>
           <Card className={classes.card}>
             <CardContent>
@@ -248,5 +249,5 @@ export default function Login() {
         </div>
       </Hidden>
     </React.Fragment>
-  )
+  );
 }

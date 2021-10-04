@@ -1,22 +1,25 @@
 import React from 'react'
 import p from 'prop-types'
-import StepIcon from '@material-ui/core/StepIcon'
-import FormControl from '@material-ui/core/FormControl'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormLabel from '@material-ui/core/FormLabel'
-import Grid from '@material-ui/core/Grid'
-import Radio from '@material-ui/core/Radio'
-import RadioGroup from '@material-ui/core/RadioGroup'
-import TextField from '@material-ui/core/TextField'
-import Typography from '@material-ui/core/Typography'
+import StepIcon from '@mui/material/StepIcon'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormLabel from '@mui/material/FormLabel'
+import Grid from '@mui/material/Grid'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { FormContainer, FormField } from '../forms'
 import WizardScheduleForm from './WizardScheduleForm'
 import { value as valuePropType } from './propTypes'
-import { makeStyles } from '@material-ui/core'
-import { isWidthDown } from '@material-ui/core/withWidth'
+import makeStyles from '@mui/styles/makeStyles';
 import * as _ from 'lodash'
 import useWidth from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+
 const useStyles = makeStyles({
   fieldItem: {
     marginLeft: '2.5em',

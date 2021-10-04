@@ -1,13 +1,13 @@
 import React from 'react'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import Typography from '@material-ui/core/Typography'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography'
 import integrationKeys from './sections/IntegrationKeys.md'
 import webhooks from './sections/Webhooks.md'
 import Markdown from '../util/Markdown'
 import { useConfigValue } from '../util/RequireConfig'
 import { pathPrefix } from '../env'
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles';
 
 const useStyles = makeStyles({
   mBottom: {

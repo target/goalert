@@ -1,23 +1,25 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
-import Popover from '@material-ui/core/Popover'
-import FilterList from '@material-ui/icons/FilterList'
-import Hidden from '@material-ui/core/Hidden'
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
-import Switch from '@material-ui/core/Switch'
-import Grid from '@material-ui/core/Grid'
-import { makeStyles } from '@material-ui/core/styles'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Popover from '@mui/material/Popover'
+import FilterList from '@mui/icons-material/FilterList'
+import Hidden from '@mui/material/Hidden'
+import SwipeableDrawer from '@mui/material/SwipeableDrawer'
+import Switch from '@mui/material/Switch'
+import Grid from '@mui/material/Grid'
+import makeStyles from '@mui/styles/makeStyles';
 import { styles as globalStyles } from '../../styles/materialStyles'
-import Radio from '@material-ui/core/Radio'
-import RadioGroup from '@material-ui/core/RadioGroup'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormControl from '@material-ui/core/FormControl'
-import { isWidthUp } from '@material-ui/core/withWidth'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
 import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
 import useWidth from '../../util/useWidth'
+
+// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
+const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
@@ -141,7 +143,7 @@ function AlertsListFilter({ serviceID }) {
     // renders a popover on desktop, and a swipeable drawer on mobile devices
     return (
       <React.Fragment>
-        <Hidden smDown>
+        <Hidden mdDown>
           <Popover
             anchorEl={() => anchorEl}
             open={!!anchorEl && show}
@@ -171,7 +173,7 @@ function AlertsListFilter({ serviceID }) {
           </SwipeableDrawer>
         </Hidden>
       </React.Fragment>
-    )
+    );
   }
 
   /*
@@ -186,12 +188,12 @@ function AlertsListFilter({ serviceID }) {
         aria-label='Filter Alerts'
         color='inherit'
         onClick={handleOpenFilters}
-      >
+        size="large">
         <FilterList />
       </IconButton>
       {renderFilters()}
     </React.Fragment>
-  )
+  );
 }
 
 AlertsListFilter.propTypes = {
