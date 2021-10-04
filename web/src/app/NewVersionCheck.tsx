@@ -55,10 +55,6 @@ export default function NewVersionCheck(): JSX.Element {
     <Snackbar
       open={hasNewVersion && lastCheck.diff(firstSeen) >= UPDATE_NOTIF_DURATION}
       message='A new version is available.'
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'left',
-      }}
       action={
         <Button
           color='inherit'

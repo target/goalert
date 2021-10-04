@@ -61,10 +61,6 @@ function UpdateAlertsSnackbar({
 
   return (
     <Snackbar
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'left',
-      }}
       autoHideDuration={!errorMessage ? 3000 : null}
       open={open}
       onClose={onClose}
