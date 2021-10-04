@@ -1,6 +1,5 @@
-import { createTheme } from '@mui/styles'
-import grey from '@mui/material/colors/grey'
-import red from '@mui/material/colors/red'
+import { createTheme, adaptV4Theme } from '@mui/material/styles'
+import { grey, red } from '@mui/material/colors'
 import { isCypress } from './env'
 
 let testOverrides = {}
@@ -13,23 +12,25 @@ if (isCypress) {
   }
 }
 
-export const theme = createTheme({
-  palette: {
-    primary: {
-      ...grey,
-      main: '#616161',
-      500: '#616161',
-      400: '#757575',
+export const theme = createTheme(
+  adaptV4Theme({
+    palette: {
+      primary: {
+        ...grey,
+        main: '#616161',
+        500: '#616161',
+        400: '#757575',
+      },
+      secondary: grey,
+      error: red,
     },
-    secondary: grey,
-    error: red,
-  },
 
-  props: {
-    MuiTextField: {
-      variant: 'outlined',
+    props: {
+      MuiTextField: {
+        variant: 'outlined',
+      },
     },
-  },
 
-  ...testOverrides,
-})
+    ...testOverrides,
+  }),
+)

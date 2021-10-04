@@ -6,11 +6,7 @@ import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
 import { ApolloProvider } from '@apollo/client'
-import {
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider,
-} from '@mui/material/styles'
+import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
 import { theme } from './mui'
 import { GraphQLClient } from './apollo'
 import './styles'
