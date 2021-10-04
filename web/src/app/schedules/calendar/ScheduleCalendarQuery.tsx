@@ -1,10 +1,8 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
-import { isWidthDown } from '@material-ui/core/withWidth/index'
 import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
-import useWidth from '../../util/useWidth'
 import { Query } from '../../../schema'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { useCalendarNavigation } from './hooks'
@@ -73,10 +71,7 @@ interface ScheduleCalendarQueryProps {
 
 function ScheduleCalendarQuery({
   scheduleID,
-  ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
-  const width = useWidth()
-  const isMobile = isWidthDown('sm', width)
   const { weekly, start } = useCalendarNavigation()
 
   const [queryStart, queryEnd] = weekly
@@ -95,10 +90,8 @@ function ScheduleCalendarQuery({
       start: queryStart,
       end: queryEnd,
     },
-    skip: isMobile,
   })
 
-  if (isMobile) return null
   if (error) return <GenericError error={error.message} />
   if (!loading && !data?.schedule?.id) return <ObjectNotFound type='schedule' />
 
@@ -109,7 +102,6 @@ function ScheduleCalendarQuery({
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
       overrides={data?.userOverrides?.nodes ?? []}
-      {...other}
     />
   )
 }
