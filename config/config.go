@@ -19,6 +19,7 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
+		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID            string `public:"true"`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
@@ -95,6 +96,8 @@ type Config struct {
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
+		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
+
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
 		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
@@ -113,6 +116,11 @@ type Config struct {
 		Password string `password:"true" info:"Password for authentication."`
 	}
 
+	Webhook struct {
+		Enable      bool     `public:"true" info:"Enables webhook as a contact method."`
+		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
@@ -121,19 +129,21 @@ type Config struct {
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
 func (cfg Config) TwilioSMSFromNumber(carrier string) string {
-	if carrier == "" {
-		return cfg.Twilio.FromNumber
+	if carrier != "" {
+		for _, s := range cfg.Twilio.SMSFromNumberOverride {
+			parts := strings.SplitN(s, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			if parts[0] != carrier {
+				continue
+			}
+			return parts[1]
+		}
 	}
 
-	for _, s := range cfg.Twilio.SMSFromNumberOverride {
-		parts := strings.SplitN(s, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		if parts[0] != carrier {
-			continue
-		}
-		return parts[1]
+	if cfg.Twilio.MessagingServiceSID != "" {
+		return cfg.Twilio.MessagingServiceSID
 	}
 
 	return cfg.Twilio.FromNumber
@@ -191,6 +201,82 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
+//  MatchURL will compare two url strings and will return true if they match.
+func MatchURL(baseURL, testURL string) (bool, error) {
+	compareQueryValues := func(baseVal, testVal url.Values) bool {
+		for name := range baseVal {
+			if baseVal.Get(name) == testVal.Get(name) {
+				continue
+			}
+			return false
+		}
+		return true
+	}
+
+	addImplicitPort := func(u *url.URL) {
+		if strings.Contains(u.Host, ":") {
+			return
+		}
+		switch strings.ToLower(u.Scheme) {
+		case "http":
+			u.Host += ":80"
+		case "https":
+			u.Host += ":443"
+		}
+	}
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return false, err
+	}
+
+	test, err := url.Parse(testURL)
+	if err != nil {
+		return false, err
+	}
+
+	addImplicitPort(base)
+	addImplicitPort(test)
+
+	// host/port check
+	if !strings.EqualFold(base.Host, test.Host) {
+		return false, nil
+	}
+
+	// scheme check
+	if !strings.EqualFold(base.Scheme, test.Scheme) {
+		return false, nil
+	}
+
+	// path check
+	if len(base.Path) > 1 && !strings.HasPrefix(test.Path, base.Path) {
+		return false, nil
+	}
+
+	// query check
+	if !compareQueryValues(base.Query(), test.Query()) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// ValidWebhookURL returns true if the URL is an allowed webhook source.
+func (cfg Config) ValidWebhookURL(testURL string) bool {
+	if len(cfg.Webhook.AllowedURLs) == 0 {
+		return true
+	}
+	for _, baseU := range cfg.Webhook.AllowedURLs {
+		matched, err := MatchURL(baseU, testURL)
+		if err != nil {
+			return false
+		}
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
 // ValidReferer returns true if the URL is an allowed referer source.
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	pubURL := cfg.PublicURL()
@@ -206,16 +292,32 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 		// just ensure ref is same host/scheme as req
 		u.Path = ""
 		u.RawQuery = ""
-		return strings.HasPrefix(ref, u.String())
+		matched, err := MatchURL(u.String(), ref)
+		if err != nil {
+			return false
+		}
+		return matched
 	}
 
 	for _, u := range cfg.Auth.RefererURLs {
-		if strings.HasPrefix(ref, u) {
+		matched, err := MatchURL(u, ref)
+		if err != nil {
+			return false
+		}
+		if matched {
 			return true
 		}
 	}
 
 	return false
+}
+
+// ApplicationName will return the General.ApplicationName
+func (cfg Config) ApplicationName() string {
+	if cfg.General.ApplicationName == "" {
+		return "GoAlert"
+	}
+	return cfg.General.ApplicationName
 }
 
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
@@ -255,6 +357,10 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL("General.PublicURL", cfg.General.PublicURL),
 		)
+	}
+
+	if cfg.General.ApplicationName != "" {
+		err = validate.Many(err, validate.ASCII("General.ApplicationName", cfg.General.ApplicationName, 0, 32))
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
@@ -301,6 +407,9 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.Twilio.FromNumber != "" {
 		err = validate.Many(err, validate.Phone("Twilio.FromNumber", cfg.Twilio.FromNumber))
+	}
+	if cfg.Twilio.MessagingServiceSID != "" {
+		err = validate.Many(err, validate.TwilioSID("Twilio.MessagingServiceSID", "MG", cfg.Twilio.MessagingServiceSID))
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
@@ -364,6 +473,11 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL(field, urlStr),
 		)
+	}
+
+	for i, urlStr := range cfg.Webhook.AllowedURLs {
+		field := fmt.Sprintf("Webhook.AllowedURLs[%d]", i)
+		err = validate.Many(err, validate.AbsoluteURL(field, urlStr))
 	}
 
 	m := make(map[string]bool)

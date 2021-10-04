@@ -1,4 +1,4 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
 export type Value = {
@@ -16,27 +16,6 @@ export type Shift = {
     id: string
     name: string
   }
-}
-
-const parseInterval = (start: string, end: string): Interval =>
-  Interval.fromDateTimes(DateTime.fromISO(start), DateTime.fromISO(end))
-
-export function validateShift(
-  schedStart: string,
-  schedEnd: string,
-  shift: Shift,
-): Error | null {
-  const schedSpan = parseInterval(schedStart, schedEnd)
-  const shiftSpan = parseInterval(shift.start, shift.end)
-
-  // these two just for completeness but should never happen
-  if (!shiftSpan.isValid) return new Error('invalid shift times')
-  if (!schedSpan.isValid) return new Error('invalid schedule times')
-
-  if (!schedSpan.engulfs(shiftSpan))
-    return new Error('shift extends beyond temporary schedule')
-
-  return null
 }
 
 // removes bottom margin from content text so form fields
@@ -76,4 +55,13 @@ export function StepContainer({
       </div>
     </div>
   )
+}
+
+// fmtLocal formats iso timestamp in local time; else empty string
+// e.g. '9:30 AM CDT'
+// Only 12-hour if the locale is.
+export function fmtLocal(iso?: string): string {
+  if (!iso) return ''
+  const dt = DateTime.fromISO(iso, { zone: 'local' })
+  return `${dt.toLocaleString(DateTime.TIME_SIMPLE)} ${dt.toFormat('ZZZZ')}`
 }

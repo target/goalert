@@ -11,19 +11,21 @@ type namedSender struct {
 }
 
 func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error) {
-	externalID, status, err := s.Sender.Send(ctx, msg)
+	sent, err := s.Sender.Send(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	res := &SendResult{
+	return &SendResult{
 		ID: msg.ID(),
-	}
-	if status != nil {
-		res.Status = *status
-	}
-	res.ProviderMessageID.ProviderName = s.name
-	res.ProviderMessageID.ExternalID = externalID
-
-	return res, err
+		Status: Status{
+			State:    sent.State,
+			Details:  sent.StateDetails,
+			SrcValue: sent.SrcValue,
+		},
+		ProviderMessageID: ProviderMessageID{
+			ProviderName: s.name,
+			ExternalID:   sent.ExternalID,
+		},
+	}, nil
 }

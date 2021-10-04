@@ -52,8 +52,6 @@ export default function UserPhoneNumberFilterContainer(
           fullWidth
           name='user-phone-search'
           label='Search by Phone Number'
-          helperText='Please provide your country code e.g. +1 (USA)'
-          type='tel'
         />
       </Grid>
     </FilterContainer>

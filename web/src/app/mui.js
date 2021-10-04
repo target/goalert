@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core/styles'
+import { createTheme } from '@material-ui/core/styles'
 import grey from '@material-ui/core/colors/grey'
 import red from '@material-ui/core/colors/red'
 import { isCypress } from './env'
@@ -13,7 +13,7 @@ if (isCypress) {
   }
 }
 
-export const theme = createMuiTheme({
+export const theme = createTheme({
   palette: {
     primary: {
       ...grey,
@@ -23,6 +23,12 @@ export const theme = createMuiTheme({
     },
     secondary: grey,
     error: red,
+  },
+
+  props: {
+    MuiTextField: {
+      variant: 'outlined',
+    },
   },
 
   ...testOverrides,

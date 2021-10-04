@@ -1,12 +1,17 @@
 package graphqlapp
 
 import (
-	context "context"
+	"bytes"
+	"context"
+	_ "embed"
+	"html/template"
 	"sort"
 	"strings"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 )
 
@@ -93,4 +98,23 @@ func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelS
 
 	conn.Nodes = channels
 	return conn, err
+}
+
+//go:embed slack.manifest.yaml
+var manifestYAML string
+
+var tmpl = template.Must(template.New("slack.manifest.yaml").Parse(manifestYAML))
+
+func (q *Query) GenerateSlackAppManifest(ctx context.Context) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return "", err
+	}
+	var t bytes.Buffer
+	cfg := config.FromContext(ctx)
+	err = tmpl.Execute(&t, cfg)
+	if err != nil {
+		return "", err
+	}
+	return t.String(), nil
 }

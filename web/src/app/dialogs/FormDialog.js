@@ -48,6 +48,7 @@ function FormDialog(props) {
   const width = useWidth()
   const isWideScreen = isWidthUp('md', width)
   const [open, setOpen] = useState(true)
+  const [attemptCount, setAttemptCount] = useState(0)
 
   const {
     alert,
@@ -135,7 +136,12 @@ function FormDialog(props) {
         </Button>
         <LoadingButton
           form='dialog-form'
-          attemptCount={errors.filter((e) => !e.nonSubmit).length ? 1 : 0}
+          onClick={() => {
+            if (!onNext) {
+              setAttemptCount(attemptCount + 1)
+            }
+          }}
+          attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
           loading={loading}
@@ -148,17 +154,24 @@ function FormDialog(props) {
   const fs = fullScreen || (!isWideScreen && !confirm)
   return (
     <Dialog
-      disableBackdropClick={!isWideScreen || alert}
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
       open={open}
-      onClose={handleOnClose}
+      onClose={(event, reason) => {
+        if (reason === 'backdropClick' && (!isWideScreen || alert)) {
+          // disable backdrop for mobile and alerts
+          return
+        }
+        handleOnClose()
+      }}
       TransitionComponent={
         isWideScreen || confirm ? FadeTransition : SlideTransition
       }
-      onExited={handleOnExited}
       {...dialogProps}
+      TransitionProps={{
+        onExited: handleOnExited,
+      }}
     >
       <Notices notices={notices} />
       <DialogTitleWrapper
@@ -194,9 +207,9 @@ FormDialog.propTypes = {
   caption: p.node,
 
   errors: p.arrayOf(
+    // this is an Error interface
     p.shape({
       message: p.string.isRequired,
-      nonSubmit: p.bool, // indicates that it is a non-submit related error
     }),
   ),
 

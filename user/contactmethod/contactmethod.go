@@ -32,7 +32,7 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 	err := validate.Many(
 		validate.UUID("ID", c.ID),
 		validate.IDName("Name", c.Name),
-		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush),
+		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush, TypeWebhook),
 	)
 
 	switch c.Type {
@@ -40,6 +40,8 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 		err = validate.Many(err, validate.Phone("Value", c.Value))
 	case TypeEmail:
 		err = validate.Many(err, validate.Email("Value", c.Value))
+	case TypeWebhook:
+		err = validate.Many(err, validate.AbsoluteURL("Value", c.Value))
 	case TypePush:
 		c.Value = ""
 	}

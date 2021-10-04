@@ -80,8 +80,7 @@ function testCalendar(screen: ScreenFormat): void {
 
     cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="replace-override"]').should('be.visible')
-    cy.get('button[data-cy="remove-override"]').should('be.visible')
+    cy.get('button[data-cy="override"]').should('be.visible')
   })
 
   it('should navigate by month', () => {
@@ -176,8 +175,12 @@ function testCalendar(screen: ScreenFormat): void {
         .contains('div', name)
         .click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="replace-override"]').click()
-      cy.dialogTitle('Replace a User')
+      cy.get('button[data-cy="override"]').click()
+      cy.dialogTitle('Choose')
+      cy.dialogForm({ variant: 'replace' })
+      cy.dialogClick('Next')
+
+      cy.dialogTitle('Replace')
       cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
     })
@@ -192,9 +195,77 @@ function testCalendar(screen: ScreenFormat): void {
       .contains('div', name)
       .click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="remove-override"]').click()
-    cy.dialogTitle('Remove a User')
+    cy.get('button[data-cy="override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'remove' })
+    cy.dialogClick('Next')
+
+    cy.dialogTitle('Remove')
     cy.dialogFinish('Submit')
+  })
+
+  it('should show overrides on calendar and open edit dialog from tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
+    const name = rot.users[0].name
+
+    cy.fixture('users').then((users) => {
+      let addUserName = users[0].name
+      if (rot.users[0].id === users[0].id) addUserName = users[1].name
+      cy.get('[data-cy=calendar]')
+        .should('contain', name)
+        .contains('div', name)
+        .click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="override"]').click()
+      cy.dialogTitle('Choose')
+      cy.dialogForm({ variant: 'replace' })
+      cy.dialogClick('Next')
+
+      cy.dialogTitle('Replace')
+      cy.dialogForm({ addUserID: addUserName })
+      cy.dialogFinish('Submit')
+
+      cy.get('[aria-label="Replace Override"]').should('be.visible').click()
+
+      cy.get('div[data-cy="shift-tooltip"]')
+        .find('[data-cy="card-actions"]')
+        .find('button[title="Edit"]')
+        .click()
+      cy.dialogTitle('Edit Schedule Override')
+      cy.dialogFinish('Cancel')
+    })
+  })
+
+  it('should show overrides on calendar and open delete dialog from tooltip', () => {
+    cy.get('[data-cy-spin-loading=false]').should('exist')
+    const name = rot.users[0].name
+
+    cy.fixture('users').then((users) => {
+      let addUserName = users[0].name
+      if (rot.users[0].id === users[0].id) addUserName = users[1].name
+      cy.get('[data-cy=calendar]')
+        .should('contain', name)
+        .contains('div', name)
+        .click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="override"]').click()
+      cy.dialogTitle('Choose')
+      cy.dialogForm({ variant: 'replace' })
+      cy.dialogClick('Next')
+
+      cy.dialogTitle('Replace')
+      cy.dialogForm({ addUserID: addUserName })
+      cy.dialogFinish('Submit')
+
+      cy.get('[aria-label="Replace Override"]').should('be.visible').click()
+
+      cy.get('div[data-cy="shift-tooltip"]')
+        .find('[data-cy="card-actions"]')
+        .find('button[title="Delete"]')
+        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Cancel')
+    })
   })
 }
 

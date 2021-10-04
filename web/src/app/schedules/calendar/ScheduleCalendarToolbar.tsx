@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { getEndOfWeek, getStartOfWeek } from '../util/luxon-helpers'
+import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
@@ -24,19 +24,21 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 type ViewType = 'month' | 'week'
-interface CalendarToolbarProps {
+interface ScheduleCalendarToolbarProps {
   filter?: React.ReactNode
   endAdornment?: React.ReactNode
 }
 
-function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
+function ScheduleCalendarToolbar(
+  props: ScheduleCalendarToolbarProps,
+): JSX.Element {
   const classes = useStyles()
   const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
   const getHeader = (): string => {
     if (weekly) {
-      const begin = getStartOfWeek(DateTime.fromISO(start)).toLocal()
-      const end = getEndOfWeek(DateTime.fromISO(start)).toLocal()
+      const begin = getStartOfWeek(DateTime.fromISO(start))
+      const end = getEndOfWeek(DateTime.fromISO(start))
 
       if (begin.month === end.month) {
         return `${end.monthLong} ${end.year}`
@@ -48,7 +50,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
       return `${begin.monthShort} ${begin.year} — ${end.monthShort} ${end.year}`
     }
 
-    return DateTime.fromISO(start).toLocal().toFormat('LLLL yyyy')
+    return DateTime.fromISO(start).toFormat('LLLL yyyy')
   }
 
   /*
@@ -65,20 +67,18 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
    * week.
    */
   const onView = (nextView: ViewType): void => {
-    const prevStartMonth = DateTime.fromISO(start).toLocal().month
-    const currMonth = DateTime.local().month
+    const prevStartMonth = DateTime.fromISO(start).month
+    const currMonth = DateTime.now().month
 
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
       setWeekly(true)
-      setStart(getStartOfWeek().toUTC().toISO())
+      setStart(getStartOfWeek().toISODate())
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
       setWeekly(true)
-      setStart(
-        DateTime.fromISO(start).toLocal().startOf('month').toUTC().toISO(),
-      )
+      setStart(DateTime.fromISO(start).startOf('month').toISODate())
 
       // go from week to monthly view
       // e.g. if navigating to an overlap of two months such as
@@ -87,25 +87,21 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
       setWeekly(false)
 
       setStart(
-        getEndOfWeek(DateTime.fromISO(start))
-          .toLocal()
-          .startOf('month')
-          .toUTC()
-          .toISO(),
+        getEndOfWeek(DateTime.fromISO(start)).startOf('month').toISODate(),
       )
     }
   }
 
   const onNavigate = (next: DateTime): void => {
     if (weekly) {
-      setStart(getStartOfWeek(next).toUTC().toISO())
+      setStart(getStartOfWeek(next).toISODate())
     } else {
-      setStart(next.toLocal().startOf('month').toUTC().toISO())
+      setStart(next.startOf('month').toISODate())
     }
   }
 
   const handleTodayClick = (): void => {
-    onNavigate(DateTime.local())
+    onNavigate(DateTime.now())
   }
 
   const handleNextClick = (): void => {
@@ -193,4 +189,4 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   )
 }
 
-export default CalendarToolbar
+export default ScheduleCalendarToolbar

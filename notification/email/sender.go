@@ -27,21 +27,24 @@ func NewSender(ctx context.Context) *Sender {
 var _ notification.Sender = &Sender{}
 
 // Send will send an for the provided message type.
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	fromAddr, err := mail.ParseAddress(cfg.SMTP.From)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	toAddr, err := mail.ParseAddress(msg.Destination().Value)
 	if err != nil {
-		return "", nil, err
+		return nil, err
+	}
+	if fromAddr.Name == "" {
+		fromAddr.Name = cfg.ApplicationName()
 	}
 
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name: "GoAlert",
+			Name: cfg.ApplicationName(),
 			Link: cfg.General.PublicURL,
 			Logo: cfg.CallbackURL("/static/goalert-alt-logo.png"),
 		},
@@ -50,19 +53,19 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 	var subject string
 	switch m := msg.(type) {
 	case notification.Test:
-		subject = "GoAlert: Test Message"
+		subject = "Test Message"
 		e.Body.Title = "Test Message"
-		e.Body.Intros = []string{"This is a test message from GoAlert."}
+		e.Body.Intros = []string{"This is a test message."}
 	case notification.Verification:
-		subject = "GoAlert: Verification Message"
+		subject = "Verification Message"
 		e.Body.Title = "Verification Message"
-		e.Body.Intros = []string{"This is a verification message from GoAlert."}
+		e.Body.Intros = []string{"This is your contact method verification code."}
 		e.Body.Actions = []hermes.Action{{
 			Instructions: "Click the REACTIVATE link on your profile page and enter the verification code.",
 			InviteCode:   strconv.Itoa(m.Code),
 		}}
 	case notification.Alert:
-		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.Summary)
+		subject = fmt.Sprintf("Alert #%d: %s", m.AlertID, m.Summary)
 		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
 		e.Body.Intros = []string{m.Summary, m.Details}
 		e.Body.Actions = []hermes.Action{{
@@ -72,9 +75,9 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 			},
 		}}
 	case notification.AlertBundle:
-		subject = fmt.Sprintf("GoAlert: Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
+		subject = fmt.Sprintf("Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
 		e.Body.Title = "Multiple Unacknowledged Alerts"
-		e.Body.Intros = []string{fmt.Sprintf("The GoAlert service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
+		e.Body.Intros = []string{fmt.Sprintf("The service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
 		e.Body.Actions = []hermes.Action{{
 			Button: hermes.Button{
 				Text: "Open Alert List",
@@ -82,7 +85,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 			},
 		}}
 	case notification.AlertStatus:
-		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.LogEntry)
+		subject = fmt.Sprintf("Alert #%d: %s", m.AlertID, m.LogEntry)
 		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
 		e.Body.Intros = []string{m.LogEntry}
 		e.Body.Actions = []hermes.Action{{
@@ -93,16 +96,16 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 		}}
 		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
 	default:
-		return "", nil, errors.New("message type not supported")
+		return nil, errors.New("message type not supported")
 	}
 
 	htmlBody, err := h.GenerateHTML(e)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	textBody, err := h.GeneratePlainText(e)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	g := gomail.NewMessage()
@@ -116,7 +119,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 
 	_, err = g.WriteTo(&buf)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	host, port, _ := net.SplitHostPort(cfg.SMTP.Address)
@@ -156,8 +159,11 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *n
 
 	err = sendFn(ctx, net.JoinHostPort(host, port), authFn, fromAddr.Address, []string{toAddr.Address}, buf.Bytes(), tlsCfg)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return "", &notification.Status{State: notification.StateSent}, nil
+	return &notification.SentMessage{
+		State:    notification.StateSent,
+		SrcValue: fromAddr.String(),
+	}, nil
 }

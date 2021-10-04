@@ -42,7 +42,7 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
-func notificationStateFromStatus(s notification.Status) *graphql2.NotificationState {
+func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {
 	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.StateFailedTemp, notification.StateFailedPerm:
@@ -75,13 +75,15 @@ func notificationStateFromStatus(s notification.Status) *graphql2.NotificationSt
 	}
 
 	return &graphql2.NotificationState{
-		Details: details,
-		Status:  &status,
+		Details:           details,
+		Status:            &status,
+		FormattedSrcValue: formattedSrc,
 	}
 }
 
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
+
 	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
 	if !ok || meta == nil || !meta.NoOneOnCall {
 		return nil, nil
@@ -109,7 +111,7 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(*s), nil
+	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue)), nil
 }
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -373,6 +375,28 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 	conn.Nodes = logs
 	return conn, err
+}
+
+// PendingNotifications returns a list of notifications that are waiting to be sent
+func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]graphql2.AlertPendingNotification, error) {
+	var result []graphql2.AlertPendingNotification
+
+	if obj.Status != alert.StatusTriggered {
+		return result, nil
+	}
+
+	p, err := a.NotificationStore.FindPendingNotifications(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, val := range p {
+		result = append(result, graphql2.AlertPendingNotification{
+			Destination: val.DestName + " (" + val.DestType + ")",
+		})
+	}
+
+	return result, nil
 }
 
 func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert, error) {

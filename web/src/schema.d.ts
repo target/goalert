@@ -28,9 +28,11 @@ export interface Query {
   config: ConfigValue[]
   configHints: ConfigHint[]
   systemLimits: SystemLimit[]
+  debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  generateSlackAppManifest: string
 }
 
 export interface SlackChannelSearchOptions {
@@ -181,6 +183,15 @@ export interface DebugSendSMSInput {
 export interface DebugSendSMSInfo {
   id: string
   providerURL: string
+  fromNumber: string
+}
+
+export interface DebugMessageStatusInput {
+  providerMessageID: string
+}
+
+export interface DebugMessageStatusInfo {
+  state: NotificationState
 }
 
 export interface TemporarySchedule {
@@ -648,6 +659,11 @@ export interface Alert {
   service?: Service
   state?: AlertState
   recentEvents: AlertLogEntryConnection
+  pendingNotifications: AlertPendingNotification[]
+}
+
+export interface AlertPendingNotification {
+  destination: string
 }
 
 export interface AlertRecentEventsOptions {
@@ -670,6 +686,7 @@ export interface AlertLogEntry {
 export interface NotificationState {
   details: string
   status?: NotificationStatus
+  formattedSrcValue: string
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
@@ -858,7 +875,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string
@@ -916,6 +933,7 @@ export interface Notice {
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
 
 type ConfigID =
+  | 'General.ApplicationName'
   | 'General.PublicURL'
   | 'General.GoogleAnalyticsID'
   | 'General.NotificationDisclaimer'
@@ -957,6 +975,7 @@ type ConfigID =
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.FromNumber'
+  | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'
@@ -967,5 +986,7 @@ type ConfigID =
   | 'SMTP.SkipVerify'
   | 'SMTP.Username'
   | 'SMTP.Password'
+  | 'Webhook.Enable'
+  | 'Webhook.AllowedURLs'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

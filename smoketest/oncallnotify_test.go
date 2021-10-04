@@ -3,6 +3,7 @@ package smoketest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -33,16 +34,20 @@ func TestOnCallNotify(t *testing.T) {
 
 	insert into notification_channels (id, type, name, value)
 	values
-		({{uuid "chan"}}, 'SLACK', '#test', {{slackChannelID "test"}});
-	
+		({{uuid "chan1"}}, 'SLACK', '#test1', {{slackChannelID "test1"}}),
+		({{uuid "chan2"}}, 'SLACK', '#test2', {{slackChannelID "test2"}});
+
 	insert into schedule_data (schedule_id, data)
 	values
-		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "chan"}} }]}}');
+		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "chan1"}} }, {"ChannelID": {{uuidJSON "chan2"}} }]}}');
 `
 	h := harness.NewHarness(t, sql, "outgoing-messages-schedule-id")
 	defer h.Close()
 
-	h.Slack().Channel("test").ExpectMessage("on-call", "testschedule", "bob")
+	h.Slack().Channel("test1").ExpectMessage("on-call", "testschedule", "bob")
+	h.Slack().Channel("test2").ExpectMessage("on-call", "testschedule", "bob")
+
+	h.FastForward(time.Hour)
 
 	ctx := permission.SystemContext(context.Background(), "Test")
 	_, err := h.App().ScheduleRuleStore.CreateRuleTx(ctx, nil, &rule.Rule{
@@ -53,5 +58,6 @@ func TestOnCallNotify(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	h.Slack().Channel("test").ExpectMessage("on-call", "testschedule", "bob", "joe")
+	h.Slack().Channel("test1").ExpectMessage("on-call", "testschedule", "bob", "joe")
+	h.Slack().Channel("test2").ExpectMessage("on-call", "testschedule", "bob", "joe")
 }

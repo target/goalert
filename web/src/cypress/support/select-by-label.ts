@@ -12,12 +12,7 @@ function clearSelect(sub: HTMLElement): Cypress.Chainable<JQuery<HTMLElement>> {
     .parents('[data-cy=material-select]')
     .should('have.attr', 'data-cy-ready', 'true')
     .find('[data-cy=search-select-input]')
-    .children()
-    .last() // skip the chips
-    .children()
-    .first() // get the clear button
-    .find('svg') // clear field icon
-    .should('have.length', 1)
+    .find('button[aria-label="Clear"]')
     .should('be.visible')
     .click()
 }
@@ -32,12 +27,7 @@ function findByLabel(
         .parents('[data-cy=material-select]')
         .should('have.attr', 'data-cy-ready', 'true')
         .find('[data-cy=search-select-input]')
-        .children()
-        .last() // skip the chips
-        .children()
-        .last() // ignore the clear button
-        .find('svg') // drop-down icon
-        .should('have.length', 1)
+        .find('button[aria-label="Open"]')
         .should('be.visible')
         .click()
         .should('not.have.focus')
@@ -46,7 +36,9 @@ function findByLabel(
 
       cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
 
-      return cy.get('[data-cy=select-dropdown] [role=menuitem]').contains(label)
+      return cy
+        .get('body')
+        .contains('[data-cy=select-dropdown] [role=menuitem]', label)
     }
 
     cy.wrap(sub).parent().find('[role=button]').click()

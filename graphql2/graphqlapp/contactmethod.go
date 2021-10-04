@@ -1,16 +1,17 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
 	"database/sql"
+	"net/url"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"github.com/ttacon/libphonenumber"
 )
 
 type ContactMethod App
@@ -19,18 +20,20 @@ func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	formatted := obj.Value
-	switch obj.Type {
-	case contactmethod.TypeSMS, contactmethod.TypeVoice:
-		num, err := libphonenumber.Parse(obj.Value, "")
-		if err != nil {
-			log.Log(ctx, err)
-			break
-		}
-		formatted = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
+func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
+	if obj.Type != contactmethod.TypeWebhook {
+		return obj.Value, nil
 	}
-	return formatted, nil
+
+	u, err := url.Parse(obj.Value)
+	if err != nil {
+		return "", err
+	}
+	return webhook.MaskURLPass(u), nil
+}
+
+func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
+	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -47,7 +50,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(status.Status), nil
+	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
 	t := obj.LastTestVerifyAt()
@@ -63,7 +66,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(status.Status), nil
+	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
 
 func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
@@ -72,6 +75,12 @@ func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmetho
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
 	var cm *contactmethod.ContactMethod
+	cfg := config.FromContext(ctx)
+
+	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
+		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{

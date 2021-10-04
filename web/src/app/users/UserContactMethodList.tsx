@@ -21,6 +21,7 @@ import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
+import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 
@@ -142,6 +143,19 @@ export default function UserContactMethodList(
     )
   }
 
+  function getSubText(cm: UserContactMethod): JSX.Element | string {
+    if (cm.type === 'WEBHOOK') {
+      return (
+        <React.Fragment>
+          {`${cm.formattedValue} (`}
+          <AppLink to='/docs'>docs</AppLink>)
+        </React.Fragment>
+      )
+    }
+
+    return cm.formattedValue
+  }
+
   return (
     <Grid item xs={12}>
       <Card>
@@ -154,7 +168,7 @@ export default function UserContactMethodList(
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => ({
             title: `${cm.name} (${cm.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: cm.formattedValue,
+            subText: getSubText(cm),
             secondaryAction: getSecondaryAction(cm),
             icon: getIcon(cm),
           }))}

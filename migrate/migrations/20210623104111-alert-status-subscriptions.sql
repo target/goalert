@@ -22,7 +22,7 @@ SELECT
         ELSE 'triggered'::enum_alert_status
     END
 FROM user_last_alert_log
-JOIN users u ON u.id = user_id
+JOIN users u ON u.id = user_id AND u.alert_status_log_contact_method_id NOTNULL
 JOIN alert_logs l ON l.id = log_id AND l.event != 'closed';
 
 DROP TABLE user_last_alert_log;

@@ -4,7 +4,7 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
 import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
-import { Redirect } from 'react-router'
+import { Redirect } from 'react-router-dom'
 
 const mutation = gql`
   mutation ($input: CreateScheduleInput!) {

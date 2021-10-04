@@ -7,7 +7,25 @@ package goalert.v1;
 service SysAPI {
     rpc AuthSubjects(AuthSubjectsRequest) returns (stream AuthSubject){}
     rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse){}
+
+    rpc UsersWithoutAuthProvider(UsersWithoutAuthProviderRequest) returns (stream UserInfo) {}
+    rpc SetAuthSubject(SetAuthSubjectRequest) returns (SetAuthSubjectResponse) {}
 }
+
+message UsersWithoutAuthProviderRequest {
+    string provider_id = 1;
+}
+message SetAuthSubjectRequest {
+    AuthSubject subject = 1;
+}
+
+message UserInfo {
+    string id = 1;
+    string name = 2;
+    string email = 3;
+}
+
+message SetAuthSubjectResponse {}
 
 message DeleteUserRequest {
     string user_id = 1;

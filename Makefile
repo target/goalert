@@ -5,26 +5,13 @@
 .PHONY: docker-goalert docker-all-in-one release force-yarn
 .SUFFIXES:
 
-GOALERT_DEPS := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
+include Makefile.binaries.mk
+
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-BIN_DIR=bin
-
-GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')
-GIT_TREE:=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
-GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
-BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-BUILD_FLAGS=
-
-export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
-
-LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
-LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
-LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
-LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
@@ -39,14 +26,6 @@ export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
-ifeq ($(shell test -d vendor && echo -n yes), yes)
-export GOFLAGS=-mod=vendor
-endif
-
-ifdef BUNDLE
-	GOALERT_DEPS += web/src/build/static/app.js
-endif
-
 DOCKER_IMAGE_PREFIX=docker.io/goalert
 DOCKER_TAG=$(GIT_VERSION)
 
@@ -54,79 +33,17 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html
-GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
 
-release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz
-docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/resetdb-linux-amd64 bin/resetdb-linux-arm bin/resetdb-linux-arm64
+release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
+docker-all-in-one: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/resetdb bin/linux-arm64/resetdb bin/linux-arm/resetdb
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
-docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
+docker-goalert: bin/build/goalert-linux-amd64 bin/build/goalert-linux-arm64 bin/build/goalert-linux-arm
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
-$(BIN_DIR)/goalert: go.sum $(GOALERT_DEPS) graphql2/mapconfig.go
-	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
-	GOOS=linux go test ./smoketest -c -o $@
-$(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=linux GOARCH=arm64 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
-	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-
-$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux GOARCH=arm go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-
-$(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
-	rm -rf $(BIN_DIR)/$*
-	mkdir -p $(BIN_DIR)/$*/goalert/bin
-	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
-	tar czvf $@ -C $(BIN_DIR)/$* goalert
-
-$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/ migrate/migrations/*.sql
-	go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-
-$(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
-	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
-
-$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
-	rm -rf $@
-	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
-	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
-	touch $@
-
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/goalert-smoketest-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/pgdump-lite-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
-	rm -rf $@
-	mkdir -p bin/integration/goalert/bin
-	cp bin/*-linux-amd64 bin/integration/goalert/bin/
-	for f in bin/integration/goalert/bin/*-linux-amd64; do ln -s $$(basename $$f) bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
-	touch $@
-
-$(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
-	rm -rf $@
-	mkdir -p bin/integration/goalert/devtools
-	cp -r devtools/ci bin/integration/goalert/devtools/
-	touch $@
-
-$(BIN_DIR)/integration/goalert/.git: $(shell find ./.git)
-	rm -rf $@
-	mkdir -p bin/integration/goalert/.git
-	git rev-parse HEAD >bin/integration/goalert/COMMIT
-	test -d .git/resource && cp -r .git/resource bin/integration/goalert/.git/ || true
-
-$(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
-	touch $@
-
-$(BIN_DIR)/integration.tgz: bin/integration
-	tar czvf bin/integration.tgz -C bin/integration goalert
+Makefile.binaries.mk: devtools/genmake/*
+	go run ./devtools/genmake >$@
 
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
@@ -162,9 +79,6 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-install: $(GOALERT_DEPS)
-	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
-
 cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
@@ -185,6 +99,7 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go d
 	go generate ./web/src
 
 start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+	bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -206,7 +121,7 @@ force-yarn:
 	yarn install --no-progress --silent --frozen-lockfile --check-files
 
 check: force-yarn generate node_modules
-	# go run devtools/ordermigrations/main.go -check
+	# go run ./devtools/ordermigrations -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign ./...
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
@@ -217,11 +132,11 @@ check: force-yarn generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
-	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
+graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
+	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
-graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/main.go
-	(cd ./graphql2 && go run ../devtools/limitapigen/main.go -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
+graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
+	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
@@ -263,9 +178,9 @@ node_modules: yarn.lock node_modules/.yarn-integrity
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
+	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web webpack --config webpack.prod.config.js
 
-notification/desttype_string.go: notification/dest.go
+notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice
@@ -274,14 +189,14 @@ config.json.bak: bin/goalert
 	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
-postgres:
-	docker run -d \
+postgres: bin/waitfor
+	(docker run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:13-alpine || docker start goalert-postgres
+		postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001

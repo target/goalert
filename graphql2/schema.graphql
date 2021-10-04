@@ -93,6 +93,9 @@ type Query {
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
 
+  # Returns the message status
+  debugMessageStatus(input: DebugMessageStatusInput!): DebugMessageStatusInfo!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -101,6 +104,8 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  generateSlackAppManifest: String!
 }
 
 input SlackChannelSearchOptions {
@@ -257,6 +262,15 @@ input DebugSendSMSInput {
 type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
+  fromNumber: String!
+}
+
+input DebugMessageStatusInput {
+  providerMessageID: ID!
+}
+
+type DebugMessageStatusInfo {
+  state: NotificationState!
 }
 
 type TemporarySchedule {
@@ -839,6 +853,12 @@ type Alert {
 
   # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+
+  pendingNotifications: [AlertPendingNotification!]!
+}
+
+type AlertPendingNotification {
+  destination: String!
 }
 
 input AlertRecentEventsOptions {
@@ -861,6 +881,7 @@ type AlertLogEntry {
 type NotificationState {
   details: String!
   status: NotificationStatus
+  formattedSrcValue: String!
 }
 
 enum NotificationStatus {
@@ -1084,6 +1105,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBHOOK
 }
 
 # A method of contacting a user.

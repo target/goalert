@@ -111,7 +111,7 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 			from schedule_on_call_users
 			where
 				schedule_id = $1 and
-				($2, $3) OVERLAPS (start_time, coalesce(end_time, 'infinity')) and
+				tstzrange($2, $3) && tstzrange(start_time, end_time) and
 				(end_time isnull or (end_time - start_time) > '1 minute'::interval)
 		`),
 		schedTZ: p.P(`select time_zone, now() from schedules where id = $1`),

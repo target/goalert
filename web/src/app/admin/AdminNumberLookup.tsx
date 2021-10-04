@@ -75,9 +75,7 @@ export default function AdminNumberLookup(): JSX.Element {
         <ListItem>
           <ListItemText
             primary={label}
-            secondary={
-              (text && <CopyText title={text} value={text} textOnly />) || '?'
-            }
+            secondary={(text && <CopyText title={text} value={text} />) || '?'}
           />
         </ListItem>
       </React.Fragment>
@@ -98,8 +96,6 @@ export default function AdminNumberLookup(): JSX.Element {
                   }}
                   value={number}
                   label='Phone Number'
-                  helperText='Please provide your country code e.g. +1 (USA)'
-                  type='tel'
                 />
               </Grid>
             </Grid>
