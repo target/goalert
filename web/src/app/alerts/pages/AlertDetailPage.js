@@ -33,6 +33,9 @@ const query = gql`
         stepNumber
         repeatCount
       }
+      pendingNotifications {
+        destination
+      }
     }
   }
 `

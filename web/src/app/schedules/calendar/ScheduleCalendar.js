@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Card, Button, makeStyles } from '@material-ui/core'
+import { darken } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
@@ -16,6 +17,7 @@ import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
+import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
@@ -35,6 +37,15 @@ const useStyles = makeStyles((theme) => ({
   tempSchedBtn: {
     marginLeft: theme.spacing(1.75),
   },
+  overrideTitleIcon: {
+    verticalAlign: 'middle',
+    borderRadius: '50%',
+    background: theme.palette.secondary.main,
+    padding: '3px',
+    height: '100%',
+    width: '18px',
+    marginRight: '0.25rem',
+  },
 }))
 
 function ScheduleCalendar(props) {
@@ -53,23 +64,87 @@ function ScheduleCalendar(props) {
   const { shifts, temporarySchedules } = props
 
   const eventStyleGetter = (event, start, end, isSelected) => {
+    const green = '#0C6618'
+    const lavender = '#BB7E8C'
+
     if (event.fixed) {
       return {
         style: {
-          backgroundColor: isSelected ? '#094F13' : '#0C6618',
-          borderColor: '#094F13',
+          backgroundColor: isSelected ? darken(green, 0.3) : green,
+          borderColor: darken(green, 0.3),
+        },
+      }
+    }
+    if (event.isOverride) {
+      return {
+        style: {
+          backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
+          borderColor: darken(lavender, 0.3),
         },
       }
     }
   }
 
-  const getCalEvents = (shifts, _tempScheds) => {
+  const getOverrideTitle = (o) => {
+    if (o.addUser && o.removeUser) {
+      // replace override
+      return (
+        <div>
+          <AccountSwitch
+            fontSize='small'
+            className={classes.overrideTitleIcon}
+            aria-label='Replace Override'
+          />
+          Override
+        </div>
+      )
+    }
+    if (o.addUser) {
+      // add override
+      return (
+        <div>
+          <AccountPlus
+            fontSize='small'
+            className={classes.overrideTitleIcon}
+            aria-label='Add Override'
+          />
+          Override
+        </div>
+      )
+    }
+    return (
+      // remove override
+      <div>
+        <AccountMinus
+          fontSize='small'
+          className={classes.overrideTitleIcon}
+          aria-label='Remove Override'
+        />
+        Override
+      </div>
+    )
+  }
+
+  const getCalEvents = (shifts, _tempScheds, userOverrides) => {
     const tempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
       end: sched.end,
       user: { name: 'Temporary Schedule' },
       tempSched: sched,
       fixed: true,
+    }))
+
+    const overrides = userOverrides.map((o) => ({
+      user: {
+        name: getOverrideTitle(o),
+      },
+      start: o.start,
+      end: o.end,
+      fixed: false,
+      isTempSchedShift: false,
+      tempSched: false,
+      isOverride: true,
+      override: o,
     }))
 
     // flat list of all fixed shifts, with `fixed` set to true
@@ -88,6 +163,7 @@ function ScheduleCalendar(props) {
     let filteredShifts = [
       ...tempSchedules,
       ...fixedShifts,
+      ...overrides,
 
       // Remove shifts within a temporary schedule, and trim any that overlap
       ...trimSpans(shifts, fixedIntervals, 'local'),
@@ -120,6 +196,8 @@ function ScheduleCalendar(props) {
         fixed: shift.fixed,
         isTempSchedShift: shift.isTempSchedShift,
         tempSched: shift.tempSched,
+        isOverride: shift.isOverride,
+        override: shift.override,
       }
     })
   }
@@ -186,7 +264,7 @@ function ScheduleCalendar(props) {
           <Calendar
             date={DateTime.fromISO(start).toJSDate()}
             localizer={localizer}
-            events={getCalEvents(shifts, temporarySchedules)}
+            events={getCalEvents(shifts, temporarySchedules, props.overrides)}
             style={{
               height: weekly ? '100%' : '45rem',
               fontFamily: theme.typography.body2.fontFamily,
@@ -222,6 +300,7 @@ function ScheduleCalendar(props) {
 ScheduleCalendar.propTypes = {
   scheduleID: p.string.isRequired,
   shifts: p.array.isRequired,
+  overrides: p.array.isRequired,
   temporarySchedules: p.array,
   loading: p.bool,
 }

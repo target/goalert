@@ -853,6 +853,12 @@ type Alert {
 
   # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+
+  pendingNotifications: [AlertPendingNotification!]!
+}
+
+type AlertPendingNotification {
+  destination: String!
 }
 
 input AlertRecentEventsOptions {
