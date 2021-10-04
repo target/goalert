@@ -38,9 +38,6 @@ const useStyles = makeStyles(() => ({
   label: {
     paddingRight: '0.4em',
   },
-  stepperRoot: {
-    padding: 0,
-  },
 }))
 
 function PolicyStepForm(props) {
@@ -102,14 +99,7 @@ function PolicyStepForm(props) {
         <Grid item xs={12}>
           <Config>
             {(cfg) => (
-              <Stepper
-                activeStep={step}
-                nonLinear
-                orientation='vertical'
-                classes={{
-                  root: classes.stepperRoot,
-                }}
-              >
+              <Stepper activeStep={step} nonLinear orientation='vertical'>
                 <Step>
                   <StepButton
                     aria-expanded={(step === 0).toString()}
