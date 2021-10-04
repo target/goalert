@@ -1,6 +1,6 @@
-import { createTheme } from '@material-ui/core/styles'
-import grey from '@material-ui/core/colors/grey'
-import red from '@material-ui/core/colors/red'
+import { createTheme } from '@mui/styles'
+import grey from '@mui/material/colors/grey'
+import red from '@mui/material/colors/red'
 import { isCypress } from './env'
 
 let testOverrides = {}
