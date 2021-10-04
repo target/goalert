@@ -108,29 +108,25 @@ function AlertsListFilter({ serviceID }) {
             >
               <FormControlLabel
                 value='active'
-                control={<Radio color='primary' />}
+                control={<Radio />}
                 label='Active'
               />
               <FormControlLabel
                 value='unacknowledged'
-                control={<Radio color='primary' />}
+                control={<Radio />}
                 label='Unacknowledged'
               />
               <FormControlLabel
                 value='acknowledged'
-                control={<Radio color='primary' />}
+                control={<Radio />}
                 label='Acknowledged'
               />
               <FormControlLabel
                 value='closed'
-                control={<Radio color='primary' />}
+                control={<Radio />}
                 label='Closed'
               />
-              <FormControlLabel
-                value='all'
-                control={<Radio color='primary' />}
-                label='All'
-              />
+              <FormControlLabel value='all' control={<Radio />} label='All' />
             </RadioGroup>
           </FormControl>
         </Grid>

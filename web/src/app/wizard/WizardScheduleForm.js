@@ -127,21 +127,21 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 data-cy={`${key}.rotationType.weekly`}
                 disabled={value[key].users.length <= 1}
                 value='weekly'
-                control={<Radio />}
+                control={<Radio color='secondary' />}
                 label='Weekly'
               />
               <FormControlLabel
                 data-cy={`${key}.rotationType.daily`}
                 disabled={value[key].users.length <= 1}
                 value='daily'
-                control={<Radio />}
+                control={<Radio color='secondary' />}
                 label='Daily'
               />
               <FormControlLabel
                 data-cy={`${key}.rotationType.never`}
                 disabled={value[key].users.length <= 1}
                 value='never'
-                control={<Radio />}
+                control={<Radio color='secondary' />}
                 label='Never*'
               />
             </RadioGroup>
@@ -199,13 +199,13 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                   <FormControlLabel
                     data-cy={`${key}.fts.yes`}
                     value='yes'
-                    control={<Radio />}
+                    control={<Radio color='secondary' />}
                     label='Yes'
                   />
                   <FormControlLabel
                     data-cy={`${key}.fts.no`}
                     value='no'
-                    control={<Radio />}
+                    control={<Radio color='secondary' />}
                     label='No'
                   />
                 </RadioGroup>

@@ -69,13 +69,13 @@ export default function ScheduleOnCallNotificationsForm(
               data-cy='notify-on-change'
               label='Notify when on-call changes'
               value='on-change'
-              control={<Radio />}
+              control={<Radio color='secondary' />}
             />
             <FormControlLabel
               data-cy='notify-at-time'
               label='Notify at a specific day and time every week'
               value='time-of-day'
-              control={<Radio />}
+              control={<Radio color='secondary' />}
             />
           </RadioGroup>
         </Grid>
