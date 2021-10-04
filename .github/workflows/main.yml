@@ -4,6 +4,7 @@ jobs:
   node-checks:
     name: Node checks
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

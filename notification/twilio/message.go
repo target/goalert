@@ -67,6 +67,8 @@ type Message struct {
 	Status       MessageStatus
 	ErrorCode    *MessageErrorCode
 	ErrorMessage *string
+
+	MessagingServiceSID string `json:"messaging_service_sid"`
 }
 
 func (msg *Message) sentMessage() *notification.SentMessage {
@@ -105,5 +107,7 @@ func (msg *Message) messageStatus() *notification.Status {
 	default:
 		status.State = notification.StateSending
 	}
+
+	status.SrcValue = msg.From
 	return &status
 }

@@ -1,4 +1,4 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime, DateTimeOptions, Interval } from 'luxon'
 import _ from 'lodash'
 
 export interface SpanISO {
@@ -6,7 +6,9 @@ export interface SpanISO {
   end: string
 }
 
-export function parseInterval(s: SpanISO, zone = 'local'): Interval {
+type ExplicitZone = NonNullable<DateTimeOptions['zone']>
+
+export function parseInterval(s: SpanISO, zone: ExplicitZone): Interval {
   return Interval.fromDateTimes(
     DateTime.fromISO(s.start, { zone }),
     DateTime.fromISO(s.end, { zone }),
@@ -15,13 +17,14 @@ export function parseInterval(s: SpanISO, zone = 'local'): Interval {
 
 export function trimSpans<T extends SpanISO>(
   spans: T[],
-  ...intervals: Interval[]
+  intervals: Interval[],
+  zone: ExplicitZone,
 ): T[] {
   intervals = Interval.merge(intervals)
 
   return _.flatten(
     spans.map((s) => {
-      const ivl = parseInterval(s)
+      const ivl = parseInterval(s, zone)
 
       return ivl.difference(...intervals).map((ivl) => ({
         ...s,

@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
-import { useHistory } from 'react-router'
+import { useHistory } from 'react-router-dom'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'

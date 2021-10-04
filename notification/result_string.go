@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[ResultAcknowledge-0]
 	_ = x[ResultResolve-1]
+	_ = x[ResultEscalate-2]
 }
 
-const _Result_name = "ResultAcknowledgeResultResolve"
+const _Result_name = "ResultAcknowledgeResultResolveResultEscalate"
 
-var _Result_index = [...]uint8{0, 17, 30}
+var _Result_index = [...]uint8{0, 17, 30, 44}
 
 func (i Result) String() string {
 	if i < 0 || i >= Result(len(_Result_index)-1) {

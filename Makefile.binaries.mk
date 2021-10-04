@@ -31,7 +31,7 @@ $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 
 $(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/build/integration/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
-	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
+	yarn workspace goalert-web webpack --config webpack.cypress.js
 	cp -r web/src/cypress/fixtures $@/
 	touch $@
 

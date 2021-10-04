@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -47,6 +48,7 @@ type Server struct {
 
 	messages map[string]*SMS
 	calls    map[string]*VoiceCall
+	msgSvc   map[string][]string
 
 	mux *http.ServeMux
 
@@ -71,6 +73,7 @@ func NewServer(cfg Config) *Server {
 		mux:         http.NewServeMux(),
 		messages:    make(map[string]*SMS),
 		calls:       make(map[string]*VoiceCall),
+		msgSvc:      make(map[string][]string),
 		smsCh:       make(chan *SMS),
 		smsInCh:     make(chan *SMS),
 		callCh:      make(chan *VoiceCall),
@@ -194,6 +197,45 @@ func (s *Server) SetCarrierInfo(number string, info twilio.CarrierInfo) {
 	defer s.carrierInfoMx.Unlock()
 
 	s.carrierInfo[number] = info
+}
+
+// getFromNumber will return a random number from the messaging service if ID is a
+// messaging SID, or the value itself otherwise.
+func (s *Server) getFromNumber(id string) string {
+	if !strings.HasPrefix(id, "MG") {
+		return id
+	}
+
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	// select a random number from the message service
+	if len(s.msgSvc[id]) == 0 {
+		return ""
+	}
+
+	return s.msgSvc[id][rand.Intn(len(s.msgSvc[id]))]
+}
+
+// NewMessagingService registers a new Messaging SID for the given numbers.
+func (s *Server) NewMessagingService(url string, numbers ...string) (string, error) {
+	err := validate.URL("URL", url)
+	for i, n := range numbers {
+		err = validate.Many(err, validate.Phone(fmt.Sprintf("Number[%d]", i), n))
+	}
+	if err != nil {
+		return "", err
+	}
+	svcID := s.id("MG")
+
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	for _, num := range numbers {
+		s.callbacks["SMS:"+num] = url
+	}
+	s.msgSvc[svcID] = numbers
+
+	return svcID, nil
 }
 
 // RegisterSMSCallback will set/update a callback URL for SMS calls made to the given number.

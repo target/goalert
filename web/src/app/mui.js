@@ -25,5 +25,11 @@ export const theme = createTheme({
     error: red,
   },
 
+  props: {
+    MuiTextField: {
+      variant: 'outlined',
+    },
+  },
+
   ...testOverrides,
 })

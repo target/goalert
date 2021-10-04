@@ -29,7 +29,8 @@ type SMS struct {
 	doneCh   chan struct{}
 }
 
-func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error) {
+func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, error) {
+	fromNumber := s.getFromNumber(fromValue)
 	if statusURL != "" {
 		err := validate.URL("StatusCallback", statusURL)
 		if err != nil {
@@ -39,7 +40,7 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 			}
 		}
 		s.mx.RLock()
-		_, hasCallback := s.callbacks["SMS:"+from]
+		_, hasCallback := s.callbacks["SMS:"+fromNumber]
 		s.mx.RUnlock()
 
 		if !hasCallback {
@@ -63,7 +64,6 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 		s: s,
 		msg: twilio.Message{
 			To:     to,
-			From:   from,
 			Status: twilio.MessageStatusAccepted,
 			SID:    s.id("SM"),
 		},
@@ -73,6 +73,12 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 		body:      body,
 		acceptCh:  make(chan bool, 1),
 		doneCh:    make(chan struct{}),
+	}
+
+	if strings.HasPrefix(fromValue, "MG") {
+		sms.msg.MessagingServiceSID = fromValue
+	} else {
+		sms.msg.From = fromValue
 	}
 
 	s.mx.Lock()
@@ -130,6 +136,15 @@ func (s *Server) serveMessageStatus(w http.ResponseWriter, req *http.Request) {
 func (sms *SMS) updateStatus(stat twilio.MessageStatus) {
 	sms.mx.Lock()
 	sms.msg.Status = stat
+	switch stat {
+	case twilio.MessageStatusAccepted, twilio.MessageStatusQueued:
+	default:
+		if sms.msg.MessagingServiceSID == "" {
+			break
+		}
+
+		sms.msg.From = sms.s.getFromNumber(sms.msg.MessagingServiceSID)
+	}
 	sms.mx.Unlock()
 
 	if sms.statusURL == "" {

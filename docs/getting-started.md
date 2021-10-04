@@ -62,7 +62,7 @@ in separate geographic regions or availability zones. If messages fail to send f
 
 ## First Time Login
 
-In order to login to GoAlert initially you will need an admin user to start with. Afterwords you may enable other authentication methods through the UI, as well as disable basic (user/pass) login.
+In order to log in to GoAlert initially you will need an admin user to start with. Afterwords you may enable other authentication methods through the UI, as well as disable basic (user/pass) login.
 
 This can be done after GoAlert has started for the first time, and is safe to execute while GoAlert is running.
 
@@ -186,7 +186,7 @@ GoAlert supports generating a notification to a Slack channel as part of the Esc
 
 For the time being you will need to create your own Slack app in your workspace for GoAlert to interface with.
 
-To configure Slack, first [create a workspace](https://slack.com/create#email) or login to an existing one.
+To configure Slack, first [create a workspace](https://slack.com/create#email) or log in to an existing one.
 
 1. From https://api.slack.com/apps click **Create New App**
 1. Enter a name for your app (e.g. `GoAlert`)
@@ -196,9 +196,9 @@ To configure Slack, first [create a workspace](https://slack.com/create#email) o
 1. Click on **Add New Redirect URL** and enter your `<General.Public URL>` and click **Add**
 1. Under **Scopes** find **Bot Token Scopes**, click on **Add an OAuth Scope**
 1. Add the following scopes:  
-  `channels:read`  
-  `groups:read`  
-  `chat:write`  
+   `channels:read`  
+   `groups:read`  
+   `chat:write`
 1. At the top of the page, click **Install App to Workspace** and **Allow**
 
 You may now configure the **Slack** section of the GoAlert Admin page.

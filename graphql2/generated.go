@@ -87,16 +87,17 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Alert struct {
-		AlertID      func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		Details      func(childComplexity int) int
-		ID           func(childComplexity int) int
-		RecentEvents func(childComplexity int, input *AlertRecentEventsOptions) int
-		Service      func(childComplexity int) int
-		ServiceID    func(childComplexity int) int
-		State        func(childComplexity int) int
-		Status       func(childComplexity int) int
-		Summary      func(childComplexity int) int
+		AlertID              func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		Details              func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		PendingNotifications func(childComplexity int) int
+		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
+		Service              func(childComplexity int) int
+		ServiceID            func(childComplexity int) int
+		State                func(childComplexity int) int
+		Status               func(childComplexity int) int
+		Summary              func(childComplexity int) int
 	}
 
 	AlertConnection struct {
@@ -114,6 +115,10 @@ type ComplexityRoot struct {
 	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	AlertPendingNotification struct {
+		Destination func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -151,6 +156,10 @@ type ComplexityRoot struct {
 		MobileNetworkCode func(childComplexity int) int
 		Name              func(childComplexity int) int
 		Type              func(childComplexity int) int
+	}
+
+	DebugMessageStatusInfo struct {
+		State func(childComplexity int) int
 	}
 
 	DebugSendSMSInfo struct {
@@ -305,6 +314,7 @@ type ComplexityRoot struct {
 		CalcRotationHandoffTimes func(childComplexity int, input *CalcRotationHandoffTimesInput) int
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
+		DebugMessageStatus       func(childComplexity int, input DebugMessageStatusInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
 		GenerateSlackAppManifest func(childComplexity int) int
@@ -535,6 +545,7 @@ type AlertResolver interface {
 	Service(ctx context.Context, obj *alert.Alert) (*service.Service, error)
 	State(ctx context.Context, obj *alert.Alert) (*alert.State, error)
 	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
+	PendingNotifications(ctx context.Context, obj *alert.Alert) ([]AlertPendingNotification, error)
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
@@ -639,6 +650,7 @@ type QueryResolver interface {
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
 	SystemLimits(ctx context.Context) ([]SystemLimit, error)
+	DebugMessageStatus(ctx context.Context, input DebugMessageStatusInput) (*DebugMessageStatusInfo, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
@@ -761,6 +773,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.ID(childComplexity), true
 
+	case "Alert.pendingNotifications":
+		if e.complexity.Alert.PendingNotifications == nil {
+			break
+		}
+
+		return e.complexity.Alert.PendingNotifications(childComplexity), true
+
 	case "Alert.recentEvents":
 		if e.complexity.Alert.RecentEvents == nil {
 			break
@@ -863,6 +882,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
+
+	case "AlertPendingNotification.destination":
+		if e.complexity.AlertPendingNotification.Destination == nil {
+			break
+		}
+
+		return e.complexity.AlertPendingNotification.Destination(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -996,6 +1022,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DebugCarrierInfo.Type(childComplexity), true
+
+	case "DebugMessageStatusInfo.state":
+		if e.complexity.DebugMessageStatusInfo.State == nil {
+			break
+		}
+
+		return e.complexity.DebugMessageStatusInfo.State(childComplexity), true
 
 	case "DebugSendSMSInfo.fromNumber":
 		if e.complexity.DebugSendSMSInfo.FromNumber == nil {
@@ -1973,6 +2006,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ConfigHints(childComplexity), true
+
+	case "Query.debugMessageStatus":
+		if e.complexity.Query.DebugMessageStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Query_debugMessageStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DebugMessageStatus(childComplexity, args["input"].(DebugMessageStatusInput)), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -3271,6 +3316,9 @@ var sources = []*ast.Source{
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
 
+  # Returns the message status
+  debugMessageStatus(input: DebugMessageStatusInput!): DebugMessageStatusInfo!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -3438,6 +3486,14 @@ type DebugSendSMSInfo {
   id: ID!
   providerURL: String!
   fromNumber: String!
+}
+
+input DebugMessageStatusInput {
+  providerMessageID: ID!
+}
+
+type DebugMessageStatusInfo {
+  state: NotificationState!
 }
 
 type TemporarySchedule {
@@ -4020,6 +4076,12 @@ type Alert {
 
   # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+
+  pendingNotifications: [AlertPendingNotification!]!
+}
+
+type AlertPendingNotification {
+  destination: String!
 }
 
 input AlertRecentEventsOptions {
@@ -5094,6 +5156,21 @@ func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_debugMessageStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DebugMessageStatusInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNDebugMessageStatusInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_escalationPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5909,6 +5986,41 @@ func (ec *executionContext) _Alert_recentEvents(ctx context.Context, field graph
 	return ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Alert_pendingNotifications(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Alert().PendingNotifications(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]AlertPendingNotification)
+	fc.Result = res
+	return ec.marshalNAlertPendingNotification2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotificationᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AlertConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6184,6 +6296,41 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertPendingNotification_destination(ctx context.Context, field graphql.CollectedField, obj *AlertPendingNotification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertPendingNotification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -6849,6 +6996,41 @@ func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Cont
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessageStatusInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalNNotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DebugSendSMSInfo_id(ctx context.Context, field graphql.CollectedField, obj *DebugSendSMSInfo) (ret graphql.Marshaler) {
@@ -11664,6 +11846,48 @@ func (ec *executionContext) _Query_systemLimits(ctx context.Context, field graph
 	res := resTmp.([]SystemLimit)
 	fc.Result = res
 	return ec.marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_debugMessageStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_debugMessageStatus_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DebugMessageStatus(rctx, args["input"].(DebugMessageStatusInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DebugMessageStatusInfo)
+	fc.Result = res
+	return ec.marshalNDebugMessageStatusInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18112,6 +18336,26 @@ func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Context, obj interface{}) (DebugMessageStatusInput, error) {
+	var it DebugMessageStatusInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "providerMessageID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providerMessageID"))
+			it.ProviderMessageID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context, obj interface{}) (DebugSendSMSInput, error) {
 	var it DebugSendSMSInput
 	var asMap = obj.(map[string]interface{})
@@ -19873,6 +20117,20 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 				}
 				return res
 			})
+		case "pendingNotifications":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_pendingNotifications(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19991,6 +20249,33 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 			}
 		case "pageInfo":
 			out.Values[i] = ec._AlertLogEntryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertPendingNotificationImplementors = []string{"AlertPendingNotification"}
+
+func (ec *executionContext) _AlertPendingNotification(ctx context.Context, sel ast.SelectionSet, obj *AlertPendingNotification) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertPendingNotificationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertPendingNotification")
+		case "destination":
+			out.Values[i] = ec._AlertPendingNotification_destination(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20218,6 +20503,33 @@ func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.Selec
 			}
 		case "mobileCountryCode":
 			out.Values[i] = ec._DebugCarrierInfo_mobileCountryCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var debugMessageStatusInfoImplementors = []string{"DebugMessageStatusInfo"}
+
+func (ec *executionContext) _DebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugMessageStatusInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, debugMessageStatusInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DebugMessageStatusInfo")
+		case "state":
+			out.Values[i] = ec._DebugMessageStatusInfo_state(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21463,6 +21775,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_systemLimits(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "debugMessageStatus":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_debugMessageStatus(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -23375,6 +23701,47 @@ func (ec *executionContext) marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋta
 	return ec._AlertLogEntryConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAlertPendingNotification2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotification(ctx context.Context, sel ast.SelectionSet, v AlertPendingNotification) graphql.Marshaler {
+	return ec._AlertPendingNotification(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertPendingNotification2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotificationᚄ(ctx context.Context, sel ast.SelectionSet, v []AlertPendingNotification) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlertPendingNotification2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx context.Context, v interface{}) (AlertStatus, error) {
 	var res AlertStatus
 	err := res.UnmarshalGQL(v)
@@ -23668,6 +24035,25 @@ func (ec *executionContext) marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋ
 
 func (ec *executionContext) unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfoInput(ctx context.Context, v interface{}) (DebugCarrierInfoInput, error) {
 	res, err := ec.unmarshalInputDebugCarrierInfoInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDebugMessageStatusInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, v DebugMessageStatusInfo) graphql.Marshaler {
+	return ec._DebugMessageStatusInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDebugMessageStatusInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, v *DebugMessageStatusInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DebugMessageStatusInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDebugMessageStatusInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInput(ctx context.Context, v interface{}) (DebugMessageStatusInput, error) {
+	res, err := ec.unmarshalInputDebugMessageStatusInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -24129,6 +24515,16 @@ func (ec *executionContext) unmarshalNNoticeType2githubᚗcomᚋtargetᚋgoalert
 
 func (ec *executionContext) marshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐType(ctx context.Context, sel ast.SelectionSet, v notice.Type) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNNotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._NotificationState(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, v schedule.OnCallNotificationRule) graphql.Marshaler {

@@ -1,26 +1,56 @@
-import React, { useState, ReactNode, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMutation, gql } from '@apollo/client'
+import Checkbox from '@material-ui/core/Checkbox'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Grid from '@material-ui/core/Grid'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core'
+import Alert from '@material-ui/lab/Alert'
+import AlertTitle from '@material-ui/lab/AlertTitle'
+import _ from 'lodash'
+import { DateTime } from 'luxon'
+
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { Shift, Value } from './sharedUtils'
-import _ from 'lodash'
-import { FormContainer } from '../../forms'
-import { virtualize } from 'react-swipeable-views-utils'
-import SwipeableViews from 'react-swipeable-views'
-import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
-import TempSchedTimesStep from './TempSchedTimesStep'
-import { parseInterval } from '../../util/shifts'
-import { DateTime } from 'luxon'
+import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
+import { FormContainer, FormField } from '../../forms'
+import TempSchedAddNewShift from './TempSchedAddNewShift'
+import { isISOAfter, parseInterval } from '../../util/shifts'
 import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from './hooks'
-// allows changing the index programatically
-const VirtualizeAnimatedViews = virtualize(SwipeableViews)
+import TempSchedShiftsList from './TempSchedShiftsList'
+import { ISODateTimePicker } from '../../util/ISOPickers'
+import { getCoverageGapItems } from './shiftsListUtil'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
   }
 `
+
+function shiftEquals(a: Shift, b: Shift): boolean {
+  return a.start === b.start && a.end === b.end && a.userID === b.userID
+}
+
+const useStyles = makeStyles((theme) => ({
+  contentText,
+  avatar: {
+    backgroundColor: theme.palette.primary.main,
+  },
+  formContainer: {
+    height: '100%',
+    padding: '0.5rem',
+  },
+  noCoverageError: {
+    marginTop: '.5rem',
+    marginBottom: '.5rem',
+  },
+  tzNote: {
+    fontStyle: 'italic',
+  },
+}))
 
 type TempScheduleDialogProps = {
   onClose: () => void
@@ -33,9 +63,10 @@ export default function TempSchedDialog({
   scheduleID,
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
+  const classes = useStyles()
   const edit = Boolean(_value)
-  const { q, zone } = useScheduleTZ(scheduleID)
-  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -43,34 +74,51 @@ export default function TempSchedDialog({
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+  const [allowNoCoverage, setAllowNoCoverage] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
 
   useEffect(() => {
     // set default start, end times when zone is ready
     if (!value.start && !value.end && !q.loading && zone) {
-      const nextSunday = getNextWeekday(7, DateTime.now(), zone)
-      const followingSunday = nextSunday.plus({ week: 1 })
+      const nextMonday = getNextWeekday(1, DateTime.now(), zone)
+      const nextFriday = nextMonday.plus({ days: 5 }) // thru to the end of Friday
       setValue({
         ...value,
-        start: nextSunday.toISO(),
-        end: followingSunday.toISO(),
+        start: nextMonday.toISO(),
+        end: nextFriday.toISO(),
       })
     }
   }, [q.loading, zone])
 
-  const schedInterval = parseInterval(value)
-  const hasInvalidShift = value.shifts.some(
-    (s) => !schedInterval.engulfs(parseInterval(s)),
-  )
+  function validate(): Error | null {
+    if (isISOAfter(value.start, value.end)) {
+      return new Error('Start date/time cannot be after end date/time.')
+    }
+    return null
+  }
+
+  const hasInvalidShift = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return value.shifts.some(
+      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+    )
+  })()
 
   const shiftErrors = hasInvalidShift
     ? [
         {
           message:
             'One or more shifts extend beyond the start and/or end of this temporary schedule',
-          nonSubmit: step !== 1,
         },
       ]
     : []
+
+  const hasCoverageGaps = (() => {
+    if (q.loading) return false
+    const schedInterval = parseInterval(value, zone)
+    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+  })()
 
   const [submit, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
@@ -82,38 +130,14 @@ export default function TempSchedDialog({
     },
   })
 
-  type SlideRenderer = {
-    index: number
-    key: number
-  }
-  function renderSlide({ index, key }: SlideRenderer): ReactNode {
-    if (index === 0) {
-      return (
-        <TempSchedTimesStep
-          key={key}
-          scheduleID={scheduleID}
-          value={value}
-          edit={edit}
-        />
-      )
+  const handleSubmit = (): void => {
+    setHasSubmitted(true)
+
+    if (hasCoverageGaps && !allowNoCoverage) {
+      return
     }
 
-    if (index === 1) {
-      return (
-        <TempSchedAddShiftsStep
-          key={key}
-          value={value.shifts}
-          onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-          scheduleID={scheduleID}
-          start={value.start}
-          end={value.end}
-          edit={edit}
-        />
-      )
-    }
-
-    // fallback empty div
-    return <div />
+    submit()
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
@@ -122,12 +146,18 @@ export default function TempSchedDialog({
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
+  const noCoverageErrs =
+    hasSubmitted && hasCoverageGaps && !allowNoCoverage
+      ? [new Error('This temporary schedule has gaps in coverage.')]
+      : []
+  const errs = nonFieldErrs
+    .concat(fieldErrs)
+    .concat(shiftErrors)
+    .concat(noCoverageErrs)
 
   return (
     <FormDialog
-      fullScreen
-      disableGutters
+      maxWidth='lg'
       title='Define a Temporary Schedule'
       onClose={onClose}
       loading={loading}
@@ -153,27 +183,118 @@ export default function TempSchedDialog({
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
         >
-          <VirtualizeAnimatedViews
-            index={step}
-            onChangeIndex={(i: number) => {
-              if (i < 0 || i > 1) return
-              if (edit) {
-                setStep(1)
-                return
-              }
-              setStep(i)
-            }}
-            slideCount={2}
-            slideRenderer={renderSlide}
-            disabled // disables slides from changing outside of action buttons
-            containerStyle={{ height: '100%' }}
-            style={{ height: '100%' }}
-          />
+          <Grid container className={classes.formContainer}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              container
+              alignContent='flex-start'
+              spacing={2}
+              style={{ paddingRight: '1rem' }}
+            >
+              <Grid item xs={12}>
+                <DialogContentText className={classes.contentText}>
+                  The schedule will be exactly as configured here for the entire
+                  duration (ignoring all assignments and overrides).
+                </DialogContentText>
+              </Grid>
+
+              {!isLocalZone && (
+                <Grid item xs={12}>
+                  <Typography color='textSecondary' className={classes.tzNote}>
+                    Configuring in {zone}
+                  </Typography>
+                </Grid>
+              )}
+
+              <Grid item xs={12} md={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  required
+                  name='start'
+                  label='Schedule Start'
+                  min={now}
+                  validate={() => validate()}
+                  timeZone={zone}
+                  disabled={q.loading || edit}
+                  hint={isLocalZone ? '' : fmtLocal(value.start)}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  required
+                  name='end'
+                  label='Schedule End'
+                  min={value.start}
+                  validate={() => validate()}
+                  timeZone={zone}
+                  disabled={q.loading || edit}
+                  hint={isLocalZone ? '' : fmtLocal(value.end)}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TempSchedAddNewShift
+                  value={value}
+                  onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
+                  scheduleID={scheduleID}
+                  edit={edit}
+                />
+              </Grid>
+            </Grid>
+
+            {/* shifts list container */}
+            <Grid item xs={12} md={6}>
+              <Typography variant='subtitle1' component='h3'>
+                Shifts
+              </Typography>
+
+              {/* coverage warning */}
+              {hasSubmitted && hasCoverageGaps && (
+                <Alert severity='error' className={classes.noCoverageError}>
+                  <AlertTitle>Gaps in coverage</AlertTitle>
+                  <FormHelperText>
+                    There are gaps in coverage. During these gaps, nobody on the
+                    schedule will receive alerts. If you still want to proceed,
+                    check the box below and retry.
+                  </FormHelperText>
+                  <FormControlLabel
+                    label='Allow gaps in coverage'
+                    labelPlacement='end'
+                    control={
+                      <Checkbox
+                        data-cy='no-coverage-checkbox'
+                        checked={allowNoCoverage}
+                        onChange={(e) => setAllowNoCoverage(e.target.checked)}
+                        name='allowCoverageGaps'
+                      />
+                    }
+                  />
+                </Alert>
+              )}
+
+              <TempSchedShiftsList
+                scheduleID={scheduleID}
+                value={value.shifts}
+                start={value.start}
+                end={value.end}
+                onRemove={(shift: Shift) => {
+                  setValue({
+                    ...value,
+                    shifts: value.shifts.filter((s) => !shiftEquals(shift, s)),
+                  })
+                }}
+                edit={edit}
+              />
+            </Grid>
+          </Grid>
         </FormContainer>
       }
-      onSubmit={() => submit()}
-      onNext={step === 1 ? null : () => setStep(step + 1)}
-      onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
+      onSubmit={handleSubmit}
     />
   )
 }

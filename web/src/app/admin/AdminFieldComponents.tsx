@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
-import Input from '@material-ui/core/Input'
+import Input from '@material-ui/core/OutlinedInput'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
@@ -9,7 +9,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import TelTextField from '../util/TelTextField'
 
 interface InputProps {
-  type: string
+  type?: string
   name: string
   value: string
   password?: boolean
@@ -36,7 +36,7 @@ export function StringInput(props: InputProps): JSX.Element {
     )
   }
 
-  if (type === 'tel') {
+  if (props.name === 'Twilio.FromNumber') {
     return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
   }
   return (

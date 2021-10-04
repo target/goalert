@@ -1,6 +1,7 @@
 package mocktwilio
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -150,9 +151,9 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		hangupCh:  make(chan struct{}),
 	}
 
-	vc.call.From = req.FormValue("From")
+	fromValue := req.FormValue("From")
 	s.mx.RLock()
-	_, hasCallback := s.callbacks["VOICE:"+vc.call.From]
+	_, hasCallback := s.callbacks["VOICE:"+fromValue]
 	s.mx.RUnlock()
 	if !hasCallback {
 		apiError(400, w, &twilio.Exception{
@@ -160,8 +161,10 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+
 	vc.s = s
 	vc.call.To = req.FormValue("To")
+	vc.call.From = fromValue
 	vc.call.SID = s.id("CA")
 	vc.call.SequenceNumber = new(int)
 	vc.callbackURL = req.FormValue("StatusCallback")
@@ -211,10 +214,11 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 	// move to queued
 	vc.mx.Lock()
 	vc.call.Status = stat
-	if stat == twilio.CallStatusInProgress {
+
+	switch stat {
+	case twilio.CallStatusInProgress:
 		vc.callStart = time.Now()
-	}
-	if stat == twilio.CallStatusCompleted {
+	case twilio.CallStatusCompleted:
 		vc.call.CallDuration = time.Since(vc.callStart)
 	}
 	*vc.call.SequenceNumber++
@@ -301,6 +305,8 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 		Hangup      *struct{} `xml:"Hangup"`
 	}
 	var r resp
+	data = bytes.ReplaceAll(data, []byte(`<Say><prosody rate="slow">`), []byte("<Say>"))
+	data = bytes.ReplaceAll(data, []byte(`</prosody></Say>`), []byte("</Say>"))
 	err = xml.Unmarshal(data, &r)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal XML voice response: %w", err)

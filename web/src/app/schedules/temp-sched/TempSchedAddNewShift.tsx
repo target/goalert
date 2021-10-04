@@ -1,0 +1,276 @@
+import React, { useEffect, useState } from 'react'
+import { Button, Grid } from '@material-ui/core'
+import Accordion from '@material-ui/core/Accordion'
+import AccordionActions from '@material-ui/core/AccordionActions'
+import AccordionSummary from '@material-ui/core/AccordionSummary'
+import AccordionDetails from '@material-ui/core/AccordionDetails'
+import Typography from '@material-ui/core/Typography'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ToggleIcon from '@material-ui/icons/CompareArrows'
+import _ from 'lodash'
+import { fmtLocal, Shift, Value } from './sharedUtils'
+import { FormContainer, FormField } from '../../forms'
+import { DateTime, Interval } from 'luxon'
+import { FieldError } from '../../util/errutil'
+import { isISOAfter } from '../../util/shifts'
+import { useScheduleTZ } from './hooks'
+import { ISODateTimePicker } from '../../util/ISOPickers'
+import { UserSelect } from '../../selection'
+import ClickableText from '../../util/ClickableText'
+import NumberField from '../../util/NumberField'
+
+type AddShiftsStepProps = {
+  value: Value
+  onChange: (newValue: Shift[]) => void
+
+  scheduleID: string
+  edit?: boolean
+}
+
+type DTShift = {
+  userID: string
+  span: Interval
+}
+
+function shiftsToDT(shifts: Shift[]): DTShift[] {
+  return shifts.map((s) => ({
+    userID: s.userID,
+    span: Interval.fromDateTimes(
+      DateTime.fromISO(s.start),
+      DateTime.fromISO(s.end),
+    ),
+  }))
+}
+
+function DTToShifts(shifts: DTShift[]): Shift[] {
+  return shifts.map((s) => ({
+    userID: s.userID,
+    start: s.span.start.toISO(),
+    end: s.span.end.toISO(),
+  }))
+}
+
+// mergeShifts will take the incoming shifts and merge them with
+// the shifts stored in value. Using Luxon's Interval, overlaps
+// and edge cases when merging are handled for us.
+function mergeShifts(_shifts: Shift[]): Shift[] {
+  const byUser = _.groupBy(shiftsToDT(_shifts), 'userID')
+
+  return DTToShifts(
+    _.flatten(
+      _.values(
+        _.mapValues(byUser, (shifts, userID) => {
+          return Interval.merge(_.map(shifts, 'span')).map((span) => ({
+            userID,
+            span,
+          }))
+        }),
+      ),
+    ),
+  )
+}
+
+export default function TempSchedAddNewShift({
+  scheduleID,
+  onChange,
+  value,
+  edit,
+}: AddShiftsStepProps): JSX.Element {
+  const [shift, setShift] = useState(null as Shift | null)
+  const [submitted, setSubmitted] = useState(false)
+
+  const [manualEntry, setManualEntry] = useState(false)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+
+  // set start equal to the temporary schedule's start
+  // can't this do on mount since the step renderer puts everyone on the DOM at once
+  useEffect(() => {
+    if (zone === '') return
+
+    setShift({
+      start: value.start,
+      end: DateTime.fromISO(value.start, { zone }).plus({ hours: 8 }).toISO(),
+      userID: '',
+    })
+  }, [value.start, zone])
+
+  // fieldErrors handles errors manually through the client
+  // as this step form is nested inside the greater form
+  // that makes the network request.
+  function fieldErrors(s = submitted): FieldError[] {
+    const result: FieldError[] = []
+    const requiredMsg = 'this field is required'
+    const add = (field: string, message: string): void => {
+      result.push({ field, message } as FieldError)
+    }
+
+    if (!shift) return result
+    if (s) {
+      if (!shift.userID) add('userID', requiredMsg)
+      if (!shift.start) add('start', requiredMsg)
+      if (!shift.end) add('end', requiredMsg)
+    }
+
+    if (!isISOAfter(shift.end, shift.start)) {
+      add('end', 'must be after shift start time')
+      add('start', 'must be before shift end time')
+    }
+
+    return result
+  }
+
+  function handleAddShift(): void {
+    if (fieldErrors(true).length) {
+      setSubmitted(true)
+      return
+    }
+    if (!shift) return // ts sanity check
+
+    onChange(mergeShifts(value.shifts.concat(shift)))
+    const end = DateTime.fromISO(shift.end, { zone })
+    const diff = end.diff(DateTime.fromISO(shift.start, { zone }))
+    setShift({
+      userID: '',
+      start: shift.end,
+      end: end.plus(diff).toISO(),
+    })
+    setSubmitted(false)
+  }
+
+  return (
+    <FormContainer
+      errors={fieldErrors()}
+      value={shift}
+      onChange={(val: Shift) => setShift(val)}
+    >
+      <Accordion variant='outlined'>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          data-cy='add-shift-expander'
+        >
+          <Typography
+            color='textSecondary'
+            variant='button'
+            style={{ width: '100%' }}
+          >
+            ADD SHIFT
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails data-cy='add-shift-container'>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <FormField
+                fullWidth
+                component={UserSelect}
+                label='Select a User'
+                name='userID'
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <FormField
+                fullWidth
+                component={ISODateTimePicker}
+                label='Shift Start'
+                name='shift-start'
+                fieldName='start'
+                min={edit ? value.start : now}
+                mapOnChangeValue={(value: string, formValue: Value) => {
+                  if (!manualEntry) {
+                    const diff = DateTime.fromISO(value, { zone }).diff(
+                      DateTime.fromISO(formValue.start, { zone }),
+                    )
+                    formValue.end = DateTime.fromISO(formValue.end, { zone })
+                      .plus(diff)
+                      .toISO()
+                  }
+                  return value
+                }}
+                timeZone={zone}
+                disabled={q.loading}
+                hint={isLocalZone ? '' : fmtLocal(value?.start)}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              {manualEntry ? (
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  label='Shift End'
+                  name='shift-end'
+                  fieldName='end'
+                  min={edit ? value.start : now}
+                  hint={
+                    <React.Fragment>
+                      {!isLocalZone && fmtLocal(value?.end)}
+                      <div>
+                        <ClickableText
+                          data-cy='toggle-duration-on'
+                          onClick={() => setManualEntry(false)}
+                          endIcon={<ToggleIcon />}
+                        >
+                          Configure as duration
+                        </ClickableText>
+                      </div>
+                    </React.Fragment>
+                  }
+                  timeZone={zone}
+                  disabled={q.loading}
+                />
+              ) : (
+                <FormField
+                  fullWidth
+                  component={NumberField}
+                  label='Shift Duration (hours)'
+                  name='shift-end'
+                  fieldName='end'
+                  float
+                  // value held in form input
+                  mapValue={(nextVal: string, formValue: Value) => {
+                    const nextValDT = DateTime.fromISO(nextVal, { zone })
+                    if (!formValue || !nextValDT.isValid) return ''
+                    return nextValDT
+                      .diff(
+                        DateTime.fromISO(formValue.start, { zone }),
+                        'hours',
+                      )
+                      .hours.toString()
+                  }}
+                  // value held in state
+                  mapOnChangeValue={(nextVal: string, formValue: Value) => {
+                    if (!nextVal) return ''
+                    return DateTime.fromISO(formValue.start, { zone })
+                      .plus({ hours: parseFloat(nextVal) })
+                      .toISO()
+                  }}
+                  step='any'
+                  min={0}
+                  disabled={q.loading}
+                  hint={
+                    <ClickableText
+                      data-cy='toggle-duration-off'
+                      onClick={() => setManualEntry(true)}
+                      endIcon={<ToggleIcon />}
+                    >
+                      Configure as date/time
+                    </ClickableText>
+                  }
+                />
+              )}
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+        <AccordionActions>
+          <Button
+            data-cy='add-shift'
+            color='secondary'
+            variant='contained'
+            onClick={handleAddShift}
+          >
+            Add
+          </Button>
+        </AccordionActions>
+      </Accordion>
+    </FormContainer>
+  )
+}

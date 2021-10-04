@@ -44,9 +44,8 @@ export class FormField extends React.PureComponent {
     // but the error name is different from graphql responses
     errorName: p.string,
 
-    // label above form component
     label: p.node,
-    formLabel: p.bool, // use formLabel instead of label if true
+    formLabel: p.bool, // if true, sets the label above the component instead. default off
 
     // required indicates the field may not be left blank.
     required: p.bool,

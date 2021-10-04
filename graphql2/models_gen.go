@@ -35,6 +35,10 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertPendingNotification struct {
+	Destination string `json:"destination"`
+}
+
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
@@ -196,6 +200,14 @@ type CreateUserOverrideInput struct {
 
 type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
+}
+
+type DebugMessageStatusInfo struct {
+	State *NotificationState `json:"state"`
+}
+
+type DebugMessageStatusInput struct {
+	ProviderMessageID string `json:"providerMessageID"`
 }
 
 type DebugSendSMSInfo struct {

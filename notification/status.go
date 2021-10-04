@@ -13,6 +13,9 @@ type Status struct {
 	// The Sequence number defaults to 0, and a status update is ignored unless its
 	// Sequence number is >= the current one.
 	Sequence int
+
+	// SrcValue can be used to set/update the source value of the message.
+	SrcValue string
 }
 
 // SendResult represents the result of a sent message.
@@ -27,7 +30,6 @@ type SendResult struct {
 	Status
 
 	DestType DestType
-	SrcValue string
 }
 
 // State represents the current state of an outgoing message.

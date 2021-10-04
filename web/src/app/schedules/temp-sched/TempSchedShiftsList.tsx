@@ -1,12 +1,12 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
-import Typography from '@material-ui/core/Typography'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
+import { DateTime } from 'luxon'
 
 import { Shift } from './sharedUtils'
 import FlatList, {
@@ -16,7 +16,6 @@ import FlatList, {
 } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { DateTime } from 'luxon'
 import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
@@ -26,6 +25,7 @@ import {
   fmtTime,
   getCoverageGapItems,
   getSubheaderItems,
+  getOutOfBoundsItems,
   Sortable,
   sortItems,
 } from './shiftsListUtil'
@@ -39,9 +39,6 @@ const useStyles = makeStyles((theme) => {
     secondaryActionError: {
       color: styles(theme).error.color,
     },
-    shiftsContainer: {
-      paddingRight: '0.5rem',
-    },
     listSpinner: {
       marginTop: '20rem',
     },
@@ -51,12 +48,9 @@ const useStyles = makeStyles((theme) => {
 type TempSchedShiftsListProps = {
   value: Shift[]
   onRemove: (shift: Shift) => void
-
   start: string
   end: string
-
   edit?: boolean
-
   scheduleID: string
 }
 
@@ -92,13 +86,14 @@ export default function TempSchedShiftsList({
           message: 'Invalid Start/End',
           transition: true,
           details:
-            'Oops! There was a problem with the interval selected in step 1. Please try again.',
+            'Oops! There was a problem with the interval selected for your temporary schedule. Please try again.',
         },
       ]
     }
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone)
+    const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s) => {
@@ -194,29 +189,23 @@ export default function TempSchedShiftsList({
       ...shiftItems,
       ...coverageGapItems,
       ...subheaderItems,
+      ...outOfBoundsItems,
       startItem,
       endItem,
     ])
   }
 
-  return (
-    <div className={classes.shiftsContainer}>
-      <Typography variant='subtitle1' component='h3'>
-        Shifts
-      </Typography>
-      {q.loading ? (
-        <div className={classes.listSpinner}>
-          <Spinner />
-        </div>
-      ) : (
-        <FlatList
-          data-cy='shifts-list'
-          items={items()}
-          emptyMessage='Add a user to the left to get started.'
-          dense
-          transition
-        />
-      )}
+  return q.loading ? (
+    <div className={classes.listSpinner}>
+      <Spinner />
     </div>
+  ) : (
+    <FlatList
+      data-cy='shifts-list'
+      items={items()}
+      emptyMessage='Add a user to the left to get started.'
+      dense
+      transition
+    />
   )
 }
