@@ -97,6 +97,9 @@ export function getCoverageGapItems(
   shifts: Shift[],
   zone: string,
 ): Sortable<FlatListNotice>[] {
+  if (!schedInterval.isValid) {
+    return []
+  }
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const gapIntervals = _.flatMap(
     schedInterval.difference(...shiftIntervals),
