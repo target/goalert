@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 import HealthyIcon from '@mui/icons-material/Check'
 import UnhealthyIcon from '@mui/icons-material/Clear'
 import InactiveIcon from '@mui/icons-material/Remove'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { formatTimeSince } from '../util/timeFormat'
 import { colors } from '../util/statusStyles'
 

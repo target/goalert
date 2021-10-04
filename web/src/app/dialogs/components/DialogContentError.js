@@ -4,9 +4,9 @@ import DialogContent from '@mui/material/DialogContent'
 import Typography from '@mui/material/Typography'
 import Error from '@mui/icons-material/Error'
 import { styles as globalStyles } from '../../styles/materialStyles'
-import { Zoom } from '@mui/material';
+import { Zoom } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),

@@ -6,7 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import ErrorIcon from '@mui/icons-material/Error'
 import IconButton from '@mui/material/IconButton'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 const icon = {
   fontSize: 20,
@@ -81,13 +81,14 @@ function UpdateAlertsSnackbar({
             aria-label='Close'
             color='inherit'
             onClick={onClose}
-            size="large">
+            size='large'
+          >
             <CloseIcon className={classes.closeIcon} />
           </IconButton>,
         ]}
       />
     </Snackbar>
-  );
+  )
 }
 
 UpdateAlertsSnackbar.propTypes = {

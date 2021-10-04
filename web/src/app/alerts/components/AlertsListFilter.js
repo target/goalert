@@ -8,7 +8,7 @@ import Hidden from '@mui/material/Hidden'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import Switch from '@mui/material/Switch'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
@@ -19,7 +19,8 @@ import { useURLParam, useResetURLParams } from '../../actions'
 import useWidth from '../../util/useWidth'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
@@ -173,7 +174,7 @@ function AlertsListFilter({ serviceID }) {
           </SwipeableDrawer>
         </Hidden>
       </React.Fragment>
-    );
+    )
   }
 
   /*
@@ -188,12 +189,13 @@ function AlertsListFilter({ serviceID }) {
         aria-label='Filter Alerts'
         color='inherit'
         onClick={handleOpenFilters}
-        size="large">
+        size='large'
+      >
         <FilterList />
       </IconButton>
       {renderFilters()}
     </React.Fragment>
-  );
+  )
 }
 
 AlertsListFilter.propTypes = {

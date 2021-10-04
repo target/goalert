@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText, isWidthDown } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Hidden, ListItemText, isWidthDown } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -311,7 +311,7 @@ export default function AlertsList(props) {
         updateMessage={updateMessage}
       />
     </React.Fragment>
-  );
+  )
 }
 
 AlertsList.propTypes = {

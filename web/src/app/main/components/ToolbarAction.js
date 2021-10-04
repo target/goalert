@@ -7,7 +7,8 @@ import useWidth from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 function removeLastPartOfPath(path) {
   const parts = path.split('/')
@@ -31,10 +32,11 @@ function ToolbarAction(props) {
         color='inherit'
         data-cy='nav-back-icon'
         onClick={() => history.replace(route)}
-        size="large">
+        size='large'
+      >
         <ChevronLeft />
       </IconButton>
-    );
+    )
   }
 
   const getRoute = (route) => (
@@ -67,14 +69,15 @@ function ToolbarAction(props) {
               color='inherit'
               data-cy='nav-menu-icon'
               onClick={() => props.openMobileSidebar(true)}
-              size="large">
+              size='large'
+            >
               <MenuIcon />
             </IconButton>
           </Hidden>
         )}
       />
     </Switch>
-  );
+  )
 }
 
 ToolbarAction.propTypes = {

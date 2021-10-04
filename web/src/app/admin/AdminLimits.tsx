@@ -4,7 +4,7 @@ import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { startCase, isEmpty } from 'lodash'
 import AdminDialog from './AdminDialog'
 import { Form } from '../forms'
@@ -137,5 +137,5 @@ export default function AdminLimits(): JSX.Element {
         </Grid>
       </Grid>
     </div>
-  );
+  )
 }

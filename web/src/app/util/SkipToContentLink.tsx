@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from '@mui/material/Link'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import Typography from '@mui/material/Typography'
 
 const useStyles = makeStyles({

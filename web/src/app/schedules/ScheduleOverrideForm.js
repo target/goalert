@@ -2,9 +2,9 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { Grid, Typography } from '@mui/material';
+import { Grid, Typography } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'

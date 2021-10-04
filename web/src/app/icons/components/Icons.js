@@ -6,7 +6,7 @@ import TrashIcon from '@mui/icons-material/Delete'
 import WarningIcon from '@mui/icons-material/Warning'
 import slackIcon from '../../public/slack.svg'
 import slackIconBW from '../../public/slack_monochrome_black.svg'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   trashIcon: {

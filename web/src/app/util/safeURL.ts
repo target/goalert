@@ -9,7 +9,7 @@ export function safeURL(url: string, label: string): boolean {
 
   if (url.startsWith('tel:')) {
     const phone = url.substr(4)
-    return phone === label && /^\+?[\d\- ]+$/.test(phone);
+    return phone === label && /^\+?[\d\- ]+$/.test(phone)
   }
 
   // handle http protocols

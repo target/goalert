@@ -3,7 +3,7 @@ import IconButton from '@mui/material/IconButton'
 import MUIFavoriteIcon from '@mui/icons-material/Favorite'
 import NotFavoriteIcon from '@mui/icons-material/FavoriteBorder'
 import Tooltip from '@mui/material/Tooltip'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
@@ -60,7 +60,8 @@ export function SetFavoriteButton({
         }
         type='submit'
         data-cy='set-fav'
-        size="large">
+        size='large'
+      >
         {icon}
       </IconButton>
     </form>

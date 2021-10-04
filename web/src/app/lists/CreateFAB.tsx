@@ -1,9 +1,9 @@
 import React from 'react'
 import classnames from 'classnames'
 import AddIcon from '@mui/icons-material/Add'
-import { Fab, Tooltip, FabProps } from '@mui/material';
+import { Fab, Tooltip, FabProps } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles((theme) => ({
   fab: {

@@ -3,7 +3,7 @@ import p from 'prop-types'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { gql } from '@apollo/client'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'

@@ -6,7 +6,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'

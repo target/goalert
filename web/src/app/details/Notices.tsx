@@ -1,10 +1,16 @@
 import React, { useState, ReactNode } from 'react'
-import { Badge, Collapse, Grid, IconButton } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import {
+  Badge,
+  Collapse,
+  Grid,
+  IconButton,
+  Alert,
+  AlertTitle,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
 import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
-import { Alert, AlertTitle } from '@mui/material';
-import { AlertProps } from '@mui/lab';
+import { AlertProps } from '@mui/lab'
 import toTitleCase from '../util/toTitleCase'
 
 const useStyles = makeStyles({
@@ -55,11 +61,14 @@ export default function Notices({
         badgeContent={notices.length - 1}
         invisible={noticesExpanded}
       >
-        <IconButton onClick={() => setNoticesExpanded(!noticesExpanded)} size="large">
+        <IconButton
+          onClick={() => setNoticesExpanded(!noticesExpanded)}
+          size='large'
+        >
           {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
         </IconButton>
       </Badge>
-    );
+    )
   }
 
   /*

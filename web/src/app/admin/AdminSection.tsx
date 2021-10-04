@@ -5,8 +5,8 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import { FormContainer } from '../forms'
 import _, { defaultTo } from 'lodash'
-import { Theme } from '@mui/material/styles';
-import makeStyles from '@mui/styles/makeStyles';
+import { Theme } from '@mui/material/styles'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   StringInput,
   StringListInput,

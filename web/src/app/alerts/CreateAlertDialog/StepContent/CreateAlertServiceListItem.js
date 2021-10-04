@@ -2,9 +2,9 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 
-import { ListItem, ListItemText, Typography } from '@mui/material';
+import { ListItem, ListItemText, Typography } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import AppLink from '../../../util/AppLink'

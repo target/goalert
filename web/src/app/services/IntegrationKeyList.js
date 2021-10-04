@@ -14,7 +14,7 @@ import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
@@ -118,7 +118,7 @@ export default function IntegrationKeyList(props) {
         />
       ),
       secondaryAction: (
-        <IconButton onClick={() => setDeleteDialog(key.id)} size="large">
+        <IconButton onClick={() => setDeleteDialog(key.id)} size='large'>
           <Trash />
         </IconButton>
       ),

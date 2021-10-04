@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material';
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
@@ -20,7 +20,8 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const query = gql`
   query cmList($id: ID!) {
@@ -87,10 +88,11 @@ export default function UserContactMethodList(
         onClick={() => setShowVerifyDialogByID(cm.id)}
         color='primary'
         disabled={props.readOnly}
-        size="large">
+        size='large'
+      >
         <Warning message='Contact method disabled' />
       </IconButton>
-    );
+    )
   }
 
   function getActionMenuItems(cm: UserContactMethod): ListItemAction[] {

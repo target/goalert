@@ -4,7 +4,7 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
 import CardActions from '../../details/CardActions'

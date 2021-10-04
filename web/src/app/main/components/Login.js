@@ -7,8 +7,8 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import Hidden from '@mui/material/Hidden'
-import { isWidthDown } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { isWidthDown } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import useWidth from '../../util/useWidth'
 import { getParameterByName } from '../../util/query_param'
 import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
@@ -249,5 +249,5 @@ export default function Login() {
         </div>
       </Hidden>
     </React.Fragment>
-  );
+  )
 }

@@ -119,7 +119,7 @@ function useISOPicker(
         'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
-            <IconButton size="large">
+            <IconButton size='large'>
               <FallbackIcon />
             </IconButton>
           </InputAdornment>
@@ -129,7 +129,7 @@ function useISOPicker(
       {...extraProps}
       {...otherProps}
     />
-  );
+  )
 }
 
 export function ISOTimePicker(props) {

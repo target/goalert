@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
@@ -114,7 +114,8 @@ export default function Search(props) {
           aria-label='Search'
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
-          size="large">
+          size='large'
+        >
           <SearchIcon />
         </IconButton>
         <Slide
@@ -138,7 +139,8 @@ export default function Search(props) {
                 }}
                 aria-label='Cancel'
                 data-cy='close-search'
-                size="large">
+                size='large'
+              >
                 <CloseIcon />
               </IconButton>
               {renderTextField({ style: { flex: 1 } })}
@@ -146,7 +148,7 @@ export default function Search(props) {
           </AppBar>
         </Slide>
       </AppBarSearchContainer>
-    );
+    )
   }
 
   return (
@@ -154,7 +156,7 @@ export default function Search(props) {
       <Hidden mdDown>{renderTextField()}</Hidden>
       <Hidden mdUp>{renderMobile()}</Hidden>
     </React.Fragment>
-  );
+  )
 }
 
 Search.propTypes = {

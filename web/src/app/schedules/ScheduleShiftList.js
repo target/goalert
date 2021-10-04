@@ -4,8 +4,15 @@ import p from 'prop-types'
 import FlatList from '../lists/FlatList'
 import { gql, useQuery } from '@apollo/client'
 import { relativeDate } from '../util/timeFormat'
-import { Card, Grid, FormControlLabel, Switch, TextField, MenuItem } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import {
+  Card,
+  Grid,
+  FormControlLabel,
+  Switch,
+  TextField,
+  MenuItem,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'

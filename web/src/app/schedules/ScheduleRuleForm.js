@@ -14,8 +14,8 @@ import {
   MenuItem,
   TextField,
   Typography,
-} from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
@@ -177,13 +177,14 @@ export default function ScheduleRuleForm(props) {
                   rules: value.rules.filter((r, i) => i !== idx),
                 })
               }
-              size="large">
+              size='large'
+            >
               <Trash />
             </IconButton>
           )}
         </TableCell>
       </TableRow>
-    );
+    )
   }
 
   function renderForm() {
@@ -251,7 +252,8 @@ export default function ScheduleRuleForm(props) {
                           }),
                         })
                       }
-                      size="large">
+                      size='large'
+                    >
                       <Add />
                     </IconButton>
                   </TableCell>
@@ -264,7 +266,7 @@ export default function ScheduleRuleForm(props) {
           </Grid>
         </Grid>
       </FormContainer>
-    );
+    )
   }
 
   return (

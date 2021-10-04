@@ -147,7 +147,8 @@ export default function UserSessionList(
                         userAgent: s.userAgent,
                       })
                     }
-                    size="large">
+                    size='large'
+                  >
                     <DeleteIcon />
                   </IconButton>
                 ),
@@ -184,5 +185,5 @@ export default function UserSessionList(
         />
       )}
     </React.Fragment>
-  );
+  )
 }

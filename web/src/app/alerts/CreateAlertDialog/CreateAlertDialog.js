@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
-import { Button, Grid, Stepper, Step, StepLabel, Typography } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import {
+  Button,
+  Grid,
+  Stepper,
+  Step,
+  StepLabel,
+  Typography,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import _ from 'lodash'
 

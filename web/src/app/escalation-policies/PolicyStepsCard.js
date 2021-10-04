@@ -5,7 +5,7 @@ import CardContent from '@mui/material/CardContent'
 import Dialog from '@mui/material/Dialog'
 import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { gql, useMutation } from '@apollo/client'
 import PolicyStep from './PolicyStep'
@@ -15,7 +15,8 @@ import { policyStepsQuery } from './PolicyStepsQuery'
 import useWidth from '../util/useWidth'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles(() => ({
   dndDragging: {

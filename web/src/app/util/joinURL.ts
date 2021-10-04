@@ -13,5 +13,5 @@ export default function joinURL(...parts: string[]): string {
       if (parts[idx + 1] === '..') return false
       return true
     })
-    .join('/');
+    .join('/')
 }

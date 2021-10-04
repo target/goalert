@@ -55,5 +55,5 @@ export default function UserPhoneNumberFilterContainer(
         />
       </Grid>
     </FilterContainer>
-  );
+  )
 }

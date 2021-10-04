@@ -1,5 +1,5 @@
 import React, { MouseEventHandler } from 'react'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import Button from '@mui/material/Button'
 import MUICardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
@@ -79,9 +79,11 @@ function Action(p: ActionProps): JSX.Element {
   if (secondary && action.icon) {
     return (
       <Tooltip title={action.label} placement='top'>
-        <IconButton onClick={action.handleOnClick} size="large">{action.icon}</IconButton>
+        <IconButton onClick={action.handleOnClick} size='large'>
+          {action.icon}
+        </IconButton>
       </Tooltip>
-    );
+    )
   }
 
   return (

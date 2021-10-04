@@ -7,8 +7,8 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import { styles as globalStyles } from '../../styles/materialStyles'
-import { DialogContent } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { DialogContent } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import OtherActions from '../../util/OtherActions'
 
 const useStyles = makeStyles((theme) => {
@@ -64,7 +64,12 @@ function DialogTitleWrapper(props) {
   let closeButton
   if (onClose) {
     closeButton = (
-      <IconButton color='inherit' onClick={onClose} aria-label='Close' size="large">
+      <IconButton
+        color='inherit'
+        onClick={onClose}
+        aria-label='Close'
+        size='large'
+      >
         {closeIcon || <CloseIcon />}
       </IconButton>
     )

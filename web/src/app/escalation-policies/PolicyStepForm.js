@@ -8,7 +8,7 @@ import Step from '@mui/material/Step'
 import StepButton from '@mui/material/StepButton'
 import StepContent from '@mui/material/StepContent'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import {
   RotationSelect,
   ScheduleSelect,

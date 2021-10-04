@@ -2,7 +2,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { safeURL } from './safeURL'
 import gfm from 'remark-gfm'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   markdown: {

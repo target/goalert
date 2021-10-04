@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@mui/material';
-import { SpeedDialActionProps, SpeedDialProps } from '@mui/lab';
+import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@mui/material'
+import { SpeedDialActionProps, SpeedDialProps } from '@mui/lab'
 import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles({

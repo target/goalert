@@ -5,7 +5,7 @@ import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import _ from 'lodash'
 import { formatTimeSince } from '../util/timeFormat'

@@ -61,7 +61,7 @@ export default function FromValueField(
           </ClickableText>
         }
       />
-    );
+    )
   }
 
   return (

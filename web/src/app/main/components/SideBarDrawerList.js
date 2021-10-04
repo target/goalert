@@ -5,7 +5,7 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import {
   Build as WizardIcon,

@@ -5,7 +5,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
@@ -81,7 +81,7 @@ function formatHeading(s = ''): string {
     .replace(/\bTwo Way\b/, 'Two-Way')
     .replace('Enable V 1 Graph QL', 'Enable V1 GraphQL')
     .replace('Git Hub', 'GitHub')
-    .replace(/R Ls\b/, 'RLs'); // fix usages of `URLs`
+    .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
 }
 
 export default function AdminConfig(): JSX.Element {

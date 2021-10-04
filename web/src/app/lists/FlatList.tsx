@@ -16,10 +16,10 @@ import {
 } from 'react-beautiful-dnd'
 import ListSubheader from '@mui/material/ListSubheader'
 import AppLink from '../util/AppLink'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { Alert, AlertTitle } from '@mui/material';
-import { Color } from '@mui/lab';
+import { Alert, AlertTitle } from '@mui/material'
+import { Color } from '@mui/lab'
 import { Notice, NoticeType } from '../details/Notices'
 
 const lime = '#93ed94'

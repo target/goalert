@@ -18,7 +18,7 @@ import useWidth from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
@@ -27,7 +27,8 @@ import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 // gray boxes on load
 // disable overflow
@@ -95,7 +96,8 @@ function PageControls(props: {
             onBack && onBack()
             window.scrollTo(0, 0)
           }}
-          size="large">
+          size='large'
+        >
           <LeftIcon />
         </IconButton>
       </Grid>
@@ -108,7 +110,8 @@ function PageControls(props: {
             onNext && onNext()
             window.scrollTo(0, 0)
           }}
-          size="large">
+          size='large'
+        >
           {isLoading && !onNext && (
             <CircularProgress
               color='secondary'
@@ -120,7 +123,7 @@ function PageControls(props: {
         </IconButton>
       </Grid>
     </Grid>
-  );
+  )
 }
 
 const loadingStyle = {

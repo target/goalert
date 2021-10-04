@@ -1,7 +1,7 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Button, FormHelperText, Grid, Typography } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Button, FormHelperText, Grid, Typography } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import CopyText from '../../util/CopyText'
 

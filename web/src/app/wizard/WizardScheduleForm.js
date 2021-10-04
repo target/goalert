@@ -14,11 +14,12 @@ import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
 import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import useWidth from '../util/useWidth'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles(() => ({
   fieldItem: {

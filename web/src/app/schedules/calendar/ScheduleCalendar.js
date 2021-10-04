@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Card, Button } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Card, Button } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { darken } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'

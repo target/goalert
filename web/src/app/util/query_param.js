@@ -7,7 +7,7 @@ export function getParameterByName(name, url = global.location.href) {
   if (!m) return null
   if (!m[2]) return ''
 
-  return decodeURIComponent(m[2].replace(/\+/g, ' '));
+  return decodeURIComponent(m[2].replace(/\+/g, ' '))
 }
 
 // returns hash of all parameters with keys and values

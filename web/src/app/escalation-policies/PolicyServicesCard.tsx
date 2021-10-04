@@ -1,6 +1,6 @@
 import React from 'react'
 import Card from '@mui/material/Card'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import _ from 'lodash'
 

@@ -4,8 +4,8 @@ import { PropTypes as p } from 'prop-types'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
-import { CircularProgress } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { CircularProgress } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 import { Error } from '@mui/icons-material'

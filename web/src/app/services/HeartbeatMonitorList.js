@@ -8,7 +8,7 @@ import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
 import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'

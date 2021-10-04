@@ -51,7 +51,7 @@ export default function OtherActions({ color, icon, actions, placement }) {
         />
       </Hidden>
     </React.Fragment>
-  );
+  )
 }
 
 OtherActions.propTypes = {
@@ -68,7 +68,7 @@ OtherActions.propTypes = {
 
 OtherActions.defaultProps = {
   icon: (
-    <IconButton size="large">
+    <IconButton size='large'>
       <OptionsIcon />
     </IconButton>
   ),

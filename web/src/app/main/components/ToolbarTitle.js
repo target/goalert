@@ -2,7 +2,7 @@ import React from 'react'
 import p from 'prop-types'
 import Typography from '@mui/material/Typography'
 import { Switch, Route } from 'react-router-dom'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
@@ -12,7 +12,8 @@ import { useConfigValue } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles(() => ({
   backPage: {

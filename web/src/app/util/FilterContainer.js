@@ -1,7 +1,14 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import { Hidden, Popover, SwipeableDrawer, IconButton, Grid, Button } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import {
+  Hidden,
+  Popover,
+  SwipeableDrawer,
+  IconButton,
+  Grid,
+  Button,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { FilterList as FilterIcon } from '@mui/icons-material'
 
 const useStyles = makeStyles((theme) => {
@@ -21,7 +28,7 @@ const useStyles = makeStyles((theme) => {
     formContainer: {
       margin: 0,
     },
-  };
+  }
 })
 
 export default function FilterContainer(props) {
@@ -63,7 +70,8 @@ export default function FilterContainer(props) {
         title={props.title}
         aria-expanded={Boolean(anchorEl)}
         {...iconButtonProps}
-        size="large">
+        size='large'
+      >
         {icon}
       </IconButton>
       <Hidden mdDown>
@@ -94,7 +102,7 @@ export default function FilterContainer(props) {
         </SwipeableDrawer>
       </Hidden>
     </React.Fragment>
-  );
+  )
 }
 
 FilterContainer.propTypes = {

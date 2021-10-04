@@ -29,11 +29,12 @@ export function StringInput(props: InputProps): JSX.Element {
         <IconButton
           aria-label='Toggle password visibility'
           onClick={() => setShowPassword(!showPassword)}
-          size="large">
+          size='large'
+        >
           {showPassword ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </InputAdornment>
-    );
+    )
   }
 
   if (props.name === 'Twilio.FromNumber') {

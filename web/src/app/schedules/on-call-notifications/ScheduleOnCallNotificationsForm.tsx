@@ -4,9 +4,9 @@ import Grid from '@mui/material/Grid'
 import RadioGroup from '@mui/material/RadioGroup'
 import Radio from '@mui/material/Radio'
 import { DateTime } from 'luxon'
-import { Checkbox, Typography } from '@mui/material';
+import { Checkbox, Typography } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect } from '../../selection'

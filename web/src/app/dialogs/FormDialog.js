@@ -5,7 +5,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { isWidthUp } from '@mui/material/withWidth/index'
 
 import { FadeTransition, SlideTransition } from '../util/Transitions'

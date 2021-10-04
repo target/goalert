@@ -62,5 +62,5 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
       }}
       inputProps={{ min, max, step }}
     />
-  );
+  )
 }

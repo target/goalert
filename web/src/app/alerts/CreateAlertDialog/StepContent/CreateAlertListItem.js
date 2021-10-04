@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
-import { ListItem, ListItemText, Typography } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { ListItem, ListItemText, Typography } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import CopyText from '../../../util/CopyText'
 import AppLink from '../../../util/AppLink'

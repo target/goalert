@@ -82,7 +82,7 @@ export function getScheduleTargets(key, value) {
       start: DateTime.fromISO(s.rotation.startDate).minus(duration).toISO(),
       type: s.rotation.type,
       userIDs: isFTS ? s.followTheSunRotation.users : s.users,
-    };
+    }
   }
 
   // add first rotation

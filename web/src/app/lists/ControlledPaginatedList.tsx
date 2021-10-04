@@ -1,6 +1,6 @@
 import React, { ReactElement, useState } from 'react'
-import { Checkbox, Grid, Icon, IconButton, Tooltip } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Checkbox, Grid, Icon, IconButton, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
   PaginatedListItemProps,
@@ -201,14 +201,15 @@ export default function ControlledPaginatedList(
                     a.onClick(checkedItems)
                     setNone()
                   }}
-                  size="large">
+                  size='large'
+                >
                   {a.icon}
                 </IconButton>
               </Tooltip>
             </Grid>
           ))}
       </Grid>
-    );
+    )
   }
 
   function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {

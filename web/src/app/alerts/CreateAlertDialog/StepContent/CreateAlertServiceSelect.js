@@ -16,7 +16,7 @@ import {
   FormControl,
   Box,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@mui/icons-material'
 import { FavoriteIcon } from '../../../util/SetFavoriteButton'
@@ -255,7 +255,7 @@ export function CreateAlertServiceSelect(props) {
         </Box>
       </Box>
     </Box>
-  );
+  )
 }
 
 CreateAlertServiceSelect.propTypes = {

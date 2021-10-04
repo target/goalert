@@ -5,9 +5,18 @@ import React, {
   ReactElement,
   ChangeEvent,
 } from 'react'
-import { TextField, MenuItem, ListItemIcon, Typography, Paper, Chip, InputProps } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
-import { Alert, Autocomplete } from '@mui/material';
+import {
+  TextField,
+  MenuItem,
+  ListItemIcon,
+  Typography,
+  Paper,
+  Chip,
+  InputProps,
+  Alert,
+  Autocomplete,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -224,5 +233,5 @@ export default function MaterialSelect(
         ))
       }
     />
-  );
+  )
 }

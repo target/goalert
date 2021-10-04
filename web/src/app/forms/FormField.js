@@ -215,7 +215,7 @@ export class FormField extends React.PureComponent {
             {error.message.replace(/^./, (str) => str.toUpperCase())}
           </AppLink>
         </FormHelperText>
-      );
+      )
     }
 
     if (error?.message) {
@@ -223,7 +223,7 @@ export class FormField extends React.PureComponent {
         <FormHelperText>
           {error.message.replace(/^./, (str) => str.toUpperCase())}
         </FormHelperText>
-      );
+      )
     }
 
     if (hint) {

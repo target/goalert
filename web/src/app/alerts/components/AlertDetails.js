@@ -24,14 +24,15 @@ import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import useWidth from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)
@@ -472,7 +473,7 @@ function AlertDetails(props) {
         {renderAlertLogs()}
       </Grid>
     </Grid>
-  );
+  )
 }
 
 AlertDetails.propTypes = {

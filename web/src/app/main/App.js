@@ -20,8 +20,8 @@ import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { isWidthDown } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { isWidthDown } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import useWidth from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 
@@ -130,5 +130,5 @@ export default function App() {
         </SearchProvider>
       </PageActionProvider>
     </div>
-  );
+  )
 }

@@ -12,13 +12,14 @@ import Typography from '@mui/material/Typography'
 import { FormContainer, FormField } from '../forms'
 import WizardScheduleForm from './WizardScheduleForm'
 import { value as valuePropType } from './propTypes'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import * as _ from 'lodash'
 import useWidth from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles({
   fieldItem: {

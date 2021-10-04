@@ -74,7 +74,7 @@ function AdminDialog(props) {
         </List>
       }
     />
-  );
+  )
 }
 
 AdminDialog.propTypes = {

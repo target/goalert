@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import { Redirect } from 'react-router-dom'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
@@ -27,7 +27,8 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import useWidth from '../util/useWidth'
 
 // FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) => <WrappedComponent {...props} width="xs" />;
+const withWidth = () => (WrappedComponent) => (props) =>
+  <WrappedComponent {...props} width='xs' />
 
 const mutation = gql`
   mutation ($input: CreateServiceInput!) {

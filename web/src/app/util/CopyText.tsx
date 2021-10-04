@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'

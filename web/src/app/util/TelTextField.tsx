@@ -5,7 +5,7 @@ import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
 import _ from 'lodash'
 import InputAdornment from '@mui/material/InputAdornment'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`
@@ -110,5 +110,5 @@ export default function TelTextField(
       onChange={handleChange}
       value={(props.value || '').replace(/[^0-9]/g, '')}
     />
-  );
+  )
 }

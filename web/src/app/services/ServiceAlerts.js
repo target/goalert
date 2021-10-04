@@ -4,7 +4,7 @@ import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 
 import AlertsList from '../alerts/AlertsList'
 import FormDialog from '../dialogs/FormDialog'

@@ -57,7 +57,7 @@ function UserList(): JSX.Element {
         <UserCreateDialog onClose={() => setShowCreateDialog(false)} />
       )}
     </React.Fragment>
-  );
+  )
 }
 
 export default UserList

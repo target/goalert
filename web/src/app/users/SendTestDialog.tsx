@@ -11,7 +11,7 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { textColors } from '../styles/statusStyles'

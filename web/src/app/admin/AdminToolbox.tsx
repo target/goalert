@@ -1,7 +1,7 @@
 import React from 'react'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles'
 import AdminNumberLookup from './AdminNumberLookup'
 import AdminSMSSend from './AdminSMSSend'
 
