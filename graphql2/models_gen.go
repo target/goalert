@@ -368,6 +368,8 @@ type SetScheduleOnCallNotificationRulesInput struct {
 
 type SetTemporaryScheduleInput struct {
 	ScheduleID string                `json:"scheduleID"`
+	ClearStart *time.Time            `json:"clearStart"`
+	ClearEnd   *time.Time            `json:"clearEnd"`
 	Start      time.Time             `json:"start"`
 	End        time.Time             `json:"end"`
 	Shifts     []schedule.FixedShift `json:"shifts"`
