@@ -88,7 +88,7 @@
     "copy-webpack-plugin": "9.0.1",
     "css-loader": "6.3.0",
     "cssnano": "5.0.7",
-    "cypress": "8.4.0",
+    "cypress": "8.5.0",
     "jest": "27.2.4",
     "json-loader": "0.5.7",
     "postcss": "8.3.6",
@@ -99,6 +99,6 @@
     "style-loader": "3.2.1",
     "webpack": "5.56.0",
     "webpack-cli": "4.8.0",
-    "webpack-dev-server": "4.2.0"
+    "webpack-dev-server": "4.3.1"
   }
 }
