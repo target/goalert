@@ -77,12 +77,19 @@ func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetT
 		return false, err
 	}
 
+	if input.ClearStart == nil {
+		input.ClearStart = &input.Start
+	}
+	if input.ClearEnd == nil {
+		input.ClearEnd = &input.End
+	}
+
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		return a.ScheduleStore.SetTemporarySchedule(ctx, tx, schedID, schedule.TemporarySchedule{
 			Start:  input.Start,
 			End:    input.End,
 			Shifts: input.Shifts,
-		})
+		}, *input.ClearStart, *input.ClearEnd)
 	})
 
 	return err == nil, err
