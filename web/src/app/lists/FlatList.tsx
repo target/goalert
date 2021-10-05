@@ -39,7 +39,7 @@ const useStyles = makeStyles({
     backgroundColor: lightGrey,
   },
   slideEnter: {
-    transform: 'translateX(-100%)',
+    transform: 'translateX(100%)',
   },
   slideEnterActive: {
     transform: 'translateX(0%)',
@@ -49,7 +49,7 @@ const useStyles = makeStyles({
     transform: 'translateX(0%)',
   },
   slideExitActive: {
-    transform: 'translateX(-100%)',
+    transform: 'translateX(100%)',
     transition: 'opacity 500ms, transform 500ms',
   },
   listItem: {
@@ -224,7 +224,7 @@ export default function FlatList({
       if ('subHeader' in item) {
         return (
           <CSSTransition
-            key={'header_' + item.id + idx}
+            key={'header_' + item.id}
             timeout={0}
             exit={false}
             enter={false}
@@ -236,7 +236,7 @@ export default function FlatList({
       if ('type' in item) {
         return (
           <CSSTransition
-            key={'notice_' + item.id + idx}
+            key={'notice_' + item.id}
             timeout={500}
             exit={Boolean(item.transition)}
             enter={Boolean(item.transition)}
@@ -253,7 +253,7 @@ export default function FlatList({
       }
       return (
         <CSSTransition
-          key={'item_' + item.id + idx}
+          key={'item_' + item.id}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,
