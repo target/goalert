@@ -481,6 +481,10 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
+	case digitStop:
+		call.Q.Set("previous", string(CallTypeTest))
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
+		return
 	}
 }
 func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
