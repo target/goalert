@@ -3,7 +3,7 @@ import React, {
   useState,
   ReactNode,
   ReactElement,
-  ChangeEvent,
+  SyntheticEvent,
 } from 'react'
 import {
   TextField,
@@ -118,15 +118,6 @@ export default function MaterialSelect(
     if (!value) setInputValue('')
   }, [value, multiple, focus])
 
-  // merge selected values with options to avoid annoying mui warnings
-  // https://github.com/mui-org/material-ui/issues/18514
-  let options = _options
-  if (value && Array.isArray(value)) {
-    options = [...options, ...value]
-  } else if (!inputValue && value && !Array.isArray(value) && !options.length) {
-    options = [value]
-  }
-
   const customCSS: Record<string, string> = {
     option: classes.padding0,
     clearIndicator: classes.clearIndicator,
@@ -147,7 +138,6 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       isOptionEqualToValue={(opt, val) => opt.value === val.value}
-      filterOptions={(options) => options}
       noOptionsText={
         noOptionsError ? (
           <Alert severity='error'>{noOptionsError.message}</Alert>
@@ -156,7 +146,7 @@ export default function MaterialSelect(
         )
       }
       onChange={(
-        event: ChangeEvent<Record<string, unknown>>,
+        event: SyntheticEvent<Element, Event>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
         if (selected) {
@@ -180,7 +170,7 @@ export default function MaterialSelect(
       onBlur={() => setFocus(false)}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
-      options={options}
+      options={_options}
       renderInput={(params) => {
         return (
           <TextField
@@ -207,8 +197,9 @@ export default function MaterialSelect(
           />
         )
       }}
-      renderOption={({ label, icon }) => (
+      renderOption={(props, { label, icon, value }) => (
         <MenuItem
+          {...props}
           component='span'
           className={classes.menuItem}
           data-cy='search-select-item'
@@ -225,10 +216,10 @@ export default function MaterialSelect(
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip
+            {...getTagProps({ index })}
             key={index.toString()}
             data-cy='multi-value'
             label={option.label}
-            {...getTagProps({ index })}
           />
         ))
       }
