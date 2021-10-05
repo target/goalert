@@ -66,10 +66,11 @@ export default function TempSchedDialog({
   const classes = useStyles()
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
-  const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
+    clearStart: _value?.start ?? null,
+    clearEnd: _value?.end ?? null,
     shifts: (_value?.shifts ?? []).map((s) =>
       _.pick(s, 'start', 'end', 'userID'),
     ),
@@ -181,7 +182,7 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue(newValue)}
+          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
         >
           <Grid container className={classes.formContainer}>
             <Grid
@@ -215,10 +216,9 @@ export default function TempSchedDialog({
                   required
                   name='start'
                   label='Schedule Start'
-                  min={now}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
                 />
               </Grid>
@@ -232,7 +232,7 @@ export default function TempSchedDialog({
                   min={value.start}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.end)}
                 />
               </Grid>
@@ -242,7 +242,6 @@ export default function TempSchedDialog({
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
                   scheduleID={scheduleID}
-                  edit={edit}
                 />
               </Grid>
             </Grid>
