@@ -128,6 +128,8 @@ export default function MaterialSelect(
   }
 
   function isSelected(val: string): boolean {
+    if (!value) return false
+
     if (Array.isArray(value)) {
       let isIncluded = false
       value.forEach((value) => {
