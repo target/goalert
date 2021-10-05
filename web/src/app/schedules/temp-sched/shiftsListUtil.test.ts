@@ -340,4 +340,18 @@ describe('getOutOfBoundsItems', () => {
     ],
     zone: chicago,
   })
+
+  check({
+    name: 'sched interval ends at midnight; 1 shift starts and ends on same day as schedule start',
+    schedIntervalISO: `${'2021-10-12T01:00:00.000-05:00'}/${'2021-10-13T00:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-10-12T00:00:00.000-05:00',
+        end: '2021-10-12T06:00:00.000-05:00',
+      },
+    ],
+    expected: [],
+    zone: chicago,
+  })
 })
