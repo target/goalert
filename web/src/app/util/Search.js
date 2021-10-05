@@ -95,11 +95,11 @@ export default function Search(props) {
         }}
         data-cy='search-field'
         placeholder='Search'
-        margin='dense'
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}
         value={search}
         className={textClass}
+        size='small'
         {...extraProps}
       />
     )
