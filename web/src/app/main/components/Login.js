@@ -7,8 +7,8 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Divider from '@material-ui/core/Divider'
 import Hidden from '@material-ui/core/Hidden'
-import { makeStyles, isWidthDown } from '@material-ui/core'
-import useWidth from '../../util/useWidth'
+import { makeStyles } from '@material-ui/core'
+import { useIsWidthDown } from '../../util/useWidth'
 import { getParameterByName } from '../../util/query_param'
 import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
 import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
@@ -63,8 +63,7 @@ const useStyles = makeStyles({
 
 export default function Login() {
   const classes = useStyles()
-  const width = useWidth()
-  const isFullScreen = isWidthDown('md', width)
+  const fullScreen = useIsWidthDown('md')
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -82,12 +81,12 @@ export default function Login() {
    * Background pattern from Toptal Subtle Patterns
    */
   useEffect(() => {
-    if (isFullScreen) {
+    if (fullScreen) {
       document.body.style.backgroundColor = `white` // overrides light grey background
     } else {
       document.body.style.backgroundImage = `url('${BACKGROUND_URL}')` // overrides light grey background
     }
-  }, [isFullScreen])
+  }, [fullScreen])
 
   /*
    * Renders a field from a provider

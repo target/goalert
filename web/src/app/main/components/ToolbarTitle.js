@@ -8,7 +8,7 @@ import { ChevronRight } from '@material-ui/icons'
 import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { useConfigValue } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
 
@@ -94,7 +94,7 @@ NameLoader.propTypes = {
 }
 
 function ToolbarTitle() {
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
   const [applicationName] = useConfigValue('General.ApplicationName')
 
@@ -124,7 +124,7 @@ function ToolbarTitle() {
   const renderSubPageTitle = ({ match }) => {
     const sub = startCase(match.params.sub)
 
-    if (!isWidthUp('md', width)) {
+    if (fullScreen) {
       // mobile, only render current title
       return renderTitle(sub)
     }
