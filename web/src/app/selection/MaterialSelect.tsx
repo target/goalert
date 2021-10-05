@@ -127,6 +127,20 @@ export default function MaterialSelect(
     customCSS.noOptions = classes.padding0
   }
 
+  function isSelected(val: string): boolean {
+    if (Array.isArray(value)) {
+      let isIncluded = false
+      value.forEach((value) => {
+        if (val === value.value) {
+          isIncluded = true
+        }
+      })
+      return isIncluded
+    }
+
+    return val === value.value
+  }
+
   return (
     <Autocomplete
       data-cy='material-select'
@@ -134,6 +148,7 @@ export default function MaterialSelect(
       classes={customCSS}
       {...multi}
       value={value}
+      filterSelectedOptions
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
@@ -151,7 +166,7 @@ export default function MaterialSelect(
       ) => {
         if (selected) {
           if (Array.isArray(selected)) {
-            setInputValue('')
+            setInputValue('') // clear input so user can keep typing to select another item
           } else {
             setInputValue(selected.isCreate ? selected.value : selected.label)
           }
@@ -202,6 +217,7 @@ export default function MaterialSelect(
           {...props}
           component='span'
           className={classes.menuItem}
+          selected={isSelected(value)}
           data-cy='search-select-item'
         >
           <Typography noWrap>{label}</Typography>
