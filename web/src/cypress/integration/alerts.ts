@@ -102,7 +102,7 @@ function testAlerts(screen: ScreenFormat): void {
 
         // wait for list to fully load before beginning tests
         return cy
-          .get('[data-cy=apollo-list] [role=button]')
+          .get('[data-cy=apollo-list] [type=checkbox]')
           .should('have.length', 3)
       })
     })
@@ -148,26 +148,26 @@ function testAlerts(screen: ScreenFormat): void {
     it('should acknowledge, escalate, and close multiple alerts', () => {
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
 
       cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
-      cy.get('button[title=Escalate]').click()
+      cy.get('button[aria-label=Escalate]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
-      cy.get('button[title=Close]').click()
+      cy.get('button[aria-label=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {
       // prep
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
-      cy.get('button[title=Acknowledge]').click()
-      cy.get('button[title=Acknowledge]').should('not.exist')
+      cy.get('button[aria-label=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').should('not.exist')
 
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
@@ -187,7 +187,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
 
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
       cy.get('span[data-cy=update-message]').should(
         'contain',
         '2 of 3 alerts updated',
@@ -210,7 +210,7 @@ function testAlerts(screen: ScreenFormat): void {
       // ack first two
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
 
       // ack
       // ack
@@ -232,7 +232,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.reload()
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
 
       cy.get('span[data-cy=update-message]').should(
         'contain',
@@ -244,7 +244,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
 
       // first two already acked, third now acked
       cy.get('span[data-cy=update-message]').should(
@@ -352,19 +352,19 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should allow the user to take action', () => {
       // ack
-      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[aria-label=Acknowledge]').click()
 
       cy.get('body').should('contain', 'ACKNOWLEDGED')
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
       // escalate
-      cy.get('button[title=Escalate]').click()
+      cy.get('button[aria-label=Escalate]').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
       cy.reload() // allows time for escalation request to process
 
       // close
-      cy.get('button[title=Close]').click()
+      cy.get('button[aria-label=Close]').click()
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
     })
