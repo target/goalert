@@ -94,7 +94,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       : { ...defaultVars, ...extraVars, ...params }
 
     const { data, loading, error } = useQuery(q, {
-      skip: !search && !defaultVars,
+      skip: !search,
       variables: { input },
       fetchPolicy: 'network-only',
       pollInterval: 0,
