@@ -6,7 +6,7 @@ import {
   FlatListNotice,
   FlatListSub,
 } from '../../lists/FlatList'
-import { splitAtMidnight } from '../../util/luxon-helpers'
+import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
 
@@ -23,8 +23,11 @@ export type Sortable<T> = T & {
 export function getSubheaderItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
+  if (!schedInterval.isValid) {
+    return []
+  }
   let lowerBound = schedInterval.start
   let upperBound = schedInterval.end
 
@@ -52,10 +55,9 @@ export function getSubheaderItems(
 export function getOutOfBoundsItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
 ): Sortable<FlatListNotice>[] {
-  // timezone is loaded in after initial render
-  if (zone === '') {
+  if (!schedInterval.isValid) {
     return []
   }
 
@@ -95,7 +97,7 @@ export function getOutOfBoundsItems(
 export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
