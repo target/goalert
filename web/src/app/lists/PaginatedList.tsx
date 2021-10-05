@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography'
 
 import LeftIcon from '@mui/icons-material/ChevronLeft'
 import RightIcon from '@mui/icons-material/ChevronRight'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
@@ -25,10 +25,7 @@ import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
+import { Theme } from '@material-ui/core'
 
 // gray boxes on load
 // disable overflow
@@ -36,7 +33,7 @@ const withWidth = () => (WrappedComponent) => (props) =>
 // delete on details -> update list (cache, refetch?)
 // - on details, don't have accesses to search param
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
@@ -219,7 +216,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const [page, setPage] = useState(0)
 
   const pageCount = Math.ceil(items.length / itemsPerPage)
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
 
   // isLoading returns true if the parent says we are, or
   // we are currently on an incomplete page and `loadMore` is available.
@@ -318,7 +315,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     return (
       <ListItem
         className={itemClass}
-        dense={isWidthUp('md', width)}
+        dense={!fullScreen}
         key={'list_' + idx}
         {...urlProps}
       >
@@ -348,7 +345,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       while (renderedItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
-            dense={isWidthUp('md', width)}
+            dense={!fullScreen}
             key={'list_' + renderedItems.length}
           />,
         )

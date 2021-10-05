@@ -6,7 +6,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
-import { isWidthUp } from '@mui/material/withWidth/index'
 
 import { FadeTransition, SlideTransition } from '../util/Transitions'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -16,7 +15,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
-import useWidth from '../util/useWidth'
+import { useIsWidthUp } from '../util/useWidth'
 
 const useStyles = makeStyles((theme) => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
@@ -45,8 +44,7 @@ const useStyles = makeStyles((theme) => {
 
 function FormDialog(props) {
   const classes = useStyles()
-  const width = useWidth()
-  const isWideScreen = isWidthUp('md', width)
+  const isWideScreen = useIsWidthUp('md')
   const [open, setOpen] = useState(true)
   const [attemptCount, setAttemptCount] = useState(0)
 

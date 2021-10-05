@@ -7,9 +7,8 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import Hidden from '@mui/material/Hidden'
-import { isWidthDown } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { getParameterByName } from '../../util/query_param'
 import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
 import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
@@ -64,8 +63,7 @@ const useStyles = makeStyles({
 
 export default function Login() {
   const classes = useStyles()
-  const width = useWidth()
-  const isFullScreen = isWidthDown('md', width)
+  const fullScreen = useIsWidthDown('md')
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -83,12 +81,12 @@ export default function Login() {
    * Background pattern from Toptal Subtle Patterns
    */
   useEffect(() => {
-    if (isFullScreen) {
+    if (fullScreen) {
       document.body.style.backgroundColor = `white` // overrides light grey background
     } else {
       document.body.style.backgroundImage = `url('${BACKGROUND_URL}')` // overrides light grey background
     }
-  }, [isFullScreen])
+  }, [fullScreen])
 
   /*
    * Renders a field from a provider

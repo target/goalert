@@ -12,11 +12,7 @@ import PolicyStep from './PolicyStep'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
-import useWidth from '../util/useWidth'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
+import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles(() => ({
   dndDragging: {
@@ -38,8 +34,6 @@ const mutation = gql`
 function PolicyStepsCard(props) {
   const classes = useStyles()
   const { escalationPolicyID, repeat, steps } = props
-
-  const width = useWidth()
 
   const oldID = useRef(null)
   const oldIdx = useRef(null)
@@ -247,7 +241,7 @@ function PolicyStepsCard(props) {
       </Card>
       <Dialog open={Boolean(error)} onClose={() => setError(null)}>
         <DialogTitleWrapper
-          fullScreen={isWidthDown('md', width)}
+          fullScreen={useIsWidthDown('md')}
           title='An error occurred'
         />
         <DialogContentError error={errMsg} />

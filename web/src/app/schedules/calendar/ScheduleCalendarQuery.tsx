@@ -1,10 +1,9 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
-import { isWidthDown } from '@mui/material/withWidth/index'
 import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { Query } from '../../../schema'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { useCalendarNavigation } from './hooks'
@@ -75,8 +74,7 @@ function ScheduleCalendarQuery({
   scheduleID,
   ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
-  const width = useWidth()
-  const isMobile = isWidthDown('sm', width)
+  const isMobile = useIsWidthDown('sm')
   const { weekly, start } = useCalendarNavigation()
 
   const [queryStart, queryEnd] = weekly

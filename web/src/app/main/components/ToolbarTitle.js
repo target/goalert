@@ -7,13 +7,9 @@ import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { useConfigValue } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles(() => ({
   backPage: {
@@ -97,7 +93,7 @@ NameLoader.propTypes = {
 }
 
 function ToolbarTitle() {
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
   const [applicationName] = useConfigValue('General.ApplicationName')
 
@@ -127,7 +123,7 @@ function ToolbarTitle() {
   const renderSubPageTitle = ({ match }) => {
     const sub = startCase(match.params.sub)
 
-    if (!isWidthUp('md', width)) {
+    if (fullScreen) {
       // mobile, only render current title
       return renderTitle(sub)
     }

@@ -16,11 +16,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
-import useWidth from '../../util/useWidth'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
+import { useIsWidthUp } from '../../util/useWidth'
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
@@ -44,7 +40,6 @@ const useStyles = makeStyles((theme) => ({
 
 function AlertsListFilter({ serviceID }) {
   const classes = useStyles()
-  const width = useWidth()
   const [show, setShow] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
 
@@ -52,6 +47,10 @@ function AlertsListFilter({ serviceID }) {
   const [allServices, setAllServices] = useURLParam('allServices', false)
   const [showAsFullTime, setShowAsFullTime] = useURLParam('fullTime', false)
   const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
+
+  // grabs class for width depending on breakpoints (md or higher uses popover width)
+  const widthClass = useIsWidthUp('md') ? classes.popover : classes.drawer
+  const gridClasses = classnames(classes.grid, widthClass)
 
   function handleOpenFilters(event) {
     setAnchorEl(event.currentTarget)
@@ -63,10 +62,6 @@ function AlertsListFilter({ serviceID }) {
   }
 
   function renderFilters() {
-    // grabs class for width depending on breakpoints (md or higher uses popover width)
-    const widthClass = isWidthUp('md', width) ? classes.popover : classes.drawer
-    const gridClasses = classnames(classes.grid, widthClass)
-
     let favoritesFilter = null
     if (!serviceID) {
       favoritesFilter = (

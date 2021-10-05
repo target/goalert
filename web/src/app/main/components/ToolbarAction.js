@@ -3,12 +3,8 @@ import { Switch, Route, useHistory } from 'react-router-dom'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
 
 function removeLastPartOfPath(path) {
   const parts = path.split('/')
@@ -17,14 +13,15 @@ function removeLastPartOfPath(path) {
 }
 
 function ToolbarAction(props) {
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
+
   const history = useHistory()
 
   function renderToolbarAction() {
     const route = removeLastPartOfPath(window.location.pathname)
 
     // only show back button on mobile
-    if (isWidthUp('md', width)) return null
+    if (!fullScreen) return null
 
     return (
       <IconButton

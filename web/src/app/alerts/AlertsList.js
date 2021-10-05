@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText, isWidthDown } from '@mui/material'
+import { Hidden, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -18,7 +18,7 @@ import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 
@@ -88,9 +88,8 @@ function getStatusFilter(s) {
 
 export default function AlertsList(props) {
   const classes = useStyles()
-  const width = useWidth()
   // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = isWidthDown('xs', width)
+  const isXs = useIsWidthDown('xs')
 
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)

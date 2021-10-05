@@ -25,14 +25,10 @@ import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
-
-// FIXME checkout https://mui.com/components/use-media-query/#migrating-from-withwidth
-const withWidth = () => (WrappedComponent) => (props) =>
-  <WrappedComponent {...props} width='xs' />
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)
@@ -50,8 +46,7 @@ const updateStatusMutation = gql`
 `
 function AlertDetails(props) {
   const classes = useStyles()
-  const width = useWidth()
-  const fullScreen = isWidthDown('md', width)
+  const fullScreen = useIsWidthDown('md')
 
   const [ack] = useMutation(updateStatusMutation, {
     variables: {
