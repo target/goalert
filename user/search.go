@@ -64,13 +64,13 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND {{prefixSearch "search" "usr.name"}} 
 	{{end}}
 	{{if .After.Name}}
-	AND {{if not .FavoritesFirst}}
-		lower(usr.name) > lower(:afterName)
-	{{else if .After.IsFavorite}}
-		((fav IS DISTINCT FROM NULL AND lower(usr.name) > lower(:afterName)) OR fav isnull)
-	{{else}}
-		(fav isnull AND lower(usr.name) > lower(:afterName))
-	{{end}}
+		AND {{if not .FavoritesFirst}}
+			lower(usr.name) > lower(:afterName)
+		{{else if .After.IsFavorite}}
+			((fav IS DISTINCT FROM NULL AND lower(usr.name) > lower(:afterName)) OR fav isnull)
+		{{else}}
+			(fav isnull AND lower(usr.name) > lower(:afterName))
+		{{end}}
 	{{end}}
 	{{ if .CMValue }}
 		AND ucm.value = :CMValue

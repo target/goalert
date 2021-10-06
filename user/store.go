@@ -94,7 +94,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		usersMissingProvider: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
+				id, name, email, avatar_url, role, alert_status_log_contact_method_id, false
 			FROM users
 			WHERE id not in (select user_id from auth_subjects where provider_id = $1)
 		`),
@@ -130,9 +130,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		`),
 		findOneForUpdate: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
-			FROM users
-			WHERE id = $1
+				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, fav is distinct from null
+			FROM users u
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_user_id = u.id AND fav.user_id = $2
+			WHERE u.id = $1
 			FOR UPDATE
 		`),
 
@@ -144,7 +146,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findAll: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
+				id, name, email, avatar_url, role, alert_status_log_contact_method_id, false
 			FROM users
 		`),
 
@@ -200,7 +202,7 @@ func (s *Store) SetAuthSubject(ctx context.Context, providerID, subjectID, userI
 }
 
 // WithoutAuthProviderFunc will call forEachFn for each user that is missing an auth subject for the given provider ID.
-// If an error is returned by forEachFn it will stop reading and be returned.
+// If an error is returned by forEachFn it will stop reading and be returned. Favorites information will not be included (always false).
 func (s *Store) WithoutAuthProviderFunc(ctx context.Context, providerID string, forEachFn func(User) error) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
@@ -571,21 +573,11 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 		return nil, err
 	}
 
-	userID := permission.UserID(ctx)
 	stmt := s.findOne
 	if forUpdate {
 		stmt = s.findOneForUpdate
-		row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id)
-		var u User
-		var statusCM sql.NullString
-		err = row.Scan(&u.ID, &u.Name, &u.Email, &u.AvatarURL, &u.Role, &statusCM)
-		u.AlertStatusCMID = statusCM.String
-		if err != nil {
-			return nil, err
-		}
-		return &u, nil
 	}
-	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id, userID)
+	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id, permission.UserID(ctx))
 	var u User
 	err = u.scanFrom(row.Scan)
 	if err != nil {
@@ -660,7 +652,7 @@ func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) (
 	return result, nil
 }
 
-// FindAll returns all users.
+// FindAll returns all users, favorites information is not included (always false).
 func (s *Store) FindAll(ctx context.Context) ([]User, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
