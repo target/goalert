@@ -191,7 +191,11 @@ export default function TempSchedDialog({
               container
               alignContent='flex-start'
               spacing={2}
-              style={{ paddingRight: '1rem' }}
+              style={{
+                paddingRight: '1rem',
+                zIndex: 1,
+                backgroundColor: 'white',
+              }}
             >
               <Grid item xs={12}>
                 <DialogContentText className={classes.contentText}>
@@ -248,7 +252,7 @@ export default function TempSchedDialog({
             </Grid>
 
             {/* shifts list container */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} style={{ paddingLeft: '1rem' }}>
               <Typography variant='subtitle1' component='h3'>
                 Shifts
               </Typography>

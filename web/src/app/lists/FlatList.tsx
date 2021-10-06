@@ -39,7 +39,7 @@ const useStyles = makeStyles({
     backgroundColor: lightGrey,
   },
   slideEnter: {
-    transform: 'translateX(100%)',
+    transform: 'translateX(-100%)',
   },
   slideEnterActive: {
     transform: 'translateX(0%)',
@@ -49,7 +49,7 @@ const useStyles = makeStyles({
     transform: 'translateX(0%)',
   },
   slideExitActive: {
-    transform: 'translateX(100%)',
+    transform: 'translateX(-100%)',
     transition: 'opacity 500ms, transform 500ms',
   },
   listItem: {
