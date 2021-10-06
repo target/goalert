@@ -231,7 +231,7 @@ export default function TempSchedDialog({
                   name='end'
                   label='Schedule End'
                   min={value.start}
-                  max={DateTime.fromISO(value.start).plus({ month: 1 }).toISO()}
+                  max={DateTime.fromISO(value.start).plus({ month: 3 }).toISO()}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
