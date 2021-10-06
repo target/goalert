@@ -164,7 +164,8 @@ export default function TempSchedDialog({
       errors={errs}
       notices={
         !value.start ||
-        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
+        DateTime.fromISO(value.start, { zone }) >
+          DateTime.utc().minus({ hour: 1 }) ||
         edit
           ? []
           : [
@@ -216,7 +217,9 @@ export default function TempSchedDialog({
                   name='start'
                   label='Schedule Start'
                   min={now}
-                  max={DateTime.fromISO(now).plus({ year: 1 }).toISO()}
+                  max={DateTime.fromISO(now, { zone })
+                    .plus({ year: 1 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
@@ -231,7 +234,9 @@ export default function TempSchedDialog({
                   name='end'
                   label='Schedule End'
                   min={value.start}
-                  max={DateTime.fromISO(value.start).plus({ month: 3 }).toISO()}
+                  max={DateTime.fromISO(value.start, { zone })
+                    .plus({ month: 3 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
