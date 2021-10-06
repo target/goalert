@@ -1,4 +1,4 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
 export type Value = {
@@ -16,27 +16,6 @@ export type Shift = {
     id: string
     name: string
   }
-}
-
-const parseInterval = (start: string, end: string): Interval =>
-  Interval.fromDateTimes(DateTime.fromISO(start), DateTime.fromISO(end))
-
-export function validateShift(
-  schedStart: string,
-  schedEnd: string,
-  shift: Shift,
-): Error | null {
-  const schedSpan = parseInterval(schedStart, schedEnd)
-  const shiftSpan = parseInterval(shift.start, shift.end)
-
-  // these two just for completeness but should never happen
-  if (!shiftSpan.isValid) return new Error('invalid shift times')
-  if (!schedSpan.isValid) return new Error('invalid schedule times')
-
-  if (!schedSpan.engulfs(shiftSpan))
-    return new Error('shift extends beyond temporary schedule')
-
-  return null
 }
 
 // removes bottom margin from content text so form fields

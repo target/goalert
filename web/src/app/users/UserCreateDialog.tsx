@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { useHistory } from 'react-router'
+import { useHistory } from 'react-router-dom'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'

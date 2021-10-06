@@ -1,5 +1,4 @@
 /* eslint @typescript-eslint/no-var-requires: 0 */
-// Folder ops
 const path = require('path')
 const webpack = require('webpack')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -7,9 +6,9 @@ const CopyPlugin = require('copy-webpack-plugin')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
-const PORT = process.env.PORT || 3032
+const CYPRESS = path.join(__dirname, 'cypress')
 
-module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
+module.exports = () => ({
   mode: 'development',
   // Paths and extensions
   entry: {
@@ -61,15 +60,16 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   },
 
   // Source maps used for debugging information
-  devtool: 'inline-source-map',
+  devtool: 'eval-source-map',
   // webpack-dev-server configuration
   devServer: {
-    disableHostCheck: true,
+    port: 3035,
+    allowedHosts: 'all',
+    watchFiles: [APP, CYPRESS],
 
-    stats: 'errors-only',
-
-    // host: HOST,
-    port: PORT,
+    devMiddleware: {
+      stats: 'errors-only',
+    },
   },
   optimization: {
     splitChunks: {
@@ -85,11 +85,6 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
 
   // Webpack plugins
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify('development'), // eslint-disable-line quote-props
-      },
-    }),
     new CopyPlugin({
       patterns: [
         'favicon-16.png',
@@ -103,7 +98,9 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
       })),
     }),
     new webpack.BannerPlugin({
-      banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
+      banner: `var GOALERT_VERSION=${JSON.stringify(
+        process.env.GOALERT_VERSION,
+      )};`,
       raw: true,
     }),
   ],

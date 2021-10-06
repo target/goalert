@@ -17,7 +17,7 @@ export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
   at: DateTime
   // itemType categorizes a list item
-  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end'
+  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end' | 'outOfBounds'
 }
 
 export function getSubheaderItems(
@@ -49,11 +49,57 @@ export function getSubheaderItems(
   })
 }
 
+export function getOutOfBoundsItems(
+  schedInterval: Interval,
+  shifts: Shift[],
+  zone: string,
+): Sortable<FlatListNotice>[] {
+  // timezone is loaded in after initial render
+  if (zone === '') {
+    return []
+  }
+
+  // get earliest and farthest out start/end times
+  let lowerBound = schedInterval.start
+  let upperBound = schedInterval.end
+  for (const s of shifts) {
+    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
+    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
+  }
+
+  const beforeStart = Interval.fromDateTimes(lowerBound, schedInterval.start)
+  const afterEnd = Interval.fromDateTimes(schedInterval.end, upperBound)
+  const daysBeforeStart = splitAtMidnight(beforeStart)
+  const daysAfterEnd = splitAtMidnight(afterEnd)
+  const intervals = daysBeforeStart.concat(daysAfterEnd)
+
+  let details = ''
+  return intervals.map((interval) => {
+    if (interval.end <= schedInterval.start) {
+      details = 'This day is before the set start date.'
+    } else if (interval.start >= schedInterval.end) {
+      details = 'This day is after the set end date.'
+    }
+
+    return {
+      id: 'day-out-of-bounds_' + interval.start.toISO(),
+      type: 'INFO',
+      message: '',
+      details,
+      at: interval.start.startOf('day'),
+      itemType: 'outOfBounds',
+    }
+  })
+}
+
 export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
   zone: string,
 ): Sortable<FlatListNotice>[] {
+  if (!schedInterval.isValid) {
+    return []
+  }
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const gapIntervals = _.flatMap(
     schedInterval.difference(...shiftIntervals),
@@ -93,6 +139,9 @@ export function sortItems(
     // subheaders first
     if (a.itemType === 'subheader') return -1
     if (b.itemType === 'subheader') return 1
+    // out of bounds info next
+    if (a.itemType === 'outOfBounds') return -1
+    if (b.itemType === 'outOfBounds') return 1
     // then start notice
     if (a.itemType === 'start') return -1
     if (b.itemType === 'start') return 1

@@ -17,13 +17,31 @@ type ProviderMessageID struct {
 var _ driver.Valuer = ProviderMessageID{}
 var _ sql.Scanner = &ProviderMessageID{}
 
-func (p ProviderMessageID) Value() (driver.Value, error) {
+// ParseProviderMessageID parses a provider-specific identifier for a message.
+func ParseProviderMessageID(id string) (ProviderMessageID, error) {
+	var p ProviderMessageID
+	err := p.Scan(id)
+	return p, err
+}
+
+// String returns a parseable string representation of the provider-specific identifier for a message.
+func (p ProviderMessageID) String() string {
 	if p.ProviderName == "" || p.ExternalID == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("%s:%s", p.ProviderName, p.ExternalID)
+}
+
+func (p ProviderMessageID) Value() (driver.Value, error) {
+	val := p.String()
+	if val == "" {
 		return nil, nil
 	}
 
-	return p.ProviderName + ":" + p.ExternalID, nil
+	return val, nil
 }
+
 func (p *ProviderMessageID) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case string:

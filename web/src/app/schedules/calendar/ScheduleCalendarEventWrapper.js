@@ -6,8 +6,16 @@ import Popover from '@material-ui/core/Popover'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
+import { ScheduleCalendarContext } from '../ScheduleDetails'
+import CardActions from '../../details/CardActions'
+import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
+import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
 
 const useStyles = makeStyles({
+  cardActionContainer: {
+    width: '100%',
+  },
   button: {
     padding: '4px',
     minHeight: 0,
@@ -26,17 +34,16 @@ const useStyles = makeStyles({
   },
 })
 
-export const EventHandlerContext = React.createContext({
-  onOverrideClick: () => {},
-  onEditTempSched: () => {},
-  onDeleteTempSched: () => {},
-})
-
 export default function ScheduleCalendarEventWrapper({ children, event }) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
-  const { onOverrideClick, onEditTempSched, onDeleteTempSched } =
-    useContext(EventHandlerContext)
+
+  const [showEditDialog, setShowEditDialog] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(null)
+
+  const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
+    ScheduleCalendarContext,
+  )
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
@@ -55,11 +62,12 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     }
   }
 
-  function handleShowOverrideForm(type) {
+  function handleShowOverrideForm() {
     handleCloseShiftInfo()
 
-    onOverrideClick({
-      variant: type,
+    setOverrideDialog({
+      variantOptions: ['replace', 'remove'],
+      removeUserReadOnly: true,
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),
@@ -110,30 +118,45 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
   function renderOverrideButtons() {
     return (
+      <div className={classes.cardActionContainer}>
+        <CardActions
+          secondaryActions={[
+            {
+              icon: <EditIcon fontSize='small' />,
+              label: 'Edit',
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowEditDialog(event?.override?.id)
+              },
+            },
+            {
+              icon: <DeleteIcon fontSize='small' />,
+              label: 'Delete',
+              handleOnClick: () => {
+                handleCloseShiftInfo()
+                setShowDeleteDialog(event?.override?.id)
+              },
+            },
+          ]}
+        />
+      </div>
+    )
+  }
+
+  function renderShiftButtons() {
+    return (
       <React.Fragment>
-        <Grid item>
-          <Button
-            data-cy='replace-override'
-            size='small'
-            onClick={() => handleShowOverrideForm('replace')}
-            variant='contained'
-            color='primary'
-            title={`Temporarily replace ${event.title} from this schedule`}
-          >
-            Replace
-          </Button>
-        </Grid>
         <Grid item className={classes.flexGrow} />
         <Grid item>
           <Button
-            data-cy='remove-override'
+            data-cy='override'
             size='small'
-            onClick={() => handleShowOverrideForm('remove')}
+            onClick={handleShowOverrideForm}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${event.title} from this schedule`}
           >
-            Remove
+            Override Shift
           </Button>
         </Grid>
       </React.Fragment>
@@ -144,8 +167,42 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
     if (event.tempSched) return renderTempSchedButtons()
     if (event.fixed) return null
+    if (event.isOverride) return renderOverrideButtons()
 
-    return renderOverrideButtons()
+    return renderShiftButtons()
+  }
+
+  function renderOverrideDescription() {
+    if (!event.isOverride) return null
+
+    const getDesc = (addUser, removeUser) => {
+      if (addUser && removeUser)
+        return (
+          <React.Fragment>
+            <b>{addUser.name}</b> replaces <b>{removeUser.name}</b>.
+          </React.Fragment>
+        )
+      if (addUser)
+        return (
+          <React.Fragment>
+            Adds <b>{addUser.name}</b>.
+          </React.Fragment>
+        )
+      if (removeUser)
+        return (
+          <React.Fragment>
+            Removes <b>{removeUser.name}</b>.
+          </React.Fragment>
+        )
+    }
+
+    return (
+      <Grid item xs={12}>
+        <Typography variant='body2'>
+          {getDesc(event.override.addUser, event.override.removeUser)}
+        </Typography>
+      </Grid>
+    )
   }
 
   /*
@@ -160,6 +217,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
 
     return (
       <Grid container spacing={1}>
+        {renderOverrideDescription()}
         <Grid item xs={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
@@ -203,6 +261,18 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
         'aria-pressed': open,
         'aria-describedby': id,
       })}
+      {showEditDialog && (
+        <ScheduleOverrideEditDialog
+          overrideID={showEditDialog}
+          onClose={() => setShowEditDialog(null)}
+        />
+      )}
+      {showDeleteDialog && (
+        <ScheduleOverrideDeleteDialog
+          overrideID={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(null)}
+        />
+      )}
     </React.Fragment>
   )
 }

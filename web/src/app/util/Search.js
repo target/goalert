@@ -95,7 +95,6 @@ export default function Search(props) {
         }}
         data-cy='search-field'
         placeholder='Search'
-        variant='outlined'
         margin='dense'
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}

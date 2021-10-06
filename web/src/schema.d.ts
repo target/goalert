@@ -28,6 +28,7 @@ export interface Query {
   config: ConfigValue[]
   configHints: ConfigHint[]
   systemLimits: SystemLimit[]
+  debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
@@ -183,6 +184,14 @@ export interface DebugSendSMSInfo {
   id: string
   providerURL: string
   fromNumber: string
+}
+
+export interface DebugMessageStatusInput {
+  providerMessageID: string
+}
+
+export interface DebugMessageStatusInfo {
+  state: NotificationState
 }
 
 export interface TemporarySchedule {
@@ -653,6 +662,11 @@ export interface Alert {
   service?: Service
   state?: AlertState
   recentEvents: AlertLogEntryConnection
+  pendingNotifications: AlertPendingNotification[]
+}
+
+export interface AlertPendingNotification {
+  destination: string
 }
 
 export interface AlertRecentEventsOptions {
@@ -965,6 +979,7 @@ type ConfigID =
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.FromNumber'
+  | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'

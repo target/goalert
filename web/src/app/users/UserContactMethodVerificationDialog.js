@@ -71,9 +71,7 @@ export default function UserContactMethodVerificationDialog(props) {
       loading={loading || !cm.type}
       errors={
         sendError
-          ? [{ message: sendError, nonSubmit: true }].concat(
-              nonFieldErrors(error),
-            )
+          ? [new Error(sendError)].concat(nonFieldErrors(error))
           : nonFieldErrors(error)
       }
       data-cy='verify-form'
