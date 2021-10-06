@@ -27,7 +27,6 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
     email: '',
     isAdmin: false,
     name: '',
-    favorite: true,
   })
 
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
