@@ -301,7 +301,7 @@ describe('getOutOfBoundsItems', () => {
         end: '2021-08-14T05:00:00.000-05:00',
       },
     ],
-    expected: ['2021-08-14T00:00:00.000-05:00'],
+    expected: [],
     zone: chicago,
   })
 
@@ -334,7 +334,6 @@ describe('getOutOfBoundsItems', () => {
       },
     ],
     expected: [
-      '2021-08-14T00:00:00.000-05:00',
       '2021-08-15T00:00:00.000-05:00',
       '2021-08-16T00:00:00.000-05:00',
     ],
@@ -349,6 +348,20 @@ describe('getOutOfBoundsItems', () => {
         userID: c.guid(),
         start: '2021-10-12T00:00:00.000-05:00',
         end: '2021-10-12T06:00:00.000-05:00',
+      },
+    ],
+    expected: [],
+    zone: chicago,
+  })
+
+  check({
+    name: 'sched interval ends at 1am; 1 shift starts and ends on same day as schedule end',
+    schedIntervalISO: `${'2021-10-12T00:00:00.000-05:00'}/${'2021-10-13T01:00:00.000-05:00'}`,
+    shifts: [
+      {
+        userID: c.guid(),
+        start: '2021-10-13T00:00:00.000-05:00',
+        end: '2021-10-13T06:00:00.000-05:00',
       },
     ],
     expected: [],

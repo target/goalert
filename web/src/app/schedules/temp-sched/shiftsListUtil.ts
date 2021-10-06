@@ -75,8 +75,16 @@ export function getOutOfBoundsItems(
     ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
   )
 
-  const beforeStart = Interval.fromDateTimes(lowerBound, schedInterval.start)
-  const afterEnd = Interval.fromDateTimes(schedInterval.end, upperBound)
+  const beforeStart = Interval.fromDateTimes(
+    lowerBound,
+    schedInterval.start,
+  ).mapEndpoints((e) => e.startOf('day')) // ensure sched start date is not included
+
+  const afterEnd = Interval.fromDateTimes(
+    schedInterval.end,
+    upperBound,
+  ).mapEndpoints((e) => e.plus({ day: 1 }).startOf('day')) // ensure sched end date is not included
+
   const daysBeforeStart = splitAtMidnight(beforeStart)
   const daysAfterEnd = splitAtMidnight(afterEnd)
   const intervals = daysBeforeStart.concat(daysAfterEnd)
