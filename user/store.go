@@ -533,8 +533,8 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-	userID := permission.UserID(ctx)
-	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), ctxFavIDParam(ctx))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -561,6 +561,15 @@ func (s *Store) FindOne(ctx context.Context, id string) (*User, error) {
 	return s.FindOneTx(ctx, nil, id, false)
 }
 
+func ctxFavIDParam(ctx context.Context) sql.NullString {
+	userID := permission.UserID(ctx)
+	if userID == "" {
+		return sql.NullString{}
+	}
+
+	return sql.NullString{String: userID, Valid: true}
+}
+
 // FindOneTx will return a single user, locking the row if forUpdate is set.
 func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*User, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
@@ -577,7 +586,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 	if forUpdate {
 		stmt = s.findOneForUpdate
 	}
-	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id, permission.UserID(ctx))
+	row := withTx(ctx, tx, stmt).QueryRowContext(ctx, id, ctxFavIDParam(ctx))
 	var u User
 	err = u.scanFrom(row.Scan)
 	if err != nil {
