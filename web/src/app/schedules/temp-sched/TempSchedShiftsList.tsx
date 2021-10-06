@@ -120,7 +120,7 @@ export default function TempSchedShiftsList({
 
           return {
             scrollIntoView: true,
-            id: s.userID + index.toString(),
+            id: s.start + s.userID + index.toString(),
             title: s.user.name,
             subText,
             userID: s.userID,
