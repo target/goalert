@@ -28,14 +28,17 @@ export function getSubheaderItems(
   if (!schedInterval.isValid) {
     return []
   }
-  let lowerBound = schedInterval.start
-  let upperBound = schedInterval.end
 
-  // loop once to set timespan
-  for (const s of shifts) {
-    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
-    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
-  }
+  // get earliest and farthest out start/end times
+  const lowerBound = DateTime.min(
+    schedInterval.start,
+    ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+  )
+
+  const upperBound = DateTime.max(
+    schedInterval.end,
+    ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
+  )
 
   const dayInvs = splitAtMidnight(
     Interval.fromDateTimes(lowerBound, upperBound),
@@ -62,12 +65,15 @@ export function getOutOfBoundsItems(
   }
 
   // get earliest and farthest out start/end times
-  let lowerBound = schedInterval.start
-  let upperBound = schedInterval.end
-  for (const s of shifts) {
-    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
-    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
-  }
+  const lowerBound = DateTime.min(
+    schedInterval.start,
+    ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+  )
+
+  const upperBound = DateTime.max(
+    schedInterval.end,
+    ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
+  )
 
   const beforeStart = Interval.fromDateTimes(lowerBound, schedInterval.start)
   const afterEnd = Interval.fromDateTimes(schedInterval.end, upperBound)
