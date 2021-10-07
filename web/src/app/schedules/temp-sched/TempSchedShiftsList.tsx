@@ -172,15 +172,22 @@ export default function TempSchedShiftsList({
       } as Sortable<FlatListNotice>
     })()
 
-    const endItem: Sortable<FlatListNotice> = {
-      id: 'sched-end_' + end,
-      type: 'OK',
-      icon: <ScheduleIcon />,
-      message: '',
-      details: `Ends at ${fmtTime(DateTime.fromISO(end, { zone }))}`,
-      at: DateTime.fromISO(end, { zone }),
-      itemType: 'end',
-    }
+    const endItem = (() => {
+      const at = DateTime.fromISO(end, { zone })
+      const details = at.equals(at.startOf('day'))
+        ? 'Ends at midnight'
+        : 'Ends at ' + fmtTime(at)
+
+      return {
+        id: 'sched-end_' + end,
+        type: 'OK',
+        icon: <ScheduleIcon />,
+        message: '',
+        details,
+        at,
+        itemType: 'end',
+      } as Sortable<FlatListNotice>
+    })()
 
     return sortItems([
       ...shiftItems,
