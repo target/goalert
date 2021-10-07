@@ -91,7 +91,7 @@ export default function ScheduleDetails({ scheduleID }) {
           onClose={() => setShowDelete(false)}
         />
       )}
-      {configTempSchedule && (
+      {true && (
         <TempSchedDialog
           value={configTempSchedule === true ? null : configTempSchedule}
           onClose={() => setConfigTempSchedule(null)}

@@ -123,7 +123,11 @@ export function getCoverageGapItems(
       message: '',
       details,
       at: gap.start,
+      ends: gap.end,
       itemType: 'gap',
+      handleOnClick: () => {
+        console.log('notice clicked')
+      },
     }
   })
 }
