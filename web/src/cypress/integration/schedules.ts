@@ -52,7 +52,9 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should delete a schedule', () => {
-      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
+      cy.get('[data-cy="card-actions"]')
+        .find('button[aria-label="Delete"]')
+        .click()
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
@@ -69,7 +71,9 @@ function testSchedules(screen: ScreenFormat): void {
       const newDesc = c.word({ length: 5 })
       const newTz = 'Africa/Accra'
 
-      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[data-cy="card-actions"]')
+        .find('button[aria-label="Edit"]')
+        .click()
       cy.dialogTitle('Edit Schedule')
       cy.dialogForm({ name: newName, description: newDesc, 'time-zone': newTz })
       cy.dialogFinish('Submit')

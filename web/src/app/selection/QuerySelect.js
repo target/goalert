@@ -94,7 +94,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       : { ...defaultVars, ...extraVars, ...params }
 
     const { data, loading, error } = useQuery(q, {
-      skip: !search,
+      skip: !search && !defaultVars,
       variables: { input },
       fetchPolicy: 'network-only',
       pollInterval: 0,
@@ -223,9 +223,7 @@ export function makeQuerySelect(displayName, options) {
     }
 
     let noOptionsText = 'No options'
-    if (searchInput) noOptionsText = 'Start typing...'
-
-    // searchInput || selectOptions.length ? 'No options' : 'Start typing...'
+    if (searchInput && selectOptions.length) noOptionsText = 'Start typing...'
 
     return (
       <MaterialSelect

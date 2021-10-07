@@ -17,7 +17,6 @@ export default function OtherActionsMenuDesktop({
   return (
     <Menu
       anchorEl={() => anchorEl}
-      getContentAnchorEl={null}
       open={isOpen}
       onClose={onClose}
       PaperProps={{
