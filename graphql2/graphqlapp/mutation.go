@@ -82,7 +82,7 @@ func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetT
 			Start:  input.Start,
 			End:    input.End,
 			Shifts: input.Shifts,
-		}, *input.ClearStart, *input.ClearEnd)
+		}, input.ClearStart, input.ClearEnd)
 	})
 
 	return err == nil, err
