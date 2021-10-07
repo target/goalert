@@ -16,10 +16,9 @@ import FlatList, {
 } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { styles } from '../../styles/materialStyles'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
-import Spinner from '../../loading/components/Spinner'
+import { CircularProgress } from '@material-ui/core'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
   fmtTime,
@@ -30,19 +29,17 @@ import {
   sortItems,
 } from './shiftsListUtil'
 
-const useStyles = makeStyles((theme) => {
-  return {
-    secondaryActionWrapper: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    secondaryActionError: {
-      color: styles(theme).error.color,
-    },
-    listSpinner: {
-      marginTop: '20rem',
-    },
-  }
+const useStyles = makeStyles({
+  secondaryActionWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  spinContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'column',
+    marginTop: '15rem',
+  },
 })
 
 type TempSchedShiftsListProps = {
@@ -195,8 +192,8 @@ export default function TempSchedShiftsList({
   }
 
   return q.loading ? (
-    <div className={classes.listSpinner}>
-      <Spinner />
+    <div className={classes.spinContainer}>
+      <CircularProgress />
     </div>
   ) : (
     <FlatList
