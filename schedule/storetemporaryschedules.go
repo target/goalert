@@ -71,6 +71,19 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	if err != nil {
 		return err
 	}
+
+	// require both or none to be set
+	if clearStart.IsZero() != clearEnd.IsZero() {
+		if !clearStart.IsZero() {
+			return validation.NewFieldError("clearStart", "must be used with clearEnd")
+		}
+		if !clearEnd.IsZero() {
+			return validation.NewFieldError("clearEnd", "must be used with clearStart")
+		}
+	}
+
+	shouldClear := !clearStart.IsZero() && !clearEnd.IsZero()
+
 	temp.Start = temp.Start.Truncate(time.Minute)
 	temp.End = temp.End.Truncate(time.Minute)
 	for i := range temp.Shifts {
@@ -90,7 +103,7 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	// truncate to current timestamp
 	temp = temp.TrimStart(time.Now())
 	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
-		if temp.Start != clearStart || temp.End != clearEnd {
+		if shouldClear {
 			data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, clearStart, clearEnd)
 		}
 		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, temp)
