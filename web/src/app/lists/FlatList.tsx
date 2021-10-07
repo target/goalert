@@ -43,14 +43,18 @@ const useStyles = makeStyles({
   },
   slideEnterActive: {
     transform: 'translateX(0%)',
-    transition: 'opacity 500ms, transform 500ms',
+    transition: 'transform 500ms',
   },
   slideExit: {
+    maxHeight: '30px',
+    opacity: 1,
     transform: 'translateX(0%)',
   },
   slideExitActive: {
+    maxHeight: '0px',
+    opacity: 0,
     transform: 'translateX(-100%)',
-    transition: 'opacity 500ms, transform 500ms',
+    transition: 'all 500ms',
   },
   listItem: {
     width: '100%',
