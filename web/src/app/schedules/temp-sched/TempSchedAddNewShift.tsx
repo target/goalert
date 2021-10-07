@@ -25,6 +25,8 @@ type AddShiftsStepProps = {
 
   scheduleID: string
   edit?: boolean
+  showForm: boolean
+  handleShowForm: () => void
 }
 
 type DTShift = {
@@ -75,12 +77,15 @@ export default function TempSchedAddNewShift({
   onChange,
   value,
   edit,
+  showForm,
+  handleShowForm
 }: AddShiftsStepProps): JSX.Element {
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
 
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const [showAddShift, setShowAddShift] = useState(false)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
@@ -144,7 +149,7 @@ export default function TempSchedAddNewShift({
       value={shift}
       onChange={(val: Shift) => setShift(val)}
     >
-      <Accordion variant='outlined'>
+      <Accordion variant='outlined' onChange={handleShowForm} expanded={showForm}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           data-cy='add-shift-expander'

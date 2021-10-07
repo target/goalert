@@ -76,6 +76,7 @@ export default function TempSchedDialog({
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -126,7 +127,7 @@ export default function TempSchedDialog({
   const hasCoverageGaps = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
-    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+    return getCoverageGapItems(schedInterval, value.shifts, zone, handleShowForm).length > 0
   })()
 
   const [submit, { loading, error }] = useMutation(mutation, {
@@ -147,6 +148,10 @@ export default function TempSchedDialog({
     }
 
     submit()
+  }
+
+    function handleShowForm(): void {
+    setShowForm(!showForm)
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
@@ -257,6 +262,8 @@ export default function TempSchedDialog({
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
                   scheduleID={scheduleID}
                   edit={edit}
+                  showForm={showForm}
+                  handleShowForm={handleShowForm}
                 />
               </Grid>
             </Grid>
@@ -312,6 +319,8 @@ export default function TempSchedDialog({
                     })
                   }}
                   edit={edit}
+                  handleShowForm={handleShowForm}
+                  showForm={showForm}
                 />
               </Grid>
             </Grid>

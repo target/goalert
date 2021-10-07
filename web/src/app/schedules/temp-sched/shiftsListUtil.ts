@@ -96,6 +96,7 @@ export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
   zone: string,
+  handleCoverageClick: ()=>void
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
@@ -127,6 +128,7 @@ export function getCoverageGapItems(
       itemType: 'gap',
       handleOnClick: () => {
         console.log('notice clicked')
+        handleCoverageClick()
       },
     }
   })
