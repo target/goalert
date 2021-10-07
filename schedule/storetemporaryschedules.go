@@ -88,7 +88,7 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	}
 
 	// truncate to current timestamp
-	temp.TrimStart(time.Now())
+	temp = temp.TrimStart(time.Now())
 	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
 		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, temp)
 		return nil
