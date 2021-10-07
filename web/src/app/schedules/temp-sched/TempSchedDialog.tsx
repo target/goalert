@@ -41,11 +41,20 @@ const useStyles = makeStyles((theme) => ({
   },
   formContainer: {
     height: '100%',
-    padding: '0.5rem',
   },
   noCoverageError: {
     marginTop: '.5rem',
     marginBottom: '.5rem',
+  },
+  rightPane: {
+    [theme.breakpoints.down('md')]: {
+      marginTop: '1rem',
+    },
+    overflow: 'hidden',
+  },
+  sticky: {
+    position: 'sticky',
+    top: 0,
   },
   tzNote: {
     fontStyle: 'italic',
@@ -157,6 +166,7 @@ export default function TempSchedDialog({
 
   return (
     <FormDialog
+      fullHeight
       maxWidth='lg'
       title='Define a Temporary Schedule'
       onClose={onClose}
@@ -164,7 +174,8 @@ export default function TempSchedDialog({
       errors={errs}
       notices={
         !value.start ||
-        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
+        DateTime.fromISO(value.start, { zone }) >
+          DateTime.utc().minus({ hour: 1 }) ||
         edit
           ? []
           : [
@@ -183,7 +194,12 @@ export default function TempSchedDialog({
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
         >
-          <Grid container className={classes.formContainer}>
+          <Grid
+            container
+            className={classes.formContainer}
+            justifyContent='space-between'
+          >
+            {/* left pane */}
             <Grid
               item
               xs={12}
@@ -191,7 +207,6 @@ export default function TempSchedDialog({
               container
               alignContent='flex-start'
               spacing={2}
-              style={{ paddingRight: '1rem' }}
             >
               <Grid item xs={12}>
                 <DialogContentText className={classes.contentText}>
@@ -216,6 +231,9 @@ export default function TempSchedDialog({
                   name='start'
                   label='Schedule Start'
                   min={now}
+                  max={DateTime.fromISO(now, { zone })
+                    .plus({ year: 1 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
@@ -230,6 +248,9 @@ export default function TempSchedDialog({
                   name='end'
                   label='Schedule End'
                   min={value.start}
+                  max={DateTime.fromISO(value.start, { zone })
+                    .plus({ month: 3 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading || edit}
@@ -237,7 +258,7 @@ export default function TempSchedDialog({
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} className={classes.sticky}>
                 <TempSchedAddNewShift
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
@@ -247,49 +268,59 @@ export default function TempSchedDialog({
               </Grid>
             </Grid>
 
-            {/* shifts list container */}
-            <Grid item xs={12} md={6}>
-              <Typography variant='subtitle1' component='h3'>
-                Shifts
-              </Typography>
+            {/* right pane */}
+            <Grid
+              item
+              xs={12}
+              md={6}
+              container
+              spacing={2}
+              className={classes.rightPane}
+            >
+              <Grid item xs={12}>
+                <Typography variant='subtitle1' component='h3'>
+                  Shifts
+                </Typography>
 
-              {/* coverage warning */}
-              {hasSubmitted && hasCoverageGaps && (
-                <Alert severity='error' className={classes.noCoverageError}>
-                  <AlertTitle>Gaps in coverage</AlertTitle>
-                  <FormHelperText>
-                    There are gaps in coverage. During these gaps, nobody on the
-                    schedule will receive alerts. If you still want to proceed,
-                    check the box below and retry.
-                  </FormHelperText>
-                  <FormControlLabel
-                    label='Allow gaps in coverage'
-                    labelPlacement='end'
-                    control={
-                      <Checkbox
-                        data-cy='no-coverage-checkbox'
-                        checked={allowNoCoverage}
-                        onChange={(e) => setAllowNoCoverage(e.target.checked)}
-                        name='allowCoverageGaps'
-                      />
-                    }
-                  />
-                </Alert>
-              )}
+                {hasSubmitted && hasCoverageGaps && (
+                  <Alert severity='error' className={classes.noCoverageError}>
+                    <AlertTitle>Gaps in coverage</AlertTitle>
+                    <FormHelperText>
+                      There are gaps in coverage. During these gaps, nobody on
+                      the schedule will receive alerts. If you still want to
+                      proceed, check the box below and retry.
+                    </FormHelperText>
+                    <FormControlLabel
+                      label='Allow gaps in coverage'
+                      labelPlacement='end'
+                      control={
+                        <Checkbox
+                          data-cy='no-coverage-checkbox'
+                          checked={allowNoCoverage}
+                          onChange={(e) => setAllowNoCoverage(e.target.checked)}
+                          name='allowCoverageGaps'
+                        />
+                      }
+                    />
+                  </Alert>
+                )}
 
-              <TempSchedShiftsList
-                scheduleID={scheduleID}
-                value={value.shifts}
-                start={value.start}
-                end={value.end}
-                onRemove={(shift: Shift) => {
-                  setValue({
-                    ...value,
-                    shifts: value.shifts.filter((s) => !shiftEquals(shift, s)),
-                  })
-                }}
-                edit={edit}
-              />
+                <TempSchedShiftsList
+                  scheduleID={scheduleID}
+                  value={value.shifts}
+                  start={value.start}
+                  end={value.end}
+                  onRemove={(shift: Shift) => {
+                    setValue({
+                      ...value,
+                      shifts: value.shifts.filter(
+                        (s) => !shiftEquals(shift, s),
+                      ),
+                    })
+                  }}
+                  edit={edit}
+                />
+              </Grid>
             </Grid>
           </Grid>
         </FormContainer>
