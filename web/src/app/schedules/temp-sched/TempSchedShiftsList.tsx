@@ -6,7 +6,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { Shift } from './sharedUtils'
 import FlatList, {
@@ -76,10 +76,11 @@ export default function TempSchedShiftsList({
 
   const schedInterval = parseInterval({ start, end }, zone)
 
-  function handleCoverageClick(): void {
+  function handleCoverageClick(coverageGap: Interval): void {
     if (!showForm) {
-      console.log(showForm)
       handleShowForm()
+      
+     // setValue(newValue)
     } 
   }
 
