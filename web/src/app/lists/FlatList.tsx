@@ -39,14 +39,18 @@ const useStyles = makeStyles({
     backgroundColor: lightGrey,
   },
   slideEnter: {
+    maxHeight: '0px',
+    opacity: 0,
     transform: 'translateX(-100%)',
   },
   slideEnterActive: {
+    maxHeight: '60px',
+    opacity: 1,
     transform: 'translateX(0%)',
-    transition: 'transform 500ms',
+    transition: 'all 500ms',
   },
   slideExit: {
-    maxHeight: '30px',
+    maxHeight: '60px',
     opacity: 1,
     transform: 'translateX(0%)',
   },
