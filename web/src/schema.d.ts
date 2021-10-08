@@ -937,7 +937,7 @@ type ConfigID =
   | 'General.PublicURL'
   | 'General.GoogleAnalyticsID'
   | 'General.NotificationDisclaimer'
-  | 'General.MessageBundles'
+  | 'General.DisableMessageBundles'
   | 'General.ShortURL'
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
