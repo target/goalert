@@ -5,10 +5,8 @@ import TimePicker from '@mui/lab/TimePicker'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
-import { TextField, InputAdornment, IconButton } from '@mui/material'
-
+import TextField from '@mui/material/TextField'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
-import { DateRange, AccessTime } from '@mui/icons-material'
 
 function hasInputSupport(name) {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
@@ -97,15 +95,6 @@ function useISOPicker(
     )
   }
 
-  let emptyLabel = 'Select a time...'
-  const extraProps = {}
-  if (type !== 'time') {
-    emptyLabel = 'Select a date...'
-    extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
-    extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
-  }
-
-  const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={value ? dtValue : null}
@@ -113,28 +102,21 @@ function useISOPicker(
       showTodayButton
       minDate={min}
       maxDate={max}
-      emptyLabel={emptyLabel}
+      emptyLabel={type === 'time' ? 'Select a time...' : 'Select a date...'}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
-      renderInput={(props) => (
+      renderInput={(params) => (
         <TextField
-          {...props}
+          {...params}
+          {...otherProps}
           InputProps={{
             'data-cy-fallback-type': type,
-            endAdornment: (
-              <InputAdornment position='end'>
-                <IconButton size='large'>
-                  <FallbackIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
+            ...params.InputProps,
           }}
-          {...otherProps}
-          inputProps={inputProps}
         />
       )}
-      {...extraProps}
+      {...otherProps}
     />
   )
 }
