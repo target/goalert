@@ -1,11 +1,11 @@
 import React from 'react'
-import AdapterLuxon from '@mui/lab/AdapterLuxon'
-import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import { MuiPickersUtilsProvider } from '@material-ui/pickers'
+import PickerUtils from '@date-io/luxon'
 
 export default function PickersUtilsProvider(props) {
   return (
-    <LocalizationProvider dateAdapter={AdapterLuxon}>
+    <MuiPickersUtilsProvider utils={PickerUtils}>
       {props.children}
-    </LocalizationProvider>
+    </MuiPickersUtilsProvider>
   )
 }

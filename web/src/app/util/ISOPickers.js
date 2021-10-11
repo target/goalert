@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import DatePicker from '@mui/lab/DatePicker'
-import DateTimePicker from '@mui/lab/DateTimePicker'
-import TimePicker from '@mui/lab/TimePicker'
+import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
@@ -117,24 +115,19 @@ function useISOPicker(
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
-      renderInput={(props) => (
-        <TextField
-          {...props}
-          InputProps={{
-            'data-cy-fallback-type': type,
-            endAdornment: (
-              <InputAdornment position='end'>
-                <IconButton size='large'>
-                  <FallbackIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          {...otherProps}
-          inputProps={inputProps}
-        />
-      )}
+      InputProps={{
+        'data-cy-fallback-type': type,
+        endAdornment: (
+          <InputAdornment position='end'>
+            <IconButton size='large'>
+              <FallbackIcon />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+      inputProps={inputProps}
       {...extraProps}
+      {...otherProps}
     />
   )
 }
