@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import DatePicker from '@mui/lab/DatePicker'
-import DateTimePicker from '@mui/lab/DateTimePicker'
-import TimePicker from '@mui/lab/TimePicker'
+import DatePicker from '@mui/lab/MobileDatePicker'
+import DateTimePicker from '@mui/lab/MobileDateTimePicker'
+import TimePicker from '@mui/lab/MobileTimePicker'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
 import TextField from '@mui/material/TextField'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
+import { AccessTime, DateRange } from '@mui/icons-material'
+import { IconButton, InputAdornment } from '@mui/material'
 
 function hasInputSupport(name) {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
@@ -95,6 +97,7 @@ function useISOPicker(
     )
   }
 
+  const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={value ? dtValue : null}
@@ -112,6 +115,13 @@ function useISOPicker(
           {...otherProps}
           InputProps={{
             'data-cy-fallback-type': type,
+            endAdornment: (
+              <InputAdornment position='end'>
+                <IconButton onClick={() => params?.inputProps?.onClick()}>
+                  <FallbackIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
             ...params.InputProps,
           }}
         />
