@@ -62,6 +62,16 @@ export default function TempSchedShiftsList({
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
   let shifts = useUserInfo(value)
+
+  // wait for zone
+  if (q.loading || zone === '') {
+    return (
+      <div className={classes.spinContainer}>
+        <CircularProgress />
+      </div>
+    )
+  }
+
   if (edit) {
     shifts = shifts.filter(
       (s) =>
@@ -199,11 +209,7 @@ export default function TempSchedShiftsList({
     ])
   }
 
-  return q.loading ? (
-    <div className={classes.spinContainer}>
-      <CircularProgress />
-    </div>
-  ) : (
+  return (
     <FlatList
       data-cy='shifts-list'
       items={items()}
