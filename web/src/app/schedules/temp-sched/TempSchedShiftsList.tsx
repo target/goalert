@@ -91,7 +91,6 @@ export default function TempSchedShiftsList({
           id: 'invalid-sched-interval',
           type: 'ERROR',
           message: 'Invalid Start/End',
-          transition: true,
           details:
             'Oops! There was a problem with the interval selected for your temporary schedule. Please try again.',
         },
@@ -128,7 +127,7 @@ export default function TempSchedShiftsList({
 
           return {
             scrollIntoView: true,
-            id: s.start + s.userID,
+            id: s.start + s.userID + index.toString(),
             title: s.user.name,
             subText,
             userID: s.userID,
