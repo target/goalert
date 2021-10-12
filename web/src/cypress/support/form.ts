@@ -28,23 +28,23 @@ function materialClock(
     .contains('button', isAM ? 'AM' : 'PM')
     .click() // select AM or PM
 
-    .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
+    .get('[role=presentation][data-cy=picker-fallback] [role=listbox]')
     .then(clickArc(hour / 12)) // select the hour
 
-    .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
+    .get('[role=presentation][data-cy=picker-fallback] [role=listbox]')
     .then(clickArc(dt.minute / 60)) // minutes
 }
 
 const openPicker = (selector: string): void => {
   cy.get(selector).click() // open dialog
-  cy.get('[role=dialog][data-cy=picker-fallback]').should('be.visible')
+  cy.get('[role=presentation][data-cy=picker-fallback]').should('be.visible')
 }
 const finishPicker = (): void => {
-  cy.get('[role=dialog][data-cy=picker-fallback]')
+  cy.get('[role=presentation][data-cy=picker-fallback]')
     .contains('button', 'OK')
     .click()
   // wait for dialog to dissapear
-  cy.get('[role=dialog][data-cy=picker-fallback]').should('not.exist')
+  cy.get('[role=presentation][data-cy=picker-fallback]').should('not.exist')
 }
 
 // materialCalendar will control a material date-picker from an input field
@@ -53,17 +53,17 @@ function materialCalendar(date: string | DateTime): void {
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  cy.get('[role=dialog][data-cy=picker-fallback]')
+  cy.get('[role=presentation][data-cy=picker-fallback]')
     .find('button')
     .first()
     .click() // open year selection
 
-  cy.get('[role=dialog][data-cy=picker-fallback]')
+  cy.get('[role=presentation][data-cy=picker-fallback]')
     .contains('[role=button]', dt.year)
     .click() // click on correct year
 
   cy.get(
-    '[role=dialog][data-cy=picker-fallback] button[data-cy=month-back]+div',
+    '[role=presentation][data-cy=picker-fallback] button[data-cy=month-back]+div',
   ).then((el) => {
     const displayedDT = DateTime.fromFormat(el.text(), 'MMMM yyyy')
     const diff = dt.startOf('month').diff(displayedDT, 'months').months
@@ -73,7 +73,7 @@ function materialCalendar(date: string | DateTime): void {
       cy.get(`button[data-cy=month-${diff < 0 ? 'back' : 'next'}]`).click()
 
       cy.get(
-        '[role=dialog][data-cy=picker-fallback] button[data-cy=month-back]+div',
+        '[role=presentation][data-cy=picker-fallback] button[data-cy=month-back]+div',
       )
 
         .should(
