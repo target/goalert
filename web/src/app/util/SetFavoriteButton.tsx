@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
-  typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy'
+  typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy' | 'user'
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
   isFavorite?: boolean
   loading?: boolean

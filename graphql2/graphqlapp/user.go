@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -95,6 +96,12 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		if err != nil {
 			return err
 		}
+		if input.Favorite != nil && *input.Favorite {
+			err = a.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
+			if err != nil {
+				return err
+			}
+		}
 		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
 		if err != nil {
 			return err
@@ -150,6 +157,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	}
 
 	var searchOpts user.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
 	}
@@ -171,6 +179,12 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	}
 	if opts.CMType != nil {
 		searchOpts.CMType = *opts.CMType
+	}
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 
 	searchOpts.Limit++
@@ -207,4 +221,8 @@ func (a *Query) User(ctx context.Context, id *string) (*user.User, error) {
 		userID = permission.UserID(ctx)
 	}
 	return (*App)(a).FindOneUser(ctx, userID)
+}
+
+func (a *User) IsFavorite(ctx context.Context, raw *user.User) (bool, error) {
+	return raw.IsUserFavorite(), nil
 }

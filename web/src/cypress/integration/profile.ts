@@ -16,7 +16,7 @@ function countryCodeCheck(
     cy.get('input[name=name]').type(name)
     cy.get('input[name=type]').selectByLabel(type)
     cy.get('input[name=value]').type(countryCode + value)
-    cy.get('button[type=submit]').click()
+    cy.dialogFinish('Submit')
     cy.get('body').should('contain', formattedValue)
   })
 }
