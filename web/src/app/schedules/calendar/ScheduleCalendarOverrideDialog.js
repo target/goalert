@@ -144,7 +144,6 @@ export default function ScheduleCalendarOverrideDialog(props) {
       }
       onSubmit={() => mutate()}
       onNext={step < 1 ? onNext : null}
-      onBack={step > 0 ? () => setStep(step - 1) : null}
     />
   )
 }
