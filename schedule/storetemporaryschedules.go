@@ -66,50 +66,57 @@ func validateFuture(fieldName string, t time.Time) error {
 }
 
 // SetTemporarySchedule will cause the schedule to use only, and exactly, the provided set of shifts between the provided start and end times.
-func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, temp TemporarySchedule, clearStart, clearEnd *time.Time) error {
+func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, _temp TemporarySchedule) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
 	}
 
-	// require both or none to be set
-	if (clearStart == nil) != (clearEnd == nil) {
-		if clearStart != nil {
-			return validation.NewFieldError("clearStart", "must be used with clearEnd")
-		}
-		if clearEnd != nil {
-			return validation.NewFieldError("clearEnd", "must be used with clearStart")
-		}
-	}
-
-	shouldClear := clearStart != nil && clearEnd != nil
-
-	temp.Start = temp.Start.Truncate(time.Minute)
-	temp.End = temp.End.Truncate(time.Minute)
-	for i := range temp.Shifts {
-		temp.Shifts[i].Start = temp.Shifts[i].Start.Truncate(time.Minute)
-		temp.Shifts[i].End = temp.Shifts[i].End.Truncate(time.Minute)
-	}
-
-	err = validate.Many(
-		validateFuture("End", temp.End),
-		validateTimeRange("", temp.Start, temp.End),
-		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, temp.Shifts, temp.Start, temp.End),
-	)
+	check, err := store.usr.UserExists(ctx)
 	if err != nil {
 		return err
 	}
 
-	// truncate to current timestamp
-	temp = temp.TrimStart(time.Now())
+	newTemp, err := _temp.Normalize(check)
+	if err != nil {
+		return err
+	}
+
 	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
-		if shouldClear {
-			if time.Since(*clearStart) > 0 {
-				*clearStart = time.Now()
-			}
-			data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, *clearStart, *clearEnd)
-		}
-		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, temp)
+		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, *newTemp)
+		return nil
+	})
+}
+
+func (store *Store) SetClearTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, _temp TemporarySchedule, clearStart, clearEnd time.Time) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return err
+	}
+
+	newTemp, err := _temp.Normalize(check)
+	if err != nil {
+		return err
+	}
+
+	err = validateTimeRange("Clear", clearStart, clearEnd)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	if clearStart.Before(now) {
+		clearStart = now
+	}
+
+	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
+		data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, clearStart, clearEnd)
+		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, *newTemp)
 		return nil
 	})
 }

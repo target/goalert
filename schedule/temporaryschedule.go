@@ -3,12 +3,39 @@ package schedule
 import (
 	"sort"
 	"time"
+
+	"github.com/target/goalert/user"
+	"github.com/target/goalert/validation/validate"
 )
 
 // TemporarySchedule represents a timespan containing static pre-defined shifts of on-call users.
 type TemporarySchedule struct {
 	Start, End time.Time
 	Shifts     []FixedShift
+}
+
+func (temp TemporarySchedule) Normalize(checkUser user.ExistanceChecker) (*TemporarySchedule, error) {
+	temp.Start = temp.Start.Truncate(time.Minute)
+	now := time.Now().Truncate(time.Minute)
+	if temp.Start.Before(now) {
+		temp.Start = now
+	}
+	temp.End = temp.End.Truncate(time.Minute)
+	for i := range temp.Shifts {
+		temp.Shifts[i].Start = temp.Shifts[i].Start.Truncate(time.Minute)
+		temp.Shifts[i].End = temp.Shifts[i].End.Truncate(time.Minute)
+	}
+
+	err := validate.Many(
+		validateFuture("End", temp.End),
+		validateTimeRange("", temp.Start, temp.End),
+		temp.validateShifts(checkUser),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &temp, nil
 }
 
 // TrimEnd will truncate and remove shifts so that the entire TemporarySchedule will
