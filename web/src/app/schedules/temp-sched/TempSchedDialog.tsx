@@ -67,6 +67,17 @@ type TempScheduleDialogProps = {
   value?: Value
 }
 
+const clampForward = (nowISO: string, iso: string | undefined) => {
+  if (!iso) return ''
+
+  const now = DateTime.fromISO(nowISO)
+  const dt = DateTime.fromISO(iso)
+  if (dt < now) {
+    return now.toISO()
+  }
+  return iso
+}
+
 export default function TempSchedDialog({
   onClose,
   scheduleID,
@@ -77,13 +88,21 @@ export default function TempSchedDialog({
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [value, setValue] = useState({
-    start: _value?.start ?? '',
+    start: clampForward(now, _value?.start),
     end: _value?.end ?? '',
     clearStart: _value?.start ?? null,
     clearEnd: _value?.end ?? null,
-    shifts: (_value?.shifts ?? []).map((s) =>
-      _.pick(s, 'start', 'end', 'userID'),
-    ),
+    shifts: (_value?.shifts ?? [])
+      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .filter((s) => {
+        // clamp/filter out shifts that are in the past
+        if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+          return false
+        }
+
+        s.start = clampForward(now, s.start)
+        return true
+      }),
   })
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
