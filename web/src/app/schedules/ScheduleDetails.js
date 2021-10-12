@@ -4,7 +4,6 @@ import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@material-ui/icons'
-import { isWidthDown } from '@material-ui/core/withWidth/index'
 
 import DetailsPage from '../details/DetailsPage'
 import ScheduleEditDialog from './ScheduleEditDialog'
@@ -19,7 +18,7 @@ import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmatio
 import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
 import ScheduleCalendarOverrideDialog from './calendar/ScheduleCalendarOverrideDialog'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -49,8 +48,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
-  const width = useWidth()
-  const isMobile = isWidthDown('sm', width)
+  const isMobile = useIsWidthDown('sm')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
