@@ -215,13 +215,11 @@ export default function TempSchedDialog({
                 </DialogContentText>
               </Grid>
 
-              {!isLocalZone && (
-                <Grid item xs={12}>
-                  <Typography color='textSecondary' className={classes.tzNote}>
-                    Configuring in {zone}
-                  </Typography>
-                </Grid>
-              )}
+              <Grid item xs={12}>
+                <Typography color='textSecondary' className={classes.tzNote}>
+                  Configuring in {zone}
+                </Typography>
+              </Grid>
 
               <Grid item xs={12} md={6}>
                 <FormField
