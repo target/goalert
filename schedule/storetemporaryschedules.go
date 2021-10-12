@@ -88,6 +88,7 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	})
 }
 
+// SetClearTemporarySchedules works like SetTemporarySchedule after clearing out any existing TemporarySchedules between clearStart and clearEnd.
 func (store *Store) SetClearTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, temp TemporarySchedule, clearStart, clearEnd time.Time) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {

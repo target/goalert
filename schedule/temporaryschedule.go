@@ -14,11 +14,13 @@ type TemporarySchedule struct {
 	Shifts     []FixedShift
 }
 
+// Normalize will validate and normalize the TemporarySchedule. Times will be truncated to the minute and
+// truncated to the current time.
 func (temp TemporarySchedule) Normalize(checkUser user.ExistanceChecker) (*TemporarySchedule, error) {
 	temp.Start = temp.Start.Truncate(time.Minute)
 	now := time.Now().Truncate(time.Minute)
 	if temp.Start.Before(now) {
-		temp.Start = now
+		temp = temp.TrimStart(now)
 	}
 	temp.End = temp.End.Truncate(time.Minute)
 	for i := range temp.Shifts {
