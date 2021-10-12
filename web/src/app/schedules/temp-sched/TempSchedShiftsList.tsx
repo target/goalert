@@ -50,7 +50,7 @@ type TempSchedShiftsListProps = {
   edit?: boolean
   scheduleID: string
   showForm: boolean
-  handleShowForm: () => void
+  handleShowForm: (gapCoverage: Interval) => void
 }
 
 export default function TempSchedShiftsList({
@@ -76,13 +76,6 @@ export default function TempSchedShiftsList({
 
   const schedInterval = parseInterval({ start, end }, zone)
 
-  function handleCoverageClick(coverageGap: Interval): void {
-    if (!showForm) {
-      handleShowForm()
-      
-     // setValue(newValue)
-    } 
-  }
 
   function items(): FlatListListItem[] {
     // render helpful message if interval is invalid
@@ -101,7 +94,7 @@ export default function TempSchedShiftsList({
     }
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
-    const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone, handleCoverageClick)
+    const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone, handleShowForm)
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {

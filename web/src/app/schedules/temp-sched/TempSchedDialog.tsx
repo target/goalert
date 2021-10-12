@@ -10,7 +10,7 @@ import { makeStyles } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert'
 import AlertTitle from '@material-ui/lab/AlertTitle'
 import _ from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -84,6 +84,7 @@ export default function TempSchedDialog({
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+  const [shift, setShift] = useState(null as Shift | null)
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
@@ -150,8 +151,15 @@ export default function TempSchedDialog({
     submit()
   }
 
-    function handleShowForm(): void {
-    setShowForm(!showForm)
+  function handleShowForm(gapCoverage: Interval): void {
+    if (!showForm) {
+      setShowForm(true)
+    }
+    setShift({
+      userID: shift?.userID??'',
+      start: gapCoverage?.start.toISO(),
+      end: gapCoverage?.end.toISO(),
+    })
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
@@ -264,6 +272,9 @@ export default function TempSchedDialog({
                   edit={edit}
                   showForm={showForm}
                   handleShowForm={handleShowForm}
+                  setShowForm={setShowForm}
+                  shift={shift}
+                  setShift={setShift}
                 />
               </Grid>
             </Grid>
