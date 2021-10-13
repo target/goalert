@@ -1,6 +1,5 @@
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import p from 'prop-types'
-import MountWatcher from '../util/MountWatcher'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
@@ -9,205 +8,106 @@ import shrinkWorkaround from '../util/shrinkWorkaround'
 import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
 
-export class FormField extends React.PureComponent {
-  static propTypes = {
-    // one of component or render must be provided
-    component: p.any,
-    render: p.func,
-
-    // mapValue can be used to map a value before it's passed to the form component
-    mapValue: p.func,
-
-    // mapOnChangeValue can be used to map a changed value from the component, before it's
-    // passed to the parent form's state.
-    mapOnChangeValue: p.func,
-
-    // Adjusts props for usage with a Checkbox component.
-    checkbox: p.bool,
-
-    // Allows entering decimal number into a numeric field.
-    float: p.bool,
-
-    // fieldName specifies the field used for
-    // checking errors, change handlers, and value.
-    //
-    // If unset, it defaults to `name`.
-    name: p.string.isRequired,
-    fieldName: p.string,
-
-    // min and max values specify the range to clamp a int value
-    // expects an ISO timestamp, if string
-    min: p.oneOfType([p.number, p.string]),
-    max: p.oneOfType([p.number, p.string]),
-
-    // used if name is set,
-    // but the error name is different from graphql responses
-    errorName: p.string,
-
-    label: p.node,
-    formLabel: p.bool, // if true, sets the label above the component instead. default off
-
-    // required indicates the field may not be left blank.
-    required: p.bool,
-
-    // validate can be used to provide client-side validation of a
-    // field.
-    validate: p.func,
-
-    // a hint for the user on a form field. errors take priority
-    hint: p.node,
-
-    // disable the form helper text for errors.
-    noError: p.bool,
-
-    step: p.oneOfType([p.number, p.string]),
-  }
-
-  static defaultProps = {
-    validate: () => {},
-    mapValue: (value) => value,
-    mapOnChangeValue: (value) => value,
-  }
-
-  validate = (value) => {
-    if (
-      this.props.required &&
-      !['boolean', 'number'].includes(typeof value) &&
-      isEmpty(value)
-    ) {
-      return new Error('Required field.')
-    }
-
-    return this.props.validate(value)
-  }
-
-  render() {
-    return (
-      <FormContainerContext.Consumer>
-        {this.renderComponent}
-      </FormContainerContext.Consumer>
-    )
-  }
-
-  renderComponent = ({
+export function FormField(props) {
+  const {
     errors,
     value,
     onChange,
     addField,
     disabled: containerDisabled,
     optionalLabels,
-    ...otherFormProps
-  }) => {
-    const {
-      errorName,
-      name,
-      noError,
-      component: Component,
-      render,
-      fieldName: _fieldName,
-      formLabel,
-      required,
-      validate,
-      disabled: fieldDisabled,
-      hint,
-      label: _label,
-      InputLabelProps: _inputProps,
-      mapValue,
-      mapOnChangeValue,
-      min,
-      max,
-      checkbox,
-      float,
-      ...otherFieldProps
-    } = this.props
+  } = useContext(FormContainerContext)
 
-    const baseLabel = typeof _label === 'string' ? _label : startCase(name)
-    const label =
-      !required && optionalLabels ? baseLabel + ' (optional)' : baseLabel
+  const {
+    errorName,
+    name,
+    noError,
+    component: Component,
+    render,
+    fieldName: _fieldName,
+    formLabel,
+    required,
+    validate = () => {},
+    disabled: fieldDisabled,
+    hint,
+    label: _label,
+    InputLabelProps: _inputProps,
+    mapValue = (value) => value,
+    mapOnChangeValue = (value) => value,
+    min,
+    max,
+    checkbox,
+    float,
+    ...otherFieldProps
+  } = props
 
-    const fieldName = _fieldName || name
-    const props = {
-      ...otherFormProps,
-      ...otherFieldProps,
-      name,
-      required,
-      disabled: containerDisabled || fieldDisabled,
-      error: errors.find((err) => err.field === (errorName || fieldName)),
-      hint,
-      value: mapValue(get(value, fieldName), value),
-      min,
-      max,
-      float,
+  const fieldName = _fieldName || name
+
+  const validateField = (value) => {
+    if (
+      required &&
+      !['boolean', 'number'].includes(typeof value) &&
+      isEmpty(value)
+    ) {
+      return new Error('Required field.')
     }
 
-    const InputLabelProps = {
-      required: required && !optionalLabels,
-      ...shrinkWorkaround(props.value),
-      ..._inputProps,
-    }
-
-    let getValueOf = (e) => (e && e.target ? e.target.value : e)
-    if (checkbox) {
-      props.checked = props.value
-      props.value = props.value ? 'true' : 'false'
-      getValueOf = (e) => e.target.checked
-    } else if (otherFieldProps.type === 'number') {
-      props.label = label
-      props.value = props.value.toString()
-      props.InputLabelProps = InputLabelProps
-      getValueOf = (e) =>
-        float ? parseFloat(e.target.value) : parseInt(e.target.value, 10)
-    } else {
-      props.label = label
-      props.InputLabelProps = InputLabelProps
-    }
-
-    props.onChange = (_value) => {
-      let newValue = getValueOf(_value)
-      if (props.type === 'number' && typeof props.min === 'number')
-        newValue = Math.max(props.min, newValue)
-      if (props.type === 'number' && typeof props.max === 'number')
-        newValue = Math.min(props.max, newValue)
-      onChange(fieldName, mapOnChangeValue(newValue, value))
-    }
-
-    return (
-      <MountWatcher
-        onMount={() => {
-          this._unregister = addField(fieldName, this.validate)
-        }}
-        onUnmount={() => {
-          this._unregister()
-        }}
-      >
-        {this.renderContent(props)}
-      </MountWatcher>
-    )
+    return validate(value)
   }
 
-  renderContent(props) {
-    const { checkbox, component, formLabel, label, noError, render } =
-      this.props
+  useEffect(() => {
+    return addField(fieldName, validateField)
+  }, [required])
 
-    if (render) return render(props)
-    const Component = component
+  const baseLabel = typeof _label === 'string' ? _label : startCase(name)
+  const label =
+    !required && optionalLabels ? baseLabel + ' (optional)' : baseLabel
 
-    return (
-      <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
-        {formLabel && (
-          <FormLabel style={{ paddingBottom: '0.5em' }}>{label}</FormLabel>
-        )}
-        <Component
-          {...props}
-          error={checkbox ? undefined : Boolean(props.error)}
-          label={this.props.formLabel ? null : props.label}
-        />
-        {!noError && this.renderFormHelperText(props.error, props.hint)}
-      </FormControl>
-    )
+  const fieldProps = {
+    ...otherFieldProps,
+    name,
+    required,
+    disabled: containerDisabled || fieldDisabled,
+    error: errors.find((err) => err.field === (errorName || fieldName)),
+    hint,
+    value: mapValue(get(value, fieldName), value),
+    min,
+    max,
+    float,
   }
 
-  renderFormHelperText(error, hint) {
+  const InputLabelProps = {
+    required: required && !optionalLabels,
+    ...shrinkWorkaround(props.value),
+    ..._inputProps,
+  }
+
+  let getValueOf = (e) => (e && e.target ? e.target.value : e)
+  if (checkbox) {
+    fieldProps.checked = fieldProps.value
+    fieldProps.value = fieldProps.value ? 'true' : 'false'
+    getValueOf = (e) => e.target.checked
+  } else if (otherFieldProps.type === 'number') {
+    fieldProps.label = label
+    fieldProps.value = fieldProps.value.toString()
+    fieldProps.InputLabelProps = InputLabelProps
+    getValueOf = (e) =>
+      float ? parseFloat(e.target.value) : parseInt(e.target.value, 10)
+  } else {
+    fieldProps.label = label
+    fieldProps.InputLabelProps = InputLabelProps
+  }
+
+  fieldProps.onChange = (_value) => {
+    let newValue = getValueOf(_value)
+    if (fieldProps.type === 'number' && typeof fieldProps.min === 'number')
+      newValue = Math.max(fieldProps.min, newValue)
+    if (fieldProps.type === 'number' && typeof fieldProps.max === 'number')
+      newValue = Math.min(fieldProps.max, newValue)
+    onChange(fieldName, mapOnChangeValue(newValue, value))
+  }
+
+  function renderFormHelperText(error, hint) {
     if (error?.helpLink) {
       return (
         <FormHelperText>
@@ -232,4 +132,95 @@ export class FormField extends React.PureComponent {
 
     return null
   }
+
+  if (render) return render(fieldProps)
+  return (
+    <FormControl
+      fullWidth={fieldProps.fullWidth}
+      error={Boolean(fieldProps.error)}
+    >
+      {formLabel && (
+        <FormLabel style={{ paddingBottom: '0.5em' }}>{_label}</FormLabel>
+      )}
+      <Component
+        {...fieldProps}
+        error={checkbox ? undefined : Boolean(fieldProps.error)}
+        label={formLabel ? null : fieldProps.label}
+      >
+        {fieldProps.children}
+      </Component>
+      {!noError && renderFormHelperText(fieldProps.error, fieldProps.hint)}
+    </FormControl>
+  )
+}
+FormField.propTypes = {
+  // pass select dropdown items as children
+  children: p.node,
+
+  // one of component or render must be provided
+  component: p.any,
+  render: p.func,
+
+  // mapValue can be used to map a value before it's passed to the form component
+  mapValue: p.func,
+
+  // mapOnChangeValue can be used to map a changed value from the component, before it's
+  // passed to the parent form's state.
+  mapOnChangeValue: p.func,
+
+  // Adjusts props for usage with a Checkbox component.
+  checkbox: p.bool,
+
+  // Allows entering decimal number into a numeric field.
+  float: p.bool,
+
+  // fieldName specifies the field used for
+  // checking errors, change handlers, and value.
+  //
+  // If unset, it defaults to `name`.
+  name: p.string.isRequired,
+  fieldName: p.string,
+
+  // min and max values specify the range to clamp a int value
+  // expects an ISO timestamp, if string
+  min: p.oneOfType([p.number, p.string]),
+  max: p.oneOfType([p.number, p.string]),
+
+  // used if name is set,
+  // but the error name is different from graphql responses
+  errorName: p.string,
+
+  // label above form component
+  label: p.node,
+  formLabel: p.bool, // use formLabel instead of label if true
+
+  // required indicates the field may not be left blank.
+  required: p.bool,
+
+  // validate can be used to provide client-side validation of a
+  // field.
+  validate: p.func,
+
+  // a hint for the user on a form field. errors take priority
+  hint: p.node,
+
+  // disable the form helper text for errors.
+  noError: p.bool,
+
+  step: p.oneOfType([p.number, p.string]),
+
+  InputProps: p.object,
+
+  disabled: p.bool,
+
+  multiline: p.bool,
+  autoComplete: p.string,
+
+  fullWidth: p.bool,
+
+  placeholder: p.string,
+
+  type: p.string,
+  select: p.bool,
+  timeZone: p.string,
 }

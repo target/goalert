@@ -20,6 +20,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
+import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -244,8 +245,17 @@ export default function UserDetails(props) {
                   icon: <EditIcon />,
                   handleOnClick: () => setShowEdit(true),
                 },
+                <QuerySetFavoriteButton
+                  key='secondary-action-favorite'
+                  userID={props.userID}
+                />,
               ]
-            : []
+            : [
+                <QuerySetFavoriteButton
+                  key='secondary-action-favorite'
+                  userID={props.userID}
+                />,
+              ]
         }
         links={links}
       />

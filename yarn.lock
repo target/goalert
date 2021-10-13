@@ -1921,10 +1921,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-big-calendar@0.33.1":
-  version "0.33.1"
-  resolved "https://registry.yarnpkg.com/@types/react-big-calendar/-/react-big-calendar-0.33.1.tgz#48463e5b7d27a82dbf5808dea529c03708514b31"
-  integrity sha512-xX5BaxS+7K62+gtEeg0DqaBInNXDSk2LgkHhbgtqjo/CqwEqB8cwuhIE34XnL33z+pzbn/h7i+0W5fJq0kShdQ==
+"@types/react-big-calendar@0.36.0":
+  version "0.36.0"
+  resolved "https://registry.yarnpkg.com/@types/react-big-calendar/-/react-big-calendar-0.36.0.tgz#1611d7d9d7cb7b1e9dc48ab03df440071545ebdc"
+  integrity sha512-GgUnI8+H2jqj0V06YFu+nstoJzJNiZXskJqv3hBjskuNCiKOwRA06IEP2+6yS+Y3Cec2MBwDaYbmoDRHnsHOfw==
   dependencies:
     "@types/prop-types" "*"
     "@types/react" "*"
@@ -3765,10 +3765,10 @@ csstype@^3.0.2:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.5.tgz#7fdec6a28a67ae18647c51668a9ff95bb2fa7bb8"
   integrity sha512-uVDi8LpBUKQj6sdxNaTetL6FpeCqTjOvAQuQUa/qAqq8oOd4ivkbhgnqayl0dnPal8Tb/yB1tF+gOvCBiicaiQ==
 
-cypress@8.5.0:
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/cypress/-/cypress-8.5.0.tgz#5712ca170913f8344bf167301205c4217c1eb9bd"
-  integrity sha512-MMkXIS+Ro2KETn4gAlG3tIc/7FiljuuCZP0zpd9QsRG6MZSyZW/l1J3D4iQM6WHsVxuX4rFChn5jPFlC2tNSvQ==
+cypress@8.6.0:
+  version "8.6.0"
+  resolved "https://registry.yarnpkg.com/cypress/-/cypress-8.6.0.tgz#8d02fa58878b37cfc45bbfce393aa974fa8a8e22"
+  integrity sha512-F7qEK/6Go5FsqTueR+0wEw2vOVKNgk5847Mys8vsWkzPoEKdxs+7N9Y1dit+zhaZCLtMPyrMwjfA53ZFy+lSww==
   dependencies:
     "@cypress/request" "^2.88.6"
     "@cypress/xvfb" "^1.2.4"

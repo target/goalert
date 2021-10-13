@@ -344,7 +344,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 // NewFavorite will generate a new favorite for the provided user ID.
 func (d *datagen) NewFavorite(userID string) {
 	var tgt assignment.Target
-	switch rand.Intn(4) {
+	switch rand.Intn(5) {
 	case 0:
 		tgt = assignment.ServiceTarget(d.ids.Gen(func() string { return d.Services[rand.Intn(len(d.Services))].ID }, "favSvc", userID))
 	case 1:
@@ -353,6 +353,8 @@ func (d *datagen) NewFavorite(userID string) {
 		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, "favSched", userID))
 	case 3:
 		tgt = assignment.EscalationPolicyTarget(d.ids.Gen(func() string { return d.EscalationPolicies[rand.Intn(len(d.EscalationPolicies))].ID }, "favEP", userID))
+	case 4:
+		tgt = assignment.UserTarget(d.ids.Gen(func() string { return d.Users[rand.Intn(len(d.Users))].ID }, "favUsr", userID))
 	}
 
 	d.Favorites = append(d.Favorites, userFavorite{

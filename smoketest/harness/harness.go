@@ -238,6 +238,7 @@ func (h *Harness) Start() {
 	h.t.Helper()
 
 	var cfg config.Config
+	cfg.General.DisableMessageBundles = true
 	cfg.Slack.Enable = true
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
