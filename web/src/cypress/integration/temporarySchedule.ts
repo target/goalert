@@ -185,6 +185,45 @@ function testTemporarySchedule(screen: string): void {
     cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
   })
+
+  it.only('should be able to click no coverage to update times', () => {
+    const start = DateTime.utc()
+      .setZone(schedule.timeZone)
+      .plus({ day: 1 })
+      .startOf('day')
+
+    const end = start.plus({ days: 2 })
+
+    cy.createTemporarySchedule({
+      scheduleID: schedule.id,
+      start: start.toFormat(dtFmt),
+      end: end.toFormat(dtFmt),
+      shifts: [],
+    }).then(() => {
+      cy.reload()
+      cy.get('div').contains('Temporary Schedule').click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="edit-temp-sched"]').click()
+      // click on first button element no coverage
+      cy.get('[data-cy="day-no-coverage"]').eq(0).click()
+      cy.get('input[name="shift-start"]').should(
+        'have.value',
+        start.toFormat(dtFmt),
+      )
+      cy.get('input[name="shift-end"]').should(
+        'have.value',
+        start.plus({ hours: 24 }).toFormat(dtFmt),
+      )
+    })
+    // click on no coverage opens form
+    // click on no coverage leaves form open
+    // check value of shift.start & shift.end
+
+    // add shift for random day
+    // click on no coverage on new random day
+    // click on no coverage leaves form open
+    // check value of shift.start & shift.end
+  })
 }
 
 testScreen('temporary Schedule', testTemporarySchedule)

@@ -81,6 +81,7 @@ export interface FlatListNotice extends Notice {
   icon?: JSX.Element
   transition?: boolean
   handleOnClick?: (event: MouseEvent) => void
+  'data-cy'?: string
 }
 export interface FlatListItem {
   title?: string
@@ -91,6 +92,7 @@ export interface FlatListItem {
   url?: string
   id?: string
   scrollIntoView?: boolean
+  'data-cy'?: string
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -174,6 +176,7 @@ export default function FlatList({
         <ButtonBase
           className={classnames(classes.buttonBase, classes.alert)}
           onClick={item.handleOnClick}
+          data-cy={item['data-cy']}
         >
           <Alert
             className={classes.alertAsButton}

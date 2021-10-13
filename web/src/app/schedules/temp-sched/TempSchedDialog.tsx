@@ -128,7 +128,10 @@ export default function TempSchedDialog({
   const hasCoverageGaps = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
-    return getCoverageGapItems(schedInterval, value.shifts, zone, handleShowForm).length > 0
+    return (
+      getCoverageGapItems(schedInterval, value.shifts, zone, handleShowForm)
+        .length > 0
+    )
   })()
 
   const [submit, { loading, error }] = useMutation(mutation, {
@@ -156,7 +159,7 @@ export default function TempSchedDialog({
       setShowForm(true)
     }
     setShift({
-      userID: shift?.userID??'',
+      userID: shift?.userID ?? '',
       start: gapCoverage?.start.toISO(),
       end: gapCoverage?.end.toISO(),
     })

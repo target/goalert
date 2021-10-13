@@ -96,7 +96,7 @@ export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
   zone: string,
-  handleCoverageClick: (coverageGap: Interval)=>void
+  handleCoverageClick: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
@@ -119,6 +119,7 @@ export function getCoverageGapItems(
     }
 
     return {
+      'data-cy': 'day-no-coverage',
       id: 'day-no-coverage_' + gap.start.toISO(),
       type: 'WARNING',
       message: '',
