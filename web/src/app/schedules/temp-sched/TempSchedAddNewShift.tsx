@@ -27,10 +27,8 @@ type AddShiftsStepProps = {
   edit?: boolean
   showForm: boolean
   setShowForm: (showForm: boolean) => void
-  // rename to handleCoverageGap everywhere
-  handleShowForm: (gapCoverage: Interval) => void
-  shift: Shift|null,
-  setShift: (shift: Shift)=> void
+  shift: Shift | null
+  setShift: (shift: Shift) => void
 }
 
 type DTShift = {
@@ -82,10 +80,9 @@ export default function TempSchedAddNewShift({
   value,
   edit,
   showForm,
-  handleShowForm,
   setShowForm,
   shift,
-  setShift
+  setShift,
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
@@ -154,7 +151,11 @@ export default function TempSchedAddNewShift({
       value={shift}
       onChange={(val: Shift) => setShift(val)}
     >
-      <Accordion variant='outlined' onChange={()=>setShowForm(!showForm)} expanded={showForm}>
+      <Accordion
+        variant='outlined'
+        onChange={() => setShowForm(!showForm)}
+        expanded={showForm}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           data-cy='add-shift-expander'

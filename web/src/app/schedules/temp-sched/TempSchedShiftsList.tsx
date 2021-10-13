@@ -49,8 +49,7 @@ type TempSchedShiftsListProps = {
   end: string
   edit?: boolean
   scheduleID: string
-  showForm: boolean
-  handleShowForm: (gapCoverage: Interval) => void
+  handleCoverageGapClick: (coverageGap: Interval) => void
 }
 
 export default function TempSchedShiftsList({
@@ -60,8 +59,7 @@ export default function TempSchedShiftsList({
   value,
   onRemove,
   scheduleID,
-  showForm,
-  handleShowForm,
+  handleCoverageGapClick,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
@@ -97,7 +95,7 @@ export default function TempSchedShiftsList({
       schedInterval,
       shifts,
       zone,
-      handleShowForm,
+      handleCoverageGapClick,
     )
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 

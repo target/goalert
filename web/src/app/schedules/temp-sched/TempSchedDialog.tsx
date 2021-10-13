@@ -125,12 +125,25 @@ export default function TempSchedDialog({
       ]
     : []
 
+  function handleCoverageGapClick(coverageGap: Interval): void {
+    if (!showForm) setShowForm(true)
+    setShift({
+      userID: shift?.userID ?? '',
+      start: coverageGap?.start.toISO(),
+      end: coverageGap?.end.toISO(),
+    })
+  }
+
   const hasCoverageGaps = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
     return (
-      getCoverageGapItems(schedInterval, value.shifts, zone, handleShowForm)
-        .length > 0
+      getCoverageGapItems(
+        schedInterval,
+        value.shifts,
+        zone,
+        handleCoverageGapClick,
+      ).length > 0
     )
   })()
 
@@ -152,17 +165,6 @@ export default function TempSchedDialog({
     }
 
     submit()
-  }
-
-  function handleShowForm(gapCoverage: Interval): void {
-    if (!showForm) {
-      setShowForm(true)
-    }
-    setShift({
-      userID: shift?.userID ?? '',
-      start: gapCoverage?.start.toISO(),
-      end: gapCoverage?.end.toISO(),
-    })
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
@@ -274,7 +276,6 @@ export default function TempSchedDialog({
                   scheduleID={scheduleID}
                   edit={edit}
                   showForm={showForm}
-                  handleShowForm={handleShowForm}
                   setShowForm={setShowForm}
                   shift={shift}
                   setShift={setShift}
@@ -333,8 +334,7 @@ export default function TempSchedDialog({
                     })
                   }}
                   edit={edit}
-                  handleShowForm={handleShowForm}
-                  showForm={showForm}
+                  handleCoverageGapClick={handleCoverageGapClick}
                 />
               </Grid>
             </Grid>
