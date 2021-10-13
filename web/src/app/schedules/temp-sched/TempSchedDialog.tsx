@@ -67,7 +67,7 @@ type TempScheduleDialogProps = {
   value?: Value
 }
 
-const clampForward = (nowISO: string, iso: string | undefined) => {
+const clampForward = (nowISO: string, iso: string | undefined): string => {
   if (!iso) return ''
 
   const now = DateTime.fromISO(nowISO)
