@@ -15,20 +15,18 @@ import { useURLParam } from '../actions'
 
 const useStyles = makeStyles((theme) => {
   return {
-    hasSearch: {
-      [theme.breakpoints.up('md')]: {
-        // type=text added to increase specificity to override the 180 min-width below
-        '& input[type=text]': {
-          minWidth: 275,
-        },
-      },
-    },
     textField: {
       backgroundColor: 'white',
       borderRadius: '4px',
+      [theme.breakpoints.down('sm')]: {
+        flex: 1,
+      },
       [theme.breakpoints.up('md')]: {
         minWidth: 250,
         '& input:focus': {
+          minWidth: 275,
+        },
+        '& input:not(:placeholder-shown)': {
           minWidth: 275,
         },
         '& input': {
@@ -58,10 +56,6 @@ export default function Search(props) {
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()
-  let textClass = classes.textField
-  if (search) {
-    textClass += ' ' + classes.hasSearch
-  }
 
   // If the page search param changes, we update state directly.
   useEffect(() => {
@@ -77,7 +71,7 @@ export default function Search(props) {
     return () => clearTimeout(t)
   }, [search])
 
-  function renderTextField(extraProps) {
+  function renderTextField() {
     return (
       <TextField
         InputProps={{
@@ -96,11 +90,11 @@ export default function Search(props) {
         data-cy='search-field'
         placeholder='Search'
         margin='dense'
+        name='search'
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}
         value={search}
-        className={textClass}
-        {...extraProps}
+        className={classes.textField}
       />
     )
   }
@@ -141,7 +135,7 @@ export default function Search(props) {
               >
                 <CloseIcon />
               </IconButton>
-              {renderTextField({ style: { flex: 1 } })}
+              {renderTextField()}
             </Toolbar>
           </AppBar>
         </Slide>
