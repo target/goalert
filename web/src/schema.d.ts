@@ -283,6 +283,7 @@ export interface CreateUserInput {
   name?: string
   email?: string
   role?: UserRole
+  favorite?: boolean
 }
 
 export interface CreateUserCalendarSubscriptionInput {
@@ -616,6 +617,8 @@ export interface UserSearchOptions {
   omit?: string[]
   CMValue?: string
   CMType?: ContactMethodType
+  favoritesOnly?: boolean
+  favoritesFirst?: boolean
 }
 
 export interface AlertSearchOptions {
@@ -858,6 +861,7 @@ export interface User {
   authSubjects: AuthSubject[]
   sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
+  isFavorite: boolean
 }
 
 export interface UserSession {
@@ -937,7 +941,7 @@ type ConfigID =
   | 'General.PublicURL'
   | 'General.GoogleAnalyticsID'
   | 'General.NotificationDisclaimer'
-  | 'General.MessageBundles'
+  | 'General.DisableMessageBundles'
   | 'General.ShortURL'
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'

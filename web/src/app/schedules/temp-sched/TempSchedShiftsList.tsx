@@ -64,11 +64,19 @@ export default function TempSchedShiftsList({
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
   let shifts = useUserInfo(value)
+
+  // wait for zone
+  if (q.loading || zone === '') {
+    return (
+      <div className={classes.spinContainer}>
+        <CircularProgress />
+      </div>
+    )
+  }
+
   if (edit) {
     shifts = shifts.filter(
-      (s) =>
-        DateTime.fromISO(s.start, { zone }) >
-        DateTime.now().setZone(zone).startOf('hour'),
+      (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
     )
   }
 
@@ -83,7 +91,6 @@ export default function TempSchedShiftsList({
           id: 'invalid-sched-interval',
           type: 'ERROR',
           message: 'Invalid Start/End',
-          transition: true,
           details:
             'Oops! There was a problem with the interval selected for your temporary schedule. Please try again.',
         },
@@ -125,7 +132,7 @@ export default function TempSchedShiftsList({
 
           return {
             scrollIntoView: true,
-            id: s.start + s.userID,
+            id: s.start + s.userID + index.toString(),
             title: s.user.name,
             subText,
             userID: s.userID,
@@ -179,15 +186,22 @@ export default function TempSchedShiftsList({
       } as Sortable<FlatListNotice>
     })()
 
-    const endItem: Sortable<FlatListNotice> = {
-      id: 'sched-end_' + end,
-      type: 'OK',
-      icon: <ScheduleIcon />,
-      message: '',
-      details: `Ends at ${fmtTime(DateTime.fromISO(end, { zone }))}`,
-      at: DateTime.fromISO(end, { zone }),
-      itemType: 'end',
-    }
+    const endItem = (() => {
+      const at = DateTime.fromISO(end, { zone })
+      const details = at.equals(at.startOf('day'))
+        ? 'Ends at midnight'
+        : 'Ends at ' + fmtTime(at)
+
+      return {
+        id: 'sched-end_' + end,
+        type: 'OK',
+        icon: <ScheduleIcon />,
+        message: '',
+        details,
+        at,
+        itemType: 'end',
+      } as Sortable<FlatListNotice>
+    })()
 
     return sortItems([
       ...shiftItems,
@@ -199,11 +213,7 @@ export default function TempSchedShiftsList({
     ])
   }
 
-  return q.loading ? (
-    <div className={classes.spinContainer}>
-      <CircularProgress />
-    </div>
-  ) : (
+  return (
     <FlatList
       data-cy='shifts-list'
       items={items()}

@@ -182,6 +182,7 @@ type CreateUserInput struct {
 	Name     *string   `json:"name"`
 	Email    *string   `json:"email"`
 	Role     *UserRole `json:"role"`
+	Favorite *bool     `json:"favorite"`
 }
 
 type CreateUserNotificationRuleInput struct {
@@ -525,12 +526,14 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First   *int                `json:"first"`
-	After   *string             `json:"after"`
-	Search  *string             `json:"search"`
-	Omit    []string            `json:"omit"`
-	CMValue *string             `json:"CMValue"`
-	CMType  *contactmethod.Type `json:"CMType"`
+	First          *int                `json:"first"`
+	After          *string             `json:"after"`
+	Search         *string             `json:"search"`
+	Omit           []string            `json:"omit"`
+	CMValue        *string             `json:"CMValue"`
+	CMType         *contactmethod.Type `json:"CMType"`
+	FavoritesOnly  *bool               `json:"favoritesOnly"`
+	FavoritesFirst *bool               `json:"favoritesFirst"`
 }
 
 type VerifyContactMethodInput struct {
