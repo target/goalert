@@ -74,9 +74,7 @@ export default function TempSchedShiftsList({
 
   if (edit) {
     shifts = shifts.filter(
-      (s) =>
-        DateTime.fromISO(s.start, { zone }) >
-        DateTime.now().setZone(zone).startOf('hour'),
+      (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
     )
   }
 
