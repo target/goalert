@@ -32,7 +32,7 @@
     "classnames": "2.3.1",
     "connected-react-router": "6.9.1",
     "diff": "5.0.0",
-    "graphql": "15.5.1",
+    "graphql": "15.6.1",
     "history": "4.10.1",
     "lodash": "4.17.21",
     "luxon": "1.28.0",
@@ -96,7 +96,7 @@
     "prop-types": "15.7.2",
     "redux": "4.1.1",
     "redux-devtools-extension": "2.13.9",
-    "style-loader": "3.2.1",
+    "style-loader": "3.3.0",
     "webpack": "5.57.1",
     "webpack-cli": "4.9.0",
     "webpack-dev-server": "4.3.1"
