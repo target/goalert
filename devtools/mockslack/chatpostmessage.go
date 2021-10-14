@@ -82,6 +82,8 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		TS:   ch.nextTS(),
 		Text: opts.Text,
 		User: user,
+
+		Broadcast: opts.BroadcastReply,
 	}
 	ch.Messages = append(ch.Messages, msg)
 

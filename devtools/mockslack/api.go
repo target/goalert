@@ -20,7 +20,8 @@ type Channel struct {
 
 // Message represents a Slack message.
 type Message struct {
-	TS   string `json:"ts"`
-	Text string `json:"text"`
-	User string `json:"user"`
+	TS        string `json:"ts"`
+	Text      string `json:"text"`
+	User      string `json:"user"`
+	Broadcast bool   `json:"broadcast"`
 }
