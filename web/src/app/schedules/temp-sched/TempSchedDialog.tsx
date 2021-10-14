@@ -67,6 +67,17 @@ type TempScheduleDialogProps = {
   value?: Value
 }
 
+const clampForward = (nowISO: string, iso: string | undefined): string => {
+  if (!iso) return ''
+
+  const now = DateTime.fromISO(nowISO)
+  const dt = DateTime.fromISO(iso)
+  if (dt < now) {
+    return now.toISO()
+  }
+  return iso
+}
+
 export default function TempSchedDialog({
   onClose,
   scheduleID,
@@ -77,11 +88,21 @@ export default function TempSchedDialog({
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [value, setValue] = useState({
-    start: _value?.start ?? '',
+    start: clampForward(now, _value?.start),
     end: _value?.end ?? '',
-    shifts: (_value?.shifts ?? []).map((s) =>
-      _.pick(s, 'start', 'end', 'userID'),
-    ),
+    clearStart: _value?.start ?? null,
+    clearEnd: _value?.end ?? null,
+    shifts: (_value?.shifts ?? [])
+      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .filter((s) => {
+        // clamp/filter out shifts that are in the past
+        if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+          return false
+        }
+
+        s.start = clampForward(now, s.start)
+        return true
+      }),
   })
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
@@ -192,7 +213,7 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue(newValue)}
+          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
         >
           <Grid
             container
@@ -234,7 +255,7 @@ export default function TempSchedDialog({
                     .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
                 />
               </Grid>
@@ -251,7 +272,7 @@ export default function TempSchedDialog({
                     .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.end)}
                 />
               </Grid>
@@ -261,7 +282,6 @@ export default function TempSchedDialog({
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
                   scheduleID={scheduleID}
-                  edit={edit}
                 />
               </Grid>
             </Grid>

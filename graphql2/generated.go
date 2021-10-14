@@ -3521,6 +3521,9 @@ input ClearTemporarySchedulesInput {
 input SetTemporaryScheduleInput {
   scheduleID: ID!
 
+  clearStart: ISOTimestamp
+  clearEnd: ISOTimestamp
+
   start: ISOTimestamp!
   end: ISOTimestamp!
 
@@ -19160,6 +19163,22 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
 			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clearStart":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearStart"))
+			it.ClearStart, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clearEnd":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearEnd"))
+			it.ClearEnd, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

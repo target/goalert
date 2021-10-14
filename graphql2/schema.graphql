@@ -289,6 +289,9 @@ input ClearTemporarySchedulesInput {
 input SetTemporaryScheduleInput {
   scheduleID: ID!
 
+  clearStart: ISOTimestamp
+  clearEnd: ISOTimestamp
+
   start: ISOTimestamp!
   end: ISOTimestamp!
 
