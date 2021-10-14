@@ -34,7 +34,7 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	defer h.Close()
 
 	h.CreateAlert(h.UUID("sid"), "testing")
-	h.Slack().Channel("test").ExpectMessage("testing")
+	msg := h.Slack().Channel("test").ExpectMessage("testing")
 	h.CloseAlert(h.UUID("sid"), "testing")
-	h.Slack().Channel("test").ExpectMessage("Closed")
+	msg.ExpectThreadReply("Closed")
 }
