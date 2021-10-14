@@ -100,9 +100,10 @@ func (ch *slackChannel) ID() string   { return ch.id }
 func (ch *slackChannel) Name() string { return ch.name }
 
 func (ch *slackChannel) ExpectMessage(keywords ...string) SlackMessage {
+	ch.h.t.Helper()
 	return ch.expectMessageFunc(func(msg mockslack.Message) bool {
 		// only return non-thread replies
-		return msg.TS == ""
+		return msg.ThreadTS == ""
 	}, keywords...)
 }
 
@@ -171,7 +172,7 @@ func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 	msg.h.t.Helper()
 
 	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
-		return m.TS == msg.TS
+		return m.ThreadTS == msg.TS
 	}, keywords...)
 
 	assert.False(msg.h.t, reply.Broadcast, "expected thread reply to not be broadcast")
@@ -181,7 +182,7 @@ func (msg *slackMessage) ExpectBroadcastReply(keywords ...string) {
 	msg.h.t.Helper()
 
 	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
-		return m.TS == msg.TS
+		return m.ThreadTS == msg.TS
 	}, keywords...)
 
 	assert.True(msg.h.t, reply.Broadcast, "expected thread reply to be broadcast")

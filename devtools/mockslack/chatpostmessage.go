@@ -83,6 +83,7 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		Text: opts.Text,
 		User: user,
 
+		ThreadTS:  opts.ThreadTS,
 		Broadcast: opts.BroadcastReply,
 	}
 	ch.Messages = append(ch.Messages, msg)
@@ -101,7 +102,7 @@ func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) 
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
 
-		BroadcastReply: req.FormValue("broadcast_reply") == "true",
+		BroadcastReply: req.FormValue("reply_broadcast") == "true",
 	})
 	if respondErr(w, err) {
 		return
@@ -109,9 +110,11 @@ func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) 
 
 	var respData struct {
 		response
+		TS      string
 		Channel string   `json:"channel"`
 		Message *Message `json:"message"`
 	}
+	respData.TS = msg.TS
 	respData.OK = true
 	respData.Channel = chanID
 	respData.Message = msg
