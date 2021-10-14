@@ -208,21 +208,20 @@ function testTemporarySchedule(screen: string): void {
       'have.value',
       start.toFormat(dtFmt),
     )
-    cy.get('input[name="shift-end"]').should('have.value', 24)
 
-    // add shift for random day
+    // add shift to split up coverage for a given day
     const shiftStart = start.plus({ day: 1 }).toFormat(dtFmt)
-    const duration = 8
+    const duration = 2
     cy.dialogForm({
       userID: manualAddUser.name,
       'shift-start': shiftStart,
-      'shift-end': duration,
+      'shift-end': duration, // this value should not change
     })
     cy.get('button[data-cy="add-shift"]').click()
 
-    // give random time before clicking no coverage
+    // reset shift start field to a random value
     const randDate = randDTWithinInterval(Interval.fromDateTimes(start, end))
-    cy.dialogForm({ 'shift-start': randDate, 'shift-end': 44 })
+    cy.dialogForm({ 'shift-start': randDate })
 
     // click on second no coverage notice in list (partial day)
     cy.get('[data-cy="day-no-coverage"]').eq(1).click()
@@ -230,7 +229,7 @@ function testTemporarySchedule(screen: string): void {
 
     const shiftEnd = start.plus({ day: 1, hours: duration }).toFormat(dtFmt)
     cy.get('input[name="shift-start"]').should('have.value', shiftEnd)
-    cy.get('input[name="shift-end"]').should('have.value', 16)
+    cy.get('input[name="shift-end"]').should('have.value', duration) // ensure duration remains the same
   })
 }
 

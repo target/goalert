@@ -14,7 +14,13 @@ import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
+import {
+  contentText,
+  dtToDuration,
+  fmtLocal,
+  Shift,
+  Value,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -127,10 +133,18 @@ export default function TempSchedDialog({
 
   function handleCoverageGapClick(coverageGap: Interval): void {
     if (!showForm) setShowForm(true)
+
+    // make sure duration remains the same (evaluated off of the end timestamp)
+    const startDT = DateTime.fromISO(shift?.start ?? '', { zone })
+    const endDT = DateTime.fromISO(shift?.end ?? '', { zone })
+    const duration = dtToDuration(startDT, endDT)
+    const nextStart = coverageGap?.start
+    const nextEnd = nextStart.plus({ hours: duration })
+
     setShift({
       userID: shift?.userID ?? '',
-      start: coverageGap?.start.toISO(),
-      end: coverageGap?.end.toISO(),
+      start: nextStart.toISO(),
+      end: nextEnd.toISO(),
     })
   }
 
