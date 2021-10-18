@@ -111,7 +111,7 @@ export default function TempSchedDialog({
         return true
       }),
   })
-  const [shift, setShift] = useState(null as Shift | null)
+  const [shift, setShift] = useState<Shift | null>(null)
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
