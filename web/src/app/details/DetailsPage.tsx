@@ -191,7 +191,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       {/* Primary Page Content */}
       {p.pageContent && (
         <Grid
-          className={!isMobile ? classes.smPageBottom : undefined}
+          className={isMobile ? classes.smPageBottom : undefined}
           item
           xs={12}
         >
