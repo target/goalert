@@ -295,7 +295,7 @@ func (h *Harness) Start() {
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
-	appCfg.SlackBaseURL = h.slackS.URL
+	appCfg.SlackBaseURL = h.slackS.URL + "/api/"
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()

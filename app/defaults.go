@@ -1,5 +1,7 @@
 package app
 
+import "github.com/slack-go/slack"
+
 // Defaults returns the default app config.
 func Defaults() Config {
 	return Config{
@@ -10,5 +12,7 @@ func Defaults() Config {
 		MaxReqHeaderBytes: 4096,
 		RegionName:        "default",
 		TraceProbability:  0.01,
+
+		SlackBaseURL: slack.APIURL,
 	}
 }

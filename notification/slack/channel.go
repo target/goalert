@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -57,7 +58,11 @@ func (cs *ChannelSender) client(ctx context.Context) *slack.Client {
 
 	cfg := config.FromContext(ctx)
 	if cs.cfg.BaseURL != "" {
-		opts = append(opts, slack.OptionAPIURL(cs.cfg.BaseURL))
+		base := cs.cfg.BaseURL
+		if !strings.HasSuffix(base, "/") {
+			base += "/"
+		}
+		opts = append(opts, slack.OptionAPIURL(base))
 	}
 
 	return slack.New(cfg.Slack.AccessToken, opts...)
@@ -229,7 +234,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 			Cursor:          cursor,
 		})
 
-		var throttleErr slack.RateLimitedError
+		var throttleErr *slack.RateLimitedError
 		if errors.As(err, &throttleErr) {
 			s.listTht.SetWaitUntil(time.Now().Add(throttleErr.RetryAfter))
 			continue
