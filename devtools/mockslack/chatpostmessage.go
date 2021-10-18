@@ -14,8 +14,8 @@ type ChatPostMessageOptions struct {
 
 	AsUser bool
 
-	ThreadTS       string
-	BroadcastReply bool
+	ThreadTS  string
+	Broadcast bool
 }
 
 func (ch *channelState) nextTS() string {
@@ -84,7 +84,7 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		User: user,
 
 		ThreadTS:  opts.ThreadTS,
-		Broadcast: opts.BroadcastReply,
+		Broadcast: opts.Broadcast,
 	}
 	ch.Messages = append(ch.Messages, msg)
 
@@ -102,7 +102,7 @@ func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) 
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
 
-		BroadcastReply: req.FormValue("reply_broadcast") == "true",
+		Broadcast: req.FormValue("reply_broadcast") == "true",
 	})
 	if respondErr(w, err) {
 		return
