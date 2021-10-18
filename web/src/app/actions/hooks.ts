@@ -2,6 +2,8 @@ import { urlParamSelector, urlPathSelector } from '../selectors'
 import { setURLParam as setParam, resetURLParams as resetParams } from './main'
 import { useSelector, useDispatch } from 'react-redux'
 import { warn } from '../util/debug'
+import joinURL from '../util/joinURL'
+import { pathPrefix } from '../env'
 
 export type Value = string | boolean | number | string[]
 
@@ -11,7 +13,7 @@ export function useURLParam<T extends Value>(
 ): [T, (newValue: T) => void] {
   const dispatch = useDispatch()
   const urlParam = useSelector(urlParamSelector)
-  const urlPath = useSelector(urlPathSelector)
+  const urlPath = joinURL(pathPrefix, useSelector(urlPathSelector))
   const value = urlParam(name, defaultValue) as T
 
   function setValue(newValue: T): void {
@@ -29,7 +31,7 @@ export function useURLParam<T extends Value>(
 
 export function useResetURLParams(...keys: Array<string>): () => void {
   const dispatch = useDispatch()
-  const urlPath = useSelector(urlPathSelector)
+  const urlPath = joinURL(pathPrefix, useSelector(urlPathSelector))
   function resetURLParams(): void {
     if (window.location.pathname !== urlPath) {
       warn(
