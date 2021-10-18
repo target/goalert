@@ -78,7 +78,6 @@ export default function TempSchedAddNewShift({
   scheduleID,
   onChange,
   value,
-  edit,
   showForm,
   setShowForm,
   shift,
