@@ -208,6 +208,8 @@ export interface ClearTemporarySchedulesInput {
 
 export interface SetTemporaryScheduleInput {
   scheduleID: string
+  clearStart?: ISOTimestamp
+  clearEnd?: ISOTimestamp
   start: ISOTimestamp
   end: ISOTimestamp
   shifts: SetScheduleShiftInput[]

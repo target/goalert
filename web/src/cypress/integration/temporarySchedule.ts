@@ -27,29 +27,33 @@ function testTemporarySchedule(screen: string): void {
     t.setZone(schedule.timeZone).toFormat(dtFmt)
 
   it('should toggle duration field', () => {
+    const defaultDurationHrs = 8
     cy.get('[data-cy="new-override"]').click()
     cy.dialogTitle('Choose')
     cy.dialogForm({ variant: 'temp' })
     cy.dialogClick('Next')
 
-    const { start } = randInterval()
-    const shiftEnd = start.plus({ hours: 8 }) // default shift length is 8 hours
     cy.get('[data-cy="add-shift-expander"]').click()
-    cy.dialogForm({ 'shift-start': schedTZ(start) })
 
     // check default state of duration
-    cy.get(dialog).find('input[name="shift-end"]').should('have.value', 8)
-    cy.get(dialog).find('[data-cy="toggle-duration-off"]').click()
-
-    // add 4 hours using DateTime field
     cy.get(dialog)
       .find('input[name="shift-end"]')
-      .should('have.value', schedTZ(shiftEnd))
-    cy.dialogForm({ 'shift-end': schedTZ(shiftEnd.plus({ hours: 4 })) })
+      .should('have.value', defaultDurationHrs)
+    cy.get(dialog).find('[data-cy="toggle-duration-off"]').click()
 
-    // Check duration properly updated
-    cy.get(dialog).find('[data-cy="toggle-duration-on"]').click()
-    cy.get(dialog).find('input[name="shift-end"]').should('have.value', 12)
+    cy.get('input[name="shift-start"]')
+      .invoke('val')
+      .then((shiftStart) => {
+        cy.get('input[name="shift-end"]')
+          .invoke('val')
+          .should((shiftEnd) => {
+            expect(DateTime.fromISO(shiftEnd as string).toISO()).to.eq(
+              DateTime.fromISO(shiftStart as string)
+                .plus({ hour: defaultDurationHrs })
+                .toISO(),
+            )
+          })
+      })
   })
 
   it('should cancel and close form', () => {

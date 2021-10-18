@@ -87,7 +87,6 @@ export default function TempSchedAddNewShift({
   const [submitted, setSubmitted] = useState(false)
 
   const [manualEntry, setManualEntry] = useState(false)
-  const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
@@ -185,7 +184,8 @@ export default function TempSchedAddNewShift({
                 label='Shift Start'
                 name='shift-start'
                 fieldName='start'
-                min={edit ? value.start : now}
+                min={value.start}
+                max={value.end}
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
                     const diff = DateTime.fromISO(value, { zone }).diff(
@@ -210,7 +210,8 @@ export default function TempSchedAddNewShift({
                   label='Shift End'
                   name='shift-end'
                   fieldName='end'
-                  min={edit ? value.start : now}
+                  min={value.start}
+                  max={value.end}
                   hint={
                     <React.Fragment>
                       {!isLocalZone && fmtLocal(value?.end)}
