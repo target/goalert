@@ -239,7 +239,7 @@ export default function TempSchedAddNewShift({
                   // value held in form input
                   mapValue={(nextVal: string, formValue: Value) => {
                     const nextValDT = DateTime.fromISO(nextVal, { zone })
-                    const formValDT = DateTime.fromISO(formValue?.start, {
+                    const formValDT = DateTime.fromISO(formValue?.start ?? '', {
                       zone,
                     })
                     const duration = dtToDuration(formValDT, nextValDT)
