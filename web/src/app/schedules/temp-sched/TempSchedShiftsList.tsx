@@ -115,6 +115,8 @@ export default function TempSchedShiftsList({
         return dayInvs.map((inv, index) => {
           const startTime = fmtTime(inv.start)
           const endTime = fmtTime(inv.end)
+          const isHistoricShift =
+            DateTime.fromISO(s.end, { zone }) < DateTime.now().setZone(zone)
 
           let subText = ''
           if (inv.length('hours') === 24) {
@@ -137,6 +139,7 @@ export default function TempSchedShiftsList({
             subText,
             userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
+            disabled: isHistoricShift,
             secondaryAction:
               index === 0 ? (
                 <div className={classes.secondaryActionWrapper}>
@@ -148,16 +151,15 @@ export default function TempSchedShiftsList({
                       <Error color='error' />
                     </Tooltip>
                   )}
-                  {DateTime.fromISO(s.end, { zone }) >
-                  DateTime.now().setZone(zone) ? (
+                  {isHistoricShift ? (
+                    <Chip style={{ opacity: 0.6 }} label='Concluded' />
+                  ) : (
                     <IconButton
                       aria-label='delete shift'
                       onClick={() => onRemove(s)}
                     >
                       <Delete />
                     </IconButton>
-                  ) : (
-                    <Chip label='Concluded' />
                   )}
                 </div>
               ) : null,

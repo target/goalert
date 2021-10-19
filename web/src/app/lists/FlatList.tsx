@@ -77,6 +77,10 @@ const useStyles = makeStyles({
   listItemText: {
     fontStyle: 'italic',
   },
+  listItemDisabled: {
+    opacity: 0.6,
+    width: '100%',
+  },
 })
 
 export interface FlatListSub {
@@ -90,6 +94,7 @@ export interface FlatListNotice extends Notice {
   transition?: boolean
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
+  disabled?: boolean
 }
 export interface FlatListItem {
   title?: string
@@ -101,6 +106,7 @@ export interface FlatListItem {
   id?: string
   scrollIntoView?: boolean
   'data-cy'?: string
+  disabled?: boolean
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -184,10 +190,13 @@ export default function FlatList({
         <ButtonBase
           className={classnames(classes.buttonBase, classes.alert)}
           onClick={item.handleOnClick}
+          disabled={item.disabled}
           data-cy={item['data-cy']}
         >
           <Alert
-            className={classes.alertAsButton}
+            className={
+              item.disabled ? classes.listItemDisabled : classes.alertAsButton
+            }
             key={idx}
             component='li'
             severity={severityMap[item.type]}
@@ -230,6 +239,13 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
+    let itemClass = ''
+    if (!item.highlight) {
+      itemClass = classes.listItem
+    }
+    if (item.disabled) {
+      itemClass = classes.listItemDisabled
+    }
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -244,7 +260,7 @@ export default function FlatList({
         scrollIntoView={item.scrollIntoView}
         key={idx}
         {...itemProps}
-        className={item.highlight ? classes.highlightedItem : classes.listItem}
+        className={itemClass}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText

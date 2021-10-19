@@ -144,6 +144,7 @@ export function getCoverageGapItems(
       at: gap.start,
       ends: gap.end,
       itemType: 'gap',
+      disabled: gap.start < DateTime.now(),
       handleOnClick: () => {
         handleCoverageClick(gap)
       },
