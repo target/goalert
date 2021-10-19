@@ -8,7 +8,6 @@ import Grid from '@material-ui/core/Grid'
 import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Tooltip from '@material-ui/core/Tooltip'
-import { isWidthDown } from '@material-ui/core/withWidth'
 import InfoIcon from '@material-ui/icons/Info'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
@@ -16,7 +15,7 @@ import { value as valuePropType } from './propTypes'
 import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { makeStyles } from '@material-ui/core'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles(() => ({
   fieldItem: {
@@ -36,7 +35,7 @@ const useStyles = makeStyles(() => ({
  * can be used for creating a primary and secondary schedule.
  */
 export default function WizardScheduleForm({ value, onChange, secondary }) {
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
 
   function renderFollowTheSun(key, schedType) {
@@ -55,7 +54,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 </React.Fragment>
               }
               formLabel
-              fullWidth={isWidthDown('md', width)}
+              fullWidth={fullScreen}
               required
               value={value[key].followTheSunRotation.users}
             />
@@ -71,7 +70,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 </React.Fragment>
               }
               formLabel
-              fullWidth={isWidthDown('md', width)}
+              fullWidth={fullScreen}
               required
             />
           </Grid>
@@ -160,7 +159,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 label='When should the rotation first hand off to the next team
               member?'
                 formLabel
-                fullWidth={isWidthDown('md', width)}
+                fullWidth={fullScreen}
               />
             </Grid>
             <Grid item xs={12} className={classes.fieldItem}>
@@ -238,7 +237,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
             </React.Fragment>
           }
           formLabel
-          fullWidth={isWidthDown('md', width)}
+          fullWidth={fullScreen}
           required
         />
       </Grid>
@@ -254,7 +253,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
             </React.Fragment>
           }
           formLabel
-          fullWidth={isWidthDown('md', width)}
+          fullWidth={fullScreen}
           required
           value={value[key].users}
         />

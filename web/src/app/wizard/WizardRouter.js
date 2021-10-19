@@ -22,10 +22,9 @@ import {
   getSchedule,
   getScheduleTargets,
 } from './util'
-import { isWidthDown } from '@material-ui/core/withWidth'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 
 const mutation = gql`
   mutation ($input: CreateServiceInput!) {
@@ -46,7 +45,7 @@ const useStyles = makeStyles(() => ({
 
 export default function WizardRouter() {
   const classes = useStyles()
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const [errorMessage, setErrorMessage] = useState(null)
   const [complete, setComplete] = useState(false)
   const [redirect, setRedirect] = useState(false)
@@ -219,12 +218,12 @@ export default function WizardRouter() {
               </Form>
             </Card>
             <Dialog
-              fullScreen={isWidthDown('md', width) && !errorMessage}
+              fullScreen={fullScreen && !errorMessage}
               open={complete || Boolean(errorMessage)}
               onClose={() => onDialogClose(data)}
             >
               <DialogTitleWrapper
-                fullScreen={isWidthDown('md', width)}
+                fullScreen={fullScreen}
                 title={complete ? 'Success!' : 'An error occurred'}
               />
               {renderSubmittedContent()}
