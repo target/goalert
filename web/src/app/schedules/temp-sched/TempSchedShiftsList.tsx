@@ -2,6 +2,8 @@ import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
+import { fmtLocal } from './sharedUtils'
+import InfoIcon from '@material-ui/icons/Info'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
@@ -60,7 +62,7 @@ export default function TempSchedShiftsList({
   scheduleID,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  const { q, zone } = useScheduleTZ(scheduleID)
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   let shifts = useUserInfo(value)
 
   // wait for zone
@@ -110,24 +112,37 @@ export default function TempSchedShiftsList({
           const endTime = fmtTime(inv.end)
 
           let subText = ''
+          let titleText = ''
           if (inv.length('hours') === 24) {
             // shift spans all day
             subText = 'All day'
           } else if (inv.engulfs(shiftInv)) {
             // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
+            if (!isLocalZone)
+              titleText = `From ${fmtLocal(inv.start.toString())} to ${fmtLocal(
+                inv.end.toString(),
+              )}`
           } else if (inv.end === shiftInv.end) {
             subText = `Active until ${endTime}`
+            if (!isLocalZone)
+              titleText = `Active until ${fmtLocal(inv.end.toString())}`
           } else {
             // shift starts and continues on for the rest of the day
             subText = `Active starting at ${startTime}\n`
+            if (!isLocalZone)
+              titleText = `Active starting at ${fmtLocal(inv.start.toString())}`
           }
 
           return {
             scrollIntoView: true,
             id: s.start + s.userID + index.toString(),
             title: s.user.name,
-            subText,
+            subText: (
+              <Tooltip title={titleText} placement='right'>
+                {<span>{subText}</span>}
+              </Tooltip>
+            ),
             userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             secondaryAction:
