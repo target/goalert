@@ -75,27 +75,17 @@ type Channel struct {
 	TeamID string
 }
 
-type apiError struct {
-	msg    string
-	header http.Header
-}
-
-func (err apiError) Error() string {
-	if err.msg == "missing_scope" {
-		acceptedScopes := err.header.Get("X-Accepted-Oauth-Scopes")
-		providedScopes := err.header.Get("X-Oauth-Scopes")
-		return fmt.Sprintf("missing_scope; need one of %v but got %v", acceptedScopes, providedScopes)
+func rootMsg(err error) string {
+	unwrapped := errors.Unwrap(err)
+	if unwrapped == nil {
+		return err.Error()
 	}
-	return err.msg
+
+	return rootMsg(unwrapped)
 }
 
 func mapError(ctx context.Context, err error) error {
-	var apiError *apiError
-	if !errors.As(err, &apiError) {
-		return err
-	}
-
-	switch apiError.msg {
+	switch rootMsg(err) {
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
 	case "missing_scope", "invalid_auth", "account_inactive", "token_revoked", "not_authed":
