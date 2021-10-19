@@ -16,6 +16,7 @@ export const fmtTime = (dt: DateTime): string =>
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
   at: DateTime
+  isConcluded?: boolean
   // itemType categorizes a list item
   itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end' | 'outOfBounds'
 }
@@ -154,6 +155,19 @@ export function sortItems(
   items: Sortable<FlatListListItem>[],
 ): Sortable<FlatListListItem>[] {
   return items.sort((a, b) => {
+    // if is a concluded shift
+    // and the day
+
+    if (a.at.startOf('day') === b.at.startOf('day')) {
+      if (a.isConcluded) {
+        if (b.itemType === 'subheader') {
+          return -1
+        }
+
+        return 1
+      }
+    }
+
     if (a.at < b.at) return -1
     if (a.at > b.at) return 1
 

@@ -18,7 +18,7 @@ import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
-import { CircularProgress } from '@material-ui/core'
+import { Chip, CircularProgress } from '@material-ui/core'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
   fmtTime,
@@ -63,7 +63,7 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
-  let shifts = useUserInfo(value)
+  const shifts = useUserInfo(value)
 
   // wait for zone
   if (q.loading || zone === '') {
@@ -74,11 +74,11 @@ export default function TempSchedShiftsList({
     )
   }
 
-  if (edit) {
-    shifts = shifts.filter(
-      (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
-    )
-  }
+  // if (edit) {
+  //   shifts = shifts.filter(
+  //     (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
+  //   )
+  // }
 
   const schedInterval = parseInterval({ start, end }, zone)
 
@@ -148,15 +148,21 @@ export default function TempSchedShiftsList({
                       <Error color='error' />
                     </Tooltip>
                   )}
-                  <IconButton
-                    aria-label='delete shift'
-                    onClick={() => onRemove(s)}
-                  >
-                    <Delete />
-                  </IconButton>
+                  {DateTime.fromISO(s.end, { zone }) >
+                  DateTime.now().setZone(zone) ? (
+                    <IconButton
+                      aria-label='delete shift'
+                      onClick={() => onRemove(s)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  ) : (
+                    <Chip label='Concluded' />
+                  )}
                 </div>
               ) : null,
             at: inv.start,
+            isConcluded: inv.end < DateTime.now().setZone(zone),
             itemType: 'shift',
           } as Sortable<FlatListItem>
         })
