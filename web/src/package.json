@@ -92,12 +92,12 @@
     "jest": "27.2.4",
     "json-loader": "0.5.7",
     "postcss": "8.3.6",
-    "postcss-loader": "6.1.1",
+    "postcss-loader": "6.2.0",
     "prop-types": "15.7.2",
     "redux": "4.1.1",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "3.3.0",
-    "webpack": "5.57.1",
+    "webpack": "5.59.0",
     "webpack-cli": "4.9.0",
     "webpack-dev-server": "4.3.1"
   }
