@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ToggleIcon from '@material-ui/icons/CompareArrows'
 import _ from 'lodash'
-import { fmtLocal, Shift, Value } from './sharedUtils'
+import { dtToDuration, fmtLocal, Shift, Value } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -24,6 +24,11 @@ type AddShiftsStepProps = {
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string
+  edit?: boolean
+  showForm: boolean
+  setShowForm: (showForm: boolean) => void
+  shift: Shift | null
+  setShift: (shift: Shift) => void
 }
 
 type DTShift = {
@@ -73,8 +78,11 @@ export default function TempSchedAddNewShift({
   scheduleID,
   onChange,
   value,
+  showForm,
+  setShowForm,
+  shift,
+  setShift,
 }: AddShiftsStepProps): JSX.Element {
-  const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
 
   const [manualEntry, setManualEntry] = useState(false)
@@ -141,7 +149,11 @@ export default function TempSchedAddNewShift({
       value={shift}
       onChange={(val: Shift) => setShift(val)}
     >
-      <Accordion variant='outlined'>
+      <Accordion
+        variant='outlined'
+        onChange={() => setShowForm(!showForm)}
+        expanded={showForm}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           data-cy='add-shift-expander'
@@ -227,13 +239,11 @@ export default function TempSchedAddNewShift({
                   // value held in form input
                   mapValue={(nextVal: string, formValue: Value) => {
                     const nextValDT = DateTime.fromISO(nextVal, { zone })
-                    if (!formValue || !nextValDT.isValid) return ''
-                    return nextValDT
-                      .diff(
-                        DateTime.fromISO(formValue.start, { zone }),
-                        'hours',
-                      )
-                      .hours.toString()
+                    const formValDT = DateTime.fromISO(formValue?.start ?? '', {
+                      zone,
+                    })
+                    const duration = dtToDuration(formValDT, nextValDT)
+                    return duration === -1 ? '' : duration.toString()
                   }}
                   // value held in state
                   mapOnChangeValue={(nextVal: string, formValue: Value) => {
