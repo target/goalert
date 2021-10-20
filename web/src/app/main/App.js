@@ -20,8 +20,8 @@ import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { isWidthDown, makeStyles } from '@material-ui/core'
-import useWidth from '../util/useWidth'
+import { makeStyles } from '@material-ui/core'
+import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 
 const useStyles = makeStyles((theme) => ({
@@ -53,8 +53,7 @@ const useStyles = makeStyles((theme) => ({
 export default function App() {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
-  const width = useWidth()
-  const fullScreen = isWidthDown('sm', width)
+  const fullScreen = useIsWidthDown('sm')
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
 

@@ -1,6 +1,6 @@
-import { randInterval, testScreen } from '../support'
+import { randInterval, randDTWithinInterval, testScreen } from '../support'
 import { Schedule, User } from '../../schema'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 const dtFmt = "yyyy-MM-dd'T'HH:mm"
 const dialog = '[role=dialog] #dialog-form'
@@ -188,6 +188,52 @@ function testTemporarySchedule(screen: string): void {
 
     cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+  })
+
+  it('should be able to click no coverage to update times', () => {
+    const start = DateTime.utc()
+      .setZone(schedule.timeZone)
+      .plus({ day: 1 })
+      .startOf('day')
+
+    const end = start.plus({ days: 2 })
+
+    // open dialog and set schedule interval
+    cy.get('[data-cy="new-override"]').click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'temp' })
+    cy.dialogClick('Next')
+    cy.dialogForm({ start, end })
+
+    // click on first no coverage notice in list
+    cy.get('[data-cy="day-no-coverage"]').eq(0).click()
+    cy.get('[data-cy="add-shift-container"]').should('be.visible')
+    cy.get('input[name="shift-start"]').should(
+      'have.value',
+      start.toFormat(dtFmt),
+    )
+
+    // add shift to split up coverage for a given day
+    const shiftStart = start.plus({ day: 1 }).toFormat(dtFmt)
+    const duration = 2
+    cy.dialogForm({
+      userID: manualAddUser.name,
+      'shift-start': shiftStart,
+      'shift-end': duration, // this value should not change
+    })
+    cy.get('button[data-cy="add-shift"]').click()
+
+    // reset shift start field to a random value
+    const randDate = randDTWithinInterval(Interval.fromDateTimes(start, end))
+    cy.dialogForm({ 'shift-start': randDate })
+
+    // click on second no coverage notice in list (partial day)
+    cy.get('[data-cy="day-no-coverage"]').eq(1).click()
+    cy.get('[data-cy="add-shift-container"]').should('be.visible')
+
+    const shiftEnd = start.plus({ day: 1, hours: duration }).toFormat(dtFmt)
+    cy.get('input[name="shift-start"]').should('have.value', shiftEnd)
+    cy.get('input[name="shift-end"]').should('have.value', duration) // ensure duration remains the same
   })
 }
 

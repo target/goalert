@@ -6,7 +6,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { Shift } from './sharedUtils'
 import FlatList, {
@@ -49,6 +49,7 @@ type TempSchedShiftsListProps = {
   end: string
   edit?: boolean
   scheduleID: string
+  handleCoverageGapClick: (coverageGap: Interval) => void
 }
 
 export default function TempSchedShiftsList({
@@ -58,6 +59,7 @@ export default function TempSchedShiftsList({
   value,
   onRemove,
   scheduleID,
+  handleCoverageGapClick,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
@@ -96,7 +98,12 @@ export default function TempSchedShiftsList({
     }
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
-    const coverageGapItems = getCoverageGapItems(schedInterval, shifts, zone)
+    const coverageGapItems = getCoverageGapItems(
+      schedInterval,
+      shifts,
+      zone,
+      handleCoverageGapClick,
+    )
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {

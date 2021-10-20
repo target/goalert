@@ -3,8 +3,7 @@ import { Switch, Route, useHistory } from 'react-router-dom'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@material-ui/icons'
-import { isWidthUp } from '@material-ui/core/withWidth'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
 
 function removeLastPartOfPath(path) {
@@ -14,14 +13,15 @@ function removeLastPartOfPath(path) {
 }
 
 function ToolbarAction(props) {
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
+
   const history = useHistory()
 
   function renderToolbarAction() {
     const route = removeLastPartOfPath(window.location.pathname)
 
     // only show back button on mobile
-    if (isWidthUp('md', width)) return null
+    if (!fullScreen) return null
 
     return (
       <IconButton

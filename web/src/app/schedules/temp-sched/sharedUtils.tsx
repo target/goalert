@@ -65,3 +65,9 @@ export function fmtLocal(iso?: string): string {
   const dt = DateTime.fromISO(iso, { zone: 'local' })
   return `${dt.toLocaleString(DateTime.TIME_SIMPLE)} ${dt.toFormat('ZZZZ')}`
 }
+
+// dtToDuration takes two date times and returns the duration between the two
+export function dtToDuration(a: DateTime, b: DateTime): number {
+  if (!a.isValid || !b.isValid) return -1
+  return b.diff(a, 'hours').hours
+}

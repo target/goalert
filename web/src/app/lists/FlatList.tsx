@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react'
+import React, { useLayoutEffect, MouseEvent } from 'react'
 import List, { ListProps } from '@material-ui/core/List'
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -16,9 +16,10 @@ import {
 } from 'react-beautiful-dnd'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import AppLink from '../util/AppLink'
-import { makeStyles } from '@material-ui/core'
+import { ButtonBase, makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle, Color } from '@material-ui/lab'
+import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
 
 const lime = '#93ed94'
@@ -28,6 +29,16 @@ const lightGrey = '#ebebeb'
 const useStyles = makeStyles({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
+    width: '100%',
+  },
+  alertAsButton: {
+    width: '100%',
+    '&:hover, &.Mui-focusVisible': {
+      filter: 'brightness(90%)',
+    },
+  },
+  buttonBase: {
+    borderRadius: 4,
   },
   background: { backgroundColor: 'white' },
   highlightedItem: {
@@ -77,6 +88,8 @@ export interface FlatListNotice extends Notice {
   id?: string
   icon?: JSX.Element
   transition?: boolean
+  handleOnClick?: (event: MouseEvent) => void
+  'data-cy'?: string
 }
 export interface FlatListItem {
   title?: string
@@ -87,6 +100,7 @@ export interface FlatListItem {
   url?: string
   id?: string
   scrollIntoView?: boolean
+  'data-cy'?: string
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -165,6 +179,27 @@ export default function FlatList({
   }
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
+    if (item.handleOnClick) {
+      return (
+        <ButtonBase
+          className={classnames(classes.buttonBase, classes.alert)}
+          onClick={item.handleOnClick}
+          data-cy={item['data-cy']}
+        >
+          <Alert
+            className={classes.alertAsButton}
+            key={idx}
+            component='li'
+            severity={severityMap[item.type]}
+            icon={item.icon}
+          >
+            {item.message && <AlertTitle>{item.message}</AlertTitle>}
+            {item.details}
+          </Alert>
+        </ButtonBase>
+      )
+    }
+
     return (
       <Alert
         key={idx}
