@@ -24,9 +24,6 @@ type ChannelSender struct {
 	teamID string
 	token  string
 
-	chanTht *throttle
-	listTht *throttle
-
 	chanCache *ttlCache
 	listCache *ttlCache
 
@@ -40,9 +37,6 @@ var _ notification.Sender = &ChannelSender{}
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
 		cfg: cfg,
-
-		chanTht: newThrottle(time.Minute / 50),
-		listTht: newThrottle(time.Minute / 50),
 
 		listCache: newTTLCache(250, time.Minute),
 		chanCache: newTTLCache(1000, 15*time.Minute),
@@ -192,11 +186,6 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 		n++
 		if n > 10 {
 			return nil, errors.New("abort after > 10 pages of Slack channels")
-		}
-
-		err := s.listTht.Wait(ctx)
-		if err != nil {
-			return nil, err
 		}
 
 		err = s.withClient(ctx, func(c *slack.Client) error {
