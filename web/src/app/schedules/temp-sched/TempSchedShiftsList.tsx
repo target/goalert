@@ -140,7 +140,10 @@ export default function TempSchedShiftsList({
             title: s.user.name,
             subText: (
               <Tooltip title={titleText} placement='right'>
-                {<span>{subText}</span>}
+                 <div>
+              {subText}
+              <InfoIcon color='primary' />
+            </div>
               </Tooltip>
             ),
             userID: s.userID,
@@ -173,6 +176,9 @@ export default function TempSchedShiftsList({
 
     const startItem = (() => {
       let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
+      let detailsTooltip = ``
+      if (!isLocalZone)
+        detailsTooltip = `Starts at ${fmtLocal(start.toString())}`
       let message = ''
 
       if (
@@ -188,7 +194,14 @@ export default function TempSchedShiftsList({
         type: 'OK',
         icon: <ScheduleIcon />,
         message,
-        details,
+        details: (
+          <Tooltip title={detailsTooltip} placement='right'>
+            <div>
+              {details}
+              <InfoIcon color='primary' />
+            </div>
+          </Tooltip>
+        ),
         at: DateTime.fromISO(start, { zone }),
         itemType: 'start',
       } as Sortable<FlatListNotice>
@@ -199,13 +212,22 @@ export default function TempSchedShiftsList({
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
         : 'Ends at ' + fmtTime(at)
+      let detailsTooltip = ``
+      if (!isLocalZone) detailsTooltip = `Ends at ${fmtLocal(end.toString())}`
 
       return {
         id: 'sched-end_' + end,
         type: 'OK',
         icon: <ScheduleIcon />,
         message: '',
-        details,
+        details: (
+          <Tooltip title={detailsTooltip} placement='right'>
+            <div>
+              {details}
+              <InfoIcon color='primary' />
+            </div>
+          </Tooltip>
+        ),
         at,
         itemType: 'end',
       } as Sortable<FlatListNotice>
