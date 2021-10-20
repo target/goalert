@@ -40,7 +40,7 @@
     "modernizr-esm": "2.0.0",
     "react": "17.0.2",
     "react-beautiful-dnd": "13.1.0",
-    "react-big-calendar": "0.36.0",
+    "react-big-calendar": "0.38.0",
     "react-countdown-now": "2.1.2",
     "react-dom": "17.0.2",
     "react-ga": "3.3.0",
@@ -97,7 +97,7 @@
     "redux": "4.1.1",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "3.3.0",
-    "webpack": "5.57.1",
+    "webpack": "5.59.0",
     "webpack-cli": "4.9.0",
     "webpack-dev-server": "4.3.1"
   }
