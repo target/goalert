@@ -3,9 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -49,23 +47,6 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		listCache: newTTLCache(250, time.Minute),
 		chanCache: newTTLCache(1000, 15*time.Minute),
 	}, nil
-}
-
-func (cs *ChannelSender) client(ctx context.Context) *slack.Client {
-	opts := []slack.Option{
-		slack.OptionHTTPClient(http.DefaultClient),
-	}
-
-	cfg := config.FromContext(ctx)
-	if cs.cfg.BaseURL != "" {
-		base := cs.cfg.BaseURL
-		if !strings.HasSuffix(base, "/") {
-			base += "/"
-		}
-		opts = append(opts, slack.OptionAPIURL(base))
-	}
-
-	return slack.New(cfg.Slack.AccessToken, opts...)
 }
 
 // Channel contains information about a Slack channel.
@@ -147,21 +128,23 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
 
-	resp, err := s.client(ctx).GetConversationInfoContext(ctx, channelID, false)
-	var rateErr *slack.RateLimitedError
-	if errors.As(err, &rateErr) {
-		s.chanTht.SetWaitUntil(time.Now().Add(rateErr.RetryAfter))
-		return s.loadChannel(ctx, channelID)
-	}
+	ch := &Channel{TeamID: teamID}
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		resp, err := c.GetConversationInfoContext(ctx, channelID, false)
+		if err != nil {
+			return err
+		}
+
+		ch.ID = resp.ID
+		ch.Name = resp.Name
+
+		return nil
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("lookup conversation info: %w", err)
 	}
 
-	return &Channel{
-		ID:     resp.ID,
-		Name:   "#" + resp.Name,
-		TeamID: teamID,
-	}, nil
+	return ch, nil
 }
 
 // ListChannels will return a list of channels visible to the slack bot.
@@ -201,7 +184,6 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
-	client := s.client(ctx)
 
 	n := 0
 	var channels []Channel
@@ -217,34 +199,36 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 			return nil, err
 		}
 
-		respChan, nextCursor, err := client.GetConversationsForUserContext(ctx, &slack.GetConversationsForUserParameters{
-			ExcludeArchived: true,
-			Types:           []string{"private_channel", "public_channel"},
-			Limit:           200,
-			Cursor:          cursor,
-		})
-
-		var throttleErr *slack.RateLimitedError
-		if errors.As(err, &throttleErr) {
-			s.listTht.SetWaitUntil(time.Now().Add(throttleErr.RetryAfter))
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		for _, ch := range respChan {
-			channels = append(channels, Channel{
-				ID:     ch.ID,
-				Name:   "#" + ch.Name,
-				TeamID: teamID,
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			respChan, nextCursor, err := c.GetConversationsForUserContext(ctx, &slack.GetConversationsForUserParameters{
+				ExcludeArchived: true,
+				Types:           []string{"private_channel", "public_channel"},
+				Limit:           200,
+				Cursor:          cursor,
 			})
+			if err != nil {
+				return err
+			}
+
+			cursor = nextCursor
+
+			for _, ch := range respChan {
+				channels = append(channels, Channel{
+					ID:     ch.ID,
+					Name:   "#" + ch.Name,
+					TeamID: teamID,
+				})
+			}
+
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("list channels: %w", err)
 		}
 
-		if nextCursor == "" {
+		if cursor == "" {
 			break
 		}
-		cursor = nextCursor
 	}
 
 	return channels, nil
@@ -295,7 +279,15 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
-	_, msgTS, err := s.client(ctx).PostMessageContext(ctx, msg.Destination().Value, opts...)
+	var msgTS string
+	err := s.withClient(ctx, func(c *slack.Client) error {
+		_, _msgTS, err := c.PostMessageContext(ctx, msg.Destination().Value, opts...)
+		if err != nil {
+			return err
+		}
+		msgTS = _msgTS
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -307,10 +299,22 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
-	resp, err := s.client(ctx).AuthTestContext(ctx)
+	var teamID string
+
+	err := s.withClient(ctx, func(c *slack.Client) error {
+		info, err := c.AuthTestContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		teamID = info.TeamID
+
+		return nil
+	})
+
 	if err != nil {
 		return "", err
 	}
 
-	return resp.TeamID, nil
+	return teamID, nil
 }
