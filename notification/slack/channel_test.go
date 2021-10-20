@@ -23,6 +23,7 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 		case "cursor_1":
 			io.WriteString(w, `{"ok":true,"channels":[{"id":"C3","name":"channel3"},{"id":"C4","name":"channel4"}],"response_metadata":{"next_cursor":"cursor_2"}}`)
 		case "cursor_2":
+			// ensure retry/delay logic works
 			if waitUntil.IsZero() {
 				waitUntil = time.Now().Add(time.Second)
 				w.Header().Set("Retry-After", "1")
