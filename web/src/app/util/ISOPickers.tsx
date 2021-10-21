@@ -34,12 +34,14 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   const {
     Fallback,
     format,
-    onChange,
     timeZone,
     truncateTo,
     type,
+
     value,
-    ...rest
+    onChange,
+
+    ...textFieldProps
   } = props
 
   const native = hasInputSupport(type)
@@ -114,7 +116,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   if (native) {
     return (
       <TextField
-        {...rest}
+        {...textFieldProps}
         type={type}
         value={inputValue}
         onChange={handleNativeChange}
