@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react'
-import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
-import { useSelector } from 'react-redux'
-import { urlParamSelector } from '../selectors'
-import { DateTime } from 'luxon'
-import { TextField, InputAdornment, IconButton } from '@material-ui/core'
-
+import React, { useState, useEffect, FC } from 'react'
+import {
+  DatePicker,
+  TimePicker,
+  DateTimePicker,
+  DateTimePickerProps,
+  DatePickerProps,
+  TimePickerProps,
+} from '@material-ui/pickers'
+import { DateTime, DurationObjectUnits } from 'luxon'
+import {
+  TextField,
+  InputAdornment,
+  IconButton,
+  TextFieldProps,
+} from '@material-ui/core'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { DateRange, AccessTime } from '@material-ui/icons'
+import { useURLParam } from '../actions/hooks'
 
-function hasInputSupport(name) {
+function hasInputSupport(name: keyof InputTypesBoolean): boolean {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
     return false
   }
@@ -16,13 +26,31 @@ function hasInputSupport(name) {
   return inputtypes[name]
 }
 
+interface ISOPickerOptions {
+  format: string
+  truncateTo: keyof DurationObjectUnits
+  type: keyof InputTypesBoolean
+  Fallback: FC<DatePickerProps> | FC<DateTimePickerProps> | FC<TimePickerProps>
+}
+
+type OtherProps = Partial<TextFieldProps & ISOPickerOptions['Fallback']>
+
+type ISOPickerProps = {
+  value: string
+  timeZone?: string
+  min?: string
+  max?: string
+  onChange: (v: string) => void
+} & OtherProps
+
 function useISOPicker(
-  { value, onChange, timeZone, min, max, ...otherProps },
-  { format, truncateTo, type, Fallback },
-) {
+  { value, onChange, timeZone, min, max, ...otherProps }: ISOPickerProps,
+  { format, truncateTo, type, Fallback }: ISOPickerOptions,
+): JSX.Element {
   const native = hasInputSupport(type)
-  const params = useSelector(urlParamSelector)
-  const zone = timeZone || params('tz', 'local')
+  const [_zone] = useURLParam('tz', 'local') // hooks can't be called conditionally
+  const zone = timeZone || _zone
+
   const dtValue = value ? DateTime.fromISO(value, { zone }) : null
   const [inputValue, setInputValue] = useState(
     value && dtValue ? dtValue.toFormat(format) : '',
@@ -30,7 +58,7 @@ function useISOPicker(
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
-  const parseInput = (input) => {
+  const parseInput = (input: DateTime | string): DateTime | null => {
     if (input instanceof DateTime) return input
     if (!input) return null
 
@@ -53,7 +81,7 @@ function useISOPicker(
 
   // inputToISO returns a UTC ISO timestamp representing the provided
   // input value, or an empty string if invalid.
-  const inputToISO = (input) => {
+  const inputToISO = (input: DateTime | string): string => {
     const val = parseInput(input)
     return val ? val.startOf(truncateTo).toUTC().toISO() : ''
   }
@@ -67,7 +95,10 @@ function useISOPicker(
   if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
   if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
 
-  const handleChange = (e) => {
+  // NOTE the input is either a traditional ChangeEvent
+  // or an object with a MaterialUiPickersDate as its target value
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleChange = (e: any): void => {
     setInputValue(e.target.value)
 
     const newVal = inputToISO(e.target.value)
@@ -104,7 +135,9 @@ function useISOPicker(
         InputLabelProps={inputLabelProps}
         inputProps={inputProps}
         error={otherProps.error || !isValid}
-        onBlur={() => setInputValue(dtValue.toFormat(format))}
+        onBlur={() => {
+          if (dtValue) setInputValue(dtValue.toFormat(format))
+        }}
       />
     )
   }
@@ -113,7 +146,9 @@ function useISOPicker(
   const extraProps = {}
   if (type !== 'time') {
     emptyLabel = 'Select a date...'
+    // @ts-expect-error inject DOM attribute for testing
     extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
+    // @ts-expect-error inject DOM attribute for testing
     extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
 
@@ -127,10 +162,13 @@ function useISOPicker(
       maxDate={max}
       emptyLabel={emptyLabel}
       DialogProps={{
+        // @ts-expect-error inject DOM attribute for testing
         'data-cy': 'picker-fallback',
       }}
       InputProps={{
-        'data-cy-fallback-type': type,
+        inputProps: {
+          'data-cy-fallback-type': type,
+        },
         endAdornment: (
           <InputAdornment position='end'>
             <IconButton>
@@ -146,7 +184,7 @@ function useISOPicker(
   )
 }
 
-export function ISOTimePicker(props) {
+export function ISOTimePicker(props: ISOPickerProps): JSX.Element {
   return useISOPicker(props, {
     format: 'HH:mm',
     truncateTo: 'minute',
@@ -155,7 +193,7 @@ export function ISOTimePicker(props) {
   })
 }
 
-export function ISODateTimePicker(props) {
+export function ISODateTimePicker(props: ISOPickerProps): JSX.Element {
   return useISOPicker(props, {
     format: `yyyy-MM-dd'T'HH:mm`,
     Fallback: DateTimePicker,
@@ -164,7 +202,7 @@ export function ISODateTimePicker(props) {
   })
 }
 
-export function ISODatePicker(props) {
+export function ISODatePicker(props: ISOPickerProps): JSX.Element {
   return useISOPicker(props, {
     format: 'yyyy-MM-dd',
     Fallback: DatePicker,
