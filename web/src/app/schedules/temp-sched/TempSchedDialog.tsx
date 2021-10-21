@@ -99,18 +99,14 @@ export default function TempSchedDialog({
     end: _value?.end ?? '',
     clearStart: _value?.start ?? null,
     clearEnd: _value?.end ?? null,
-    shifts: (_value?.shifts ?? []).map((s) =>
-      _.pick(s, 'start', 'end', 'userID'),
-    ),
-    // .filter((s) => {
-    //   // clamp/filter out shifts that are in the past
-    //   if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
-    //     return false
-    //   }
-
-    //   s.start = clampForward(now, s.start)
-    //   return true
-    // }),
+    shifts: (_value?.shifts ?? [])
+      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .filter((s) => {
+        if (DateTime.fromISO(s.end) > DateTime.fromISO(now)) {
+          s.start = clampForward(now, s.start)
+        }
+        return true
+      }),
   })
   const [shift, setShift] = useState<Shift | null>(null)
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
@@ -364,7 +360,7 @@ export default function TempSchedDialog({
                 <TempSchedShiftsList
                   scheduleID={scheduleID}
                   value={value.shifts}
-                  start={_value?.start ?? now}
+                  start={_value?.start ? now : value.start}
                   end={value.end}
                   onRemove={(shift: Shift) => {
                     setValue({

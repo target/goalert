@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
@@ -63,6 +63,7 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone } = useScheduleTZ(scheduleID)
+  const now = useMemo(() => DateTime.now().setZone(zone), [zone])
   const shifts = useUserInfo(value)
 
   // wait for zone
@@ -73,12 +74,6 @@ export default function TempSchedShiftsList({
       </div>
     )
   }
-
-  // if (edit) {
-  //   shifts = shifts.filter(
-  //     (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
-  //   )
-  // }
 
   const schedInterval = parseInterval({ start, end }, zone)
 
@@ -115,8 +110,7 @@ export default function TempSchedShiftsList({
         return dayInvs.map((inv, index) => {
           const startTime = fmtTime(inv.start)
           const endTime = fmtTime(inv.end)
-          const isHistoricShift =
-            DateTime.fromISO(s.end, { zone }) < DateTime.now().setZone(zone)
+          const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
 
           let subText = ''
           if (inv.length('hours') === 24) {
@@ -143,7 +137,7 @@ export default function TempSchedShiftsList({
             secondaryAction:
               index === 0 ? (
                 <div className={classes.secondaryActionWrapper}>
-                  {!isValid && (
+                  {!isValid && !isHistoricShift && (
                     <Tooltip
                       title='This shift extends beyond the start and/or end of this temporary schedule'
                       placement='left'
@@ -164,7 +158,7 @@ export default function TempSchedShiftsList({
                 </div>
               ) : null,
             at: inv.start,
-            isConcluded: inv.end < DateTime.now().setZone(zone),
+            isConcluded: inv.end < now,
             itemType: 'shift',
           } as Sortable<FlatListItem>
         })
@@ -175,10 +169,7 @@ export default function TempSchedShiftsList({
       let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
       let message = ''
 
-      if (
-        edit &&
-        DateTime.fromISO(start, { zone }) < DateTime.now().setZone(zone)
-      ) {
+      if (edit && DateTime.fromISO(start, { zone }) < now) {
         message = 'Currently active'
         details = 'Historical shifts will not be displayed'
       }
