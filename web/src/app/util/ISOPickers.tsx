@@ -146,9 +146,9 @@ function useISOPicker(
   const extraProps = {}
   if (type !== 'time') {
     emptyLabel = 'Select a date...'
-    // @ts-expect-error inject DOM attribute for testing
+    // @ts-expect-error DOM attribute for testing
     extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
-    // @ts-expect-error inject DOM attribute for testing
+    // @ts-expect-error DOM attribute for testing
     extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
 
@@ -162,11 +162,11 @@ function useISOPicker(
       maxDate={max}
       emptyLabel={emptyLabel}
       DialogProps={{
-        // @ts-expect-error inject DOM attribute for testing
+        // @ts-expect-error DOM attribute for testing
         'data-cy': 'picker-fallback',
       }}
       InputProps={{
-        // @ts-expect-error inject DOM attribute for testing
+        // @ts-expect-error DOM attribute for testing
         'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
