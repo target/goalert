@@ -3,7 +3,6 @@ import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 import { fmtLocal } from './sharedUtils'
-import InfoIcon from '@material-ui/icons/Info'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
@@ -140,10 +139,7 @@ export default function TempSchedShiftsList({
             title: s.user.name,
             subText: (
               <Tooltip title={titleText} placement='right'>
-                 <div>
-              {subText}
-              <InfoIcon color='primary' />
-            </div>
+                  <span>{subText}</span>
               </Tooltip>
             ),
             userID: s.userID,
@@ -198,7 +194,6 @@ export default function TempSchedShiftsList({
           <Tooltip title={detailsTooltip} placement='right'>
             <div>
               {details}
-              <InfoIcon color='primary' />
             </div>
           </Tooltip>
         ),
@@ -224,7 +219,6 @@ export default function TempSchedShiftsList({
           <Tooltip title={detailsTooltip} placement='right'>
             <div>
               {details}
-              <InfoIcon color='primary' />
             </div>
           </Tooltip>
         ),
