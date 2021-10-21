@@ -55,7 +55,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 
   const dtToISO = (dt: DateTime): string => {
-    return dt.startOf(truncateTo).toUTC().toISO()
+    return dt.startOf(truncateTo).toUTC().setZone(zone).toISO()
   }
 
   // parseInputToISO takes input from the form control and returns a string
@@ -78,7 +78,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     }
 
     // if format string invalid, try validating input as iso string
-    const iso = DateTime.fromISO(input)
+    const iso = DateTime.fromISO(input, { zone })
     if (iso.isValid) return dtToISO(iso)
 
     return ''
@@ -106,7 +106,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     } else {
       setInputValue(keyboardInputValue)
       // likely invalid, but validate keyboard input just to be sure
-      const dt = DateTime.fromFormat(keyboardInputValue, format)
+      const dt = DateTime.fromFormat(keyboardInputValue, format, { zone })
       if (dt.isValid) onChange(dtToISO(dt))
       else onChange(keyboardInputValue) // set invalid input for form validation
     }
@@ -118,7 +118,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       <TextField
         {...textFieldProps}
         type={type}
-        value={inputValue}
+        value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
         onChange={handleNativeChange}
         label={label}
       />
@@ -127,7 +127,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
   return (
     <Fallback
-      value={props.value || null}
+      value={valueAsDT}
       onChange={handleFallbackChange}
       showTodayButton
       minDate={props?.inputProps?.min}

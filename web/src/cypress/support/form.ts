@@ -33,6 +33,7 @@ function materialClock(
   if (!isAM) hour -= 12
 
   return cy
+    .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
     .contains('button', isAM ? 'AM' : 'PM')
     .click() // select AM or PM
 
@@ -55,48 +56,51 @@ function materialCalendar(date: string | DateTime, fieldName: string): void {
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback]"`)
-    .find('button')
+  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] button`)
     .first()
     .click() // open year selection
 
-  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback]"`)
-    .contains('[role=button]', dt.year)
+  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+    .contains('[type=button]', dt.year)
     .click() // click on correct year
 
   cy.get(
-    `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[data-cy=month-back]+div`,
-  ).then((el) => {
-    const displayedDT = DateTime.fromFormat(el.text(), 'MMMM yyyy')
-    const diff = dt.startOf('month').diff(displayedDT, 'months').months
+    `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[aria-label="Previous month"]`,
+  )
+    .parent()
+    .siblings()
+    .then((el) => {
+      const displayedDT = DateTime.fromFormat(el.text(), 'MMMMyyyy')
+      const diff = dt.startOf('month').diff(displayedDT, 'months').months
 
-    // navigate to correct month
-    for (let i = 0; i < Math.abs(diff); i++) {
-      cy.get(`button[data-cy=month-${diff < 0 ? 'back' : 'next'}]`).click()
+      // navigate to correct month
+      for (let i = 0; i < Math.abs(diff); i++) {
+        cy.get(
+          `button[aria-label="${diff < 0 ? 'Previous' : 'Next'} month"]`,
+        ).click()
 
+        cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+          .should(
+            'contain',
+            displayedDT
+              .plus({ months: (diff < 0 ? -1 : 1) * (i + 1) })
+              .toFormat('MMMM'),
+          )
+          .should(
+            'not.contain',
+            displayedDT
+              .plus({ months: (diff < 0 ? -1 : 1) * i })
+              .toFormat('MMMM'),
+          )
+      }
+
+      // click on the day
       cy.get(
-        `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[data-cy=month-back]+div`,
-      )
-
-        .should(
-          'contain',
-          displayedDT
-            .plus({ months: (diff < 0 ? -1 : 1) * (i + 1) })
-            .toFormat('MMMM'),
-        )
-        .should(
-          'not.contain',
-          displayedDT
-            .plus({ months: (diff < 0 ? -1 : 1) * i })
-            .toFormat('MMMM'),
-        )
-    }
-
-    // click on the day
-    cy.get('body')
-      .contains("button[tabindex='0']", new RegExp(`^${dt.day.toString()}$`))
-      .click({ force: true })
-  })
+        `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[aria-label="${dt.toFormat(
+          'MMM d, y',
+        )}"]`,
+      ).click({ force: true })
+    })
 }
 
 function fillFormField(
