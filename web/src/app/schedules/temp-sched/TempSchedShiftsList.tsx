@@ -158,7 +158,6 @@ export default function TempSchedShiftsList({
                 </div>
               ) : null,
             at: inv.start,
-            isConcluded: inv.end < now,
             itemType: 'shift',
           } as Sortable<FlatListItem>
         })
