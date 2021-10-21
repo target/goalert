@@ -166,9 +166,8 @@ function useISOPicker(
         'data-cy': 'picker-fallback',
       }}
       InputProps={{
-        inputProps: {
-          'data-cy-fallback-type': type,
-        },
+        // @ts-expect-error inject DOM attribute for testing
+        'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
             <IconButton>
