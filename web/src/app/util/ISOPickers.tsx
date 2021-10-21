@@ -14,7 +14,7 @@ interface ISOPickerProps extends PickerProps {
   format: string
   timeZone?: string
   truncateTo: keyof DurationObjectUnits
-  type: 'time' | 'day' | 'datetime-local'
+  type: 'time' | 'date' | 'datetime-local'
 }
 
 type PickerProps = Partial<Omit<OutlinedTextFieldProps, 'value'>> & {
@@ -133,7 +133,18 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       minDate={props?.inputProps?.min}
       maxDate={props?.inputProps?.max}
       label={label}
-      renderInput={(params) => <V5TextField {...params} />}
+      renderInput={(params) => (
+        <V5TextField
+          data-cy='data-cy-fallback-type'
+          fullWidth={textFieldProps.fullWidth} // todo: use {...textFieldProps} with mui v5
+          {...params}
+        />
+      )}
+      DialogProps={{
+        // @ts-expect-error DOM attribute for testing
+        'data-cy': 'picker-fallback',
+      }}
+      style={{ width: 'fit-container' }}
     />
   )
 }
@@ -156,7 +167,7 @@ export function ISODatePicker(props: PickerProps): JSX.Element {
       {...props}
       format='yyyy-MM-dd'
       truncateTo='day'
-      type='day'
+      type='date'
       Fallback={DatePicker}
     />
   )
