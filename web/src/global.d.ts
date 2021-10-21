@@ -10,3 +10,8 @@ declare namespace NodeJS {
   declare module '*.md'
   declare module '*.png'
 }
+
+declare module 'modernizr-esm/feature/inputtypes' {
+  import * as m from 'modernizr'
+  export const inputtypes = m.inputtypes
+}
