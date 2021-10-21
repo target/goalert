@@ -134,15 +134,16 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       maxDate={props?.inputProps?.max}
       label={label}
       renderInput={(params) => (
+        // @ts-expect-error potential type mismatches until fully on v5
         <V5TextField
-          data-cy='data-cy-fallback-type'
-          fullWidth={textFieldProps.fullWidth} // todo: use {...textFieldProps} with mui v5
+          data-cy-fallback-type={type}
+          {...textFieldProps}
           {...params}
         />
       )}
-      DialogProps={{
+      PopperProps={{
         // @ts-expect-error DOM attribute for testing
-        'data-cy': 'picker-fallback',
+        'data-cy': props.name + '-picker-fallback',
       }}
       style={{ width: 'fit-container' }}
     />
