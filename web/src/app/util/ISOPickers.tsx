@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { DateTime, DurationObjectUnits } from 'luxon'
 import { TextField, OutlinedTextFieldProps } from '@material-ui/core'
@@ -31,13 +31,23 @@ function hasInputSupport(name: string): boolean {
 }
 
 function ISOPicker(props: ISOPickerProps): JSX.Element {
-  const { Fallback, format, onChange, timeZone, truncateTo, type, ...rest } =
-    props
+  const {
+    Fallback,
+    format,
+    onChange,
+    timeZone,
+    truncateTo,
+    type,
+    value,
+    ...rest
+  } = props
 
   const native = hasInputSupport(type)
   const getURLParam = useSelector(urlParamSelector)
   const zone = timeZone || (getURLParam('tz', 'local') as string)
   const valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+
+  // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
     valueAsDT ? valueAsDT.toFormat(format) : '',
   )
@@ -48,9 +58,8 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
   // parseInputToISO takes input from the form control and returns a string
   // ISO value representing the current form value ('' if invalid or empty).
-  function parseInputToISO(input?: string | DateTime): string {
+  function parseInputToISO(input?: string): string {
     if (!input) return ''
-    if (input instanceof DateTime) return dtToISO(input)
 
     // handle input in specific format e.g. MM/dd/yyyy
     const inputAsDT = DateTime.fromFormat(input, format, { zone })
@@ -73,15 +82,11 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     return ''
   }
 
-  useEffect(() => {
-    setInputValue(props.value && valueAsDT ? valueAsDT.toFormat(format) : '')
-  }, [props.value, zone])
-
   function handleNativeChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setInputValue(e.target.value)
     const newVal = parseInputToISO(e.target.value)
 
-    // Only fire the parent's `onChange` handler when we have a new valid value,
+    // only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
     if (!valueAsDT || (newVal && newVal !== valueAsDT.toUTC().toISO())) {
       onChange(newVal)
@@ -93,35 +98,39 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     keyboardInputValue = '',
   ): void {
     // attempt to set value from DateTime object first
-    if (date && date.isValid) {
-      onChange(dtToISO(date))
+    if (date?.isValid) {
       setInputValue(date.toFormat(format))
+      onChange(dtToISO(date))
     } else {
       setInputValue(keyboardInputValue)
+      // likely invalid, but validate keyboard input just to be sure
       const dt = DateTime.fromFormat(keyboardInputValue, format)
       if (dt.isValid) onChange(dtToISO(dt))
+      else onChange(keyboardInputValue) // set invalid input for form validation
     }
   }
 
+  const label = type === 'time' ? 'Select a time...' : 'Select a date...'
   if (native) {
     return (
       <TextField
+        {...rest}
         type={type}
         value={inputValue}
         onChange={handleNativeChange}
-        {...rest}
+        label={label}
       />
     )
   }
 
   return (
     <Fallback
-      value={props.value ? valueAsDT : null}
+      value={props.value || null}
       onChange={handleFallbackChange}
       showTodayButton
       minDate={props?.inputProps?.min}
       maxDate={props?.inputProps?.max}
-      label={type === 'time' ? 'Select a time...' : 'Select a date...'}
+      label={label}
       renderInput={(params) => <V5TextField {...params} />}
     />
   )
