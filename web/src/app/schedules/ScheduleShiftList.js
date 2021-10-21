@@ -277,6 +277,7 @@ function ScheduleShiftList({ scheduleID }) {
                   name='filterStart'
                   value={start}
                   onChange={(v) => setStart(v)}
+                  fullWidth
                 />
               </Grid>
               <Grid item xs={12}>
