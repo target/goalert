@@ -59,7 +59,7 @@ function useISOPicker(
   }
 
   useEffect(() => {
-    setInputValue(value && dtValue ? dtValue.toFormat(format, { zone }) : '')
+    setInputValue(value && dtValue ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
   // sets min and max if set
@@ -104,7 +104,7 @@ function useISOPicker(
         InputLabelProps={inputLabelProps}
         inputProps={inputProps}
         error={otherProps.error || !isValid}
-        onBlur={() => setInputValue(dtValue.toFormat(format, { zone }))}
+        onBlur={() => setInputValue(dtValue.toFormat(format))}
       />
     )
   }
