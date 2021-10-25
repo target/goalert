@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createRef, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@material-ui/core/Checkbox'
 import DialogContentText from '@material-ui/core/DialogContentText'
