@@ -1,15 +1,16 @@
 /* eslint-disable camelcase */
-declare namespace NodeJS {
-  export interface Global {
-    __webpack_public_path__: string
-    pathPrefix: string
-    applicationName: string
-    GOALERT_VERSION: string
-  }
+/* eslint-disable no-var */
 
+declare namespace NodeJS {
   declare module '*.md'
   declare module '*.png'
 }
+
+var __webpack_public_path__: string
+var pathPrefix: string
+var applicationName: string
+var GOALERT_VERSION: string
+var Cypress: any
 
 declare module 'modernizr-esm/feature/inputtypes' {
   import * as m from 'modernizr'
