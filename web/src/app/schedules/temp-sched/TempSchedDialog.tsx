@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@material-ui/core/Checkbox'
 import DialogContentText from '@material-ui/core/DialogContentText'
@@ -192,10 +192,16 @@ export default function TempSchedDialog({
     },
   })
 
+  const shiftListRef = useRef<HTMLDivElement | null>(null)
+
   const handleSubmit = (): void => {
     setHasSubmitted(true)
 
     if (hasCoverageGaps && !allowNoCoverage) {
+      // Scroll to show gap in coverage error on top of shift list
+      if (shiftListRef?.current) {
+        shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
       return
     }
 
@@ -332,7 +338,7 @@ export default function TempSchedDialog({
               spacing={2}
               className={classes.rightPane}
             >
-              <Grid item xs={12}>
+              <Grid item xs={12} ref={shiftListRef}>
                 <Typography variant='subtitle1' component='h3'>
                   Shifts
                 </Typography>
