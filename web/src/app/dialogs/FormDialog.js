@@ -6,7 +6,6 @@ import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import { isWidthUp } from '@material-ui/core/withWidth/index'
 
 import { FadeTransition, SlideTransition } from '../util/Transitions'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -16,7 +15,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
-import useWidth from '../util/useWidth'
+import { useIsWidthUp } from '../util/useWidth'
 
 const useStyles = makeStyles((theme) => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
@@ -40,16 +39,13 @@ const useStyles = makeStyles((theme) => {
       flexGrow: 0,
       overflowY: 'visible',
     },
+    fullHeight: {
+      height: '100%',
+    },
   }
 })
 
 function FormDialog(props) {
-  const classes = useStyles()
-  const width = useWidth()
-  const isWideScreen = isWidthUp('md', width)
-  const [open, setOpen] = useState(true)
-  const [attemptCount, setAttemptCount] = useState(0)
-
   const {
     alert,
     confirm,
@@ -66,8 +62,20 @@ function FormDialog(props) {
     title,
     onNext,
     onBack,
+    fullHeight,
     ...dialogProps
   } = props
+
+  const classes = useStyles()
+  const isWideScreen = useIsWidthUp('md')
+  const [open, setOpen] = useState(true)
+  const [attemptCount, setAttemptCount] = useState(0)
+
+  const classesProp = fullHeight
+    ? {
+        paper: classes.fullHeight,
+      }
+    : {}
 
   const handleOnClose = () => {
     setOpen(false)
@@ -154,6 +162,7 @@ function FormDialog(props) {
   const fs = fullScreen || (!isWideScreen && !confirm)
   return (
     <Dialog
+      classes={classesProp}
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
@@ -243,6 +252,9 @@ FormDialog.propTypes = {
 
   // notices to render; see details/Notices.tsx
   notices: p.arrayOf(p.object),
+
+  // make dialog fill vertical space
+  fullHeight: p.bool,
 }
 
 FormDialog.defaultProps = {

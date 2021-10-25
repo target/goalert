@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@material-ui/core/Checkbox'
 import DialogContentText from '@material-ui/core/DialogContentText'
@@ -10,11 +10,17 @@ import { makeStyles } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert'
 import AlertTitle from '@material-ui/lab/AlertTitle'
 import _ from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
+import {
+  contentText,
+  dtToDuration,
+  fmtLocal,
+  Shift,
+  Value,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -41,11 +47,20 @@ const useStyles = makeStyles((theme) => ({
   },
   formContainer: {
     height: '100%',
-    padding: '0.5rem',
   },
   noCoverageError: {
     marginTop: '.5rem',
     marginBottom: '.5rem',
+  },
+  rightPane: {
+    [theme.breakpoints.down('md')]: {
+      marginTop: '1rem',
+    },
+    overflow: 'hidden',
+  },
+  sticky: {
+    position: 'sticky',
+    top: 0,
   },
   tzNote: {
     fontStyle: 'italic',
@@ -58,6 +73,17 @@ type TempScheduleDialogProps = {
   value?: Value
 }
 
+const clampForward = (nowISO: string, iso: string | undefined): string => {
+  if (!iso) return ''
+
+  const now = DateTime.fromISO(nowISO)
+  const dt = DateTime.fromISO(iso)
+  if (dt < now) {
+    return now.toISO()
+  }
+  return iso
+}
+
 export default function TempSchedDialog({
   onClose,
   scheduleID,
@@ -67,13 +93,25 @@ export default function TempSchedDialog({
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
-    start: _value?.start ?? '',
+    start: clampForward(now, _value?.start),
     end: _value?.end ?? '',
-    shifts: (_value?.shifts ?? []).map((s) =>
-      _.pick(s, 'start', 'end', 'userID'),
-    ),
+    clearStart: _value?.start ?? null,
+    clearEnd: _value?.end ?? null,
+    shifts: (_value?.shifts ?? [])
+      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .filter((s) => {
+        // clamp/filter out shifts that are in the past
+        if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+          return false
+        }
+
+        s.start = clampForward(now, s.start)
+        return true
+      }),
   })
+  const [shift, setShift] = useState<Shift | null>(null)
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
@@ -114,10 +152,34 @@ export default function TempSchedDialog({
       ]
     : []
 
+  function handleCoverageGapClick(coverageGap: Interval): void {
+    if (!showForm) setShowForm(true)
+
+    // make sure duration remains the same (evaluated off of the end timestamp)
+    const startDT = DateTime.fromISO(shift?.start ?? '', { zone })
+    const endDT = DateTime.fromISO(shift?.end ?? '', { zone })
+    const duration = dtToDuration(startDT, endDT)
+    const nextStart = coverageGap?.start
+    const nextEnd = nextStart.plus({ hours: duration })
+
+    setShift({
+      userID: shift?.userID ?? '',
+      start: nextStart.toISO(),
+      end: nextEnd.toISO(),
+    })
+  }
+
   const hasCoverageGaps = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
-    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+    return (
+      getCoverageGapItems(
+        schedInterval,
+        value.shifts,
+        zone,
+        handleCoverageGapClick,
+      ).length > 0
+    )
   })()
 
   const [submit, { loading, error }] = useMutation(mutation, {
@@ -130,10 +192,16 @@ export default function TempSchedDialog({
     },
   })
 
+  const shiftListRef = useRef<HTMLDivElement | null>(null)
+
   const handleSubmit = (): void => {
     setHasSubmitted(true)
 
     if (hasCoverageGaps && !allowNoCoverage) {
+      // Scroll to show gap in coverage error on top of shift list
+      if (shiftListRef?.current) {
+        shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
       return
     }
 
@@ -157,6 +225,7 @@ export default function TempSchedDialog({
 
   return (
     <FormDialog
+      fullHeight
       maxWidth='lg'
       title='Define a Temporary Schedule'
       onClose={onClose}
@@ -164,7 +233,8 @@ export default function TempSchedDialog({
       errors={errs}
       notices={
         !value.start ||
-        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
+        DateTime.fromISO(value.start, { zone }) >
+          DateTime.utc().minus({ hour: 1 }) ||
         edit
           ? []
           : [
@@ -181,9 +251,14 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue(newValue)}
+          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
         >
-          <Grid container className={classes.formContainer}>
+          <Grid
+            container
+            className={classes.formContainer}
+            justifyContent='space-between'
+          >
+            {/* left pane */}
             <Grid
               item
               xs={12}
@@ -191,7 +266,6 @@ export default function TempSchedDialog({
               container
               alignContent='flex-start'
               spacing={2}
-              style={{ paddingRight: '1rem' }}
             >
               <Grid item xs={12}>
                 <DialogContentText className={classes.contentText}>
@@ -200,13 +274,11 @@ export default function TempSchedDialog({
                 </DialogContentText>
               </Grid>
 
-              {!isLocalZone && (
-                <Grid item xs={12}>
-                  <Typography color='textSecondary' className={classes.tzNote}>
-                    Configuring in {zone}
-                  </Typography>
-                </Grid>
-              )}
+              <Grid item xs={12}>
+                <Typography color='textSecondary' className={classes.tzNote}>
+                  Configuring in {zone}
+                </Typography>
+              </Grid>
 
               <Grid item xs={12} md={6}>
                 <FormField
@@ -216,9 +288,12 @@ export default function TempSchedDialog({
                   name='start'
                   label='Schedule Start'
                   min={now}
+                  max={DateTime.fromISO(now, { zone })
+                    .plus({ year: 1 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
                 />
               </Grid>
@@ -230,66 +305,84 @@ export default function TempSchedDialog({
                   name='end'
                   label='Schedule End'
                   min={value.start}
+                  max={DateTime.fromISO(value.start, { zone })
+                    .plus({ month: 3 })
+                    .toISO()}
                   validate={() => validate()}
                   timeZone={zone}
-                  disabled={q.loading || edit}
+                  disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.end)}
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} className={classes.sticky}>
                 <TempSchedAddNewShift
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
                   scheduleID={scheduleID}
                   edit={edit}
+                  showForm={showForm}
+                  setShowForm={setShowForm}
+                  shift={shift}
+                  setShift={setShift}
                 />
               </Grid>
             </Grid>
 
-            {/* shifts list container */}
-            <Grid item xs={12} md={6}>
-              <Typography variant='subtitle1' component='h3'>
-                Shifts
-              </Typography>
+            {/* right pane */}
+            <Grid
+              item
+              xs={12}
+              md={6}
+              container
+              spacing={2}
+              className={classes.rightPane}
+            >
+              <Grid item xs={12} ref={shiftListRef}>
+                <Typography variant='subtitle1' component='h3'>
+                  Shifts
+                </Typography>
 
-              {/* coverage warning */}
-              {hasSubmitted && hasCoverageGaps && (
-                <Alert severity='error' className={classes.noCoverageError}>
-                  <AlertTitle>Gaps in coverage</AlertTitle>
-                  <FormHelperText>
-                    There are gaps in coverage. During these gaps, nobody on the
-                    schedule will receive alerts. If you still want to proceed,
-                    check the box below and retry.
-                  </FormHelperText>
-                  <FormControlLabel
-                    label='Allow gaps in coverage'
-                    labelPlacement='end'
-                    control={
-                      <Checkbox
-                        data-cy='no-coverage-checkbox'
-                        checked={allowNoCoverage}
-                        onChange={(e) => setAllowNoCoverage(e.target.checked)}
-                        name='allowCoverageGaps'
-                      />
-                    }
-                  />
-                </Alert>
-              )}
+                {hasSubmitted && hasCoverageGaps && (
+                  <Alert severity='error' className={classes.noCoverageError}>
+                    <AlertTitle>Gaps in coverage</AlertTitle>
+                    <FormHelperText>
+                      There are gaps in coverage. During these gaps, nobody on
+                      the schedule will receive alerts. If you still want to
+                      proceed, check the box below and retry.
+                    </FormHelperText>
+                    <FormControlLabel
+                      label='Allow gaps in coverage'
+                      labelPlacement='end'
+                      control={
+                        <Checkbox
+                          data-cy='no-coverage-checkbox'
+                          checked={allowNoCoverage}
+                          onChange={(e) => setAllowNoCoverage(e.target.checked)}
+                          name='allowCoverageGaps'
+                        />
+                      }
+                    />
+                  </Alert>
+                )}
 
-              <TempSchedShiftsList
-                scheduleID={scheduleID}
-                value={value.shifts}
-                start={value.start}
-                end={value.end}
-                onRemove={(shift: Shift) => {
-                  setValue({
-                    ...value,
-                    shifts: value.shifts.filter((s) => !shiftEquals(shift, s)),
-                  })
-                }}
-                edit={edit}
-              />
+                <TempSchedShiftsList
+                  scheduleID={scheduleID}
+                  value={value.shifts}
+                  start={value.start}
+                  end={value.end}
+                  onRemove={(shift: Shift) => {
+                    setValue({
+                      ...value,
+                      shifts: value.shifts.filter(
+                        (s) => !shiftEquals(shift, s),
+                      ),
+                    })
+                  }}
+                  edit={edit}
+                  handleCoverageGapClick={handleCoverageGapClick}
+                />
+              </Grid>
             </Grid>
           </Grid>
         </FormContainer>

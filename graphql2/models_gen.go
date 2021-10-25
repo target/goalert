@@ -182,6 +182,7 @@ type CreateUserInput struct {
 	Name     *string   `json:"name"`
 	Email    *string   `json:"email"`
 	Role     *UserRole `json:"role"`
+	Favorite *bool     `json:"favorite"`
 }
 
 type CreateUserNotificationRuleInput struct {
@@ -368,6 +369,8 @@ type SetScheduleOnCallNotificationRulesInput struct {
 
 type SetTemporaryScheduleInput struct {
 	ScheduleID string                `json:"scheduleID"`
+	ClearStart *time.Time            `json:"clearStart"`
+	ClearEnd   *time.Time            `json:"clearEnd"`
 	Start      time.Time             `json:"start"`
 	End        time.Time             `json:"end"`
 	Shifts     []schedule.FixedShift `json:"shifts"`
@@ -525,12 +528,14 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First   *int                `json:"first"`
-	After   *string             `json:"after"`
-	Search  *string             `json:"search"`
-	Omit    []string            `json:"omit"`
-	CMValue *string             `json:"CMValue"`
-	CMType  *contactmethod.Type `json:"CMType"`
+	First          *int                `json:"first"`
+	After          *string             `json:"after"`
+	Search         *string             `json:"search"`
+	Omit           []string            `json:"omit"`
+	CMValue        *string             `json:"CMValue"`
+	CMType         *contactmethod.Type `json:"CMType"`
+	FavoritesOnly  *bool               `json:"favoritesOnly"`
+	FavoritesFirst *bool               `json:"favoritesFirst"`
 }
 
 type VerifyContactMethodInput struct {

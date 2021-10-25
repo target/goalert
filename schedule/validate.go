@@ -1,10 +1,10 @@
 package schedule
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -33,28 +33,23 @@ func validateWithinTimeRange(tPrefix, prefix string, tStart, tEnd, start, end ti
 	return nil
 }
 
-func (store *Store) validateShifts(ctx context.Context, fname string, max int, shifts []FixedShift, start, end time.Time) error {
-	if len(shifts) > max {
-		return validation.NewFieldError(fname, "too many shifts defined")
+func (temp TemporarySchedule) validateShifts(checkUser user.ExistanceChecker) error {
+	if len(temp.Shifts) > FixedShiftsPerTemporaryScheduleLimit {
+		return validation.NewFieldError("Shifts", "too many shifts defined")
 	}
 
-	check, err := store.usr.UserExists(ctx)
-	if err != nil {
-		return err
-	}
-
-	for i, s := range shifts {
-		prefix := fmt.Sprintf("%s[%d].", fname, i)
+	for i, s := range temp.Shifts {
+		prefix := fmt.Sprintf("Shifts[%d].", i)
 
 		err := validate.Many(
 			validate.UUID(prefix+"UserID", s.UserID),
 			validateTimeRange(prefix, s.Start, s.End),
-			validateWithinTimeRange(prefix, "", s.Start, s.End, start, end),
+			validateWithinTimeRange(prefix, "", s.Start, s.End, temp.Start, temp.End),
 		)
 		if err != nil {
 			return err
 		}
-		if !check.UserExistsString(s.UserID) {
+		if checkUser != nil && !checkUser.UserExistsString(s.UserID) {
 			return validation.NewFieldError(prefix+"UserID", "user does not exist")
 		}
 	}

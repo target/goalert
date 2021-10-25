@@ -289,6 +289,9 @@ input ClearTemporarySchedulesInput {
 input SetTemporaryScheduleInput {
   scheduleID: ID!
 
+  clearStart: ISOTimestamp
+  clearEnd: ISOTimestamp
+
   start: ISOTimestamp!
   end: ISOTimestamp!
 
@@ -404,6 +407,7 @@ input CreateUserInput {
   name: String
   email: String
   role: UserRole
+  favorite: Boolean
 }
 
 input CreateUserCalendarSubscriptionInput {
@@ -806,6 +810,12 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input AlertSearchOptions {
@@ -1083,6 +1093,8 @@ type User {
   sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+
+  isFavorite: Boolean!
 }
 
 type UserSession {

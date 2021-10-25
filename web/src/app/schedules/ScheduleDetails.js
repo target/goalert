@@ -17,6 +17,8 @@ import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
+import ScheduleCalendarOverrideDialog from './calendar/ScheduleCalendarOverrideDialog'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -39,7 +41,6 @@ export const ScheduleCalendarContext = React.createContext({
   // ts files infer function signature, need parameter list
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setOverrideDialog: (overrideVal) => {},
-  overrideDialog: null,
 })
 
 export default function ScheduleDetails({ scheduleID }) {
@@ -47,6 +48,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+  const isMobile = useIsWidthDown('sm')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
@@ -113,10 +115,18 @@ export default function ScheduleDetails({ scheduleID }) {
               onEditTempSched,
               onDeleteTempSched,
               setOverrideDialog,
-              overrideDialog,
             }}
           >
-            <ScheduleCalendarQuery scheduleID={scheduleID} />
+            {!isMobile && <ScheduleCalendarQuery scheduleID={scheduleID} />}
+            {Boolean(overrideDialog) && (
+              <ScheduleCalendarOverrideDialog
+                defaultValue={overrideDialog.defaultValue}
+                variantOptions={overrideDialog.variantOptions}
+                scheduleID={scheduleID}
+                onClose={() => setOverrideDialog(null)}
+                removeUserReadOnly={overrideDialog.removeUserReadOnly}
+              />
+            )}
           </ScheduleCalendarContext.Provider>
         }
         primaryActions={[

@@ -25,8 +25,7 @@ import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import { makeStyles } from '@material-ui/core'
-import { isWidthDown } from '@material-ui/core/withWidth'
-import useWidth from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
@@ -47,8 +46,7 @@ const updateStatusMutation = gql`
 `
 function AlertDetails(props) {
   const classes = useStyles()
-  const width = useWidth()
-  const fullScreen = isWidthDown('md', width)
+  const fullScreen = useIsWidthDown('md')
 
   const [ack] = useMutation(updateStatusMutation, {
     variables: {

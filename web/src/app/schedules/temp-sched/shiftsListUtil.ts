@@ -6,7 +6,7 @@ import {
   FlatListNotice,
   FlatListSub,
 } from '../../lists/FlatList'
-import { splitAtMidnight } from '../../util/luxon-helpers'
+import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
 
@@ -23,16 +23,22 @@ export type Sortable<T> = T & {
 export function getSubheaderItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
-  let lowerBound = schedInterval.start
-  let upperBound = schedInterval.end
-
-  // loop once to set timespan
-  for (const s of shifts) {
-    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
-    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
+  if (!schedInterval.isValid) {
+    return []
   }
+
+  // get earliest and farthest out start/end times
+  const lowerBound = DateTime.min(
+    schedInterval.start,
+    ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+  )
+
+  const upperBound = DateTime.max(
+    schedInterval.end,
+    ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
+  )
 
   const dayInvs = splitAtMidnight(
     Interval.fromDateTimes(lowerBound, upperBound),
@@ -52,23 +58,33 @@ export function getSubheaderItems(
 export function getOutOfBoundsItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
 ): Sortable<FlatListNotice>[] {
-  // timezone is loaded in after initial render
-  if (zone === '') {
+  if (!schedInterval.isValid) {
     return []
   }
 
   // get earliest and farthest out start/end times
-  let lowerBound = schedInterval.start
-  let upperBound = schedInterval.end
-  for (const s of shifts) {
-    lowerBound = DateTime.min(lowerBound, DateTime.fromISO(s.start, { zone }))
-    upperBound = DateTime.max(upperBound, DateTime.fromISO(s.end, { zone }))
-  }
+  const lowerBound = DateTime.min(
+    schedInterval.start,
+    ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+  )
 
-  const beforeStart = Interval.fromDateTimes(lowerBound, schedInterval.start)
-  const afterEnd = Interval.fromDateTimes(schedInterval.end, upperBound)
+  const upperBound = DateTime.max(
+    schedInterval.end,
+    ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
+  )
+
+  const beforeStart = Interval.fromDateTimes(
+    lowerBound,
+    schedInterval.start,
+  ).mapEndpoints((e) => e.startOf('day')) // ensure sched start date is not included
+
+  const afterEnd = Interval.fromDateTimes(
+    schedInterval.end,
+    upperBound,
+  ).mapEndpoints((e) => e.plus({ day: 1 }).startOf('day')) // ensure sched end date is not included
+
   const daysBeforeStart = splitAtMidnight(beforeStart)
   const daysAfterEnd = splitAtMidnight(afterEnd)
   const intervals = daysBeforeStart.concat(daysAfterEnd)
@@ -95,8 +111,12 @@ export function getOutOfBoundsItems(
 export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: string,
+  zone: ExplicitZone,
+  handleCoverageClick: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
+  if (!schedInterval.isValid) {
+    return []
+  }
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const gapIntervals = _.flatMap(
     schedInterval.difference(...shiftIntervals),
@@ -115,12 +135,17 @@ export function getCoverageGapItems(
     }
 
     return {
+      'data-cy': 'day-no-coverage',
       id: 'day-no-coverage_' + gap.start.toISO(),
       type: 'WARNING',
       message: '',
       details,
       at: gap.start,
+      ends: gap.end,
       itemType: 'gap',
+      handleOnClick: () => {
+        handleCoverageClick(gap)
+      },
     }
   })
 }

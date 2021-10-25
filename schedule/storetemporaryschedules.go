@@ -71,26 +71,53 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	if err != nil {
 		return err
 	}
-	temp.Start = temp.Start.Truncate(time.Minute)
-	temp.End = temp.End.Truncate(time.Minute)
-	for i := range temp.Shifts {
-		temp.Shifts[i].Start = temp.Shifts[i].Start.Truncate(time.Minute)
-		temp.Shifts[i].End = temp.Shifts[i].End.Truncate(time.Minute)
-	}
 
-	err = validate.Many(
-		validateFuture("End", temp.End),
-		validateTimeRange("", temp.Start, temp.End),
-		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, temp.Shifts, temp.Start, temp.End),
-	)
+	check, err := store.usr.UserExists(ctx)
 	if err != nil {
 		return err
 	}
 
-	// truncate to current timestamp
-	temp.TrimStart(time.Now())
+	newTemp, err := temp.Normalize(check)
+	if err != nil {
+		return err
+	}
+
 	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
-		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, temp)
+		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, *newTemp)
+		return nil
+	})
+}
+
+// SetClearTemporarySchedules works like SetTemporarySchedule after clearing out any existing TemporarySchedules between clearStart and clearEnd.
+func (store *Store) SetClearTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, temp TemporarySchedule, clearStart, clearEnd time.Time) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return err
+	}
+
+	newTemp, err := temp.Normalize(check)
+	if err != nil {
+		return err
+	}
+
+	err = validateTimeRange("Clear", clearStart, clearEnd)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	if clearStart.Before(now) {
+		clearStart = now
+	}
+
+	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
+		data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, clearStart, clearEnd)
+		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, *newTemp)
 		return nil
 	})
 }
