@@ -56,8 +56,8 @@ function materialCalendar(date: string | DateTime, fieldName: string): void {
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] button`)
-    .first()
+  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+    .find('button[aria-label="calendar view is open, switch to year view"]')
     .click() // open year selection
 
   cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
