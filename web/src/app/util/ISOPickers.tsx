@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { DateTime, DurationObjectUnits } from 'luxon'
-import { TextField, OutlinedTextFieldProps } from '@material-ui/core'
+import { TextField, TextFieldProps } from '@material-ui/core'
 import V5TextField from '@mui/material/TextField'
 import DatePicker from '@mui/lab/DatePicker'
 import DateTimePicker from '@mui/lab/DateTimePicker'
@@ -9,15 +9,18 @@ import TimePicker from '@mui/lab/TimePicker'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { urlParamSelector } from '../selectors'
 
-interface ISOPickerProps extends PickerProps {
+interface ISOPickerProps extends NativeProps {
   Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
   format: string
   timeZone?: string
   truncateTo: keyof DurationObjectUnits
   type: 'time' | 'date' | 'datetime-local'
+
+  min?: string
+  max?: string
 }
 
-type PickerProps = Partial<Omit<OutlinedTextFieldProps, 'value'>> & {
+type NativeProps = Partial<Omit<TextFieldProps, 'value'>> & {
   value?: string
   onChange: (value: string) => void
 }
@@ -40,6 +43,8 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
     value,
     onChange,
+    min,
+    max,
 
     ...textFieldProps
   } = props
@@ -113,6 +118,11 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   }
 
   const label = type === 'time' ? 'Select a time...' : 'Select a date...'
+  let fmt: string
+  if (type === 'time') fmt = 'HH:mm'
+  else if (type === 'date') fmt = 'yyyy-MM-dd'
+  else fmt = "yyyy-MM-dd'T'HH:mm"
+
   if (native) {
     return (
       <TextField
@@ -121,6 +131,11 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
         onChange={handleNativeChange}
         label={label}
+        inputProps={{
+          min: min ? DateTime.fromISO(min, { zone }).toFormat(fmt) : undefined,
+          max: max ? DateTime.fromISO(max, { zone }).toFormat(fmt) : undefined,
+          ...textFieldProps?.inputProps,
+        }}
       />
     )
   }
@@ -130,8 +145,8 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       value={valueAsDT}
       onChange={handleFallbackChange}
       showTodayButton
-      minDate={props?.inputProps?.min}
-      maxDate={props?.inputProps?.max}
+      minDate={min ? DateTime.fromISO(min, { zone }) : undefined}
+      maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
       label={label}
       renderInput={(params) => (
         // @ts-expect-error potential type mismatches until fully on v5
@@ -150,7 +165,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 }
 
-export function ISOTimePicker(props: PickerProps): JSX.Element {
+export function ISOTimePicker(props: NativeProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
@@ -162,7 +177,7 @@ export function ISOTimePicker(props: PickerProps): JSX.Element {
   )
 }
 
-export function ISODatePicker(props: PickerProps): JSX.Element {
+export function ISODatePicker(props: NativeProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
@@ -174,7 +189,7 @@ export function ISODatePicker(props: PickerProps): JSX.Element {
   )
 }
 
-export function ISODateTimePicker(props: PickerProps): JSX.Element {
+export function ISODateTimePicker(props: NativeProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
