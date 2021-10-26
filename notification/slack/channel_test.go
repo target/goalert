@@ -16,7 +16,7 @@ import (
 func TestChannelSender_LoadChannels(t *testing.T) {
 	var waitUntil time.Time
 	mux := http.NewServeMux()
-	mux.HandleFunc("/users.conversations", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/users.conversations", func(w http.ResponseWriter, r *http.Request) {
 		switch r.FormValue("cursor") {
 		case "":
 			io.WriteString(w, `{"ok":true,"channels":[{"id":"C1","name":"channel1"},{"id":"C2","name":"channel2"}],"response_metadata":{"next_cursor":"cursor_1"}}`)
@@ -38,7 +38,7 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 			t.Errorf("unexpected cursor value '%s'", r.FormValue("cursor"))
 		}
 	})
-	mux.HandleFunc("/auth.test", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/auth.test", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, `{"ok":true,"team_id":"team_1"}`)
 	})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
