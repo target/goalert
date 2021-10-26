@@ -1699,6 +1699,11 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
+"@types/modernizr@3.5.3":
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/@types/modernizr/-/modernizr-3.5.3.tgz#8ef99e6252191c1d88647809109dc29884ba6d7a"
+  integrity sha512-jhMOZSS0UGYTS9pqvt6q3wtT3uvOSve5piTEmTMx3zzTuBLvSIMxSIBIc3d5lajVD5h4xc41AMZD2M5orN3PxA==
+
 "@types/node@*":
   version "16.11.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.5.tgz#e91be5ba4ab88c06095e7b61f9ad1767a1093faf"
