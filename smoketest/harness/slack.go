@@ -27,12 +27,17 @@ type SlackMessageState interface {
 	// AssertText asserts that the message contains the given keywords.
 	AssertText(keywords ...string)
 
+	// AssertNotText asserts that the message does not contain the given keywords.
+	AssertNotText(keywords ...string)
+
 	// AssertColor asserts that the message has the given color bar value.
 	AssertColor(color string)
 }
 
 type SlackMessage interface {
 	SlackMessageState
+
+	ExpectUpdate() SlackMessageState
 
 	// ExpectThreadReply waits and asserts that a non-broadcast thread reply is received.
 	ExpectThreadReply(keywords ...string)
@@ -175,11 +180,26 @@ func (msg *slackMessage) AssertText(keywords ...string) {
 	msg.h.t.Helper()
 
 	for _, w := range keywords {
-		if !strings.Contains(msg.Text, w) {
-			require.Contains(msg.h.t, msg.Text, w)
-		}
+		require.Contains(msg.h.t, msg.Text, w)
 	}
 }
+
+func (msg *slackMessage) AssertNotText(keywords ...string) {
+	msg.h.t.Helper()
+
+	for _, w := range keywords {
+		require.NotContains(msg.h.t, msg.Text, w)
+	}
+}
+
+func (msg *slackMessage) ExpectUpdate() SlackMessageState {
+	msg.h.t.Helper()
+
+	return msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+		return m.UpdateTS == msg.TS
+	})
+}
+
 func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 	msg.h.t.Helper()
 

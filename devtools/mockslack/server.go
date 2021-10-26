@@ -26,6 +26,7 @@ func NewServer() *Server {
 	}
 
 	srv.mux.HandleFunc("/api/chat.postMessage", srv.ServeChatPostMessage)
+	srv.mux.HandleFunc("/api/chat.update", srv.ServeChatUpdate)
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
 	srv.mux.HandleFunc("/api/users.conversations", srv.ServeConversationsList) // same data

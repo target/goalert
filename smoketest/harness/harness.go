@@ -473,6 +473,39 @@ func (h *Harness) CreateAlerts(serviceID string, summary ...string) {
 	})
 }
 
+// CreateAlertWithDetails will create a single alert with summary and detailss.
+func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) {
+	h.t.Helper()
+
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		h.t.Helper()
+		tx, err := h.backend.DB().BeginTx(ctx, nil)
+		if err != nil {
+			h.t.Fatalf("failed to start tx: %v", err)
+		}
+		defer tx.Rollback()
+		a := &alert.Alert{
+			ServiceID: serviceID,
+			Summary:   summary,
+			Details:   details,
+		}
+
+		h.t.Logf("insert alert: %v", a)
+		_, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
+		if err != nil {
+			h.t.Fatalf("failed to insert alert: %v", err)
+		}
+		if !isNew {
+			h.t.Fatal("could not create duplicate alert with summary: " + summary)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			h.t.Fatalf("failed to commit tx: %v", err)
+		}
+	})
+}
+
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.
 func (h *Harness) CreateManyAlert(serviceID, summary string) {
 	h.t.Helper()

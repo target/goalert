@@ -22,6 +22,7 @@ type Channel struct {
 type Message struct {
 	TS        string `json:"ts"`
 	ThreadTS  string `json:"thread_ts"`
+	UpdateTS  string `json:"update_ts"`
 	Text      string `json:"text"`
 	User      string `json:"user"`
 	Broadcast bool   `json:"reply_broadcast"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -18,6 +19,7 @@ type ChatPostMessageOptions struct {
 
 	AsUser bool
 
+	UpdateTS  string
 	ThreadTS  string
 	Broadcast bool
 }
@@ -88,6 +90,8 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		User:  user,
 		Color: opts.Color,
 
+		UpdateTS: opts.UpdateTS,
+
 		ThreadTS:  opts.ThreadTS,
 		Broadcast: opts.Broadcast,
 	}
@@ -140,6 +144,19 @@ func attachmentsText(value string) (text, color string, err error) {
 //
 // https://api.slack.com/methods/chat.postMessage
 func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("CHATPOST")
+	s.serveChatPostMessage(w, req, false)
+}
+
+// ServeChatUpdate serves a request to the `chat.update` API call.
+//
+// https://api.slack.com/methods/chat.update
+func (s *Server) ServeChatUpdate(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("CHATUPDATE")
+	s.serveChatPostMessage(w, req, true)
+}
+
+func (s *Server) serveChatPostMessage(w http.ResponseWriter, req *http.Request, isUpdate bool) {
 	chanID := req.FormValue("channel")
 
 	text, color, err := attachmentsText(req.FormValue("attachments"))
@@ -150,12 +167,19 @@ func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) 
 	if respondErr(w, err) {
 		return
 	}
+
+	var updateTS string
+	if isUpdate {
+		updateTS = req.FormValue("ts")
+	}
+
 	msg, err := s.API().ChatPostMessage(req.Context(), ChatPostMessageOptions{
 		ChannelID: chanID,
 		Text:      text,
 		Color:     color,
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
+		UpdateTS:  updateTS,
 
 		Broadcast: req.FormValue("reply_broadcast") == "true",
 	})
