@@ -130,7 +130,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 
 		ch.ID = resp.ID
-		ch.Name = resp.Name
+		ch.Name = "#" + resp.Name
 
 		return nil
 	})

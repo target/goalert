@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/util"
 )
 
 func waitContext(ctx context.Context, delay time.Duration) error {
@@ -31,10 +31,11 @@ func (cs *ChannelSender) withClient(ctx context.Context, withFn func(*slack.Clie
 
 	cfg := config.FromContext(ctx)
 	if cs.cfg.BaseURL != "" {
-		base := cs.cfg.BaseURL
-		if !strings.HasSuffix(base, "/") {
-			base += "/"
+		base, err := util.JoinURL(cs.cfg.BaseURL, "/api/")
+		if err != nil {
+			return fmt.Errorf("invalid Slack.BaseURL: %w", err)
 		}
+
 		opts = append(opts, slack.OptionAPIURL(base))
 	}
 
