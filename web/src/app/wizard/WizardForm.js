@@ -13,10 +13,10 @@ import { FormContainer, FormField } from '../forms'
 import WizardScheduleForm from './WizardScheduleForm'
 import { value as valuePropType } from './propTypes'
 import { makeStyles } from '@material-ui/core'
-import { isWidthDown } from '@material-ui/core/withWidth'
 import * as _ from 'lodash'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
+
 const useStyles = makeStyles({
   fieldItem: {
     marginLeft: '2.5em',
@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 
 export default function WizardForm(props) {
   const { onChange, value } = props
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
 
   const handleSecondaryScheduleToggle = (e) => {
@@ -69,7 +69,7 @@ export default function WizardForm(props) {
             errorName='newEscalationPolicy.name'
             label={`What is your team's name?`}
             formLabel
-            fullWidth={isWidthDown('md', width)}
+            fullWidth={fullScreen}
             required
           />
         </Grid>
@@ -129,7 +129,7 @@ export default function WizardForm(props) {
             errorName='newEscalationPolicy.steps0.delayMinutes'
             label={getDelayLabel()}
             formLabel
-            fullWidth={isWidthDown('md', width)}
+            fullWidth={fullScreen}
             required
             type='number'
             placeholder='15'
@@ -144,7 +144,7 @@ export default function WizardForm(props) {
             errorName='newEscalationPolicy.repeat'
             label='How many times would you like to repeat alerting your team?'
             formLabel
-            fullWidth={isWidthDown('md', width)}
+            fullWidth={fullScreen}
             required
             type='number'
             placeholder='3'
@@ -165,7 +165,7 @@ export default function WizardForm(props) {
             name='key'
             label='How would you like to connect your application with GoAlert?'
             formLabel
-            fullWidth={isWidthDown('md', width)}
+            fullWidth={fullScreen}
             required
             options={[
               {

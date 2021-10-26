@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@material-ui/core/Checkbox'
 import DialogContentText from '@material-ui/core/DialogContentText'
@@ -10,11 +10,17 @@ import { makeStyles } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert'
 import AlertTitle from '@material-ui/lab/AlertTitle'
 import _ from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, fmtLocal, Shift, Value } from './sharedUtils'
+import {
+  contentText,
+  dtToDuration,
+  fmtLocal,
+  Shift,
+  Value,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -87,6 +93,7 @@ export default function TempSchedDialog({
   const edit = Boolean(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
     start: clampForward(now, _value?.start),
     end: _value?.end ?? '',
@@ -104,6 +111,7 @@ export default function TempSchedDialog({
         return true
       }),
   })
+  const [shift, setShift] = useState<Shift | null>(null)
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
@@ -144,10 +152,34 @@ export default function TempSchedDialog({
       ]
     : []
 
+  function handleCoverageGapClick(coverageGap: Interval): void {
+    if (!showForm) setShowForm(true)
+
+    // make sure duration remains the same (evaluated off of the end timestamp)
+    const startDT = DateTime.fromISO(shift?.start ?? '', { zone })
+    const endDT = DateTime.fromISO(shift?.end ?? '', { zone })
+    const duration = dtToDuration(startDT, endDT)
+    const nextStart = coverageGap?.start
+    const nextEnd = nextStart.plus({ hours: duration })
+
+    setShift({
+      userID: shift?.userID ?? '',
+      start: nextStart.toISO(),
+      end: nextEnd.toISO(),
+    })
+  }
+
   const hasCoverageGaps = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
-    return getCoverageGapItems(schedInterval, value.shifts, zone).length > 0
+    return (
+      getCoverageGapItems(
+        schedInterval,
+        value.shifts,
+        zone,
+        handleCoverageGapClick,
+      ).length > 0
+    )
   })()
 
   const [submit, { loading, error }] = useMutation(mutation, {
@@ -160,10 +192,16 @@ export default function TempSchedDialog({
     },
   })
 
+  const shiftListRef = useRef<HTMLDivElement | null>(null)
+
   const handleSubmit = (): void => {
     setHasSubmitted(true)
 
     if (hasCoverageGaps && !allowNoCoverage) {
+      // Scroll to show gap in coverage error on top of shift list
+      if (shiftListRef?.current) {
+        shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
       return
     }
 
@@ -282,6 +320,11 @@ export default function TempSchedDialog({
                   value={value}
                   onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
                   scheduleID={scheduleID}
+                  edit={edit}
+                  showForm={showForm}
+                  setShowForm={setShowForm}
+                  shift={shift}
+                  setShift={setShift}
                 />
               </Grid>
             </Grid>
@@ -295,7 +338,7 @@ export default function TempSchedDialog({
               spacing={2}
               className={classes.rightPane}
             >
-              <Grid item xs={12}>
+              <Grid item xs={12} ref={shiftListRef}>
                 <Typography variant='subtitle1' component='h3'>
                   Shifts
                 </Typography>
@@ -337,6 +380,7 @@ export default function TempSchedDialog({
                     })
                   }}
                   edit={edit}
+                  handleCoverageGapClick={handleCoverageGapClick}
                 />
               </Grid>
             </Grid>

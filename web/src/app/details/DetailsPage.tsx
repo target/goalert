@@ -1,6 +1,5 @@
 import React, { cloneElement, forwardRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { isWidthDown } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
@@ -16,7 +15,7 @@ import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
 import CardActions, { Action } from './CardActions'
 import AppLink, { AppLinkProps } from '../util/AppLink'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
 
 interface DetailsPageProps {
@@ -39,10 +38,6 @@ type Link = {
   label: string
   subText?: string
   status?: LinkStatus
-}
-
-function isDesktopMode(width: string): boolean {
-  return width === 'md' || width === 'lg' || width === 'xl'
 }
 
 const useStyles = makeStyles({
@@ -76,7 +71,7 @@ const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
 
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
-  const width = useWidth()
+  const isMobile = useIsWidthDown('sm')
 
   const linkClassName = (status?: LinkStatus): string => {
     if (status === 'ok') return classes.statusOK
@@ -104,7 +99,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       )}
 
       {/* Header card */}
-      <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
+      <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>
         <Card className={classes.fullHeight}>
           <Grid
             className={classes.fullHeight}
@@ -160,7 +155,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Quick Links */}
       {links.length > 0 && (
-        <Grid item xs={12} lg={isDesktopMode(width) && links.length ? 4 : 12}>
+        <Grid item xs={12} lg={!isMobile && links.length ? 4 : 12}>
           <Card className={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
@@ -181,7 +176,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                   <ListItemText
                     primary={li.label}
                     primaryTypographyProps={
-                      isDesktopMode(width) ? undefined : { variant: 'h5' }
+                      !isMobile ? undefined : { variant: 'h5' }
                     }
                     secondary={li.subText}
                   />
@@ -196,9 +191,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       {/* Primary Page Content */}
       {p.pageContent && (
         <Grid
-          className={
-            isWidthDown('sm', width) ? classes.smPageBottom : undefined
-          }
+          className={isMobile ? classes.smPageBottom : undefined}
           item
           xs={12}
         >

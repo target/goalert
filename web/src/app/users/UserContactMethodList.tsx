@@ -9,15 +9,13 @@ import {
   IconButton,
   makeStyles,
 } from '@material-ui/core'
-
-import { isWidthUp } from '@material-ui/core/withWidth'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import useWidth from '../util/useWidth'
+import { useIsWidthDown } from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
@@ -59,7 +57,7 @@ export default function UserContactMethodList(
   props: UserContactMethodListProps,
 ): JSX.Element {
   const classes = useStyles()
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
@@ -122,7 +120,7 @@ export default function UserContactMethodList(
   function getSecondaryAction(cm: UserContactMethod): JSX.Element {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
-        {cm.disabled && !props.readOnly && isWidthUp('md', width) && (
+        {cm.disabled && !props.readOnly && !fullScreen && (
           <Grid item>
             <Button
               aria-label='Reactivate contact method'

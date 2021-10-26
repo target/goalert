@@ -1,6 +1,4 @@
 import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
-import { isWidthUp } from '@material-ui/core/withWidth'
-
 import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
 import CircularProgress from '@material-ui/core/CircularProgress'
@@ -11,15 +9,13 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
-
+import ListItemAvatar from '@material-ui/core/ListItemAvatar'
+import { makeStyles, Theme } from '@material-ui/core'
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
-import useWidth from '../util/useWidth'
-
+import { useIsWidthDown } from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
-import ListItemAvatar from '@material-ui/core/ListItemAvatar'
-import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
@@ -33,7 +29,7 @@ import { debug } from '../util/debug'
 // delete on details -> update list (cache, refetch?)
 // - on details, don't have accesses to search param
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
@@ -214,7 +210,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const [page, setPage] = useState(0)
 
   const pageCount = Math.ceil(items.length / itemsPerPage)
-  const width = useWidth()
+  const fullScreen = useIsWidthDown('md')
 
   // isLoading returns true if the parent says we are, or
   // we are currently on an incomplete page and `loadMore` is available.
@@ -313,7 +309,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     return (
       <ListItem
         className={itemClass}
-        dense={isWidthUp('md', width)}
+        dense={!fullScreen}
         key={'list_' + idx}
         {...urlProps}
       >
@@ -343,7 +339,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       while (renderedItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
-            dense={isWidthUp('md', width)}
+            dense={!fullScreen}
             key={'list_' + renderedItems.length}
           />,
         )
