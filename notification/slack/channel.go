@@ -3,7 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -223,6 +223,12 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
+func alertLink(ctx context.Context, id int, summary string) string {
+	cfg := config.FromContext(ctx)
+	path := fmt.Sprintf("/alerts/%d", id)
+	return fmt.Sprintf("<%s|Alert #%d: %s>", cfg.CallbackURL(path), id, slackutilsx.EscapeMessage(summary))
+}
+
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 
 	cfg := config.FromContext(ctx)
@@ -237,27 +243,54 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			opts = append(opts,
 				slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID),
 				slack.MsgOptionBroadcast(),
-				slack.MsgOptionText("Broadcasting to channel due to repeat notification.", true),
+				slack.MsgOptionText(alertLink(ctx, t.AlertID, t.Summary), false),
 			)
 			break
 		}
 
-		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Alert: %s\n\n<%s>", slackutilsx.EscapeMessage(t.Summary), cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))), false))
+		details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
+		opts = append(opts,
+			slack.MsgOptionAttachments(
+				slack.Attachment{
+					Color: "danger",
+					Blocks: slack.Blocks{
+						BlockSet: []slack.Block{
+							slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false),
+							slack.NewTextBlockObject("mrkdwn", details, false, false),
+							slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", "Unacknowledged", false, false)),
+						},
+					},
+				},
+			),
+		)
 	case notification.AlertStatus:
-		opts = append(opts, slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID))
-
-		var status string
+		var color string
+		details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
 		switch t.NewAlertStatus {
 		case alert.StatusActive:
-			status = "Acknowledged"
+			color = "warning"
 		case alert.StatusTriggered:
-			status = "Unacknowledged"
+			color = "danger"
 		case alert.StatusClosed:
-			status = "Closed"
+			color = "good"
+			details = ""
 		}
 
-		text := "Status Update: " + status + "\n" + t.LogEntry
-		opts = append(opts, slack.MsgOptionText(text, true))
+		opts = append(opts,
+			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
+			slack.MsgOptionAttachments(
+				slack.Attachment{
+					Color: color,
+					Blocks: slack.Blocks{
+						BlockSet: []slack.Block{
+							slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false),
+							slack.NewTextBlockObject("mrkdwn", details, false, false),
+							slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", slackutilsx.EscapeMessage(t.LogEntry), false, false)),
+						},
+					},
+				},
+			),
+		)
 	case notification.AlertBundle:
 		opts = append(opts, slack.MsgOptionText(
 			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
