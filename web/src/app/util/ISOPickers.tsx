@@ -73,7 +73,7 @@ function useISOPicker(
       return dt
     }
 
-    const iso = DateTime.fromISO(input)
+    const iso = DateTime.fromISO(input, { zone })
     if (iso.isValid) return iso
 
     return null
@@ -92,8 +92,8 @@ function useISOPicker(
 
   // sets min and max if set
   const inputProps = otherProps?.inputProps ?? {}
-  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
-  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
+  if (min) inputProps.min = DateTime.fromISO(min, { zone }).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max, { zone }).toFormat(format)
 
   // NOTE the input is either a traditional ChangeEvent
   // or an object with a MaterialUiPickersDate as its target value
@@ -112,7 +112,7 @@ function useISOPicker(
     }
   }
 
-  const inputDT = DateTime.fromISO(inputToISO(inputValue))
+  const inputDT = DateTime.fromISO(inputToISO(inputValue), { zone })
   let isValid = inputDT.isValid
   if (min && isValid) {
     isValid = inputDT >= DateTime.fromISO(min)
