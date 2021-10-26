@@ -31,8 +31,8 @@ const useStyles = makeStyles({
 
 export interface Notice {
   type: NoticeType
-  message: string
-  details: string
+  message: string | JSX.Element
+  details: string | JSX.Element
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
