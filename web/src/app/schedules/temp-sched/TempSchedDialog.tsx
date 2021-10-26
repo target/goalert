@@ -136,7 +136,9 @@ export default function TempSchedDialog({
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
     return value.shifts.some(
-      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+      (s) =>
+        DateTime.fromISO(s.end) > DateTime.fromISO(now) &&
+        !schedInterval.engulfs(parseInterval(s, zone)),
     )
   })()
 
@@ -366,7 +368,7 @@ export default function TempSchedDialog({
                 <TempSchedShiftsList
                   scheduleID={scheduleID}
                   value={value.shifts}
-                  start={_value?.start ? now : value.start}
+                  start={value.start}
                   end={value.end}
                   onRemove={(shift: Shift) => {
                     setValue({

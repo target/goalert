@@ -17,7 +17,14 @@ export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
   at: DateTime
   // itemType categorizes a list item
-  itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end' | 'outOfBounds'
+  itemType:
+    | 'subheader'
+    | 'gap'
+    | 'shift'
+    | 'start'
+    | 'end'
+    | 'outOfBounds'
+    | 'active'
 }
 
 export function getSubheaderItems(
@@ -159,10 +166,13 @@ export function sortItems(
     if (a.at > b.at) return 1
 
     // a and b are at same time; use item type priority instead
-    // subheaders first
+    // currently-active notice first
+    if (a.itemType === 'active') return -1
+    if (b.itemType === 'active') return 1
+    // then subheaders
     if (a.itemType === 'subheader') return -1
     if (b.itemType === 'subheader') return 1
-    // out of bounds info next
+    // then out of bounds
     if (a.itemType === 'outOfBounds') return -1
     if (b.itemType === 'outOfBounds') return 1
     // then start notice

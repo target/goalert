@@ -18,7 +18,7 @@ import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from './hooks'
-import { Chip, CircularProgress } from '@material-ui/core'
+import { CircularProgress } from '@material-ui/core'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
   fmtTime,
@@ -145,9 +145,7 @@ export default function TempSchedShiftsList({
                       <Error color='error' />
                     </Tooltip>
                   )}
-                  {isHistoricShift ? (
-                    <Chip style={{ opacity: 0.6 }} label='Concluded' />
-                  ) : (
+                  {isHistoricShift ? null : (
                     <IconButton
                       aria-label='delete shift'
                       onClick={() => onRemove(s)}
@@ -165,13 +163,24 @@ export default function TempSchedShiftsList({
     })()
 
     const startItem = (() => {
-      let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
-      let message = ''
+      const active = edit && DateTime.fromISO(start, { zone }) < now
 
-      if (edit && DateTime.fromISO(start, { zone }) < now) {
-        message = 'Currently active'
-        details = 'Historical shifts will not be displayed'
-      }
+      const { message, details, at, itemType } = active
+        ? {
+            message: 'Currently active',
+            details: 'Historical shifts are not editable',
+            at: DateTime.min(
+              DateTime.fromISO(start, { zone }),
+              ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+            ).startOf('day'),
+            itemType: 'active',
+          }
+        : {
+            message: '',
+            details: `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`,
+            at: DateTime.fromISO(start, { zone }),
+            itemType: 'start',
+          }
 
       return {
         id: 'sched-start_' + start,
@@ -179,8 +188,8 @@ export default function TempSchedShiftsList({
         icon: <ScheduleIcon />,
         message,
         details,
-        at: DateTime.fromISO(start, { zone }),
-        itemType: 'start',
+        at,
+        itemType,
       } as Sortable<FlatListNotice>
     })()
 
