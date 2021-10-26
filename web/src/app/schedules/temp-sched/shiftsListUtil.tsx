@@ -146,8 +146,10 @@ export function getCoverageGapItems(
       }
     } else {
       details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
-       if (!isLocalZone) {
-        title += ` from ${fmtLocal(gap.start.toString())} to ${fmtLocal(gap.end.toString())}`
+      if (!isLocalZone) {
+        title += ` from ${fmtLocal(gap.start.toString())} to ${fmtLocal(
+          gap.end.toString(),
+        )}`
       }
     }
 
