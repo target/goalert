@@ -32,6 +32,12 @@ type ChannelSender struct {
 	teamMx sync.Mutex
 }
 
+const (
+	colorClosed  = "#218626"
+	colorUnacked = "#862421"
+	colorAcked   = "#867321"
+)
+
 var _ notification.Sender = &ChannelSender{}
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
@@ -252,11 +258,14 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		opts = append(opts,
 			slack.MsgOptionAttachments(
 				slack.Attachment{
-					Color: "danger",
+					Color: colorUnacked,
 					Blocks: slack.Blocks{
 						BlockSet: []slack.Block{
-							slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false),
-							slack.NewTextBlockObject("mrkdwn", details, false, false),
+							slack.NewSectionBlock(
+								slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false), nil, nil),
+
+							slack.NewSectionBlock(
+								slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil),
 							slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", "Unacknowledged", false, false)),
 						},
 					},
@@ -268,26 +277,30 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
 		switch t.NewAlertStatus {
 		case alert.StatusActive:
-			color = "warning"
+			color = colorAcked
 		case alert.StatusTriggered:
-			color = "danger"
+			color = colorUnacked
 		case alert.StatusClosed:
-			color = "good"
+			color = colorClosed
 			details = ""
 		}
+
+		blocks := []slack.Block{
+			slack.NewSectionBlock(
+				slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false), nil, nil),
+		}
+		if details != "" {
+			blocks = append(blocks, slack.NewSectionBlock(
+				slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil))
+		}
+		blocks = append(blocks, slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", slackutilsx.EscapeMessage(t.LogEntry), false, false)))
 
 		opts = append(opts,
 			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
 			slack.MsgOptionAttachments(
 				slack.Attachment{
-					Color: color,
-					Blocks: slack.Blocks{
-						BlockSet: []slack.Block{
-							slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false),
-							slack.NewTextBlockObject("mrkdwn", details, false, false),
-							slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", slackutilsx.EscapeMessage(t.LogEntry), false, false)),
-						},
-					},
+					Color:  color,
+					Blocks: slack.Blocks{BlockSet: blocks},
 				},
 			),
 		)
