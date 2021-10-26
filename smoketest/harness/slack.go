@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mockslack"
 )
 
@@ -25,6 +26,9 @@ type SlackChannel interface {
 type SlackMessageState interface {
 	// AssertText asserts that the message contains the given keywords.
 	AssertText(keywords ...string)
+
+	// AssertColor asserts that the message has the given color bar value.
+	AssertColor(color string)
 }
 
 type SlackMessage interface {
@@ -159,12 +163,20 @@ func (ch *slackChannel) hasUnexpectedMessages() bool {
 	return hasFailure
 }
 
+func (msg *slackMessage) AssertColor(color string) {
+	msg.h.t.Helper()
+
+	if msg.Color != color {
+		require.Equalf(msg.h.t, color, msg.Color, "message color")
+	}
+}
+
 func (msg *slackMessage) AssertText(keywords ...string) {
 	msg.h.t.Helper()
 
 	for _, w := range keywords {
 		if !strings.Contains(msg.Text, w) {
-			msg.h.t.Errorf("slack message '%s' does not contain keyword: %s", msg.Text, w)
+			require.Contains(msg.h.t, msg.Text, w)
 		}
 	}
 }

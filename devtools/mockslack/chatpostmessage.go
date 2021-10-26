@@ -83,9 +83,10 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 	}
 
 	msg := &Message{
-		TS:   ch.nextTS(),
-		Text: opts.Text,
-		User: user,
+		TS:    ch.nextTS(),
+		Text:  opts.Text,
+		User:  user,
+		Color: opts.Color,
 
 		ThreadTS:  opts.ThreadTS,
 		Broadcast: opts.Broadcast,
