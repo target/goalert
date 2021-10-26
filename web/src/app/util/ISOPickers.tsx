@@ -1,12 +1,5 @@
-import React, { useState, useEffect, FC } from 'react'
-import {
-  DatePicker,
-  TimePicker,
-  DateTimePicker,
-  DateTimePickerProps,
-  DatePickerProps,
-  TimePickerProps,
-} from '@material-ui/pickers'
+import React, { useState, useEffect } from 'react'
+import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
 import { DateTime, DurationObjectUnits } from 'luxon'
 import {
   TextField,
@@ -30,7 +23,7 @@ interface ISOPickerOptions {
   format: string
   truncateTo: keyof DurationObjectUnits
   type: keyof InputTypesBoolean
-  Fallback: FC<DatePickerProps> | FC<DateTimePickerProps> | FC<TimePickerProps>
+  Fallback: typeof DatePicker | typeof DateTimePicker | typeof TimePicker
 }
 
 type OtherProps = Partial<TextFieldProps & ISOPickerOptions['Fallback']>
@@ -95,7 +88,7 @@ function useISOPicker(
   if (min) inputProps.min = DateTime.fromISO(min, { zone }).toFormat(format)
   if (max) inputProps.max = DateTime.fromISO(max, { zone }).toFormat(format)
 
-  // NOTE the input is either a traditional ChangeEvent
+  // NOTE the input is either a conventional ChangeEvent
   // or an object with a MaterialUiPickersDate as its target value
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleChange = (e: any): void => {
