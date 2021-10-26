@@ -2,8 +2,11 @@ package mockslack
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -11,6 +14,7 @@ import (
 type ChatPostMessageOptions struct {
 	ChannelID string
 	Text      string
+	Color     string
 
 	AsUser bool
 
@@ -91,14 +95,64 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 	return msg, nil
 }
 
+var errNoAttachment = errors.New("no attachment")
+
+func attachmentsText(value string) (text, color string, err error) {
+	if value == "" {
+		return "", "", errNoAttachment
+	}
+
+	type textBlock struct{ Text string }
+
+	var data [1]struct {
+		Color  string
+		Blocks []struct {
+			Elements []textBlock
+			Text     textBlock
+		}
+	}
+
+	err = json.Unmarshal([]byte(value), &data)
+	if err != nil {
+		return "", "", err
+	}
+
+	var payload strings.Builder
+	appendText := func(b textBlock) {
+		if b.Text == "" {
+			return
+		}
+		payload.WriteString(b.Text + "\n")
+	}
+
+	for _, b := range data[0].Blocks {
+		appendText(b.Text)
+		for _, e := range b.Elements {
+			appendText(e)
+		}
+	}
+
+	return payload.String(), data[0].Color, nil
+}
+
 // ServeChatPostMessage serves a request to the `chat.postMessage` API call.
 //
 // https://api.slack.com/methods/chat.postMessage
 func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) {
 	chanID := req.FormValue("channel")
+
+	text, color, err := attachmentsText(req.FormValue("attachments"))
+	if err == errNoAttachment {
+		err = nil
+		text = req.FormValue("text")
+	}
+	if respondErr(w, err) {
+		return
+	}
 	msg, err := s.API().ChatPostMessage(req.Context(), ChatPostMessageOptions{
 		ChannelID: chanID,
-		Text:      req.FormValue("text"),
+		Text:      text,
+		Color:     color,
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
 
