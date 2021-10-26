@@ -49,14 +49,14 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	sid := h.UUID("sid")
 
 	// Creating alerts
-	h.CreateAlert(sid, "alert1")
-	h.CreateAlert(sid, "alert2")
+	h.CreateAlerts(sid, "alert1")
+	h.CreateAlerts(sid, "alert2")
 
 	// Expect 2 SMS for 2 unacknowledged alerts
 	h.Twilio(t).Device(phone).ExpectSMS("alert1")
 	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
-	h.CreateAlert(sid, "alert3")
+	h.CreateAlerts(sid, "alert3")
 
 	// GraphQL2 section starts
 	doQL2 := func(query string, res interface{}) {

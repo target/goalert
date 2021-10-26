@@ -43,7 +43,7 @@ func TestMessageBundle_SMS(t *testing.T) {
 	h.SetConfigValue("General.DisableMessageBundles", "false")
 	h.SetConfigValue("General.ShortURL", "http://sho.rt")
 
-	h.CreateAlert(h.UUID("sid"), "test1", "test2", "test3", "test4")
+	h.CreateAlerts(h.UUID("sid"), "test1", "test2", "test3", "test4")
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))

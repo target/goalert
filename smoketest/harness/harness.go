@@ -440,8 +440,8 @@ func (h *Harness) CloseAlert(serviceID, summary string) {
 	})
 }
 
-// CreateAlert will create one or more unacknowledged alerts for a service.
-func (h *Harness) CreateAlert(serviceID string, summary ...string) {
+// CreateAlerts will create one or more unacknowledged alerts for a service.
+func (h *Harness) CreateAlerts(serviceID string, summary ...string) {
 	h.t.Helper()
 
 	permission.SudoContext(context.Background(), func(ctx context.Context) {

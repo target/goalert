@@ -70,7 +70,7 @@ func TestStatusUpdatesCancel(t *testing.T) {
 	d1 := tw.Device(h.Phone("1"))
 	d2 := tw.Device(h.Phone("2"))
 
-	h.CreateAlert(h.UUID("sid"), "first")
+	h.CreateAlerts(h.UUID("sid"), "first")
 	d1.ExpectSMS("first")
 	d2.ExpectSMS("first")
 	h.Trigger() // cleanup subscription to cm2, since only cm1 is configured
@@ -82,7 +82,7 @@ func TestStatusUpdatesCancel(t *testing.T) {
 	// no status update as only cm1 was subscribed, and the setting change
 	// should have canceled the subscription.
 
-	h.CreateAlert(h.UUID("sid"), "second")
+	h.CreateAlerts(h.UUID("sid"), "second")
 	d1.ExpectSMS("second")
 	d2.ExpectSMS("second")
 

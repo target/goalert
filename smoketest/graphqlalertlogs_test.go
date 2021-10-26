@@ -3,8 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLAlertLogs tests that logs are properly generated for an alert.
@@ -46,7 +47,7 @@ func TestGraphQLAlertLogs(t *testing.T) {
 	}
 
 	sid := h.UUID("sid")
-	h.CreateAlert(sid, "alert1")
+	h.CreateAlerts(sid, "alert1")
 
 	// Acknowledging alert
 	doQL(fmt.Sprintf(`

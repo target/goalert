@@ -44,24 +44,24 @@ func TestTwilioSMSReplyCode(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	h.CreateAlert(h.UUID("sid"), "test1")
+	h.CreateAlerts(h.UUID("sid"), "test1")
 	d1.ExpectSMS("test1", "1c", "1a").
 		ThenReply("1a").
 		ThenExpect("Acknowledged", "#1")
 
-	h.CreateAlert(h.UUID("sid"), "test2")
+	h.CreateAlerts(h.UUID("sid"), "test2")
 	d1.ExpectSMS("test2", "2c", "2a").
 		ThenReply("1a"). // ack again
 		ThenExpect("already", "ack").
 		ThenReply("'1c'").
 		ThenExpect("Closed", "#1")
 
-	h.CreateAlert(h.UUID("sid"), "test3")
+	h.CreateAlerts(h.UUID("sid"), "test3")
 	d1.ExpectSMS("test3", "1c", "1a").
 		ThenReply("1 a").
 		ThenExpect("Ack", "#3")
 
-	h.CreateAlert(h.UUID("sid"), "test4")
+	h.CreateAlerts(h.UUID("sid"), "test4")
 	d1.ExpectSMS("test4", "3c", "3a").
 		ThenReply("close 4").
 		ThenExpect("Closed", "#4")

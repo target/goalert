@@ -69,7 +69,7 @@ func TestPrioritization(t *testing.T) {
 
 	d1.ExpectSMS("service-1-alert")
 
-	h.CreateAlert(h.UUID("s2"), "service-2-alert")
+	h.CreateAlerts(h.UUID("s2"), "service-2-alert")
 	// account for throttling
 	h.FastForward(15 * time.Minute)
 
