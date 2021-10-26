@@ -1,14 +1,17 @@
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
+import { fmtLocal } from './sharedUtils'
+import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 
 import {
   FlatListListItem,
   FlatListNotice,
   FlatListSub,
 } from '../../lists/FlatList'
-import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
+import * as luxonHelpers from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
+import React from 'react'
 
 export const fmtTime = (dt: DateTime): string =>
   dt.toLocaleString(DateTime.TIME_SIMPLE)
@@ -18,12 +21,14 @@ export type Sortable<T> = T & {
   at: DateTime
   // itemType categorizes a list item
   itemType: 'subheader' | 'gap' | 'shift' | 'start' | 'end' | 'outOfBounds'
+  // ends is the latest point in time for a list item
+  ends?: DateTime
 }
 
 export function getSubheaderItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: ExplicitZone,
+  zone: luxonHelpers.ExplicitZone,
 ): Sortable<FlatListSub>[] {
   if (!schedInterval.isValid) {
     return []
@@ -40,7 +45,7 @@ export function getSubheaderItems(
     ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
   )
 
-  const dayInvs = splitAtMidnight(
+  const dayInvs = luxonHelpers.splitAtMidnight(
     Interval.fromDateTimes(lowerBound, upperBound),
   )
 
@@ -58,7 +63,7 @@ export function getSubheaderItems(
 export function getOutOfBoundsItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: ExplicitZone,
+  zone: luxonHelpers.ExplicitZone,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
@@ -85,8 +90,8 @@ export function getOutOfBoundsItems(
     upperBound,
   ).mapEndpoints((e) => e.plus({ day: 1 }).startOf('day')) // ensure sched end date is not included
 
-  const daysBeforeStart = splitAtMidnight(beforeStart)
-  const daysAfterEnd = splitAtMidnight(afterEnd)
+  const daysBeforeStart = luxonHelpers.splitAtMidnight(beforeStart)
+  const daysAfterEnd = luxonHelpers.splitAtMidnight(afterEnd)
   const intervals = daysBeforeStart.concat(daysAfterEnd)
 
   let details = ''
@@ -111,7 +116,7 @@ export function getOutOfBoundsItems(
 export function getCoverageGapItems(
   schedInterval: Interval,
   shifts: Shift[],
-  zone: ExplicitZone,
+  zone: luxonHelpers.ExplicitZone,
   handleCoverageClick: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
@@ -120,18 +125,30 @@ export function getCoverageGapItems(
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const gapIntervals = _.flatMap(
     schedInterval.difference(...shiftIntervals),
-    (inv) => splitAtMidnight(inv),
+    (inv) => luxonHelpers.splitAtMidnight(inv),
   )
+  const isLocalZone = zone === DateTime.local().zoneName
   return gapIntervals.map((gap) => {
     let details = 'No coverage'
+    let title = 'No coverage'
     if (gap.length('hours') === 24) {
       // nothing to do
+      title = ''
     } else if (gap.start.equals(gap.start.startOf('day'))) {
       details += ` until ${fmtTime(gap.end)}`
+      if (!isLocalZone) {
+        title += ` until ${fmtLocal(gap.end.toString())}`
+      }
     } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
       details += ` after ${fmtTime(gap.start)}`
+      if (!isLocalZone) {
+        title += ` after ${fmtLocal(gap.start.toString())}`
+      }
     } else {
       details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
+       if (!isLocalZone) {
+        title += ` from ${fmtLocal(gap.start.toString())} to ${fmtLocal(gap.end.toString())}`
+      }
     }
 
     return {
@@ -139,7 +156,11 @@ export function getCoverageGapItems(
       id: 'day-no-coverage_' + gap.start.toISO(),
       type: 'WARNING',
       message: '',
-      details,
+      details: (
+        <Tooltip title={title} placement='right'>
+          <span>{details}</span>
+        </Tooltip>
+      ),
       at: gap.start,
       ends: gap.end,
       itemType: 'gap',

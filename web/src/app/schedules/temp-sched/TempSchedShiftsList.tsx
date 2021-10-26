@@ -105,30 +105,6 @@ export default function TempSchedShiftsList({
       handleCoverageGapClick,
     )
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
-    const coverageGapItemsT = (() => {
-      return _.flatMap(coverageGapItems, (s) => {
-        return dayInvs.map((inv, index) => {
-          return {
-            'data-cy': 'day-no-coverage',
-            id: s.id,
-            type: s.type,
-            message: s.message,
-            details: (
-              <Tooltip title='tzTooltip' placement='right'>
-                <div>{s.details}</div>
-              </Tooltip>
-            ),
-            at: s.at,
-            // ends: s.end,
-            itemType: s.itemType,
-            // handleOnClick: () => {
-            //   s.handleOnClick?
-            // },
-          } as Sortable<FlatListItem>
-        })
-      })
-    })()
-    console.log(coverageGapItemsT)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s) => {
@@ -255,8 +231,7 @@ export default function TempSchedShiftsList({
 
     return sortItems([
       ...shiftItems,
-      ...coverageGapItemsT,
-      // ...coverageGapItems,
+      ...coverageGapItems,
       ...subheaderItems,
       ...outOfBoundsItems,
       startItem,
