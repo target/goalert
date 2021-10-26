@@ -144,6 +144,9 @@ const cache = new InMemoryCache({
         targets: {
           merge: false,
         },
+        shifts: {
+          merge: false,
+        },
         onCallNotificationRules: {
           merge: false,
         },
