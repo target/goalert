@@ -2,14 +2,13 @@ import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
-import { fmtLocal } from './sharedUtils'
+import { fmtLocal, Shift } from './sharedUtils'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
-import { Shift } from './sharedUtils'
 import FlatList, {
   FlatListItem,
   FlatListListItem,
@@ -106,6 +105,30 @@ export default function TempSchedShiftsList({
       handleCoverageGapClick,
     )
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
+    const coverageGapItemsT = (() => {
+      return _.flatMap(coverageGapItems, (s) => {
+        return dayInvs.map((inv, index) => {
+          return {
+            'data-cy': 'day-no-coverage',
+            id: s.id,
+            type: s.type,
+            message: s.message,
+            details: (
+              <Tooltip title='tzTooltip' placement='right'>
+                <div>{s.details}</div>
+              </Tooltip>
+            ),
+            at: s.at,
+            // ends: s.end,
+            itemType: s.itemType,
+            // handleOnClick: () => {
+            //   s.handleOnClick?
+            // },
+          } as Sortable<FlatListItem>
+        })
+      })
+    })()
+    console.log(coverageGapItemsT)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s) => {
@@ -146,7 +169,7 @@ export default function TempSchedShiftsList({
             title: s.user.name,
             subText: (
               <Tooltip title={titleText} placement='right'>
-                  <span>{subText}</span>
+                <span>{subText}</span>
               </Tooltip>
             ),
             userID: s.userID,
@@ -199,9 +222,7 @@ export default function TempSchedShiftsList({
         message,
         details: (
           <Tooltip title={detailsTooltip} placement='right'>
-            <div>
-              {details}
-            </div>
+            <div>{details}</div>
           </Tooltip>
         ),
         at: DateTime.fromISO(start, { zone }),
@@ -224,9 +245,7 @@ export default function TempSchedShiftsList({
         message: '',
         details: (
           <Tooltip title={detailsTooltip} placement='right'>
-            <div>
-              {details}
-            </div>
+            <div>{details}</div>
           </Tooltip>
         ),
         at,
@@ -236,7 +255,8 @@ export default function TempSchedShiftsList({
 
     return sortItems([
       ...shiftItems,
-      ...coverageGapItems,
+      ...coverageGapItemsT,
+      // ...coverageGapItems,
       ...subheaderItems,
       ...outOfBoundsItems,
       startItem,
