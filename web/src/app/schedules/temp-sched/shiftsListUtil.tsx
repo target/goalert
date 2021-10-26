@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
-import { fmtLocal } from './sharedUtils'
+import { fmtLocal, Shift } from './sharedUtils'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 
 import {
@@ -10,7 +10,6 @@ import {
 } from '../../lists/FlatList'
 import * as luxonHelpers from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
-import { Shift } from './sharedUtils'
 import React from 'react'
 
 export const fmtTime = (dt: DateTime): string =>
