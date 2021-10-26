@@ -1,4 +1,4 @@
-import React, { cloneElement, forwardRef } from 'react'
+import React, { cloneElement, forwardRef, ReactNode } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
@@ -9,7 +9,6 @@ import { ChevronRight } from '@material-ui/icons'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
