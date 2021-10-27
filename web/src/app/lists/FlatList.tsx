@@ -94,7 +94,6 @@ export interface FlatListNotice extends Notice {
   transition?: boolean
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
-  disabled?: boolean
 }
 export interface FlatListItem {
   title?: string
@@ -190,13 +189,10 @@ export default function FlatList({
         <ButtonBase
           className={classnames(classes.buttonBase, classes.alert)}
           onClick={item.handleOnClick}
-          disabled={item.disabled}
           data-cy={item['data-cy']}
         >
           <Alert
-            className={
-              item.disabled ? classes.listItemDisabled : classes.alertAsButton
-            }
+            className={classes.alertAsButton}
             key={idx}
             component='li'
             severity={severityMap[item.type]}
