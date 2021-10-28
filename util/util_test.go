@@ -19,6 +19,7 @@ func TestJoinURL(t *testing.T) {
 	}
 
 	test("no trailing slash", "http://foo.bar", "/baz", "http://foo.bar/baz")
+	test("preserve end trailing slash", "http://foo.bar", "/baz/", "http://foo.bar/baz/")
 	test("both slashes", "http://foo.bar/", "/baz", "http://foo.bar/baz")
 	test("no slashes", "http://foo.bar", "baz", "http://foo.bar/baz")
 	test("trailing slash", "http://foo.bar/", "baz", "http://foo.bar/baz")
