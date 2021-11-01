@@ -206,7 +206,7 @@ export default function TempSchedShiftsList({
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
         : 'Ends at ' + fmtTime(at)
-      let detailsTooltip = `Ends at ${fmtLocal(end)}`
+      const detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {
         id: 'sched-end_' + end,
