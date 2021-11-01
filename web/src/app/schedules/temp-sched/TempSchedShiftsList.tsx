@@ -125,18 +125,18 @@ export default function TempSchedShiftsList({
             // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
             if (!isLocalZone)
-              titleText = `From ${fmtLocal(inv.start.toString())} to ${fmtLocal(
-                inv.end.toString(),
+              titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
+                inv.end.toISO(),
               )}`
           } else if (inv.end === shiftInv.end) {
             subText = `Active until ${endTime}`
             if (!isLocalZone)
-              titleText = `Active until ${fmtLocal(inv.end.toString())}`
+              titleText = `Active until ${fmtLocal(inv.end.toISO())}`
           } else {
             // shift starts and continues on for the rest of the day
             subText = `Active starting at ${startTime}\n`
             if (!isLocalZone)
-              titleText = `Active starting at ${fmtLocal(inv.start.toString())}`
+              titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
           }
 
           return {
@@ -180,7 +180,7 @@ export default function TempSchedShiftsList({
       let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
       let detailsTooltip = ``
       if (!isLocalZone)
-        detailsTooltip = `Starts at ${fmtLocal(start.toString())}`
+        detailsTooltip = `Starts at ${fmtLocal(start)}`
       let message = ''
 
       if (
@@ -212,7 +212,7 @@ export default function TempSchedShiftsList({
         ? 'Ends at midnight'
         : 'Ends at ' + fmtTime(at)
       let detailsTooltip = ``
-      if (!isLocalZone) detailsTooltip = `Ends at ${fmtLocal(end.toString())}`
+      if (!isLocalZone) detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {
         id: 'sched-end_' + end,

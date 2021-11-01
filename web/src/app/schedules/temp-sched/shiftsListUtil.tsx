@@ -136,18 +136,18 @@ export function getCoverageGapItems(
     } else if (gap.start.equals(gap.start.startOf('day'))) {
       details += ` until ${fmtTime(gap.end)}`
       if (!isLocalZone) {
-        title += ` until ${fmtLocal(gap.end.toString())}`
+        title += ` until ${fmtLocal(gap.end.toISO())}`
       }
     } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
       details += ` after ${fmtTime(gap.start)}`
       if (!isLocalZone) {
-        title += ` after ${fmtLocal(gap.start.toString())}`
+        title += ` after ${fmtLocal(gap.start.toISO())}`
       }
     } else {
       details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
       if (!isLocalZone) {
-        title += ` from ${fmtLocal(gap.start.toString())} to ${fmtLocal(
-          gap.end.toString(),
+        title += ` from ${fmtLocal(gap.start.toISO())} to ${fmtLocal(
+          gap.end.toISO(),
         )}`
       }
     }
