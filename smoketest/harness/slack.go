@@ -110,13 +110,13 @@ func (ch *slackChannel) Name() string { return ch.name }
 
 func (ch *slackChannel) ExpectMessage(keywords ...string) SlackMessage {
 	ch.h.t.Helper()
-	return ch.expectMessageFunc(func(msg mockslack.Message) bool {
+	return ch.expectMessageFunc("message", func(msg mockslack.Message) bool {
 		// only return non-thread replies
 		return msg.ThreadTS == ""
 	}, keywords...)
 }
 
-func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, keywords ...string) *slackMessage {
+func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) *slackMessage {
 	ch.h.t.Helper()
 
 	timeout := time.NewTimer(15 * time.Second)
@@ -147,7 +147,7 @@ func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, key
 		select {
 		case <-timeout.C:
 			ch.h.slack.hasFailure = true
-			ch.h.t.Fatalf("timeout waiting for slack message: Channel=%s; ID=%s; keywords=%v\nGot: %#v", ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
+			ch.h.t.Fatalf("timeout waiting for Slack %s: Channel=%s; ID=%s; keywords=%v\nGot: %#v", desc, ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
 			return nil
 		default:
 		}
@@ -195,7 +195,7 @@ func (msg *slackMessage) AssertNotText(keywords ...string) {
 func (msg *slackMessage) ExpectUpdate() SlackMessageState {
 	msg.h.t.Helper()
 
-	return msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	return msg.channel.expectMessageFunc("message update", func(m mockslack.Message) bool {
 		return m.UpdateTS == msg.TS
 	})
 }
@@ -203,7 +203,7 @@ func (msg *slackMessage) ExpectUpdate() SlackMessageState {
 func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("thread reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 
@@ -213,7 +213,7 @@ func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 func (msg *slackMessage) ExpectBroadcastReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("broadcast reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 

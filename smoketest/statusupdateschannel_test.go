@@ -37,12 +37,24 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	msg := h.Slack().Channel("test").ExpectMessage("testing", "details")
 	msg.AssertColor("#862421")
 
-	h.Trigger()
+	a.Ack()
+
+	updated := msg.ExpectUpdate()
+	updated.AssertText("Ack", "testing", "details")
+	updated.AssertColor("#867321")
+
+	a.Escalate()
+
+	updated = msg.ExpectUpdate()
+	updated.AssertText("Escalated", "testing", "details")
+	updated.AssertColor("#862421")
+
+	msg.ExpectBroadcastReply("testing")
 
 	a.Close()
 
-	updated := msg.ExpectUpdate()
+	updated = msg.ExpectUpdate()
 	updated.AssertText("Closed", "testing")
 	updated.AssertNotText("details")
-	updated.AssertColor("green")
+	updated.AssertColor("#218626")
 }

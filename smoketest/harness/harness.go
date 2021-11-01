@@ -421,6 +421,8 @@ func (h *Harness) CreateAlert(serviceID string, summary string) TestAlert {
 }
 
 type TestAlert interface {
+	Ack()
+	Escalate()
 	Close()
 }
 type testAlert struct {
@@ -428,7 +430,7 @@ type testAlert struct {
 	a alert.Alert
 }
 
-func (t testAlert) Close() {
+func (t testAlert) setStatus(stat alert.Status) {
 	t.h.t.Helper()
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		t.h.t.Helper()
@@ -436,16 +438,27 @@ func (t testAlert) Close() {
 		require.NoError(t.h.t, err, "begin tx")
 		defer tx.Rollback()
 
-		t.a.Status = alert.StatusClosed
+		t.a.Status = stat
 
 		result, isNew, err := t.h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, &t.a)
-		require.NoError(t.h.t, err, "close alert")
+		require.NoErrorf(t.h.t, err, "set alert to %s", stat)
 		require.False(t.h.t, isNew, "not be new")
-		require.NotNil(t.h.t, result, "closed alert")
+		require.NotNil(t.h.t, result)
 
 		require.NoError(t.h.t, tx.Commit(), "commit tx")
 	})
+}
 
+func (t testAlert) Close() { t.setStatus(alert.StatusClosed) }
+func (t testAlert) Ack()   { t.setStatus(alert.StatusActive) }
+func (t testAlert) Escalate() {
+	t.h.t.Helper()
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		t.h.t.Helper()
+
+		err := t.h.backend.AlertStore.Escalate(ctx, t.a.ID, 0)
+		require.NoErrorf(t.h.t, err, "escalate alert %d", t.a.ID)
+	})
 }
 
 // CreateAlertWithDetails will create a single alert with summary and detailss.
