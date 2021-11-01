@@ -45,13 +45,13 @@
     "react-dom": "17.0.2",
     "react-ga": "3.3.0",
     "react-infinite-scroll-component": "6.1.0",
-    "react-markdown": "6.0.2",
+    "react-markdown": "7.1.0",
     "react-redux": "7.2.4",
     "react-router-dom": "5.3.0",
     "react-transition-group": "4.4.2",
     "redux-thunk": "2.3.0",
-    "remark-gfm": "1.0.0",
-    "reselect": "4.0.0",
+    "remark-gfm": "3.0.0",
+    "reselect": "4.1.1",
     "strict-loader": "1.2.0"
   },
   "devDependencies": {
@@ -80,13 +80,13 @@
     "@types/react-redux": "7.1.18",
     "@types/react-router": "5.1.16",
     "@types/react-router-dom": "5.3.0",
-    "babel-jest": "27.2.0",
+    "babel-jest": "27.3.1",
     "babel-loader": "8.2.2",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-typescript-to-proptypes": "1.4.2",
     "chance": "1.1.7",
     "copy-webpack-plugin": "9.0.1",
-    "css-loader": "6.3.0",
+    "css-loader": "6.5.0",
     "cssnano": "5.0.7",
     "cypress": "8.6.0",
     "jest": "27.2.4",
@@ -99,6 +99,6 @@
     "style-loader": "3.3.0",
     "webpack": "5.59.0",
     "webpack-cli": "4.9.0",
-    "webpack-dev-server": "4.3.1"
+    "webpack-dev-server": "4.4.0"
   }
 }
