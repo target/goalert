@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -144,7 +143,6 @@ func attachmentsText(value string) (text, color string, err error) {
 //
 // https://api.slack.com/methods/chat.postMessage
 func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("CHATPOST")
 	s.serveChatPostMessage(w, req, false)
 }
 
@@ -152,7 +150,6 @@ func (s *Server) ServeChatPostMessage(w http.ResponseWriter, req *http.Request) 
 //
 // https://api.slack.com/methods/chat.update
 func (s *Server) ServeChatUpdate(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("CHATUPDATE")
 	s.serveChatPostMessage(w, req, true)
 }
 
