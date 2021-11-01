@@ -179,8 +179,7 @@ export default function TempSchedShiftsList({
     const startItem = (() => {
       let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
       let detailsTooltip = ``
-      if (!isLocalZone)
-        detailsTooltip = `Starts at ${fmtLocal(start)}`
+      if (!isLocalZone) detailsTooltip = `Starts at ${fmtLocal(start)}`
       let message = ''
 
       if (
