@@ -124,19 +124,16 @@ export default function TempSchedShiftsList({
           } else if (inv.engulfs(shiftInv)) {
             // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
-            if (!isLocalZone)
-              titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
-                inv.end.toISO(),
-              )}`
+            titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
+              inv.end.toISO(),
+            )}`
           } else if (inv.end === shiftInv.end) {
             subText = `Active until ${endTime}`
-            if (!isLocalZone)
-              titleText = `Active until ${fmtLocal(inv.end.toISO())}`
+            titleText = `Active until ${fmtLocal(inv.end.toISO())}`
           } else {
             // shift starts and continues on for the rest of the day
             subText = `Active starting at ${startTime}\n`
-            if (!isLocalZone)
-              titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
+            titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
           }
 
           return {
@@ -144,7 +141,7 @@ export default function TempSchedShiftsList({
             id: s.start + s.userID + index.toString(),
             title: s.user.name,
             subText: (
-              <Tooltip title={titleText} placement='right'>
+              <Tooltip title={!isLocalZone ? titleText : ''} placement='right'>
                 <span>{subText}</span>
               </Tooltip>
             ),
@@ -178,8 +175,7 @@ export default function TempSchedShiftsList({
 
     const startItem = (() => {
       let details = `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`
-      let detailsTooltip = ``
-      if (!isLocalZone) detailsTooltip = `Starts at ${fmtLocal(start)}`
+      let detailsTooltip = `Starts at ${fmtLocal(start)}`
       let message = ''
 
       if (
@@ -196,7 +192,7 @@ export default function TempSchedShiftsList({
         icon: <ScheduleIcon />,
         message,
         details: (
-          <Tooltip title={detailsTooltip} placement='right'>
+          <Tooltip title={!isLocalZone ? detailsTooltip : ''} placement='right'>
             <div>{details}</div>
           </Tooltip>
         ),
@@ -210,8 +206,7 @@ export default function TempSchedShiftsList({
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
         : 'Ends at ' + fmtTime(at)
-      let detailsTooltip = ``
-      if (!isLocalZone) detailsTooltip = `Ends at ${fmtLocal(end)}`
+      let detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {
         id: 'sched-end_' + end,
@@ -219,7 +214,7 @@ export default function TempSchedShiftsList({
         icon: <ScheduleIcon />,
         message: '',
         details: (
-          <Tooltip title={detailsTooltip} placement='right'>
+          <Tooltip title={!isLocalZone ? detailsTooltip : ''} placement='right'>
             <div>{details}</div>
           </Tooltip>
         ),
