@@ -33,13 +33,13 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	h := harness.NewHarness(t, sql, "slack-user-link")
 	defer h.Close()
 
-	h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
+	a := h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
 	msg := h.Slack().Channel("test").ExpectMessage("testing", "details")
 	msg.AssertColor("#862421")
 
 	h.Trigger()
 
-	h.CloseAlert(h.UUID("sid"), "testing")
+	a.Close()
 
 	updated := msg.ExpectUpdate()
 	updated.AssertText("Closed", "testing")

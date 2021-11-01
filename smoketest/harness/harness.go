@@ -413,72 +413,46 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	}
 }
 
-func (h *Harness) CloseAlert(serviceID, summary string) {
-	h.t.Helper()
-	h.CloseAlertWithDetails(serviceID, summary, "")
-}
-
-func (h *Harness) CloseAlertWithDetails(serviceID, summary, details string) {
-	h.t.Helper()
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		tx, err := h.backend.DB().BeginTx(ctx, nil)
-		require.NoError(h.t, err, "begin tx")
-		defer tx.Rollback()
-
-		a := &alert.Alert{
-			ServiceID: serviceID,
-			Summary:   summary,
-			Details:   details,
-			Status:    alert.StatusClosed,
-		}
-
-		result, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
-		require.NoError(h.t, err, "close alert")
-		require.False(h.t, isNew, "not be new")
-		require.NotNil(h.t, result, "closed alert")
-
-		require.NoError(h.t, tx.Commit(), "commit tx")
-	})
-}
-
 // CreateAlerts will create one or more unacknowledged alerts for a service.
-func (h *Harness) CreateAlerts(serviceID string, summary ...string) {
+func (h *Harness) CreateAlert(serviceID string, summary string) TestAlert {
 	h.t.Helper()
 
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		tx, err := h.backend.DB().BeginTx(ctx, nil)
-		if err != nil {
-			h.t.Fatalf("failed to start tx: %v", err)
-		}
-		defer tx.Rollback()
-		for _, sum := range summary {
-			a := &alert.Alert{
-				ServiceID: serviceID,
-				Summary:   sum,
-			}
+	return h.CreateAlertWithDetails(serviceID, summary, "")
+}
 
-			h.t.Logf("insert alert: %v", a)
-			_, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
-			if err != nil {
-				h.t.Fatalf("failed to insert alert: %v", err)
-			}
-			if !isNew {
-				h.t.Fatal("could not create duplicate alert with summary: " + sum)
-			}
-		}
-		err = tx.Commit()
-		if err != nil {
-			h.t.Fatalf("failed to commit tx: %v", err)
-		}
+type TestAlert interface {
+	Close()
+}
+type testAlert struct {
+	h *Harness
+	a alert.Alert
+}
+
+func (t testAlert) Close() {
+	t.h.t.Helper()
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		t.h.t.Helper()
+		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
+		require.NoError(t.h.t, err, "begin tx")
+		defer tx.Rollback()
+
+		t.a.Status = alert.StatusClosed
+
+		result, isNew, err := t.h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, &t.a)
+		require.NoError(t.h.t, err, "close alert")
+		require.False(t.h.t, isNew, "not be new")
+		require.NotNil(t.h.t, result, "closed alert")
+
+		require.NoError(t.h.t, tx.Commit(), "commit tx")
 	})
+
 }
 
 // CreateAlertWithDetails will create a single alert with summary and detailss.
-func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) {
+func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) TestAlert {
 	h.t.Helper()
 
+	var newAlert alert.Alert
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
 		tx, err := h.backend.DB().BeginTx(ctx, nil)
@@ -493,19 +467,22 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) {
 		}
 
 		h.t.Logf("insert alert: %v", a)
-		_, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
+		_newAlert, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
 		if err != nil {
 			h.t.Fatalf("failed to insert alert: %v", err)
 		}
 		if !isNew {
 			h.t.Fatal("could not create duplicate alert with summary: " + summary)
 		}
+		newAlert = *_newAlert
 
 		err = tx.Commit()
 		if err != nil {
 			h.t.Fatalf("failed to commit tx: %v", err)
 		}
 	})
+
+	return testAlert{h: h, a: newAlert}
 }
 
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.

@@ -34,7 +34,7 @@ func TestSlackNotification(t *testing.T) {
 	h := harness.NewHarness(t, sql, "slack-user-link")
 	defer h.Close()
 
-	h.CreateAlerts(h.UUID("sid"), "testing")
+	h.CreateAlert(h.UUID("sid"), "testing")
 	msg := h.Slack().Channel("test").ExpectMessage("testing")
 	msg.AssertColor("#862421")
 

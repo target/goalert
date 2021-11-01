@@ -42,7 +42,7 @@ func TestTwilioOneWaySMS(t *testing.T) {
 	defer h.Close()
 	h.SetConfigValue("Twilio.DisableTwoWaySMS", "true")
 
-	h.CreateAlerts(h.UUID("sid"), "testing")
+	h.CreateAlert(h.UUID("sid"), "testing")
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))

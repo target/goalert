@@ -47,7 +47,7 @@ func TestGraphQLAlertLogs(t *testing.T) {
 	}
 
 	sid := h.UUID("sid")
-	h.CreateAlerts(sid, "alert1")
+	h.CreateAlert(sid, "alert1")
 
 	// Acknowledging alert
 	doQL(fmt.Sprintf(`

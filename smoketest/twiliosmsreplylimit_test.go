@@ -53,7 +53,7 @@ func TestTwilioSMSReplyLimit(t *testing.T) {
 		d1.ExpectSMS("sorry")
 	}
 
-	h.CreateAlerts(h.UUID("sid"), "test1")
+	h.CreateAlert(h.UUID("sid"), "test1")
 	d1.ExpectSMS("test1", "1c", "1a").
 		ThenReply("1a").
 		ThenExpect("Acknowledged", "#1")

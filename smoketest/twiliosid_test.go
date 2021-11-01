@@ -47,7 +47,7 @@ func TestTwilioSID(t *testing.T) {
 
 	h.SetConfigValue("Twilio.MessagingServiceSID", h.TwilioMessagingService())
 
-	h.CreateAlerts(h.UUID("sid"), "testing")
+	h.CreateAlert(h.UUID("sid"), "testing")
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))

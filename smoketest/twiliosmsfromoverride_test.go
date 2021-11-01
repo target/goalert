@@ -48,7 +48,7 @@ func TestTwilioSMSFromOverride(t *testing.T) {
 	h.SetConfigValue("Twilio.SMSCarrierLookup", "true")
 	h.SetCarrierName(h.Phone("2"), "foobar")
 
-	h.CreateAlerts(h.UUID("sid"), "testing")
+	h.CreateAlert(h.UUID("sid"), "testing")
 
 	tw := h.Twilio(t)
 	sms1 := tw.Device(h.Phone("1")).ExpectSMS("testing")

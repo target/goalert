@@ -52,7 +52,7 @@ func TestSlackAddToEPStep(t *testing.T) {
 		}
 	`, h.UUID("eid"), channel.ID()))
 
-	h.CreateAlerts(h.UUID("sid"), "testing")
+	h.CreateAlert(h.UUID("sid"), "testing")
 	channel.ExpectMessage("testing")
 
 }
