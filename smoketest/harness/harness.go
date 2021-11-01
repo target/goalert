@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
 	"github.com/target/goalert/config"
@@ -413,30 +414,31 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 }
 
 func (h *Harness) CloseAlert(serviceID, summary string) {
+	h.t.Helper()
+	h.CloseAlertWithDetails(serviceID, summary, "")
+}
+
+func (h *Harness) CloseAlertWithDetails(serviceID, summary, details string) {
+	h.t.Helper()
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
 		tx, err := h.backend.DB().BeginTx(ctx, nil)
-		if err != nil {
-			h.t.Fatalf("failed to start tx: %v", err)
-		}
+		require.NoError(h.t, err, "begin tx")
 		defer tx.Rollback()
 
 		a := &alert.Alert{
 			ServiceID: serviceID,
 			Summary:   summary,
+			Details:   details,
 			Status:    alert.StatusClosed,
 		}
 
-		h.t.Logf("close alert: %v", a)
-		_, _, err = h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
-		if err != nil {
-			h.t.Fatalf("failed to close alert: %v", err)
-		}
+		result, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
+		require.NoError(h.t, err, "close alert")
+		require.False(h.t, isNew, "not be new")
+		require.NotNil(h.t, result, "closed alert")
 
-		err = tx.Commit()
-		if err != nil {
-			h.t.Fatalf("failed to commit tx: %v", err)
-		}
+		require.NoError(h.t, tx.Commit(), "commit tx")
 	})
 }
 
