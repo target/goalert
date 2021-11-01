@@ -60,7 +60,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 
   const dtToISO = (dt: DateTime): string => {
-    return dt.startOf(truncateTo).toUTC().setZone(zone).toISO()
+    return dt.startOf(truncateTo).setZone(zone).toISO()
   }
 
   // parseInputToISO takes input from the form control and returns a string
@@ -95,7 +95,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
     // only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
-    if (!valueAsDT || (newVal && newVal !== valueAsDT.toUTC().toISO())) {
+    if (!valueAsDT || (newVal && newVal !== valueAsDT.toISO())) {
       onChange(newVal)
     }
   }
@@ -118,11 +118,6 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   }
 
   const label = type === 'time' ? 'Select a time...' : 'Select a date...'
-  let fmt: string
-  if (type === 'time') fmt = 'HH:mm'
-  else if (type === 'date') fmt = 'yyyy-MM-dd'
-  else fmt = "yyyy-MM-dd'T'HH:mm"
-
   if (native) {
     return (
       <TextField
@@ -132,8 +127,12 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         onChange={handleNativeChange}
         label={label}
         inputProps={{
-          min: min ? DateTime.fromISO(min, { zone }).toFormat(fmt) : undefined,
-          max: max ? DateTime.fromISO(max, { zone }).toFormat(fmt) : undefined,
+          min: min
+            ? DateTime.fromISO(min, { zone }).toFormat(format)
+            : undefined,
+          max: max
+            ? DateTime.fromISO(max, { zone }).toFormat(format)
+            : undefined,
           ...textFieldProps?.inputProps,
         }}
       />
