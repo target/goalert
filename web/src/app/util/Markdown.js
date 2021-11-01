@@ -1,8 +1,8 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import { safeURL } from './safeURL'
-import gfm from 'remark-gfm'
+import remarkGfm from 'remark-gfm'
 import { makeStyles } from '@material-ui/core'
+import { safeURL } from './safeURL'
 
 const useStyles = makeStyles({
   markdown: {
@@ -51,7 +51,7 @@ export default function Markdown(props) {
   return (
     <ReactMarkdown
       className={classes.markdown}
-      plugins={[gfm]}
+      remarkPlugins={[remarkGfm]}
       allowElement={(element) => {
         if (
           element.tagName === 'a' &&

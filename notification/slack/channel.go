@@ -2,22 +2,20 @@ package slack
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackutilsx"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"golang.org/x/net/context/ctxhttp"
 )
 
 type ChannelSender struct {
@@ -25,9 +23,6 @@ type ChannelSender struct {
 
 	teamID string
 	token  string
-
-	chanTht *throttle
-	listTht *throttle
 
 	chanCache *ttlCache
 	listCache *ttlCache
@@ -43,9 +38,6 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
 		cfg: cfg,
 
-		chanTht: newThrottle(time.Minute / 50),
-		listTht: newThrottle(time.Minute / 50),
-
 		listCache: newTTLCache(250, time.Minute),
 		chanCache: newTTLCache(1000, 15*time.Minute),
 	}, nil
@@ -58,27 +50,17 @@ type Channel struct {
 	TeamID string
 }
 
-type apiError struct {
-	msg    string
-	header http.Header
-}
-
-func (err apiError) Error() string {
-	if err.msg == "missing_scope" {
-		acceptedScopes := err.header.Get("X-Accepted-Oauth-Scopes")
-		providedScopes := err.header.Get("X-Oauth-Scopes")
-		return fmt.Sprintf("missing_scope; need one of %v but got %v", acceptedScopes, providedScopes)
+func rootMsg(err error) string {
+	unwrapped := errors.Unwrap(err)
+	if unwrapped == nil {
+		return err.Error()
 	}
-	return err.msg
+
+	return rootMsg(unwrapped)
 }
 
 func mapError(ctx context.Context, err error) error {
-	var apiError *apiError
-	if !errors.As(err, &apiError) {
-		return err
-	}
-
-	switch apiError.msg {
+	switch rootMsg(err) {
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
 	case "missing_scope", "invalid_auth", "account_inactive", "token_revoked", "not_authed":
@@ -135,67 +117,28 @@ func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
 }
 
 func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
-	cfg := config.FromContext(ctx)
-
 	teamID, err := s.TeamID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
 
-	v := make(url.Values)
-	// Parameters and URL documented here:
-	// https://api.slack.com/methods/conversations.info
-	v.Set("token", cfg.Slack.AccessToken)
-	v.Set("channel", channelID)
-
-	infoURL := s.cfg.url("/api/conversations.info")
-
-	var resData struct {
-		OK      bool
-		Error   string
-		Channel struct {
-			ID   string
-			Name string
+	ch := &Channel{TeamID: teamID}
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		resp, err := c.GetConversationInfoContext(ctx, channelID, false)
+		if err != nil {
+			return err
 		}
-	}
 
-	err = s.chanTht.Wait(ctx)
+		ch.ID = resp.ID
+		ch.Name = "#" + resp.Name
+
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	resp, err := ctxhttp.PostForm(ctx, http.DefaultClient, infoURL, v)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode == 429 {
-		// respect Retry-After (seconds) if possible
-		sec, err := strconv.Atoi(resp.Header.Get("Retry-After"))
-		if err == nil {
-			s.chanTht.SetWaitUntil(time.Now().Add(time.Second * time.Duration(sec)))
-			// try again
-			return s.loadChannel(ctx, channelID)
-		}
+		return nil, fmt.Errorf("lookup conversation info: %w", err)
 	}
 
-	if resp.StatusCode != 200 {
-		resp.Body.Close()
-		return nil, errors.New("non-200 response from Slack: " + resp.Status)
-	}
-	err = json.NewDecoder(resp.Body).Decode(&resData)
-	resp.Body.Close()
-	if err != nil {
-		return nil, errors.Wrap(err, "parse JSON")
-	}
-
-	if !resData.OK {
-		return nil, fmt.Errorf("lookup Slack channel: %w", &apiError{msg: resData.Error, header: resp.Header})
-	}
-
-	return &Channel{
-		ID:     resData.Channel.ID,
-		Name:   "#" + resData.Channel.Name,
-		TeamID: teamID,
-	}, nil
+	return ch, nil
 }
 
 // ListChannels will return a list of channels visible to the slack bot.
@@ -231,107 +174,78 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 }
 
 func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
-	cfg := config.FromContext(ctx)
-	v := make(url.Values)
-	// Parameters and URL documented here:
-	// https://api.slack.com/methods/users.conversations
-	v.Set("token", cfg.Slack.AccessToken)
-	v.Set("exclude_archived", "true")
-
-	// Using `Set` instead of `Add` here. Slack expects a comma-delimited list instead of
-	// an array-encoded parameter.
-	v.Set("types", "private_channel,public_channel")
-	v.Set("limit", "200")
-	listURL := s.cfg.url("/api/users.conversations")
+	teamID, err := s.TeamID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("lookup team ID: %w", err)
+	}
 
 	n := 0
 	var channels []Channel
+	var cursor string
 	for {
 		n++
 		if n > 10 {
 			return nil, errors.New("abort after > 10 pages of Slack channels")
 		}
 
-		err := s.listTht.Wait(ctx)
-		if err != nil {
-			return nil, err
-		}
-		resp, err := ctxhttp.PostForm(ctx, http.DefaultClient, listURL, v)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == 429 {
-			resp.Body.Close()
-			// respect Retry-After (seconds) if possible
-			sec, err := strconv.Atoi(resp.Header.Get("Retry-After"))
-			if err == nil {
-				s.listTht.SetWaitUntil(time.Now().Add(time.Second * time.Duration(sec)))
-				// no need to start over, re-fetch current page
-				continue
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			respChan, nextCursor, err := c.GetConversationsForUserContext(ctx, &slack.GetConversationsForUserParameters{
+				ExcludeArchived: true,
+				Types:           []string{"private_channel", "public_channel"},
+				Limit:           200,
+				Cursor:          cursor,
+			})
+			if err != nil {
+				return err
 			}
-		}
-		if resp.StatusCode != 200 {
-			resp.Body.Close()
-			return nil, errors.New("non-200 response from Slack: " + resp.Status)
-		}
 
-		var resData struct {
-			OK       bool
-			Error    string
-			Channels []Channel
-			Meta     struct {
-				NextCursor string `json:"next_cursor"`
-			} `json:"response_metadata"`
-		}
+			cursor = nextCursor
 
-		err = json.NewDecoder(resp.Body).Decode(&resData)
-		resp.Body.Close()
+			for _, ch := range respChan {
+				channels = append(channels, Channel{
+					ID:     ch.ID,
+					Name:   "#" + ch.Name,
+					TeamID: teamID,
+				})
+			}
+
+			return nil
+		})
 		if err != nil {
-			return nil, errors.Wrap(err, "parse JSON")
+			return nil, fmt.Errorf("list channels: %w", err)
 		}
 
-		if !resData.OK {
-			return nil, fmt.Errorf("list Slack channels: %w", &apiError{msg: resData.Error, header: resp.Header})
-		}
-
-		channels = append(channels, resData.Channels...)
-
-		if resData.Meta.NextCursor == "" {
+		if cursor == "" {
 			break
 		}
-
-		v.Set("cursor", resData.Meta.NextCursor)
-	}
-
-	for i := range channels {
-		channels[i].Name = "#" + channels[i].Name
 	}
 
 	return channels, nil
 }
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+
 	cfg := config.FromContext(ctx)
 
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
-	vals := make(url.Values)
-	// Parameters & URL documented here:
-	// https://api.slack.com/methods/chat.postMessage
-	vals.Set("channel", msg.Destination().Value)
+	var opts []slack.MsgOption
 	switch t := msg.(type) {
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
-			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
-			vals.Set("text", "Broadcasting to channel due to repeat notification.")
-			vals.Set("reply_broadcast", "true")
+			opts = append(opts,
+				slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID),
+				slack.MsgOptionBroadcast(),
+				slack.MsgOptionText("Broadcasting to channel due to repeat notification.", true),
+			)
 			break
 		}
 
-		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Alert: %s\n\n<%s>", slackutilsx.EscapeMessage(t.Summary), cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))), false))
 	case notification.AlertStatus:
-		vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+		opts = append(opts, slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID))
+
 		var status string
 		switch t.NewAlertStatus {
 		case alert.StatusActive:
@@ -343,67 +257,53 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		}
 
 		text := "Status Update: " + status + "\n" + t.LogEntry
-		vals.Set("text", text)
+		opts = append(opts, slack.MsgOptionText(text, true))
 	case notification.AlertBundle:
-		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+		opts = append(opts, slack.MsgOptionText(
+			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
+			false))
 	case notification.ScheduleOnCallUsers:
-		vals.Set("text", s.onCallNotificationText(ctx, t))
+		opts = append(opts, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
-	vals.Set("token", cfg.Slack.AccessToken)
 
-	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
+	var msgTS string
+	err := s.withClient(ctx, func(c *slack.Client) error {
+		_, _msgTS, err := c.PostMessageContext(ctx, msg.Destination().Value, opts...)
+		if err != nil {
+			return err
+		}
+		msgTS = _msgTS
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("non-200 response: %s", resp.Status)
-	}
-
-	var resData struct {
-		OK      bool
-		Error   string
-		TS      string
-		Message struct {
-			BotID string `json:"bot_id"`
-		}
-	}
-	err = json.NewDecoder(resp.Body).Decode(&resData)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode response")
-	}
-	if !resData.OK {
-		return nil, errors.Errorf("Slack error: %s", resData.Error)
-	}
 
 	return &notification.SentMessage{
-		ExternalID: resData.TS,
+		ExternalID: msgTS,
 		State:      notification.StateDelivered,
-		SrcValue:   resData.Message.BotID,
 	}, nil
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.url("/api/auth.test"), nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Add("Authorization", "Bearer "+token)
+	var teamID string
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	err := s.withClient(ctx, func(c *slack.Client) error {
+		info, err := c.AuthTestContext(ctx)
+		if err != nil {
+			return err
+		}
 
-	var body struct {
-		TeamID string `json:"team_id"`
-	}
-	err = json.NewDecoder(resp.Body).Decode(&body)
+		teamID = info.TeamID
+
+		return nil
+	})
+
 	if err != nil {
 		return "", err
 	}
-	return body.TeamID, nil
+
+	return teamID, nil
 }
