@@ -2,10 +2,14 @@ package slack
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/slack-go/slack"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -13,7 +17,11 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	ctx := req.Context()
 
 	var payload struct {
-		Type string
+		Type        string
+		ResponseURL string `json:"response_url"`
+		Channel     struct {
+			ID string
+		}
 		User struct {
 			ID     string `json:"id"`
 			TeamID string `json:"team_id"`
@@ -52,6 +60,18 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	}
 
 	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
+	if errors.Is(err, notification.ErrUnknownSubject) {
+		log.Log(ctx, fmt.Errorf("unknown provider/subject ID for Slack 'slack:%s/%s'", payload.User.TeamID, payload.User.ID))
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
+
+				// TODO: add user-link/OAUTH flow
+				slack.MsgOptionText("Your Slack account isn't currently linked to GoAlert, the admin will need to set this up for it to work.", false),
+			)
+			return err
+		})
+	}
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
