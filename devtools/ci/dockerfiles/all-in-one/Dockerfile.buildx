@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM goalert/build-env:go1.17.1-postgres13 AS binaries
+FROM --platform=$BUILDPLATFORM goalert/build-env:go1.17.2-postgres13 AS binaries
 ARG BUILDPLATFORM
 COPY bin/linux-arm/goalert /linux/arm/v7/goalert
 COPY bin/linux-arm/resetdb /linux/arm/v7/resetdb
@@ -7,7 +7,7 @@ COPY bin/linux-arm64/resetdb /linux/arm64/resetdb
 COPY bin/linux-amd64/goalert /linux/amd64/goalert
 COPY bin/linux-amd64/resetdb /linux/amd64/resetdb
 
-FROM alpine:3.12
+FROM alpine:3.14
 ARG TARGETPLATFORM
 RUN apk --no-cache add postgresql postgresql-contrib musl-locales ca-certificates
 COPY --from=binaries /$TARGETPLATFORM/* /bin/

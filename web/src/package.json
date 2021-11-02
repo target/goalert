@@ -55,9 +55,9 @@
     "strict-loader": "1.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "7.15.7",
+    "@babel/cli": "7.16.0",
     "@babel/core": "7.15.0",
-    "@babel/plugin-proposal-class-properties": "7.14.5",
+    "@babel/plugin-proposal-class-properties": "7.16.0",
     "@babel/plugin-proposal-decorators": "7.15.4",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
     "@babel/plugin-transform-runtime": "7.15.0",
@@ -88,7 +88,7 @@
     "copy-webpack-plugin": "9.0.1",
     "css-loader": "6.5.0",
     "cssnano": "5.0.7",
-    "cypress": "8.6.0",
+    "cypress": "8.7.0",
     "jest": "27.2.4",
     "json-loader": "0.5.7",
     "postcss": "8.3.6",
