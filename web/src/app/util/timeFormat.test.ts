@@ -1,8 +1,8 @@
 import { formatTimeSince, logTimeFormat } from './timeFormat'
-import { DateTime, Duration } from 'luxon'
+import { DateTime, Duration, DurationObject } from 'luxon'
 
 describe('formatTimeSince', () => {
-  const check = (time, exp) => {
+  const check = (time: DurationObject, exp: string): void => {
     const dur = Duration.fromObject(time)
     it(`${dur.toFormat('dDays h:m:s')} === ${exp}`, () => {
       const since = DateTime.utc()
@@ -25,7 +25,7 @@ describe('formatTimeSince', () => {
 })
 
 describe('logTimeFormat', () => {
-  const check = (to, from, exp) => {
+  const check = (to: string, from: DateTime, exp: string): void => {
     it(`alert log time format`, () => {
       expect(logTimeFormat(to, from)).toBe(exp)
     })

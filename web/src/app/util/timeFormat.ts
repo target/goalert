@@ -1,6 +1,9 @@
-import { Interval, DateTime } from 'luxon'
+import { Interval, DateTime, DateTimeFormatOptions } from 'luxon'
 
-export function formatTimeSince(_since, _now = DateTime.utc()) {
+export function formatTimeSince(
+  _since: DateTime | string,
+  _now = DateTime.utc(),
+): string {
   if (!_since) return ''
   const since = _since instanceof DateTime ? _since : DateTime.fromISO(_since)
   const now = _now instanceof DateTime ? _now : DateTime.fromISO(_now)
@@ -29,17 +32,20 @@ export function formatTimeSince(_since, _now = DateTime.utc()) {
   return `> ${Math.floor(diff.as('years'))}y ago`
 }
 
-export function relativeDate(_to, _from = DateTime.utc()) {
+export function relativeDate(
+  _to: DateTime | string,
+  _from = DateTime.utc(),
+): string {
   const to = _to instanceof DateTime ? _to : DateTime.fromISO(_to)
   const from = (_from instanceof DateTime ? _from : DateTime.fromISO(_from))
     .setZone(to.zoneName)
     .startOf('day')
 
-  const fmt = {
+  const fmt: DateTimeFormatOptions = {
     month: 'long',
     day: 'numeric',
   }
-  const build = (prefix = '', opts = {}) =>
+  const build = (prefix = '', opts = {}): string =>
     `${prefix} ${to.toLocaleString({ ...fmt, ...opts })}`.trim()
 
   if (Interval.after(from, { days: 1 }).contains(to)) return build('Today,')
@@ -59,7 +65,7 @@ export function relativeDate(_to, _from = DateTime.utc()) {
   return build('', { weekday: 'long' })
 }
 
-export function logTimeFormat(_to, _from) {
+export function logTimeFormat(_to: string, _from: DateTime): string {
   const to = DateTime.fromISO(_to)
   if (Interval.after(_from, { days: 1 }).contains(to))
     return 'Today at ' + to.toFormat('h:mm a')
