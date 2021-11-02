@@ -1,6 +1,15 @@
 package notification
 
-import "github.com/target/goalert/alert"
+// AlertState is the current state of an Alert.
+type AlertState int
+
+// All alert states
+const (
+	AlertStateUnknown AlertState = iota
+	AlertStateUnacknowledged
+	AlertStateAcknowledged
+	AlertStateClosed
+)
 
 type AlertStatus struct {
 	Dest       Dest
@@ -16,8 +25,8 @@ type AlertStatus struct {
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus SendResult
 
-	// NewAlertStatus contains the most recent status for the alert.
-	NewAlertStatus alert.Status
+	// NewAlertState contains the most recent state of the alert.
+	NewAlertState AlertState
 }
 
 var _ Message = &AlertStatus{}

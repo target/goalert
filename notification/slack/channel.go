@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackutilsx"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -247,7 +246,7 @@ const (
 	alertAckActionID     = "action_alert_ack"
 )
 
-func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, status alert.Status) slack.MsgOption {
+func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, state notification.AlertState) slack.MsgOption {
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
 			slack.NewTextBlockObject("mrkdwn", alertLink(ctx, id, summary), false, false), nil, nil),
@@ -255,8 +254,8 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 
 	var color string
 	var actions []slack.Block
-	switch status {
-	case alert.StatusActive:
+	switch state {
+	case notification.AlertStateAcknowledged:
 		color = colorAcked
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
@@ -264,7 +263,7 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 			),
 		}
-	case alert.StatusTriggered:
+	case notification.AlertStateUnacknowledged:
 		color = colorUnacked
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
@@ -273,7 +272,7 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 			),
 		}
-	case alert.StatusClosed:
+	case notification.AlertStateClosed:
 		color = colorClosed
 		details = ""
 	}
@@ -317,11 +316,11 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, t.Details, "Unacknowledged", alert.StatusTriggered))
+		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, t.Details, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		opts = append(opts,
 			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
-			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.Details, t.LogEntry, t.NewAlertStatus),
+			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.Details, t.LogEntry, t.NewAlertState),
 		)
 	case notification.AlertBundle:
 		opts = append(opts, slack.MsgOptionText(
