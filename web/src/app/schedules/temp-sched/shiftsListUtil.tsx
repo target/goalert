@@ -9,11 +9,9 @@ import {
 } from '../../lists/FlatList'
 import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
-import { fmtLocal, Shift } from './sharedUtils'
+import { Shift } from './sharedUtils'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
-
-export const fmtTime = (dt: DateTime): string =>
-  dt.toLocaleString(DateTime.TIME_SIMPLE)
+import { fmtLocal, fmtTime } from '../../util/timeFormat'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -132,16 +130,18 @@ export function getCoverageGapItems(
       // nothing to do
       title = ''
     } else if (gap.start.equals(gap.start.startOf('day'))) {
-      details += ` until ${fmtTime(gap.end)}`
-      title += ` until ${fmtLocal(gap.end.toISO())}`
+      details += ` until ${fmtTime(gap.end, zone, false)}`
+      title += ` until ${fmtLocal(gap.end)}`
     } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
-      details += ` after ${fmtTime(gap.start)}`
-      title += ` after ${fmtLocal(gap.start.toISO())}`
+      details += ` after ${fmtTime(gap.start, zone, false)}`
+      title += ` after ${fmtLocal(gap.start)}`
     } else {
-      details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
-      title += ` from ${fmtLocal(gap.start.toISO())} to ${fmtLocal(
-        gap.end.toISO(),
+      details += ` from ${fmtTime(gap.start, zone, false)} to ${fmtTime(
+        gap.end,
+        zone,
+        false,
       )}`
+      title += ` from ${fmtLocal(gap.start)} to ${fmtLocal(gap.end)}`
     }
 
     return {

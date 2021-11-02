@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ToggleIcon from '@material-ui/icons/CompareArrows'
 import _ from 'lodash'
-import { dtToDuration, fmtLocal, Shift, Value } from './sharedUtils'
+import { dtToDuration, Shift, Value } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -18,6 +18,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import NumberField from '../../util/NumberField'
+import { fmtLocal } from '../../util/timeFormat'
 
 type AddShiftsStepProps = {
   value: Value

@@ -1,4 +1,5 @@
 import { Interval, DateTime, DateTimeFormatOptions } from 'luxon'
+import { ExplicitZone } from './luxon-helpers'
 
 export function formatTimeSince(
   _since: DateTime | string,
@@ -63,4 +64,38 @@ export function relativeDate(
     return build('Next', { weekday: 'long' })
 
   return build('', { weekday: 'long' })
+}
+
+// fmtTime returns simple string for ISO string or DateTime object.
+// If `withZoneAbbr` is not specified, zone info will only be provided for non-local times.
+// Only 12-hour if the locale is.
+// e.g. '9:30 AM', '9:30 PM', '9:30 AM CDT'
+export function fmtTime(
+  time: DateTime | string,
+  zone: ExplicitZone,
+  withZoneAbbr: boolean | null = null,
+): string {
+  if (!time) return ''
+  if (typeof time === 'string') {
+    time = DateTime.fromISO(time, { zone })
+  } else {
+    time = time.setZone(zone)
+  }
+
+  const prefix = time.toLocaleString(DateTime.TIME_SIMPLE)
+  const suffix = time.toFormat('ZZZZ')
+
+  if (withZoneAbbr === true) return prefix + ' ' + suffix
+  if (withZoneAbbr === false) return prefix
+
+  if (zone === DateTime.local().zoneName) return prefix
+  return prefix + ' ' + suffix
+}
+
+// fmtLocal is like fmtTime but uses the system zone and displays zone info by default.
+export function fmtLocal(
+  time: DateTime | string,
+  withZoneAbbr: boolean | null = true,
+): string {
+  return fmtTime(time, 'local', withZoneAbbr)
 }

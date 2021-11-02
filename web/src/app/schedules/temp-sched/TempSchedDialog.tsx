@@ -14,13 +14,7 @@ import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import {
-  contentText,
-  dtToDuration,
-  fmtLocal,
-  Shift,
-  Value,
-} from './sharedUtils'
+import { contentText, dtToDuration, Shift, Value } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -29,6 +23,7 @@ import { useScheduleTZ } from './hooks'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
+import { fmtLocal } from '../../util/timeFormat'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
