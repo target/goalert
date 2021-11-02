@@ -254,27 +254,36 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
+		blocks := []slack.Block{
+			slack.NewSectionBlock(
+				slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false), nil, nil),
+		}
+
+		if t.Details != "" {
+			details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
+
+			blocks = append(blocks, slack.NewSectionBlock(
+				slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil),
+			)
+		}
+		blocks = append(blocks,
+			slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", "Unacknowledged", false, false)))
+
 		opts = append(opts,
 			slack.MsgOptionAttachments(
 				slack.Attachment{
-					Color: colorUnacked,
-					Blocks: slack.Blocks{
-						BlockSet: []slack.Block{
-							slack.NewSectionBlock(
-								slack.NewTextBlockObject("mrkdwn", alertLink(ctx, t.AlertID, t.Summary), false, false), nil, nil),
-
-							slack.NewSectionBlock(
-								slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil),
-							slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", "Unacknowledged", false, false)),
-						},
-					},
+					Color:  colorUnacked,
+					Blocks: slack.Blocks{BlockSet: blocks},
 				},
 			),
 		)
 	case notification.AlertStatus:
 		var color string
-		details := "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
+		var details string
+		if t.Details != "" {
+			details = "> " + strings.ReplaceAll(slackutilsx.EscapeMessage(t.Details), "\n", "\n> ")
+		}
+
 		switch t.NewAlertStatus {
 		case alert.StatusActive:
 			color = colorAcked
@@ -291,7 +300,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		}
 		if details != "" {
 			blocks = append(blocks, slack.NewSectionBlock(
-				slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil))
+				slack.NewTextBlockObject("mrkdwn", details, false, false), nil, nil),
+			)
 		}
 		blocks = append(blocks, slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", slackutilsx.EscapeMessage(t.LogEntry), false, false)))
 
