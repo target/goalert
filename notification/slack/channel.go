@@ -29,6 +29,8 @@ type ChannelSender struct {
 	listMx sync.Mutex
 	chanMx sync.Mutex
 	teamMx sync.Mutex
+
+	recv notification.Receiver
 }
 
 const (
@@ -38,6 +40,7 @@ const (
 )
 
 var _ notification.Sender = &ChannelSender{}
+var _ notification.ReceiverSetter = &ChannelSender{}
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
@@ -46,6 +49,10 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		listCache: newTTLCache(250, time.Minute),
 		chanCache: newTTLCache(1000, 15*time.Minute),
 	}, nil
+}
+
+func (s *ChannelSender) SetReceiver(r notification.Receiver) {
+	s.recv = r
 }
 
 // Channel contains information about a Slack channel.
@@ -234,6 +241,12 @@ func alertLink(ctx context.Context, id int, summary string) string {
 	return fmt.Sprintf("<%s|Alert #%d: %s>", cfg.CallbackURL(path), id, slackutilsx.EscapeMessage(summary))
 }
 
+const (
+	alertResponseBlockID = "block_alert_response"
+	alertCloseActionID   = "action_alert_close"
+	alertAckActionID     = "action_alert_ack"
+)
+
 func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, status alert.Status) slack.MsgOption {
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
@@ -247,17 +260,17 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		color = colorAcked
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
-			slack.NewActionBlock("alert_response",
-				slack.NewButtonBlockElement("close", callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
+			slack.NewActionBlock(alertResponseBlockID,
+				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 			),
 		}
 	case alert.StatusTriggered:
 		color = colorUnacked
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
-			slack.NewActionBlock("alert_response",
-				slack.NewButtonBlockElement("ack", callbackID, slack.NewTextBlockObject("plain_text", "Acknowledge", false, false)),
-				slack.NewButtonBlockElement("close", callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
+			slack.NewActionBlock(alertResponseBlockID,
+				slack.NewButtonBlockElement(alertAckActionID, callbackID, slack.NewTextBlockObject("plain_text", "Acknowledge", false, false)),
+				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 			),
 		}
 	case alert.StatusClosed:

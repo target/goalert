@@ -1,6 +1,9 @@
 package notification
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // A Receiver processes incoming messages and responses.
 type Receiver interface {
@@ -9,6 +12,9 @@ type Receiver interface {
 
 	// Receive records a response to a previously sent message.
 	Receive(ctx context.Context, callbackID string, result Result) error
+
+	// ReceiveSubject records a response to a previously sent message from a provider/subject (e.g. Slack user).
+	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
 
 	// Start indicates a user has opted-in for notifications to this contact method.
 	Start(context.Context, Dest) error
@@ -19,3 +25,6 @@ type Receiver interface {
 	// IsKnownDest checks if the given destination is known/not disabled.
 	IsKnownDest(ctx context.Context, value string) (bool, error)
 }
+
+// ErrUnknownSubject is returend from ReceiveSubject when the subject is unknown.
+var ErrUnknownSubject = errors.New("unknown subject for that provider")

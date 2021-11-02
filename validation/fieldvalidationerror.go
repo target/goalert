@@ -102,6 +102,11 @@ func NewFieldError(fieldName string, reason string) FieldError {
 	return &fieldError{reason: reason, fieldName: fieldName, stack: errors.New("").(stackTracer).StackTrace()}
 }
 
+// NewFieldError will create a new FieldError for the given field and reason
+func NewFieldErrorf(fieldName string, reason string, args ...interface{}) FieldError {
+	return &fieldError{reason: fmt.Sprintf(reason, args...), fieldName: fieldName, stack: errors.New("").(stackTracer).StackTrace()}
+}
+
 // IsValidationError will determine if an error's cause is a field validation error.
 func IsValidationError(err error) bool {
 	var e validation
