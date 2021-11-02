@@ -1,3 +1,4 @@
+import React from 'react'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
@@ -8,7 +9,8 @@ import {
 } from '../../lists/FlatList'
 import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
-import { Shift } from './sharedUtils'
+import { fmtLocal, Shift } from './sharedUtils'
+import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 
 export const fmtTime = (dt: DateTime): string =>
   dt.toLocaleString(DateTime.TIME_SIMPLE)
@@ -129,16 +131,24 @@ export function getCoverageGapItems(
     schedInterval.difference(...shiftIntervals),
     (inv) => splitAtMidnight(inv),
   )
+  const isLocalZone = zone === DateTime.local().zoneName
   return gapIntervals.map((gap) => {
     let details = 'No coverage'
+    let title = 'No coverage'
     if (gap.length('hours') === 24) {
       // nothing to do
+      title = ''
     } else if (gap.start.equals(gap.start.startOf('day'))) {
       details += ` until ${fmtTime(gap.end)}`
+      title += ` until ${fmtLocal(gap.end.toISO())}`
     } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
       details += ` after ${fmtTime(gap.start)}`
+      title += ` after ${fmtLocal(gap.start.toISO())}`
     } else {
       details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
+      title += ` from ${fmtLocal(gap.start.toISO())} to ${fmtLocal(
+        gap.end.toISO(),
+      )}`
     }
 
     return {
@@ -146,9 +156,12 @@ export function getCoverageGapItems(
       id: 'day-no-coverage_' + gap.start.toISO(),
       type: 'WARNING',
       message: '',
-      details,
+      details: (
+        <Tooltip title={!isLocalZone ? title : ''} placement='right'>
+          <span>{details}</span>
+        </Tooltip>
+      ),
       at: gap.start,
-      ends: gap.end,
       itemType: 'gap',
       handleOnClick: () => {
         handleCoverageClick(gap)

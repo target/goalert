@@ -2,13 +2,13 @@ import React, { useMemo } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
+import { fmtLocal, Shift } from './sharedUtils'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
-import { Shift } from './sharedUtils'
 import FlatList, {
   FlatListItem,
   FlatListListItem,
@@ -62,7 +62,7 @@ export default function TempSchedShiftsList({
   handleCoverageGapClick,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  const { q, zone } = useScheduleTZ(scheduleID)
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const now = useMemo(() => DateTime.now().setZone(zone), [zone])
   const shifts = useUserInfo(value)
 
@@ -113,24 +113,34 @@ export default function TempSchedShiftsList({
           const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
 
           let subText = ''
+          let titleText = ''
           if (inv.length('hours') === 24) {
             // shift spans all day
             subText = 'All day'
           } else if (inv.engulfs(shiftInv)) {
             // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
+            titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
+              inv.end.toISO(),
+            )}`
           } else if (inv.end === shiftInv.end) {
             subText = `Active until ${endTime}`
+            titleText = `Active until ${fmtLocal(inv.end.toISO())}`
           } else {
             // shift starts and continues on for the rest of the day
             subText = `Active starting at ${startTime}\n`
+            titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
           }
 
           return {
             scrollIntoView: true,
             id: s.start + s.userID + index.toString(),
             title: s.user.name,
-            subText,
+            subText: (
+              <Tooltip title={!isLocalZone ? titleText : ''} placement='right'>
+                <span>{subText}</span>
+              </Tooltip>
+            ),
             userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
@@ -164,6 +174,7 @@ export default function TempSchedShiftsList({
 
     const startItem = (() => {
       const active = edit && DateTime.fromISO(start, { zone }) < now
+      const tooltipTitle = `Starts at ${fmtLocal(start)}`
 
       const { message, details, at, itemType } = active
         ? {
@@ -187,9 +198,16 @@ export default function TempSchedShiftsList({
         type: 'OK',
         icon: <ScheduleIcon />,
         message,
-        details,
         at,
         itemType,
+        details: (
+          <Tooltip
+            title={!isLocalZone && itemType === 'start' ? tooltipTitle : ''}
+            placement='right'
+          >
+            <div>{details}</div>
+          </Tooltip>
+        ),
       } as Sortable<FlatListNotice>
     })()
 
@@ -198,13 +216,18 @@ export default function TempSchedShiftsList({
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
         : 'Ends at ' + fmtTime(at)
+      const tooltipTitle = `Ends at ${fmtLocal(end)}`
 
       return {
         id: 'sched-end_' + end,
         type: 'OK',
         icon: <ScheduleIcon />,
         message: '',
-        details,
+        details: (
+          <Tooltip title={!isLocalZone ? tooltipTitle : ''} placement='right'>
+            <div>{details}</div>
+          </Tooltip>
+        ),
         at,
         itemType: 'end',
       } as Sortable<FlatListNotice>
