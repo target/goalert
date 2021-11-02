@@ -174,9 +174,8 @@ export default function TempSchedShiftsList({
 
     const startItem = (() => {
       const active = edit && DateTime.fromISO(start, { zone }) < now
-      const tooltipTitle = `Starts at ${fmtLocal(start)}`
 
-      const { message, details, at, itemType } = active
+      const { message, details, at, itemType, tooltipTitle } = active
         ? {
             message: 'Currently active',
             details: 'Historical shifts are not editable',
@@ -185,12 +184,14 @@ export default function TempSchedShiftsList({
               ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
             ).startOf('day'),
             itemType: 'active',
+            tooltipTitle: '',
           }
         : {
             message: '',
             details: `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`,
             at: DateTime.fromISO(start, { zone }),
             itemType: 'start',
+            tooltipTitle: `Starts at ${fmtLocal(start)}`,
           }
 
       return {
@@ -201,10 +202,7 @@ export default function TempSchedShiftsList({
         at,
         itemType,
         details: (
-          <Tooltip
-            title={!isLocalZone && itemType === 'start' ? tooltipTitle : ''}
-            placement='right'
-          >
+          <Tooltip title={!isLocalZone ? tooltipTitle : ''} placement='right'>
             <div>{details}</div>
           </Tooltip>
         ),
