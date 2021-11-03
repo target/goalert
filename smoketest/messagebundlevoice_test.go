@@ -42,7 +42,10 @@ func TestMessageBundle_Voice(t *testing.T) {
 
 	h.SetConfigValue("General.DisableMessageBundles", "false")
 
-	h.CreateAlert(h.UUID("sid"), "test1", "test2", "test3", "test4")
+	h.CreateAlert(h.UUID("sid"), "test1")
+	h.CreateAlert(h.UUID("sid"), "test2")
+	h.CreateAlert(h.UUID("sid"), "test3")
+	h.CreateAlert(h.UUID("sid"), "test4")
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))

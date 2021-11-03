@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mockslack"
 )
 
@@ -25,10 +26,18 @@ type SlackChannel interface {
 type SlackMessageState interface {
 	// AssertText asserts that the message contains the given keywords.
 	AssertText(keywords ...string)
+
+	// AssertNotText asserts that the message does not contain the given keywords.
+	AssertNotText(keywords ...string)
+
+	// AssertColor asserts that the message has the given color bar value.
+	AssertColor(color string)
 }
 
 type SlackMessage interface {
 	SlackMessageState
+
+	ExpectUpdate() SlackMessageState
 
 	// ExpectThreadReply waits and asserts that a non-broadcast thread reply is received.
 	ExpectThreadReply(keywords ...string)
@@ -101,13 +110,13 @@ func (ch *slackChannel) Name() string { return ch.name }
 
 func (ch *slackChannel) ExpectMessage(keywords ...string) SlackMessage {
 	ch.h.t.Helper()
-	return ch.expectMessageFunc(func(msg mockslack.Message) bool {
+	return ch.expectMessageFunc("message", func(msg mockslack.Message) bool {
 		// only return non-thread replies
 		return msg.ThreadTS == ""
 	}, keywords...)
 }
 
-func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, keywords ...string) *slackMessage {
+func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) *slackMessage {
 	ch.h.t.Helper()
 
 	timeout := time.NewTimer(15 * time.Second)
@@ -138,7 +147,7 @@ func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, key
 		select {
 		case <-timeout.C:
 			ch.h.slack.hasFailure = true
-			ch.h.t.Fatalf("timeout waiting for slack message: Channel=%s; ID=%s; keywords=%v\nGot: %#v", ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
+			ch.h.t.Fatalf("timeout waiting for Slack %s: Channel=%s; ID=%s; keywords=%v\nGot: %#v", desc, ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
 			return nil
 		default:
 		}
@@ -159,19 +168,42 @@ func (ch *slackChannel) hasUnexpectedMessages() bool {
 	return hasFailure
 }
 
+func (msg *slackMessage) AssertColor(color string) {
+	msg.h.t.Helper()
+
+	if msg.Color != color {
+		require.Equalf(msg.h.t, color, msg.Color, "message color")
+	}
+}
+
 func (msg *slackMessage) AssertText(keywords ...string) {
 	msg.h.t.Helper()
 
 	for _, w := range keywords {
-		if !strings.Contains(msg.Text, w) {
-			msg.h.t.Errorf("slack message '%s' does not contain keyword: %s", msg.Text, w)
-		}
+		require.Contains(msg.h.t, msg.Text, w)
 	}
 }
+
+func (msg *slackMessage) AssertNotText(keywords ...string) {
+	msg.h.t.Helper()
+
+	for _, w := range keywords {
+		require.NotContains(msg.h.t, msg.Text, w)
+	}
+}
+
+func (msg *slackMessage) ExpectUpdate() SlackMessageState {
+	msg.h.t.Helper()
+
+	return msg.channel.expectMessageFunc("message update", func(m mockslack.Message) bool {
+		return m.UpdateTS == msg.TS
+	})
+}
+
 func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("thread reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 
@@ -181,7 +213,7 @@ func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 func (msg *slackMessage) ExpectBroadcastReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("broadcast reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 
