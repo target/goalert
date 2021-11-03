@@ -27,4 +27,6 @@ type Message struct {
 	User      string `json:"user"`
 	Broadcast bool   `json:"reply_broadcast"`
 	Color     string `json:"color"`
+
+	Actions []Action
 }

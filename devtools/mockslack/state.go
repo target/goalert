@@ -47,6 +47,7 @@ type App struct {
 	Name      string
 	Secret    string
 	AuthToken *AuthToken
+	ActionURL string
 }
 
 type channelState struct {

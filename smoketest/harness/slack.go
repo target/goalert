@@ -2,6 +2,7 @@ package harness
 
 import (
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ type SlackChannel interface {
 	Name() string
 
 	ExpectMessage(keywords ...string) SlackMessage
+	// ExpectEphemeralMessage(keywords ...string) SlackMessage
 }
 
 type SlackMessageState interface {
@@ -32,6 +34,16 @@ type SlackMessageState interface {
 
 	// AssertColor asserts that the message has the given color bar value.
 	AssertColor(color string)
+
+	// AssertActions asserts that the message includes the given action buttons.
+	AssertActions(labels ...string)
+
+	// Action returns the action with the given label.
+	Action(label string) SlackAction
+}
+
+type SlackAction interface {
+	Click()
 }
 
 type SlackMessage interface {
@@ -65,6 +77,48 @@ type slackMessage struct {
 	channel *slackChannel
 
 	mockslack.Message
+}
+
+type slackAction struct {
+	*slackMessage
+	mockslack.Action
+}
+
+func (msg *slackMessage) AssertActions(text ...string) {
+	msg.h.t.Helper()
+
+	require.Equalf(msg.h.t, len(text), len(msg.Actions), "message actions")
+	sort.Slice(text, func(i, j int) bool { return text[i] < text[j] })
+	sort.Slice(msg.Actions, func(i, j int) bool { return msg.Actions[i].Text < msg.Actions[j].Text })
+	for i, a := range msg.Actions {
+		require.Equalf(msg.h.t, text[i], a.Text, "message action text")
+	}
+}
+func (msg *slackMessage) Action(text string) SlackAction {
+	msg.h.t.Helper()
+
+	var a *mockslack.Action
+	for _, action := range msg.Actions {
+		if action.Text != text {
+			continue
+		}
+		a = &action
+		break
+	}
+	require.NotNil(msg.h.t, a, "could not find action with that text")
+
+	return &slackAction{
+		slackMessage: msg,
+		Action:       *a,
+	}
+}
+
+func (a *slackAction) Click() {
+	a.h.t.Helper()
+
+	a.h.t.Logf("clicking action: %s", a.Text)
+	err := a.h.slack.PerformActionAs(a.h.slackUser.ID, a.Action)
+	require.NoError(a.h.t, err, "perform Slack action")
 }
 
 func (h *Harness) Slack() SlackServer { return h.slack }
@@ -231,4 +285,5 @@ func (h *Harness) initSlack() {
 
 	h.slackApp = h.slack.InstallApp("GoAlert Smoketest", "bot")
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
+	h.slack.SetURLPrefix(h.slackS.URL)
 }

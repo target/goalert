@@ -317,6 +317,7 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
 	h.TwilioNumber("") // register default number
+	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
 	go h.backend.Run(context.Background())
 	err = h.backend.WaitForStartup(ctx)
