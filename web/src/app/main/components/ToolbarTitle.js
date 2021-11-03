@@ -41,6 +41,7 @@ const mapSingular = {
   Rotations: 'Rotation',
   Users: 'User',
   Services: 'Service',
+  Alerts: 'Alert',
 }
 
 const queries = {
@@ -76,6 +77,13 @@ const queries = {
       }
     }
   `,
+  alerts: gql`
+    query ($id: Int!) {
+      data: alert(id: $id) {
+        id
+      }
+    }
+  `,
 }
 
 function NameLoader(props) {
@@ -83,7 +91,7 @@ function NameLoader(props) {
     variables: { id: props.id },
     skip: !props.id,
   })
-  return data?.data?.name ?? props.fallback
+  return data?.data?.name ?? data?.data?.id ?? props.fallback
 }
 
 NameLoader.propTypes = {
@@ -121,6 +129,7 @@ function ToolbarTitle() {
   }
 
   const renderSubPageTitle = ({ match }) => {
+    console.log('the Match is:', match)
     const sub = startCase(match.params.sub)
 
     if (fullScreen) {
@@ -128,6 +137,7 @@ function ToolbarTitle() {
       return renderTitle(sub)
     }
     const query = queries[match.params.type]
+    const queryTwo = queries.alerts
 
     return (
       <div className={classes.div}>
@@ -152,6 +162,27 @@ function ToolbarTitle() {
         </Typography>
         <ChevronRight />
         {renderTitle(sub)}
+        {match.params.subID && (
+          <Typography
+            component={AppLink}
+            className={classes.backPage}
+            color='inherit'
+            noWrap
+            variant='h6'
+            to='..'
+            replace
+          >
+            {query ? (
+              <NameLoader
+                id={parseInt(match.params.subID)}
+                query={queryTwo}
+                fallback={detailsText(match)}
+              />
+            ) : (
+              detailsText(match)
+            )}
+          </Typography>
+        )}
       </div>
     )
   }
@@ -171,7 +202,7 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
+        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)/:subID'
         render={renderSubPageTitle}
       />
       <Route

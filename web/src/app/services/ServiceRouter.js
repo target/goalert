@@ -15,6 +15,7 @@ import { searchSelector } from '../selectors'
 import { setURLParam } from '../actions'
 import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
 import getServiceLabel from '../util/getServiceLabel'
+import AlertDetails from '../alerts/pages/AlertDetailPage'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -90,6 +91,11 @@ export default function ServiceRouter() {
     <Switch>
       <Route exact path='/services' render={renderList} />
       <Route exact path='/services/:serviceID/alerts' render={renderAlerts} />
+      <Route
+        exact
+        path='/services/:serviceID/alerts/:alertID'
+        component={AlertDetails}
+      />
       <Route exact path='/services/:serviceID' render={renderDetails} />
       <Route
         exact
