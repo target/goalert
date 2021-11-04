@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -142,7 +141,6 @@ func attachmentsText(appID, teamID, chanID, value string) (*attachments, error) 
 			Text     textBlock
 		}
 	}
-	fmt.Println(value)
 	err := json.Unmarshal([]byte(value), &data)
 	if err != nil {
 		return nil, err
