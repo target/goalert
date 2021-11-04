@@ -977,6 +977,7 @@ type ConfigID =
   | 'Slack.ClientID'
   | 'Slack.ClientSecret'
   | 'Slack.AccessToken'
+  | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'

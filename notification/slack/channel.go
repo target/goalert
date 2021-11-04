@@ -285,7 +285,8 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 	blocks = append(blocks,
 		slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", logEntry, false, false)),
 	)
-	if len(actions) > 0 {
+	cfg := config.FromContext(ctx)
+	if len(actions) > 0 && cfg.Slack.InteractiveMessages {
 		blocks = append(blocks, actions...)
 	}
 

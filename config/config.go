@@ -87,6 +87,8 @@ type Config struct {
 		// The `xoxb-` prefix is documented by Slack.
 		// https://api.slack.com/docs/token-types#bot
 		AccessToken string `password:"true" info:"Slack app bot user OAuth access token (should start with xoxb-)."`
+
+		InteractiveMessages bool `info:"Enable interactive messages (e.g. buttons)."`
 	}
 
 	Twilio struct {
