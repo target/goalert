@@ -244,6 +244,7 @@ func (h *Harness) Start() {
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
 	cfg.Slack.ClientSecret = h.slackApp.ClientSecret
+	cfg.Slack.SigningSecret = SlackTestSigningSecret
 	cfg.Twilio.Enable = true
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken

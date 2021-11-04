@@ -88,7 +88,8 @@ type Config struct {
 		// https://api.slack.com/docs/token-types#bot
 		AccessToken string `password:"true" info:"Slack app bot user OAuth access token (should start with xoxb-)."`
 
-		InteractiveMessages bool `info:"Enable interactive messages (e.g. buttons)."`
+		SigningSecret       string `password:"true" info:"Signing secret to verify requests from slack."`
+		InteractiveMessages bool   `info:"Enable interactive messages (e.g. buttons)."`
 	}
 
 	Twilio struct {
@@ -396,6 +397,7 @@ func (cfg Config) Validate() error {
 		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
 		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
 		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
+		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
@@ -418,6 +420,9 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.SMTP.From != "" {
 		err = validate.Many(err, validate.Email("SMTP.From", cfg.SMTP.From))
+	}
+	if cfg.Slack.InteractiveMessages && cfg.Slack.SigningSecret == "" {
+		err = validate.Many(err, validation.NewFieldError("Slack.SigningSecret", "required to enable Slack interactive messages"))
 	}
 
 	err = validate.Many(

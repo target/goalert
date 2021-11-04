@@ -1,12 +1,19 @@
 package slack
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/slack-go/slack"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
@@ -15,6 +22,51 @@ import (
 
 func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
+	cfg := config.FromContext(ctx)
+
+	if !cfg.Slack.InteractiveMessages {
+		http.Error(w, "not enabled", http.StatusNotFound)
+		return
+	}
+
+	var newBody struct {
+		io.Reader
+		io.Closer
+	}
+
+	h := hmac.New(sha256.New, []byte(cfg.Slack.SigningSecret))
+	tsStr := req.Header.Get("X-Slack-Request-Timestamp")
+	io.WriteString(h, "v0:"+tsStr+":")
+	newBody.Reader = io.TeeReader(req.Body, h)
+	newBody.Closer = req.Body
+	req.Body = newBody
+
+	err := req.ParseForm()
+	if err != nil {
+		log.Log(ctx, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ts, err := strconv.ParseInt(tsStr, 10, 64)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	diff := time.Since(time.Unix(ts, 0))
+	if diff < 0 {
+		diff = -diff
+	}
+	if diff > 5*time.Minute {
+		http.Error(w, "timestamp too old", http.StatusBadRequest)
+		return
+	}
+
+	sig := "v0=" + hex.EncodeToString(h.Sum(nil))
+	if hmac.Equal([]byte(req.Header.Get("X-Slack-Signature")), []byte(sig)) {
+		http.Error(w, "invalid signature", http.StatusBadRequest)
+		return
+	}
 
 	var payload struct {
 		Type        string
@@ -32,7 +84,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			Value    string `json:"value"`
 		}
 	}
-	err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
+	err = json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}

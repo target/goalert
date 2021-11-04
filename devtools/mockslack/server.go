@@ -86,6 +86,8 @@ type AppInfo struct {
 	AccessToken  string
 	TeamID       string
 
+	SigningSecret string
+
 	ActionURL string
 }
 
@@ -141,6 +143,8 @@ func (st *state) InstallStaticApp(app AppInfo, scopes ...string) (*AppInfo, erro
 			Secret:    app.ClientSecret,
 			AuthToken: tok,
 			ActionURL: app.ActionURL,
+
+			SigningSecret: app.SigningSecret,
 		},
 	}
 

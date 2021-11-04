@@ -48,6 +48,8 @@ type App struct {
 	Secret    string
 	AuthToken *AuthToken
 	ActionURL string
+
+	SigningSecret string
 }
 
 type channelState struct {

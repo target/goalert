@@ -12,6 +12,10 @@ import (
 	"github.com/target/goalert/devtools/mockslack"
 )
 
+const (
+	SlackTestSigningSecret = "secret"
+)
+
 type SlackServer interface {
 	Channel(string) SlackChannel
 
@@ -292,7 +296,9 @@ func (h *Harness) initSlack() {
 	}
 	h.slackS = httptest.NewServer(h.slack)
 
-	h.slackApp = h.slack.InstallApp("GoAlert Smoketest", "bot")
+	app, err := h.slack.InstallStaticApp(mockslack.AppInfo{Name: "GoAlert Smoketest", SigningSecret: SlackTestSigningSecret}, "bot")
+	require.NoError(h.t, err)
+	h.slackApp = *app
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
 
 	h.slack.SetURLPrefix(h.slackS.URL)

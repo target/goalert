@@ -1,12 +1,17 @@
 package mockslack
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type actionItem struct {
@@ -127,8 +132,21 @@ func (s *Server) PerformActionAs(userID string, a Action) error {
 
 	v := make(url.Values)
 	v.Set("payload", string(data))
+	data = []byte(v.Encode())
 
-	resp, err := http.PostForm(app.ActionURL, v)
+	req, err := http.NewRequest("POST", app.ActionURL, bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("create action request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	t := time.Now()
+	req.Header.Set("X-Slack-Request-Timestamp", strconv.FormatInt(t.Unix(), 10))
+	h := hmac.New(sha256.New, []byte(app.SigningSecret))
+	fmt.Fprintf(h, "v0:%d:%s", t.Unix(), string(data))
+	req.Header.Set("X-Slack-Signature", "v0="+fmt.Sprintf("%x", h.Sum(nil)))
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("perform action: %w", err)
 	}
