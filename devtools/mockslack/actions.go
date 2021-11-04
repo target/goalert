@@ -34,14 +34,48 @@ type actionBody struct {
 }
 
 func (s *Server) ServeActionResponse(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Text string
+		Type string `json:"response_type"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Type != "ephemeral" {
+		http.Error(w, "unexpected response type", http.StatusBadRequest)
+		return
+	}
+
 	actData := r.URL.Query().Get("action")
-	var p actionBody
-	err := json.Unmarshal([]byte(actData), &p)
+	var a Action
+	err := json.Unmarshal([]byte(actData), &a)
 	if respondErr(w, err) {
 		return
 	}
-	r.Form.Set("channel", p.Channel.ID)
-	s.ServeChatPostMessage(w, r)
+
+	msg, err := s.API().ChatPostMessage(r.Context(), ChatPostMessageOptions{
+		ChannelID: a.ChannelID,
+		Text:      req.Text,
+		User:      r.URL.Query().Get("user"),
+	})
+	if respondErr(w, err) {
+		return
+	}
+
+	var respData struct {
+		response
+		TS      string
+		Channel string   `json:"channel"`
+		Message *Message `json:"message"`
+	}
+	respData.TS = msg.TS
+	respData.OK = true
+	respData.Channel = msg.ChannelID
+	respData.Message = msg
+
+	respondWith(w, respData)
 }
 
 // PerformActionAs will preform the action as the given user.
@@ -69,7 +103,13 @@ func (s *Server) PerformActionAs(userID string, a Action) error {
 	p.User.TeamID = a.TeamID
 	p.Channel.ID = a.ChannelID
 	p.AppID = a.AppID
-	p.ResponseURL = strings.TrimSuffix(s.urlPrefix, "/") + "/actions/response?action=" + url.QueryEscape(string(actionData))
+
+	tok := s.newToken(AuthToken{
+		User: userID,
+
+		Scopes: []string{"bot"},
+	})
+	p.ResponseURL = fmt.Sprintf("%s/actions/response?token=%s&user=%s&action=%s", strings.TrimSuffix(s.urlPrefix, "/"), url.QueryEscape(tok.ID), url.QueryEscape(usr.ID), url.QueryEscape(string(actionData)))
 
 	var action actionItem
 	action.ActionID = a.ActionID

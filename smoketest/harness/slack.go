@@ -1,6 +1,7 @@
 package harness
 
 import (
+	"context"
 	"net/http/httptest"
 	"sort"
 	"strings"
@@ -22,7 +23,7 @@ type SlackChannel interface {
 	Name() string
 
 	ExpectMessage(keywords ...string) SlackMessage
-	// ExpectEphemeralMessage(keywords ...string) SlackMessage
+	ExpectEphemeralMessage(keywords ...string) SlackMessage
 }
 
 type SlackMessageState interface {
@@ -170,6 +171,14 @@ func (ch *slackChannel) ExpectMessage(keywords ...string) SlackMessage {
 	}, keywords...)
 }
 
+func (ch *slackChannel) ExpectEphemeralMessage(keywords ...string) SlackMessage {
+	ch.h.t.Helper()
+	return ch.expectMessageFunc("ephemeral", func(msg mockslack.Message) bool {
+		// only return non-thread replies
+		return msg.ToUserID != ""
+	}, keywords...)
+}
+
 func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) *slackMessage {
 	ch.h.t.Helper()
 
@@ -285,5 +294,13 @@ func (h *Harness) initSlack() {
 
 	h.slackApp = h.slack.InstallApp("GoAlert Smoketest", "bot")
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
+
 	h.slack.SetURLPrefix(h.slackS.URL)
+}
+
+// LinkSlackUser creates a link between the GraphQL user and the smoketest Slack user.
+func (h *Harness) LinkSlackUser() {
+	_, err := h.db.Exec(context.Background(), `insert into auth_subjects (provider_id, subject_id, user_id) values ($1, $2, $3)`,
+		"slack:"+h.slackApp.TeamID, h.slackUser.ID, DefaultGraphQLAdminUserID)
+	require.NoError(h.t, err, "insert Slack auth subject")
 }

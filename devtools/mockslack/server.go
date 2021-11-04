@@ -29,6 +29,7 @@ func NewServer() *Server {
 
 	srv.mux.HandleFunc("/actions/response", srv.ServeActionResponse)
 	srv.mux.HandleFunc("/api/chat.postMessage", srv.ServeChatPostMessage)
+	srv.mux.HandleFunc("/api/chat.postEphemeral", srv.ServeChatPostMessage)
 	srv.mux.HandleFunc("/api/chat.update", srv.ServeChatUpdate)
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
@@ -83,6 +84,7 @@ type AppInfo struct {
 	ClientID     string
 	ClientSecret string
 	AccessToken  string
+	TeamID       string
 
 	ActionURL string
 }
@@ -107,6 +109,7 @@ func (st *state) InstallStaticApp(app AppInfo, scopes ...string) (*AppInfo, erro
 	if app.AccessToken == "" {
 		app.AccessToken = st.gen.UserAccessToken()
 	}
+	app.TeamID = st.teamID
 
 	if !clientIDRx.MatchString(app.ClientID) {
 		return nil, errors.Errorf("invalid client ID format: %s", app.ClientID)

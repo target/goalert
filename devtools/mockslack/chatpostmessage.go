@@ -21,6 +21,8 @@ type ChatPostMessageOptions struct {
 
 	AsUser bool
 
+	User string
+
 	UpdateTS  string
 	ThreadTS  string
 	Broadcast bool
@@ -91,6 +93,9 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		Text:  opts.Text,
 		User:  user,
 		Color: opts.Color,
+
+		ChannelID: opts.ChannelID,
+		ToUserID:  opts.User,
 
 		Actions: opts.Actions,
 
@@ -256,6 +261,8 @@ func (s *Server) serveChatPostMessage(w http.ResponseWriter, req *http.Request, 
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
 		UpdateTS:  updateTS,
+
+		User: req.FormValue("user"),
 
 		Broadcast: req.FormValue("reply_broadcast") == "true",
 	})

@@ -28,5 +28,8 @@ type Message struct {
 	Broadcast bool   `json:"reply_broadcast"`
 	Color     string `json:"color"`
 
+	ChannelID string
+	ToUserID  string
+
 	Actions []Action
 }
