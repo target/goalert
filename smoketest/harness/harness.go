@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
 	"github.com/target/goalert/config"
@@ -412,38 +413,59 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	}
 }
 
-func (h *Harness) CloseAlert(serviceID, summary string) {
+// CreateAlerts will create one or more unacknowledged alerts for a service.
+func (h *Harness) CreateAlert(serviceID string, summary string) TestAlert {
+	h.t.Helper()
+
+	return h.CreateAlertWithDetails(serviceID, summary, "")
+}
+
+type TestAlert interface {
+	Ack()
+	Escalate()
+	Close()
+}
+type testAlert struct {
+	h *Harness
+	a alert.Alert
+}
+
+func (t testAlert) setStatus(stat alert.Status) {
+	t.h.t.Helper()
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		tx, err := h.backend.DB().BeginTx(ctx, nil)
-		if err != nil {
-			h.t.Fatalf("failed to start tx: %v", err)
-		}
+		t.h.t.Helper()
+		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
+		require.NoError(t.h.t, err, "begin tx")
 		defer tx.Rollback()
 
-		a := &alert.Alert{
-			ServiceID: serviceID,
-			Summary:   summary,
-			Status:    alert.StatusClosed,
-		}
+		t.a.Status = stat
 
-		h.t.Logf("close alert: %v", a)
-		_, _, err = h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
-		if err != nil {
-			h.t.Fatalf("failed to close alert: %v", err)
-		}
+		result, isNew, err := t.h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, &t.a)
+		require.NoErrorf(t.h.t, err, "set alert to %s", stat)
+		require.False(t.h.t, isNew, "not be new")
+		require.NotNil(t.h.t, result)
 
-		err = tx.Commit()
-		if err != nil {
-			h.t.Fatalf("failed to commit tx: %v", err)
-		}
+		require.NoError(t.h.t, tx.Commit(), "commit tx")
 	})
 }
 
-// CreateAlert will create one or more unacknowledged alerts for a service.
-func (h *Harness) CreateAlert(serviceID string, summary ...string) {
+func (t testAlert) Close() { t.setStatus(alert.StatusClosed) }
+func (t testAlert) Ack()   { t.setStatus(alert.StatusActive) }
+func (t testAlert) Escalate() {
+	t.h.t.Helper()
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		t.h.t.Helper()
+
+		err := t.h.backend.AlertStore.Escalate(ctx, t.a.ID, 0)
+		require.NoErrorf(t.h.t, err, "escalate alert %d", t.a.ID)
+	})
+}
+
+// CreateAlertWithDetails will create a single alert with summary and detailss.
+func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) TestAlert {
 	h.t.Helper()
 
+	var newAlert alert.Alert
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
 		tx, err := h.backend.DB().BeginTx(ctx, nil)
@@ -451,26 +473,29 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
 		defer tx.Rollback()
-		for _, sum := range summary {
-			a := &alert.Alert{
-				ServiceID: serviceID,
-				Summary:   sum,
-			}
-
-			h.t.Logf("insert alert: %v", a)
-			_, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
-			if err != nil {
-				h.t.Fatalf("failed to insert alert: %v", err)
-			}
-			if !isNew {
-				h.t.Fatal("could not create duplicate alert with summary: " + sum)
-			}
+		a := &alert.Alert{
+			ServiceID: serviceID,
+			Summary:   summary,
+			Details:   details,
 		}
+
+		h.t.Logf("insert alert: %v", a)
+		_newAlert, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
+		if err != nil {
+			h.t.Fatalf("failed to insert alert: %v", err)
+		}
+		if !isNew {
+			h.t.Fatal("could not create duplicate alert with summary: " + summary)
+		}
+		newAlert = *_newAlert
+
 		err = tx.Commit()
 		if err != nil {
 			h.t.Fatalf("failed to commit tx: %v", err)
 		}
 	})
+
+	return testAlert{h: h, a: newAlert}
 }
 
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.
