@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
-import { fmtLocal, Shift } from './sharedUtils'
+import { Shift } from './sharedUtils'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
@@ -21,13 +21,13 @@ import { useScheduleTZ } from './hooks'
 import { CircularProgress } from '@material-ui/core'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
-  fmtTime,
   getCoverageGapItems,
   getSubheaderItems,
   getOutOfBoundsItems,
   Sortable,
   sortItems,
 } from './shiftsListUtil'
+import { fmtLocal, fmtTime } from '../../util/timeFormat'
 
 const useStyles = makeStyles({
   secondaryActionWrapper: {
@@ -108,8 +108,8 @@ export default function TempSchedShiftsList({
         const dayInvs = splitAtMidnight(shiftInv)
 
         return dayInvs.map((inv, index) => {
-          const startTime = fmtTime(inv.start)
-          const endTime = fmtTime(inv.end)
+          const startTime = fmtTime(inv.start, zone, false)
+          const endTime = fmtTime(inv.end, zone, false)
           const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
 
           let subText = ''
@@ -188,7 +188,7 @@ export default function TempSchedShiftsList({
           }
         : {
             message: '',
-            details: `Starts at ${fmtTime(DateTime.fromISO(start, { zone }))}`,
+            details: `Starts at ${fmtTime(start, zone, false)}`,
             at: DateTime.fromISO(start, { zone }),
             itemType: 'start',
             tooltipTitle: `Starts at ${fmtLocal(start)}`,
@@ -213,8 +213,8 @@ export default function TempSchedShiftsList({
       const at = DateTime.fromISO(end, { zone })
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
-        : 'Ends at ' + fmtTime(at)
-      const tooltipTitle = `Ends at ${fmtLocal(end)}`
+        : 'Ends at ' + fmtTime(at, zone, false)
+      const detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {
         id: 'sched-end_' + end,
@@ -222,7 +222,7 @@ export default function TempSchedShiftsList({
         icon: <ScheduleIcon />,
         message: '',
         details: (
-          <Tooltip title={!isLocalZone ? tooltipTitle : ''} placement='right'>
+          <Tooltip title={!isLocalZone ? detailsTooltip : ''} placement='right'>
             <div>{details}</div>
           </Tooltip>
         ),
