@@ -30,7 +30,7 @@ const useStyles = makeStyles(() => ({
   },
   title: {
     padding: '0 4px 0 4px',
-    flex: 1, // pushes toolbar actions to the right
+    // flex: 1, // pushes toolbar actions to the right
     fontSize: '1.25rem',
   },
 }))
@@ -91,7 +91,7 @@ function NameLoader(props) {
     variables: { id: props.id },
     skip: !props.id,
   })
-  return data?.data?.name ?? data?.data?.id ?? props.fallback
+  return data?.data?.name ?? props.id ?? props.fallback
 }
 
 NameLoader.propTypes = {
@@ -110,10 +110,13 @@ function ToolbarTitle() {
 
     return (
       <Typography
-        className={classes.title}
+        className={classes.backPage}
         color='inherit'
         noWrap
-        component='h1'
+        component={AppLink}
+        variant='h6'
+        to='..'
+        replace
       >
         {title.replace('On Call', 'On-Call')}
       </Typography>
@@ -162,24 +165,22 @@ function ToolbarTitle() {
         </Typography>
         <ChevronRight />
         {renderTitle(sub)}
+        <ChevronRight />
         {match.params.subID && (
           <Typography
-            component={AppLink}
-            className={classes.backPage}
+            className={classes.title}
             color='inherit'
             noWrap
             variant='h6'
             to='..'
             replace
           >
-            {query ? (
+            {query && (
               <NameLoader
                 id={parseInt(match.params.subID)}
                 query={queryTwo}
                 fallback={detailsText(match)}
               />
-            ) : (
-              detailsText(match)
             )}
           </Typography>
         )}
