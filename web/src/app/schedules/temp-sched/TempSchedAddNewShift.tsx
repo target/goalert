@@ -185,7 +185,7 @@ export default function TempSchedAddNewShift({
                 name='shift-start'
                 fieldName='start'
                 min={value.start}
-                max={DateTime.fromISO(value.end).plus({ year: 1 }).toISO()}
+                max={DateTime.fromISO(value.end, { zone }).plus({ year: 1 }).toISO()}
                 mapOnChangeValue={(value: string, formValue: Value) => {
                   if (!manualEntry) {
                     const diff = DateTime.fromISO(value, { zone }).diff(
@@ -211,7 +211,9 @@ export default function TempSchedAddNewShift({
                   name='shift-end'
                   fieldName='end'
                   min={value.start}
-                  max={DateTime.fromISO(value.end).plus({ year: 1 }).toISO()}
+                  max={DateTime.fromISO(value.end, { zone })
+                    .plus({ year: 1 })
+                    .toISO()}
                   hint={
                     <React.Fragment>
                       {!isLocalZone && fmtLocal(value?.end)}
