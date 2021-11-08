@@ -83,7 +83,7 @@
     "babel-jest": "27.3.1",
     "babel-loader": "8.2.2",
     "babel-plugin-transform-class-properties": "6.24.1",
-    "babel-plugin-typescript-to-proptypes": "1.4.2",
+    "babel-plugin-typescript-to-proptypes": "2.0.0",
     "chance": "1.1.7",
     "copy-webpack-plugin": "9.0.1",
     "css-loader": "6.5.0",
