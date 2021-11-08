@@ -144,27 +144,26 @@ export default function TempSchedShiftsList({
             userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
-            secondaryAction:
-              index === 0 ? (
-                <div className={classes.secondaryActionWrapper}>
-                  {!isValid && !isHistoricShift && (
-                    <Tooltip
-                      title='This shift extends beyond the start and/or end of this temporary schedule'
-                      placement='left'
-                    >
-                      <Error color='error' />
-                    </Tooltip>
-                  )}
-                  {isHistoricShift ? null : (
-                    <IconButton
-                      aria-label='delete shift'
-                      onClick={() => onRemove(s)}
-                    >
-                      <Delete />
-                    </IconButton>
-                  )}
-                </div>
-              ) : null,
+            secondaryAction: index === 0 && (
+              <div className={classes.secondaryActionWrapper}>
+                {!isValid && !isHistoricShift && (
+                  <Tooltip
+                    title='This shift extends beyond the start and/or end of this temporary schedule'
+                    placement='left'
+                  >
+                    <Error color='error' />
+                  </Tooltip>
+                )}
+                {!isHistoricShift && (
+                  <IconButton
+                    aria-label='delete shift'
+                    onClick={() => onRemove(s)}
+                  >
+                    <Delete />
+                  </IconButton>
+                )}
+              </div>
+            ),
             at: inv.start,
             itemType: 'shift',
           } as Sortable<FlatListItem>
