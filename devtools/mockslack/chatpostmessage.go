@@ -126,7 +126,8 @@ type Action struct {
 	Value    string
 }
 
-func attachmentsText(appID, teamID, chanID, value string) (*attachments, error) {
+// parseAttachments parses the attachments from the payload value.
+func parseAttachments(appID, teamID, chanID, value string) (*attachments, error) {
 	if value == "" {
 		return nil, errNoAttachment
 	}
@@ -233,7 +234,7 @@ func (s *Server) serveChatPostMessage(w http.ResponseWriter, req *http.Request, 
 	}
 	s.mx.Unlock()
 
-	attachment, err := attachmentsText(appID, s.teamID, chanID, req.FormValue("attachments"))
+	attachment, err := parseAttachments(appID, s.teamID, chanID, req.FormValue("attachments"))
 	if err == errNoAttachment {
 		err = nil
 		text = req.FormValue("text")
