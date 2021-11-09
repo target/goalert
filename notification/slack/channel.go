@@ -246,6 +246,7 @@ const (
 	alertAckActionID     = "action_alert_ack"
 )
 
+// alertMsgOption will return the slack.MsgOption for an alert-type message (e.g., notification or status update).
 func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, state notification.AlertState) slack.MsgOption {
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
