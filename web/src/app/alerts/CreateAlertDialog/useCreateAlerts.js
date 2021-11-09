@@ -17,7 +17,7 @@ const getAliasedMutation = (mutation, index) =>
   })
 
 // useCreateAlerts will return mutation, status and a function for mapping
-// field/paths from the response to the respecitve service ID.
+// field/paths from the response to the respective service ID.
 export const useCreateAlerts = (value) => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)

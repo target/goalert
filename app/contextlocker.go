@@ -116,7 +116,7 @@ func (c *contextLocker) RLockCount() int {
 	return int(atomic.LoadInt64(&c.readCount))
 }
 
-// ErrLockerShutdown is returned when attempting to aquire a lock after being shutdown.
+// ErrLockerShutdown is returned when attempting to acquire a lock after being shutdown.
 var ErrLockerShutdown = errors.New("context locker is already shutdown")
 
 func (c *contextLocker) Lock(ctx context.Context) error {

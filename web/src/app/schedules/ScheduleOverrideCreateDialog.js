@@ -76,7 +76,7 @@ export default function ScheduleOverrideCreateDialog(props) {
       title={variantDetails[props.variant].title}
       subTitle={variantDetails[props.variant].desc}
       errors={nonFieldErrors(error)}
-      notices={notices} // create and edit dialogue
+      notices={notices} // create and edit dialog
       onSubmit={() => mutate()}
       form={
         <ScheduleOverrideForm

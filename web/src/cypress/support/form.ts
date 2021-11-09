@@ -43,7 +43,7 @@ const finishPicker = (): void => {
   cy.get('[role=dialog][data-cy=picker-fallback]')
     .contains('button', 'OK')
     .click()
-  // wait for dialog to dissapear
+  // wait for dialog to disappear
   cy.get('[role=dialog][data-cy=picker-fallback]').should('not.exist')
 }
 

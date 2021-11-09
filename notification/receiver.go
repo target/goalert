@@ -26,5 +26,5 @@ type Receiver interface {
 	IsKnownDest(ctx context.Context, value string) (bool, error)
 }
 
-// ErrUnknownSubject is returend from ReceiveSubject when the subject is unknown.
+// ErrUnknownSubject is returned from ReceiveSubject when the subject is unknown.
 var ErrUnknownSubject = errors.New("unknown subject for that provider")

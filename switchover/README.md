@@ -44,7 +44,7 @@ Viewed from logs or with the `status` command from the `switchover-shell`.
 | -------------- | ---------------------------------------------------------------------------------------- |
 | starting       | Node has reset or is still starting up.                                                  |
 | ready          | Node is idle and ready for instructions.                                                 |
-| armed          | Node has recieved switchover timetable and is waiting for confirmation from other nodes. |
+| armed          | Node has received switchover timetable and is waiting for confirmation from other nodes. |
 | armed-waiting  | Node is waiting for the pause phase (all known nodes confirmed)                          |
 | pausing        | Node is waiting for the engine to finish pausing.                                        |
 | paused-waiting | Node is paused. Engine will not run, and idle connections are disabled.                  |
@@ -73,11 +73,11 @@ The `execute` command will ask for confirmation of the proposed timetable:
 Switch-Over Details
   Pause API Requests: no       # Pause API requests for the full duration, instead of just the final sync
   Consensus Timeout : 3s       # Deadline for all nodes to confirm they got the timetable and are ready
-  Pause Starts After: 5s       # How long to wait before begining the pause
+  Pause Starts After: 5s       # How long to wait before beginning the pause
   Pause Timeout     : 10s      # Max time to wait for all nodes to pause before aborting
   Absolute Max Pause: 13s      # The maximum possible pause time of the engine (and API requests if set above)
   Avail. Sync Time  : 1s - 11s # Indicates the possible final sync time alloted with this configuration
-  Max Alloted Time  : 18s      # Max time from begining to end of the switchover process
+  Max Alloted Time  : 18s      # Max time from beginning to end of the switchover process
 
 Ready?
 
