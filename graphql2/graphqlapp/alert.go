@@ -39,7 +39,7 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
-	return e.String(), nil
+	return e.String(ctx), nil
 }
 
 func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {
@@ -84,7 +84,7 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
 
-	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
+	meta, ok := e.Meta(ctx).(*alertlog.EscalationMetaData)
 	if !ok || meta == nil || !meta.NoOneOnCall {
 		return nil, nil
 	}
@@ -98,7 +98,7 @@ func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry
 
 func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
-	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	meta, ok := e.Meta(ctx).(*alertlog.NotificationMetaData)
 	if !ok || meta == nil {
 		return nil, nil
 	}
@@ -116,7 +116,7 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
-	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
+	meta, ok := e.Meta(ctx).(*alertlog.CreatedMetaData)
 	if !ok || meta == nil || !meta.EPNoSteps {
 		return nil, nil
 	}
