@@ -21,14 +21,8 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	cfg := config.FromContext(ctx)
-
-	if !cfg.Slack.InteractiveMessages {
-		http.Error(w, "not enabled", http.StatusNotFound)
-		return
-	}
+func validateRequestSignature(req *http.Request) error {
+	cfg := config.FromContext(req.Context())
 
 	var newBody struct {
 		io.Reader
@@ -44,29 +38,41 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 
 	err := req.ParseForm()
 	if err != nil {
-		log.Log(ctx, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return fmt.Errorf("failed to parse form: %w", err)
 	}
 
 	ts, err := strconv.ParseInt(tsStr, 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return fmt.Errorf("failed to parse timestamp: %w", err)
 	}
 	diff := time.Since(time.Unix(ts, 0))
 	if diff < 0 {
 		diff = -diff
 	}
 	if diff > 5*time.Minute {
-		http.Error(w, "timestamp too old", http.StatusBadRequest)
-		return
+		return fmt.Errorf("timestamp too old: %s", diff)
 	}
 
 	sig := "v0=" + hex.EncodeToString(h.Sum(nil))
 	if hmac.Equal([]byte(req.Header.Get("X-Slack-Signature")), []byte(sig)) {
-		http.Error(w, "invalid signature", http.StatusBadRequest)
+		return fmt.Errorf("invalid signature")
+	}
+
+	return nil
+}
+
+func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	cfg := config.FromContext(ctx)
+
+	if !cfg.Slack.InteractiveMessages {
+		http.Error(w, "not enabled", http.StatusNotFound)
 		return
+	}
+
+	err := validateRequestSignature(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	var payload struct {
