@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/slack-go/slack"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/errutil"
@@ -123,6 +124,10 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			)
 			return err
 		})
+	}
+	if alert.IsAlreadyAcknowledged(err) || alert.IsAlreadyClosed(err) {
+		// ignore errors from duplicate requests
+		return
 	}
 	if errutil.HTTPError(ctx, w, err) {
 		return
