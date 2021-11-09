@@ -305,6 +305,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
 	var opts []slack.MsgOption
+	var isUpdate bool
 	switch t := msg.(type) {
 	case notification.Alert:
 		if t.OriginalStatus != nil {
@@ -319,6 +320,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, t.Details, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
+		isUpdate = true
 		opts = append(opts,
 			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
 			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.Details, t.LogEntry, t.NewAlertState),
@@ -344,6 +346,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if isUpdate {
+		msgTS = ""
 	}
 
 	return &notification.SentMessage{
