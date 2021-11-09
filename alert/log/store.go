@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user/contactmethod"
@@ -60,9 +61,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		db: db,
 		lookupCallbackType: p.P(`
-			select cm."type"
+			select cm."type", ch."type"
 			from outgoing_messages log
-			join user_contact_methods cm on cm.id = log.contact_method_id
+			left join user_contact_methods cm on cm.id = log.contact_method_id
+			left join notification_channels ch on ch.id = log.channel_id
 			where log.id = $1
 		`),
 		lookupCMType: p.P(`
@@ -341,20 +343,22 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
-			var cmType contactmethod.Type
-			err = txWrap(ctx, tx, db.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&cmType)
+			var dt notification.ScannableDestType
+			err = txWrap(ctx, tx, db.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
 			if err != nil {
-				return errors.Wrap(err, "lookup contact method type for callback ID")
+				return errors.Wrap(err, "lookup notification type for callback ID")
 			}
-			switch cmType {
-			case contactmethod.TypeVoice:
+			switch dt.DestType() {
+			case notification.DestTypeVoice:
 				r.subject.classifier = "Voice"
-			case contactmethod.TypeSMS:
+			case notification.DestTypeSMS:
 				r.subject.classifier = "SMS"
-			case contactmethod.TypeEmail:
+			case notification.DestTypeUserEmail:
 				r.subject.classifier = "Email"
-			case contactmethod.TypeWebhook:
+			case notification.DestTypeUserWebhook:
 				r.subject.classifier = "Webhook"
+			case notification.DestTypeSlackChannel:
+				r.subject.classifier = "Slack"
 			}
 			r.subject.userID.String = permission.UserID(ctx)
 			if r.subject.userID.String != "" {

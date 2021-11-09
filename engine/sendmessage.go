@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
@@ -104,14 +103,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
 		}
 
-		var status alert.Status
+		var status notification.AlertState
 		switch e.Type() {
 		case alertlog.TypeAcknowledged:
-			status = alert.StatusActive
+			status = notification.AlertStateAcknowledged
 		case alertlog.TypeEscalated:
-			status = alert.StatusTriggered
+			status = notification.AlertStateUnacknowledged
 		case alertlog.TypeClosed:
-			status = alert.StatusClosed
+			status = notification.AlertStateClosed
 		}
 
 		notifMsg = notification.AlertStatus{
@@ -121,7 +120,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			LogEntry:       e.String(),
 			Summary:        a.Summary,
 			Details:        a.Details,
-			NewAlertStatus: status,
+			NewAlertState:  status,
 			OriginalStatus: *stat,
 		}
 	case notification.MessageTypeTest:

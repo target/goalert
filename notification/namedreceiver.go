@@ -40,3 +40,9 @@ func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result 
 	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
 	return nr.r.Receive(ctx, callbackID, result)
 }
+
+// Receive implements the Receiver interface by calling the underlying Receiver.ReceiveSubject method.
+func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error {
+	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
+	return nr.r.ReceiveSubject(ctx, providerID, subjectID, callbackID, result)
+}
