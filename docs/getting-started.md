@@ -57,7 +57,7 @@ You should see migrations applied followed by a `Listening.` message and an engi
 
 When running multiple instances of GoAlert (e.g. in a kubernetes cluster) it is recommended to run a single instance in the default mode, and the rest with the `--api-only` flag set.
 
-While it is safe to run multiple "engine" instances simultaneously, it is generally unecessary and can cause unwanted contention. It is useful, however, to run an "engine" instance
+While it is safe to run multiple "engine" instances simultaneously, it is generally unnecessary and can cause unwanted contention. It is useful, however, to run an "engine" instance
 in separate geographic regions or availability zones. If messages fail to send from one (e.g. network outage), they may be retried in the other this way.
 
 ## First Time Login

@@ -32,7 +32,7 @@ func (store *Store) TemporarySchedules(ctx context.Context, tx *sql.Tx, schedule
 		return nil, err
 	}
 
-	// omit shifts for non-existant users
+	// omit shifts for non-existent users
 	for i, tmp := range data.V1.TemporarySchedules {
 		shifts := tmp.Shifts[:0]
 		for _, shift := range tmp.Shifts {
