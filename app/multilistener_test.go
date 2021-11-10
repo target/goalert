@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net"
 	"testing"
 	"time"
@@ -33,7 +34,7 @@ func TestMultiListener_Close(t *testing.T) {
 	assert.NoError(t, err)
 	defer l.Close()
 
-	m := newMultiListener(l)
+	m := newMultiListener(context.Background(), l)
 
 	c, err := net.Dial("tcp", l.Addr().String())
 	assert.NoError(t, err)
@@ -54,7 +55,7 @@ func TestMultiListener_Accept(t *testing.T) {
 		assert.NoError(t, err)
 		defer l2.Close()
 
-		m := newMultiListener(l1, l2)
+		m := newMultiListener(context.Background(), l1, l2)
 
 		c1, err := net.Dial("tcp", l1.Addr().String())
 		assert.NoError(t, err)
@@ -90,7 +91,7 @@ func TestMultiListener_Accept(t *testing.T) {
 		assert.NoError(t, err)
 		defer l.Close()
 
-		m := newMultiListener(l)
+		m := newMultiListener(context.Background(), l)
 
 		go func() {
 			time.Sleep(10 * time.Millisecond) // wait until Accept is called
