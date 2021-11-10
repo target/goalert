@@ -39,12 +39,12 @@ export default function SlackActions(): JSX.Element {
   const [getManifest, { called, loading, error, data }] = useLazyQuery(query, {
     pollInterval: 0,
   })
+  const manifest = data?.generateSlackAppManifest ?? ''
 
   function renderContent(): JSX.Element {
     if (called && loading) return <Spinner />
     if (error) return <GenericError error={error.message} />
 
-    const manifest = data?.generateSlackAppManifest ?? ''
     return (
       <div>
         <div className={classes.copyButton}>
@@ -61,7 +61,7 @@ export default function SlackActions(): JSX.Element {
       <CardActions
         primaryActions={[
           {
-            label: 'Create New Slack App',
+            label: 'App Manifest',
             handleOnClick: () => {
               getManifest()
               setShowManifest(true)
@@ -77,11 +77,10 @@ export default function SlackActions(): JSX.Element {
         onClose={() => setShowManifest(false)}
         fullWidth
       >
-        <DialogTitle data-cy='dialog-title'>Create New Slack App</DialogTitle>
+        <DialogTitle data-cy='dialog-title'>Slack App Manifest</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Copy the manifest generated below to configure a new GoAlert app
-            within Slack.
+            Use the manifest generated below to configure a Slack app.
           </DialogContentText>
           {renderContent()}
           <DialogContentText>
@@ -101,11 +100,14 @@ export default function SlackActions(): JSX.Element {
             color='primary'
             endIcon={<OpenInNewIcon />}
             component={AppLink}
-            to='https://api.slack.com/apps'
+            to={
+              'https://api.slack.com/apps?new_app=1&manifest_yaml=' +
+              encodeURIComponent(manifest)
+            }
             newTab
             data-cy='configure-in-slack'
           >
-            Configure in Slack
+            Create New App
           </Button>
         </DialogActions>
       </Dialog>
