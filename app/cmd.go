@@ -478,7 +478,7 @@ Migration: %s (#%d)
 					return errors.Wrap(err, "apply DOWN migrations")
 				}
 				if n > 0 {
-					log.Debugf(context.TODO(), "Applied %d DOWN migrations.", n)
+					log.Debugf(ctx, "Applied %d DOWN migrations.", n)
 				}
 			}
 
@@ -489,7 +489,7 @@ Migration: %s (#%d)
 					return errors.Wrap(err, "apply UP migrations")
 				}
 				if n > 0 {
-					log.Debugf(context.TODO(), "Applied %d UP migrations.", n)
+					log.Debugf(ctx, "Applied %d UP migrations.", n)
 				}
 			}
 
