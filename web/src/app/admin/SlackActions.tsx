@@ -80,8 +80,7 @@ export default function SlackActions(): JSX.Element {
         <DialogTitle data-cy='dialog-title'>Slack App Manifest</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Copy the manifest generated below to a new Slack app or to update an
-            existing one.
+            Use the manifest generated below to configure a Slack app.
           </DialogContentText>
           {renderContent()}
           <DialogContentText>
