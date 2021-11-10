@@ -27,6 +27,7 @@ func (app *App) pauseHandler(next http.Handler) http.Handler {
 func (app *App) LogContext() context.Context { return app.cfg.Logger.Context() }
 
 func (app *App) Pause(ctx context.Context) error {
+	ctx = log.WithLogger(ctx, app.cfg.Logger)
 	ctx, sp := trace.StartSpan(ctx, "App.Pause")
 	defer sp.End()
 

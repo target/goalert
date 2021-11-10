@@ -173,7 +173,9 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 }
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
-func (a *App) WaitForStartup(ctx context.Context) error { return a.mgr.WaitForStartup(ctx) }
+func (a *App) WaitForStartup(ctx context.Context) error {
+	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+}
 
 // DB returns the sql.DB instance used by the application.
 func (a *App) DB() *sql.DB { return a.db }

@@ -14,7 +14,7 @@ var triggerSignals []os.Signal
 
 // Run will start the application and start serving traffic.
 func (app *App) Run(ctx context.Context) error {
-	return app.mgr.Run(ctx)
+	return app.mgr.Run(log.WithLogger(ctx, app.cfg.Logger))
 }
 
 func (app *App) _Run(ctx context.Context) error {
