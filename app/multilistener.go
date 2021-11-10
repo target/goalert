@@ -10,6 +10,7 @@ import (
 )
 
 type multiListener struct {
+	l         *log.Logger
 	listeners []net.Listener
 
 	ch      chan net.Conn
@@ -19,8 +20,9 @@ type multiListener struct {
 	wg      sync.WaitGroup
 }
 
-func newMultiListener(ln ...net.Listener) *multiListener {
+func newMultiListener(ctx context.Context, ln ...net.Listener) *multiListener {
 	ml := multiListener{
+		l:         log.FromContext(ctx),
 		listeners: ln,
 		ch:        make(chan net.Conn),
 		errCh:     make(chan error),
@@ -81,7 +83,7 @@ func (ml *multiListener) Close() error {
 		err := l.Close()
 		if err != nil {
 			hasErr = true
-			log.Log(context.Background(), errors.Wrap(err, "close listener"))
+			ml.l.Error(nil, errors.Wrap(err, "close listener"))
 		}
 	}
 

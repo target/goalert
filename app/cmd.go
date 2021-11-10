@@ -56,16 +56,17 @@ var RootCmd = &cobra.Command{
 	Use:   "goalert",
 	Short: "Alerting platform.",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		l := log.NewLogger()
 
 		// update JSON output first
 		if viper.GetBool("json") {
-			log.EnableJSON()
+			l.EnableJSON()
 		}
 		if viper.GetBool("verbose") {
-			log.EnableVerbose()
+			l.EnableDebug()
 		}
 		if viper.GetBool("log-errors-only") {
-			log.ErrorsOnly()
+			l.ErrorsOnly()
 		}
 
 		err := viper.ReadInConfig()
@@ -79,8 +80,8 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 
-		ctx := context.Background()
-		cfg, err := getConfig()
+		ctx := l.Context()
+		cfg, err := getConfig(ctx)
 		if err != nil {
 			return err
 		}
@@ -118,13 +119,13 @@ var RootCmd = &cobra.Command{
 		cfg.DBURL = u.String()
 
 		if cfg.APIOnly {
-			err = migrate.VerifyAll(log.EnableDebug(ctx), cfg.DBURL)
+			err = migrate.VerifyAll(log.WithDebug(ctx), cfg.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "verify migrations")
 			}
 		} else {
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
+			n, err := migrate.ApplyAll(log.WithDebug(ctx), cfg.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
@@ -266,7 +267,9 @@ Migration: %s (#%d)
 				result("Version", err)
 			}
 
-			cf, err := getConfig()
+			l := log.NewLogger()
+
+			cf, err := getConfig(l.Context())
 			if errors.Is(err, ErrDBRequired) {
 				err = nil
 			}
@@ -280,7 +283,7 @@ Migration: %s (#%d)
 					return fmt.Errorf("open db: %w", err)
 				}
 
-				ctx := context.Background()
+				ctx := l.Context()
 
 				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "")
 				if err != nil {
@@ -374,7 +377,7 @@ Migration: %s (#%d)
 		Use:   "switchover-shell",
 		Short: "Start a the switchover shell, used to initiate, control, and monitor a DB switchover operation.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := getConfig()
+			cfg, err := getConfig(log.NewLogger().Context())
 			if err != nil {
 				return err
 			}
@@ -426,12 +429,13 @@ Migration: %s (#%d)
 		Use:   "export-migrations",
 		Short: "Export all migrations as .sql files. Use --export-dir to control the destination.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.NewLogger()
 			// update JSON output first
 			if viper.GetBool("json") {
-				log.EnableJSON()
+				l.EnableJSON()
 			}
 			if viper.GetBool("verbose") {
-				log.EnableVerbose()
+				l.EnableDebug()
 			}
 
 			err := viper.ReadInConfig()
@@ -448,8 +452,9 @@ Migration: %s (#%d)
 		Use:   "migrate",
 		Short: "Perform migration(s), then exit.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.NewLogger()
 			if viper.GetBool("verbose") {
-				log.EnableVerbose()
+				l.EnableDebug()
 			}
 
 			err := viper.ReadInConfig()
@@ -458,12 +463,12 @@ Migration: %s (#%d)
 				return errors.Wrap(err, "read config")
 			}
 
-			c, err := getConfig()
+			ctx := l.Context()
+			c, err := getConfig(ctx)
 			if err != nil {
 				return err
 			}
 
-			ctx := context.Background()
 			down := viper.GetString("down")
 			up := viper.GetString("up")
 			if down != "" {
@@ -527,7 +532,7 @@ Migration: %s (#%d)
 				}
 			}
 
-			return getSetConfig(true, data)
+			return getSetConfig(log.NewLogger().Context(), true, data)
 		},
 	}
 
@@ -535,7 +540,7 @@ Migration: %s (#%d)
 		Use:   "get-config",
 		Short: "Gets current config values.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getSetConfig(false, nil)
+			return getSetConfig(log.NewLogger().Context(), false, nil)
 		},
 	}
 
@@ -543,8 +548,9 @@ Migration: %s (#%d)
 		Use:   "add-user",
 		Short: "Adds a user for basic authentication.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.NewLogger()
 			if viper.GetBool("verbose") {
-				log.EnableVerbose()
+				l.EnableDebug()
 			}
 
 			err := viper.ReadInConfig()
@@ -553,7 +559,7 @@ Migration: %s (#%d)
 				return errors.Wrap(err, "read config")
 			}
 
-			c, err := getConfig()
+			c, err := getConfig(l.Context())
 			if err != nil {
 				return err
 			}
@@ -563,7 +569,7 @@ Migration: %s (#%d)
 			}
 			defer db.Close()
 
-			ctx := permission.SystemContext(context.Background(), "AddUser")
+			ctx := permission.SystemContext(l.Context(), "AddUser")
 
 			basicStore, err := basic.NewStore(ctx, db)
 			if err != nil {
@@ -628,7 +634,7 @@ Migration: %s (#%d)
 )
 
 // getConfig will load the current configuration from viper
-func getConfig() (Config, error) {
+func getConfig(ctx context.Context) (Config, error) {
 	cfg := Config{
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
@@ -695,7 +701,7 @@ func getConfig() (Config, error) {
 	}
 
 	if viper.GetBool("stack-traces") {
-		log.EnableStacks()
+		log.FromContext(ctx).EnableStacks()
 	}
 
 	return cfg, nil

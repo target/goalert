@@ -2,9 +2,10 @@ package app
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/target/goalert/switchover"
 	"github.com/target/goalert/util/log"
-	"net/http"
 
 	"go.opencensus.io/trace"
 )
@@ -22,6 +23,9 @@ func (app *App) pauseHandler(next http.Handler) http.Handler {
 	})
 }
 
+// LogContext returns a context.Background with the application logger configured.
+func (app *App) LogContext() context.Context { return app.cfg.Logger.Context() }
+
 func (app *App) Pause(ctx context.Context) error {
 	ctx, sp := trace.StartSpan(ctx, "App.Pause")
 	defer sp.End()
@@ -35,7 +39,7 @@ func (app *App) Pause(ctx context.Context) error {
 }
 func (app *App) Resume() {
 	app.db.SetMaxIdleConns(app.cfg.DBMaxIdle)
-	app.mgr.Resume(context.Background())
+	app.mgr.Resume(app.LogContext())
 }
 func (app *App) _pause(ctx context.Context) error {
 	app.events.Stop()

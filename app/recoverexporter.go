@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
@@ -9,14 +8,16 @@ import (
 )
 
 type recoverExporter struct {
-	exp trace.Exporter
+	logger *log.Logger
+	exp    trace.Exporter
 }
 
 func (r recoverExporter) ExportSpan(s *trace.SpanData) {
+	ctx := r.logger.Context()
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Log(context.Background(), errors.Errorf("export span (panic): %+v", err))
+			log.Log(ctx, errors.Errorf("export span (panic): %+v", err))
 		}
 	}()
 	r.exp.ExportSpan(s)
@@ -29,10 +30,11 @@ func (r recoverExporter) Flush() {
 	if !ok {
 		return
 	}
+	ctx := r.logger.Context()
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Log(context.Background(), errors.Errorf("flush exporter (panic): %+v", err))
+			log.Log(ctx, errors.Errorf("flush exporter (panic): %+v", err))
 		}
 	}()
 	f.Flush()

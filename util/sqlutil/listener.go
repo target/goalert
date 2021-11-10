@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/log"
 )
 
 // Connector will return a new *pgx.Conn.
@@ -55,6 +56,8 @@ var (
 type Listener struct {
 	notifCh chan *pgconn.Notification
 
+	logger *log.Logger
+
 	ctx      context.Context
 	db       Connector
 	channels []string
@@ -76,6 +79,7 @@ func NewListener(ctx context.Context, db Connector, channels ...string) (*Listen
 		channels: channels,
 		db:       db,
 		errCh:    make(chan error),
+		logger:   log.FromContext(ctx),
 	}
 
 	err := l.connect(ctx)
@@ -140,7 +144,7 @@ func (l *Listener) Stop() {
 
 // Close performs a shutdown with a background context.
 func (l *Listener) Close() error {
-	return l.Shutdown(context.Background())
+	return l.Shutdown(l.logger.Context())
 }
 
 // Shutdown will shut down the listener and returns after all connections have been completed.

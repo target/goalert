@@ -79,6 +79,8 @@ type Config struct {
 
 // DB implements a Keyring using postgres as the datastore.
 type DB struct {
+	logger *log.Logger
+
 	db *sql.DB
 
 	cfg Config
@@ -156,6 +158,8 @@ func NewDB(ctx context.Context, db *sql.DB, cfg *Config) (*DB, error) {
 		db:  db,
 		cfg: *cfg,
 
+		logger: log.FromContext(ctx),
+
 		forceRotate: make(chan chan error),
 		shutdown:    make(chan context.Context),
 
@@ -232,7 +236,7 @@ mainLoop:
 	for {
 		select {
 		case <-t.C:
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			ctx, cancel := context.WithTimeout(db.logger.Context(), time.Minute)
 			err := db.refreshAndRotateKeys(ctx, false)
 			cancel()
 			if err != nil {
@@ -241,7 +245,7 @@ mainLoop:
 		case shutdownCtx = <-db.shutdown:
 			break mainLoop
 		case ch := <-db.forceRotate:
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			ctx, cancel := context.WithTimeout(db.logger.Context(), time.Minute)
 			ch <- db.refreshAndRotateKeys(ctx, true)
 			cancel()
 		}
