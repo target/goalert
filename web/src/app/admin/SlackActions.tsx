@@ -39,12 +39,12 @@ export default function SlackActions(): JSX.Element {
   const [getManifest, { called, loading, error, data }] = useLazyQuery(query, {
     pollInterval: 0,
   })
+  const manifest = data?.generateSlackAppManifest ?? ''
 
   function renderContent(): JSX.Element {
     if (called && loading) return <Spinner />
     if (error) return <GenericError error={error.message} />
 
-    const manifest = data?.generateSlackAppManifest ?? ''
     return (
       <div>
         <div className={classes.copyButton}>
@@ -101,11 +101,14 @@ export default function SlackActions(): JSX.Element {
             color='primary'
             endIcon={<OpenInNewIcon />}
             component={AppLink}
-            to='https://api.slack.com/apps'
+            to={
+              'https://api.slack.com/apps?new_app=1&manifest_yaml=' +
+              encodeURIComponent(manifest)
+            }
             newTab
             data-cy='configure-in-slack'
           >
-            Configure in Slack
+            Create New App
           </Button>
         </DialogActions>
       </Dialog>
