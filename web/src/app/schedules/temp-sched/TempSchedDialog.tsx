@@ -95,9 +95,10 @@ export default function TempSchedDialog({
     clearStart: _value?.start ?? null,
     clearEnd: _value?.end ?? null,
     shifts: (_value?.shifts ?? [])
-      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .map((s) => _.pick(s, 'start', 'end', 'userID', 'displayStart'))
       .filter((s) => {
         if (DateTime.fromISO(s.end) > DateTime.fromISO(now)) {
+          s.displayStart = s.start
           s.start = clampForward(now, s.start)
         }
         return true

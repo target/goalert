@@ -108,7 +108,11 @@ export default function TempSchedShiftsList({
         const dayInvs = splitAtMidnight(shiftInv)
 
         return dayInvs.map((inv, index) => {
-          const startTime = fmtTime(inv.start, zone, false)
+          const startTime = fmtTime(
+            s.displayStart ? s.displayStart : inv.start,
+            zone,
+            false,
+          )
           const endTime = fmtTime(inv.end, zone, false)
           const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
 
