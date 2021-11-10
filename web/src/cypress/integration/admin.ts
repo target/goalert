@@ -171,8 +171,8 @@ function testAdmin(): void {
     it('should generate a slack manifest', () => {
       const publicURL = cfg.General.PublicURL
       cy.get('[id="accordion-Slack"]').click()
-      cy.get('button').contains('Create New Slack App').click()
-      cy.dialogTitle('Create New Slack App')
+      cy.get('button').contains('App Manifest').click()
+      cy.dialogTitle('App Manifest')
 
       // verify data integrity from pulled values
       cy.dialogContains("name: 'GoAlert'")
@@ -188,11 +188,9 @@ function testAdmin(): void {
       cy.dialogContains("display_name: 'GoAlert'")
 
       // verify button routing to slack config page
-      cy.get('[data-cy="configure-in-slack"]').should(
-        'have.attr',
-        'href',
-        'https://api.slack.com/apps',
-      )
+      cy.get('[data-cy="configure-in-slack"]')
+        .should('have.attr', 'href')
+        .and('contain', 'https://api.slack.com/apps?new_app=1&manifest_yaml=')
     })
   })
 }
