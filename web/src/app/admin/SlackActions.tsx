@@ -61,7 +61,7 @@ export default function SlackActions(): JSX.Element {
       <CardActions
         primaryActions={[
           {
-            label: 'Create New Slack App',
+            label: 'App Manifest',
             handleOnClick: () => {
               getManifest()
               setShowManifest(true)
@@ -77,7 +77,7 @@ export default function SlackActions(): JSX.Element {
         onClose={() => setShowManifest(false)}
         fullWidth
       >
-        <DialogTitle data-cy='dialog-title'>Create New Slack App</DialogTitle>
+        <DialogTitle data-cy='dialog-title'>Slack App Manifest</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Copy the manifest generated below to configure a new GoAlert app

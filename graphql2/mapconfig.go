@@ -18,6 +18,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 		{ID: "Mailgun.ForwardURL", Value: cfg.Mailgun.ForwardURL},
 		{ID: "Twilio.MessageWebhookURL", Value: cfg.Twilio.MessageWebhookURL},
 		{ID: "Twilio.VoiceWebhookURL", Value: cfg.Twilio.VoiceWebhookURL},
+		{ID: "Slack.InteractivityResponseURL", Value: cfg.Slack.InteractivityResponseURL},
 	}
 }
 
