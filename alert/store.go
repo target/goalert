@@ -615,7 +615,7 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 		var oldStatus Status
 		err = tx.Stmt(db.createUpdAck).
 			QueryRowContext(ctx, n.ServiceID, n.DedupKey()).
-			Scan(&n.ID, &n.Summary, &n.Details, &n.CreatedAt, &oldStatus)
+			Scan(&n.ID, &n.Summary, &n.Details, &oldStatus, &n.CreatedAt)
 		if oldStatus != n.Status {
 			logType = alertlog.TypeAcknowledged
 		}

@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { ApolloError } from '@apollo/client'
+import { GraphQLError } from 'graphql/error'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -35,7 +36,7 @@ export function nonFieldErrors(err?: ApolloError): Error[] {
 export interface FieldError extends Error {
   field: string
   details: { [x: string]: string }
-  path: string[]
+  path: GraphQLError['path']
 }
 
 function isFieldError(e: Error | FieldError): e is FieldError {
@@ -60,23 +61,28 @@ export function fieldErrors(err?: ApolloError): FieldError[] {
     )
     .map((err) => {
       if (err.extensions?.isMultiFieldError) {
-        return err.extensions.fieldErrors.map((e: RawFieldError) => ({
+        return (err.extensions.fieldErrors as RawFieldError[]).map((e) => ({
           field: e.fieldName.split('.').map(mapName).join('.'),
           message: stripMessage(e.message),
           details: parseDetails(e.message),
           path: err.path,
+          name: 'FieldError',
         }))
       }
 
       return {
-        field: err.extensions?.fieldName.split('.').map(mapName).join('.'),
+        field: (err.extensions?.fieldName as string)
+          .split('.')
+          .map(mapName)
+          .join('.'),
         message: stripMessage(err.message),
         details: parseDetails(err.message),
         path: err.path,
+        name: 'FieldError',
       }
     })
 
-  return [].concat(...errs)
+  return errs.flat()
 }
 
 // allErrors will return a flat list of all errors in the graphQL error.
@@ -88,6 +94,6 @@ export function allErrors(err?: ApolloError): Error[] {
 // byPath will group errors by their path name.
 export function errorsByPath(err: ApolloError): { [x: string]: Error[] } {
   return _.groupBy(allErrors(err), (e: Error | FieldError) =>
-    (isFieldError(e) ? e.path : []).join('.'),
+    (isFieldError(e) && e.path ? e.path : []).join('.'),
   )
 }

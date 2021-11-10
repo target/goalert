@@ -172,14 +172,19 @@ export default function ScheduleDetails({ scheduleID }) {
             url: 'shifts',
             subText: 'Review a list of past and future on-call shifts',
           },
+        ].concat(
+          slackEnabled
+            ? [
+                {
+                  // only slack is supported ATM, so hide the link if disabled
 
-          // only slack is supported ATM, so hide the link if disabled
-          slackEnabled && {
-            label: 'On-Call Notifications',
-            url: 'on-call-notifications',
-            subText: 'Set up notifications to know who is on-call',
-          },
-        ]}
+                  label: 'On-Call Notifications',
+                  url: 'on-call-notifications',
+                  subText: 'Set up notifications to know who is on-call',
+                },
+              ]
+            : [],
+        )}
       />
     </React.Fragment>
   )

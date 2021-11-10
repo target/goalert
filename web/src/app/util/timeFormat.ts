@@ -1,6 +1,10 @@
-import { Interval, DateTime } from 'luxon'
+import { Interval, DateTime, DateTimeFormatOptions } from 'luxon'
+import { ExplicitZone } from './luxon-helpers'
 
-export function formatTimeSince(_since, _now = DateTime.utc()) {
+export function formatTimeSince(
+  _since: DateTime | string,
+  _now = DateTime.utc(),
+): string {
   if (!_since) return ''
   const since = _since instanceof DateTime ? _since : DateTime.fromISO(_since)
   const now = _now instanceof DateTime ? _now : DateTime.fromISO(_now)
@@ -29,17 +33,20 @@ export function formatTimeSince(_since, _now = DateTime.utc()) {
   return `> ${Math.floor(diff.as('years'))}y ago`
 }
 
-export function relativeDate(_to, _from = DateTime.utc()) {
+export function relativeDate(
+  _to: DateTime | string,
+  _from = DateTime.utc(),
+): string {
   const to = _to instanceof DateTime ? _to : DateTime.fromISO(_to)
   const from = (_from instanceof DateTime ? _from : DateTime.fromISO(_from))
     .setZone(to.zoneName)
     .startOf('day')
 
-  const fmt = {
+  const fmt: DateTimeFormatOptions = {
     month: 'long',
     day: 'numeric',
   }
-  const build = (prefix = '', opts = {}) =>
+  const build = (prefix = '', opts = {}): string =>
     `${prefix} ${to.toLocaleString({ ...fmt, ...opts })}`.trim()
 
   if (Interval.after(from, { days: 1 }).contains(to)) return build('Today,')
@@ -59,13 +66,36 @@ export function relativeDate(_to, _from = DateTime.utc()) {
   return build('', { weekday: 'long' })
 }
 
-export function logTimeFormat(_to, _from) {
-  const to = DateTime.fromISO(_to)
-  if (Interval.after(_from, { days: 1 }).contains(to))
-    return 'Today at ' + to.toFormat('h:mm a')
-  if (Interval.before(_from, { days: 1 }).contains(to))
-    return 'Yesterday at ' + to.toFormat('h:mm a')
-  if (Interval.before(_from, { weeks: 1 }).contains(to))
-    return 'Last ' + to.weekdayLong + ' at ' + to.toFormat('h:mm a')
-  return to.toFormat('MM/dd/yyyy')
+// fmtTime returns simple string for ISO string or DateTime object.
+// If `withZoneAbbr` is not specified, zone info will only be provided for non-local times.
+// Only 12-hour if the locale is.
+// e.g. '9:30 AM', '9:30 PM', '9:30 AM CDT'
+export function fmtTime(
+  time: DateTime | string,
+  zone: ExplicitZone,
+  withZoneAbbr: boolean | null = null,
+): string {
+  if (!time) return ''
+  if (typeof time === 'string') {
+    time = DateTime.fromISO(time, { zone })
+  } else {
+    time = time.setZone(zone)
+  }
+
+  const prefix = time.toLocaleString(DateTime.TIME_SIMPLE)
+  const suffix = time.toFormat('ZZZZ')
+
+  if (withZoneAbbr === true) return prefix + ' ' + suffix
+  if (withZoneAbbr === false) return prefix
+
+  if (zone === DateTime.local().zoneName) return prefix
+  return prefix + ' ' + suffix
+}
+
+// fmtLocal is like fmtTime but uses the system zone and displays zone info by default.
+export function fmtLocal(
+  time: DateTime | string,
+  withZoneAbbr: boolean | null = true,
+): string {
+  return fmtTime(time, 'local', withZoneAbbr)
 }

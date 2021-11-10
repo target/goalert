@@ -3,14 +3,12 @@ package slack
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackutilsx"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -30,9 +28,18 @@ type ChannelSender struct {
 	listMx sync.Mutex
 	chanMx sync.Mutex
 	teamMx sync.Mutex
+
+	recv notification.Receiver
 }
 
+const (
+	colorClosed  = "#218626"
+	colorUnacked = "#862421"
+	colorAcked   = "#867321"
+)
+
 var _ notification.Sender = &ChannelSender{}
+var _ notification.ReceiverSetter = &ChannelSender{}
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
@@ -41,6 +48,10 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		listCache: newTTLCache(250, time.Minute),
 		chanCache: newTTLCache(1000, 15*time.Minute),
 	}, nil
+}
+
+func (s *ChannelSender) SetReceiver(r notification.Receiver) {
+	s.recv = r
 }
 
 // Channel contains information about a Slack channel.
@@ -223,6 +234,71 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
+func alertLink(ctx context.Context, id int, summary string) string {
+	cfg := config.FromContext(ctx)
+	path := fmt.Sprintf("/alerts/%d", id)
+	return fmt.Sprintf("<%s|Alert #%d: %s>", cfg.CallbackURL(path), id, slackutilsx.EscapeMessage(summary))
+}
+
+const (
+	alertResponseBlockID = "block_alert_response"
+	alertCloseActionID   = "action_alert_close"
+	alertAckActionID     = "action_alert_ack"
+)
+
+// alertMsgOption will return the slack.MsgOption for an alert-type message (e.g., notification or status update).
+func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, state notification.AlertState) slack.MsgOption {
+	blocks := []slack.Block{
+		slack.NewSectionBlock(
+			slack.NewTextBlockObject("mrkdwn", alertLink(ctx, id, summary), false, false), nil, nil),
+	}
+
+	var color string
+	var actions []slack.Block
+	switch state {
+	case notification.AlertStateAcknowledged:
+		color = colorAcked
+		actions = []slack.Block{
+			slack.NewDividerBlock(),
+			slack.NewActionBlock(alertResponseBlockID,
+				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
+			),
+		}
+	case notification.AlertStateUnacknowledged:
+		color = colorUnacked
+		actions = []slack.Block{
+			slack.NewDividerBlock(),
+			slack.NewActionBlock(alertResponseBlockID,
+				slack.NewButtonBlockElement(alertAckActionID, callbackID, slack.NewTextBlockObject("plain_text", "Acknowledge", false, false)),
+				slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
+			),
+		}
+	case notification.AlertStateClosed:
+		color = colorClosed
+		details = ""
+	}
+	if details != "" {
+		blocks = append(blocks, slack.NewSectionBlock(
+			slack.NewTextBlockObject("mrkdwn", slackutilsx.EscapeMessage(details), false, false), nil, nil),
+		)
+	}
+
+	blocks = append(blocks,
+		slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", logEntry, false, false)),
+	)
+	cfg := config.FromContext(ctx)
+	if len(actions) > 0 && cfg.Slack.InteractiveMessages {
+		blocks = append(blocks, actions...)
+	}
+
+	return slack.MsgOptionAttachments(
+		slack.Attachment{
+			Color:  color,
+			Blocks: slack.Blocks{BlockSet: blocks},
+		},
+	)
+}
+
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 
 	cfg := config.FromContext(ctx)
@@ -230,6 +306,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
 	var opts []slack.MsgOption
+	var isUpdate bool
 	switch t := msg.(type) {
 	case notification.Alert:
 		if t.OriginalStatus != nil {
@@ -237,27 +314,18 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			opts = append(opts,
 				slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID),
 				slack.MsgOptionBroadcast(),
-				slack.MsgOptionText("Broadcasting to channel due to repeat notification.", true),
+				slack.MsgOptionText(alertLink(ctx, t.AlertID, t.Summary), false),
 			)
 			break
 		}
 
-		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Alert: %s\n\n<%s>", slackutilsx.EscapeMessage(t.Summary), cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))), false))
+		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, t.Details, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
-		opts = append(opts, slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID))
-
-		var status string
-		switch t.NewAlertStatus {
-		case alert.StatusActive:
-			status = "Acknowledged"
-		case alert.StatusTriggered:
-			status = "Unacknowledged"
-		case alert.StatusClosed:
-			status = "Closed"
-		}
-
-		text := "Status Update: " + status + "\n" + t.LogEntry
-		opts = append(opts, slack.MsgOptionText(text, true))
+		isUpdate = true
+		opts = append(opts,
+			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
+			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.Details, t.LogEntry, t.NewAlertState),
+		)
 	case notification.AlertBundle:
 		opts = append(opts, slack.MsgOptionText(
 			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
@@ -279,6 +347,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if isUpdate {
+		msgTS = ""
 	}
 
 	return &notification.SentMessage{

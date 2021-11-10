@@ -1,12 +1,19 @@
 package harness
 
 import (
+	"context"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mockslack"
+)
+
+const (
+	SlackTestSigningSecret = "secret"
 )
 
 type SlackServer interface {
@@ -20,15 +27,34 @@ type SlackChannel interface {
 	Name() string
 
 	ExpectMessage(keywords ...string) SlackMessage
+	ExpectEphemeralMessage(keywords ...string) SlackMessage
 }
 
 type SlackMessageState interface {
 	// AssertText asserts that the message contains the given keywords.
 	AssertText(keywords ...string)
+
+	// AssertNotText asserts that the message does not contain the given keywords.
+	AssertNotText(keywords ...string)
+
+	// AssertColor asserts that the message has the given color bar value.
+	AssertColor(color string)
+
+	// AssertActions asserts that the message includes the given action buttons.
+	AssertActions(labels ...string)
+
+	// Action returns the action with the given label.
+	Action(label string) SlackAction
+}
+
+type SlackAction interface {
+	Click()
 }
 
 type SlackMessage interface {
 	SlackMessageState
+
+	ExpectUpdate() SlackMessageState
 
 	// ExpectThreadReply waits and asserts that a non-broadcast thread reply is received.
 	ExpectThreadReply(keywords ...string)
@@ -56,6 +82,48 @@ type slackMessage struct {
 	channel *slackChannel
 
 	mockslack.Message
+}
+
+type slackAction struct {
+	*slackMessage
+	mockslack.Action
+}
+
+func (msg *slackMessage) AssertActions(text ...string) {
+	msg.h.t.Helper()
+
+	require.Equalf(msg.h.t, len(text), len(msg.Actions), "message actions")
+	sort.Slice(text, func(i, j int) bool { return text[i] < text[j] })
+	sort.Slice(msg.Actions, func(i, j int) bool { return msg.Actions[i].Text < msg.Actions[j].Text })
+	for i, a := range msg.Actions {
+		require.Equalf(msg.h.t, text[i], a.Text, "message action text")
+	}
+}
+func (msg *slackMessage) Action(text string) SlackAction {
+	msg.h.t.Helper()
+
+	var a *mockslack.Action
+	for _, action := range msg.Actions {
+		if action.Text != text {
+			continue
+		}
+		a = &action
+		break
+	}
+	require.NotNil(msg.h.t, a, "could not find action with that text")
+
+	return &slackAction{
+		slackMessage: msg,
+		Action:       *a,
+	}
+}
+
+func (a *slackAction) Click() {
+	a.h.t.Helper()
+
+	a.h.t.Logf("clicking action: %s", a.Text)
+	err := a.h.slack.PerformActionAs(a.h.slackUser.ID, a.Action)
+	require.NoError(a.h.t, err, "perform Slack action")
 }
 
 func (h *Harness) Slack() SlackServer { return h.slack }
@@ -101,13 +169,21 @@ func (ch *slackChannel) Name() string { return ch.name }
 
 func (ch *slackChannel) ExpectMessage(keywords ...string) SlackMessage {
 	ch.h.t.Helper()
-	return ch.expectMessageFunc(func(msg mockslack.Message) bool {
+	return ch.expectMessageFunc("message", func(msg mockslack.Message) bool {
 		// only return non-thread replies
 		return msg.ThreadTS == ""
 	}, keywords...)
 }
 
-func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, keywords ...string) *slackMessage {
+func (ch *slackChannel) ExpectEphemeralMessage(keywords ...string) SlackMessage {
+	ch.h.t.Helper()
+	return ch.expectMessageFunc("ephemeral", func(msg mockslack.Message) bool {
+		// only return non-thread replies
+		return msg.ToUserID != ""
+	}, keywords...)
+}
+
+func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) *slackMessage {
 	ch.h.t.Helper()
 
 	timeout := time.NewTimer(15 * time.Second)
@@ -138,7 +214,7 @@ func (ch *slackChannel) expectMessageFunc(test func(mockslack.Message) bool, key
 		select {
 		case <-timeout.C:
 			ch.h.slack.hasFailure = true
-			ch.h.t.Fatalf("timeout waiting for slack message: Channel=%s; ID=%s; keywords=%v\nGot: %#v", ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
+			ch.h.t.Fatalf("timeout waiting for Slack %s: Channel=%s; ID=%s; keywords=%v\nGot: %#v", desc, ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
 			return nil
 		default:
 		}
@@ -159,19 +235,42 @@ func (ch *slackChannel) hasUnexpectedMessages() bool {
 	return hasFailure
 }
 
+func (msg *slackMessage) AssertColor(color string) {
+	msg.h.t.Helper()
+
+	if msg.Color != color {
+		require.Equalf(msg.h.t, color, msg.Color, "message color")
+	}
+}
+
 func (msg *slackMessage) AssertText(keywords ...string) {
 	msg.h.t.Helper()
 
 	for _, w := range keywords {
-		if !strings.Contains(msg.Text, w) {
-			msg.h.t.Errorf("slack message '%s' does not contain keyword: %s", msg.Text, w)
-		}
+		require.Contains(msg.h.t, msg.Text, w)
 	}
 }
+
+func (msg *slackMessage) AssertNotText(keywords ...string) {
+	msg.h.t.Helper()
+
+	for _, w := range keywords {
+		require.NotContains(msg.h.t, msg.Text, w)
+	}
+}
+
+func (msg *slackMessage) ExpectUpdate() SlackMessageState {
+	msg.h.t.Helper()
+
+	return msg.channel.expectMessageFunc("message update", func(m mockslack.Message) bool {
+		return m.UpdateTS == msg.TS
+	})
+}
+
 func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("thread reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 
@@ -181,7 +280,7 @@ func (msg *slackMessage) ExpectThreadReply(keywords ...string) {
 func (msg *slackMessage) ExpectBroadcastReply(keywords ...string) {
 	msg.h.t.Helper()
 
-	reply := msg.channel.expectMessageFunc(func(m mockslack.Message) bool {
+	reply := msg.channel.expectMessageFunc("broadcast reply", func(m mockslack.Message) bool {
 		return m.ThreadTS == msg.TS
 	}, keywords...)
 
@@ -197,6 +296,17 @@ func (h *Harness) initSlack() {
 	}
 	h.slackS = httptest.NewServer(h.slack)
 
-	h.slackApp = h.slack.InstallApp("GoAlert Smoketest", "bot")
+	app, err := h.slack.InstallStaticApp(mockslack.AppInfo{Name: "GoAlert Smoketest", SigningSecret: SlackTestSigningSecret}, "bot")
+	require.NoError(h.t, err)
+	h.slackApp = *app
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
+
+	h.slack.SetURLPrefix(h.slackS.URL)
+}
+
+// LinkSlackUser creates a link between the GraphQL user and the smoketest Slack user.
+func (h *Harness) LinkSlackUser() {
+	_, err := h.db.Exec(context.Background(), `insert into auth_subjects (provider_id, subject_id, user_id) values ($1, $2, $3)`,
+		"slack:"+h.slackApp.TeamID, h.slackUser.ID, DefaultGraphQLAdminUserID)
+	require.NoError(h.t, err, "insert Slack auth subject")
 }

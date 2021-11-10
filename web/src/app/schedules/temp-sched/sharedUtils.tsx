@@ -57,15 +57,6 @@ export function StepContainer({
   )
 }
 
-// fmtLocal formats iso timestamp in local time; else empty string
-// e.g. '9:30 AM CDT'
-// Only 12-hour if the locale is.
-export function fmtLocal(iso?: string): string {
-  if (!iso) return ''
-  const dt = DateTime.fromISO(iso, { zone: 'local' })
-  return `${dt.toLocaleString(DateTime.TIME_SIMPLE)} ${dt.toFormat('ZZZZ')}`
-}
-
 // dtToDuration takes two date times and returns the duration between the two
 export function dtToDuration(a: DateTime, b: DateTime): number {
   if (!a.isValid || !b.isValid) return -1

@@ -1,4 +1,4 @@
-FROM goalert/build-env:go1.17.1-postgres13 AS build
+FROM goalert/build-env:go1.17.2-postgres13 AS build
 
 COPY Makefile /goalert/Makefile
 COPY yarn.lock package.json /goalert/
@@ -12,7 +12,7 @@ RUN go mod download
 COPY . /goalert
 RUN make bin/resetdb bin/goalert BUNDLE=1 BUILD_FLAGS=-trimpath
 
-FROM alpine:3.12
+FROM alpine:3.14
 RUN apk --no-cache add postgresql postgresql-contrib musl-locales ca-certificates
 COPY --from=build /goalert/bin/goalert /goalert/bin/resetdb /bin/
 COPY devtools/ci/dockerfiles/all-in-one/start.sh /bin/start.sh

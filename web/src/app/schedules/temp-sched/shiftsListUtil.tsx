@@ -1,3 +1,4 @@
+import React from 'react'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
@@ -9,9 +10,8 @@ import {
 import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
-
-export const fmtTime = (dt: DateTime): string =>
-  dt.toLocaleString(DateTime.TIME_SIMPLE)
+import Tooltip from '@material-ui/core/Tooltip/Tooltip'
+import { fmtLocal, fmtTime } from '../../util/timeFormat'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -122,16 +122,26 @@ export function getCoverageGapItems(
     schedInterval.difference(...shiftIntervals),
     (inv) => splitAtMidnight(inv),
   )
+  const isLocalZone = zone === DateTime.local().zoneName
   return gapIntervals.map((gap) => {
     let details = 'No coverage'
+    let title = 'No coverage'
     if (gap.length('hours') === 24) {
       // nothing to do
+      title = ''
     } else if (gap.start.equals(gap.start.startOf('day'))) {
-      details += ` until ${fmtTime(gap.end)}`
+      details += ` until ${fmtTime(gap.end, zone, false)}`
+      title += ` until ${fmtLocal(gap.end)}`
     } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
-      details += ` after ${fmtTime(gap.start)}`
+      details += ` after ${fmtTime(gap.start, zone, false)}`
+      title += ` after ${fmtLocal(gap.start)}`
     } else {
-      details += ` from ${fmtTime(gap.start)} to ${fmtTime(gap.end)}`
+      details += ` from ${fmtTime(gap.start, zone, false)} to ${fmtTime(
+        gap.end,
+        zone,
+        false,
+      )}`
+      title += ` from ${fmtLocal(gap.start)} to ${fmtLocal(gap.end)}`
     }
 
     return {
@@ -139,9 +149,12 @@ export function getCoverageGapItems(
       id: 'day-no-coverage_' + gap.start.toISO(),
       type: 'WARNING',
       message: '',
-      details,
+      details: (
+        <Tooltip title={!isLocalZone ? title : ''} placement='right'>
+          <span>{details}</span>
+        </Tooltip>
+      ),
       at: gap.start,
-      ends: gap.end,
       itemType: 'gap',
       handleOnClick: () => {
         handleCoverageClick(gap)

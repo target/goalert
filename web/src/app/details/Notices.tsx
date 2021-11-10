@@ -31,8 +31,8 @@ const useStyles = makeStyles({
 
 export interface Notice {
   type: NoticeType
-  message: string
-  details: string
+  message: string | JSX.Element
+  details: string | JSX.Element
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
@@ -67,8 +67,8 @@ export default function Notices({
   }
 
   /*
-   * Spacing set manually on grid items to accomadate manual
-   * accordian transitions for multiple notices
+   * Spacing set manually on grid items to accommodate manual
+   * accordion transitions for multiple notices
    */
   function getGridClassName(index: number): string {
     switch (index) {

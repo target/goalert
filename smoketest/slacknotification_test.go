@@ -36,8 +36,9 @@ func TestSlackNotification(t *testing.T) {
 
 	h.CreateAlert(h.UUID("sid"), "testing")
 	msg := h.Slack().Channel("test").ExpectMessage("testing")
+	msg.AssertColor("#862421")
 
 	h.FastForward(time.Hour)
 	// should broadcast reply to channel
-	msg.ExpectBroadcastReply("repeat notification")
+	msg.ExpectBroadcastReply("Alert #1")
 }
