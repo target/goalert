@@ -23,8 +23,8 @@ func (app *App) pauseHandler(next http.Handler) http.Handler {
 	})
 }
 
-// LogContext returns a context.Background with the application logger configured.
-func (app *App) LogContext() context.Context { return app.cfg.Logger.Context() }
+// LogBackgroundContext returns a context.Background with the application logger configured.
+func (app *App) LogBackgroundContext() context.Context { return app.cfg.Logger.BackgroundContext() }
 
 func (app *App) Pause(ctx context.Context) error {
 	ctx = log.WithLogger(ctx, app.cfg.Logger)
@@ -40,7 +40,7 @@ func (app *App) Pause(ctx context.Context) error {
 }
 func (app *App) Resume() {
 	app.db.SetMaxIdleConns(app.cfg.DBMaxIdle)
-	app.mgr.Resume(app.LogContext())
+	app.mgr.Resume(app.LogBackgroundContext())
 }
 func (app *App) _pause(ctx context.Context) error {
 	app.events.Stop()

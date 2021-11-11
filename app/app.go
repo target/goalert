@@ -130,7 +130,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
-		l = newMultiListener(c.Logger.Context(), l, l2)
+		l = newMultiListener(c.Logger, l, l2)
 	}
 
 	c.Logger.AddErrorMapper(func(ctx context.Context, err error) context.Context {

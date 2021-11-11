@@ -83,7 +83,7 @@ func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, fallbackURL st
 			select {
 			case <-t.C:
 				t.Reset(randDelay())
-				permission.SudoContext(logger.Context(), func(ctx context.Context) {
+				permission.SudoContext(logger.BackgroundContext(), func(ctx context.Context) {
 					err := s.Reload(ctx)
 					if err != nil {
 						log.Log(ctx, errors.Wrap(err, "config auto-reload"))

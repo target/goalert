@@ -50,7 +50,7 @@ func (p *Provider) provider(ctx context.Context) (*oidc.Provider, error) {
 	// oidc keeps the context and uses it after auto-discover is complete.
 	// Giving it context.Background is a workaround to allow fetching keys
 	// after init.
-	oidcCtx, sp := trace.StartSpanWithRemoteParent(log.FromContext(ctx).Context(), "Auth.OIDC.NewProvider", trace.FromContext(ctx).SpanContext())
+	oidcCtx, sp := trace.StartSpanWithRemoteParent(log.FromContext(ctx).BackgroundContext(), "Auth.OIDC.NewProvider", trace.FromContext(ctx).SpanContext())
 	provider, err := oidc.NewProvider(oidc.ClientContext(oidcCtx, &http.Client{Transport: &ochttp.Transport{}}), cfg.OIDC.IssuerURL)
 	sp.End()
 	if err != nil {

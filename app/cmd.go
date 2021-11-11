@@ -56,7 +56,7 @@ var RootCmd = &cobra.Command{
 	Use:   "goalert",
 	Short: "Alerting platform.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		l := log.NewLogger()
+		l := log.FromContext(cmd.Context())
 
 		// update JSON output first
 		if viper.GetBool("json") {
@@ -79,8 +79,8 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		ctx := cmd.Context()
 
-		ctx := l.Context()
 		cfg, err := getConfig(ctx)
 		if err != nil {
 			return err
@@ -155,7 +155,7 @@ var RootCmd = &cobra.Command{
 			if err != nil {
 				return errors.Wrap(err, "connect to postres (next)")
 			}
-			h, err = switchover.NewHandler(ctx, dbc, dbcNext, cfg.DBURL, cfg.DBURLNext)
+			h, err = switchover.NewHandler(ctx, l, dbc, dbcNext, cfg.DBURL, cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "init changeover handler")
 			}
@@ -267,9 +267,7 @@ Migration: %s (#%d)
 				result("Version", err)
 			}
 
-			l := log.NewLogger()
-
-			cf, err := getConfig(l.Context())
+			cf, err := getConfig(cmd.Context())
 			if errors.Is(err, ErrDBRequired) {
 				err = nil
 			}
@@ -283,7 +281,7 @@ Migration: %s (#%d)
 					return fmt.Errorf("open db: %w", err)
 				}
 
-				ctx := l.Context()
+				ctx := cmd.Context()
 
 				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "")
 				if err != nil {
@@ -377,7 +375,7 @@ Migration: %s (#%d)
 		Use:   "switchover-shell",
 		Short: "Start a the switchover shell, used to initiate, control, and monitor a DB switchover operation.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := getConfig(log.NewLogger().Context())
+			cfg, err := getConfig(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -386,7 +384,7 @@ Migration: %s (#%d)
 				return validation.NewFieldError("DBURLNext", "must not be empty for switchover")
 			}
 
-			return dbsync.RunShell(cfg.DBURL, cfg.DBURLNext)
+			return dbsync.RunShell(log.FromContext(cmd.Context()), cfg.DBURL, cfg.DBURLNext)
 		},
 	}
 
@@ -428,8 +426,9 @@ Migration: %s (#%d)
 	exportCmd = &cobra.Command{
 		Use:   "export-migrations",
 		Short: "Export all migrations as .sql files. Use --export-dir to control the destination.",
+
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := log.NewLogger()
+			l := log.FromContext(cmd.Context())
 			// update JSON output first
 			if viper.GetBool("json") {
 				l.EnableJSON()
@@ -452,7 +451,7 @@ Migration: %s (#%d)
 		Use:   "migrate",
 		Short: "Perform migration(s), then exit.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := log.NewLogger()
+			l := log.FromContext(cmd.Context())
 			if viper.GetBool("verbose") {
 				l.EnableDebug()
 			}
@@ -463,7 +462,7 @@ Migration: %s (#%d)
 				return errors.Wrap(err, "read config")
 			}
 
-			ctx := l.Context()
+			ctx := cmd.Context()
 			c, err := getConfig(ctx)
 			if err != nil {
 				return err
@@ -532,7 +531,7 @@ Migration: %s (#%d)
 				}
 			}
 
-			return getSetConfig(log.NewLogger().Context(), true, data)
+			return getSetConfig(cmd.Context(), true, data)
 		},
 	}
 
@@ -540,7 +539,7 @@ Migration: %s (#%d)
 		Use:   "get-config",
 		Short: "Gets current config values.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getSetConfig(log.NewLogger().Context(), false, nil)
+			return getSetConfig(cmd.Context(), false, nil)
 		},
 	}
 
@@ -548,7 +547,7 @@ Migration: %s (#%d)
 		Use:   "add-user",
 		Short: "Adds a user for basic authentication.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := log.NewLogger()
+			l := log.FromContext(cmd.Context())
 			if viper.GetBool("verbose") {
 				l.EnableDebug()
 			}
@@ -559,7 +558,7 @@ Migration: %s (#%d)
 				return errors.Wrap(err, "read config")
 			}
 
-			c, err := getConfig(l.Context())
+			c, err := getConfig(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -569,7 +568,7 @@ Migration: %s (#%d)
 			}
 			defer db.Close()
 
-			ctx := permission.SystemContext(l.Context(), "AddUser")
+			ctx := permission.SystemContext(cmd.Context(), "AddUser")
 
 			basicStore, err := basic.NewStore(ctx, db)
 			if err != nil {
@@ -636,6 +635,8 @@ Migration: %s (#%d)
 // getConfig will load the current configuration from viper
 func getConfig(ctx context.Context) (Config, error) {
 	cfg := Config{
+		Logger: log.FromContext(ctx),
+
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
 		Verbose:     viper.GetBool("verbose"),

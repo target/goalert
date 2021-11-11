@@ -32,7 +32,7 @@ func NewLogger() *Logger {
 
 	return &Logger{l: l, info: true}
 }
-func (l *Logger) Context() context.Context { return WithLogger(context.Background(), l) }
+func (l *Logger) BackgroundContext() context.Context { return WithLogger(context.Background(), l) }
 
 func WithLogger(ctx context.Context, l *Logger) context.Context {
 	return context.WithValue(ctx, logContextKeyLogger, l)
@@ -85,7 +85,7 @@ type stackTracer interface {
 }
 
 func (l *Logger) AddErrorMapper(mapper func(context.Context, error) context.Context) {
-
+	l.errHooks = append(l.errHooks, mapper)
 }
 
 func (l *Logger) addSource(ctx context.Context, err error) context.Context {

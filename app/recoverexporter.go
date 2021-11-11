@@ -13,7 +13,7 @@ type recoverExporter struct {
 }
 
 func (r recoverExporter) ExportSpan(s *trace.SpanData) {
-	ctx := r.logger.Context()
+	ctx := r.logger.BackgroundContext()
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -30,7 +30,7 @@ func (r recoverExporter) Flush() {
 	if !ok {
 		return
 	}
-	ctx := r.logger.Context()
+	ctx := r.logger.BackgroundContext()
 	defer func() {
 		err := recover()
 		if err != nil {

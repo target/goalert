@@ -18,6 +18,8 @@ import (
 )
 
 type Handler struct {
+	logger *log.Logger
+
 	old, new  *dbState
 	id        string
 	dbNextURL string
@@ -47,8 +49,9 @@ type App interface {
 	Status() lifecycle.Status
 }
 
-func NewHandler(ctx context.Context, oldC, newC driver.Connector, oldURL, newURL string) (*Handler, error) {
+func NewHandler(ctx context.Context, logger *log.Logger, oldC, newC driver.Connector, oldURL, newURL string) (*Handler, error) {
 	h := &Handler{
+		logger:     logger,
 		id:         uuid.New().String(),
 		stateCh:    make(chan State),
 		statusCh:   make(chan *Status),

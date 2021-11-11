@@ -12,7 +12,7 @@ func (l *logExporter) ExportSpan(span *trace.SpanData) {
 	if !span.IsSampled() {
 		return
 	}
-	ctx := log.WithField(l.l.Context(), "RequestID", span.TraceID.String())
+	ctx := log.WithField(l.l.BackgroundContext(), "RequestID", span.TraceID.String())
 	for _, a := range span.Annotations {
 		log.Logf(log.WithFields(ctx, log.Fields(a.Attributes)), a.Message)
 	}
