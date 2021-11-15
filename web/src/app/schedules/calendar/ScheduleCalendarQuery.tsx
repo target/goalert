@@ -88,6 +88,7 @@ function ScheduleCalendarQuery({
       ]
 
   const { data, error, loading, fetchMore } = useQuery<Query>(query, {
+    pollInterval: 0,
     variables: {
       id: scheduleID,
       start: queryStart,
