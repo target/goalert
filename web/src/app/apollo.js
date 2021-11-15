@@ -116,7 +116,18 @@ simpleCacheTypes.forEach((name) => {
 const cache = new InMemoryCache({
   typePolicies: {
     Query: {
-      fields: typePolicyQueryFields,
+      fields: {
+        ...typePolicyQueryFields,
+        userOverrides: {
+          keyArgs: false,
+          merge(existing = { nodes: [] }, incoming) {
+            return {
+              ...incoming,
+              nodes: [...existing.nodes, ...incoming.nodes],
+            }
+          },
+        },
+      },
     },
     Alert: {
       fields: {
