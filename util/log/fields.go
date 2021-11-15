@@ -12,17 +12,11 @@ type logContextField string
 
 // SetRequestID will assign a unique ID to the context for tracing.
 func SetRequestID(ctx context.Context) context.Context {
-	if ctx == nil {
-		ctx = defaultContext
-	}
 	return context.WithValue(ctx, logContextKeyRequestID, trace.FromContext(ctx).SpanContext().TraceID.String())
 }
 
 // ContextFields will return the current set of fields associated with a context.
 func ContextFields(ctx context.Context) Fields {
-	if ctx == nil {
-		ctx = defaultContext
-	}
 	f, _ := ctx.Value(logContextKeyFieldList).([]string)
 	m := make(Fields, len(f))
 	for _, f := range f {
@@ -33,9 +27,6 @@ func ContextFields(ctx context.Context) Fields {
 
 // WithField will return a context with the specified field set to value.
 func WithField(ctx context.Context, field string, value interface{}) context.Context {
-	if ctx == nil {
-		ctx = defaultContext
-	}
 	f, _ := ctx.Value(logContextKeyFieldList).([]string)
 
 	var hasField bool
@@ -68,9 +59,6 @@ func WithField(ctx context.Context, field string, value interface{}) context.Con
 
 // WithFields will return a context with the provided fields set.
 func WithFields(ctx context.Context, fields Fields) context.Context {
-	if ctx == nil {
-		ctx = defaultContext
-	}
 	if fields == nil {
 		return ctx
 	}
@@ -82,9 +70,6 @@ func WithFields(ctx context.Context, fields Fields) context.Context {
 
 // RequestID will return the associated RequestID or empty string if missing.
 func RequestID(ctx context.Context) string {
-	if ctx == nil {
-		return ""
-	}
 	v, _ := ctx.Value(logContextKeyRequestID).(string)
 	return v
 }

@@ -11,7 +11,7 @@ import (
 
 func (s *Sync) listen(db *sql.DB) error {
 	ctx := context.Background()
-	l, err := sqlutil.NewListener(ctx, (*sqlutil.DBConnector)(db), switchover.StateChannel)
+	l, err := sqlutil.NewListener(ctx, s.logger, (*sqlutil.DBConnector)(db), switchover.StateChannel)
 	if err != nil {
 		return err
 	}

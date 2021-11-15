@@ -27,7 +27,7 @@ func configTracing(ctx context.Context, c Config) ([]trace.Exporter, error) {
 		}
 		e := c.wrapExporter(exporter)
 		exporters = append(exporters, e)
-		trace.RegisterExporter(recoverExporter{exp: e})
+		trace.RegisterExporter(recoverExporter{exp: e, logger: log.FromContext(ctx)})
 	}
 
 	if c.StackdriverProjectID != "" {
@@ -60,15 +60,15 @@ func configTracing(ctx context.Context, c Config) ([]trace.Exporter, error) {
 			return nil, errors.Wrap(err, "init stackdriver exporter")
 		}
 		exporters = append(exporters, exporter)
-		trace.RegisterExporter(recoverExporter{exp: exporter})
+		trace.RegisterExporter(recoverExporter{exp: exporter, logger: log.FromContext(ctx)})
 	}
 
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.ProbabilitySampler(c.TraceProbability)})
 
 	if c.LogTraces {
-		e := c.wrapExporter(&logExporter{})
+		e := c.wrapExporter(&logExporter{l: log.FromContext(ctx)})
 		exporters = append(exporters, e)
-		trace.RegisterExporter(recoverExporter{exp: e})
+		trace.RegisterExporter(recoverExporter{exp: e, logger: log.FromContext(ctx)})
 	}
 
 	return exporters, nil

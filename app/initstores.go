@@ -60,14 +60,14 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NonceStore == nil {
-		app.NonceStore, err = nonce.NewStore(ctx, app.db)
+		app.NonceStore, err = nonce.NewStore(ctx, app.cfg.Logger, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init nonce store")
 	}
 
 	if app.OAuthKeyring == nil {
-		app.OAuthKeyring, err = keyring.NewDB(ctx, app.db, &keyring.Config{
+		app.OAuthKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
 			Name:         "oauth-state",
 			RotationDays: 1,
 			MaxOldKeys:   1,
@@ -79,7 +79,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.SessionKeyring == nil {
-		app.SessionKeyring, err = keyring.NewDB(ctx, app.db, &keyring.Config{
+		app.SessionKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
 			Name:         "browser-sessions",
 			RotationDays: 1,
 			MaxOldKeys:   30,
@@ -91,7 +91,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.APIKeyring == nil {
-		app.APIKeyring, err = keyring.NewDB(ctx, app.db, &keyring.Config{
+		app.APIKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
 			Name:       "api-keys",
 			MaxOldKeys: 100,
 			Keys:       app.cfg.EncryptionKeys,

@@ -14,14 +14,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/switchover"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/version"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
 )
 
 // RunShell will start the switchover shell.
-func RunShell(oldURL, newURL string) error {
-	ctx := context.Background()
+func RunShell(logger *log.Logger, oldURL, newURL string) error {
+	ctx := logger.BackgroundContext()
+
 	u, err := url.Parse(oldURL)
 	if err != nil {
 		return errors.Wrap(err, "parse old URL")
@@ -73,7 +75,7 @@ func RunShell(oldURL, newURL string) error {
 		return errors.Wrap(err, "prepare notify statement (next db)")
 	}
 
-	s, err := NewSync(ctx, db, dbNew, newURL)
+	s, err := NewSync(ctx, logger, db, dbNew, newURL)
 	if err != nil {
 		return errors.Wrap(err, "init sync manager")
 	}
