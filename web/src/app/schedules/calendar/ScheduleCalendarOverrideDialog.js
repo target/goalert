@@ -94,7 +94,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
           : variantDetails[activeVariant].desc
       }
       errors={nonFieldErrors(error)}
-      notices={step === 0 ? [] : notices} // create and edit dialogue
+      notices={step === 0 ? [] : notices} // create and edit dialog
       loading={loading}
       form={
         <React.Fragment>

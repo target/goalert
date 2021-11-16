@@ -77,6 +77,10 @@ const useStyles = makeStyles({
   listItemText: {
     fontStyle: 'italic',
   },
+  listItemDisabled: {
+    opacity: 0.6,
+    width: '100%',
+  },
 })
 
 export interface FlatListSub {
@@ -101,6 +105,7 @@ export interface FlatListItem {
   id?: string
   scrollIntoView?: boolean
   'data-cy'?: string
+  disabled?: boolean
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -230,6 +235,13 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
+    let itemClass = ''
+    if (!item.highlight) {
+      itemClass = classes.listItem
+    }
+    if (item.disabled) {
+      itemClass = classes.listItemDisabled
+    }
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -244,7 +256,7 @@ export default function FlatList({
         scrollIntoView={item.scrollIntoView}
         key={idx}
         {...itemProps}
-        className={item.highlight ? classes.highlightedItem : classes.listItem}
+        className={itemClass}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText

@@ -16,7 +16,11 @@ type ChatPostMessageOptions struct {
 	Text      string
 	Color     string
 
+	Actions []Action
+
 	AsUser bool
+
+	User string
 
 	UpdateTS  string
 	ThreadTS  string
@@ -89,6 +93,11 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 		User:  user,
 		Color: opts.Color,
 
+		ChannelID: opts.ChannelID,
+		ToUserID:  opts.User,
+
+		Actions: opts.Actions,
+
 		UpdateTS: opts.UpdateTS,
 
 		ThreadTS:  opts.ThreadTS,
@@ -101,24 +110,41 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 
 var errNoAttachment = errors.New("no attachment")
 
-func attachmentsText(value string) (text, color string, err error) {
-	if value == "" {
-		return "", "", errNoAttachment
-	}
+type attachments struct {
+	Text    string
+	Color   string
+	Actions []Action
+}
+type Action struct {
+	ChannelID string
+	AppID     string
+	TeamID    string
 
+	BlockID  string
+	ActionID string
+	Text     string
+	Value    string
+}
+
+// parseAttachments parses the attachments from the payload value.
+func parseAttachments(appID, teamID, chanID, value string) (*attachments, error) {
+	if value == "" {
+		return nil, errNoAttachment
+	}
 	type textBlock struct{ Text string }
 
 	var data [1]struct {
 		Color  string
 		Blocks []struct {
-			Elements []textBlock
+			Type     string
+			BlockID  string `json:"block_id"`
+			Elements json.RawMessage
 			Text     textBlock
 		}
 	}
-
-	err = json.Unmarshal([]byte(value), &data)
+	err := json.Unmarshal([]byte(value), &data)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	var payload strings.Builder
@@ -129,14 +155,53 @@ func attachmentsText(value string) (text, color string, err error) {
 		payload.WriteString(b.Text + "\n")
 	}
 
+	var actions []Action
 	for _, b := range data[0].Blocks {
 		appendText(b.Text)
-		for _, e := range b.Elements {
-			appendText(e)
+		switch b.Type {
+		case "context":
+			var txtEl []textBlock
+			err = json.Unmarshal(b.Elements, &txtEl)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, e := range txtEl {
+				appendText(e)
+			}
+		case "actions":
+			var acts []struct {
+				Text     textBlock
+				ActionID string `json:"action_id"`
+				Value    string
+			}
+			err = json.Unmarshal(b.Elements, &acts)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, a := range acts {
+				actions = append(actions, Action{
+					ChannelID: chanID,
+					TeamID:    teamID,
+					AppID:     appID,
+					BlockID:   b.BlockID,
+					ActionID:  a.ActionID,
+					Text:      a.Text.Text,
+					Value:     a.Value,
+				})
+			}
+		default:
+			continue
 		}
+
 	}
 
-	return payload.String(), data[0].Color, nil
+	return &attachments{
+		Text:    payload.String(),
+		Color:   data[0].Color,
+		Actions: actions,
+	}, nil
 }
 
 // ServeChatPostMessage serves a request to the `chat.postMessage` API call.
@@ -156,10 +221,27 @@ func (s *Server) ServeChatUpdate(w http.ResponseWriter, req *http.Request) {
 func (s *Server) serveChatPostMessage(w http.ResponseWriter, req *http.Request, isUpdate bool) {
 	chanID := req.FormValue("channel")
 
-	text, color, err := attachmentsText(req.FormValue("attachments"))
+	var text, color string
+	var actions []Action
+
+	var appID string
+	s.mx.Lock()
+	for id := range s.apps {
+		if appID != "" {
+			panic("multiple apps not supported")
+		}
+		appID = id
+	}
+	s.mx.Unlock()
+
+	attachment, err := parseAttachments(appID, s.teamID, chanID, req.FormValue("attachments"))
 	if err == errNoAttachment {
 		err = nil
 		text = req.FormValue("text")
+	} else {
+		text = attachment.Text
+		color = attachment.Color
+		actions = attachment.Actions
 	}
 	if respondErr(w, err) {
 		return
@@ -174,9 +256,12 @@ func (s *Server) serveChatPostMessage(w http.ResponseWriter, req *http.Request, 
 		ChannelID: chanID,
 		Text:      text,
 		Color:     color,
+		Actions:   actions,
 		AsUser:    req.FormValue("as_user") == "true",
 		ThreadTS:  req.FormValue("thread_ts"),
 		UpdateTS:  updateTS,
+
+		User: req.FormValue("user"),
 
 		Broadcast: req.FormValue("reply_broadcast") == "true",
 	})

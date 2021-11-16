@@ -39,6 +39,8 @@ type Store struct {
 
 	findOneForUpdate *sql.Stmt
 
+	findOneBySubject *sql.Stmt
+
 	insertUserAuthSubject *sql.Stmt
 	deleteUserAuthSubject *sql.Stmt
 
@@ -119,6 +121,14 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		rotationParts:      p.P(`SELECT id, user_id FROM rotation_participants WHERE rotation_id = $1 ORDER BY position`),
 		updateRotationPart: p.P(`UPDATE rotation_participants SET user_id = $2 WHERE id = $1`),
 		deleteRotationPart: p.P(`DELETE FROM rotation_participants WHERE id = $1`),
+
+		findOneBySubject: p.P(`
+			SELECT
+				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, false
+			FROM auth_subjects s
+			JOIN users u ON u.id = s.user_id
+			WHERE s.provider_id = $1 AND s.subject_id = $2
+		`),
 
 		findOne: p.P(`
 			SELECT
@@ -590,6 +600,33 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 
 	var u User
 	err = u.scanFrom(row.Scan)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// FindOneBySubject will find a user matching the subjectID for the given providerID.
+func (s *Store) FindOneBySubject(ctx context.Context, providerID, subjectID string) (*User, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Many(
+		validate.SubjectID("ProviderID", providerID),
+		validate.SubjectID("SubjectID", subjectID),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	row := s.findOneBySubject.QueryRowContext(ctx, providerID, subjectID)
+	var u User
+	err = u.scanFrom(row.Scan)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

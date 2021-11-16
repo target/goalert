@@ -12,7 +12,7 @@ func ExampleSudoContext() {
 	SudoContext(ctx, func(ctx context.Context) {
 		// within this function scope, ctx now has System privileges
 	})
-	// once the function returns, the elevated context is cancelled, but the original ctx is still valid
+	// once the function returns, the elevated context is canceled, but the original ctx is still valid
 }
 
 func TestSudoContext(t *testing.T) {

@@ -15,10 +15,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/switchover"
+	"github.com/target/goalert/util/log"
 	"github.com/vbauerster/mpb/v4"
 )
 
 type Sync struct {
+	logger *log.Logger
+
 	oldDB, newDB *sql.DB
 	newURL       string
 	oldOffset    time.Duration
@@ -41,7 +44,7 @@ func (s *Sync) RefreshTables(ctx context.Context) error {
 	s.tables = t
 	return nil
 }
-func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
+func NewSync(ctx context.Context, logger *log.Logger, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
 	oldOffset, err := switchover.CalcDBOffset(ctx, oldDB)
 	if err != nil {
 		return nil, err
@@ -53,6 +56,7 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 	}
 
 	s := &Sync{
+		logger:     logger,
 		oldDB:      oldDB,
 		newDB:      newDB,
 		oldDBID:    newDBID(),

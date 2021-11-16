@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -304,6 +305,57 @@ func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult
 		err = p.msg.UpdateMessageStatus(ctx, res)
 	})
 	return err
+}
+
+// ReceiveSubject will process a notification result.
+func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) error {
+	ctx, sp := trace.StartSpan(ctx, "Engine.ReceiveSubject")
+	defer sp.End()
+	cb, err := p.b.FindOne(ctx, callbackID)
+	if err != nil {
+		return err
+	}
+	if cb.ServiceID != "" {
+		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
+	}
+	if cb.AlertID != 0 {
+		ctx = log.WithField(ctx, "AlertID", cb.AlertID)
+	}
+
+	var usr *user.User
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		usr, err = p.cfg.UserStore.FindOneBySubject(ctx, providerID, subjectID)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find user: %w", err)
+	}
+	if usr == nil {
+		return notification.ErrUnknownSubject
+	}
+
+	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
+		Type: permission.SourceTypeNotificationCallback,
+		ID:   callbackID,
+	})
+
+	var newStatus alert.Status
+	switch result {
+	case notification.ResultAcknowledge:
+		newStatus = alert.StatusActive
+	case notification.ResultResolve:
+		newStatus = alert.StatusClosed
+	default:
+		return errors.New("unknown result type")
+	}
+
+	if cb.AlertID != 0 {
+		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+	}
+	if cb.ServiceID != "" {
+		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+	}
+
+	return errors.New("unknown callback type")
 }
 
 // Receive will process a notification result.

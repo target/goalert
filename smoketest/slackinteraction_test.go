@@ -6,8 +6,8 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestStatusUpdatesChannel tests status updates to notification channels.
-func TestStatusUpdatesChannel(t *testing.T) {
+// TestSlackInteraction checks that interactive slack messages work properly.
+func TestSlackInteraction(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -33,26 +33,36 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	h := harness.NewHarness(t, sql, "slack-user-link")
 	defer h.Close()
 
+	h.SetConfigValue("Slack.InteractiveMessages", "true")
+
 	a := h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
-	msg := h.Slack().Channel("test").ExpectMessage("testing", "details")
+
+	ch := h.Slack().Channel("test")
+	msg := ch.ExpectMessage("testing", "details")
 	msg.AssertColor("#862421")
-	msg.AssertActions()
-	a.Ack()
+	msg.AssertActions("Acknowledge", "Close")
+
+	h.IgnoreErrorsWith("unknown provider/subject")
+	msg.Action("Acknowledge").Click() // expect ephemeral
+	ch.ExpectEphemeralMessage("GoAlert", "admin")
+
+	h.LinkSlackUser()
+	msg.Action("Acknowledge").Click()
 
 	updated := msg.ExpectUpdate()
 	updated.AssertText("Ack", "testing", "details")
 	updated.AssertColor("#867321")
-	updated.AssertActions()
+	updated.AssertActions("Close")
 
 	a.Escalate()
 
 	updated = msg.ExpectUpdate()
 	updated.AssertText("Escalated", "testing", "details")
 	updated.AssertColor("#862421")
-	updated.AssertActions()
+	updated.AssertActions("Acknowledge", "Close")
 	msg.ExpectBroadcastReply("testing")
 
-	a.Close()
+	msg.Action("Close").Click()
 
 	updated = msg.ExpectUpdate()
 	updated.AssertText("Closed", "testing")
@@ -60,5 +70,4 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	updated.AssertColor("#218626")
 
 	updated.AssertActions() // no actions
-
 }

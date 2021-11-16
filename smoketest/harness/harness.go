@@ -244,6 +244,7 @@ func (h *Harness) Start() {
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
 	cfg.Slack.ClientSecret = h.slackApp.ClientSecret
+	cfg.Slack.SigningSecret = SlackTestSigningSecret
 	cfg.Twilio.Enable = true
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken
@@ -290,6 +291,7 @@ func (h *Harness) Start() {
 	h.modifyDBOffset(0)
 
 	appCfg := app.Defaults()
+	appCfg.Logger = log.NewLogger()
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
 	appCfg.JSON = true
@@ -302,8 +304,8 @@ func (h *Harness) Start() {
 	r, w := io.Pipe()
 	h.backendLogs = w
 
-	log.EnableJSON()
-	log.SetOutput(w)
+	appCfg.Logger.EnableJSON()
+	appCfg.Logger.SetOutput(w)
 
 	go h.watchBackendLogs(r)
 
@@ -317,6 +319,7 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
 	h.TwilioNumber("") // register default number
+	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
 	go h.backend.Run(context.Background())
 	err = h.backend.WaitForStartup(ctx)

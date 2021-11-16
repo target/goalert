@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	_ "time/tzdata"
 
@@ -11,9 +10,11 @@ import (
 )
 
 func main() {
-	err := app.RootCmd.Execute()
+	l := log.NewLogger()
+	ctx := l.BackgroundContext()
+	err := app.RootCmd.ExecuteContext(ctx)
 	if err != nil {
-		log.Log(context.TODO(), err)
+		log.Log(ctx, err)
 		os.Exit(1)
 	}
 }

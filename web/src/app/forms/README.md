@@ -4,7 +4,7 @@ Form components handle passing validation and value information to separate 3 ma
 
 1. Errors and value data/state -- `FormContainer`
 2. Individual field layout and validation -- `FormField`
-3. Overall form validation & submittion -- `Form`
+3. Overall form validation & submitting -- `Form`
 
 ### FormContainer
 
@@ -17,7 +17,7 @@ map to descendant `FormField` components. Rather than value, error, onChange, et
 ### FormField
 
 The `FormField` component will receive `value` and `error` data from a `FormContainer`. It also registers a `validate`
-function, if provided. The field name (used for error checking and the container's value prop) defaults to `name` but can be overriden with the `fieldName` prop.
+function, if provided. The field name (used for error checking and the container's value prop) defaults to `name` but can be overridden with the `fieldName` prop.
 
 ### Form
 

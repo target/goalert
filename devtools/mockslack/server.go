@@ -16,6 +16,8 @@ type Server struct {
 	mux *http.ServeMux
 
 	handler http.Handler
+
+	urlPrefix string
 }
 
 // NewServer creates a new blank Server.
@@ -25,7 +27,9 @@ func NewServer() *Server {
 		state: newState(),
 	}
 
+	srv.mux.HandleFunc("/actions/response", srv.ServeActionResponse)
 	srv.mux.HandleFunc("/api/chat.postMessage", srv.ServeChatPostMessage)
+	srv.mux.HandleFunc("/api/chat.postEphemeral", srv.ServeChatPostMessage)
 	srv.mux.HandleFunc("/api/chat.update", srv.ServeChatUpdate)
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
@@ -66,6 +70,11 @@ func NewServer() *Server {
 	return srv
 }
 
+// SetURLPrefix will update the URL prefix for this server.
+func (s *Server) SetURLPrefix(prefix string) {
+	s.urlPrefix = prefix
+}
+
 // TokenCookieName is the name of a cookie containing a token for a user session.
 const TokenCookieName = "slack_token"
 
@@ -75,6 +84,17 @@ type AppInfo struct {
 	ClientID     string
 	ClientSecret string
 	AccessToken  string
+	TeamID       string
+
+	SigningSecret string
+
+	ActionURL string
+}
+
+func (s *Server) SetActionURL(appID string, actionURL string) {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	s.apps[appID].App.ActionURL = actionURL
 }
 
 // InstallApp will "install" a new app to this Slack server using pre-configured AppInfo.
@@ -91,6 +111,7 @@ func (st *state) InstallStaticApp(app AppInfo, scopes ...string) (*AppInfo, erro
 	if app.AccessToken == "" {
 		app.AccessToken = st.gen.UserAccessToken()
 	}
+	app.TeamID = st.teamID
 
 	if !clientIDRx.MatchString(app.ClientID) {
 		return nil, errors.Errorf("invalid client ID format: %s", app.ClientID)
@@ -121,6 +142,9 @@ func (st *state) InstallStaticApp(app AppInfo, scopes ...string) (*AppInfo, erro
 			Name:      app.Name,
 			Secret:    app.ClientSecret,
 			AuthToken: tok,
+			ActionURL: app.ActionURL,
+
+			SigningSecret: app.SigningSecret,
 		},
 	}
 

@@ -8,6 +8,7 @@ export type Value = {
 }
 
 export type Shift = {
+  displayStart?: string
   start: string
   end: string
   userID: string
