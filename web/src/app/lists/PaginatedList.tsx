@@ -84,7 +84,7 @@ export interface PaginatedListProps {
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
 
-  pageCount: number
+  pageCount?: number
 
   isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
