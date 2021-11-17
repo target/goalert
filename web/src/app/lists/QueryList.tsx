@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -6,7 +6,7 @@ import {
   DocumentNode,
 } from '@apollo/client'
 import { useSelector } from 'react-redux'
-import { Grid } from '@material-ui/core'
+import { Grid, Card } from '@material-ui/core'
 import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
@@ -17,6 +17,7 @@ import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
 import { PageControls } from './PageControls'
+import { ListHeader } from './ListHeader'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -189,26 +190,33 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <PaginatedList
-          {...listProps}
-          key={urlKey}
-          items={items}
-          page={page}
-          pageCount={pageCount}
-          itemsPerPage={queryVariables.input.first}
-          loadMore={loadMore}
-          isLoading={isLoading}
-        />
+        <Card>
+          <ListHeader
+            cardHeader={props.cardHeader}
+            headerNote={props.headerNote}
+            headerAction={props.headerAction}
+          />
+          <PaginatedList
+            {...listProps}
+            key={urlKey}
+            items={items}
+            page={page}
+            pageCount={pageCount}
+            itemsPerPage={queryVariables.input.first}
+            loadMore={loadMore}
+            isLoading={isLoading}
+          />
+        </Card>
+        {!props.infiniteScroll && (
+          <PageControls
+            pageCount={pageCount}
+            page={page}
+            setPage={setPage}
+            loadMore={loadMore}
+            isLoading={isLoading}
+          />
+        )}
       </Grid>
-      {!props.infiniteScroll && (
-        <PageControls
-          pageCount={pageCount}
-          page={page}
-          setPage={setPage}
-          loadMore={loadMore}
-          isLoading={isLoading}
-        />
-      )}
     </Grid>
   )
 }

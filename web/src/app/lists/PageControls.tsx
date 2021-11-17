@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 export function PageControls(props: {
-  isLoading: boolean
+  isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
   pageCount: number
   page: number

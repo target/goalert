@@ -1,11 +1,8 @@
 import React, { ReactNode, ReactElement, forwardRef } from 'react'
 import Avatar from '@material-ui/core/Avatar'
-import Card from '@material-ui/core/Card'
-import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
 import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import { makeStyles } from '@material-ui/core'
@@ -39,9 +36,6 @@ const useStyles = makeStyles(() => ({
   },
   favoriteIcon: {
     backgroundColor: 'transparent',
-  },
-  headerNote: {
-    fontStyle: 'italic',
   },
   ...statusStyles,
 }))
@@ -86,13 +80,6 @@ function LoadingItem(props: { dense?: boolean }): JSX.Element {
 }
 
 export interface PaginatedListProps {
-  // cardHeader will be displayed at the top of the card
-  cardHeader?: ReactNode
-
-  // header elements will be displayed at the top of the list.
-  headerNote?: string // left-aligned
-  headerAction?: JSX.Element // right-aligned
-
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
 
@@ -126,9 +113,6 @@ export interface PaginatedListItemProps {
 
 export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
-    cardHeader,
-    headerNote,
-    headerAction,
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
     page,
@@ -244,27 +228,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderList(): ReactElement {
-    return (
-      <List data-cy='apollo-list'>
-        {(headerNote || headerAction) && (
-          <ListItem>
-            {headerNote && (
-              <ListItemText
-                className={classes.headerNote}
-                disableTypography
-                secondary={
-                  <Typography color='textSecondary'>{headerNote}</Typography>
-                }
-              />
-            )}
-            {headerAction && (
-              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
-            )}
-          </ListItem>
-        )}
-        {renderListItems()}
-      </List>
-    )
+    return <List data-cy='apollo-list'>{renderListItems()}</List>
   }
 
   function renderAsInfiniteScroll(): ReactElement {
@@ -304,13 +268,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          {cardHeader}
-          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
-        </Card>
-      </Grid>
-    </Grid>
+    <React.Fragment>
+      {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
+    </React.Fragment>
   )
 }

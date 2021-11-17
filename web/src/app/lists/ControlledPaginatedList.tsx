@@ -1,5 +1,6 @@
-import React, { ReactElement, useState } from 'react'
+import React, {ReactElement, ReactNode, useState} from 'react'
 import {
+  Card,
   Checkbox,
   Grid,
   Icon,
@@ -18,6 +19,7 @@ import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@material-ui/icons'
 import Search from '../util/Search'
+import { ListHeader } from './ListHeader'
 
 const useStyles = makeStyles({
   actionsContainer: {
@@ -49,6 +51,13 @@ const useStyles = makeStyles({
 })
 
 export interface ControlledPaginatedListProps extends PaginatedListProps {
+  // cardHeader will be displayed at the top of the card
+  cardHeader?: ReactNode
+
+  // header elements will be displayed at the top of the list.
+  headerNote?: string // left-aligned
+  headerAction?: JSX.Element // right-aligned
+
   checkboxActions?: ControlledPaginatedListAction[]
   secondaryActions?: ReactElement
 
@@ -96,6 +105,9 @@ export default function ControlledPaginatedList(
     noSearch,
     searchAdornment,
     items,
+    headerNote,
+    headerAction,
+    cardHeader,
     ...listProps
   } = props
 
@@ -268,7 +280,14 @@ export default function ControlledPaginatedList(
       </Grid>
 
       <Grid item xs={12}>
-        <PaginatedList key={urlKey} {...listProps} items={getItems()} />
+        <Card>
+          <ListHeader
+            cardHeader={cardHeader}
+            headerNote={headerNote}
+            headerAction={headerAction}
+          />
+          <PaginatedList key={urlKey} {...listProps} items={getItems()} />
+        </Card>
       </Grid>
     </React.Fragment>
   )
