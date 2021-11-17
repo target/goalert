@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useContext, useMemo } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -16,7 +16,11 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { PageControls } from './PageControls'
+import {
+  PageControls,
+  PageControlsContext,
+  PageControlsContextProvider,
+} from './PageControls'
 import { ListHeader } from './ListHeader'
 
 // any && object type map
@@ -103,8 +107,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     ...listProps
   } = props
   const { input, ...vars } = variables
-
-  const [page, setPage] = useState<number>(0)
+  const { page } = useContext(PageControlsContext)
 
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
@@ -157,66 +160,66 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     )
   }
 
-  if (
-    props.checkboxActions?.length ||
-    props.secondaryActions ||
-    !props.noSearch
-  ) {
+  function renderList(): JSX.Element {
+    if (
+      props.checkboxActions?.length ||
+      props.secondaryActions ||
+      !props.noSearch
+    ) {
+      return (
+        <Grid container spacing={2}>
+          <ControlledPaginatedList
+            {...listProps}
+            items={items}
+            itemsPerPage={queryVariables.input.first}
+            pageCount={pageCount}
+            loadMore={loadMore}
+            isLoading={!data && loading}
+            noSearch={noSearch}
+          />
+          {!props.infiniteScroll && (
+            <PageControls
+              pageCount={pageCount}
+              loadMore={loadMore}
+              isLoading={isLoading}
+            />
+          )}
+        </Grid>
+      )
+    }
+
     return (
       <Grid container spacing={2}>
-        <ControlledPaginatedList
-          {...listProps}
-          items={items}
-          itemsPerPage={queryVariables.input.first}
-          page={page}
-          pageCount={pageCount}
-          loadMore={loadMore}
-          isLoading={!data && loading}
-          noSearch={noSearch}
-        />
-        {!props.infiniteScroll && (
-          <PageControls
-            pageCount={pageCount}
-            page={page}
-            setPage={setPage}
-            loadMore={loadMore}
-            isLoading={isLoading}
-          />
-        )}
+        <Grid item xs={12}>
+          <Card>
+            <ListHeader
+              cardHeader={props.cardHeader}
+              headerNote={props.headerNote}
+              headerAction={props.headerAction}
+            />
+            <PaginatedList
+              {...listProps}
+              key={urlKey}
+              items={items}
+              pageCount={pageCount}
+              itemsPerPage={queryVariables.input.first}
+              loadMore={loadMore}
+              isLoading={isLoading}
+            />
+          </Card>
+          {!props.infiniteScroll && (
+            <PageControls
+              pageCount={pageCount}
+              loadMore={loadMore}
+              isLoading={isLoading}
+            />
+          )}
+        </Grid>
       </Grid>
     )
   }
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          <ListHeader
-            cardHeader={props.cardHeader}
-            headerNote={props.headerNote}
-            headerAction={props.headerAction}
-          />
-          <PaginatedList
-            {...listProps}
-            key={urlKey}
-            items={items}
-            page={page}
-            pageCount={pageCount}
-            itemsPerPage={queryVariables.input.first}
-            loadMore={loadMore}
-            isLoading={isLoading}
-          />
-        </Card>
-        {!props.infiniteScroll && (
-          <PageControls
-            pageCount={pageCount}
-            page={page}
-            setPage={setPage}
-            loadMore={loadMore}
-            isLoading={isLoading}
-          />
-        )}
-      </Grid>
-    </Grid>
+    <PageControlsContextProvider>{renderList()}</PageControlsContextProvider>
   )
 }

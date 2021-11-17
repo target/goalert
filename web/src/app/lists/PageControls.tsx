@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactNode, useContext, useState } from 'react'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
@@ -22,15 +22,31 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+export const PageControlsContext = React.createContext<{
+  page: number
+  setPage: (page: number) => void
+}>({
+  page: 0,
+  setPage: () => {},
+})
+
+export const PageControlsContextProvider = (props: { children: ReactNode }) => {
+  const [page, setPage] = useState<number>(0)
+  return (
+    <PageControlsContext.Provider value={{ page, setPage }}>
+      {props.children}
+    </PageControlsContext.Provider>
+  )
+}
+
 export function PageControls(props: {
   isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
   pageCount: number
-  page: number
-  setPage: (page: number) => void
 }): JSX.Element {
+  const { page, setPage } = useContext(PageControlsContext)
   const classes = useStyles()
-  const { isLoading, loadMore, pageCount, page, setPage } = props
+  const { isLoading, loadMore, pageCount } = props
 
   const hasNextPage = (() => {
     const nextPage = page + 1
