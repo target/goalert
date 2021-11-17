@@ -30,7 +30,9 @@ export const PageControlsContext = React.createContext<{
   setPage: () => {},
 })
 
-export const PageControlsContextProvider = (props: { children: ReactNode }) => {
+export const PageControlsContextProvider = (props: {
+  children: ReactNode
+}): JSX.Element => {
   const [page, setPage] = useState<number>(0)
   return (
     <PageControlsContext.Provider value={{ page, setPage }}>

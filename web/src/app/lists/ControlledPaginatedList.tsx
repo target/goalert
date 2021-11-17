@@ -1,4 +1,4 @@
-import React, {ReactElement, ReactNode, useState} from 'react'
+import React, { ReactElement, ReactNode, useState } from 'react'
 import {
   Card,
   Checkbox,
