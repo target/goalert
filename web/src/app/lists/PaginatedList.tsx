@@ -1,18 +1,14 @@
 import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
 import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
-import CircularProgress from '@material-ui/core/CircularProgress'
 import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
 import ListItemAvatar from '@material-ui/core/ListItemAvatar'
-import { makeStyles, Theme } from '@material-ui/core'
-import LeftIcon from '@material-ui/icons/ChevronLeft'
-import RightIcon from '@material-ui/icons/ChevronRight'
+import { makeStyles } from '@material-ui/core'
 import { useIsWidthDown } from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
@@ -22,6 +18,7 @@ import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
+import { PageControls } from './PageControls'
 
 // gray boxes on load
 // disable overflow
@@ -29,7 +26,7 @@ import { debug } from '../util/debug'
 // delete on details -> update list (cache, refetch?)
 // - on details, don't have accesses to search param
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(() => ({
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
@@ -41,81 +38,14 @@ const useStyles = makeStyles((theme: Theme) => ({
   itemText: {
     wordBreak: 'break-word',
   },
-  progress: {
-    color: theme.palette.secondary.main,
-    position: 'absolute',
-  },
   favoriteIcon: {
     backgroundColor: 'transparent',
   },
   headerNote: {
     fontStyle: 'italic',
   },
-  controls: {
-    [theme.breakpoints.down('sm')]: {
-      '&:not(:first-child)': {
-        marginBottom: '4.5em',
-        paddingBottom: '1em',
-      },
-    },
-  },
   ...statusStyles,
 }))
-
-function PageControls(props: {
-  isLoading: boolean
-  onNext?: () => void
-  onBack?: () => void
-}): JSX.Element {
-  const classes = useStyles()
-  const { isLoading, onBack, onNext } = props
-
-  return (
-    <Grid
-      item // item within main render grid
-      xs={12}
-      container // container for control items
-      spacing={1}
-      justifyContent='flex-end'
-      alignItems='center'
-      className={classes.controls}
-    >
-      <Grid item>
-        <IconButton
-          title='back page'
-          data-cy='back-button'
-          disabled={!onBack}
-          onClick={() => {
-            onBack && onBack()
-            window.scrollTo(0, 0)
-          }}
-        >
-          <LeftIcon />
-        </IconButton>
-      </Grid>
-      <Grid item>
-        <IconButton
-          title='next page'
-          data-cy='next-button'
-          disabled={!onNext}
-          onClick={() => {
-            onNext && onNext()
-            window.scrollTo(0, 0)
-          }}
-        >
-          {isLoading && !onNext && (
-            <CircularProgress
-              color='secondary'
-              size={24}
-              className={classes.progress}
-            />
-          )}
-          <RightIcon />
-        </IconButton>
-      </Grid>
-    </Grid>
-  )
-}
 
 const loadingStyle = {
   color: 'lightgrey',
@@ -224,32 +154,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     return false
   })()
 
-  const hasNextPage = (() => {
-    const nextPage = page + 1
-
-    // Check that we have at least 1 item already for the next page
-    if (nextPage < pageCount) return true
-
-    // If we're on the last page, not already loading, and can load more
-    if (nextPage === pageCount && !isLoading && loadMore) {
-      return true
-    }
-
-    return false
-  })()
-
-  function handleNextPage(): void {
-    const nextPage = page + 1
-    setPage(nextPage)
-
-    // If we're on a not-fully-loaded page, or the last page when > the first page
-    if (
-      (nextPage >= pageCount || (nextPage > 1 && nextPage + 1 === pageCount)) &&
-      loadMore
-    )
-      loadMore(itemsPerPage * 2)
-  }
-
   function renderNoResults(): ReactElement {
     return (
       <ListItem>
@@ -349,9 +253,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     return renderedItems
   }
 
-  const onBack = page > 0 ? () => setPage(page - 1) : undefined
-  const onNext = hasNextPage ? handleNextPage : undefined
-
   function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
@@ -421,7 +322,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         </Card>
       </Grid>
       {!infiniteScroll && (
-        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
+        <PageControls
+          pageCount={pageCount}
+          page={page}
+          setPage={setPage}
+          loadMore={loadMore}
+          isLoading={isLoading}
+        />
       )}
     </Grid>
   )
