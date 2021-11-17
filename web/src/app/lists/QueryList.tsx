@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, {useMemo, useState} from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -16,6 +16,7 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
+import { PageControls } from './PageControls'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -102,6 +103,8 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   } = props
   const { input, ...vars } = variables
 
+  const [page, setPage] = useState<number>(0)
+
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
@@ -130,6 +133,20 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   const items = nodes.map(mapDataNode)
   let loadMore: ((numberToLoad?: number) => void) | undefined
 
+  // isLoading returns true if the parent says we are, or
+  // we are currently on an incomplete page and `loadMore` is available.
+  const isLoading = (() => {
+    if (!data && loading) return true
+
+    // We are on a future/incomplete page and loadMore is true
+    const itemCount = items.length
+    if ((page + 1) * ITEMS_PER_PAGE > itemCount && loadMore) return true
+
+    return false
+  })()
+
+  const pageCount = Math.ceil(items.length / ITEMS_PER_PAGE)
+
   if (data?.data?.pageInfo?.hasNextPage) {
     loadMore = buildFetchMore(
       fetchMore,
@@ -150,10 +167,21 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           {...listProps}
           items={items}
           itemsPerPage={queryVariables.input.first}
+          page={page}
+          pageCount={pageCount}
           loadMore={loadMore}
           isLoading={!data && loading}
           noSearch={noSearch}
         />
+        {!props.infiniteScroll && (
+          <PageControls
+            pageCount={pageCount}
+            page={page}
+            setPage={setPage}
+            loadMore={loadMore}
+            isLoading={isLoading}
+          />
+        )}
       </Grid>
     )
   }
@@ -165,11 +193,22 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           {...listProps}
           key={urlKey}
           items={items}
+          page={page}
+          pageCount={pageCount}
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
-          isLoading={!data && loading}
+          isLoading={isLoading}
         />
       </Grid>
+      {!props.infiniteScroll && (
+        <PageControls
+          pageCount={pageCount}
+          page={page}
+          setPage={setPage}
+          loadMore={loadMore}
+          isLoading={isLoading}
+        />
+      )}
     </Grid>
   )
 }

@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
+import React, { ReactNode, ReactElement, forwardRef } from 'react'
 import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
@@ -18,7 +18,6 @@ import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
-import { PageControls } from './PageControls'
 
 // gray boxes on load
 // disable overflow
@@ -97,6 +96,9 @@ export interface PaginatedListProps {
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
 
+  page: number
+  pageCount: number
+
   isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
 
@@ -129,7 +131,10 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     headerAction,
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
+    page,
+    pageCount,
     infiniteScroll,
+    isLoading,
     loadMore,
     emptyMessage = 'No results',
     noPlaceholder,
@@ -137,22 +142,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
   const classes = useStyles()
 
-  const [page, setPage] = useState(0)
-
-  const pageCount = Math.ceil(items.length / itemsPerPage)
   const fullScreen = useIsWidthDown('md')
-
-  // isLoading returns true if the parent says we are, or
-  // we are currently on an incomplete page and `loadMore` is available.
-  const isLoading = (() => {
-    if (props.isLoading) return true
-
-    // We are on a future/incomplete page and loadMore is true
-    const itemCount = items.length
-    if ((page + 1) * itemsPerPage > itemCount && loadMore) return true
-
-    return false
-  })()
 
   function renderNoResults(): ReactElement {
     return (
@@ -321,15 +311,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
           {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
         </Card>
       </Grid>
-      {!infiniteScroll && (
-        <PageControls
-          pageCount={pageCount}
-          page={page}
-          setPage={setPage}
-          loadMore={loadMore}
-          isLoading={isLoading}
-        />
-      )}
     </Grid>
   )
 }
