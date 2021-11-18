@@ -1,6 +1,10 @@
 # Development Setup
 
-This guide assumes you have the commands `docker`, `go` (>= 1.16), `node`, `yarn`, and `make` installed/available.
+This guide assumes you have the commands `docker`, `go`, `node`, `yarn`, and `make` installed/available.
+
+The required Go version is specified in `go.mod`.
+
+The required Node version is specified in `package.json`.
 
 ## Database (PostgreSQL)
 
