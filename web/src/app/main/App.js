@@ -20,7 +20,7 @@ import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 

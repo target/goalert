@@ -5,7 +5,7 @@ import { InputProps } from '@material-ui/core/Input'
 import { Check, Close } from '@material-ui/icons'
 import _ from 'lodash'
 import InputAdornment from '@material-ui/core/InputAdornment'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`

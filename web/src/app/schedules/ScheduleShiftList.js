@@ -11,8 +11,8 @@ import {
   Switch,
   TextField,
   MenuItem,
-  makeStyles,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'

@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
 import Card from '@material-ui/core/Card'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import CardHeader from '@material-ui/core/CardHeader'
 
 import FlatList from '../lists/FlatList'

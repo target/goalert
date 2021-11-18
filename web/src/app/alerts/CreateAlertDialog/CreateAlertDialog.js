@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
 import {
-  makeStyles,
   Button,
   Grid,
   Stepper,
@@ -9,6 +8,7 @@ import {
   StepLabel,
   Typography,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import _ from 'lodash'
 

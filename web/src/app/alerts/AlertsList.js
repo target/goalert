@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText, makeStyles } from '@material-ui/core'
+import { Hidden, ListItemText } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,

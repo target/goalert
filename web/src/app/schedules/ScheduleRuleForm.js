@@ -14,8 +14,8 @@ import {
   MenuItem,
   TextField,
   Typography,
-  makeStyles,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'

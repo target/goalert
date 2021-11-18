@@ -7,8 +7,8 @@ import {
   IconButton,
   Grid,
   Button,
-  makeStyles,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { FilterList as FilterIcon } from '@material-ui/icons'
 
 const useStyles = makeStyles((theme) => {

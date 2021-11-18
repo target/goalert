@@ -14,7 +14,7 @@ import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 

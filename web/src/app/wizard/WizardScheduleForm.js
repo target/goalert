@@ -14,7 +14,7 @@ import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
 import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles(() => ({

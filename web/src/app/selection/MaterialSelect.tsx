@@ -7,7 +7,6 @@ import React, {
 } from 'react'
 import {
   TextField,
-  makeStyles,
   MenuItem,
   ListItemIcon,
   Typography,
@@ -15,6 +14,7 @@ import {
   Chip,
   InputProps,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { Alert, Autocomplete } from '@material-ui/lab'
 
 const useStyles = makeStyles({

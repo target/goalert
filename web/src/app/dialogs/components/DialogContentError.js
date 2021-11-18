@@ -4,7 +4,8 @@ import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
 import Error from '@material-ui/icons/Error'
 import { styles as globalStyles } from '../../styles/materialStyles'
-import { Zoom, makeStyles } from '@material-ui/core'
+import { Zoom } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),

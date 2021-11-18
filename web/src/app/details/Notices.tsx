@@ -1,11 +1,6 @@
 import React, { useState, ReactNode } from 'react'
-import {
-  Badge,
-  Collapse,
-  Grid,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core'
+import { Badge, Collapse, Grid, IconButton } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import ExpandIcon from '@material-ui/icons/KeyboardArrowDown'
 import CollapseIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Alert, AlertTitle, AlertProps } from '@material-ui/lab'

@@ -6,7 +6,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import CloseIcon from '@material-ui/icons/Close'
 import ErrorIcon from '@material-ui/icons/Error'
 import IconButton from '@material-ui/core/IconButton'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 
 const icon = {
   fontSize: 20,

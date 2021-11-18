@@ -2,12 +2,8 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 
-import {
-  ListItem,
-  ListItemText,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
+import { ListItem, ListItemText, Typography } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import AppLink from '../../../util/AppLink'

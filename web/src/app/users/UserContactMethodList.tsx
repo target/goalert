@@ -1,14 +1,8 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core'
+import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'

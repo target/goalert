@@ -7,7 +7,8 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import CloseIcon from '@material-ui/icons/Close'
 import { styles as globalStyles } from '../../styles/materialStyles'
-import { DialogContent, makeStyles } from '@material-ui/core'
+import { DialogContent } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import OtherActions from '../../util/OtherActions'
 
 const useStyles = makeStyles((theme) => {
