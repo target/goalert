@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ToggleIcon from '@material-ui/icons/CompareArrows'
 import _ from 'lodash'
-import { dtToDuration, Shift, Value } from './sharedUtils'
+import { dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -21,7 +21,7 @@ import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 
 type AddShiftsStepProps = {
-  value: Value
+  value: TempSchedValue
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string

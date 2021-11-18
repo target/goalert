@@ -14,7 +14,7 @@ import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, dtToDuration, Shift, Value } from './sharedUtils'
+import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value?: Value
+  value?: TempSchedValue
 }
 
 const clampForward = (nowISO: string, iso: string | undefined): string => {
