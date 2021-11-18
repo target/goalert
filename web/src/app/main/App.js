@@ -17,7 +17,6 @@ import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
-import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import { makeStyles } from '@material-ui/core'
@@ -105,8 +104,6 @@ export default function App() {
               />
             </SwipeableDrawer>
           </Hidden>
-
-          <URLErrorDialog />
 
           <main id='content' className={classes.main} style={{ marginLeft }}>
             <ErrorBoundary>
