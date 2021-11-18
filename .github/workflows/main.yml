@@ -7,9 +7,12 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v2
+      - name: Set Node version
+        run: |
+          echo "NODE_VERSION=$(grep '"node":' package.json -m1 | cut -d'"' -f4)" >> $GITHUB_ENV
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: ${{ env.NODE_VERSION }}
       - run: yarn install
       - uses: reviewdog/action-eslint@v1
         with:
