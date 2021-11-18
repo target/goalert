@@ -272,7 +272,9 @@ export default function AlertsList(props) {
               }
             />
           ),
-          url: `/alerts/${a.id}`,
+          url: props.serviceID
+            ? `/services/${props.serviceID}/alerts/${a.id}`
+            : `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
