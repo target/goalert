@@ -11,9 +11,17 @@ const clickArc = (pct: number) => (el: JQuery) => {
   return cy.wrap(el).click(x, y)
 }
 
+const openPicker = (selector: string, name: string): void => {
+  cy.get(selector).parent().find('button').click() // open clock/calendar popper
+  cy.get(`[role=dialog][data-cy="${name}-picker-fallback"]`).should(
+    'be.visible',
+  )
+}
+
 // materialClock will control a material time-picker from an input field
 function materialClock(
   time: string | DateTime,
+  fieldName: string,
 ): Cypress.Chainable<JQuery<HTMLElement>> {
   const dt = DateTime.isDateTime(time)
     ? time
@@ -25,76 +33,72 @@ function materialClock(
   if (!isAM) hour -= 12
 
   return cy
+    .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
     .contains('button', isAM ? 'AM' : 'PM')
     .click() // select AM or PM
-
-    .get('[role=presentation][data-cy=picker-fallback] [role=listbox]')
+    .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] [role=listbox]`)
+    .parent()
+    .children()
+    .eq(0)
     .then(clickArc(hour / 12)) // select the hour
-
-    .get('[role=presentation][data-cy=picker-fallback] [role=listbox]')
+    .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] [role=listbox]`)
+    .parent()
+    .children()
+    .eq(0)
     .then(clickArc(dt.minute / 60)) // minutes
 }
 
-const openPicker = (selector: string): void => {
-  cy.get(selector).click() // open dialog
-  cy.get('[role=presentation][data-cy=picker-fallback]').should('be.visible')
-}
-const finishPicker = (): void => {
-  cy.get('[role=presentation][data-cy=picker-fallback]')
-    .contains('button', 'OK')
-    .click()
-  // wait for dialog to dissapear
-  cy.get('[role=presentation][data-cy=picker-fallback]').should('not.exist')
-}
-
 // materialCalendar will control a material date-picker from an input field
-function materialCalendar(date: string | DateTime): void {
+function materialCalendar(date: string | DateTime, fieldName: string): void {
   const dt = DateTime.isDateTime(date)
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  cy.get('[role=presentation][data-cy=picker-fallback]')
-    .find('button')
-    .first()
+  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+    .find('button[aria-label="calendar view is open, switch to year view"]')
     .click() // open year selection
 
-  cy.get('[role=presentation][data-cy=picker-fallback]')
-    .contains('[role=button]', dt.year)
+  cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+    .contains('[type=button]', dt.year)
     .click() // click on correct year
 
   cy.get(
-    '[role=presentation][data-cy=picker-fallback] button[data-cy=month-back]+div',
-  ).then((el) => {
-    const displayedDT = DateTime.fromFormat(el.text(), 'MMMM yyyy')
-    const diff = dt.startOf('month').diff(displayedDT, 'months').months
+    `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[aria-label="Previous month"]`,
+  )
+    .parent()
+    .siblings()
+    .then((el) => {
+      const displayedDT = DateTime.fromFormat(el.text(), 'MMMMyyyy')
+      const diff = dt.startOf('month').diff(displayedDT, 'months').months
 
-    // navigate to correct month
-    for (let i = 0; i < Math.abs(diff); i++) {
-      cy.get(`button[data-cy=month-${diff < 0 ? 'back' : 'next'}]`).click()
+      // navigate to correct month
+      for (let i = 0; i < Math.abs(diff); i++) {
+        cy.get(
+          `button[aria-label="${diff < 0 ? 'Previous' : 'Next'} month"]`,
+        ).click()
 
+        cy.get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
+          .should(
+            'contain',
+            displayedDT
+              .plus({ months: (diff < 0 ? -1 : 1) * (i + 1) })
+              .toFormat('MMMM'),
+          )
+          .should(
+            'not.contain',
+            displayedDT
+              .plus({ months: (diff < 0 ? -1 : 1) * i })
+              .toFormat('MMMM'),
+          )
+      }
+
+      // click on the day
       cy.get(
-        '[role=presentation][data-cy=picker-fallback] button[data-cy=month-back]+div',
-      )
-
-        .should(
-          'contain',
-          displayedDT
-            .plus({ months: (diff < 0 ? -1 : 1) * (i + 1) })
-            .toFormat('MMMM'),
-        )
-        .should(
-          'not.contain',
-          displayedDT
-            .plus({ months: (diff < 0 ? -1 : 1) * i })
-            .toFormat('MMMM'),
-        )
-    }
-
-    // click on the day
-    cy.get('body')
-      .contains("button[tabindex='0']", new RegExp(`^${dt.day.toString()}$`))
-      .click({ force: true })
-  })
+        `[role=dialog][data-cy="${fieldName}-picker-fallback"] button[aria-label="${dt.toFormat(
+          'MMM d, y',
+        )}"]`,
+      ).click({ force: true })
+    })
 }
 
 function fillFormField(
@@ -175,20 +179,17 @@ function fillFormField(
       if (pickerFallback) {
         switch (pickerFallback) {
           case 'time':
-            openPicker(selector)
-            materialClock(value)
-            finishPicker()
+            openPicker(selector, name)
+            materialClock(value, name)
             return
           case 'date':
-            openPicker(selector)
-            materialCalendar(value)
-            finishPicker()
+            openPicker(selector, name)
+            materialCalendar(value, name)
             return
           case 'datetime-local':
-            openPicker(selector)
-            materialCalendar(value)
-            materialClock(value)
-            finishPicker()
+            openPicker(selector, name)
+            materialCalendar(value, name)
+            materialClock(value, name)
             return
           default:
             if (DateTime.isDateTime(value)) {

@@ -78,6 +78,7 @@ export default function RotationForm(props) {
 
   const isCalculating = !data || loading
 
+  const isHandoffValid = DateTime.fromISO(value.start).isValid
   const nextHandoffs = isCalculating
     ? []
     : data.calcRotationHandoffTimes.map((iso) =>
@@ -179,20 +180,27 @@ export default function RotationForm(props) {
           <Typography variant='body2' className={classes.handoffsTitle}>
             Upcoming Handoff times:
           </Typography>
-          <ol className={classes.handoffsList}>
-            {nextHandoffs.map((text, i) => (
-              <Typography
-                key={i}
-                component='li'
-                className={classes.handoffTimestamp}
-                variant='body2'
-              >
-                {text}
-              </Typography>
-            ))}
-          </ol>
-          {isCalculating && <Spinner text='Calculating...' />}
-          {error && (
+          {isHandoffValid ? (
+            <ol className={classes.handoffsList}>
+              {nextHandoffs.map((text, i) => (
+                <Typography
+                  key={i}
+                  component='li'
+                  className={classes.handoffTimestamp}
+                  variant='body2'
+                >
+                  {text}
+                </Typography>
+              ))}
+            </ol>
+          ) : (
+            <Typography variant='body2' color='textSecondary'>
+              Please enter a valid handoff time.
+            </Typography>
+          )}
+
+          {isCalculating && isHandoffValid && <Spinner text='Calculating...' />}
+          {error && isHandoffValid && (
             <Typography variant='body2' color='error'>
               {error.message}
             </Typography>

@@ -1,10 +1,10 @@
 import React from 'react'
-import AdapterLuxon from '@mui/lab/AdapterLuxon'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import DateAdapter from '@mui/lab/AdapterLuxon'
 
 export default function PickersUtilsProvider(props) {
   return (
-    <LocalizationProvider dateAdapter={AdapterLuxon}>
+    <LocalizationProvider dateAdapter={DateAdapter}>
       {props.children}
     </LocalizationProvider>
   )
