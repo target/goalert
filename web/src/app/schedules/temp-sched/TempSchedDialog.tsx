@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value?: TempSchedValue
+  value: TempSchedValue | null
 }
 
 const clampForward = (nowISO: string, iso: string | undefined): string => {

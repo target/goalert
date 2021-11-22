@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react'
-import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
@@ -19,6 +18,7 @@ import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
 import ScheduleCalendarOverrideDialog from './calendar/ScheduleCalendarOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
+import { TempSchedValue } from './temp-sched/sharedUtils'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -34,28 +34,67 @@ const query = gql`
   }
 `
 
-export const ScheduleCalendarContext = React.createContext({
-  onNewTempSched: () => {},
-  onEditTempSched: () => {},
-  onDeleteTempSched: () => {},
-  // ts files infer function signature, need parameter list
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setOverrideDialog: (overrideVal) => {},
-})
+interface ScheduleCalendarContextProps {
+  onNewTempSched: () => void
+  onEditTempSched: (v: TempSchedValue) => void
+  onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
+  setOverrideDialog: React.Dispatch<
+    React.SetStateAction<{
+      variantOptions: string[]
+      removeUserReadOnly: boolean
+      defaultValue: {
+        addUserID?: string
+        removeUserID?: string
+        start: string
+        end: string
+      }
+    } | null>
+  >
+}
 
-export default function ScheduleDetails({ scheduleID }) {
+export const ScheduleCalendarContext =
+  React.createContext<ScheduleCalendarContextProps>({
+    onNewTempSched: () => {},
+    onEditTempSched: () => {},
+    onDeleteTempSched: () => {},
+    setOverrideDialog: () => {},
+  })
+
+interface ScheduleDetailsProps {
+  scheduleID: string
+}
+
+export default function ScheduleDetails({
+  scheduleID,
+}: ScheduleDetailsProps): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
   const isMobile = useIsWidthDown('sm')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
-  const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
-  const onEditTempSched = useCallback(setConfigTempSchedule, [])
+  const [configTempSchedule, setConfigTempSchedule] = useState<
+    TempSchedValue | null | undefined
+  >()
+
+  const onNewTempSched = useCallback(() => setConfigTempSchedule(null), [])
+  const onEditTempSched = useCallback(
+    (v: TempSchedValue) => setConfigTempSchedule(v),
+    [],
+  )
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
-  const [overrideDialog, setOverrideDialog] = useState(null)
+  const [overrideDialog, setOverrideDialog] = useState<{
+    variantOptions: string[]
+    removeUserReadOnly: boolean
+    defaultValue: {
+      addUserID?: string
+      removeUserID?: string
+      start: string
+      end: string
+    }
+  } | null>(null)
 
   const {
     data: _data,
@@ -89,9 +128,9 @@ export default function ScheduleDetails({ scheduleID }) {
           onClose={() => setShowDelete(false)}
         />
       )}
-      {configTempSchedule && (
+      {configTempSchedule !== undefined && (
         <TempSchedDialog
-          value={configTempSchedule === true ? null : configTempSchedule}
+          value={configTempSchedule}
           onClose={() => setConfigTempSchedule(null)}
           scheduleID={scheduleID}
         />
@@ -118,7 +157,7 @@ export default function ScheduleDetails({ scheduleID }) {
             }}
           >
             {!isMobile && <ScheduleCalendarQuery scheduleID={scheduleID} />}
-            {Boolean(overrideDialog) && (
+            {overrideDialog && (
               <ScheduleCalendarOverrideDialog
                 defaultValue={overrideDialog.defaultValue}
                 variantOptions={overrideDialog.variantOptions}
@@ -148,7 +187,8 @@ export default function ScheduleDetails({ scheduleID }) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            scheduleID={scheduleID}
+            {...{ scheduleId: scheduleID }}
+            // scheduleID={scheduleID}
           />,
         ]}
         links={[
@@ -188,8 +228,4 @@ export default function ScheduleDetails({ scheduleID }) {
       />
     </React.Fragment>
   )
-}
-
-ScheduleDetails.propTypes = {
-  scheduleID: p.string.isRequired,
 }
