@@ -149,6 +149,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       showTodayButton
       minDate={min ? DateTime.fromISO(min, { zone }) : undefined}
       maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
+      disabled={textFieldProps?.disabled}
       renderInput={(params) => (
         // @ts-expect-error potential type mismatches until fully on v5
         <V5TextField
