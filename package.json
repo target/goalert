@@ -8,7 +8,7 @@
     "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html}'"
   },
   "engines": {
-    "node": "16"
+    "node": "12"
   },
   "standard": {
     "parser": "babel-eslint",
