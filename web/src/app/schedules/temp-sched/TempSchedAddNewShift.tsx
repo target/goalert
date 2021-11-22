@@ -188,7 +188,10 @@ export default function TempSchedAddNewShift({
                 max={DateTime.fromISO(value.end, { zone })
                   .plus({ year: 1 })
                   .toISO()}
-                mapOnChangeValue={(value: string, formValue: Value) => {
+                mapOnChangeValue={(
+                  value: string,
+                  formValue: TempSchedValue,
+                ) => {
                   if (!manualEntry) {
                     const diff = DateTime.fromISO(value, { zone }).diff(
                       DateTime.fromISO(formValue.start, { zone }),
@@ -242,7 +245,7 @@ export default function TempSchedAddNewShift({
                   fieldName='end'
                   float
                   // value held in form input
-                  mapValue={(nextVal: string, formValue: Value) => {
+                  mapValue={(nextVal: string, formValue: TempSchedValue) => {
                     const nextValDT = DateTime.fromISO(nextVal, { zone })
                     const formValDT = DateTime.fromISO(formValue?.start ?? '', {
                       zone,
@@ -251,7 +254,10 @@ export default function TempSchedAddNewShift({
                     return duration === -1 ? '' : duration.toString()
                   }}
                   // value held in state
-                  mapOnChangeValue={(nextVal: string, formValue: Value) => {
+                  mapOnChangeValue={(
+                    nextVal: string,
+                    formValue: TempSchedValue,
+                  ) => {
                     if (!nextVal) return ''
                     return DateTime.fromISO(formValue.start, { zone })
                       .plus({ hours: parseFloat(nextVal) })
