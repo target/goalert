@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
@@ -63,7 +63,8 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
-  let shifts = useUserInfo(value)
+  const now = useMemo(() => DateTime.now().setZone(zone), [zone])
+  const shifts = useUserInfo(value)
 
   // wait for zone
   if (q.loading || zone === '') {
@@ -71,12 +72,6 @@ export default function TempSchedShiftsList({
       <div className={classes.spinContainer}>
         <CircularProgress />
       </div>
-    )
-  }
-
-  if (edit) {
-    shifts = shifts.filter(
-      (s) => DateTime.fromISO(s.end, { zone }) > DateTime.now().setZone(zone),
     )
   }
 
@@ -113,8 +108,13 @@ export default function TempSchedShiftsList({
         const dayInvs = splitAtMidnight(shiftInv)
 
         return dayInvs.map((inv, index) => {
-          const startTime = fmtTime(inv.start, zone, false)
+          const startTime = fmtTime(
+            s.displayStart ? s.displayStart : inv.start,
+            zone,
+            false,
+          )
           const endTime = fmtTime(inv.end, zone, false)
+          const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
 
           let subText = ''
           let titleText = ''
@@ -147,25 +147,27 @@ export default function TempSchedShiftsList({
             ),
             userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
-            secondaryAction:
-              index === 0 ? (
-                <div className={classes.secondaryActionWrapper}>
-                  {!isValid && (
-                    <Tooltip
-                      title='This shift extends beyond the start and/or end of this temporary schedule'
-                      placement='left'
-                    >
-                      <Error color='error' />
-                    </Tooltip>
-                  )}
+            disabled: isHistoricShift,
+            secondaryAction: index === 0 && (
+              <div className={classes.secondaryActionWrapper}>
+                {!isValid && !isHistoricShift && (
+                  <Tooltip
+                    title='This shift extends beyond the start and/or end of this temporary schedule'
+                    placement='left'
+                  >
+                    <Error color='error' />
+                  </Tooltip>
+                )}
+                {!isHistoricShift && (
                   <IconButton
                     aria-label='delete shift'
                     onClick={() => onRemove(s)}
                   >
                     <Delete />
                   </IconButton>
-                </div>
-              ) : null,
+                )}
+              </div>
+            ),
             at: inv.start,
             itemType: 'shift',
           } as Sortable<FlatListItem>
@@ -174,30 +176,39 @@ export default function TempSchedShiftsList({
     })()
 
     const startItem = (() => {
-      let details = `Starts at ${fmtTime(start, zone, false)}`
-      const detailsTooltip = `Starts at ${fmtLocal(start)}`
-      let message = ''
+      const active = edit && DateTime.fromISO(start, { zone }) < now
 
-      if (
-        edit &&
-        DateTime.fromISO(start, { zone }) < DateTime.now().setZone(zone)
-      ) {
-        message = 'Currently active'
-        details = 'Historical shifts will not be displayed'
-      }
+      const { message, details, at, itemType, tooltipTitle } = active
+        ? {
+            message: 'Currently active',
+            details: 'Historical shifts are not editable',
+            at: DateTime.min(
+              DateTime.fromISO(start, { zone }),
+              ...shifts.map((s) => DateTime.fromISO(s.start, { zone })),
+            ).startOf('day'),
+            itemType: 'active',
+            tooltipTitle: '',
+          }
+        : {
+            message: '',
+            details: `Starts at ${fmtTime(start, zone, false)}`,
+            at: DateTime.fromISO(start, { zone }),
+            itemType: 'start',
+            tooltipTitle: `Starts at ${fmtLocal(start)}`,
+          }
 
       return {
         id: 'sched-start_' + start,
         type: 'OK',
         icon: <ScheduleIcon />,
         message,
+        at,
+        itemType,
         details: (
-          <Tooltip title={!isLocalZone ? detailsTooltip : ''} placement='right'>
+          <Tooltip title={!isLocalZone ? tooltipTitle : ''} placement='right'>
             <div>{details}</div>
           </Tooltip>
         ),
-        at: DateTime.fromISO(start, { zone }),
-        itemType: 'start',
       } as Sortable<FlatListNotice>
     })()
 

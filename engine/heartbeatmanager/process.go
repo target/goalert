@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"time"
 
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"

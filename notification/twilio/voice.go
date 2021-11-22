@@ -84,7 +84,7 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 				log.Log(sCtx, errors.Wrap(err, "fetch log entry"))
 			} else {
 				// Stripping off anything in between parenthesis
-				msg = "Already " + pRx.ReplaceAllString(entry.String(), "")
+				msg = "Already " + pRx.ReplaceAllString(entry.String(ctx), "")
 			}
 		})
 		if msg != "" {

@@ -215,7 +215,7 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
 	if src != nil && src.Type == permission.SourceTypeAuthProvider {
-		_, err := h.endSession.ExecContext(context.Background(), sqlutil.UUIDArray([]string{src.ID}))
+		_, err := h.endSession.ExecContext(log.FromContext(ctx).BackgroundContext(), sqlutil.UUIDArray([]string{src.ID}))
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "end session"))
 		}

@@ -422,7 +422,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		return errors.Errorf("invalid id type %T", t)
 	}
 
-	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String())
+	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
 	return err
 }
 func (db *DB) FindOne(ctx context.Context, logID int) (*Entry, error) {

@@ -24,7 +24,7 @@ func (h *Handler) initNewDBListen(name string) error {
 		return err
 	}
 	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
-	l, err := sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(*cfg), DBIDChannel, StateChannel)
+	l, err := sqlutil.NewListener(context.Background(), h.logger, sqlutil.ConfigConnector(*cfg), DBIDChannel, StateChannel)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (h *Handler) initListen(name string) error {
 	}
 	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
 
-	h.l, err = sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(*cfg), DBIDChannel, StateChannel, ControlChannel)
+	h.l, err = sqlutil.NewListener(context.Background(), h.logger, sqlutil.ConfigConnector(*cfg), DBIDChannel, StateChannel, ControlChannel)
 	if err != nil {
 		return err
 	}

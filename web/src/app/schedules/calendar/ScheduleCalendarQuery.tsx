@@ -13,7 +13,10 @@ const query = gql`
     $start: ISOTimestamp!
     $end: ISOTimestamp!
   ) {
-    userOverrides(input: { scheduleID: $id, start: $start, end: $end }) {
+    userOverrides(
+      input: { scheduleID: $id, start: $start, end: $end, first: 149 }
+    ) {
+      # todo - make query expandable to handle >149 overrides
       nodes {
         id
         start

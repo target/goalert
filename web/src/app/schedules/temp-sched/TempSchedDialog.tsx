@@ -95,14 +95,12 @@ export default function TempSchedDialog({
     clearStart: _value?.start ?? null,
     clearEnd: _value?.end ?? null,
     shifts: (_value?.shifts ?? [])
-      .map((s) => _.pick(s, 'start', 'end', 'userID'))
+      .map((s) => _.pick(s, 'start', 'end', 'userID', 'displayStart'))
       .filter((s) => {
-        // clamp/filter out shifts that are in the past
-        if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
-          return false
+        if (DateTime.fromISO(s.end) > DateTime.fromISO(now)) {
+          s.displayStart = s.start
+          s.start = clampForward(now, s.start)
         }
-
-        s.start = clampForward(now, s.start)
         return true
       }),
   })
@@ -134,7 +132,9 @@ export default function TempSchedDialog({
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
     return value.shifts.some(
-      (s) => !schedInterval.engulfs(parseInterval(s, zone)),
+      (s) =>
+        DateTime.fromISO(s.end) > DateTime.fromISO(now) &&
+        !schedInterval.engulfs(parseInterval(s, zone)),
     )
   })()
 
@@ -181,7 +181,19 @@ export default function TempSchedDialog({
     onCompleted: () => onClose(),
     variables: {
       input: {
-        ...value,
+        start: value.start,
+        end: value.end,
+        clearStart: value.clearStart,
+        clearEnd: value.clearEnd,
+        shifts: value.shifts.filter((s) => {
+          // clamp/filter out shifts that are in the past
+          if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+            return false
+          }
+
+          s.start = clampForward(now, s.start)
+          return true
+        }),
         scheduleID,
       },
     },
