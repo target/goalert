@@ -258,7 +258,9 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
+          onChange={(newValue: TempSchedValue) =>
+            setValue({ ...value, ...newValue })
+          }
         >
           <Grid
             container
