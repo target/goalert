@@ -117,15 +117,15 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     }
   }
 
-  const label = type === 'time' ? 'Select a time...' : 'Select a date...'
+  const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'
   if (native) {
     return (
       <TextField
+        label={defaultLabel}
         {...textFieldProps}
         type={type}
         value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
         onChange={handleNativeChange}
-        label={label}
         inputProps={{
           min: min
             ? DateTime.fromISO(min, { zone }).toFormat(format)
@@ -146,13 +146,13 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       showTodayButton
       minDate={min ? DateTime.fromISO(min, { zone }) : undefined}
       maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
-      label={label}
       renderInput={(params) => (
         // @ts-expect-error potential type mismatches until fully on v5
         <V5TextField
           data-cy-fallback-type={type}
-          {...textFieldProps}
           {...params}
+          label={defaultLabel}
+          {...textFieldProps}
         />
       )}
       PopperProps={{
