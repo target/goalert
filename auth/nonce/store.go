@@ -14,6 +14,7 @@ import (
 
 // Store allows generating and consuming nonce values.
 type Store struct {
+	logger   *log.Logger
 	db       *sql.DB
 	shutdown chan context.Context
 
@@ -22,10 +23,11 @@ type Store struct {
 }
 
 // NewStore prepares a new Store.
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, logger *log.Logger, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	d := &Store{
+		logger:   logger,
 		db:       db,
 		shutdown: make(chan context.Context),
 
@@ -51,12 +53,13 @@ func (s *Store) loop() {
 	defer close(s.shutdown)
 	t := time.NewTicker(time.Hour * 24)
 	defer t.Stop()
+	ctx := s.logger.BackgroundContext()
 	for {
 		select {
 		case <-t.C:
-			_, err := s.cleanup.ExecContext(context.Background())
+			_, err := s.cleanup.ExecContext(ctx)
 			if err != nil {
-				log.Log(context.Background(), errors.Wrap(err, "cleanup old nonce values"))
+				log.Log(ctx, errors.Wrap(err, "cleanup old nonce values"))
 			}
 		case <-s.shutdown:
 			return

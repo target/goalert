@@ -80,7 +80,7 @@ func FibBackoff(d time.Duration) Option {
 	}
 }
 
-// Context will allow retry to continue until the context is cancelled.
+// Context will allow retry to continue until the context is canceled.
 func Context(ctx context.Context) Option {
 	return func(a int, _ error) bool {
 		return ctx.Err() == nil

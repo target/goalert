@@ -1,12 +1,11 @@
-import { DateTime, DateTimeOptions, Interval } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
+import { ExplicitZone } from './luxon-helpers'
 
 export interface SpanISO {
   start: string
   end: string
 }
-
-type ExplicitZone = NonNullable<DateTimeOptions['zone']>
 
 export function parseInterval(s: SpanISO, zone: ExplicitZone): Interval {
   return Interval.fromDateTimes(

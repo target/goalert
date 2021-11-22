@@ -1,4 +1,4 @@
-import React, { cloneElement, forwardRef } from 'react'
+import React, { cloneElement, forwardRef, ReactNode } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
@@ -9,7 +9,6 @@ import { ChevronRight } from '@mui/icons-material'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
@@ -191,7 +190,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       {/* Primary Page Content */}
       {p.pageContent && (
         <Grid
-          className={!isMobile ? classes.smPageBottom : undefined}
+          className={isMobile ? classes.smPageBottom : undefined}
           item
           xs={12}
         >

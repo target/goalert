@@ -24,7 +24,6 @@ import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
-import ScheduleCalendarOverrideDialog from '../calendar/ScheduleCalendarOverrideDialog'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -52,9 +51,7 @@ const useStyles = makeStyles((theme) => ({
 function ScheduleCalendar(props) {
   const classes = useStyles()
 
-  const { overrideDialog, setOverrideDialog } = useContext(
-    ScheduleCalendarContext,
-  )
+  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
   const { weekly, start } = useCalendarNavigation()
 
@@ -285,15 +282,6 @@ function ScheduleCalendar(props) {
           />
         </SpinContainer>
       </Card>
-      {Boolean(overrideDialog) && (
-        <ScheduleCalendarOverrideDialog
-          defaultValue={overrideDialog.defaultValue}
-          variantOptions={overrideDialog.variantOptions}
-          scheduleID={props.scheduleID}
-          onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly={overrideDialog.removeUserReadOnly}
-        />
-      )}
     </React.Fragment>
   )
 }

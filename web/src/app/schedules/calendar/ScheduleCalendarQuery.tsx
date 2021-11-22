@@ -14,7 +14,10 @@ const query = gql`
     $start: ISOTimestamp!
     $end: ISOTimestamp!
   ) {
-    userOverrides(input: { scheduleID: $id, start: $start, end: $end }) {
+    userOverrides(
+      input: { scheduleID: $id, start: $start, end: $end, first: 149 }
+    ) {
+      # todo - make query expandable to handle >149 overrides
       nodes {
         id
         start
@@ -72,7 +75,6 @@ interface ScheduleCalendarQueryProps {
 
 function ScheduleCalendarQuery({
   scheduleID,
-  ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
   const isMobile = useIsWidthDown('sm')
   const { weekly, start } = useCalendarNavigation()
@@ -107,7 +109,6 @@ function ScheduleCalendarQuery({
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
       overrides={data?.userOverrides?.nodes ?? []}
-      {...other}
     />
   )
 }

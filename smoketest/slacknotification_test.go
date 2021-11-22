@@ -2,6 +2,7 @@ package smoketest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -11,12 +12,12 @@ func TestSlackNotification(t *testing.T) {
 	t.Parallel()
 
 	sql := `
-	insert into escalation_policies (id, name) 
+	insert into escalation_policies (id, name, repeat) 
 	values
-		({{uuid "eid"}}, 'esc policy');
-	insert into escalation_policy_steps (id, escalation_policy_id) 
+		({{uuid "eid"}}, 'esc policy', 1);
+	insert into escalation_policy_steps (id, escalation_policy_id, delay) 
 	values
-		({{uuid "esid"}}, {{uuid "eid"}});
+		({{uuid "esid"}}, {{uuid "eid"}}, 30);
 
 	insert into notification_channels (id, type, name, value)
 	values
@@ -34,5 +35,10 @@ func TestSlackNotification(t *testing.T) {
 	defer h.Close()
 
 	h.CreateAlert(h.UUID("sid"), "testing")
-	h.Slack().Channel("test").ExpectMessage("testing")
+	msg := h.Slack().Channel("test").ExpectMessage("testing")
+	msg.AssertColor("#862421")
+
+	h.FastForward(time.Hour)
+	// should broadcast reply to channel
+	msg.ExpectBroadcastReply("Alert #1")
 }

@@ -57,7 +57,7 @@ You should see migrations applied followed by a `Listening.` message and an engi
 
 When running multiple instances of GoAlert (e.g. in a kubernetes cluster) it is recommended to run a single instance in the default mode, and the rest with the `--api-only` flag set.
 
-While it is safe to run multiple "engine" instances simultaneously, it is generally unecessary and can cause unwanted contention. It is useful, however, to run an "engine" instance
+While it is safe to run multiple "engine" instances simultaneously, it is generally unnecessary and can cause unwanted contention. It is useful, however, to run an "engine" instance
 in separate geographic regions or availability zones. If messages fail to send from one (e.g. network outage), they may be retried in the other this way.
 
 ## First Time Login
@@ -188,27 +188,21 @@ For the time being you will need to create your own Slack app in your workspace 
 
 To configure Slack, first [create a workspace](https://slack.com/create#email) or log in to an existing one.
 
-1. From https://api.slack.com/apps click **Create New App**
-1. Enter a name for your app (e.g. `GoAlert`)
-1. Select your workspace
-1. Click **Create App**
-1. In the list under Features, click **OAuth & Permissions**
-1. Click on **Add New Redirect URL** and enter your `<General.Public URL>` and click **Add**
-1. Under **Scopes** find **Bot Token Scopes**, click on **Add an OAuth Scope**
-1. Add the following scopes:  
-   `channels:read`  
-   `groups:read`  
-   `chat:write`
-1. At the top of the page, click **Install App to Workspace** and **Allow**
+1. Open the **Slack** section of the GoAlert Admin page
+2. Click `App Manifest`
+3. Click `Create New App`
+4. Follow the prompts to install the app in your workspace
 
 You may now configure the **Slack** section of the GoAlert Admin page.
 
 - You may find your **Access Token** under **OAuth & Permissions** -- it is the **Bot User OAuth Access Token**
-- **Client ID** and **Client Secret** are found under **Basic Information** in the **App Credentials** section.
+- **Client ID**, **Client Secret**, and **Signing Secret** are found under **Basic Information** in the **App Credentials** section.
 
 Be sure to **Enable** Slack using the toggle.
 
 You must invite the new app (e.g. GoAlert) by typing `/invite @GoAlert` in the desired Slack channel(s).
+
+To have `Interactive Messages` work, you will need to link Slack and GoAlert users using a tool like `goalert-slack-email-sync` in this repo. This will be made easier (e.g., user-initiated) in the future.
 
 ### Twilio
 

@@ -39,15 +39,13 @@ const useStyles = makeStyles((theme) => {
       flexGrow: 0,
       overflowY: 'visible',
     },
+    fullHeight: {
+      height: '100%',
+    },
   }
 })
 
 function FormDialog(props) {
-  const classes = useStyles()
-  const isWideScreen = useIsWidthUp('md')
-  const [open, setOpen] = useState(true)
-  const [attemptCount, setAttemptCount] = useState(0)
-
   const {
     alert,
     confirm,
@@ -64,8 +62,20 @@ function FormDialog(props) {
     title,
     onNext,
     onBack,
+    fullHeight,
     ...dialogProps
   } = props
+
+  const classes = useStyles()
+  const isWideScreen = useIsWidthUp('md')
+  const [open, setOpen] = useState(true)
+  const [attemptCount, setAttemptCount] = useState(0)
+
+  const classesProp = fullHeight
+    ? {
+        paper: classes.fullHeight,
+      }
+    : {}
 
   const handleOnClose = () => {
     setOpen(false)
@@ -152,6 +162,7 @@ function FormDialog(props) {
   const fs = fullScreen || (!isWideScreen && !confirm)
   return (
     <Dialog
+      classes={classesProp}
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
@@ -241,6 +252,9 @@ FormDialog.propTypes = {
 
   // notices to render; see details/Notices.tsx
   notices: p.arrayOf(p.object),
+
+  // make dialog fill vertical space
+  fullHeight: p.bool,
 }
 
 FormDialog.defaultProps = {

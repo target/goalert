@@ -24,14 +24,12 @@ a:hover {
 }
 
 .rbc-time-content .rbc-current-time-indicator::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 10px;
   height: 10px;
   left: -6px;
   top: -4.5px;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
   border-radius: 5px;
   background-color: #343434;
   position: absolute;

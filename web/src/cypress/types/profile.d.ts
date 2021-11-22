@@ -27,12 +27,14 @@ interface Profile {
   role: UserRole
   username?: string
   passwordHash?: string
+  isFavorite: boolean
 }
 
 interface UserOptions {
   name?: string
   email?: string
   role?: UserRole
+  favorite?: boolean
 }
 
 type ContactMethodType = 'SMS' | 'VOICE'

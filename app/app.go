@@ -42,6 +42,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -129,8 +130,16 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
-		l = newMultiListener(l, l2)
+		l = newMultiListener(c.Logger, l, l2)
 	}
+
+	c.Logger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
+		if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
+			ctx = log.WithField(ctx, "SQLErrDetails", e.Detail)
+		}
+
+		return ctx
+	})
 
 	app := &App{
 		l:      l,
@@ -164,7 +173,9 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 }
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
-func (a *App) WaitForStartup(ctx context.Context) error { return a.mgr.WaitForStartup(ctx) }
+func (a *App) WaitForStartup(ctx context.Context) error {
+	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+}
 
 // DB returns the sql.DB instance used by the application.
 func (a *App) DB() *sql.DB { return a.db }

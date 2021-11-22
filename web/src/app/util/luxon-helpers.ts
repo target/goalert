@@ -1,4 +1,6 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime, DateTimeOptions, Interval } from 'luxon'
+
+export type ExplicitZone = NonNullable<DateTimeOptions['zone']>
 
 // getStartOfWeek returns the current or previous sunday at 00:00:00
 // In GoAlert, weeks begin on Sunday
@@ -33,7 +35,7 @@ export function getEndOfWeek(dt = DateTime.now()): DateTime {
 export function getNextWeekday(
   weekday: number,
   since: DateTime,
-  zone: string,
+  zone: ExplicitZone,
 ): DateTime {
   if (weekday < 1 || weekday > 7) {
     console.error(

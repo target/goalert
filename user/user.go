@@ -33,6 +33,9 @@ type User struct {
 
 	// The Role of the user
 	Role permission.Role `json:"role" store:"readonly"`
+
+	// isUserFavorite returns true if a user is favorited by the current user.
+	isUserFavorite bool
 }
 
 // ResolveAvatarURL will resolve the user avatar URL, using the email if none is set.
@@ -59,6 +62,7 @@ func (u *User) scanFrom(fn scanFn) error {
 		&u.AvatarURL,
 		&u.Role,
 		&statusCM,
+		&u.isUserFavorite,
 	)
 	u.AlertStatusCMID = statusCM.String
 	return err
@@ -128,4 +132,9 @@ func (u User) Normalize() (*User, error) {
 		return nil, err
 	}
 	return &u, nil
+}
+
+// IsUserFavorite returns true if a user is a favorite of the current user.
+func (u User) IsUserFavorite() bool {
+	return u.isUserFavorite
 }

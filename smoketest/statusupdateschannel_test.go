@@ -33,8 +33,32 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	h := harness.NewHarness(t, sql, "slack-user-link")
 	defer h.Close()
 
-	h.CreateAlert(h.UUID("sid"), "testing")
-	h.Slack().Channel("test").ExpectMessage("testing")
-	h.CloseAlert(h.UUID("sid"), "testing")
-	h.Slack().Channel("test").ExpectMessage("Closed")
+	a := h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
+	msg := h.Slack().Channel("test").ExpectMessage("testing", "details")
+	msg.AssertColor("#862421")
+	msg.AssertActions()
+	a.Ack()
+
+	updated := msg.ExpectUpdate()
+	updated.AssertText("Ack", "testing", "details")
+	updated.AssertColor("#867321")
+	updated.AssertActions()
+
+	a.Escalate()
+
+	updated = msg.ExpectUpdate()
+	updated.AssertText("Escalated", "testing", "details")
+	updated.AssertColor("#862421")
+	updated.AssertActions()
+	msg.ExpectBroadcastReply("testing")
+
+	a.Close()
+
+	updated = msg.ExpectUpdate()
+	updated.AssertText("Closed", "testing")
+	updated.AssertNotText("details")
+	updated.AssertColor("#218626")
+
+	updated.AssertActions() // no actions
+
 }

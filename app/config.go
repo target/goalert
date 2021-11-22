@@ -6,9 +6,12 @@ import (
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/util/log"
 )
 
 type Config struct {
+	Logger *log.Logger
+
 	ListenAddr  string
 	Verbose     bool
 	JSON        bool

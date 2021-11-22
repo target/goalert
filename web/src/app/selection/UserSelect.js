@@ -7,6 +7,7 @@ const query = gql`
       nodes {
         id
         name
+        isFavorite
       }
     }
   }
@@ -17,11 +18,14 @@ const valueQuery = gql`
     user(id: $id) {
       id
       name
+      isFavorite
     }
   }
 `
 
 export const UserSelect = makeQuerySelect('UserSelect', {
+  variables: { favoritesFirst: true },
+  defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
 })

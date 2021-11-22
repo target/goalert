@@ -45,7 +45,7 @@ function useISOPicker(
       return dt
     }
 
-    const iso = DateTime.fromISO(input)
+    const iso = DateTime.fromISO(input, { zone })
     if (iso.isValid) return iso
 
     return null
@@ -62,10 +62,18 @@ function useISOPicker(
     setInputValue(value && dtValue ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min, { zone }).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max, { zone }).toFormat(format)
+
   const handleChange = (e) => {
     setInputValue(e.target.value)
 
     const newVal = inputToISO(e.target.value)
+    if (min && DateTime.fromISO(newVal) < DateTime.fromISO(min)) return
+    if (max && DateTime.fromISO(newVal) > DateTime.fromISO(max)) return
+
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
     if (!dtValue || (newVal && newVal !== dtValue.toUTC().toISO())) {
@@ -73,14 +81,18 @@ function useISOPicker(
     }
   }
 
+  const inputDT = DateTime.fromISO(inputToISO(inputValue), { zone })
+  let isValid = inputDT.isValid
+  if (min && isValid) {
+    isValid = inputDT >= DateTime.fromISO(min)
+  }
+  if (max && isValid) {
+    isValid = inputDT <= DateTime.fromISO(max)
+  }
+
   // shrink: true sets the label above the textfield so the placeholder can be properly seen
   const inputLabelProps = otherProps?.InputLabelProps ?? {}
   inputLabelProps.shrink = true
-
-  // sets min and max if set
-  const inputProps = otherProps?.inputProps ?? {}
-  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
-  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
 
   if (native) {
     return (
@@ -91,6 +103,8 @@ function useISOPicker(
         {...otherProps}
         InputLabelProps={inputLabelProps}
         inputProps={inputProps}
+        error={otherProps.error || !isValid}
+        onBlur={() => setInputValue(dtValue.toFormat(format))}
       />
     )
   }

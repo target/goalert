@@ -73,6 +73,7 @@ func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, fallbackURL st
 		seed,
 	))
 
+	logger := log.FromContext(ctx)
 	go func() {
 		randDelay := func() time.Duration {
 			return 30*time.Second + time.Duration(src.Int63n(int64(30*time.Second)))
@@ -82,7 +83,7 @@ func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, fallbackURL st
 			select {
 			case <-t.C:
 				t.Reset(randDelay())
-				permission.SudoContext(context.Background(), func(ctx context.Context) {
+				permission.SudoContext(logger.BackgroundContext(), func(ctx context.Context) {
 					err := s.Reload(ctx)
 					if err != nil {
 						log.Log(ctx, errors.Wrap(err, "config auto-reload"))

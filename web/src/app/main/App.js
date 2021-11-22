@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
 export default function App() {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
-  const fullScreen = useIsWidthDown('md')
+  const fullScreen = useIsWidthDown('sm')
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
 

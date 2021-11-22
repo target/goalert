@@ -179,7 +179,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
       if (addUser && removeUser)
         return (
           <React.Fragment>
-            <b>{removeUser.name}</b> replaces <b>{addUser.name}</b>.
+            <b>{addUser.name}</b> replaces <b>{removeUser.name}</b>.
           </React.Fragment>
         )
       if (addUser)

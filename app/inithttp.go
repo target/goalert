@@ -42,6 +42,12 @@ func (app *App) initHTTP(ctx context.Context) error {
 	}
 
 	middleware := []func(http.Handler) http.Handler{
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				next.ServeHTTP(w, req.WithContext(log.WithLogger(req.Context(), app.cfg.Logger)))
+			})
+		},
+
 		traceMiddleware,
 		// add app config to request context
 		func(next http.Handler) http.Handler { return config.Handler(next, app.ConfigStore) },
@@ -151,7 +157,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	if app.cfg.Verbose {
 		middleware = append(middleware, func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				next.ServeHTTP(w, req.WithContext(log.EnableDebug(req.Context())))
+				next.ServeHTTP(w, req.WithContext(log.WithDebug(req.Context())))
 			})
 		})
 	}
@@ -198,6 +204,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
 	mux.HandleFunc("/api/v2/twilio/call", app.twilioVoice.ServeCall)
 	mux.HandleFunc("/api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
+
+	mux.HandleFunc("/api/v2/slack/message-action", app.slackChan.ServeMessageAction)
 
 	// Legacy (v1) API mapping
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)

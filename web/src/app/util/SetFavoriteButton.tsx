@@ -7,7 +7,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
-  typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy'
+  typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy' | 'user'
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
   isFavorite?: boolean
   loading?: boolean

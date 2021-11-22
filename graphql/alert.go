@@ -260,7 +260,7 @@ func (h *Handler) alertFields() g.Fields {
 				custom := make([]alertLogSearchResult, len(entries))
 				for i, e := range entries {
 					custom[i].AlertID = e.AlertID()
-					custom[i].Log = e.String()
+					custom[i].Log = e.String(p.Context)
 					custom[i].ID = e.ID()
 					custom[i].Timestamp = e.Timestamp()
 					custom[i].Subject = e.Subject()
@@ -286,7 +286,7 @@ func (h *Handler) alertFields() g.Fields {
 				custom := make([]alertLogSearchResult, len(entries))
 				for i, e := range entries {
 					custom[i].AlertID = e.AlertID()
-					custom[i].Log = e.String()
+					custom[i].Log = e.String(p.Context)
 					custom[i].ID = e.ID()
 					custom[i].Timestamp = e.Timestamp()
 					custom[i].Subject = e.Subject()
@@ -752,7 +752,7 @@ func (h *Handler) searchAlertLogsField() *g.Field {
 			custom := make([]alertLogSearchResult, len(entries))
 			for i, e := range entries {
 				custom[i].AlertID = e.AlertID()
-				custom[i].Log = e.String()
+				custom[i].Log = e.String(p.Context)
 				custom[i].ID = e.ID()
 				custom[i].Timestamp = e.Timestamp()
 				custom[i].Subject = e.Subject()

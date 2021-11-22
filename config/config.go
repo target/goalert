@@ -23,7 +23,7 @@ type Config struct {
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID            string `public:"true"`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
-		MessageBundles               bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
+		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
 		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
 		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
 		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
@@ -87,6 +87,9 @@ type Config struct {
 		// The `xoxb-` prefix is documented by Slack.
 		// https://api.slack.com/docs/token-types#bot
 		AccessToken string `password:"true" info:"Slack app bot user OAuth access token (should start with xoxb-)."`
+
+		SigningSecret       string `password:"true" info:"Signing secret to verify requests from slack."`
+		InteractiveMessages bool   `info:"Enable interactive messages (e.g. buttons)."`
 	}
 
 	Twilio struct {
@@ -394,6 +397,7 @@ func (cfg Config) Validate() error {
 		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
 		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
 		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
+		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
@@ -416,6 +420,9 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.SMTP.From != "" {
 		err = validate.Many(err, validate.Email("SMTP.From", cfg.SMTP.From))
+	}
+	if cfg.Slack.InteractiveMessages && cfg.Slack.SigningSecret == "" {
+		err = validate.Many(err, validation.NewFieldError("Slack.SigningSecret", "required to enable Slack interactive messages"))
 	}
 
 	err = validate.Many(

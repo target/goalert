@@ -84,7 +84,7 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 				log.Log(sCtx, errors.Wrap(err, "fetch log entry"))
 			} else {
 				// Stripping off anything in between parenthesis
-				msg = "Already " + pRx.ReplaceAllString(entry.String(), "")
+				msg = "Already " + pRx.ReplaceAllString(entry.String(ctx), "")
 			}
 		})
 		if msg != "" {
@@ -480,6 +480,10 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.Say(call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
+		return
+	case digitStop:
+		call.Q.Set("previous", string(CallTypeTest))
+		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 	}
 }

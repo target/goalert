@@ -1,4 +1,5 @@
-import React, { useLayoutEffect } from 'react'
+import React, { useLayoutEffect, MouseEvent } from 'react'
+import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
 import ListItem, { ListItemProps } from '@mui/material/ListItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -19,7 +20,8 @@ import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
-import { Color } from '@mui/lab'
+import { AlertColor } from '@mui/material/Alert'
+import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
 
 const lime = '#93ed94'
@@ -29,6 +31,16 @@ const lightGrey = '#ebebeb'
 const useStyles = makeStyles({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
+    width: '100%',
+  },
+  alertAsButton: {
+    width: '100%',
+    '&:hover, &.Mui-focusVisible': {
+      filter: 'brightness(90%)',
+    },
+  },
+  buttonBase: {
+    borderRadius: 4,
   },
   background: { backgroundColor: 'white' },
   highlightedItem: {
@@ -40,24 +52,36 @@ const useStyles = makeStyles({
     backgroundColor: lightGrey,
   },
   slideEnter: {
+    maxHeight: '0px',
+    opacity: 0,
     transform: 'translateX(-100%)',
   },
   slideEnterActive: {
+    maxHeight: '60px',
+    opacity: 1,
     transform: 'translateX(0%)',
-    transition: 'opacity 500ms, transform 500ms',
+    transition: 'all 500ms',
   },
   slideExit: {
+    maxHeight: '60px',
+    opacity: 1,
     transform: 'translateX(0%)',
   },
   slideExitActive: {
+    maxHeight: '0px',
+    opacity: 0,
     transform: 'translateX(-100%)',
-    transition: 'opacity 500ms, transform 500ms',
+    transition: 'all 500ms',
   },
   listItem: {
     width: '100%',
   },
   listItemText: {
     fontStyle: 'italic',
+  },
+  listItemDisabled: {
+    opacity: 0.6,
+    width: '100%',
   },
 })
 
@@ -70,6 +94,8 @@ export interface FlatListNotice extends Notice {
   id?: string
   icon?: JSX.Element
   transition?: boolean
+  handleOnClick?: (event: MouseEvent) => void
+  'data-cy'?: string
 }
 export interface FlatListItem {
   title?: string
@@ -80,6 +106,8 @@ export interface FlatListItem {
   url?: string
   id?: string
   scrollIntoView?: boolean
+  'data-cy'?: string
+  disabled?: boolean
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -106,7 +134,7 @@ export interface FlatListProps extends ListProps {
   transition?: boolean
 }
 
-const severityMap: { [K in NoticeType]: Color } = {
+const severityMap: { [K in NoticeType]: AlertColor } = {
   INFO: 'info',
   WARNING: 'warning',
   ERROR: 'error',
@@ -128,7 +156,6 @@ function ScrollIntoViewListItem(
     }
   }, [scrollIntoView])
 
-  // @ts-expect-error complains due to ListItem not always rendering a list item.
   return <ListItem ref={ref} {...other} />
 }
 
@@ -158,10 +185,29 @@ export default function FlatList({
   }
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
+    if (item.handleOnClick) {
+      return (
+        <ButtonBase
+          className={classnames(classes.buttonBase, classes.alert)}
+          onClick={item.handleOnClick}
+          data-cy={item['data-cy']}
+        >
+          <Alert
+            className={classes.alertAsButton}
+            key={idx}
+            severity={severityMap[item.type]}
+            icon={item.icon}
+          >
+            {item.message && <AlertTitle>{item.message}</AlertTitle>}
+            {item.details}
+          </Alert>
+        </ButtonBase>
+      )
+    }
+
     return (
       <Alert
         key={idx}
-        component='li'
         className={classes.alert}
         severity={severityMap[item.type]}
         icon={item.icon}
@@ -188,6 +234,13 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
+    let itemClass = ''
+    if (!item.highlight) {
+      itemClass = classes.listItem
+    }
+    if (item.disabled) {
+      itemClass = classes.listItemDisabled
+    }
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -202,7 +255,7 @@ export default function FlatList({
         scrollIntoView={item.scrollIntoView}
         key={idx}
         {...itemProps}
-        className={item.highlight ? classes.highlightedItem : classes.listItem}
+        className={itemClass}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
@@ -225,7 +278,7 @@ export default function FlatList({
       if ('subHeader' in item) {
         return (
           <CSSTransition
-            key={'header_' + item.id + idx}
+            key={'header_' + item.id}
             timeout={0}
             exit={false}
             enter={false}
@@ -237,7 +290,7 @@ export default function FlatList({
       if ('type' in item) {
         return (
           <CSSTransition
-            key={'notice_' + item.id + idx}
+            key={'notice_' + item.id}
             timeout={500}
             exit={Boolean(item.transition)}
             enter={Boolean(item.transition)}
@@ -254,7 +307,7 @@ export default function FlatList({
       }
       return (
         <CSSTransition
-          key={'item_' + item.id + idx}
+          key={'item_' + item.id}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,

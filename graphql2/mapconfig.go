@@ -18,6 +18,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 		{ID: "Mailgun.ForwardURL", Value: cfg.Mailgun.ForwardURL},
 		{ID: "Twilio.MessageWebhookURL", Value: cfg.Twilio.MessageWebhookURL},
 		{ID: "Twilio.VoiceWebhookURL", Value: cfg.Twilio.VoiceWebhookURL},
+		{ID: "Slack.InteractivityResponseURL", Value: cfg.Slack.InteractivityResponseURL},
 	}
 }
 
@@ -28,7 +29,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
-		{ID: "General.MessageBundles", Type: ConfigTypeBoolean, Description: "Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts.", Value: fmt.Sprintf("%t", cfg.General.MessageBundles)},
+		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
 		{ID: "General.DisableSMSLinks", Type: ConfigTypeBoolean, Description: "If set, SMS messages will not contain a URL pointing to GoAlert.", Value: fmt.Sprintf("%t", cfg.General.DisableSMSLinks)},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
@@ -62,6 +63,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
 		{ID: "Slack.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientSecret, Password: true},
 		{ID: "Slack.AccessToken", Type: ConfigTypeString, Description: "Slack app bot user OAuth access token (should start with xoxb-).", Value: cfg.Slack.AccessToken, Password: true},
+		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "Signing secret to verify requests from slack.", Value: cfg.Slack.SigningSecret, Password: true},
+		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
 		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation.", Value: cfg.Twilio.AuthToken, Password: true},
@@ -91,7 +94,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
-		{ID: "General.MessageBundles", Type: ConfigTypeBoolean, Description: "Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts.", Value: fmt.Sprintf("%t", cfg.General.MessageBundles)},
+		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
 		{ID: "General.DisableSMSLinks", Type: ConfigTypeBoolean, Description: "If set, SMS messages will not contain a URL pointing to GoAlert.", Value: fmt.Sprintf("%t", cfg.General.DisableSMSLinks)},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
@@ -153,12 +156,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.General.GoogleAnalyticsID = v.Value
 		case "General.NotificationDisclaimer":
 			cfg.General.NotificationDisclaimer = v.Value
-		case "General.MessageBundles":
+		case "General.DisableMessageBundles":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {
 				return cfg, err
 			}
-			cfg.General.MessageBundles = val
+			cfg.General.DisableMessageBundles = val
 		case "General.ShortURL":
 			cfg.General.ShortURL = v.Value
 		case "General.DisableSMSLinks":
@@ -277,6 +280,14 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Slack.ClientSecret = v.Value
 		case "Slack.AccessToken":
 			cfg.Slack.AccessToken = v.Value
+		case "Slack.SigningSecret":
+			cfg.Slack.SigningSecret = v.Value
+		case "Slack.InteractiveMessages":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Slack.InteractiveMessages = val
 		case "Twilio.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

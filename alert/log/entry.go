@@ -31,7 +31,7 @@ type Entry struct {
 	meta rawJSON
 }
 
-func (e Entry) Meta() interface{} {
+func (e Entry) Meta(ctx context.Context) interface{} {
 	var dest interface{}
 	switch e.Type() {
 	case TypeEscalated:
@@ -46,7 +46,7 @@ func (e Entry) Meta() interface{} {
 
 	err := json.Unmarshal(e.meta, dest)
 	if err != nil {
-		log.Debug(context.Background(), err)
+		log.Debug(ctx, err)
 		return nil
 	}
 	return dest
@@ -120,7 +120,7 @@ func escalationMsg(m *EscalationMetaData) string {
 	return msg
 }
 
-func (e Entry) String() string {
+func (e Entry) String(ctx context.Context) string {
 	var msg string
 	var infinitive bool
 	switch e.Type() {
@@ -132,7 +132,7 @@ func (e Entry) String() string {
 		msg = "Closed"
 	case TypeEscalated:
 		msg = "Escalated"
-		meta, ok := e.Meta().(*EscalationMetaData)
+		meta, ok := e.Meta(ctx).(*EscalationMetaData)
 		if ok {
 			msg += escalationMsg(meta)
 		}

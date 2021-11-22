@@ -1,17 +1,6 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable camelcase */
 
-declare global {
-  namespace NodeJS {
-    interface Global {
-      pathPrefix: string
-      applicationName: string
-      GOALERT_VERSION: string
-      Cypress?: any
-    }
-  }
-}
 declare let __webpack_public_path__: string
 declare let __webpack_require__: any
 

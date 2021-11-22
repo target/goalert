@@ -170,7 +170,7 @@ func WithoutAuth(ctx context.Context) context.Context {
 	return ctx
 }
 
-// SudoContext elevates an existing context to system level. The elevated context is automatically cancelled
+// SudoContext elevates an existing context to system level. The elevated context is automatically canceled
 // as soon as the callback returns.
 func SudoContext(ctx context.Context, f func(context.Context)) {
 	name := "Sudo"

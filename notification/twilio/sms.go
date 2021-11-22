@@ -411,7 +411,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 				if err != nil {
 					log.Log(sCtx, errors.Wrap(err, "fetch log entry"))
 				} else {
-					msg += "\n\n" + entry.String()
+					msg += "\n\n" + entry.String(ctx)
 				}
 			})
 		} else {

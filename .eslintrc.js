@@ -33,6 +33,9 @@ module.exports = {
     'react/jsx-fragments': ['error', 'element'],
     'react/prop-types': 'off',
 
+    // buggy, handled better by no unused imports and actual build
+    'import/no-unresolved': 'off',
+
     // handled by prettier
     'react/jsx-curly-newline': 'off',
     'react/jsx-indent': 'off',

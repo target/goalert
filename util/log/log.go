@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/target/goalert/util/sqlutil"
-	"golang.org/x/term"
 )
 
 type logContextKey int
@@ -18,71 +15,86 @@ const (
 	logContextKeyDebug logContextKey = iota
 	logContextKeyRequestID
 	logContextKeyFieldList
+	logContextKeyLogger
 )
 
-var defaultLogger = logrus.NewEntry(logrus.StandardLogger())
-var defaultContext = context.Background()
-var verbose = false
-var stacks = false
+type Logger struct {
+	debug  bool
+	info   bool
+	stacks bool
+	l      *logrus.Logger
+
+	errHooks []func(context.Context, error) context.Context
+}
+
+func NewLogger() *Logger {
+	l := logrus.New()
+
+	return &Logger{l: l, info: true}
+}
+func (l *Logger) BackgroundContext() context.Context { return WithLogger(context.Background(), l) }
+
+func WithLogger(ctx context.Context, l *Logger) context.Context {
+	return context.WithValue(ctx, logContextKeyLogger, l)
+}
+func FromContext(ctx context.Context) *Logger {
+	l, _ := ctx.Value(logContextKeyLogger).(*Logger)
+	if l == nil {
+		return NewLogger()
+	}
+	return l
+}
 
 // SetOutput will change the log output.
-func SetOutput(out io.Writer) {
-	defaultLogger.Logger.SetOutput(out)
-}
+func (l *Logger) SetOutput(out io.Writer) { l.l.SetOutput(out) }
 
 // EnableStacks enables stack information via the Source field.
-func EnableStacks() {
-	stacks = true
-}
+func (l *Logger) EnableStacks() { l.stacks = true }
 
 // EnableJSON sets the output log format to JSON
-func EnableJSON() {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-}
+func (l *Logger) EnableJSON() { l.l.SetFormatter(&logrus.JSONFormatter{}) }
 
 // ErrorsOnly will disable all log output except errors.
-func ErrorsOnly() {
-	logrus.SetLevel(logrus.ErrorLevel)
+func (l *Logger) ErrorsOnly() {
+	l.debug = false
+	l.info = false
 }
 
-func init() {
-	if term.IsTerminal(int(os.Stderr.Fd())) {
-		logrus.SetFormatter(&terminalFormatter{})
-	}
-}
+// If EnableDebug is called, all debug messages will be logged.
+func (l *Logger) EnableDebug() { l.debug = true }
 
-// EnableVerbose sets verbose logging. All debug messages will be logged.
-func EnableVerbose() {
-	verbose = true
-}
+func (l *Logger) entry(ctx context.Context) *logrus.Entry {
 
-func getLogger(ctx context.Context) *logrus.Entry {
-	l := defaultLogger
+	e := logrus.NewEntry(l.l)
 	if ctx == nil {
-		return l
+		return e
 	}
 
-	l = l.WithFields(logrus.Fields(ContextFields(ctx)))
+	e = e.WithFields(logrus.Fields(ContextFields(ctx)))
 
 	rid := RequestID(ctx)
 	if rid != "" {
-		l = l.WithField("RequestID", rid)
+		e = e.WithField("RequestID", rid)
 	}
 
-	return l
+	return e
 }
 
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
 
-func addSource(ctx context.Context, err error) context.Context {
+func (l *Logger) AddErrorMapper(mapper func(context.Context, error) context.Context) {
+	l.errHooks = append(l.errHooks, mapper)
+}
+
+func (l *Logger) addSource(ctx context.Context, err error) context.Context {
 	err = findRootSource(err) // always returns stackTracer
-	if stacks {
+	if l.stacks {
 		ctx = WithField(ctx, "Source", fmt.Sprintf("%+v", err.(stackTracer).StackTrace()))
 	}
-	if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
-		ctx = WithField(ctx, "SQLErrDetails", e.Detail)
+	for _, h := range l.errHooks {
+		ctx = h(ctx, err)
 	}
 	return ctx
 }
@@ -107,53 +119,70 @@ func findRootSource(err error) error {
 }
 
 // Log will log an application error.
-func Log(ctx context.Context, err error) {
+func Log(ctx context.Context, err error) { FromContext(ctx).Error(ctx, err) }
+
+func (l *Logger) Error(ctx context.Context, err error) {
 	if err == nil {
 		return
 	}
-	ctx = addSource(ctx, err)
-	getLogger(ctx).WithError(err).Errorln()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ctx = l.addSource(ctx, err)
+	l.entry(ctx).WithError(err).Errorln()
 }
 
 // Logf will log application information.
 func Logf(ctx context.Context, format string, args ...interface{}) {
-	getLogger(ctx).Printf(format, args...)
+	FromContext(ctx).Printf(ctx, format, args...)
+}
+
+func (l *Logger) Printf(ctx context.Context, format string, args ...interface{}) {
+	if !l.info {
+		return
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	l.entry(ctx).Printf(format, args...)
 }
 
 // Debugf will log the formatted string if the context has debug logging enabled.
 func Debugf(ctx context.Context, format string, args ...interface{}) {
+	FromContext(ctx).DebugPrintf(ctx, format, args...)
+}
+
+func (l *Logger) DebugPrintf(ctx context.Context, format string, args ...interface{}) {
 	if ctx == nil {
-		ctx = defaultContext
+		ctx = context.Background()
 	}
-	if !verbose {
-		if v, _ := ctx.Value(logContextKeyDebug).(bool); !v {
-			return
-		}
+	if v, _ := ctx.Value(logContextKeyDebug).(bool); !v && !l.debug {
+		return
 	}
 
-	getLogger(ctx).Infof(format, args...)
+	l.entry(ctx).Infof(format, args...)
 }
 
 // Debug will log err if the context has debug logging enabled.
-func Debug(ctx context.Context, err error) {
+func Debug(ctx context.Context, err error) { FromContext(ctx).DebugError(ctx, err) }
+
+func (l *Logger) DebugError(ctx context.Context, err error) {
 	if err == nil {
 		return
 	}
 	if ctx == nil {
-		ctx = defaultContext
+		ctx = context.Background()
 	}
-	if !verbose {
-		if v, _ := ctx.Value(logContextKeyDebug).(bool); !v {
-			return
-		}
+	if v, _ := ctx.Value(logContextKeyDebug).(bool); !v && !l.debug {
+		return
 	}
-	ctx = addSource(ctx, err)
+	ctx = l.addSource(ctx, err)
 
-	getLogger(ctx).WithError(err).Infoln()
+	l.entry(ctx).WithError(err).Infoln()
 }
 
-// EnableDebug will return a context where debug logging is enabled for it
-// and all child contexts.
-func EnableDebug(ctx context.Context) context.Context {
+// WithDebug will enable debug logging for the context.
+func WithDebug(ctx context.Context) context.Context {
 	return context.WithValue(ctx, logContextKeyDebug, true)
 }

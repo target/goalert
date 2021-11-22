@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/jackc/pgtype"
 )
@@ -46,7 +47,7 @@ func splitRxTerms(rx string) pgtype.TextArray {
 	var terms []string
 	var cur string
 	for _, r := range rx {
-		if r >= '0' && r <= '9' || r >= 'a' && r <= 'z' {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			cur += string(r)
 			continue
 		}

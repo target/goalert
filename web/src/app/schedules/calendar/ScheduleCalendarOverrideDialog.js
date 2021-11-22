@@ -95,7 +95,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
           : variantDetails[activeVariant].desc
       }
       errors={nonFieldErrors(error)}
-      notices={step === 0 ? [] : notices} // create and edit dialogue
+      notices={step === 0 ? [] : notices} // create and edit dialog
       loading={loading}
       form={
         <React.Fragment>
@@ -145,7 +145,6 @@ export default function ScheduleCalendarOverrideDialog(props) {
       }
       onSubmit={() => mutate()}
       onNext={step < 1 ? onNext : null}
-      onBack={step > 0 ? () => setStep(step - 1) : null}
     />
   )
 }

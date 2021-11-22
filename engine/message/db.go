@@ -452,35 +452,37 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		return nil, fmt.Errorf("dedup alerts: %w", err)
 	}
 
-	if cfg.General.MessageBundles {
-		result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
-			var cmID, chanID, userID sql.NullString
-			if msg.UserID != "" {
-				userID.Valid = true
-				userID.String = msg.UserID
-			}
-			if msg.Dest.Type.IsUserCM() {
-				cmID.Valid = true
-				cmID.String = msg.Dest.ID
-			} else {
-				chanID.Valid = true
-				chanID.String = msg.Dest.ID
-			}
+	if cfg.General.DisableMessageBundles {
+		return newQueue(result, now), nil
+	}
 
-			newID := uuid.NewString()
-			_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
-			if err != nil {
-				return "", err
-			}
-
-			return newID, nil
-		}, func(parentID string, ids []string) error {
-			_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, parentID, sqlutil.UUIDArray(ids))
-			return err
-		})
-		if err != nil {
-			return nil, err
+	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
+		var cmID, chanID, userID sql.NullString
+		if msg.UserID != "" {
+			userID.Valid = true
+			userID.String = msg.UserID
 		}
+		if msg.Dest.Type.IsUserCM() {
+			cmID.Valid = true
+			cmID.String = msg.Dest.ID
+		} else {
+			chanID.Valid = true
+			chanID.String = msg.Dest.ID
+		}
+
+		newID := uuid.NewString()
+		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
+		if err != nil {
+			return "", err
+		}
+
+		return newID, nil
+	}, func(parentID string, ids []string) error {
+		_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, parentID, sqlutil.UUIDArray(ids))
+		return err
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return newQueue(result, now), nil
