@@ -34,15 +34,6 @@ const query = gql`
   }
 `
 
-interface ScheduleCalendarContextProps {
-  onNewTempSched: () => void
-  onEditTempSched: (v: TempSchedValue) => void
-  onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
-  setOverrideDialog: React.Dispatch<
-    React.SetStateAction<ScheduleCalendarOverrideDialogProps | null>
-  >
-}
-
 // todo - move this interface to more generic file when those are converted to typescript
 interface ScheduleCalendarOverrideDialogProps {
   variantOptions: string[]
@@ -53,6 +44,15 @@ interface ScheduleCalendarOverrideDialogProps {
     start: string
     end: string
   }
+}
+
+interface ScheduleCalendarContextProps {
+  onNewTempSched: () => void
+  onEditTempSched: (v: TempSchedValue) => void
+  onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
+  setOverrideDialog: React.Dispatch<
+    React.SetStateAction<ScheduleCalendarOverrideDialogProps | null>
+  >
 }
 
 export const ScheduleCalendarContext =
@@ -124,7 +124,7 @@ export default function ScheduleDetails({
       {configTempSchedule !== undefined && (
         <TempSchedDialog
           value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
+          onClose={() => setConfigTempSchedule(undefined)}
           scheduleID={scheduleID}
         />
       )}
@@ -180,9 +180,8 @@ export default function ScheduleDetails({
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            // todo - redo this prop when this component converted to typescript
-            {...{ scheduleId: scheduleID }}
-            // scheduleID={scheduleID}
+            id={scheduleID}
+            type='schedule'
           />,
         ]}
         links={[
