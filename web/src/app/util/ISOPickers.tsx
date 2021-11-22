@@ -9,7 +9,7 @@ import TimePicker from '@mui/lab/TimePicker'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { urlParamSelector } from '../selectors'
 
-interface ISOPickerProps extends NativeProps {
+interface ISOPickerProps extends ISOTextFieldProps {
   Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
   format: string
   timeZone?: string
@@ -20,7 +20,9 @@ interface ISOPickerProps extends NativeProps {
   max?: string
 }
 
-type NativeProps = Partial<Omit<TextFieldProps, 'value'>> & {
+// Used for the native textfield component or the nested input component
+// that the Fallback renders.
+type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value'>> & {
   value?: string
   onChange: (value: string) => void
 }
@@ -164,7 +166,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 }
 
-export function ISOTimePicker(props: NativeProps): JSX.Element {
+export function ISOTimePicker(props: ISOTextFieldProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
@@ -176,7 +178,7 @@ export function ISOTimePicker(props: NativeProps): JSX.Element {
   )
 }
 
-export function ISODatePicker(props: NativeProps): JSX.Element {
+export function ISODatePicker(props: ISOTextFieldProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
@@ -188,7 +190,7 @@ export function ISODatePicker(props: NativeProps): JSX.Element {
   )
 }
 
-export function ISODateTimePicker(props: NativeProps): JSX.Element {
+export function ISODateTimePicker(props: ISOTextFieldProps): JSX.Element {
   return (
     <ISOPicker
       {...props}
