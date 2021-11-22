@@ -39,17 +39,20 @@ interface ScheduleCalendarContextProps {
   onEditTempSched: (v: TempSchedValue) => void
   onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
   setOverrideDialog: React.Dispatch<
-    React.SetStateAction<{
-      variantOptions: string[]
-      removeUserReadOnly: boolean
-      defaultValue: {
-        addUserID?: string
-        removeUserID?: string
-        start: string
-        end: string
-      }
-    } | null>
+    React.SetStateAction<ScheduleCalendarOverrideDialogProps | null>
   >
+}
+
+// todo - move this interface to more generic file when those are converted to typescript
+interface ScheduleCalendarOverrideDialogProps {
+  variantOptions: string[]
+  removeUserReadOnly: boolean
+  defaultValue: {
+    addUserID?: string
+    removeUserID?: string
+    start: string
+    end: string
+  }
 }
 
 export const ScheduleCalendarContext =
@@ -69,15 +72,13 @@ export default function ScheduleDetails({
 }: ScheduleDetailsProps): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-
+  const [configTempSchedule, setConfigTempSchedule] = useState<
+    TempSchedValue | null | undefined
+  >()
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
   const isMobile = useIsWidthDown('sm')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
-
-  const [configTempSchedule, setConfigTempSchedule] = useState<
-    TempSchedValue | null | undefined
-  >()
 
   const onNewTempSched = useCallback(() => setConfigTempSchedule(null), [])
   const onEditTempSched = useCallback(
@@ -85,16 +86,8 @@ export default function ScheduleDetails({
     [],
   )
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
-  const [overrideDialog, setOverrideDialog] = useState<{
-    variantOptions: string[]
-    removeUserReadOnly: boolean
-    defaultValue: {
-      addUserID?: string
-      removeUserID?: string
-      start: string
-      end: string
-    }
-  } | null>(null)
+  const [overrideDialog, setOverrideDialog] =
+    useState<ScheduleCalendarOverrideDialogProps | null>(null)
 
   const {
     data: _data,
@@ -187,6 +180,7 @@ export default function ScheduleDetails({
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
+            // todo - redo this prop when this component converted to typescript
             {...{ scheduleId: scheduleID }}
             // scheduleID={scheduleID}
           />,
