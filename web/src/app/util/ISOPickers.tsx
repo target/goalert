@@ -128,6 +128,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         type={type}
         value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
         onChange={handleNativeChange}
+        InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
         inputProps={{
           min: min
             ? DateTime.fromISO(min, { zone }).toFormat(format)
