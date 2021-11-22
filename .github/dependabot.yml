@@ -12,11 +12,6 @@ updates:
       - dependency-name: '*'
         update-types: ['version-update:semver-patch']
 
-      # while using @material-ui/pickers@3:
-      # https://github.com/mui-org/material-ui-pickers/issues/1440
-      # @material-ui/pickers@3 requires @date-io/luxon@1
-      - dependency-name: '@date-io/luxon'
-      - dependency-name: '@date-io/core'
       # @date-io/luxon@1 requires luxon@1
       - dependency-name: 'luxon'
       # luxon@1 requires @types/luxon@1
