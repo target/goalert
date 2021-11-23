@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
@@ -63,8 +63,18 @@ export default function TempSchedShiftsList({
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
-  const now = useMemo(() => DateTime.now().setZone(zone), [zone])
+  const [now, setNow] = useState(DateTime.now().setZone(zone))
   const shifts = useUserInfo(value)
+  const [existingShifts] = useState(shifts)
+
+  useEffect(() => {
+    if (edit) {
+      const interval = setTimeout(() => {
+        setNow(DateTime.now().setZone(zone))
+      }, 10000)
+      return () => clearTimeout(interval)
+    }
+  }, [now])
 
   // wait for zone
   if (q.loading || zone === '') {
@@ -114,7 +124,16 @@ export default function TempSchedShiftsList({
             false,
           )
           const endTime = fmtTime(inv.end, zone, false)
-          const isHistoricShift = DateTime.fromISO(s.end, { zone }) < now
+          const shiftExists = existingShifts.find((shift) => {
+            return (
+              DateTime.fromISO(s.start).equals(DateTime.fromISO(shift.start)) &&
+              DateTime.fromISO(s.end).equals(DateTime.fromISO(shift.end)) &&
+              s.userID === shift.userID
+            )
+          })
+          const isHistoricShift =
+            Boolean(shiftExists?.userID) &&
+            DateTime.fromISO(s.end, { zone }) < now
 
           let subText = ''
           let titleText = ''
