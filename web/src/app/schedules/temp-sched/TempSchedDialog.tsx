@@ -85,7 +85,7 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = _.isEmpty(_value)
+  const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
