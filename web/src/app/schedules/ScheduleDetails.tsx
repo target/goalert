@@ -34,8 +34,7 @@ const query = gql`
   }
 `
 
-// todo - move this interface to more generic file when those are converted to typescript
-interface ScheduleCalendarOverrideDialogProps {
+interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
   defaultValue: {
