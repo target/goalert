@@ -49,13 +49,11 @@ interface ScheduleCalendarContext {
   onNewTempSched: () => void
   onEditTempSched: (v: TempSchedValue) => void
   onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
-  setOverrideDialog: React.Dispatch<
-    React.SetStateAction<ScheduleCalendarOverrideDialogProps | null>
-  >
+  setOverrideDialog: React.Dispatch<React.SetStateAction<OverrideDialog | null>>
 }
 
 export const ScheduleCalendarContext =
-  React.createContext<ScheduleCalendarContextProps>({
+  React.createContext<ScheduleCalendarContext>({
     onNewTempSched: () => {},
     onEditTempSched: () => {},
     onDeleteTempSched: () => {},
@@ -85,8 +83,9 @@ export default function ScheduleDetails({
     [],
   )
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
-  const [overrideDialog, setOverrideDialog] =
-    useState<ScheduleCalendarOverrideDialogProps | null>(null)
+  const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
+    null,
+  )
 
   const {
     data: _data,
