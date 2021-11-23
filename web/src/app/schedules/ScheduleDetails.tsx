@@ -45,7 +45,7 @@ interface OverrideDialog {
   }
 }
 
-interface ScheduleCalendarContextProps {
+interface ScheduleCalendarContext {
   onNewTempSched: () => void
   onEditTempSched: (v: TempSchedValue) => void
   onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
