@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value: TempSchedValue | null
+  value: Partial<TempSchedValue>
 }
 
 const clampForward = (nowISO: string, iso: string | undefined): string => {
@@ -85,7 +85,7 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = Boolean(_value)
+  const edit = _.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)

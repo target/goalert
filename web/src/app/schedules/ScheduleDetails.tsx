@@ -69,15 +69,14 @@ export default function ScheduleDetails({
 }: ScheduleDetailsProps): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [configTempSchedule, setConfigTempSchedule] = useState<
-    TempSchedValue | null | undefined
-  >()
+  const [configTempSchedule, setConfigTempSchedule] =
+    useState<Partial<TempSchedValue> | null>(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
   const isMobile = useIsWidthDown('sm')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
-  const onNewTempSched = useCallback(() => setConfigTempSchedule(null), [])
+  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
   const onEditTempSched = useCallback(
     (v: TempSchedValue) => setConfigTempSchedule(v),
     [],
@@ -119,10 +118,10 @@ export default function ScheduleDetails({
           onClose={() => setShowDelete(false)}
         />
       )}
-      {configTempSchedule !== undefined && (
+      {configTempSchedule && (
         <TempSchedDialog
           value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(undefined)}
+          onClose={() => setConfigTempSchedule(null)}
           scheduleID={scheduleID}
         />
       )}
