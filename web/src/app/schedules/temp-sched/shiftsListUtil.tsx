@@ -10,7 +10,7 @@ import {
 import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
-import Tooltip from '@material-ui/core/Tooltip/Tooltip'
+import Tooltip from '@mui/material/Tooltip/Tooltip'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
 
 export type Sortable<T> = T & {
