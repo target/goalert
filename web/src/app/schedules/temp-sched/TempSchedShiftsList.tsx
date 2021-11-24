@@ -102,7 +102,7 @@ export default function TempSchedShiftsList({
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
-      return _.flatMap(shifts, (s) => {
+      return _.flatMap(shifts, (s, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
         const dayInvs = splitAtMidnight(shiftInv)
@@ -160,7 +160,7 @@ export default function TempSchedShiftsList({
                 )}
                 {!isHistoricShift && (
                   <IconButton
-                    aria-label='delete shift'
+                    aria-label={'delete shift index: ' + idx}
                     onClick={() => onRemove(s)}
                   >
                     <Delete />
