@@ -24,6 +24,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { ConfigValue, ConfigHint } from '../../schema'
 import SlackActions from './SlackActions'
+import { theme } from '../mui'
 
 const query = gql`
   query getConfig {
@@ -46,7 +47,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   accordionDetails: {
     padding: 0,
     display: 'block',

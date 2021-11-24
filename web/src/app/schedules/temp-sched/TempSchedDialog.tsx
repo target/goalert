@@ -24,6 +24,7 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
+import { theme } from '../../mui'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -35,7 +36,7 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,

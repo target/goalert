@@ -2,10 +2,10 @@ import React from 'react'
 import classnames from 'classnames'
 import AddIcon from '@mui/icons-material/Add'
 import { Fab, Tooltip, FabProps } from '@mui/material'
-
 import makeStyles from '@mui/styles/makeStyles'
+import { theme } from '../mui'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   fab: {
     position: 'fixed',
     bottom: '16px',

@@ -11,6 +11,7 @@ import { Form } from '../forms'
 import AdminSection from './AdminSection'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+import { theme } from '../mui'
 
 const query = gql`
   query getLimits {
@@ -27,7 +28,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   actionsContainer: {
     display: 'flex',
     justifyContent: 'flex-end',

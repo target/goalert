@@ -4,8 +4,9 @@ import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import AdminNumberLookup from './AdminNumberLookup'
 import AdminSMSSend from './AdminSMSSend'
+import { theme } from '../mui'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
