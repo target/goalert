@@ -185,15 +185,17 @@ export default function TempSchedDialog({
         end: value.end,
         clearStart: value.clearStart,
         clearEnd: value.clearEnd,
-        shifts: value.shifts.filter((s) => {
-          // clamp/filter out shifts that are in the past
-          if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
-            return false
-          }
+        shifts: value.shifts
+          .map((s) => _.pick(s, 'start', 'end', 'userID'))
+          .filter((s) => {
+            // clamp/filter out shifts that are in the past
+            if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+              return false
+            }
 
-          s.start = clampForward(now, s.start)
-          return true
-        }),
+            s.start = clampForward(now, s.start)
+            return true
+          }),
         scheduleID,
       },
     },
