@@ -52,6 +52,9 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
     [theme.breakpoints.down('md')]: {
       marginTop: '1rem',
     },
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: '1rem',
+    },
     overflow: 'hidden',
   },
   sticky: {
