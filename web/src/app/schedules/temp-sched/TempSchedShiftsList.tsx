@@ -160,7 +160,8 @@ export default function TempSchedShiftsList({
                 )}
                 {!isHistoricShift && (
                   <IconButton
-                    aria-label={'delete shift index: ' + idx}
+                    data-cy={'delete shift index: ' + idx}
+                    aria-label='delete shift'
                     onClick={() => onRemove(s)}
                   >
                     <Delete />
