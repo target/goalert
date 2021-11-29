@@ -77,7 +77,7 @@
     semver "^6.3.0"
     source-map "^0.5.0"
 
-"@babel/eslint-parser@^7.16.3":
+"@babel/eslint-parser@7.16.3":
   version "7.16.3"
   resolved "https://registry.yarnpkg.com/@babel/eslint-parser/-/eslint-parser-7.16.3.tgz#2a6b1702f3f5aea48e00cea5a5bcc241c437e459"
   integrity sha512-iB4ElZT0jAt7PKVaeVulOECdGe6UnmA/O0P9jlF5g5GBOwDVbna8AXhHRu4s27xQf6OkveyA8iTDv1jHdDejgQ==
