@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme) => {
     formContainer: {
       margin: 0,
     },
+    bringToFront: {
+      zIndex: 9999,
+    },
   }
 })
 
@@ -91,6 +94,7 @@ export default function FilterContainer(props) {
           anchor='top'
           classes={{
             paper: classes.overflow,
+            root: classes.bringToFront,
           }}
           disableDiscovery
           disableSwipeToOpen
