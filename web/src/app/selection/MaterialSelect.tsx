@@ -181,7 +181,6 @@ export default function MaterialSelect(
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
       options={options}
-      filterSelectedOptions
       renderInput={(params) => {
         return (
           <TextField
