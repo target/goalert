@@ -101,13 +101,13 @@ export default function WizardForm(props) {
               <FormControlLabel
                 data-cy='secondary.yes'
                 value='yes'
-                control={<Radio color='secondary' />}
+                control={<Radio />}
                 label='Yes'
               />
               <FormControlLabel
                 data-cy='secondary.no'
                 value='no'
-                control={<Radio color='secondary' />}
+                control={<Radio />}
                 label='No'
               />
             </RadioGroup>

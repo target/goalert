@@ -114,7 +114,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
                     key={variant}
                     data-cy={`variant.${variant}`}
                     value={variant}
-                    control={<Radio color='secondary' />}
+                    control={<Radio />}
                     label={
                       <div className={classes.variantItem}>
                         <div>{variantDetails[variant].name}</div>
