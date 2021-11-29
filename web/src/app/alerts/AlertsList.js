@@ -89,7 +89,7 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('xs')
+  const isXs = useIsWidthDown('sm')
 
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
