@@ -48,7 +48,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
-  const isMobile = useIsWidthDown('sm')
+  const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
