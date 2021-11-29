@@ -80,6 +80,10 @@ function testPaginating(
         cy.get('body').should('contain', names[itemsPerPage + i])
 
       cy.pageSearch(nameSubstr.slice(0, -1))
+      if (label !== 'Users') {
+        cy.get('body').should('contain', 'No results')
+        cy.pageSearch(nameSubstr)
+      }
 
       cy.get('button[data-cy="back-button"]').should('be.disabled')
       for (let i = 0; i < itemsPerPage; i++)
