@@ -89,7 +89,7 @@ export default function MaterialSelect(
     noOptionsError,
     onChange,
     onInputChange = () => {},
-    options: _options,
+    options,
     placeholder,
     required,
     value,
@@ -131,13 +131,7 @@ export default function MaterialSelect(
     if (!value) return false
 
     if (Array.isArray(value)) {
-      let isIncluded = false
-      value.forEach((value) => {
-        if (val === value.value) {
-          isIncluded = true
-        }
-      })
-      return isIncluded
+      return value.some((opt) => opt.value === val)
     }
 
     return val === value.value
@@ -150,7 +144,6 @@ export default function MaterialSelect(
       classes={customCSS}
       {...multi}
       value={value}
-      filterSelectedOptions
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
@@ -187,7 +180,7 @@ export default function MaterialSelect(
       onBlur={() => setFocus(false)}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
-      options={_options}
+      options={options}
       renderInput={(params) => {
         return (
           <TextField
