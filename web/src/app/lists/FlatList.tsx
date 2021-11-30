@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, MouseEvent } from 'react'
+import React, { useLayoutEffect, MouseEvent, ReactNode } from 'react'
 import List, { ListProps } from '@material-ui/core/List'
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -114,7 +114,7 @@ export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
 
   // header elements will be displayed at the top of the list.
-  headerNote?: string // left-aligned
+  headerNote?: ReactNode // left-aligned
   headerAction?: JSX.Element // right-aligned
 
   // emptyMessage will be displayed if there are no items in the list.
