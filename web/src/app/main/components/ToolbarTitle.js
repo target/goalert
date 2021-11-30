@@ -132,7 +132,6 @@ function ToolbarTitle() {
   }
 
   const renderSubPageTitle = ({ match }) => {
-    console.log('the Match is:', match)
     const sub = startCase(match.params.sub)
 
     if (fullScreen) {
@@ -140,7 +139,6 @@ function ToolbarTitle() {
       return renderTitle(sub)
     }
     const query = queries[match.params.type]
-    const queryTwo = queries.alerts
 
     return (
       <div className={classes.div}>
@@ -165,24 +163,26 @@ function ToolbarTitle() {
         </Typography>
         <ChevronRight />
         {renderTitle(sub)}
-        <ChevronRight />
-        {match.params.subID && (
-          <Typography
-            className={classes.title}
-            color='inherit'
-            noWrap
-            variant='h6'
-            to='..'
-            replace
-          >
-            {query && (
-              <NameLoader
-                id={parseInt(match.params.subID)}
-                query={queryTwo}
-                fallback={detailsText(match)}
-              />
-            )}
-          </Typography>
+        {match.params.alertId && (
+          <React.Fragment>
+            <ChevronRight />
+            <Typography
+              className={classes.title}
+              color='inherit'
+              noWrap
+              variant='h6'
+              to='..'
+              replace
+            >
+              {query && (
+                <NameLoader
+                  id={match.params.alertId}
+                  query={query}
+                  fallback={detailsText(match)}
+                />
+              )}
+            </Typography>
+          </React.Fragment>
         )}
       </div>
     )
@@ -203,8 +203,8 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(services)/:id/alerts/:alertId'
-        render={() => renderTitle('Alert Details')}
+        path='/:type(services)/:id/:sub(alerts)/:alertId'
+        render={renderSubPageTitle}
       />
       <Route
         path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
