@@ -1,8 +1,5 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaFeatures: { legacyDecorators: true },
-  },
   plugins: [
     'import',
     'cypress',
