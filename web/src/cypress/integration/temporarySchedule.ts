@@ -11,10 +11,12 @@ function testTemporarySchedule(screen: string): void {
   let schedule: Schedule
   let manualAddUser: User
   let graphQLAddUser: User
+  let graphQLAddSecondUser: User
   beforeEach(() => {
     cy.fixture('users').then((u) => {
       manualAddUser = u[0]
       graphQLAddUser = u[1]
+      graphQLAddSecondUser = u[2]
 
       cy.createSchedule({ timeZone: 'Europe/Berlin' }).then((s: Schedule) => {
         schedule = s
@@ -99,7 +101,7 @@ function testTemporarySchedule(screen: string): void {
   })
 
   // seems buggy when shift list has overflow
-  it('should edit a temporary schedule', () => {
+  it('should edit and remove and add to a temporary schedule', () => {
     const now = DateTime.utc()
 
     cy.createTemporarySchedule({
@@ -112,13 +114,90 @@ function testTemporarySchedule(screen: string): void {
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
-      cy.get('[data-cy="shifts-list"] li [aria-label="delete shift"]').click({
+      cy.get(
+        '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
+      ).click({
         force: true,
       }) // delete
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
         graphQLAddUser.name,
       )
+
+      cy.get('[data-cy="add-shift-expander"]').click()
+      cy.dialogForm({
+        userID: manualAddUser.name,
+        'shift-start': schedTZ(now.plus({ hour: 1 })),
+      })
+      cy.get('[data-cy="shifts-list"]').should(
+        'not.contain',
+        manualAddUser.name,
+      )
+      cy.get('button[data-cy="add-shift"]').click()
+      cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+      cy.dialogClick('Submit')
+      cy.get('[data-cy="no-coverage-checkbox"]')
+        .should('be.visible')
+        .find('input[name="allowCoverageGaps"]')
+        .check()
+      cy.dialogFinish('Retry')
+      cy.reload() // ensure calendar update
+      cy.get('div').contains(manualAddUser.name).click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    })
+  })
+
+  it('should edit and remove from a temporary schedule', () => {
+    const now = DateTime.utc()
+
+    cy.createTemporarySchedule({
+      scheduleID: schedule.id,
+      start: now.toISO(),
+      shifts: [
+        { userID: graphQLAddUser.id },
+        { userID: graphQLAddSecondUser.id },
+      ],
+    }).then(() => {
+      cy.reload()
+      cy.get('div').contains('Temporary Schedule').click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
+      cy.get(
+        '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
+      ).click({
+        force: true,
+      }) // delete
+      cy.get('[data-cy="shifts-list"]').should(
+        'not.contain',
+        graphQLAddUser.name,
+      )
+
+      cy.dialogClick('Submit')
+      cy.get('[data-cy="no-coverage-checkbox"]')
+        .should('be.visible')
+        .find('input[name="allowCoverageGaps"]')
+        .check()
+      cy.dialogFinish('Retry')
+      cy.reload() // ensure calendar update
+      cy.get('div').contains(graphQLAddSecondUser.name).click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    })
+  })
+
+  it('should edit and add to a temporary schedule', () => {
+    const now = DateTime.utc()
+
+    cy.createTemporarySchedule({
+      scheduleID: schedule.id,
+      start: now.toISO(),
+      shifts: [{ userID: graphQLAddUser.id }],
+    }).then(() => {
+      cy.reload()
+      cy.get('div').contains('Temporary Schedule').click()
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
 
       cy.get('[data-cy="add-shift-expander"]').click()
       cy.dialogForm({
