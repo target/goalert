@@ -14,7 +14,7 @@ import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, dtToDuration, Shift, Value } from './sharedUtils'
+import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value?: Value
+  value: Partial<TempSchedValue>
 }
 
 const clampForward = (nowISO: string, iso: string | undefined): string => {
@@ -85,7 +85,7 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = Boolean(_value)
+  const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
@@ -260,7 +260,9 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
+          onChange={(newValue: TempSchedValue) =>
+            setValue({ ...value, ...newValue })
+          }
         >
           <Grid
             container
