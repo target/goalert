@@ -10,7 +10,7 @@ import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
 import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
-import { UserOverride } from '../../../schema'
+import { User, UserOverride } from '../../../schema'
 
 const useStyles = makeStyles({
   cardActionContainer: {
@@ -56,7 +56,7 @@ export default function ScheduleCalendarEventWrapper({
   event,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = useState<EventTarget | null>(null)
 
   const [showEditDialog, setShowEditDialog] = useState(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(null)
@@ -67,22 +67,22 @@ export default function ScheduleCalendarEventWrapper({
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
-  function handleClick(event: any): any {
-    setAnchorEl(event.currentTarget)
+  function handleClick(_event: MouseEvent): void {
+    setAnchorEl(_event.currentTarget)
   }
 
-  function handleCloseShiftInfo(): any {
+  function handleCloseShiftInfo(): void {
     setAnchorEl(null)
   }
 
-  function handleKeyDown(event): any {
-    const code = event.key
+  function handleKeyDown(_event: KeyboardEvent): void {
+    const code = _event.key
     if (code === 'Enter' || code === ' ') {
-      setAnchorEl(event.currentTarget)
+      setAnchorEl(_event.currentTarget)
     }
   }
 
-  function handleShowOverrideForm(): JSX.Element {
+  function handleShowOverrideForm(): void {
     handleCloseShiftInfo()
 
     setOverrideDialog({
@@ -196,7 +196,10 @@ export default function ScheduleCalendarEventWrapper({
   function renderOverrideDescription(): JSX.Element {
     if (!event.isOverride) return <React.Fragment />
 
-    const getDesc = (addUser: any, removeUser: any): JSX.Element => {
+    const getDesc = (
+      addUser: User | undefined,
+      removeUser: User | undefined,
+    ): JSX.Element => {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -215,6 +218,8 @@ export default function ScheduleCalendarEventWrapper({
             Removes <b>{removeUser.name}</b>.
           </React.Fragment>
         )
+
+      return <React.Fragment />
     }
 
     return (
