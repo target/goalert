@@ -1,7 +1,6 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "experimentalDecorators": true,
     "jsx": "react",
     "lib": ["es6", "dom"]
   },

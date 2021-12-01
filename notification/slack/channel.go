@@ -293,8 +293,9 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 
 	return slack.MsgOptionAttachments(
 		slack.Attachment{
-			Color:  color,
-			Blocks: slack.Blocks{BlockSet: blocks},
+			Color:    color,
+			Fallback: fmt.Sprintf("Alert #%d: %s", id, slackutilsx.EscapeMessage(summary)),
+			Blocks:   slack.Blocks{BlockSet: blocks},
 		},
 	)
 }
