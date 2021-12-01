@@ -1,5 +1,4 @@
 import React, { useContext, useState } from 'react'
-import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import Popover from '@material-ui/core/Popover'
@@ -11,6 +10,7 @@ import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
 import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
+import { UserOverride } from '../../../schema'
 
 const useStyles = makeStyles({
   cardActionContainer: {
@@ -34,7 +34,27 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ScheduleCalendarEventWrapper({ children, event }) {
+export interface ScheduleCalendarEvent {
+  title: string | JSX.Element
+  userID: any
+  start: Date
+  end: Date
+  fixed: boolean
+  isTempSchedShift: any
+  tempSched: any
+  isOverride: boolean
+  override: UserOverride
+}
+
+interface ScheduleCalendarEventWrapperProps {
+  event: ScheduleCalendarEvent
+  children: JSX.Element
+}
+
+export default function ScheduleCalendarEventWrapper({
+  children,
+  event,
+}: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
 
@@ -47,22 +67,22 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
-  function handleClick(event) {
+  function handleClick(event: any): any {
     setAnchorEl(event.currentTarget)
   }
 
-  function handleCloseShiftInfo() {
+  function handleCloseShiftInfo(): any {
     setAnchorEl(null)
   }
 
-  function handleKeyDown(event) {
+  function handleKeyDown(event): any {
     const code = event.key
     if (code === 'Enter' || code === ' ') {
       setAnchorEl(event.currentTarget)
     }
   }
 
-  function handleShowOverrideForm() {
+  function handleShowOverrideForm(): JSX.Element {
     handleCloseShiftInfo()
 
     setOverrideDialog({
@@ -76,10 +96,10 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     })
   }
 
-  function renderTempSchedButtons() {
+  function renderTempSchedButtons(): JSX.Element {
     if (DateTime.fromISO(event.end) <= DateTime.utc()) {
       // no actions on past events
-      return
+      return <React.Fragment />
     }
     return (
       <React.Fragment>
@@ -116,7 +136,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderOverrideButtons() {
+  function renderOverrideButtons(): JSX.Element {
     return (
       <div className={classes.cardActionContainer}>
         <CardActions
@@ -143,7 +163,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderShiftButtons() {
+  function renderShiftButtons(): JSX.Element {
     return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
@@ -163,19 +183,20 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  function renderButtons() {
-    if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
+  function renderButtons(): JSX.Element {
+    if (DateTime.fromJSDate(event.end) <= DateTime.utc())
+      return <React.Fragment />
     if (event.tempSched) return renderTempSchedButtons()
-    if (event.fixed) return null
+    if (event.fixed) return <React.Fragment />
     if (event.isOverride) return renderOverrideButtons()
 
     return renderShiftButtons()
   }
 
-  function renderOverrideDescription() {
-    if (!event.isOverride) return null
+  function renderOverrideDescription(): JSX.Element {
+    if (!event.isOverride) return <React.Fragment />
 
-    const getDesc = (addUser, removeUser) => {
+    const getDesc = (addUser: any, removeUser: any): JSX.Element => {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -211,8 +232,8 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
    * the full shift start and end date times, as
    * well as the controls relevant to the event.
    */
-  function renderShiftInfo() {
-    const fmt = (date) =>
+  function renderShiftInfo(): JSX.Element {
+    const fmt = (date: Date) =>
       DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_FULL)
 
     return (
@@ -228,7 +249,7 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
     )
   }
 
-  if (!children) return null
+  if (!children) return <React.Fragment />
   return (
     <React.Fragment>
       <Popover
@@ -275,8 +296,4 @@ export default function ScheduleCalendarEventWrapper({ children, event }) {
       )}
     </React.Fragment>
   )
-}
-
-ScheduleCalendarEventWrapper.propTypes = {
-  event: p.object.isRequired,
 }
