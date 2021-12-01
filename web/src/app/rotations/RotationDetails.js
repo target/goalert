@@ -105,7 +105,8 @@ export default function RotationDetails({ rotationID }) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            rotationID={rotationID}
+            id={rotationID}
+            type='rotation'
           />,
         ]}
       />

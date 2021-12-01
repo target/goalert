@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
-export type Value = {
+export type TempSchedValue = {
   start: string
   end: string
   shifts: Shift[]
