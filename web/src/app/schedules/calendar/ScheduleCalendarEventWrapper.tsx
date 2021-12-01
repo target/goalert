@@ -56,10 +56,10 @@ export default function ScheduleCalendarEventWrapper({
   event,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
-  const [anchorEl, setAnchorEl] = useState<EventTarget | null>(null)
+  const [anchorEl, setAnchorEl] = useState<Element | null>(null)
 
-  const [showEditDialog, setShowEditDialog] = useState(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(null)
+  const [showEditDialog, setShowEditDialog] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null)
 
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
@@ -68,7 +68,7 @@ export default function ScheduleCalendarEventWrapper({
   const id = open ? 'shift-popover' : undefined
 
   function handleClick(_event: MouseEvent): void {
-    setAnchorEl(_event.currentTarget)
+    setAnchorEl(_event.currentTarget as Element | null)
   }
 
   function handleCloseShiftInfo(): void {
@@ -78,7 +78,7 @@ export default function ScheduleCalendarEventWrapper({
   function handleKeyDown(_event: KeyboardEvent): void {
     const code = _event.key
     if (code === 'Enter' || code === ' ') {
-      setAnchorEl(_event.currentTarget)
+      setAnchorEl(_event.currentTarget as Element | null)
     }
   }
 
@@ -238,7 +238,7 @@ export default function ScheduleCalendarEventWrapper({
    * well as the controls relevant to the event.
    */
   function renderShiftInfo(): JSX.Element {
-    const fmt = (date: Date) =>
+    const fmt = (date: Date): string =>
       DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_FULL)
 
     return (
@@ -270,9 +270,11 @@ export default function ScheduleCalendarEventWrapper({
           vertical: 'top',
           horizontal: 'left',
         }}
-        PaperProps={{
-          'data-cy': 'shift-tooltip',
-        }}
+        PaperProps={
+          {
+            'data-cy': 'shift-tooltip',
+          } as any
+        }
         classes={{
           paper: classes.paper,
         }}
