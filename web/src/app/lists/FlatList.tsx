@@ -42,7 +42,6 @@ const useStyles = makeStyles({
   },
   background: { backgroundColor: 'white' },
   highlightedItem: {
-    width: '100%',
     borderLeft: '6px solid ' + lime,
     background: lightLime,
   },
@@ -235,13 +234,6 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
-    let itemClass = ''
-    if (!item.highlight) {
-      itemClass = classes.listItem
-    }
-    if (item.disabled) {
-      itemClass = classes.listItemDisabled
-    }
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -256,7 +248,11 @@ export default function FlatList({
         scrollIntoView={item.scrollIntoView}
         key={idx}
         {...itemProps}
-        className={itemClass}
+        className={classnames({
+          [classes.listItem]: true,
+          [classes.highlightedItem]: item.highlight,
+          [classes.listItemDisabled]: item.disabled,
+        })}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
