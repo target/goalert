@@ -24,7 +24,12 @@ import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
-import { OnCallShift, TemporarySchedule, UserOverride } from '../../../schema'
+import {
+  OnCallShift,
+  TemporarySchedule,
+  User,
+  UserOverride,
+} from '../../../schema'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -49,6 +54,41 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
+interface CalendarEvent {
+  start: string
+  end: string
+  user?: {
+    name?: React.ReactNode
+    id?: string
+  }
+  type: 'tempSched' | 'overrideShift' | 'tempSchedShift' | 'onCallShift'
+  // fixed: if is 'tempSched' or 'tempSchedShift'
+}
+
+interface TempSchedEvent extends CalendarEvent {
+  type: 'tempSched'
+  tempSched: TemporarySchedule
+}
+
+interface OverrideShiftEvent extends CalendarEvent {
+  type: 'overrideShift'
+  override: UserOverride
+}
+
+interface TempSchedShiftEvent extends CalendarEvent {
+  type: 'tempSchedShift'
+  tempSched: TemporarySchedule
+}
+
+interface OnCallShiftEvent extends CalendarEvent {
+  type: 'onCallShift'
+  userID: string
+  user?: User
+  truncated: boolean
+}
+
+interface X extends CalendarEvent, TempSchedShiftEvent, OnCallShiftEvent {}
+
 interface ScheduleCalendarProps {
   scheduleID: string
   shifts: OnCallShift[]
@@ -65,7 +105,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const { weekly, start } = useCalendarNavigation()
 
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
-  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
+  const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
 
   const { shifts, temporarySchedules } = props
@@ -75,7 +115,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     start: Date,
     end: Date,
     isSelected: boolean,
-  ): React.HTMLAttributes<HTMLDivElement> => {
+  ): { className?: string; style?: Object } => {
     const green = '#0C6618'
     const lavender = '#BB7E8C'
 
@@ -144,60 +184,63 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     _tempScheds: TemporarySchedule[],
     userOverrides: UserOverride[],
   ): ScheduleCalendarEvent[] => {
-    const tempSchedules = _tempScheds.map((sched) => ({
+    const tempSchedules: TempSchedEvent[] = _tempScheds.map((sched) => ({
+      type: 'tempSched',
       start: sched.start,
       end: sched.end,
       user: { name: 'Temporary Schedule' },
       tempSched: sched,
-      fixed: true,
     }))
 
-    const overrides = userOverrides.map((o) => ({
+    const overrides: OverrideShiftEvent[] = userOverrides.map((o) => ({
+      type: 'overrideShift',
       user: {
         name: getOverrideTitle(o),
       },
       start: o.start,
       end: o.end,
-      fixed: false,
-      isTempSchedShift: false,
-      tempSched: false,
-      isOverride: true,
       override: o,
     }))
 
     // flat list of all fixed shifts, with `fixed` set to true
-    const fixedShifts = _.flatten(
+    const tempSchedShifts: TempSchedShiftEvent[] = _.flatten(
       _tempScheds.map((sched) => {
         return sched.shifts.map((s) => ({
           ...s,
+          type: 'tempSchedShift',
           tempSched: sched,
-          fixed: true,
-          isTempSchedShift: true,
         }))
       }),
     )
 
     const fixedIntervals = tempSchedules.map((t) => parseInterval(t, 'local'))
-    let filteredShifts = [
-      ...tempSchedules,
-      ...fixedShifts,
-      ...overrides,
 
-      // Remove shifts within a temporary schedule, and trim any that overlap
-      ...trimSpans(shifts, fixedIntervals, 'local'),
+    // Remove shifts within a temporary schedule, and trim any that overlap
+    const onCallShiftEvents: OnCallShiftEvent[] = trimSpans(
+      shifts,
+      fixedIntervals,
+      'local',
+    ).map((res) => ({ ...res, type: 'onCallShift' }))
+
+    let filteredShifts: CalendarEvent[] = [
+      ...tempSchedules,
+      ...tempSchedShifts,
+      ...overrides,
+      ...onCallShiftEvents,
     ]
 
     // if any users in users array, only show the ids present
     if (userFilter.length > 0) {
       filteredShifts = filteredShifts.filter((shift) =>
-        userFilter.includes(shift?.user?.id),
+        shift?.user?.id ? userFilter.includes(shift.user.id) : false,
       )
     }
 
     if (activeOnly) {
       filteredShifts = filteredShifts.filter(
         (shift) =>
-          shift.TempSched ||
+          shift.type === 'tempSched' ||
+          shift.type === 'tempSchedShift' ||
           Interval.fromDateTimes(
             DateTime.fromISO(shift.start),
             DateTime.fromISO(shift.end),
@@ -205,19 +248,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       )
     }
 
-    return filteredShifts.map((shift) => {
-      return {
-        title: shift.user.name,
-        userID: shift.user.id,
-        start: new Date(shift.start),
-        end: new Date(shift.end),
-        fixed: shift.fixed,
-        isTempSchedShift: shift.isTempSchedShift,
-        tempSched: shift.tempSched,
-        isOverride: shift.isOverride,
-        override: shift.override,
-      }
-    })
+    return filteredShifts
   }
 
   return (
@@ -288,11 +319,11 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
               fontFamily: theme.typography.body2.fontFamily,
               fontSize: theme.typography.body2.fontSize,
             }}
-            tooltipAccessor={() => null}
+            // tooltipAccessor={() => undefined}
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents
-            eventPropGetter={eventStyleGetter}
+            // eventPropGetter={eventStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
