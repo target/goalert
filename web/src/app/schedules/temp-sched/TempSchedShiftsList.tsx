@@ -7,7 +7,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
 import _ from 'lodash'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 
 import FlatList, {
   FlatListItem,
@@ -71,7 +71,7 @@ export default function TempSchedShiftsList({
     if (edit) {
       const interval = setTimeout(() => {
         setNow(DateTime.now().setZone(zone))
-      }, 10000)
+      }, Duration.fromObject({ minutes: 1 }).as('millisecond'))
       return () => clearTimeout(interval)
     }
   }, [now])
