@@ -133,9 +133,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
-		// return a 404 if the v1 graphql api is disabled
-		graphQLV1DeprecationMiddleware(),
-
 		// pause has to become before anything that uses the DB (like auth)
 		app.pauseHandler,
 
