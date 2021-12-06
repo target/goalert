@@ -3,19 +3,10 @@ package app
 import (
 	"context"
 
-	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/graphql2/graphqlapp"
-	"github.com/target/goalert/schedule/shiftcalc"
 )
 
 func (app *App) initGraphQL(ctx context.Context) error {
-
-	shiftC := &shiftcalc.ShiftCalculator{
-		RotStore:   app.RotationStore,
-		RuleStore:  app.ScheduleRuleStore,
-		SchedStore: app.ScheduleStore,
-		OStore:     app.OverrideStore,
-	}
 
 	app.graphql2 = &graphqlapp.App{
 		DB:                  app.db,
@@ -50,29 +41,5 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		NotificationManager: *app.notificationManager,
 	}
 
-	var err error
-	app.graphql, err = graphql.NewHandler(ctx, graphql.Config{
-		DB:                  app.db,
-		UserStore:           app.UserStore,
-		AlertStore:          app.AlertStore,
-		AlertLogStore:       app.AlertLogStore,
-		CMStore:             app.ContactMethodStore,
-		NRStore:             app.NotificationRuleStore,
-		UserFavoriteStore:   app.FavoriteStore,
-		ServiceStore:        app.ServiceStore,
-		ScheduleStore:       app.ScheduleStore,
-		RotationStore:       app.RotationStore,
-		ShiftCalc:           shiftC,
-		ScheduleRuleStore:   app.ScheduleRuleStore,
-		EscalationStore:     app.EscalationStore,
-		IntegrationKeyStore: app.IntegrationKeyStore,
-		Resolver:            app.Resolver,
-		NotificationStore:   app.NotificationStore,
-		HeartbeatStore:      app.HeartbeatStore,
-		OverrideStore:       app.OverrideStore,
-		LabelStore:          app.LabelStore,
-		OnCallStore:         app.OnCallStore,
-	})
-
-	return err
+	return nil
 }

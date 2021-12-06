@@ -10,7 +10,6 @@ import (
 	"github.com/felixge/httpsnoop"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 )
@@ -80,15 +79,6 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 				"x_forwarded_host": req.Header.Get("x-forwarded-host"),
 			})
 
-			// We need to include a struct in the context, that can be modified within child context.
-			//
-			// This is not really a proper use of context, however we have no good post-request-handler
-			// hook we can use, therefore we use a defer call to log. Since said defer is called with
-			// the context BEFORE we get to graphql, it can only reference values created before.
-			//
-			// This will do until we take a new approach to request logging that doesn't have the same issues.
-			ctx = context.WithValue(ctx, graphql.RequestInfoContextKey, &graphql.RequestInfo{})
-
 			// Logging auth info in request
 			ctx = context.WithValue(ctx, reqInfoCtxKey, &log.Fields{})
 
@@ -123,16 +113,6 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 				"resp_status":       status,
 				"AuthCheckCount":    checks,
 			})
-
-			// If we have request info, and non-empty queries/mutations lists, append them to the log context.
-			if info, ok := ctx.Value(graphql.RequestInfoContextKey).(*graphql.RequestInfo); ok && info != nil {
-				if len(info.Queries) > 0 {
-					ctx = log.WithField(ctx, "GraphQLQueries", strings.Join(info.Queries, ","))
-				}
-				if len(info.Mutations) > 0 {
-					ctx = log.WithField(ctx, "GraphQLMutations", strings.Join(info.Mutations, ","))
-				}
-			}
 
 			if serveError != nil {
 				switch e := serveError.(type) {

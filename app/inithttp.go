@@ -207,9 +207,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	mux.HandleFunc("/api/v2/slack/message-action", app.slackChan.ServeMessageAction)
 
-	// Legacy (v1) API mapping
-	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
-
 	middleware = append(middleware,
 		httpRewrite(app.cfg.HTTPPrefix, "/v1/graphql2", "/api/graphql"),
 		httpRedirect(app.cfg.HTTPPrefix, "/v1/graphql2/explore", "/api/graphql/explore"),
