@@ -7,9 +7,7 @@ import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import ScheduleCalendarEventWrapper, {
-  ScheduleCalendarEvent,
-} from './ScheduleCalendarEventWrapper'
+import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
@@ -54,9 +52,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-interface CalendarEvent {
-  start: string
-  end: string
+interface BaseCalendarEvent {
+  start: Date
+  end: Date
   user?: {
     name?: React.ReactNode
     id?: string
@@ -65,29 +63,35 @@ interface CalendarEvent {
   // fixed: if is 'tempSched' or 'tempSchedShift'
 }
 
-interface TempSchedEvent extends CalendarEvent {
+export interface TempSchedEvent extends BaseCalendarEvent {
   type: 'tempSched'
   tempSched: TemporarySchedule
+  title: string
 }
 
-interface OverrideShiftEvent extends CalendarEvent {
+export interface OverrideShiftEvent extends BaseCalendarEvent {
   type: 'overrideShift'
   override: UserOverride
 }
 
-interface TempSchedShiftEvent extends CalendarEvent {
+export interface TempSchedShiftEvent extends BaseCalendarEvent {
   type: 'tempSchedShift'
   tempSched: TemporarySchedule
+  title: string
 }
 
-interface OnCallShiftEvent extends CalendarEvent {
+export interface OnCallShiftEvent extends BaseCalendarEvent {
   type: 'onCallShift'
   userID: string
   user?: User
   truncated: boolean
 }
 
-interface X extends CalendarEvent, TempSchedShiftEvent, OnCallShiftEvent {}
+export type ScheduleCalendarEvent =
+  | TempSchedEvent
+  | OverrideShiftEvent
+  | TempSchedShiftEvent
+  | OnCallShiftEvent
 
 interface ScheduleCalendarProps {
   scheduleID: string
@@ -111,15 +115,15 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const { shifts, temporarySchedules } = props
 
   const eventStyleGetter = (
-    event: ScheduleCalendarEvent,
+    _event: ScheduleCalendarEvent,
     start: Date,
     end: Date,
     isSelected: boolean,
-  ): { className?: string; style?: Object } => {
+  ): any => {
     const green = '#0C6618'
     const lavender = '#BB7E8C'
 
-    if (event.fixed) {
+    if (_event.type === 'tempSched' || _event.type === 'tempSchedShift') {
       return {
         style: {
           backgroundColor: isSelected ? darken(green, 0.3) : green,
@@ -127,7 +131,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         },
       }
     }
-    if (event.isOverride) {
+    if (_event.type === 'overrideShift') {
       return {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
@@ -186,19 +190,20 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   ): ScheduleCalendarEvent[] => {
     const tempSchedules: TempSchedEvent[] = _tempScheds.map((sched) => ({
       type: 'tempSched',
-      start: sched.start,
-      end: sched.end,
+      start: new Date(sched.start),
+      end: new Date(sched.end),
       user: { name: 'Temporary Schedule' },
       tempSched: sched,
     }))
 
     const overrides: OverrideShiftEvent[] = userOverrides.map((o) => ({
       type: 'overrideShift',
+      start: new Date(o.start),
+      end: new Date(o.end),
+
       user: {
         name: getOverrideTitle(o),
       },
-      start: o.start,
-      end: o.end,
       override: o,
     }))
 
@@ -208,21 +213,33 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         return sched.shifts.map((s) => ({
           ...s,
           type: 'tempSchedShift',
+          start: new Date(s.start),
+          end: new Date(s.end),
           tempSched: sched,
         }))
       }),
     )
 
-    const fixedIntervals = tempSchedules.map((t) => parseInterval(t, 'local'))
+    const fixedIntervals = tempSchedules.map((t) =>
+      parseInterval(
+        { start: t.start.toISOString(), end: t.end.toISOString() },
+        'local',
+      ),
+    )
 
     // Remove shifts within a temporary schedule, and trim any that overlap
     const onCallShiftEvents: OnCallShiftEvent[] = trimSpans(
       shifts,
       fixedIntervals,
       'local',
-    ).map((res) => ({ ...res, type: 'onCallShift' }))
+    ).map((s) => ({
+      ...s,
+      start: new Date(s.start),
+      end: new Date(s.end),
+      type: 'onCallShift',
+    }))
 
-    let filteredShifts: CalendarEvent[] = [
+    let filteredShifts: ScheduleCalendarEvent[] = [
       ...tempSchedules,
       ...tempSchedShifts,
       ...overrides,
@@ -241,10 +258,9 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         (shift) =>
           shift.type === 'tempSched' ||
           shift.type === 'tempSchedShift' ||
-          Interval.fromDateTimes(
-            DateTime.fromISO(shift.start),
-            DateTime.fromISO(shift.end),
-          ).contains(DateTime.local()),
+          Interval.fromDateTimes(shift.start, shift.end).contains(
+            DateTime.local(),
+          ),
       )
     }
 
@@ -319,7 +335,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
               fontFamily: theme.typography.body2.fontFamily,
               fontSize: theme.typography.body2.fontSize,
             }}
-            // tooltipAccessor={() => undefined}
+            // tooltipAccessor={() => {}}
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents

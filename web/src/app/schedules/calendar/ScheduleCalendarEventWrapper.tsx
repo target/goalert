@@ -10,7 +10,14 @@ import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
 import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
-import { User, UserOverride } from '../../../schema'
+import { User } from '../../../schema'
+import {
+  OverrideShiftEvent,
+  ScheduleCalendarEvent,
+  TempSchedEvent,
+  TempSchedShiftEvent,
+  OnCallShiftEvent,
+} from './ScheduleCalendar'
 
 const useStyles = makeStyles({
   cardActionContainer: {
@@ -33,18 +40,6 @@ const useStyles = makeStyles({
     maxWidth: 275,
   },
 })
-
-export interface ScheduleCalendarEvent {
-  title: string | JSX.Element
-  userID: any
-  start: Date
-  end: Date
-  fixed: boolean
-  isTempSchedShift: any
-  tempSched: any
-  isOverride: boolean
-  override: UserOverride
-}
 
 interface ScheduleCalendarEventWrapperProps {
   event: ScheduleCalendarEvent
@@ -96,8 +91,10 @@ export default function ScheduleCalendarEventWrapper({
     })
   }
 
-  function renderTempSchedButtons(): JSX.Element {
-    if (DateTime.fromISO(event.end) <= DateTime.utc()) {
+  function renderTempSchedButtons(
+    _event: TempSchedEvent | TempSchedShiftEvent,
+  ): JSX.Element {
+    if (DateTime.fromJSDate(_event.end) <= DateTime.utc()) {
       // no actions on past events
       return <React.Fragment />
     }
@@ -107,7 +104,7 @@ export default function ScheduleCalendarEventWrapper({
           <Button
             data-cy='edit-temp-sched'
             size='small'
-            onClick={() => onEditTempSched(event.tempSched)}
+            onClick={() => onEditTempSched(_event.tempSched)}
             variant='contained'
             color='primary'
             title='Edit this temporary schedule'
@@ -115,28 +112,26 @@ export default function ScheduleCalendarEventWrapper({
             Edit
           </Button>
         </Grid>
-        {!event.isTempSchedShift && (
-          <React.Fragment>
-            <Grid item className={classes.flexGrow} />
-            <Grid item>
-              <Button
-                data-cy='delete-temp-sched'
-                size='small'
-                onClick={() => onDeleteTempSched(event.tempSched)}
-                variant='contained'
-                color='primary'
-                title='Delete this temporary schedule'
-              >
-                Delete
-              </Button>
-            </Grid>
-          </React.Fragment>
-        )}
+        <React.Fragment>
+          <Grid item className={classes.flexGrow} />
+          <Grid item>
+            <Button
+              data-cy='delete-temp-sched'
+              size='small'
+              onClick={() => onDeleteTempSched(_event.tempSched)}
+              variant='contained'
+              color='primary'
+              title='Delete this temporary schedule'
+            >
+              Delete
+            </Button>
+          </Grid>
+        </React.Fragment>
       </React.Fragment>
     )
   }
 
-  function renderOverrideButtons(): JSX.Element {
+  function renderOverrideButtons(_event: OverrideShiftEvent): JSX.Element {
     return (
       <div className={classes.cardActionContainer}>
         <CardActions
@@ -146,7 +141,7 @@ export default function ScheduleCalendarEventWrapper({
               label: 'Edit',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowEditDialog(event?.override?.id)
+                setShowEditDialog(_event.override.id)
               },
             },
             {
@@ -154,7 +149,7 @@ export default function ScheduleCalendarEventWrapper({
               label: 'Delete',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowDeleteDialog(event?.override?.id)
+                setShowDeleteDialog(_event.override.id)
               },
             },
           ]}
@@ -163,7 +158,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderShiftButtons(): JSX.Element {
+  function renderShiftButtons(_event: OnCallShiftEvent): JSX.Element {
     return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
@@ -174,7 +169,7 @@ export default function ScheduleCalendarEventWrapper({
             onClick={handleShowOverrideForm}
             variant='contained'
             color='primary'
-            title={`Temporarily remove ${event.title} from this schedule`}
+            title={`Temporarily remove ${_event.title} from this schedule`}
           >
             Override Shift
           </Button>
@@ -186,16 +181,18 @@ export default function ScheduleCalendarEventWrapper({
   function renderButtons(): JSX.Element {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc())
       return <React.Fragment />
-    if (event.tempSched) return renderTempSchedButtons()
-    if (event.fixed) return <React.Fragment />
-    if (event.isOverride) return renderOverrideButtons()
+    if (event.type === 'tempSched')
+      return renderTempSchedButtons(event as TempSchedEvent)
+    if (event.type === 'tempSchedShift')
+      return renderTempSchedButtons(event as TempSchedShiftEvent)
+    // if (event.fixed) return <React.Fragment /> //todo
+    if (event.type === 'overrideShift')
+      return renderOverrideButtons(event as OverrideShiftEvent)
 
-    return renderShiftButtons()
+    return renderShiftButtons(event as OnCallShiftEvent)
   }
 
-  function renderOverrideDescription(): JSX.Element {
-    if (!event.isOverride) return <React.Fragment />
-
+  function renderOverrideDescription(_event: OverrideShiftEvent): JSX.Element {
     const getDesc = (
       addUser: User | undefined,
       removeUser: User | undefined,
@@ -225,7 +222,7 @@ export default function ScheduleCalendarEventWrapper({
     return (
       <Grid item xs={12}>
         <Typography variant='body2'>
-          {getDesc(event.override.addUser, event.override.removeUser)}
+          {getDesc(_event.override.addUser, _event.override.removeUser)}
         </Typography>
       </Grid>
     )
@@ -243,7 +240,8 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
-        {renderOverrideDescription()}
+        {event.type === 'overrideShift' &&
+          renderOverrideDescription(event as OverrideShiftEvent)}
         <Grid item xs={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
@@ -270,11 +268,10 @@ export default function ScheduleCalendarEventWrapper({
           vertical: 'top',
           horizontal: 'left',
         }}
-        PaperProps={
-          {
-            'data-cy': 'shift-tooltip',
-          } as any
-        }
+        PaperProps={{
+          // @ts-expect-error - DOM attr for tests
+          'data-cy': 'shift-tooltip',
+        }}
         classes={{
           paper: classes.paper,
         }}

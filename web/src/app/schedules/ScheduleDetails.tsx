@@ -37,7 +37,7 @@ const query = gql`
 interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
-  defaultValue: {
+  defaultValue?: {
     addUserID?: string
     removeUserID?: string
     start: string
