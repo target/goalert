@@ -948,7 +948,6 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
-  | 'General.EnableV1GraphQL'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Auth.RefererURLs'
