@@ -46,9 +46,7 @@ function AlertDetailPage(props) {
   })
 
   if (!data && loading) return <Spinner />
-
   if (error) return <GenericError error={error.message} />
-
   if (!data.alert) return <ObjectNotFound type='alert' />
 
   return <AlertDetails data={data.alert} />

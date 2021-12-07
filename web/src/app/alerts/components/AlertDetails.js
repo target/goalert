@@ -31,7 +31,12 @@ import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
 
 const useStyles = makeStyles((theme) => {
-  return styles(theme)
+  return {
+    ...styles(theme),
+    epHeader: {
+      paddingBottom: 8,
+    },
+  }
 })
 
 const localStorage = window.localStorage
@@ -44,7 +49,8 @@ const updateStatusMutation = gql`
     }
   }
 `
-function AlertDetails(props) {
+
+export default function AlertDetails(props) {
   const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
 
@@ -101,39 +107,6 @@ function AlertDetails(props) {
 
   function getCardClassName() {
     return fullScreen ? classes.cardFull : classes.card
-  }
-
-  function renderAlertLogs() {
-    return (
-      <Card className={getCardClassName()}>
-        <div style={{ display: 'flex' }}>
-          <CardContent style={{ flex: 1, paddingBottom: 0 }}>
-            <Typography component='h3' variant='h5'>
-              Event Log
-            </Typography>
-          </CardContent>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showExactTimes}
-                onChange={handleToggleExactTimes}
-              />
-            }
-            label='Full Timestamps'
-            style={{ padding: '0.5em 0.5em 0 0' }}
-          />
-        </div>
-        <CardContent
-          className={classes.tableCardContent}
-          style={{ paddingBottom: 0 }}
-        >
-          <AlertDetailLogs
-            alertID={props.data.alertID}
-            showExactTimes={showExactTimes}
-          />
-        </CardContent>
-      </Card>
-    )
   }
 
   function renderRotations(rotations, stepID) {
@@ -285,45 +258,6 @@ function AlertDetails(props) {
     })
   }
 
-  function renderEscalationPolicy() {
-    const alert = props.data
-
-    return (
-      <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
-        <CardContent>
-          <Typography component='h3' variant='h5'>
-            <AppLink
-              to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
-            >
-              Escalation Policy
-            </AppLink>
-          </Typography>
-        </CardContent>
-        <CardContent className={classes.tableCardContent}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Step</TableCell>
-                <TableCell>Alert</TableCell>
-                <TableCell>
-                  {canAutoEscalate()
-                    ? 'Time Until Next Escalation'
-                    : 'Time Between Escalations'}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>{renderEscalationPolicySteps()}</TableBody>
-          </Table>
-        </CardContent>
-        <CardContent>
-          <Typography color='textSecondary' variant='caption'>
-            Visit this escalation policy for more information.
-          </Typography>
-        </CardContent>
-      </Card>
-    )
-  }
-
   function renderAlertDetails() {
     const alert = props.data
     let details = (alert.details || '').trim()
@@ -430,10 +364,12 @@ function AlertDetails(props) {
   }))
 
   return (
-    <Grid container spacing={2} justify='center'>
+    <Grid container spacing={2} justifyContent='center'>
       <Grid item className={getCardClassName()}>
         <Notices notices={notices} />
       </Grid>
+
+      {/* Main Alert Info */}
       <Grid item xs={12} className={classes.cardContainer}>
         <Card className={getCardClassName()}>
           <CardContent data-cy='alert-summary'>
@@ -459,13 +395,82 @@ function AlertDetails(props) {
         </Card>
       </Grid>
       {renderAlertDetails()}
+
+      {/* Escalation Policy Info */}
       <Hidden smDown>
         <Grid item xs={12} className={classes.cardContainer}>
-          {renderEscalationPolicy()}
+          <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
+            <CardContent>
+              <Typography
+                className={classes.epHeader}
+                component='h3'
+                variant='h5'
+              >
+                <AppLink
+                  to={`/escalation-policies/${props.data.service.escalationPolicy.id}`}
+                >
+                  Escalation Policy
+                </AppLink>
+              </Typography>
+              <Typography color='textSecondary' variant='caption'>
+                Last Escalated: , Next Escalation:
+              </Typography>
+            </CardContent>
+            <CardContent className={classes.tableCardContent}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Step</TableCell>
+                    <TableCell>Alert</TableCell>
+                    <TableCell>
+                      {canAutoEscalate()
+                        ? 'Time Until Next Escalation'
+                        : 'Time Between Escalations'}
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>{renderEscalationPolicySteps()}</TableBody>
+              </Table>
+            </CardContent>
+            <CardContent>
+              <Typography color='textSecondary' variant='caption'>
+                Visit this escalation policy for more information.
+              </Typography>
+            </CardContent>
+          </Card>
         </Grid>
       </Hidden>
+
+      {/* Alert Logs */}
       <Grid item xs={12} className={classes.cardContainer}>
-        {renderAlertLogs()}
+        <Card className={getCardClassName()}>
+          <div style={{ display: 'flex' }}>
+            <CardContent style={{ flex: 1, paddingBottom: 0 }}>
+              <Typography component='h3' variant='h5'>
+                Event Log
+              </Typography>
+            </CardContent>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showExactTimes}
+                  onChange={handleToggleExactTimes}
+                />
+              }
+              label='Full Timestamps'
+              style={{ padding: '0.5em 0.5em 0 0' }}
+            />
+          </div>
+          <CardContent
+            className={classes.tableCardContent}
+            style={{ paddingBottom: 0 }}
+          >
+            <AlertDetailLogs
+              alertID={props.data.alertID}
+              showExactTimes={showExactTimes}
+            />
+          </CardContent>
+        </Card>
       </Grid>
     </Grid>
   )
@@ -474,5 +479,3 @@ function AlertDetails(props) {
 AlertDetails.propTypes = {
   error: p.shape({ message: p.string }),
 }
-
-export default AlertDetails
