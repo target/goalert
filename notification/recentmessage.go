@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// A RecentMessage describes a message that is/was recently processed by the system.
 type RecentMessage struct {
 	ID          string
 	CreatedAt   time.Time
