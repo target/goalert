@@ -94,6 +94,8 @@ models:
     model: github.com/target/goalert/graphql2.OnCallNotificationRuleInput
   WeekdayFilter:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
+  DebugMessage:
+    model: github.com/target/goalert/notification.RecentMessage
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

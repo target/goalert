@@ -1,5 +1,7 @@
 package notification
 
+import "fmt"
+
 // Status describes the current state of an outgoing message.
 type Status struct {
 
@@ -70,3 +72,38 @@ const (
 	// will also fail.
 	StateFailedPerm
 )
+
+func (s *State) fromString(val string) error {
+	switch val {
+	case "pending":
+		*s = StatePending
+	case "sending", "queued_remotely":
+		*s = StateSending
+	case "sent":
+		*s = StateSent
+	case "delivered":
+		*s = StateDelivered
+	case "failed":
+		*s = StateFailedPerm
+	case "stale":
+		*s = StateFailedTemp
+	default:
+		return fmt.Errorf("unexpected value %q", val)
+	}
+
+	return nil
+}
+
+func (s *State) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case []byte:
+		return s.fromString(string(v))
+	case string:
+		return s.fromString(v)
+	case nil:
+		*s = StateUnknown
+		return nil
+	default:
+		return fmt.Errorf("unexpected type %T", value)
+	}
+}

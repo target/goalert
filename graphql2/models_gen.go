@@ -211,6 +211,12 @@ type DebugMessageStatusInput struct {
 	ProviderMessageID string `json:"providerMessageID"`
 }
 
+type DebugMessagesInput struct {
+	First         *int       `json:"first"`
+	CreatedBefore *time.Time `json:"createdBefore"`
+	CreatedAfter  *time.Time `json:"createdAfter"`
+}
+
 type DebugSendSMSInfo struct {
 	ID          string `json:"id"`
 	ProviderURL string `json:"providerURL"`
