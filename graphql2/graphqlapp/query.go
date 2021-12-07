@@ -2,10 +2,13 @@ package graphqlapp
 
 import (
 	context "context"
+	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 
@@ -18,8 +21,50 @@ type DebugMessage App
 func (a *App) Query() graphql2.QueryResolver               { return (*Query)(a) }
 func (a *App) DebugMessage() graphql2.DebugMessageResolver { return (*DebugMessage)(a) }
 
+func (a *App) formatNC(ctx context.Context, id string) (string, error) {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return "", err
+	}
+
+	n, err := a.NCStore.FindOne(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	var typeName string
+	switch n.Type {
+	case notificationchannel.TypeSlack:
+		typeName = "Slack"
+	default:
+		typeName = string(n.Type)
+	}
+
+	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
+}
+
 func (a *DebugMessage) Destination(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	return obj.Dest.String(), nil
+	if !obj.Dest.Type.IsUserCM() {
+		return (*App)(a).formatNC(ctx, obj.Dest.ID)
+	}
+
+	var str strings.Builder
+	str.WriteString((*App)(a).FormatDestFunc(ctx, obj.Dest.Type, obj.Dest.Value))
+	switch obj.Dest.Type {
+	case notification.DestTypeSMS:
+		str.WriteString(" (SMS)")
+	case notification.DestTypeUserEmail:
+		str.WriteString(" (Email)")
+	case notification.DestTypeVoice:
+		str.WriteString(" (Voice)")
+	case notification.DestTypeUserWebhook:
+		str.Reset()
+		str.WriteString("Webhook")
+	default:
+		str.Reset()
+		str.WriteString(obj.Dest.Type.String())
+	}
+
+	return str.String(), nil
 }
 func (a *DebugMessage) Type(ctx context.Context, obj *notification.RecentMessage) (string, error) {
 	return strings.TrimPrefix(obj.Type.String(), "MessageType"), nil
