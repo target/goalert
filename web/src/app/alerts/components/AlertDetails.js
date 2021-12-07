@@ -12,14 +12,19 @@ import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Typography from '@material-ui/core/Typography'
-import Countdown from 'react-countdown'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@material-ui/icons'
 import { gql, useMutation } from '@apollo/client'
-import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
+import {
+  RotationLink,
+  ScheduleLink,
+  ServiceLink,
+  SlackChannelLink,
+  UserLink,
+} from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
@@ -109,37 +114,22 @@ export default function AlertDetails(props) {
     return fullScreen ? classes.cardFull : classes.card
   }
 
-  function renderRotations(rotations, stepID) {
-    return _.sortBy(rotations, 'name').map((rotation, i) => {
-      const sep = i === 0 ? '' : ', '
-      return (
-        <span key={stepID + rotation.id}>
-          {sep}
-          {RotationLink(rotation)}
-        </span>
-      )
-    })
-  }
+  function renderTargets(targets, stepID) {
+    return _.sortBy(targets, 'name').map((target, i) => {
+      const separator = i === 0 ? '' : ', '
 
-  function renderSchedules(schedules, stepID) {
-    return _.sortBy(schedules, 'name').map((schedule, i) => {
-      const sep = i === 0 ? '' : ', '
-      return (
-        <span key={stepID + schedule.id}>
-          {sep}
-          {ScheduleLink(schedule)}
-        </span>
-      )
-    })
-  }
+      let link
+      const t = target.type
+      if (t === 'rotation') link = RotationLink(target)
+      else if (t === 'schedule') link = ScheduleLink(target)
+      else if (t === 'slackChannel') link = SlackChannelLink(target)
+      else if (t === 'user') link = UserLink(target)
+      else link = target.name
 
-  function renderUsers(users, stepID) {
-    return _.sortBy(users, 'name').map((user, i) => {
-      const sep = i === 0 ? '' : ', '
       return (
-        <span key={stepID + user.id}>
-          {sep}
-          {UserLink(user)}
+        <span key={stepID + target.id}>
+          {separator}
+          {link}
         </span>
       )
     })
@@ -171,38 +161,6 @@ export default function AlertDetails(props) {
     return currentLevel + 1 < numSteps * (repeat + 1)
   }
 
-  /*
-   * Renders a timer that counts down time until the next escalation
-   */
-  function renderTimer(index, delayMinutes) {
-    const { currentLevel, numSteps, lastEscalation } = epsHelper()
-    const prevEscalation = new Date(lastEscalation)
-
-    if (currentLevel % numSteps === index && canAutoEscalate()) {
-      return (
-        <Countdown
-          date={new Date(prevEscalation.getTime() + delayMinutes * 60000)}
-          renderer={(props) => {
-            const { hours, minutes, seconds } = props
-
-            const hourTxt = parseInt(hours)
-              ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
-              : ''
-            const minTxt = parseInt(minutes)
-              ? `${minutes} minute${parseInt(minutes) === 1 ? '' : 's'} `
-              : ''
-            const secTxt = `${seconds} second${
-              parseInt(seconds) === 1 ? '' : 's'
-            }`
-
-            return hourTxt + minTxt + secTxt
-          }}
-        />
-      )
-    }
-    return <Typography>&mdash;</Typography>
-  }
-
   function renderEscalationPolicySteps() {
     const { steps, status, currentLevel } = epsHelper()
 
@@ -217,26 +175,12 @@ export default function AlertDetails(props) {
     }
 
     return steps.map((step, index) => {
-      const { delayMinutes, id, targets } = step
+      const { id, targets } = step
 
       const rotations = targets.filter((t) => t.type === 'rotation')
       const schedules = targets.filter((t) => t.type === 'schedule')
       const users = targets.filter((t) => t.type === 'user')
-
-      let rotationsRender
-      if (rotations.length > 0) {
-        rotationsRender = <div>Rotations: {renderRotations(rotations, id)}</div>
-      }
-
-      let schedulesRender
-      if (schedules.length > 0) {
-        schedulesRender = <div>Schedules: {renderSchedules(schedules, id)}</div>
-      }
-
-      let usersRender
-      if (users.length > 0) {
-        usersRender = <div>Users: {renderUsers(users, id)}</div>
-      }
+      const slackChannels = targets.filter((t) => t.type === 'slackChannel')
 
       let className
       if (status !== 'closed' && currentLevel % steps.length === index) {
@@ -248,11 +192,17 @@ export default function AlertDetails(props) {
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
             {!targets.length && <Typography>&mdash;</Typography>}
-            {rotationsRender}
-            {schedulesRender}
-            {usersRender}
+            {rotations.length > 0 && (
+              <div>Rotations: {renderTargets(rotations, id)}</div>
+            )}
+            {schedules.length > 0 && (
+              <div>Schedules: {renderTargets(schedules, id)}</div>
+            )}
+            {slackChannels.length > 0 && (
+              <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
+            )}
+            {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
           </TableCell>
-          <TableCell>{renderTimer(index, delayMinutes)}</TableCell>
         </TableRow>
       )
     })
