@@ -18,6 +18,7 @@ const query = gql`
         name
         escalationPolicy {
           id
+          repeat
           steps {
             delayMinutes
             targets {

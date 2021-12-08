@@ -34,6 +34,8 @@ import { useIsWidthDown } from '../../util/useWidth'
 import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
+import { DateTime } from 'luxon'
+import Countdown from 'react-countdown'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -145,7 +147,8 @@ export default function AlertDetails(props) {
     const state = props.data.state
 
     return {
-      repeat: state?.repeatCount,
+      repeatCount: state?.repeatCount,
+      repeat: ep.repeat,
       numSteps: ep.steps.length,
       steps: ep.steps,
       status: alert.status,
@@ -155,10 +158,52 @@ export default function AlertDetails(props) {
   }
 
   function canAutoEscalate() {
-    const { repeat, numSteps, status, currentLevel } = epsHelper()
-    if (status !== 'StatusUnacknowledged') return false
-    if (repeat === -1) return true
-    return currentLevel + 1 < numSteps * (repeat + 1)
+    const { currentLevel, status, steps, repeat, repeatCount } = epsHelper()
+
+    if (status !== 'StatusUnacknowledged') {
+      return false
+    }
+
+    if (currentLevel === steps.length - 1 && repeat === repeatCount) {
+      return false
+    }
+
+    return true
+  }
+
+  function getNextEscalation() {
+    const { currentLevel, lastEscalation, steps } = epsHelper()
+    const prevEscalation = new Date(lastEscalation)
+
+    if (canAutoEscalate()) {
+      return (
+        <Countdown
+          date={
+            new Date(
+              prevEscalation.getTime() +
+                steps[currentLevel].delayMinutes * 60000,
+            )
+          }
+          renderer={(props) => {
+            const { hours, minutes, seconds } = props
+
+            const hourTxt = parseInt(hours)
+              ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
+              : ''
+            const minTxt = parseInt(minutes)
+              ? `${minutes} minute${parseInt(minutes) === 1 ? '' : 's'} `
+              : ''
+            const secTxt = `${seconds} second${
+              parseInt(seconds) === 1 ? '' : 's'
+            }`
+
+            return hourTxt + minTxt + secTxt
+          }}
+        />
+      )
+    }
+
+    return 'None'
   }
 
   function renderEscalationPolicySteps() {
@@ -357,14 +402,25 @@ export default function AlertDetails(props) {
                 variant='h5'
               >
                 <AppLink
-                  to={`/escalation-policies/${props.data.service.escalationPolicy.id}`}
+                  to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
                 >
                   Escalation Policy
                 </AppLink>
               </Typography>
-              <Typography color='textSecondary' variant='caption'>
-                Last Escalated: , Next Escalation:
-              </Typography>
+              {alert.state !== null && (
+                <React.Fragment>
+                  <Typography color='textSecondary' variant='caption'>
+                    Last Escalated:{' '}
+                    {DateTime.fromISO(alert.state.lastEscalation).toFormat(
+                      'fff',
+                    )}
+                  </Typography>
+                  <br />
+                  <Typography color='textSecondary' variant='caption'>
+                    Next Escalation: {getNextEscalation()}
+                  </Typography>
+                </React.Fragment>
+              )}
             </CardContent>
             <CardContent className={classes.tableCardContent}>
               <Table>
@@ -372,11 +428,6 @@ export default function AlertDetails(props) {
                   <TableRow>
                     <TableCell>Step</TableCell>
                     <TableCell>Alert</TableCell>
-                    <TableCell>
-                      {canAutoEscalate()
-                        ? 'Time Until Next Escalation'
-                        : 'Time Between Escalations'}
-                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>{renderEscalationPolicySteps()}</TableBody>
