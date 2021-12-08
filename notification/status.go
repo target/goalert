@@ -71,6 +71,9 @@ const (
 	// invalid config, they should set this state, as without manual intervention, a retry
 	// will also fail.
 	StateFailedPerm
+
+	// StateBundled indicates that the message has been bundled into another message.
+	StateBundled
 )
 
 func (s *State) fromString(val string) error {
@@ -87,6 +90,8 @@ func (s *State) fromString(val string) error {
 		*s = StateFailedPerm
 	case "stale":
 		*s = StateFailedTemp
+	case "bundled":
+		*s = StateBundled
 	default:
 		return fmt.Errorf("unexpected value %q", val)
 	}
