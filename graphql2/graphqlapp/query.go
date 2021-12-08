@@ -18,8 +18,7 @@ import (
 type Query App
 type DebugMessage App
 
-func (a *App) Query() graphql2.QueryResolver               { return (*Query)(a) }
-func (a *App) DebugMessage() graphql2.DebugMessageResolver { return (*DebugMessage)(a) }
+func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
 func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	uid, err := uuid.Parse(id)
@@ -41,7 +40,8 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 
 	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
 }
-func (a *DebugMessage) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
+
+func (a *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
 	if !dst.Type.IsUserCM() {
 		return (*App)(a).formatNC(ctx, dst.ID)
 	}
@@ -65,16 +65,10 @@ func (a *DebugMessage) formatDest(ctx context.Context, dst notification.Dest) (s
 
 	return str.String(), nil
 }
-func (a *DebugMessage) Destination(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	return a.formatDest(ctx, obj.Dest)
-}
 
-func (a *DebugMessage) Type(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	return strings.TrimPrefix(obj.Type.String(), "MessageType"), nil
-}
-func (a *DebugMessage) Status(ctx context.Context, obj *notification.RecentMessage) (string, error) {
+func msgStatus(stat notification.Status) string {
 	var str strings.Builder
-	switch obj.Status.State {
+	switch stat.State {
 	case notification.StateUnknown:
 		str.WriteString("Unknown")
 	case notification.StateSending:
@@ -90,28 +84,14 @@ func (a *DebugMessage) Status(ctx context.Context, obj *notification.RecentMessa
 	case notification.StateFailedPerm:
 		str.WriteString("Failed (permanent)")
 	}
-	if obj.Status.Details != "" {
+	if stat.Details != "" {
 		str.WriteString(": ")
-		str.WriteString(obj.Status.Details)
+		str.WriteString(stat.Details)
 	}
-	return str.String(), nil
-}
-func (a *DebugMessage) Source(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	if obj.Status.SrcValue == "" {
-		return "", nil
-	}
-	if !obj.Dest.Type.IsUserCM() {
-		// notification channels are unsupported with the current interface
-		return "", nil
-	}
-
-	return a.formatDest(ctx, notification.Dest{Type: obj.Dest.Type, Value: obj.Status.SrcValue})
-}
-func (a *DebugMessage) ProviderID(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	return obj.ProviderID.ExternalID, nil
+	return str.String()
 }
 
-func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessagesInput) ([]notification.RecentMessage, error) {
+func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessagesInput) ([]graphql2.DebugMessage, error) {
 	var options notification.RecentMessageSearchOptions
 	if input == nil {
 		input = &graphql2.DebugMessagesInput{}
@@ -125,7 +105,54 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 	if input.First != nil {
 		options.Limit = *input.First
 	}
-	return a.NotificationStore.RecentMessages(ctx, &options)
+	msgs, err := a.NotificationStore.RecentMessages(ctx, &options)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []graphql2.DebugMessage
+	for _, _m := range msgs {
+		m := _m // clone since we're taking pointers to fields
+		dest, err := a.formatDest(ctx, m.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("format dest: %w", err)
+		}
+
+		msg := graphql2.DebugMessage{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			UpdatedAt:   m.UpdatedAt,
+			Type:        strings.TrimPrefix(m.Type.String(), "MessageType"),
+			Status:      msgStatus(m.Status),
+			Destination: dest,
+		}
+		if m.UserID != "" {
+			msg.UserID = &m.UserID
+		}
+		if m.UserName != "" {
+			msg.UserName = &m.UserName
+		}
+		if m.Status.SrcValue != "" && !m.Dest.Type.IsUserCM() {
+			src, err := a.formatDest(ctx, notification.Dest{Type: m.Dest.Type, Value: m.Status.SrcValue})
+			if err != nil {
+				return nil, fmt.Errorf("format src: %w", err)
+			}
+			msg.Source = &src
+		}
+		if m.ServiceID != "" {
+			msg.ServiceID = &m.ServiceID
+		}
+		if m.ServiceName != "" {
+			msg.ServiceName = &m.ServiceName
+		}
+		if m.ProviderID.ExternalID != "" {
+			msg.ProviderID = &m.ProviderID.ExternalID
+		}
+
+		res = append(res, msg)
+	}
+
+	return res, nil
 }
 
 func (a *Query) AuthSubjectsForProvider(ctx context.Context, _first *int, _after *string, providerID string) (conn *graphql2.AuthSubjectConnection, err error) {

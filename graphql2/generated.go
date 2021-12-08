@@ -24,7 +24,6 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -61,7 +60,6 @@ type Config struct {
 type ResolverRoot interface {
 	Alert() AlertResolver
 	AlertLogEntry() AlertLogEntryResolver
-	DebugMessage() DebugMessageResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
@@ -571,15 +569,6 @@ type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
-type DebugMessageResolver interface {
-	Type(ctx context.Context, obj *notification.RecentMessage) (string, error)
-	Status(ctx context.Context, obj *notification.RecentMessage) (string, error)
-
-	Source(ctx context.Context, obj *notification.RecentMessage) (string, error)
-	Destination(ctx context.Context, obj *notification.RecentMessage) (string, error)
-
-	ProviderID(ctx context.Context, obj *notification.RecentMessage) (string, error)
-}
 type EscalationPolicyResolver interface {
 	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -653,7 +642,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
-	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]notification.RecentMessage, error)
+	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
@@ -3487,14 +3476,14 @@ type DebugMessage {
   updatedAt: ISOTimestamp!
   type: String!
   status: String!
-  userID: ID!
-  userName: String!
-  source: String!
+  userID: ID
+  userName: String
+  source: String
   destination: String!
-  serviceID: ID!
-  serviceName: String!
-  alertID: Int!
-  providerID: ID!
+  serviceID: ID
+  serviceName: String
+  alertID: Int
+  providerID: ID
 }
 
 input SlackChannelSearchOptions {
@@ -7191,7 +7180,7 @@ func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Cont
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_id(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_id(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7226,7 +7215,7 @@ func (ec *executionContext) _DebugMessage_id(ctx context.Context, field graphql.
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7261,7 +7250,7 @@ func (ec *executionContext) _DebugMessage_createdAt(ctx context.Context, field g
 	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_updatedAt(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_updatedAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7296,7 +7285,7 @@ func (ec *executionContext) _DebugMessage_updatedAt(ctx context.Context, field g
 	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7307,14 +7296,14 @@ func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphq
 		Object:     "DebugMessage",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugMessage().Type(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7331,7 +7320,7 @@ func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_status(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_status(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7342,14 +7331,14 @@ func (ec *executionContext) _DebugMessage_status(ctx context.Context, field grap
 		Object:     "DebugMessage",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugMessage().Status(rctx, obj)
+		return obj.Status, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7366,7 +7355,7 @@ func (ec *executionContext) _DebugMessage_status(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_userID(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_userID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7391,17 +7380,14 @@ func (ec *executionContext) _DebugMessage_userID(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_userName(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_userName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7426,17 +7412,14 @@ func (ec *executionContext) _DebugMessage_userName(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_source(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_source(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7447,14 +7430,46 @@ func (ec *executionContext) _DebugMessage_source(ctx context.Context, field grap
 		Object:     "DebugMessage",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugMessage().Source(rctx, obj)
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_destination(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7471,42 +7486,7 @@ func (ec *executionContext) _DebugMessage_source(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_destination(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugMessage().Destination(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugMessage_serviceID(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_serviceID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7531,17 +7511,14 @@ func (ec *executionContext) _DebugMessage_serviceID(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_serviceName(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_serviceName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7566,17 +7543,14 @@ func (ec *executionContext) _DebugMessage_serviceName(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_alertID(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_alertID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7601,17 +7575,14 @@ func (ec *executionContext) _DebugMessage_alertID(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugMessage_providerID(ctx context.Context, field graphql.CollectedField, obj *notification.RecentMessage) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugMessage_providerID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7622,28 +7593,25 @@ func (ec *executionContext) _DebugMessage_providerID(ctx context.Context, field 
 		Object:     "DebugMessage",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugMessage().ProviderID(rctx, obj)
+		return obj.ProviderID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
@@ -11485,9 +11453,9 @@ func (ec *executionContext) _Query_debugMessages(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]notification.RecentMessage)
+	res := resTmp.([]DebugMessage)
 	fc.Result = res
-	return ec.marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐRecentMessageᚄ(ctx, field.Selections, res)
+	return ec.marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -21324,7 +21292,7 @@ func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.Selec
 
 var debugMessageImplementors = []string{"DebugMessage"}
 
-func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.SelectionSet, obj *notification.RecentMessage) graphql.Marshaler {
+func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.SelectionSet, obj *DebugMessage) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, debugMessageImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -21336,113 +21304,47 @@ func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._DebugMessage_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "createdAt":
 			out.Values[i] = ec._DebugMessage_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "updatedAt":
 			out.Values[i] = ec._DebugMessage_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "type":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugMessage_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._DebugMessage_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "status":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugMessage_status(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._DebugMessage_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "userID":
 			out.Values[i] = ec._DebugMessage_userID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "userName":
 			out.Values[i] = ec._DebugMessage_userName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "source":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugMessage_source(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._DebugMessage_source(ctx, field, obj)
 		case "destination":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugMessage_destination(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._DebugMessage_destination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "serviceID":
 			out.Values[i] = ec._DebugMessage_serviceID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "serviceName":
 			out.Values[i] = ec._DebugMessage_serviceName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "alertID":
 			out.Values[i] = ec._DebugMessage_alertID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "providerID":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugMessage_providerID(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25003,11 +24905,11 @@ func (ec *executionContext) unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtarge
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚐRecentMessage(ctx context.Context, sel ast.SelectionSet, v notification.RecentMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx context.Context, sel ast.SelectionSet, v DebugMessage) graphql.Marshaler {
 	return ec._DebugMessage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐRecentMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []notification.RecentMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []DebugMessage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -25031,7 +24933,7 @@ func (ec *executionContext) marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoal
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚐRecentMessage(ctx, sel, v[i])
+			ret[i] = ec.marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

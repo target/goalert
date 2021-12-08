@@ -123,14 +123,14 @@ type DebugMessage {
   updatedAt: ISOTimestamp!
   type: String!
   status: String!
-  userID: ID!
-  userName: String!
-  source: String!
+  userID: ID
+  userName: String
+  source: String
   destination: String!
-  serviceID: ID!
-  serviceName: String!
-  alertID: Int!
-  providerID: ID!
+  serviceID: ID
+  serviceName: String
+  alertID: Int
+  providerID: ID
 }
 
 input SlackChannelSearchOptions {

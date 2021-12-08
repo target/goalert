@@ -203,6 +203,22 @@ type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
 }
 
+type DebugMessage struct {
+	ID          string    `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Type        string    `json:"type"`
+	Status      string    `json:"status"`
+	UserID      *string   `json:"userID"`
+	UserName    *string   `json:"userName"`
+	Source      *string   `json:"source"`
+	Destination string    `json:"destination"`
+	ServiceID   *string   `json:"serviceID"`
+	ServiceName *string   `json:"serviceName"`
+	AlertID     *int      `json:"alertID"`
+	ProviderID  *string   `json:"providerID"`
+}
+
 type DebugMessageStatusInfo struct {
 	State *NotificationState `json:"state"`
 }
