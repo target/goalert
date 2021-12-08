@@ -48,14 +48,14 @@ export interface DebugMessage {
   updatedAt: ISOTimestamp
   type: string
   status: string
-  userID: string
-  userName: string
-  source: string
+  userID?: string
+  userName?: string
+  source?: string
   destination: string
-  serviceID: string
-  serviceName: string
-  alertID: number
-  providerID: string
+  serviceID?: string
+  serviceName?: string
+  alertID?: number
+  providerID?: string
 }
 
 export interface SlackChannelSearchOptions {
