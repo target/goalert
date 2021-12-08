@@ -134,7 +134,7 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 		if m.UserName != "" {
 			msg.UserName = &m.UserName
 		}
-		if m.Status.SrcValue != "" && !m.Dest.Type.IsUserCM() {
+		if m.Status.SrcValue != "" && m.Dest.Type.IsUserCM() {
 			src, err := a.formatDest(ctx, notification.Dest{Type: m.Dest.Type, Value: m.Status.SrcValue})
 			if err != nil {
 				return nil, fmt.Errorf("format src: %w", err)
