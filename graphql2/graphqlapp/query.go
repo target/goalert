@@ -69,6 +69,8 @@ func (a *Query) formatDest(ctx context.Context, dst notification.Dest) (string, 
 func msgStatus(stat notification.Status) string {
 	var str strings.Builder
 	switch stat.State {
+	case notification.StateBundled:
+		str.WriteString("Bundled")
 	case notification.StateUnknown:
 		str.WriteString("Unknown")
 	case notification.StateSending:
