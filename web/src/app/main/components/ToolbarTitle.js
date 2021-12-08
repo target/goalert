@@ -110,6 +110,21 @@ function ToolbarTitle() {
 
     return (
       <Typography
+        className={classes.title}
+        color='inherit'
+        noWrap
+        component='h1'
+      >
+        {title.replace('On Call', 'On-Call')}
+      </Typography>
+    )
+  }
+
+  const renderTitleLink = (title) => {
+    document.title = `${applicationName || appName} - ${title}`
+
+    return (
+      <Typography
         className={classes.backPage}
         color='inherit'
         noWrap
@@ -118,7 +133,7 @@ function ToolbarTitle() {
         to='..'
         replace
       >
-        {title.replace('On Call', 'On-Call')}
+        {title}
       </Typography>
     )
   }
@@ -162,9 +177,9 @@ function ToolbarTitle() {
           )}
         </Typography>
         <ChevronRight />
-        {renderTitle(sub)}
-        {match.params.alertId && (
+        {match.params.alertId ? (
           <React.Fragment>
+            {renderTitleLink(sub)}
             <ChevronRight />
             <Typography
               className={classes.title}
@@ -183,6 +198,8 @@ function ToolbarTitle() {
               )}
             </Typography>
           </React.Fragment>
+        ) : (
+          renderTitle(sub)
         )}
       </div>
     )
