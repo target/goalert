@@ -41,15 +41,14 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 
 	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
 }
-
-func (a *DebugMessage) Destination(ctx context.Context, obj *notification.RecentMessage) (string, error) {
-	if !obj.Dest.Type.IsUserCM() {
-		return (*App)(a).formatNC(ctx, obj.Dest.ID)
+func (a *DebugMessage) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
+	if !dst.Type.IsUserCM() {
+		return (*App)(a).formatNC(ctx, dst.ID)
 	}
 
 	var str strings.Builder
-	str.WriteString((*App)(a).FormatDestFunc(ctx, obj.Dest.Type, obj.Dest.Value))
-	switch obj.Dest.Type {
+	str.WriteString((*App)(a).FormatDestFunc(ctx, dst.Type, dst.Value))
+	switch dst.Type {
 	case notification.DestTypeSMS:
 		str.WriteString(" (SMS)")
 	case notification.DestTypeUserEmail:
@@ -61,11 +60,15 @@ func (a *DebugMessage) Destination(ctx context.Context, obj *notification.Recent
 		str.WriteString("Webhook")
 	default:
 		str.Reset()
-		str.WriteString(obj.Dest.Type.String())
+		str.WriteString(dst.Type.String())
 	}
 
 	return str.String(), nil
 }
+func (a *DebugMessage) Destination(ctx context.Context, obj *notification.RecentMessage) (string, error) {
+	return a.formatDest(ctx, obj.Dest)
+}
+
 func (a *DebugMessage) Type(ctx context.Context, obj *notification.RecentMessage) (string, error) {
 	return strings.TrimPrefix(obj.Type.String(), "MessageType"), nil
 }
@@ -97,8 +100,12 @@ func (a *DebugMessage) Source(ctx context.Context, obj *notification.RecentMessa
 	if obj.Status.SrcValue == "" {
 		return "", nil
 	}
+	if !obj.Dest.Type.IsUserCM() {
+		// notification channels are unsupported with the current interface
+		return "", nil
+	}
 
-	return notification.Dest{Type: obj.Dest.Type, Value: obj.Status.SrcValue}.String(), nil
+	return a.formatDest(ctx, notification.Dest{Type: obj.Dest.Type, Value: obj.Status.SrcValue})
 }
 func (a *DebugMessage) ProviderID(ctx context.Context, obj *notification.RecentMessage) (string, error) {
 	return obj.ProviderID.ExternalID, nil
