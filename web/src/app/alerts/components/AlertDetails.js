@@ -224,8 +224,8 @@ export default function AlertDetails(props) {
 
       const rotations = targets.filter((t) => t.type === 'rotation')
       const schedules = targets.filter((t) => t.type === 'schedule')
-      const users = targets.filter((t) => t.type === 'user')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
+      const users = targets.filter((t) => t.type === 'user')
 
       let className
       if (status !== 'closed' && currentLevel % steps.length === index) {
@@ -407,7 +407,7 @@ export default function AlertDetails(props) {
                   Escalation Policy
                 </AppLink>
               </Typography>
-              {alert.state !== null && (
+              {alert?.state?.lastEscalation && (
                 <React.Fragment>
                   <Typography color='textSecondary' variant='caption'>
                     Last Escalated:{' '}
