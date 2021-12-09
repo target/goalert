@@ -10,8 +10,8 @@ import (
 )
 
 // TestAlertCleanup verifies that old alerts are purged from the DB
-// when `Maintenance.DataCleanupDays` is set.
-func TestDataCleanup(t *testing.T) {
+// when `Maintenance.AlertCleanupDays` is set.
+func TestAlertCleanup(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -43,7 +43,7 @@ func TestDataCleanup(t *testing.T) {
 	assert.Equal(t, "1", data.A.ID)
 	assert.Equal(t, "2", data.B.ID)
 
-	h.SetConfigValue("Maintenance.DataCleanupDays", "1")
+	h.SetConfigValue("Maintenance.AlertCleanupDays", "1")
 
 	h.Trigger()
 

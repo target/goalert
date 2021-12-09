@@ -31,7 +31,7 @@ type Config struct {
 	}
 
 	Maintenance struct {
-		DataCleanupDays  int `public:"true" info:"Various data records including alerts and on-call history will be deleted after this many days (0 means disable cleanup)."`
+		AlertCleanupDays int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
 		APIKeyExpireDays int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
 	}
 
@@ -390,7 +390,7 @@ func (cfg Config) Validate() error {
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
-		validate.Range("Maintenance.DataCleanupDays", cfg.Maintenance.DataCleanupDays, 0, 9000),
+		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
 		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
 		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
