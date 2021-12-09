@@ -164,7 +164,7 @@ export default function AlertDetails(props) {
       return false
     }
 
-    if (currentLevel === steps.length - 1 && repeat === repeatCount) {
+    if (currentLevel === steps.length - 1 && repeatCount >= repeat) {
       return false
     }
 
