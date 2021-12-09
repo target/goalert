@@ -7,7 +7,6 @@ import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
@@ -28,6 +27,7 @@ import {
   User,
   UserOverride,
 } from '../../../schema'
+import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -60,13 +60,14 @@ interface BaseCalendarEvent {
     id?: string
   }
   type: 'tempSched' | 'overrideShift' | 'tempSchedShift' | 'onCallShift'
+  title: React.ReactNode
+  // fixed: boolean
   // fixed: if is 'tempSched' or 'tempSchedShift'
 }
 
 export interface TempSchedEvent extends BaseCalendarEvent {
   type: 'tempSched'
   tempSched: TemporarySchedule
-  title: string
 }
 
 export interface OverrideShiftEvent extends BaseCalendarEvent {
@@ -77,7 +78,6 @@ export interface OverrideShiftEvent extends BaseCalendarEvent {
 export interface TempSchedShiftEvent extends BaseCalendarEvent {
   type: 'tempSchedShift'
   tempSched: TemporarySchedule
-  title: string
 }
 
 export interface OnCallShiftEvent extends BaseCalendarEvent {
@@ -116,10 +116,10 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
 
   const eventStyleGetter = (
     _event: ScheduleCalendarEvent,
-    start: Date,
-    end: Date,
+    start: Date | string,
+    end: Date | string,
     isSelected: boolean,
-  ): any => {
+  ): React.HTMLAttributes<HTMLDivElement> => {
     const green = '#0C6618'
     const lavender = '#BB7E8C'
 
@@ -192,6 +192,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       type: 'tempSched',
       start: new Date(sched.start),
       end: new Date(sched.end),
+      title: 'Temporary Schedule',
       user: { name: 'Temporary Schedule' },
       tempSched: sched,
     }))
@@ -200,7 +201,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       type: 'overrideShift',
       start: new Date(o.start),
       end: new Date(o.end),
-
+      title: getOverrideTitle(o),
       user: {
         name: getOverrideTitle(o),
       },
@@ -215,6 +216,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
           type: 'tempSchedShift',
           start: new Date(s.start),
           end: new Date(s.end),
+          title: s.user?.name || '',
           tempSched: sched,
         }))
       }),
@@ -237,6 +239,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       start: new Date(s.start),
       end: new Date(s.end),
       type: 'onCallShift',
+      title: s.user?.name || '',
     }))
 
     let filteredShifts: ScheduleCalendarEvent[] = [
@@ -335,14 +338,15 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
               fontFamily: theme.typography.body2.fontFamily,
               fontSize: theme.typography.body2.fontSize,
             }}
-            // tooltipAccessor={() => {}}
+            tooltipAccessor={() => ''}
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents
-            // eventPropGetter={eventStyleGetter}
+            eventPropGetter={eventStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
+              // @ts-expect-error - Pretty sure this is typed wrong by react-big-calendar
               eventWrapper: ScheduleCalendarEventWrapper,
               toolbar: () => null,
             }}

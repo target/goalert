@@ -77,7 +77,7 @@ export default function ScheduleCalendarEventWrapper({
     }
   }
 
-  function handleShowOverrideForm(): void {
+  function handleShowOverrideForm(_event: OnCallShiftEvent): void {
     handleCloseShiftInfo()
 
     setOverrideDialog({
@@ -86,7 +86,7 @@ export default function ScheduleCalendarEventWrapper({
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),
-        removeUserID: event.userID,
+        removeUserID: _event.userID,
       },
     })
   }
@@ -166,7 +166,7 @@ export default function ScheduleCalendarEventWrapper({
           <Button
             data-cy='override'
             size='small'
-            onClick={handleShowOverrideForm}
+            onClick={() => handleShowOverrideForm(_event)}
             variant='contained'
             color='primary'
             title={`Temporarily remove ${_event.title} from this schedule`}
