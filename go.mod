@@ -30,7 +30,6 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254
 	github.com/gorilla/pat v1.0.1 // indirect
-	github.com/graphql-go/graphql v0.7.9
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/yamux v0.0.0-20210707203944-259a57b3608c // pinned version - see https://github.com/target/goalert/issues/1239
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
@@ -79,7 +78,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
