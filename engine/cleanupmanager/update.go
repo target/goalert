@@ -60,7 +60,20 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("cleanup alerts: %w", err)
 		}
-
+	}
+	if cfg.Maintenance.APIKeyExpireDays > 0 {
+		var dur pgtype.Interval
+		dur.Days = int32(cfg.Maintenance.APIKeyExpireDays)
+		dur.Status = pgtype.Present
+		_, err = tx.StmtContext(ctx, db.cleanupAPIKeys).ExecContext(ctx, &dur)
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Maintenance.ScheduleCleanupDays > 0 {
+		var dur pgtype.Interval
+		dur.Days = int32(cfg.Maintenance.ScheduleCleanupDays)
+		dur.Status = pgtype.Present
 		_, err = tx.StmtContext(ctx, db.cleanupOverrides).ExecContext(ctx, &dur)
 		if err != nil {
 			return fmt.Errorf("cleanup overrides: %w", err)
@@ -74,15 +87,6 @@ func (db *DB) update(ctx context.Context) error {
 		_, err = tx.StmtContext(ctx, db.cleanupEPOnCall).ExecContext(ctx, &dur)
 		if err != nil {
 			return fmt.Errorf("cleanup escalation policy on-call: %w", err)
-		}
-	}
-	if cfg.Maintenance.APIKeyExpireDays > 0 {
-		var dur pgtype.Interval
-		dur.Days = int32(cfg.Maintenance.APIKeyExpireDays)
-		dur.Status = pgtype.Present
-		_, err = tx.StmtContext(ctx, db.cleanupAPIKeys).ExecContext(ctx, &dur)
-		if err != nil {
-			return err
 		}
 	}
 

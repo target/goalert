@@ -950,6 +950,7 @@ type ConfigID =
   | 'General.DisableCalendarSubscriptions'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
+  | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'
   | 'Auth.DisableBasic'
   | 'GitHub.Enable'
