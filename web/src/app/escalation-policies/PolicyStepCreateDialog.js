@@ -4,7 +4,6 @@ import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
-import { useURLParam } from '../actions'
 
 const mutation = gql`
   mutation ($input: CreateEscalationPolicyStepInput!) {
@@ -21,8 +20,6 @@ const mutation = gql`
 `
 
 function PolicyStepCreateDialog(props) {
-  const [errorMessage] = useURLParam('errorMessage', null)
-  const [errorTitle] = useURLParam('errorTitle', null)
   const [value, setValue] = useState(null)
   const defaultValue = {
     targets: [],
@@ -44,11 +41,6 @@ function PolicyStepCreateDialog(props) {
 
   const { loading, error } = createStepStatus
   const fieldErrs = fieldErrors(error)
-
-  // don't render dialog if slack redirect returns with an error
-  if (Boolean(errorMessage) || Boolean(errorTitle)) {
-    return null
-  }
 
   return (
     <FormDialog

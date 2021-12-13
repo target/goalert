@@ -247,13 +247,15 @@ export default function UserDetails(props) {
                 },
                 <QuerySetFavoriteButton
                   key='secondary-action-favorite'
-                  userID={props.userID}
+                  id={props.userID}
+                  type='user'
                 />,
               ]
             : [
                 <QuerySetFavoriteButton
                   key='secondary-action-favorite'
-                  userID={props.userID}
+                  id={props.userID}
+                  type='user'
                 />,
               ]
         }

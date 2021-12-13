@@ -116,7 +116,8 @@ export default function ServiceDetails({ serviceID }) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            serviceID={serviceID}
+            id={serviceID}
+            type='service'
           />,
         ]}
         links={[

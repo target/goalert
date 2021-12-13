@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
-import { dtToDuration, Shift, Value } from './sharedUtils'
+import { dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -21,7 +21,7 @@ import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 
 type AddShiftsStepProps = {
-  value: Value
+  value: TempSchedValue
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string
@@ -188,7 +188,10 @@ export default function TempSchedAddNewShift({
                 max={DateTime.fromISO(value.end, { zone })
                   .plus({ year: 1 })
                   .toISO()}
-                mapOnChangeValue={(value: string, formValue: Value) => {
+                mapOnChangeValue={(
+                  value: string,
+                  formValue: TempSchedValue,
+                ) => {
                   if (!manualEntry) {
                     const diff = DateTime.fromISO(value, { zone }).diff(
                       DateTime.fromISO(formValue.start, { zone }),
@@ -242,7 +245,7 @@ export default function TempSchedAddNewShift({
                   fieldName='end'
                   float
                   // value held in form input
-                  mapValue={(nextVal: string, formValue: Value) => {
+                  mapValue={(nextVal: string, formValue: TempSchedValue) => {
                     const nextValDT = DateTime.fromISO(nextVal, { zone })
                     const formValDT = DateTime.fromISO(formValue?.start ?? '', {
                       zone,
@@ -251,7 +254,10 @@ export default function TempSchedAddNewShift({
                     return duration === -1 ? '' : duration.toString()
                   }}
                   // value held in state
-                  mapOnChangeValue={(nextVal: string, formValue: Value) => {
+                  mapOnChangeValue={(
+                    nextVal: string,
+                    formValue: TempSchedValue,
+                  ) => {
                     if (!nextVal) return ''
                     return DateTime.fromISO(formValue.start, { zone })
                       .plus({ hours: parseFloat(nextVal) })

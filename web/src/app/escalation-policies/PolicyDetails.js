@@ -85,7 +85,8 @@ export default function PolicyDetails(props) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            escalationPolicyID={data.id}
+            id={data.id}
+            type='escalationPolicy'
           />,
         ]}
         links={[
