@@ -140,6 +140,11 @@ export default [
         path: '/admin/toolbox',
         component: AdminRouter,
       },
+      {
+        title: 'Outgoing Logs',
+        path: '/admin/logs',
+        component: AdminRouter,
+      },
     ],
   },
   {
