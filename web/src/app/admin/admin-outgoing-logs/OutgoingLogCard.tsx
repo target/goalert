@@ -6,7 +6,8 @@ import { DebugMessage } from './AdminOutgoingLogs'
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    margin: theme.spacing(1),
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
     cursor: 'pointer',
   },
 }))

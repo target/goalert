@@ -6,6 +6,8 @@ import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import { ISOTimestamp } from '../../../schema'
 import OutgoingLogCard from './OutgoingLogCard'
+import Search from '../../util/Search'
+import OutgoingLogsFilter from './OutgoingLogsFilter'
 
 export interface DebugMessage {
   // will come from graphql
@@ -155,6 +157,21 @@ export default function AdminOutgoingLogs(): JSX.Element {
           >
             Outgoing Messages
           </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Box
+            display='flex'
+            flexDirection='row'
+            alignItems='center'
+            justifyContent='space-between'
+          >
+            <div>
+              <OutgoingLogsFilter />
+            </div>
+            <div>
+              <Search />
+            </div>
+          </Box>
         </Grid>
         <Grid item xs={12}>
           <Box
