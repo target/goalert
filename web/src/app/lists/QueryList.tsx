@@ -5,12 +5,12 @@ import {
   QueryResult,
   DocumentNode,
 } from '@apollo/client'
-import { useSelector } from 'react-redux'
 import { Grid } from '@mui/material'
 import { once } from 'lodash'
+import { useLocation } from 'react-router-dom'
+import { useURLParam } from '../actions/hooks'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
-import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
 import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
@@ -102,8 +102,8 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   } = props
   const { input, ...vars } = variables
 
-  const searchParam = useSelector(searchSelector)
-  const urlKey = useSelector(urlKeySelector)
+  const [searchParam] = useURLParam('search', '')
+  const { key: urlKey } = useLocation()
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
 
   const queryVariables = {

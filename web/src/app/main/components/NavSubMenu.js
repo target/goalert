@@ -9,9 +9,8 @@ import Typography from '@mui/material/Typography'
 import { styles } from '../../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Collapse } from '@mui/material'
-import { urlPathSelector } from '../../selectors/url'
-import { useSelector } from 'react-redux'
 import { PropTypes as p } from 'prop-types'
+import { useLocation } from 'react-router'
 
 const useStyles = makeStyles((theme) => {
   const { nav, navSelected } = styles(theme)
@@ -45,7 +44,7 @@ export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes, closeMobileSidebar } =
     props
   const classes = useStyles()
-  const pathname = useSelector(urlPathSelector)
+  const { pathname } = useLocation()
   const isRoute = pathname.startsWith(path)
 
   function renderParentLink(IconComponent, label) {
