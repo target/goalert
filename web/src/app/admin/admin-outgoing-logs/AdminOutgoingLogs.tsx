@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Grid from '@material-ui/core/Grid'
-import { Typography, Box } from '@material-ui/core'
+import { Typography, Toolbar, Box, Drawer } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -133,6 +133,8 @@ export default function AdminOutgoingLogs(): JSX.Element {
     error: undefined as any,
   }
 
+  const [showDrawer, setShowDrawer] = useState(true)
+
   if (error) {
     return <GenericError error={error.message} />
   }
@@ -143,53 +145,69 @@ export default function AdminOutgoingLogs(): JSX.Element {
 
   const handleCardClick = (id: string): void => {
     console.log('clicked', id)
+    setShowDrawer(!showDrawer)
   }
 
   return (
-    <Grid container spacing={2} className={classes.gridContainer}>
-      <Grid container item xs={12}>
-        <Grid item xs={12}>
-          <Typography
-            component='h2'
-            variant='subtitle1'
-            color='textSecondary'
-            classes={{ subtitle1: classes.groupTitle }}
-          >
-            Outgoing Messages
-          </Typography>
+    <React.Fragment>
+      <Drawer
+        anchor='right'
+        open={showDrawer}
+        onClose={() => setShowDrawer(false)}
+        variant='persistent'
+      >
+        <Toolbar />
+        <Grid style={{ width: '30vw' }}>
+          <div>test</div>
+          <div>testds asdasd sadsadsad</div>
+          <div>test</div>
         </Grid>
-        <Grid item xs={12}>
-          <Box
-            display='flex'
-            flexDirection='row'
-            alignItems='center'
-            justifyContent='space-between'
-          >
-            <div>
-              <OutgoingLogsFilter />
-            </div>
-            <div>
-              <Search />
-            </div>
-          </Box>
-        </Grid>
-        <Grid item xs={12}>
-          <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='stretch'
-            width='full'
-          >
-            {data.debugMessages.map((debugMessage) => (
-              <OutgoingLogCard
-                key={debugMessage.id}
-                debugMessage={debugMessage}
-                onClick={() => handleCardClick(debugMessage.id)}
-              />
-            ))}
-          </Box>
+      </Drawer>
+      <Grid container spacing={2} className={classes.gridContainer}>
+        <Grid container item xs={12}>
+          <Grid item xs={12}>
+            <Typography
+              component='h2'
+              variant='subtitle1'
+              color='textSecondary'
+              classes={{ subtitle1: classes.groupTitle }}
+            >
+              Outgoing Messages
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Box
+              display='flex'
+              flexDirection='row'
+              alignItems='center'
+              justifyContent='space-between'
+            >
+              <div>
+                <OutgoingLogsFilter />
+              </div>
+              <div>
+                <Search />
+              </div>
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <Box
+              display='flex'
+              flexDirection='column'
+              alignItems='stretch'
+              width='full'
+            >
+              {data.debugMessages.map((debugMessage) => (
+                <OutgoingLogCard
+                  key={debugMessage.id}
+                  debugMessage={debugMessage}
+                  onClick={() => handleCardClick(debugMessage.id)}
+                />
+              ))}
+            </Box>
+          </Grid>
         </Grid>
       </Grid>
-    </Grid>
+    </React.Fragment>
   )
 }
