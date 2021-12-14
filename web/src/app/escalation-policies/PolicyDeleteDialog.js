@@ -1,8 +1,7 @@
 import React from 'react'
 import { useMutation, gql } from '@apollo/client'
 import p from 'prop-types'
-import { push } from 'connected-react-router'
-import { useDispatch } from 'react-redux'
+import { useHistory } from 'react-router'
 import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
@@ -12,7 +11,7 @@ const mutation = gql`
 `
 
 export default function PolicyDeleteDialog(props) {
-  const dispatch = useDispatch()
+  const history = useHistory()
   const [deletePolicy, deletePolicyStatus] = useMutation(mutation, {
     variables: {
       input: [
@@ -22,7 +21,7 @@ export default function PolicyDeleteDialog(props) {
         },
       ],
     },
-    onCompleted: () => dispatch(push('/escalation-policies')),
+    onCompleted: () => history.push('/escalation-policies'),
   })
 
   return (
