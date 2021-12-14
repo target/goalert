@@ -10,12 +10,13 @@ import { Grid } from '@mui/material'
 import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
-import { searchSelector, urlKeySelector } from '../selectors'
+import { urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
 import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
+import { useURLParam } from '../actions'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -102,7 +103,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   } = props
   const { input, ...vars } = variables
 
-  const searchParam = useSelector(searchSelector)
+  const [searchParam] = useURLParam('search', '')
   const urlKey = useSelector(urlKeySelector)
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
 
