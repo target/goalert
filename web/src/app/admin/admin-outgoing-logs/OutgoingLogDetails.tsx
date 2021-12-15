@@ -1,10 +1,12 @@
 import React from 'react'
+import Divider from '@material-ui/core/Divider'
 import Drawer from '@material-ui/core/Drawer'
 import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
+import Typography from '@material-ui/core/Typography'
 import { DateTime } from 'luxon'
 import { DebugMessage } from './AdminOutgoingLogs'
 import AppLink from '../../util/AppLink'
@@ -22,7 +24,11 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
     <Drawer anchor='right' open={open} variant='persistent' onClose={onClose}>
       <Toolbar />
       <Grid style={{ width: '30vw' }}>
-        <List>
+        <Typography variant='h6' style={{ margin: '16px' }}>
+          Log Details
+        </Typography>
+        <Divider />
+        <List disablePadding>
           {log?.id && (
             <ListItem divider>
               <ListItemText primary='ID' secondary={log.id} />
