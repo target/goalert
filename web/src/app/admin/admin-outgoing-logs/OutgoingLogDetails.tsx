@@ -6,6 +6,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
 import { DebugMessage } from './AdminOutgoingLogs'
+import AppLink from '../../util/AppLink'
 
 interface Props {
   open: boolean
@@ -50,17 +51,41 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
           {/* TODO: use AppLink to point to user/service/alert pages */}
           {log?.userID && log?.userName && (
             <ListItem divider>
-              <ListItemText primary='User' secondary={log?.userName} />
+              <ListItemText
+                primary='User'
+                secondary={
+                  <AppLink to={`/users/${log?.userID}`} newTab icon>
+                    {log?.userName}
+                  </AppLink>
+                }
+                secondaryTypographyProps={{ component: 'div' }}
+              />
             </ListItem>
           )}
           {log?.serviceID && log?.serviceName && (
             <ListItem divider>
-              <ListItemText primary='Service' secondary={log?.serviceName} />
+              <ListItemText
+                primary='Service'
+                secondary={
+                  <AppLink to={`/services/${log?.serviceID}`} newTab icon>
+                    {log?.serviceName}
+                  </AppLink>
+                }
+                secondaryTypographyProps={{ component: 'div' }}
+              />
             </ListItem>
           )}
           {log?.alertID && (
             <ListItem divider>
-              <ListItemText primary='Alert' secondary={log?.alertID} />
+              <ListItemText
+                primary='Alert'
+                secondary={
+                  <AppLink to={`/alerts/${log?.alertID}`} newTab icon>
+                    {log?.serviceName}
+                  </AppLink>
+                }
+                secondaryTypographyProps={{ component: 'div' }}
+              />
             </ListItem>
           )}
 
