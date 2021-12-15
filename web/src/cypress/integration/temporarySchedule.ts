@@ -149,7 +149,7 @@ function testTemporarySchedule(screen: string): void {
     })
   })
 
-  it.only('should edit and remove from a temporary schedule', () => {
+  it('should edit and remove from a temporary schedule', () => {
     const now = DateTime.utc()
 
     cy.createTemporarySchedule({
