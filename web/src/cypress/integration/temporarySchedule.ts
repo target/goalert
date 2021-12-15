@@ -84,11 +84,7 @@ function testTemporarySchedule(screen: string): void {
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
 
     cy.dialogClick('Submit')
-    cy.get('[data-cy="no-coverage-checkbox"]')
-      .scrollIntoView()
-      .should('be.visible')
-      .find('input[name="allowCoverageGaps"]')
-      .check()
+    cy.get('input[name="allowCoverageGaps"]').check()
     cy.dialogFinish('Retry')
 
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
@@ -137,11 +133,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogClick('Submit')
-      cy.get('[data-cy="no-coverage-checkbox"]')
-        .scrollIntoView()
-        .should('be.visible')
-        .find('input[name="allowCoverageGaps"]')
-        .check()
+      cy.get('input[name="allowCoverageGaps"]').check()
       cy.dialogFinish('Retry')
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
@@ -176,11 +168,7 @@ function testTemporarySchedule(screen: string): void {
       )
 
       cy.dialogClick('Submit')
-      cy.get('[data-cy="no-coverage-checkbox"]')
-        .scrollIntoView()
-        .should('be.visible')
-        .find('input[name="allowCoverageGaps"]')
-        .check()
+      cy.get('input[name="allowCoverageGaps"]').check()
       cy.dialogFinish('Retry')
       cy.reload() // ensure calendar update
       cy.get('div').contains(graphQLAddSecondUser.name).click()
@@ -214,11 +202,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogClick('Submit')
-      cy.get('[data-cy="no-coverage-checkbox"]')
-        .scrollIntoView()
-        .should('be.visible')
-        .find('input[name="allowCoverageGaps"]')
-        .check()
+      cy.get('input[name="allowCoverageGaps"]').check()
       cy.dialogFinish('Retry')
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
