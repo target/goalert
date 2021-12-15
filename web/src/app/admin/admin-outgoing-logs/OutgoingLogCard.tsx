@@ -5,7 +5,6 @@ import {
   Typography,
   Card,
   CardActions,
-  Grid,
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { Chip } from '@mui/material'
@@ -45,9 +44,6 @@ export default function OutgoingLogCard({
   //   We can do all the logic here to convert dates, phone number, etc to readable format
   const type = debugMessage.type
   const formattedUsername = debugMessage.userName || '(Unknown)'
-  const formattedDestination = debugMessage.destination
-    .replace('(', '')
-    .replace(')', '')
   const status = toTitleCase(debugMessage.status)
   const statusDict = {
     success: {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
+import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
-import { Typography, Toolbar, Box, Drawer } from '@material-ui/core'
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -8,6 +9,7 @@ import { ISOTimestamp } from '../../../schema'
 import OutgoingLogCard from './OutgoingLogCard'
 import Search from '../../util/Search'
 import OutgoingLogsFilter from './OutgoingLogsFilter'
+import OutgoingLogDetails from './OutgoingLogDetails'
 
 export interface DebugMessage {
   // will come from graphql
@@ -122,6 +124,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
+  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   // const { data, loading, error } = useQuery(debugMessageLogsQuery)
   const { data, loading, error } = {
@@ -133,36 +136,16 @@ export default function AdminOutgoingLogs(): JSX.Element {
     error: undefined as any,
   }
 
-  const [showDrawer, setShowDrawer] = useState(true)
-
-  if (error) {
-    return <GenericError error={error.message} />
-  }
-
-  if (loading && !data) {
-    return <Spinner />
-  }
-
-  const handleCardClick = (id: string): void => {
-    console.log('clicked', id)
-    setShowDrawer(!showDrawer)
-  }
+  if (error) return <GenericError error={error.message} />
+  if (loading && !data) return <Spinner />
 
   return (
     <React.Fragment>
-      <Drawer
-        anchor='right'
-        open={showDrawer}
-        onClose={() => setShowDrawer(false)}
-        variant='persistent'
-      >
-        <Toolbar />
-        <Grid style={{ width: '30vw' }}>
-          <div>test</div>
-          <div>testds asdasd sadsadsad</div>
-          <div>test</div>
-        </Grid>
-      </Drawer>
+      <OutgoingLogDetails
+        open={Boolean(selectedLog)}
+        onClose={() => setSelectedLog(null)}
+        log={selectedLog}
+      />
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid container item xs={12}>
           <Grid item xs={12}>
@@ -197,11 +180,12 @@ export default function AdminOutgoingLogs(): JSX.Element {
               alignItems='stretch'
               width='full'
             >
+              {/* TODO: change card's outline color in list when selected */}
               {data.debugMessages.map((debugMessage) => (
                 <OutgoingLogCard
                   key={debugMessage.id}
                   debugMessage={debugMessage}
-                  onClick={() => handleCardClick(debugMessage.id)}
+                  onClick={() => setSelectedLog(debugMessage)}
                 />
               ))}
             </Box>
