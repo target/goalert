@@ -207,7 +207,7 @@ function testCalendar(screen: ScreenFormat): void {
       .should('be.visible')
   })
 
-  it.only('should open override edit dialog from tooltip', () => {
+  it('should open override edit dialog from tooltip', () => {
     cy.get('[data-cy-spin-loading=false]').should('exist')
     const name1 = rot.users[0].name
     const name2 = rot.users[1].name
