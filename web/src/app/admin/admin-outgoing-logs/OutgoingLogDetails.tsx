@@ -5,6 +5,7 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
+import { DateTime } from 'luxon'
 import { DebugMessage } from './AdminOutgoingLogs'
 import AppLink from '../../util/AppLink'
 
@@ -29,12 +30,18 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
           )}
           {log?.createdAt && (
             <ListItem divider>
-              <ListItemText primary='Created At' secondary={log?.createdAt} />
+              <ListItemText
+                primary='Created At'
+                secondary={DateTime.fromISO(log?.createdAt).toFormat('fff')}
+              />
             </ListItem>
           )}
           {log?.updatedAt && (
             <ListItem divider>
-              <ListItemText primary='Updated At' secondary={log?.updatedAt} />
+              <ListItemText
+                primary='Updated At'
+                secondary={DateTime.fromISO(log?.updatedAt).toFormat('fff')}
+              />
             </ListItem>
           )}
           {log?.type && (
