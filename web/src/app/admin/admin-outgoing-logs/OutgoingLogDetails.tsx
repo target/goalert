@@ -25,14 +25,14 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
         <List>
           {log?.id && (
             <ListItem divider>
-              <ListItemText primary='ID' secondary={log?.id} />
+              <ListItemText primary='ID' secondary={log.id} />
             </ListItem>
           )}
           {log?.createdAt && (
             <ListItem divider>
               <ListItemText
                 primary='Created At'
-                secondary={DateTime.fromISO(log?.createdAt).toFormat('fff')}
+                secondary={DateTime.fromISO(log.createdAt).toFormat('fff')}
               />
             </ListItem>
           )}
@@ -40,18 +40,18 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
             <ListItem divider>
               <ListItemText
                 primary='Updated At'
-                secondary={DateTime.fromISO(log?.updatedAt).toFormat('fff')}
+                secondary={DateTime.fromISO(log.updatedAt).toFormat('fff')}
               />
             </ListItem>
           )}
           {log?.type && (
             <ListItem divider>
-              <ListItemText primary='Notification Type' secondary={log?.type} />
+              <ListItemText primary='Notification Type' secondary={log.type} />
             </ListItem>
           )}
           {log?.status && (
             <ListItem divider>
-              <ListItemText primary='Current Status' secondary={log?.status} />
+              <ListItemText primary='Current Status' secondary={log.status} />
             </ListItem>
           )}
 
@@ -62,7 +62,7 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
                 primary='User'
                 secondary={
                   <AppLink to={`/users/${log?.userID}`} newTab icon>
-                    {log?.userName}
+                    {log.userName}
                   </AppLink>
                 }
                 secondaryTypographyProps={{ component: 'div' }}
@@ -74,8 +74,8 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
               <ListItemText
                 primary='Service'
                 secondary={
-                  <AppLink to={`/services/${log?.serviceID}`} newTab icon>
-                    {log?.serviceName}
+                  <AppLink to={`/services/${log.serviceID}`} newTab icon>
+                    {log.serviceName}
                   </AppLink>
                 }
                 secondaryTypographyProps={{ component: 'div' }}
@@ -87,8 +87,8 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
               <ListItemText
                 primary='Alert'
                 secondary={
-                  <AppLink to={`/alerts/${log?.alertID}`} newTab icon>
-                    {log?.serviceName}
+                  <AppLink to={`/alerts/${log.alertID}`} newTab icon>
+                    {log.alertID}
                   </AppLink>
                 }
                 secondaryTypographyProps={{ component: 'div' }}
@@ -98,20 +98,17 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
 
           {log?.source && (
             <ListItem divider>
-              <ListItemText primary='Source' secondary={log?.source} />
+              <ListItemText primary='Source' secondary={log.source} />
             </ListItem>
           )}
           {log?.destination && (
             <ListItem divider>
-              <ListItemText
-                primary='Destination'
-                secondary={log?.destination}
-              />
+              <ListItemText primary='Destination' secondary={log.destination} />
             </ListItem>
           )}
           {log?.providerID && (
             <ListItem divider>
-              <ListItemText primary='Provider ID' secondary={log?.providerID} />
+              <ListItemText primary='Provider ID' secondary={log.providerID} />
             </ListItem>
           )}
         </List>
