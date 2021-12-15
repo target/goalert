@@ -85,6 +85,7 @@ function testTemporarySchedule(screen: string): void {
 
     cy.dialogClick('Submit')
     cy.get('[data-cy="no-coverage-checkbox"]')
+      .scrollIntoView()
       .should('be.visible')
       .find('input[name="allowCoverageGaps"]')
       .check()
@@ -137,6 +138,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogClick('Submit')
       cy.get('[data-cy="no-coverage-checkbox"]')
+        .scrollIntoView()
         .should('be.visible')
         .find('input[name="allowCoverageGaps"]')
         .check()
@@ -147,7 +149,7 @@ function testTemporarySchedule(screen: string): void {
     })
   })
 
-  it('should edit and remove from a temporary schedule', () => {
+  it.only('should edit and remove from a temporary schedule', () => {
     const now = DateTime.utc()
 
     cy.createTemporarySchedule({
@@ -175,6 +177,7 @@ function testTemporarySchedule(screen: string): void {
 
       cy.dialogClick('Submit')
       cy.get('[data-cy="no-coverage-checkbox"]')
+        .scrollIntoView()
         .should('be.visible')
         .find('input[name="allowCoverageGaps"]')
         .check()
@@ -212,6 +215,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogClick('Submit')
       cy.get('[data-cy="no-coverage-checkbox"]')
+        .scrollIntoView()
         .should('be.visible')
         .find('input[name="allowCoverageGaps"]')
         .check()
