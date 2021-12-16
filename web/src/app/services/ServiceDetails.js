@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
-import { Edit, Delete } from '@material-ui/icons'
+import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'

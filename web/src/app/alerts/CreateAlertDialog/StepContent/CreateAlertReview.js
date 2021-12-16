@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import { Grid, List } from '@material-ui/core'
+import { Grid, List } from '@mui/material'
 import CreateAlertListItem from './CreateAlertListItem'
 import CreateAlertServiceListItem from './CreateAlertServiceListItem'
 

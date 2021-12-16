@@ -3,19 +3,20 @@ import React, {
   useState,
   ReactNode,
   ReactElement,
-  ChangeEvent,
+  SyntheticEvent,
 } from 'react'
 import {
   TextField,
-  makeStyles,
   MenuItem,
   ListItemIcon,
   Typography,
   Paper,
   Chip,
   InputProps,
-} from '@material-ui/core'
-import { Alert, Autocomplete } from '@material-ui/lab'
+  Alert,
+  Autocomplete,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -88,7 +89,7 @@ export default function MaterialSelect(
     noOptionsError,
     onChange,
     onInputChange = () => {},
-    options: _options,
+    options,
     placeholder,
     required,
     value,
@@ -117,15 +118,6 @@ export default function MaterialSelect(
     if (!value) setInputValue('')
   }, [value, multiple, focus])
 
-  // merge selected values with options to avoid annoying mui warnings
-  // https://github.com/mui-org/material-ui/issues/18514
-  let options = _options
-  if (value && Array.isArray(value)) {
-    options = [...options, ...value]
-  } else if (!inputValue && value && !Array.isArray(value) && !options.length) {
-    options = [value]
-  }
-
   const customCSS: Record<string, string> = {
     option: classes.padding0,
     clearIndicator: classes.clearIndicator,
@@ -133,6 +125,16 @@ export default function MaterialSelect(
 
   if (noOptionsError) {
     customCSS.noOptions = classes.padding0
+  }
+
+  function isSelected(val: string): boolean {
+    if (!value) return false
+
+    if (Array.isArray(value)) {
+      return value.some((opt) => opt.value === val)
+    }
+
+    return val === value.value
   }
 
   return (
@@ -145,8 +147,7 @@ export default function MaterialSelect(
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      getOptionSelected={(opt, val) => opt.value === val.value}
-      filterOptions={(options) => options}
+      isOptionEqualToValue={(opt, val) => opt.value === val.value}
       noOptionsText={
         noOptionsError ? (
           <Alert severity='error'>{noOptionsError.message}</Alert>
@@ -155,12 +156,12 @@ export default function MaterialSelect(
         )
       }
       onChange={(
-        event: ChangeEvent<Record<string, unknown>>,
+        event: SyntheticEvent<Element, Event>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
         if (selected) {
           if (Array.isArray(selected)) {
-            setInputValue('')
+            setInputValue('') // clear input so user can keep typing to select another item
           } else {
             setInputValue(selected.isCreate ? selected.value : selected.label)
           }
@@ -206,10 +207,12 @@ export default function MaterialSelect(
           />
         )
       }}
-      renderOption={({ label, icon }) => (
+      renderOption={(props, { label, icon, value }) => (
         <MenuItem
+          {...props}
           component='span'
           className={classes.menuItem}
+          selected={isSelected(value)}
           data-cy='search-select-item'
         >
           <Typography noWrap>{label}</Typography>
@@ -224,10 +227,10 @@ export default function MaterialSelect(
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip
+            {...getTagProps({ index })}
             key={index.toString()}
             data-cy='multi-value'
             label={option.label}
-            {...getTagProps({ index })}
           />
         ))
       }

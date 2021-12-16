@@ -233,7 +233,7 @@ function testCalendar(screen: ScreenFormat): void {
 
     cy.get('div[data-cy="shift-tooltip"]')
       .find('[data-cy="card-actions"]')
-      .find('button[title="Edit"]')
+      .find('button[aria-label="Edit"]')
       .click()
     cy.dialogTitle('Edit Schedule Override')
     cy.dialogFinish('Cancel')
@@ -265,7 +265,7 @@ function testCalendar(screen: ScreenFormat): void {
     cy.get('div[data-cy="shift-tooltip"]')
       .should('be.visible')
       .find('[data-cy="card-actions"]')
-      .find('button[title="Delete"]')
+      .find('button[aria-label="Delete"]')
       .click()
     cy.dialogTitle('Are you sure?')
     cy.dialogFinish('Cancel')
