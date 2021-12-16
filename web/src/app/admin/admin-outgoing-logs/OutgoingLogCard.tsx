@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import { DebugMessage } from './AdminOutgoingLogs'
+import { DebugMessage } from '../../../schema'
 import toTitleCase from '../../util/toTitleCase'
 import { theme } from '../../mui'
 

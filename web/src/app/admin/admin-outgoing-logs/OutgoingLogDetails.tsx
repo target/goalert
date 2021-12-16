@@ -10,8 +10,8 @@ import {
   Typography,
 } from '@mui/material'
 import { DateTime } from 'luxon'
-import { DebugMessage } from './AdminOutgoingLogs'
 import AppLink from '../../util/AppLink'
+import { DebugMessage } from '../../../schema'
 
 interface Props {
   open: boolean
