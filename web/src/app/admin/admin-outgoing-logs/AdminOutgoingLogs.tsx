@@ -8,6 +8,7 @@ import OutgoingLogCard from './OutgoingLogCard'
 import Search from '../../util/Search'
 import OutgoingLogsFilter from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
+import { theme } from '../../mui'
 
 export interface DebugMessage {
   // will come from graphql
@@ -102,7 +103,7 @@ const mockDebugMessages: DebugMessage[] = [
 //   }
 // `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',

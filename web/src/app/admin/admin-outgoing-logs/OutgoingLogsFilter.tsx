@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { TextField } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-const useStyles = makeStyles((theme) => {
+import { theme } from '../../mui'
+
+const useStyles = makeStyles<typeof theme>((theme) => {
   return {
     filterContainer: {
       display: 'flex',

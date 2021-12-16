@@ -11,8 +11,9 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { DebugMessage } from './AdminOutgoingLogs'
 import toTitleCase from '../../util/toTitleCase'
+import { theme } from '../../mui'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   card: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
