@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { SetFavoriteButton } from './SetFavoriteButton'
-import { Button, Dialog, DialogActions, DialogTitle } from '@material-ui/core'
+import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const queries = {

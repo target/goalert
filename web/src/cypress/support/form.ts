@@ -36,13 +36,11 @@ function materialClock(
     .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"]`)
     .contains('button', isAM ? 'AM' : 'PM')
     .click() // select AM or PM
-
     .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] [role=listbox]`)
     .parent()
     .children()
     .eq(0)
     .then(clickArc(hour / 12)) // select the hour
-
     .get(`[role=dialog][data-cy="${fieldName}-picker-fallback"] [role=listbox]`)
     .parent()
     .children()

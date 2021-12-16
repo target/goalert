@@ -15,10 +15,11 @@ import {
   FormControlLabel,
   FormHelperText,
   Grid,
-  makeStyles,
   Radio,
   RadioGroup,
-} from '@material-ui/core'
+} from '@mui/material'
+
+import makeStyles from '@mui/styles/makeStyles'
 
 const mutation = gql`
   mutation ($input: CreateUserOverrideInput!) {

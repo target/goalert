@@ -4,11 +4,13 @@ import {
   Collapse,
   Grid,
   IconButton,
-  makeStyles,
-} from '@material-ui/core'
-import ExpandIcon from '@material-ui/icons/KeyboardArrowDown'
-import CollapseIcon from '@material-ui/icons/KeyboardArrowUp'
-import { Alert, AlertTitle, AlertProps } from '@material-ui/lab'
+  Alert,
+  AlertTitle,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
+import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
+import { AlertProps } from '@mui/lab'
 import toTitleCase from '../util/toTitleCase'
 
 const useStyles = makeStyles({
@@ -59,7 +61,10 @@ export default function Notices({
         badgeContent={notices.length - 1}
         invisible={noticesExpanded}
       >
-        <IconButton onClick={() => setNoticesExpanded(!noticesExpanded)}>
+        <IconButton
+          onClick={() => setNoticesExpanded(!noticesExpanded)}
+          size='large'
+        >
           {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
         </IconButton>
       </Badge>

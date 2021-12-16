@@ -3,7 +3,7 @@ import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
-import { Edit, Delete } from '@material-ui/icons'
+import { Edit, Delete } from '@mui/icons-material'
 
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'

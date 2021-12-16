@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
+import { Layers, RotateRight, Today, VpnKey, Person } from '@mui/icons-material'
 import { useSessionInfo } from './RequireConfig'
-import { Avatar, SvgIconProps, AvatarProps } from '@material-ui/core'
+import { Avatar, SvgIconProps, AvatarProps } from '@mui/material'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element

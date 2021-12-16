@@ -1,8 +1,8 @@
 import React from 'react'
 import { gql } from '@apollo/client'
 import p from 'prop-types'
-import MenuItem from '@material-ui/core/MenuItem'
-import TextField from '@material-ui/core/TextField'
+import MenuItem from '@mui/material/MenuItem'
+import TextField from '@mui/material/TextField'
 import Query from '../util/Query'
 import { sortContactMethods } from './util'
 
