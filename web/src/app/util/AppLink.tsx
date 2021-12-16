@@ -3,7 +3,7 @@ import { Link, LinkProps } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { urlPathSelector } from '../selectors'
 import joinURL from './joinURL'
-import { OpenInNew } from '@material-ui/icons'
+import { OpenInNew } from '@mui/icons-material'
 
 export interface AppLinkProps extends LinkProps {
   to: string

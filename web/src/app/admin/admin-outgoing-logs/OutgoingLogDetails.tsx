@@ -1,12 +1,14 @@
 import React from 'react'
-import Divider from '@material-ui/core/Divider'
-import Drawer from '@material-ui/core/Drawer'
-import Grid from '@material-ui/core/Grid'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
+import {
+  Divider,
+  Drawer,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  Toolbar,
+  Typography,
+} from '@mui/material'
 import { DateTime } from 'luxon'
 import { DebugMessage } from './AdminOutgoingLogs'
 import AppLink from '../../util/AppLink'

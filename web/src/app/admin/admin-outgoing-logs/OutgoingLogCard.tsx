@@ -5,9 +5,9 @@ import {
   Typography,
   Card,
   CardActions,
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import { Chip } from '@mui/material'
+  Chip,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { DebugMessage } from './AdminOutgoingLogs'
 import toTitleCase from '../../util/toTitleCase'
