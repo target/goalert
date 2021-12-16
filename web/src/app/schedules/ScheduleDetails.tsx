@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
-import { Edit, Delete } from '@material-ui/icons'
+import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage from '../details/DetailsPage'
 import ScheduleEditDialog from './ScheduleEditDialog'
@@ -72,7 +72,7 @@ export default function ScheduleDetails({
   const [configTempSchedule, setConfigTempSchedule] =
     useState<Partial<TempSchedValue> | null>(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
-  const isMobile = useIsWidthDown('sm')
+  const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 

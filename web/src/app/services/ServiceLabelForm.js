@@ -1,8 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import Grid from '@material-ui/core/Grid'
-import TextField from '@material-ui/core/TextField'
+import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
 import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { Config } from '../util/RequireConfig'
 

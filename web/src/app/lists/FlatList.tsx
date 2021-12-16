@@ -1,10 +1,11 @@
 import React, { useLayoutEffect, MouseEvent } from 'react'
-import List, { ListProps } from '@material-ui/core/List'
-import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
+import ButtonBase from '@mui/material/ButtonBase'
+import List, { ListProps } from '@mui/material/List'
+import ListItem, { ListItemProps } from '@mui/material/ListItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
 import {
   DragDropContext,
   Droppable,
@@ -14,11 +15,12 @@ import {
   DraggableProvided,
   DroppableProvided,
 } from 'react-beautiful-dnd'
-import ListSubheader from '@material-ui/core/ListSubheader'
+import ListSubheader from '@mui/material/ListSubheader'
 import AppLink from '../util/AppLink'
-import { ButtonBase, makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { Alert, AlertTitle, Color } from '@material-ui/lab'
+import { Alert, AlertTitle } from '@mui/material'
+import { AlertColor } from '@mui/material/Alert'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
 
@@ -131,7 +133,7 @@ export interface FlatListProps extends ListProps {
   transition?: boolean
 }
 
-const severityMap: { [K in NoticeType]: Color } = {
+const severityMap: { [K in NoticeType]: AlertColor } = {
   INFO: 'info',
   WARNING: 'warning',
   ERROR: 'error',
@@ -153,7 +155,6 @@ function ScrollIntoViewListItem(
     }
   }, [scrollIntoView])
 
-  // @ts-expect-error complains due to ListItem not always rendering a list item.
   return <ListItem ref={ref} {...other} />
 }
 
@@ -193,7 +194,6 @@ export default function FlatList({
           <Alert
             className={classes.alertAsButton}
             key={idx}
-            component='li'
             severity={severityMap[item.type]}
             icon={item.icon}
           >
@@ -207,7 +207,6 @@ export default function FlatList({
     return (
       <Alert
         key={idx}
-        component='li'
         className={classes.alert}
         severity={severityMap[item.type]}
         icon={item.icon}

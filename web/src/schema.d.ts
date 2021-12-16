@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: PhoneNumberInfo
+  debugMessages: DebugMessage[]
   user?: User
   users: UserConnection
   alert?: Alert
@@ -33,6 +34,28 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
   generateSlackAppManifest: string
+}
+
+export interface DebugMessagesInput {
+  first?: number
+  createdBefore?: ISOTimestamp
+  createdAfter?: ISOTimestamp
+}
+
+export interface DebugMessage {
+  id: string
+  createdAt: ISOTimestamp
+  updatedAt: ISOTimestamp
+  type: string
+  status: string
+  userID?: string
+  userName?: string
+  source?: string
+  destination: string
+  serviceID?: string
+  serviceName?: string
+  alertID?: number
+  providerID?: string
 }
 
 export interface SlackChannelSearchOptions {
@@ -948,9 +971,9 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
-  | 'General.EnableV1GraphQL'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
+  | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'
   | 'Auth.DisableBasic'
   | 'GitHub.Enable'

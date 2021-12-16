@@ -225,11 +225,14 @@ function testCalendar(screen: ScreenFormat): void {
       cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
 
-      cy.get('[aria-label="Replace Override"]').should('be.visible').click()
+      cy.get('[aria-label="Replace Override"]')
+        .should('be.visible')
+        .eq(0)
+        .click()
 
       cy.get('div[data-cy="shift-tooltip"]')
         .find('[data-cy="card-actions"]')
-        .find('button[title="Edit"]')
+        .find('button[aria-label="Edit"]')
         .click()
       cy.dialogTitle('Edit Schedule Override')
       cy.dialogFinish('Cancel')
@@ -257,11 +260,14 @@ function testCalendar(screen: ScreenFormat): void {
       cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
 
-      cy.get('[aria-label="Replace Override"]').should('be.visible').click()
+      cy.get('[aria-label="Replace Override"]')
+        .should('be.visible')
+        .eq(0)
+        .click()
 
       cy.get('div[data-cy="shift-tooltip"]')
         .find('[data-cy="card-actions"]')
-        .find('button[title="Delete"]')
+        .find('button[aria-label="Delete"]')
         .click()
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Cancel')

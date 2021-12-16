@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import Button from '@material-ui/core/Button'
-import ButtonGroup from '@material-ui/core/ButtonGroup'
-import Divider from '@material-ui/core/Divider'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
 import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Form } from '../forms'
 import {
   InputAdornment,
@@ -18,12 +18,13 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
-} from '@material-ui/core'
+} from '@mui/material'
 import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { ConfigValue, ConfigHint } from '../../schema'
 import SlackActions from './SlackActions'
+import { theme } from '../mui'
 
 const query = gql`
   query getConfig {
@@ -46,7 +47,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   accordionDetails: {
     padding: 0,
     display: 'block',
