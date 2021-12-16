@@ -38,6 +38,8 @@ type Store interface {
 
 	// FindPendingNotifications will return destination info for alerts that are waiting to be sent
 	FindPendingNotifications(ctx context.Context, alertID int) ([]AlertPendingNotification, error)
+
+	RecentMessages(context.Context, *RecentMessageSearchOptions) ([]RecentMessage, error)
 }
 
 var _ Store = &DB{}

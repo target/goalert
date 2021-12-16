@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText, makeStyles } from '@material-ui/core'
+import { Hidden, ListItemText } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 import { useSelector } from 'react-redux'
 import { DateTime } from 'luxon'
 
@@ -88,7 +89,7 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('xs')
+  const isXs = useIsWidthDown('sm')
 
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
@@ -282,7 +283,7 @@ export default function AlertsList(props) {
           )
         }
         cardHeader={
-          <Hidden mdDown>
+          <Hidden lgDown>
             <AlertsListControls />
           </Hidden>
         }

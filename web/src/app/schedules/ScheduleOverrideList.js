@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import { Grid, FormControlLabel, Switch } from '@material-ui/core'
+import { Grid, FormControlLabel, Switch } from '@mui/material'
 import QueryList from '../lists/QueryList'
 import { gql } from '@apollo/client'
 import { UserAvatar } from '../util/avatars'

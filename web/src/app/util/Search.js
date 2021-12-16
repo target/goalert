@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
-import { makeStyles } from '@material-ui/core'
-import AppBar from '@material-ui/core/AppBar'
-import Hidden from '@material-ui/core/Hidden'
-import IconButton from '@material-ui/core/IconButton'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import Slide from '@material-ui/core/Slide'
-import TextField from '@material-ui/core/TextField'
-import Toolbar from '@material-ui/core/Toolbar'
-import { Close as CloseIcon, Search as SearchIcon } from '@material-ui/icons'
+import makeStyles from '@mui/styles/makeStyles'
+import AppBar from '@mui/material/AppBar'
+import Hidden from '@mui/material/Hidden'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Slide from '@mui/material/Slide'
+import TextField from '@mui/material/TextField'
+import Toolbar from '@mui/material/Toolbar'
+import { Close as CloseIcon, Search as SearchIcon } from '@mui/icons-material'
 import { DEBOUNCE_DELAY } from '../config'
 import AppBarSearchContainer from './AppBarSearchContainer'
 import { useURLParam } from '../actions'
@@ -89,12 +89,12 @@ export default function Search(props) {
         }}
         data-cy='search-field'
         placeholder='Search'
-        margin='dense'
         name='search'
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}
         value={search}
         className={classes.textField}
+        size='small'
       />
     )
   }
@@ -108,6 +108,7 @@ export default function Search(props) {
           aria-label='Search'
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
+          size='large'
         >
           <SearchIcon />
         </IconButton>
@@ -132,6 +133,7 @@ export default function Search(props) {
                 }}
                 aria-label='Cancel'
                 data-cy='close-search'
+                size='large'
               >
                 <CloseIcon />
               </IconButton>
@@ -145,7 +147,7 @@ export default function Search(props) {
 
   return (
     <React.Fragment>
-      <Hidden smDown>{renderTextField()}</Hidden>
+      <Hidden mdDown>{renderTextField()}</Hidden>
       <Hidden mdUp>{renderMobile()}</Hidden>
     </React.Fragment>
   )

@@ -1,25 +1,25 @@
 import React, { useState } from 'react'
-import AppBar from '@material-ui/core/AppBar'
-import Hidden from '@material-ui/core/Hidden'
-import Toolbar from '@material-ui/core/Toolbar'
+import AppBar from '@mui/material/AppBar'
+import Hidden from '@mui/material/Hidden'
+import Toolbar from '@mui/material/Toolbar'
 import ToolbarTitle from './components/ToolbarTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
 import { Switch, Route } from 'react-router-dom'
-import Grid from '@material-ui/core/Grid'
+import Grid from '@mui/material/Grid'
 import { useSelector } from 'react-redux'
 import { authSelector } from '../selectors'
 import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
 import LazySideBarDrawerList from './components/SideBarDrawerList'
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
+import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { makeStyles } from '@material-ui/core'
+import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 
@@ -45,14 +45,14 @@ const useStyles = makeStyles((theme) => ({
   containerClass: {
     padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
-    [theme.breakpoints.down('sm')]: { width: '100%' },
+    [theme.breakpoints.down('md')]: { width: '100%' },
   },
 }))
 
 export default function App() {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
-  const fullScreen = useIsWidthDown('sm')
+  const fullScreen = useIsWidthDown('md')
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
 
@@ -85,7 +85,7 @@ export default function App() {
             </Toolbar>
           </AppBar>
 
-          <Hidden smDown>
+          <Hidden mdDown>
             <LazyWideSideBar>
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}

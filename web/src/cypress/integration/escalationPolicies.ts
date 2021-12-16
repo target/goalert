@@ -70,7 +70,9 @@ function testEP(screen: ScreenFormat): void {
     })
 
     it('should delete a policy', () => {
-      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
+      cy.get('[data-cy="card-actions"]')
+        .find('button[aria-label="Delete"]')
+        .click()
       cy.dialogFinish('Confirm')
 
       cy.url().should('eq', Cypress.config().baseUrl + '/escalation-policies')
@@ -83,7 +85,9 @@ function testEP(screen: ScreenFormat): void {
       const description = c.word({ length: 9 })
       const repeat = c.integer({ min: 0, max: 5 }).toString()
 
-      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[data-cy="card-actions"]')
+        .find('button[aria-label="Edit"]')
+        .click()
       cy.dialogTitle('Edit Escalation Policy')
       cy.dialogForm({ name, description, repeat })
       cy.dialogFinish('Submit')

@@ -14,7 +14,7 @@ import {
   ListItem,
   ListItemText,
   Tooltip,
-} from '@material-ui/core'
+} from '@mui/material'
 import { useMutation, useQuery, ApolloError, gql } from '@apollo/client'
 import CopyText from '../util/CopyText'
 import TelTextField from '../util/TelTextField'

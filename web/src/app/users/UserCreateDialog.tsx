@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
-import { Checkbox, FormControlLabel, Grid, TextField } from '@material-ui/core'
+import { Checkbox, FormControlLabel, Grid, TextField } from '@mui/material'
 import { useConfigValue } from '../util/RequireConfig'
 
 const mutation = gql`
