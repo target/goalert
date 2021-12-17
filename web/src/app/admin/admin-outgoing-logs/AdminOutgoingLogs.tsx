@@ -100,7 +100,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
               width='full'
             >
               {/* TODO: change card's outline color in list when selected */}
-              {data.debugMessages.map((debugMessage) => (
+              {data.debugMessages.map((debugMessage: DebugMessage) => (
                 <OutgoingLogCard
                   key={debugMessage.id}
                   debugMessage={debugMessage}
