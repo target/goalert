@@ -165,113 +165,110 @@ function testCalendar(screen: ScreenFormat): void {
 
   it('should create a replace override from a shift tooltip', () => {
     cy.get('[data-cy-spin-loading=false]').should('exist')
-    const name = rot.users[0].name
+    const name1 = rot.users[0].name
+    const name2 = rot.users[1].name
 
-    cy.fixture('users').then((users) => {
-      let addUserName = users[0].name
-      if (rot.users[0].id === users[0].id) addUserName = users[1].name
-      cy.get('[data-cy=calendar]')
-        .should('contain', name)
-        .contains('div', name)
-        .click()
-      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="override"]').click()
-      cy.dialogTitle('Choose')
-      cy.dialogForm({ variant: 'replace' })
-      cy.dialogClick('Next')
+    cy.get('[data-cy=calendar]').contains('div', name1).click()
+    cy.get('div[data-cy="shift-tooltip"]')
+      .should('be.visible')
+      .get('button[data-cy="override"]')
+      .click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'replace' })
+    cy.dialogClick('Next')
 
-      cy.dialogTitle('Replace')
-      cy.dialogForm({ addUserID: addUserName })
-      cy.dialogFinish('Submit')
-    })
+    cy.dialogTitle('Replace')
+    cy.dialogForm({ addUserID: name2 })
+    cy.dialogFinish('Submit')
+
+    cy.get('[aria-label="Replace Override"]')
+      .first() // needed in case event spans saturday-sunday
+      .should('be.visible')
   })
 
   it('should create a remove override from a shift tooltip', () => {
     cy.get('[data-cy-spin-loading=false]').should('exist')
     const name = rot.users[0].name
 
-    cy.get('[data-cy=calendar]')
-      .should('contain', name)
-      .contains('div', name)
+    cy.get('[data-cy=calendar]').contains('div', name).click()
+    cy.get('div[data-cy="shift-tooltip"]')
+      .should('be.visible')
+      .get('button[data-cy="override"]')
       .click()
-    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="override"]').click()
     cy.dialogTitle('Choose')
     cy.dialogForm({ variant: 'remove' })
     cy.dialogClick('Next')
 
     cy.dialogTitle('Remove')
     cy.dialogFinish('Submit')
+
+    cy.get('[aria-label="Remove Override"]')
+      .first() // needed in case event spans saturday-sunday
+      .should('be.visible')
   })
 
-  it('should show overrides on calendar and open edit dialog from tooltip', () => {
+  it('should open override edit dialog from tooltip', () => {
     cy.get('[data-cy-spin-loading=false]').should('exist')
-    const name = rot.users[0].name
+    const name1 = rot.users[0].name
+    const name2 = rot.users[1].name
 
-    cy.fixture('users').then((users) => {
-      let addUserName = users[0].name
-      if (rot.users[0].id === users[0].id) addUserName = users[1].name
-      cy.get('[data-cy=calendar]')
-        .should('contain', name)
-        .contains('div', name)
-        .click()
-      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="override"]').click()
-      cy.dialogTitle('Choose')
-      cy.dialogForm({ variant: 'replace' })
-      cy.dialogClick('Next')
+    cy.get('[data-cy=calendar]').contains('div', name1).click()
+    cy.get('div[data-cy="shift-tooltip"]')
+      .should('be.visible')
+      .get('button[data-cy="override"]')
+      .click()
 
-      cy.dialogTitle('Replace')
-      cy.dialogForm({ addUserID: addUserName })
-      cy.dialogFinish('Submit')
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'replace' })
+    cy.dialogClick('Next')
 
-      cy.get('[aria-label="Replace Override"]')
-        .should('be.visible')
-        .eq(0)
-        .click()
+    cy.dialogTitle('Replace')
+    cy.dialogForm({ addUserID: name2 })
+    cy.dialogFinish('Submit')
 
-      cy.get('div[data-cy="shift-tooltip"]')
-        .find('[data-cy="card-actions"]')
-        .find('button[aria-label="Edit"]')
-        .click()
-      cy.dialogTitle('Edit Schedule Override')
-      cy.dialogFinish('Cancel')
-    })
+    cy.get('[aria-label="Replace Override"]')
+      .first() // needed in case event spans saturday-sunday
+      .should('be.visible')
+      .click()
+
+    cy.get('div[data-cy="shift-tooltip"]')
+      .find('[data-cy="card-actions"]')
+      .find('button[aria-label="Edit"]')
+      .click()
+    cy.dialogTitle('Edit Schedule Override')
+    cy.dialogFinish('Cancel')
   })
 
   it('should show overrides on calendar and open delete dialog from tooltip', () => {
     cy.get('[data-cy-spin-loading=false]').should('exist')
-    const name = rot.users[0].name
+    const name1 = rot.users[0].name
+    const name2 = rot.users[1].name
 
-    cy.fixture('users').then((users) => {
-      let addUserName = users[0].name
-      if (rot.users[0].id === users[0].id) addUserName = users[1].name
-      cy.get('[data-cy=calendar]')
-        .should('contain', name)
-        .contains('div', name)
-        .click()
-      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="override"]').click()
-      cy.dialogTitle('Choose')
-      cy.dialogForm({ variant: 'replace' })
-      cy.dialogClick('Next')
+    cy.get('[data-cy=calendar]').contains('div', name1).click()
+    cy.get('div[data-cy="shift-tooltip"]')
+      .should('be.visible')
+      .get('button[data-cy="override"]')
+      .click()
+    cy.dialogTitle('Choose')
+    cy.dialogForm({ variant: 'replace' })
+    cy.dialogClick('Next')
 
-      cy.dialogTitle('Replace')
-      cy.dialogForm({ addUserID: addUserName })
-      cy.dialogFinish('Submit')
+    cy.dialogTitle('Replace')
+    cy.dialogForm({ addUserID: name2 })
+    cy.dialogFinish('Submit')
 
-      cy.get('[aria-label="Replace Override"]')
-        .should('be.visible')
-        .eq(0)
-        .click()
+    cy.get('[aria-label="Replace Override"]')
+      .first() // needed in case event spans saturday-sunday
+      .should('be.visible')
+      .click()
 
-      cy.get('div[data-cy="shift-tooltip"]')
-        .find('[data-cy="card-actions"]')
-        .find('button[aria-label="Delete"]')
-        .click()
-      cy.dialogTitle('Are you sure?')
-      cy.dialogFinish('Cancel')
-    })
+    cy.get('div[data-cy="shift-tooltip"]')
+      .should('be.visible')
+      .find('[data-cy="card-actions"]')
+      .find('button[aria-label="Delete"]')
+      .click()
+    cy.dialogTitle('Are you sure?')
+    cy.dialogFinish('Cancel')
   })
 }
 
