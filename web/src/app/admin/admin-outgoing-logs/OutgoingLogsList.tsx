@@ -1,9 +1,9 @@
 import { Box } from '@mui/system'
 import { DebugMessage } from '../../../schema'
-import React from 'react'
+import React, { useEffect } from 'react'
 import OutgoingLogCard from './OutgoingLogCard'
 import { FilterValues } from './OutgoingLogsFilter'
-
+import { useFuse } from './hooks'
 interface Props {
   debugMessages: DebugMessage[]
   onSelect: (debugMessage: DebugMessage) => void
@@ -11,7 +11,22 @@ interface Props {
   searchTerm: string
 }
 
-const OutgoingLogsList = ({ debugMessages, onSelect }: Props): JSX.Element => {
+const OutgoingLogsList = ({
+  debugMessages,
+  onSelect,
+  searchTerm,
+}: Props): JSX.Element => {
+  const { setSearch, results } = useFuse<DebugMessage>({
+    data: debugMessages,
+    keys: ['status'],
+    // options: { minMatchCharLength: 0 },
+  })
+
+  console.log(searchTerm, debugMessages, results)
+
+  useEffect(() => {
+    setSearch(searchTerm)
+  }, [searchTerm])
   return (
     <Box
       display='flex'
@@ -20,7 +35,7 @@ const OutgoingLogsList = ({ debugMessages, onSelect }: Props): JSX.Element => {
       width='full'
     >
       {/* TODO: change card's outline color in list when selected */}
-      {debugMessages.map((debugMessage: DebugMessage) => (
+      {results.map(({ item: debugMessage }) => (
         <OutgoingLogCard
           key={debugMessage.id}
           debugMessage={debugMessage}

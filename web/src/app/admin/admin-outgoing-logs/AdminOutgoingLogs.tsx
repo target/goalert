@@ -10,6 +10,7 @@ import OutgoingLogsFilter, { FilterValues } from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
+import { useURLParam } from '../../actions'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
@@ -53,9 +54,9 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
   const [filter, setFilter] = useState<FilterValues>({})
-  const [searchTerm, setSearchTerm] = useState<string>('')
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
+  const [searchParam] = useURLParam('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -90,17 +91,17 @@ export default function AdminOutgoingLogs(): JSX.Element {
                 <OutgoingLogsFilter value={filter} onChange={setFilter} />
               </div>
               <div>
-                {/* tslint-expect-error */}
-                <Search value={searchTerm} onChange={setSearchTerm} />
+                {/* ts-lint-expect-error */}
+                <Search />
               </div>
             </Box>
           </Grid>
           <Grid item xs={12}>
-            {data.debugMessage ? (
+            {data.debugMessages ? (
               <OutgoingLogsList
                 filter={filter}
-                searchTerm={searchTerm}
-                debugMessages={data.debugMessage}
+                searchTerm={searchParam}
+                debugMessages={data.debugMessages}
                 onSelect={setSelectedLog}
               />
             ) : null}

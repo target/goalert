@@ -42,5 +42,8 @@
     "stylelint": "14.0.1",
     "stylelint-config-standard": "23.0.0",
     "typescript": "4.4.3"
+  },
+  "dependencies": {
+    "fuse.js": "^6.4.6"
   }
 }
