@@ -1,5 +1,5 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import List from '@mui/material/List'
 import makeStyles from '@mui/styles/makeStyles'
 import ListItem from '@mui/material/ListItem'
@@ -10,7 +10,6 @@ import { styles } from '../../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Collapse } from '@mui/material'
 import { PropTypes as p } from 'prop-types'
-import { useLocation } from 'react-router'
 
 const useStyles = makeStyles((theme) => {
   const { nav, navSelected } = styles(theme)

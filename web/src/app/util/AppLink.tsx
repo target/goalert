@@ -1,7 +1,6 @@
 import React, { forwardRef, ForwardRefRenderFunction } from 'react'
-import { Link, LinkProps } from 'react-router-dom'
+import { Link, LinkProps, useLocation } from 'react-router-dom'
 import joinURL from './joinURL'
-import { useLocation } from 'react-router'
 
 export interface AppLinkProps extends LinkProps {
   to: string

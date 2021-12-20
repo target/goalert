@@ -10,7 +10,7 @@ import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles({
   actionsContainer: {
