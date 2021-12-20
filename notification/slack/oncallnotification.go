@@ -32,10 +32,10 @@ func (s *ChannelSender) onCallNotificationText(ctx context.Context, t notificati
 	}
 
 	userSlackIDs := make(map[string]string, len(t.Users))
-	err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, func(sub user.AuthSubject) error {
+	err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, userIDs, func(sub user.AuthSubject) error {
 		userSlackIDs[sub.UserID] = sub.SubjectID
 		return nil
-	}, userIDs...)
+	})
 	if err != nil {
 		log.Log(ctx, fmt.Errorf("lookup auth subjects for slack: %w", err))
 		// handled error by logging, continue on to render message with any included slack IDs
