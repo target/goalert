@@ -1,14 +1,8 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core'
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
@@ -88,6 +82,7 @@ export default function UserContactMethodList(
         onClick={() => setShowVerifyDialogByID(cm.id)}
         color='primary'
         disabled={props.readOnly}
+        size='large'
       >
         <Warning message='Contact method disabled' />
       </IconButton>

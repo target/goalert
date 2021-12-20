@@ -1,7 +1,7 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import { FormControlLabel, Switch } from '@material-ui/core'
+import { FormControlLabel, Switch } from '@mui/material'
 import { DateTime } from 'luxon'
 
 import { useURLParam } from '../actions/hooks'

@@ -1,23 +1,27 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Grid from '@material-ui/core/Grid'
-import Hidden from '@material-ui/core/Hidden'
-import Switch from '@material-ui/core/Switch'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import Typography from '@material-ui/core/Typography'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Grid from '@mui/material/Grid'
+import Hidden from '@mui/material/Hidden'
+import Switch from '@mui/material/Switch'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
+import Countdown from 'react-countdown'
 import { gql, useMutation } from '@apollo/client'
+import { DateTime } from 'luxon'
+import _ from 'lodash'
 import {
   RotationLink,
   ScheduleLink,
@@ -29,13 +33,9 @@ import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import { makeStyles } from '@material-ui/core'
 import { useIsWidthDown } from '../../util/useWidth'
-import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
-import { DateTime } from 'luxon'
-import Countdown from 'react-countdown'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -395,7 +395,7 @@ export default function AlertDetails(props) {
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
-      <Hidden smDown>
+      <Hidden mdDown>
         <Grid item xs={12} className={classes.cardContainer}>
           <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
             <CardContent>

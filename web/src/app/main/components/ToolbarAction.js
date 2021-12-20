@@ -1,8 +1,8 @@
 import React from 'react'
 import { Switch, Route, useHistory } from 'react-router-dom'
-import Hidden from '@material-ui/core/Hidden'
-import IconButton from '@material-ui/core/IconButton'
-import { Menu as MenuIcon, ChevronLeft } from '@material-ui/icons'
+import Hidden from '@mui/material/Hidden'
+import IconButton from '@mui/material/IconButton'
+import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
 import { useIsWidthDown } from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
 
@@ -29,6 +29,7 @@ function ToolbarAction(props) {
         color='inherit'
         data-cy='nav-back-icon'
         onClick={() => history.replace(route)}
+        size='large'
       >
         <ChevronLeft />
       </IconButton>
@@ -65,6 +66,7 @@ function ToolbarAction(props) {
               color='inherit'
               data-cy='nav-menu-icon'
               onClick={() => props.openMobileSidebar(true)}
+              size='large'
             >
               <MenuIcon />
             </IconButton>

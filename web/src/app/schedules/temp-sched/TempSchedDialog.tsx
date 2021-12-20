@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
-import Checkbox from '@material-ui/core/Checkbox'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormHelperText from '@material-ui/core/FormHelperText'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core'
-import Alert from '@material-ui/lab/Alert'
-import AlertTitle from '@material-ui/lab/AlertTitle'
+import Checkbox from '@mui/material/Checkbox'
+import DialogContentText from '@mui/material/DialogContentText'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormHelperText from '@mui/material/FormHelperText'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
@@ -24,6 +24,7 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
+import { theme } from '../../mui'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -35,7 +36,7 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,
@@ -50,6 +51,9 @@ const useStyles = makeStyles((theme) => ({
   rightPane: {
     [theme.breakpoints.down('md')]: {
       marginTop: '1rem',
+    },
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: '1rem',
     },
     overflow: 'hidden',
   },

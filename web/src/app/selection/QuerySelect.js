@@ -222,8 +222,8 @@ export function makeQuerySelect(displayName, options) {
       else onChange((newVal && newVal.value) || null)
     }
 
-    const noOptionsText =
-      searchInput || selectOptions.length ? 'No options' : 'Start typing...'
+    let noOptionsText = 'No options'
+    if (searchInput && selectOptions.length) noOptionsText = 'Start typing...'
 
     return (
       <MaterialSelect
