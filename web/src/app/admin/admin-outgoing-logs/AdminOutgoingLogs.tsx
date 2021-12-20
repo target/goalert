@@ -4,9 +4,9 @@ import { Box, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import OutgoingLogCard from './OutgoingLogCard'
+import OutgoingLogsList from './OutgoingLogsList'
 import Search from '../../util/Search'
-import OutgoingLogsFilter from './OutgoingLogsFilter'
+import OutgoingLogsFilter, { FilterValues } from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
@@ -52,6 +52,8 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
+  const [filter, setFilter] = useState<FilterValues>({})
+  const [searchTerm, setSearchTerm] = useState<string>('')
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
 
@@ -85,29 +87,23 @@ export default function AdminOutgoingLogs(): JSX.Element {
               justifyContent='space-between'
             >
               <div>
-                <OutgoingLogsFilter />
+                <OutgoingLogsFilter value={filter} onChange={setFilter} />
               </div>
               <div>
-                <Search />
+                {/* tslint-expect-error */}
+                <Search value={searchTerm} onChange={setSearchTerm} />
               </div>
             </Box>
           </Grid>
           <Grid item xs={12}>
-            <Box
-              display='flex'
-              flexDirection='column'
-              alignItems='stretch'
-              width='full'
-            >
-              {/* TODO: change card's outline color in list when selected */}
-              {data.debugMessages.map((debugMessage: DebugMessage) => (
-                <OutgoingLogCard
-                  key={debugMessage.id}
-                  debugMessage={debugMessage}
-                  onClick={() => setSelectedLog(debugMessage)}
-                />
-              ))}
-            </Box>
+            {data.debugMessage ? (
+              <OutgoingLogsList
+                filter={filter}
+                searchTerm={searchTerm}
+                debugMessages={data.debugMessage}
+                onSelect={setSelectedLog}
+              />
+            ) : null}
           </Grid>
         </Grid>
       </Grid>

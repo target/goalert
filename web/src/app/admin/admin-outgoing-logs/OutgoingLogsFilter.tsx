@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { TextField } from '@mui/material'
+import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from '../../mui'
+import { ISODateTimePicker } from '../../util/ISOPickers'
 
 const useStyles = makeStyles<typeof theme>((theme) => {
   return {
@@ -34,43 +34,44 @@ const useStyles = makeStyles<typeof theme>((theme) => {
   }
 })
 
-interface FilterValues {
+export interface FilterValues {
   startDate?: string
   endDate?: string
 }
 
 interface OutgoingLogsFilterProps {
+  value: FilterValues
   onChange?: (filter: FilterValues) => void
 }
 
 export default function OutgoingLogsFilter({
+  value,
   onChange,
 }: OutgoingLogsFilterProps): JSX.Element {
   const classes = useStyles()
 
-  const [value, setValue] = useState<FilterValues>({})
-
-  useEffect(() => {
-    if (onChange) onChange(value)
-  }, [value])
-
   return (
     <div className={classes.filterContainer}>
-      {/*  start */}
-      <TextField
+      <ISODateTimePicker
         placeholder='Start'
         name='startDate'
-        onChange={(e) => setValue({ ...value, startDate: e.target.value })}
+        // timeZone={zone} // todo?
+        // min={DateTime.now().minus({ years: 3 }).toString()}
+        // max={DateTime.now().toISO()}
+        onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
         value={value.startDate}
         className={classes.textField}
         margin='dense'
       />
       <div className={classes.spacer} />
       {/*  end */}
-      <TextField
+      <ISODateTimePicker
         placeholder='End'
         name='endDate'
-        onChange={(e) => setValue({ ...value, endDate: e.target.value })}
+        // timeZone={zone} // todo?
+        // min={DateTime.now().minus({ years: 3 }).toString()}
+        // max={DateTime.now().toISO()}
+        onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
         value={value.endDate}
         className={classes.textField}
         margin='dense'
