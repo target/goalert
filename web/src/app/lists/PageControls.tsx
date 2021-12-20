@@ -1,10 +1,5 @@
-import React, { ReactNode, useContext, useState } from 'react'
-import {
-  CircularProgress,
-  Grid,
-  IconButton,
-  Theme,
-} from '@mui/material'
+import React, { useContext } from 'react'
+import { CircularProgress, Grid, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 import { ITEMS_PER_PAGE } from '../config'
@@ -27,30 +22,22 @@ const useStyles = makeStyles((theme: Theme) => ({
 export const PageControlsContext = React.createContext<{
   page: number
   setPage: (page: number) => void
+  isLoading: boolean
 }>({
   page: 0,
   setPage: () => {},
+  isLoading: false,
 })
 
-export const PageControlsContextProvider = (props: {
-  children: ReactNode
-}): JSX.Element => {
-  const [page, setPage] = useState<number>(0)
-  return (
-    <PageControlsContext.Provider value={{ page, setPage }}>
-      {props.children}
-    </PageControlsContext.Provider>
-  )
-}
+PageControlsContext.displayName = 'PageControlsContext'
 
 export function PageControls(props: {
-  isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
   pageCount: number
 }): JSX.Element {
-  const { page, setPage } = useContext(PageControlsContext)
+  const { page, setPage, isLoading } = useContext(PageControlsContext)
   const classes = useStyles()
-  const { isLoading, loadMore, pageCount } = props
+  const { loadMore, pageCount } = props
 
   const hasNextPage = (() => {
     const nextPage = page + 1

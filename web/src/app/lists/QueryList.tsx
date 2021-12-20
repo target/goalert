@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -16,11 +16,7 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import {
-  PageControls,
-  PageControlsContext,
-  PageControlsContextProvider,
-} from './PageControls'
+import { PageControls, PageControlsContext } from './PageControls'
 import { ListHeader } from './ListHeader'
 
 // any && object type map
@@ -107,7 +103,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     ...listProps
   } = props
   const { input, ...vars } = variables
-  const { page } = useContext(PageControlsContext)
+  const [page, setPage] = useState(0)
 
   const [searchParam] = useURLParam('search', '')
   const { key: urlKey } = useLocation()
@@ -178,11 +174,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
             noSearch={noSearch}
           />
           {!props.infiniteScroll && (
-            <PageControls
-              pageCount={pageCount}
-              loadMore={loadMore}
-              isLoading={isLoading}
-            />
+            <PageControls pageCount={pageCount} loadMore={loadMore} />
           )}
         </Grid>
       )
@@ -204,15 +196,10 @@ export default function QueryList(props: QueryListProps): JSX.Element {
               pageCount={pageCount}
               itemsPerPage={queryVariables.input.first}
               loadMore={loadMore}
-              isLoading={isLoading}
             />
           </Card>
           {!props.infiniteScroll && (
-            <PageControls
-              pageCount={pageCount}
-              loadMore={loadMore}
-              isLoading={isLoading}
-            />
+            <PageControls pageCount={pageCount} loadMore={loadMore} />
           )}
         </Grid>
       </Grid>
@@ -220,6 +207,8 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   }
 
   return (
-    <PageControlsContextProvider>{renderList()}</PageControlsContextProvider>
+    <PageControlsContext.Provider value={{ page, setPage, isLoading }}>
+      {renderList()}
+    </PageControlsContext.Provider>
   )
 }

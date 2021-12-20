@@ -117,13 +117,12 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     itemsPerPage = ITEMS_PER_PAGE,
     pageCount,
     infiniteScroll,
-    isLoading,
     loadMore,
     emptyMessage = 'No results',
     noPlaceholder,
   } = props
 
-  const { page } = useContext(PageControlsContext)
+  const { page, isLoading } = useContext(PageControlsContext)
 
   const classes = useStyles()
 
