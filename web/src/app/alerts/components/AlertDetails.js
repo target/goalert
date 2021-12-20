@@ -184,8 +184,11 @@ export default function AlertDetails(props) {
                 steps[currentLevel].delayMinutes * 60000,
             )
           }
+          overtime
           renderer={(props) => {
-            const { hours, minutes, seconds } = props
+            const { hours, minutes, seconds, completed } = props
+
+            if (completed) return 'Escalating...'
 
             const hourTxt = parseInt(hours)
               ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
