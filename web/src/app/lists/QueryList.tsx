@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { ReactNode, useState, useMemo } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -73,6 +73,13 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
    *   }
    *  ```
    */
+  // cardHeader will be displayed at the top of the card
+  cardHeader?: ReactNode
+
+  // header elements will be displayed at the top of the list.
+  headerNote?: string // left-aligned
+  headerAction?: JSX.Element // right-aligned
+
   query: DocumentNode
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
@@ -166,6 +173,13 @@ export default function QueryList(props: QueryListProps): JSX.Element {
         <Grid container spacing={2}>
           <ControlledPaginatedList
             {...listProps}
+            listHeader={
+              <ListHeader
+                cardHeader={props.cardHeader}
+                headerNote={props.headerNote}
+                headerAction={props.headerAction}
+              />
+            }
             items={items}
             itemsPerPage={queryVariables.input.first}
             pageCount={pageCount}

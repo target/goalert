@@ -10,7 +10,6 @@ import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
-import { ListHeader } from './ListHeader'
 import { useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles({
@@ -43,12 +42,7 @@ const useStyles = makeStyles({
 })
 
 export interface ControlledPaginatedListProps extends PaginatedListProps {
-  // cardHeader will be displayed at the top of the card
-  cardHeader?: ReactNode
-
-  // header elements will be displayed at the top of the list.
-  headerNote?: string // left-aligned
-  headerAction?: JSX.Element // right-aligned
+  listHeader: ReactNode
 
   checkboxActions?: ControlledPaginatedListAction[]
   secondaryActions?: ReactElement
@@ -97,9 +91,7 @@ export default function ControlledPaginatedList(
     noSearch,
     searchAdornment,
     items,
-    headerNote,
-    headerAction,
-    cardHeader,
+    listHeader,
     ...listProps
   } = props
 
@@ -274,11 +266,7 @@ export default function ControlledPaginatedList(
 
       <Grid item xs={12}>
         <Card>
-          <ListHeader
-            cardHeader={cardHeader}
-            headerNote={headerNote}
-            headerAction={headerAction}
-          />
+          {listHeader}
           <PaginatedList key={urlKey} {...listProps} items={getItems()} />
         </Card>
       </Grid>
