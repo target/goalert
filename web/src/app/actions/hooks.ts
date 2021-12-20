@@ -1,5 +1,6 @@
+import { useHistory, useLocation } from 'react-router-dom'
 import { urlParamSelector, urlPathSelector } from '../selectors'
-import { setURLParam as setParam, resetURLParams as resetParams } from './main'
+import { setURLParam as setParam } from './main'
 import { useSelector, useDispatch } from 'react-redux'
 import { warn } from '../util/debug'
 import joinURL from '../util/joinURL'
@@ -29,18 +30,38 @@ export function useURLParam<T extends Value>(
   return [value, setValue]
 }
 
-export function useResetURLParams(...keys: Array<string>): () => void {
-  const dispatch = useDispatch()
-  const urlPath = joinURL(pathPrefix, useSelector(urlPathSelector))
-  function resetURLParams(): void {
-    if (window.location.pathname !== urlPath) {
-      warn(
-        'useResetURLParams was called to reset parameters, but location.pathname has changed, aborting',
-      )
+// useResetURLParams returns a function that, when called, will remove
+// the query parameters for a given list of key names. If no list is
+// provided, all existing query paramters are removed.
+// The native history stack will not push a new entry; instead, its
+// latest entry will be replaced.
+export function useResetURLParams(...keys: string[]): () => void {
+  const { pathname, search, hash } = useLocation()
+  const history = useHistory()
+
+  return function resetURLParams(): void {
+    if (!keys.length) {
+      // by default, clear all params
+      return history.replace(pathname)
+    }
+
+    const q = new URLSearchParams(search)
+    keys.forEach((key) => q.delete(key))
+
+    if (q.sort) {
+      q.sort()
+    }
+
+    let newSearch = q.toString()
+    if (newSearch) {
+      newSearch = '?' + newSearch
+    }
+
+    if (newSearch === search) {
+      // no action for no param change
       return
     }
-    dispatch(resetParams(...keys))
-  }
 
-  return resetURLParams
+    history.replace(pathname + newSearch + hash)
+  }
 }
