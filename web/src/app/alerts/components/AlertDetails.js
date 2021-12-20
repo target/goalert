@@ -4,7 +4,6 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Grid from '@mui/material/Grid'
-import Hidden from '@mui/material/Hidden'
 import Switch from '@mui/material/Switch'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -395,55 +394,51 @@ export default function AlertDetails(props) {
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
-      <Hidden mdDown>
-        <Grid item xs={12} className={classes.cardContainer}>
-          <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
-            <CardContent>
-              <Typography
-                className={classes.epHeader}
-                component='h3'
-                variant='h5'
+      <Grid item xs={12} className={classes.cardContainer}>
+        <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
+          <CardContent>
+            <Typography
+              className={classes.epHeader}
+              component='h3'
+              variant='h5'
+            >
+              <AppLink
+                to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
               >
-                <AppLink
-                  to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
-                >
-                  Escalation Policy
-                </AppLink>
-              </Typography>
-              {alert?.state?.lastEscalation && (
-                <React.Fragment>
-                  <Typography color='textSecondary' variant='caption'>
-                    Last Escalated:{' '}
-                    {DateTime.fromISO(alert.state.lastEscalation).toFormat(
-                      'fff',
-                    )}
-                  </Typography>
-                  <br />
-                  <Typography color='textSecondary' variant='caption'>
-                    Next Escalation: {getNextEscalation()}
-                  </Typography>
-                </React.Fragment>
-              )}
-            </CardContent>
-            <CardContent className={classes.tableCardContent}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Step</TableCell>
-                    <TableCell>Alert</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>{renderEscalationPolicySteps()}</TableBody>
-              </Table>
-            </CardContent>
-            <CardContent>
-              <Typography color='textSecondary' variant='caption'>
-                Visit this escalation policy for more information.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Hidden>
+                Escalation Policy
+              </AppLink>
+            </Typography>
+            {alert?.state?.lastEscalation && (
+              <React.Fragment>
+                <Typography color='textSecondary' variant='caption'>
+                  Last Escalated:{' '}
+                  {DateTime.fromISO(alert.state.lastEscalation).toFormat('fff')}
+                </Typography>
+                <br />
+                <Typography color='textSecondary' variant='caption'>
+                  Next Escalation: {getNextEscalation()}
+                </Typography>
+              </React.Fragment>
+            )}
+          </CardContent>
+          <CardContent className={classes.tableCardContent}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Step</TableCell>
+                  <TableCell>Alert</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>{renderEscalationPolicySteps()}</TableBody>
+            </Table>
+          </CardContent>
+          <CardContent>
+            <Typography color='textSecondary' variant='caption'>
+              Visit this escalation policy for more information.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
 
       {/* Alert Logs */}
       <Grid item xs={12} className={classes.cardContainer}>
