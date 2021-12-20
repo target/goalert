@@ -27,6 +27,10 @@ type DB struct {
 
 	cleanupAlertLogs *sql.Stmt
 
+	cleanupOverrides   *sql.Stmt
+	cleanupSchedOnCall *sql.Stmt
+	cleanupEPOnCall    *sql.Stmt
+
 	logIndex int
 }
 
@@ -83,5 +87,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				)
 			select id from scope offset 999
 		`),
+
+		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
+		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
+		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 	}, p.Err
 }
