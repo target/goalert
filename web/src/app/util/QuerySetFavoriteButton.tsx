@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
-import p from 'prop-types'
-
 import { SetFavoriteButton } from './SetFavoriteButton'
-import { oneOfShape } from '../util/propTypes'
-import { Button, Dialog, DialogActions, DialogTitle } from '@material-ui/core'
+import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const queries = {
@@ -56,34 +53,23 @@ const mutation = gql`
   }
 `
 
-export function QuerySetFavoriteButton(props) {
-  let id, typeName
-  if (props.rotationID) {
-    typeName = 'rotation'
-    id = props.rotationID
-  } else if (props.serviceID) {
-    typeName = 'service'
-    id = props.serviceID
-  } else if (props.scheduleID) {
-    typeName = 'schedule'
-    id = props.scheduleID
-  } else if (props.escalationPolicyID) {
-    typeName = 'escalationPolicy'
-    id = props.escalationPolicyID
-  } else if (props.userID) {
-    typeName = 'user'
-    id = props.userID
-  } else {
-    throw new Error('unknown type')
-  }
-  const { data, loading } = useQuery(queries[typeName], {
+interface QuerySetFavoriteButtonProps {
+  id: string
+  type: 'rotation' | 'service' | 'schedule' | 'escalationPolicy' | 'user'
+}
+
+export function QuerySetFavoriteButton({
+  id,
+  type,
+}: QuerySetFavoriteButtonProps): JSX.Element {
+  const { data, loading } = useQuery(queries[type], {
     variables: { id },
   })
   const isFavorite = data && data.data && data.data.isFavorite
   const [showMutationErrorDialog, setShowMutationErrorDialog] = useState(false)
   const [toggleFav, toggleFavStatus] = useMutation(mutation, {
     variables: {
-      input: { target: { id, type: typeName }, favorite: !isFavorite },
+      input: { target: { id, type }, favorite: !isFavorite },
     },
     onError: () => setShowMutationErrorDialog(true),
   })
@@ -91,7 +77,7 @@ export function QuerySetFavoriteButton(props) {
   return (
     <React.Fragment>
       <SetFavoriteButton
-        typeName={typeName}
+        typeName={type}
         isFavorite={isFavorite}
         loading={!data && loading}
         onClick={() => toggleFav()}
@@ -116,14 +102,4 @@ export function QuerySetFavoriteButton(props) {
       </Dialog>
     </React.Fragment>
   )
-}
-
-QuerySetFavoriteButton.propTypes = {
-  id: oneOfShape({
-    serviceID: p.string,
-    rotationID: p.string,
-    scheduleID: p.string,
-    escalationPolicyID: p.string,
-    userID: p.string,
-  }),
 }

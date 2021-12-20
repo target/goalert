@@ -1,13 +1,13 @@
 import React from 'react'
-import Chip, { ChipProps } from '@material-ui/core/Chip'
+import Chip, { ChipProps } from '@mui/material/Chip'
 import { push } from 'connected-react-router'
 import { useDispatch } from 'react-redux'
 import { useQuery, gql } from '@apollo/client'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
-} from '@material-ui/icons'
-import Avatar from '@material-ui/core/Avatar'
+} from '@mui/icons-material'
+import Avatar from '@mui/material/Avatar'
 
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'

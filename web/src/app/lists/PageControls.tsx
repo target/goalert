@@ -1,10 +1,12 @@
 import React, { ReactNode, useContext, useState } from 'react'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
-import { makeStyles, Theme } from '@material-ui/core'
-import LeftIcon from '@material-ui/icons/ChevronLeft'
-import RightIcon from '@material-ui/icons/ChevronRight'
+import {
+  CircularProgress,
+  Grid,
+  IconButton,
+  Theme,
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 import { ITEMS_PER_PAGE } from '../config'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -99,7 +101,7 @@ export function PageControls(props: {
             window.scrollTo(0, 0)
           }}
         >
-          <LeftIcon />
+          <ChevronLeft />
         </IconButton>
       </Grid>
       <Grid item>
@@ -119,7 +121,7 @@ export function PageControls(props: {
               className={classes.progress}
             />
           )}
-          <RightIcon />
+          <ChevronRight />
         </IconButton>
       </Grid>
     </Grid>

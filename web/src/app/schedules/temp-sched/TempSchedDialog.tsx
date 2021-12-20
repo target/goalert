@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
-import Checkbox from '@material-ui/core/Checkbox'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import FormHelperText from '@material-ui/core/FormHelperText'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core'
-import Alert from '@material-ui/lab/Alert'
-import AlertTitle from '@material-ui/lab/AlertTitle'
+import Checkbox from '@mui/material/Checkbox'
+import DialogContentText from '@mui/material/DialogContentText'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormHelperText from '@mui/material/FormHelperText'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, dtToDuration, Shift, Value } from './sharedUtils'
+import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -24,6 +24,7 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
+import { theme } from '../../mui'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -35,7 +36,7 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,
@@ -51,6 +52,9 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('md')]: {
       marginTop: '1rem',
     },
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: '1rem',
+    },
     overflow: 'hidden',
   },
   sticky: {
@@ -65,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value?: Value
+  value: Partial<TempSchedValue>
 }
 
 const clampForward = (nowISO: string, iso: string | undefined): string => {
@@ -85,7 +89,7 @@ export default function TempSchedDialog({
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = Boolean(_value)
+  const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
@@ -185,15 +189,17 @@ export default function TempSchedDialog({
         end: value.end,
         clearStart: value.clearStart,
         clearEnd: value.clearEnd,
-        shifts: value.shifts.filter((s) => {
-          // clamp/filter out shifts that are in the past
-          if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
-            return false
-          }
+        shifts: value.shifts
+          .map((s) => _.pick(s, 'start', 'end', 'userID'))
+          .filter((s) => {
+            // clamp/filter out shifts that are in the past
+            if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+              return false
+            }
 
-          s.start = clampForward(now, s.start)
-          return true
-        }),
+            s.start = clampForward(now, s.start)
+            return true
+          }),
         scheduleID,
       },
     },
@@ -258,7 +264,9 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue({ ...value, ...newValue })}
+          onChange={(newValue: TempSchedValue) =>
+            setValue({ ...value, ...newValue })
+          }
         >
           <Grid
             container

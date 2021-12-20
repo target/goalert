@@ -28,12 +28,12 @@ type Config struct {
 		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
 		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
 		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
-		EnableV1GraphQL              bool   `info:"Enables the deprecated /v1/graphql endpoint (replaced by /api/graphql)."`
 	}
 
 	Maintenance struct {
-		AlertCleanupDays int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
-		APIKeyExpireDays int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
+		AlertCleanupDays    int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+		APIKeyExpireDays    int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
+		ScheduleCleanupDays int `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
 	}
 
 	Auth struct {
@@ -393,6 +393,7 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
+		validate.Range("Maintenance.ScheduleCleanupDays", cfg.Maintenance.ScheduleCleanupDays, 0, 9000),
 		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
 		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
 		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),

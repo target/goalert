@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { GOALERT_VERSION, pathPrefix } from './env'
 import { DateTime } from 'luxon'
-import { Snackbar, Button } from '@material-ui/core'
+import { Snackbar, Button } from '@mui/material'
 import {
   UPDATE_CHECK_INTERVAL,
   UPDATE_FORCE_DURATION,
@@ -55,10 +55,6 @@ export default function NewVersionCheck(): JSX.Element {
     <Snackbar
       open={hasNewVersion && lastCheck.diff(firstSeen) >= UPDATE_NOTIF_DURATION}
       message='A new version is available.'
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'left',
-      }}
       action={
         <Button
           color='inherit'

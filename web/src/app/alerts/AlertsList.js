@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText, makeStyles } from '@material-ui/core'
+import { Hidden, ListItemText } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
-import { useSelector } from 'react-redux'
+} from '@mui/icons-material'
 import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
@@ -15,11 +15,11 @@ import AlertsListControls from './components/AlertsListControls'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
-import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import { useIsWidthDown } from '../util/useWidth'
 import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
+import { useURLParam } from '../actions'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -88,7 +88,7 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('xs')
+  const isXs = useIsWidthDown('sm')
 
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
@@ -97,10 +97,9 @@ export default function AlertsList(props) {
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
   // get redux url vars
-  const params = useSelector(urlParamSelector)
-  const allServices = params('allServices')
-  const fullTime = params('fullTime')
-  const filter = params('filter', 'active')
+  const [allServices] = useURLParam('allServices')
+  const [fullTime] = useURLParam('fullTime')
+  const [filter] = useURLParam('filter', 'active')
 
   // query for current service name if props.serviceID is provided
   const serviceNameQuery = useQuery(
@@ -282,7 +281,7 @@ export default function AlertsList(props) {
           )
         }
         cardHeader={
-          <Hidden mdDown>
+          <Hidden lgDown>
             <AlertsListControls />
           </Hidden>
         }

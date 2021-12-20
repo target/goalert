@@ -1,7 +1,7 @@
 import React from 'react'
 import { useMutation, gql } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
-import { fmt, Value } from './sharedUtils'
+import { fmt, TempSchedValue } from './sharedUtils'
 import { DateTime } from 'luxon'
 
 const mutation = gql`
@@ -13,7 +13,7 @@ const mutation = gql`
 type TempSchedDeleteConfirmationProps = {
   scheduleID: string
   onClose: () => void
-  value: Value
+  value: TempSchedValue
 }
 
 export default function TempSchedDeleteConfirmation({

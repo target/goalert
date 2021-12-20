@@ -1,25 +1,17 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
-import {
-  Card,
-  Checkbox,
-  Grid,
-  Icon,
-  IconButton,
-  makeStyles,
-  Tooltip,
-} from '@material-ui/core'
+import { Card, Checkbox, Grid, Icon, IconButton, Tooltip } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
-import { useSelector } from 'react-redux'
-import { urlKeySelector } from '../selectors/url'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
-import { ArrowDropDown } from '@material-ui/icons'
+import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
 import { ListHeader } from './ListHeader'
+import { useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles({
   actionsContainer: {
@@ -136,7 +128,7 @@ export default function ControlledPaginatedList(
   const checkedItems = _checkedItems.filter((id) =>
     getSelectableIDs().includes(id),
   )
-  const urlKey = useSelector(urlKeySelector)
+  const { key: urlKey } = useLocation()
 
   function setAll(): void {
     setCheckedItems(getSelectableIDs())
@@ -219,6 +211,7 @@ export default function ControlledPaginatedList(
                     a.onClick(checkedItems)
                     setNone()
                   }}
+                  size='large'
                 >
                   {a.icon}
                 </IconButton>

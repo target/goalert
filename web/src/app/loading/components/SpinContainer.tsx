@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { CircularProgress } from '@material-ui/core'
+import { CircularProgress } from '@mui/material'
 import _ from 'lodash'
 
 import { DEFAULT_SPIN_DELAY_MS, DEFAULT_SPIN_WAIT_MS } from '../../config'

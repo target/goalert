@@ -1,37 +1,48 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Grid from '@material-ui/core/Grid'
-import Hidden from '@material-ui/core/Hidden'
-import Switch from '@material-ui/core/Switch'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import Typography from '@material-ui/core/Typography'
-import Countdown from 'react-countdown-now'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Grid from '@mui/material/Grid'
+import Switch from '@mui/material/Switch'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Typography from '@mui/material/Typography'
+import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
+import Countdown from 'react-countdown'
 import { gql, useMutation } from '@apollo/client'
-import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
+import { DateTime } from 'luxon'
+import _ from 'lodash'
+import {
+  RotationLink,
+  ScheduleLink,
+  ServiceLink,
+  SlackChannelLink,
+  UserLink,
+} from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import { makeStyles } from '@material-ui/core'
 import { useIsWidthDown } from '../../util/useWidth'
-import _ from 'lodash'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
 
 const useStyles = makeStyles((theme) => {
-  return styles(theme)
+  return {
+    ...styles(theme),
+    epHeader: {
+      paddingBottom: 8,
+    },
+  }
 })
 
 const localStorage = window.localStorage
@@ -44,7 +55,8 @@ const updateStatusMutation = gql`
     }
   }
 `
-function AlertDetails(props) {
+
+export default function AlertDetails(props) {
   const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
 
@@ -103,70 +115,22 @@ function AlertDetails(props) {
     return fullScreen ? classes.cardFull : classes.card
   }
 
-  function renderAlertLogs() {
-    return (
-      <Card className={getCardClassName()}>
-        <div style={{ display: 'flex' }}>
-          <CardContent style={{ flex: 1, paddingBottom: 0 }}>
-            <Typography component='h3' variant='h5'>
-              Event Log
-            </Typography>
-          </CardContent>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showExactTimes}
-                onChange={handleToggleExactTimes}
-              />
-            }
-            label='Full Timestamps'
-            style={{ padding: '0.5em 0.5em 0 0' }}
-          />
-        </div>
-        <CardContent
-          className={classes.tableCardContent}
-          style={{ paddingBottom: 0 }}
-        >
-          <AlertDetailLogs
-            alertID={props.data.alertID}
-            showExactTimes={showExactTimes}
-          />
-        </CardContent>
-      </Card>
-    )
-  }
+  function renderTargets(targets, stepID) {
+    return _.sortBy(targets, 'name').map((target, i) => {
+      const separator = i === 0 ? '' : ', '
 
-  function renderRotations(rotations, stepID) {
-    return _.sortBy(rotations, 'name').map((rotation, i) => {
-      const sep = i === 0 ? '' : ', '
-      return (
-        <span key={stepID + rotation.id}>
-          {sep}
-          {RotationLink(rotation)}
-        </span>
-      )
-    })
-  }
+      let link
+      const t = target.type
+      if (t === 'rotation') link = RotationLink(target)
+      else if (t === 'schedule') link = ScheduleLink(target)
+      else if (t === 'slackChannel') link = SlackChannelLink(target)
+      else if (t === 'user') link = UserLink(target)
+      else link = target.name
 
-  function renderSchedules(schedules, stepID) {
-    return _.sortBy(schedules, 'name').map((schedule, i) => {
-      const sep = i === 0 ? '' : ', '
       return (
-        <span key={stepID + schedule.id}>
-          {sep}
-          {ScheduleLink(schedule)}
-        </span>
-      )
-    })
-  }
-
-  function renderUsers(users, stepID) {
-    return _.sortBy(users, 'name').map((user, i) => {
-      const sep = i === 0 ? '' : ', '
-      return (
-        <span key={stepID + user.id}>
-          {sep}
-          {UserLink(user)}
+        <span key={stepID + target.id}>
+          {separator}
+          {link}
         </span>
       )
     })
@@ -182,7 +146,8 @@ function AlertDetails(props) {
     const state = props.data.state
 
     return {
-      repeat: state?.repeatCount,
+      repeatCount: state?.repeatCount,
+      repeat: ep.repeat,
       numSteps: ep.steps.length,
       steps: ep.steps,
       status: alert.status,
@@ -192,25 +157,37 @@ function AlertDetails(props) {
   }
 
   function canAutoEscalate() {
-    const { repeat, numSteps, status, currentLevel } = epsHelper()
-    if (status !== 'StatusUnacknowledged') return false
-    if (repeat === -1) return true
-    return currentLevel + 1 < numSteps * (repeat + 1)
+    const { currentLevel, status, steps, repeat, repeatCount } = epsHelper()
+
+    if (status !== 'StatusUnacknowledged') {
+      return false
+    }
+
+    if (currentLevel === steps.length - 1 && repeatCount >= repeat) {
+      return false
+    }
+
+    return true
   }
 
-  /*
-   * Renders a timer that counts down time until the next escalation
-   */
-  function renderTimer(index, delayMinutes) {
-    const { currentLevel, numSteps, lastEscalation } = epsHelper()
+  function getNextEscalation() {
+    const { currentLevel, lastEscalation, steps } = epsHelper()
     const prevEscalation = new Date(lastEscalation)
 
-    if (currentLevel % numSteps === index && canAutoEscalate()) {
+    if (canAutoEscalate()) {
       return (
         <Countdown
-          date={new Date(prevEscalation.getTime() + delayMinutes * 60000)}
+          date={
+            new Date(
+              prevEscalation.getTime() +
+                steps[currentLevel].delayMinutes * 60000,
+            )
+          }
+          overtime
           renderer={(props) => {
-            const { hours, minutes, seconds } = props
+            const { hours, minutes, seconds, completed } = props
+
+            if (completed) return 'Escalating...'
 
             const hourTxt = parseInt(hours)
               ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
@@ -227,7 +204,8 @@ function AlertDetails(props) {
         />
       )
     }
-    return <Typography>&mdash;</Typography>
+
+    return 'None'
   }
 
   function renderEscalationPolicySteps() {
@@ -244,26 +222,12 @@ function AlertDetails(props) {
     }
 
     return steps.map((step, index) => {
-      const { delayMinutes, id, targets } = step
+      const { id, targets } = step
 
       const rotations = targets.filter((t) => t.type === 'rotation')
       const schedules = targets.filter((t) => t.type === 'schedule')
+      const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
-
-      let rotationsRender
-      if (rotations.length > 0) {
-        rotationsRender = <div>Rotations: {renderRotations(rotations, id)}</div>
-      }
-
-      let schedulesRender
-      if (schedules.length > 0) {
-        schedulesRender = <div>Schedules: {renderSchedules(schedules, id)}</div>
-      }
-
-      let usersRender
-      if (users.length > 0) {
-        usersRender = <div>Users: {renderUsers(users, id)}</div>
-      }
 
       let className
       if (status !== 'closed' && currentLevel % steps.length === index) {
@@ -275,53 +239,20 @@ function AlertDetails(props) {
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
             {!targets.length && <Typography>&mdash;</Typography>}
-            {rotationsRender}
-            {schedulesRender}
-            {usersRender}
+            {rotations.length > 0 && (
+              <div>Rotations: {renderTargets(rotations, id)}</div>
+            )}
+            {schedules.length > 0 && (
+              <div>Schedules: {renderTargets(schedules, id)}</div>
+            )}
+            {slackChannels.length > 0 && (
+              <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
+            )}
+            {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
           </TableCell>
-          <TableCell>{renderTimer(index, delayMinutes)}</TableCell>
         </TableRow>
       )
     })
-  }
-
-  function renderEscalationPolicy() {
-    const alert = props.data
-
-    return (
-      <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
-        <CardContent>
-          <Typography component='h3' variant='h5'>
-            <AppLink
-              to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
-            >
-              Escalation Policy
-            </AppLink>
-          </Typography>
-        </CardContent>
-        <CardContent className={classes.tableCardContent}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Step</TableCell>
-                <TableCell>Alert</TableCell>
-                <TableCell>
-                  {canAutoEscalate()
-                    ? 'Time Until Next Escalation'
-                    : 'Time Between Escalations'}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>{renderEscalationPolicySteps()}</TableBody>
-          </Table>
-        </CardContent>
-        <CardContent>
-          <Typography color='textSecondary' variant='caption'>
-            Visit this escalation policy for more information.
-          </Typography>
-        </CardContent>
-      </Card>
-    )
   }
 
   function renderAlertDetails() {
@@ -430,10 +361,12 @@ function AlertDetails(props) {
   }))
 
   return (
-    <Grid container spacing={2} justify='center'>
+    <Grid container spacing={2} justifyContent='center'>
       <Grid item className={getCardClassName()}>
         <Notices notices={notices} />
       </Grid>
+
+      {/* Main Alert Info */}
       <Grid item xs={12} className={classes.cardContainer}>
         <Card className={getCardClassName()}>
           <CardContent data-cy='alert-summary'>
@@ -459,13 +392,84 @@ function AlertDetails(props) {
         </Card>
       </Grid>
       {renderAlertDetails()}
-      <Hidden smDown>
-        <Grid item xs={12} className={classes.cardContainer}>
-          {renderEscalationPolicy()}
-        </Grid>
-      </Hidden>
+
+      {/* Escalation Policy Info */}
       <Grid item xs={12} className={classes.cardContainer}>
-        {renderAlertLogs()}
+        <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
+          <CardContent>
+            <Typography
+              className={classes.epHeader}
+              component='h3'
+              variant='h5'
+            >
+              <AppLink
+                to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
+              >
+                Escalation Policy
+              </AppLink>
+            </Typography>
+            {alert?.state?.lastEscalation && (
+              <React.Fragment>
+                <Typography color='textSecondary' variant='caption'>
+                  Last Escalated:{' '}
+                  {DateTime.fromISO(alert.state.lastEscalation).toFormat('fff')}
+                </Typography>
+                <br />
+                <Typography color='textSecondary' variant='caption'>
+                  Next Escalation: {getNextEscalation()}
+                </Typography>
+              </React.Fragment>
+            )}
+          </CardContent>
+          <CardContent className={classes.tableCardContent}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Step</TableCell>
+                  <TableCell>Alert</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>{renderEscalationPolicySteps()}</TableBody>
+            </Table>
+          </CardContent>
+          <CardContent>
+            <Typography color='textSecondary' variant='caption'>
+              Visit this escalation policy for more information.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Alert Logs */}
+      <Grid item xs={12} className={classes.cardContainer}>
+        <Card className={getCardClassName()}>
+          <div style={{ display: 'flex' }}>
+            <CardContent style={{ flex: 1, paddingBottom: 0 }}>
+              <Typography component='h3' variant='h5'>
+                Event Log
+              </Typography>
+            </CardContent>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showExactTimes}
+                  onChange={handleToggleExactTimes}
+                />
+              }
+              label='Full Timestamps'
+              style={{ padding: '0.5em 0.5em 0 0' }}
+            />
+          </div>
+          <CardContent
+            className={classes.tableCardContent}
+            style={{ paddingBottom: 0 }}
+          >
+            <AlertDetailLogs
+              alertID={props.data.alertID}
+              showExactTimes={showExactTimes}
+            />
+          </CardContent>
+        </Card>
       </Grid>
     </Grid>
   )
@@ -474,5 +478,3 @@ function AlertDetails(props) {
 AlertDetails.propTypes = {
   error: p.shape({ message: p.string }),
 }
-
-export default AlertDetails
