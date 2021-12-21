@@ -19,7 +19,8 @@ const OutgoingLogsList = ({
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
     keys: ['status'],
-    // options: { minMatchCharLength: 0 },
+    options: { shouldSort: false },
+    customOptions: { showResultsWhenNoSearchTerm: true },
   })
 
   console.log(searchTerm, debugMessages, results)
@@ -27,6 +28,7 @@ const OutgoingLogsList = ({
   useEffect(() => {
     setSearch(searchTerm)
   }, [searchTerm])
+
   return (
     <Box
       display='flex'

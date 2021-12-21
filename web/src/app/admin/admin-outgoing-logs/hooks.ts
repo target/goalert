@@ -5,10 +5,11 @@ interface FuseParams<T> {
   data: T[]
   keys?: Fuse.FuseOptionKey[]
   options?: Fuse.IFuseOptions<T>
+  customOptions?: { showResultsWhenNoSearchTerm?: boolean }
 }
 
 interface FuseResults<T> {
-  results: { item: T; refIndex: number }[]
+  results: Fuse.FuseResult<T>[]
   search: string
   setSearch: (search: string) => void
 }
@@ -28,12 +29,13 @@ export const useFuse = <T>({
   data,
   keys,
   options,
+  customOptions,
 }: FuseParams<T>): FuseResults<T> => {
-  const [results, setResults] = useState<{ item: T; refIndex: number }[]>([])
+  const [fuseResults, setFuseResults] = useState<Fuse.FuseResult<T>[]>([])
   const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
 
-  console.log('f', data, search, results)
+  console.log('f', data, search, fuseResults)
 
   useEffect(() => {
     if (!data) {
@@ -49,11 +51,20 @@ export const useFuse = <T>({
   useEffect(() => {
     async function set(): Promise<void> {
       if (fuse.current) {
-        setResults(await fuse.current.search(search))
+        setFuseResults(await fuse.current.search(search))
       }
     }
     set()
   }, [search, fuse, data])
+
+  const results =
+    customOptions?.showResultsWhenNoSearchTerm && search === ''
+      ? data.map((data, i) => ({
+          item: data,
+          score: 1,
+          refIndex: i,
+        }))
+      : fuseResults
 
   return { results, search, setSearch }
 }
