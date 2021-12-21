@@ -2,18 +2,20 @@ import { Box } from '@mui/system'
 import { DebugMessage } from '../../../schema'
 import React, { useEffect } from 'react'
 import OutgoingLogCard from './OutgoingLogCard'
-import { FilterValues } from './OutgoingLogsFilter'
 import { useFuse } from './hooks'
+import { useURLParam } from '../../actions'
 
 interface Props {
-  debugMessages: DebugMessage[]
+  debugMessages?: DebugMessage[]
   onSelect: (debugMessage: DebugMessage) => void
-  filter: FilterValues
-  searchTerm: string
 }
 
 export default function OutgoingLogsList(props: Props): JSX.Element {
-  const { debugMessages, onSelect, searchTerm } = props
+  const { debugMessages = [], onSelect } = props
+
+  const [searchTerm] = useURLParam('search', '')
+  // const [start] = useURLParam('start', '')
+  // const [end] = useURLParam('end', '')
 
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,

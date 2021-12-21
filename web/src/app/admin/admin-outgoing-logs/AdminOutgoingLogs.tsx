@@ -6,11 +6,10 @@ import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import OutgoingLogsList from './OutgoingLogsList'
 import Search from '../../util/Search'
-import OutgoingLogsFilter, { FilterValues } from './OutgoingLogsFilter'
+import OutgoingLogsFilter from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
-import { useURLParam } from '../../actions'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
@@ -53,10 +52,8 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
-  const [filter, setFilter] = useState<FilterValues>({})
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
-  const [searchParam] = useURLParam('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -88,7 +85,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
               justifyContent='space-between'
             >
               <div>
-                <OutgoingLogsFilter value={filter} onChange={setFilter} />
+                <OutgoingLogsFilter />
               </div>
               <div>
                 <Search />
@@ -96,14 +93,10 @@ export default function AdminOutgoingLogs(): JSX.Element {
             </Box>
           </Grid>
           <Grid item xs={12}>
-            {data.debugMessages ? (
-              <OutgoingLogsList
-                filter={filter}
-                searchTerm={searchParam}
-                debugMessages={data.debugMessages}
-                onSelect={setSelectedLog}
-              />
-            ) : null}
+            <OutgoingLogsList
+              debugMessages={data.debugMessages}
+              onSelect={setSelectedLog}
+            />
           </Grid>
         </Grid>
       </Grid>
