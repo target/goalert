@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 interface FuseParams<T> {
   data: T[]
   keys?: Fuse.FuseOptionKey[]
-  options?: Fuse.IFuseOptions<T>
-  customOptions?: { showResultsWhenNoSearchTerm?: boolean }
+  options?: Fuse.IFuseOptions<T> & CustomOptions
+}
+
+interface CustomOptions {
+  showResultsWhenNoSearchTerm?: boolean
 }
 
 interface FuseResults<T> {
@@ -28,9 +31,9 @@ const DEFAULT_QUERY = ''
 export function useFuse<T>({
   data,
   keys,
-  options,
-  customOptions,
+  options = {},
 }: FuseParams<T>): FuseResults<T> {
+  const { showResultsWhenNoSearchTerm, ...fuseOptions } = options
   const [fuseResults, setFuseResults] = useState<Fuse.FuseResult<T>[]>([])
   const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
@@ -42,7 +45,7 @@ export function useFuse<T>({
 
     fuse.current = new Fuse(data, {
       ...defaultOptions,
-      ...options,
+      ...fuseOptions,
       keys,
     })
   }, [search, fuse, data, keys, options])
@@ -57,7 +60,7 @@ export function useFuse<T>({
   }, [search, fuse, data])
 
   const results =
-    customOptions?.showResultsWhenNoSearchTerm && search === ''
+    showResultsWhenNoSearchTerm && search === ''
       ? data.map((data, i) => ({
           item: data,
           score: 1,

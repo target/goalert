@@ -3,6 +3,8 @@ import makeStyles from '@mui/styles/makeStyles'
 import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useURLParam } from '../../actions'
+import { Button } from '@mui/material'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
 const useStyles = makeStyles<typeof theme>((theme) => {
   return {
@@ -41,7 +43,12 @@ export default function OutgoingLogsFilter(): JSX.Element {
   const [start, setStart] = useURLParam<string>('start', '')
   const [end, setEnd] = useURLParam<string>('end', '')
 
-  // todo: add reset button or handle clearing start/end with backspace
+  // todo: make reset button reset ISODateTimePicker
+
+  const resetFilters = (): void => {
+    setStart('')
+    setEnd('')
+  }
 
   return (
     <div className={classes.filterContainer}>
@@ -62,6 +69,9 @@ export default function OutgoingLogsFilter(): JSX.Element {
         className={classes.textField}
         margin='dense'
       />
+      <Button type='button' onClick={resetFilters}>
+        <RestartAltIcon />
+      </Button>
     </div>
   )
 }

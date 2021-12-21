@@ -1,15 +1,16 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import OutgoingLogsList from './OutgoingLogsList'
-import Search from '../../util/Search'
 import OutgoingLogsFilter from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
+import { Search } from '@mui/icons-material'
+import { useURLParam } from '../../actions'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
@@ -47,6 +48,11 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
     margin: theme.spacing(1),
     cursor: 'pointer',
   },
+  textField: {
+    backgroundColor: 'white',
+    borderRadius: '4px',
+    minWidth: 250,
+  },
 }))
 
 export default function AdminOutgoingLogs(): JSX.Element {
@@ -54,6 +60,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
+  const [searchParam, setSearchParam] = useURLParam('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -88,7 +95,23 @@ export default function AdminOutgoingLogs(): JSX.Element {
                 <OutgoingLogsFilter />
               </div>
               <div>
-                <Search />
+                <TextField
+                  InputProps={{
+                    // ref: fieldRef,
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Search color='action' />
+                      </InputAdornment>
+                    ),
+                  }}
+                  data-cy='search-field'
+                  placeholder='Search'
+                  name='search'
+                  hiddenLabel
+                  onChange={(e) => setSearchParam(e?.target?.value ?? '')}
+                  value={searchParam}
+                  className={classes.textField}
+                />
               </div>
             </Box>
           </Grid>
