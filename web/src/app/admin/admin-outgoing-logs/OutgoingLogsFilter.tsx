@@ -2,6 +2,7 @@ import React from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
+import { useURLParam } from '../../actions'
 
 const useStyles = makeStyles<typeof theme>((theme) => {
   return {
@@ -34,45 +35,28 @@ const useStyles = makeStyles<typeof theme>((theme) => {
   }
 })
 
-export interface FilterValues {
-  startDate?: string
-  endDate?: string
-}
-
-interface OutgoingLogsFilterProps {
-  value: FilterValues
-  onChange?: (filter: FilterValues) => void
-}
-
-export default function OutgoingLogsFilter({
-  value,
-  onChange,
-}: OutgoingLogsFilterProps): JSX.Element {
+export default function OutgoingLogsFilter(): JSX.Element {
   const classes = useStyles()
+
+  const [start, setStart] = useURLParam<string>('start', '')
+  const [end, setEnd] = useURLParam<string>('end', '')
 
   return (
     <div className={classes.filterContainer}>
       <ISODateTimePicker
         placeholder='Start'
         name='startDate'
-        // timeZone={zone} // todo?
-        // min={DateTime.now().minus({ years: 3 }).toString()}
-        // max={DateTime.now().toISO()}
-        onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
-        value={value.startDate}
+        value={start}
+        onChange={(newVal) => setStart(newVal as string)}
         className={classes.textField}
         margin='dense'
       />
       <div className={classes.spacer} />
-      {/*  end */}
       <ISODateTimePicker
         placeholder='End'
         name='endDate'
-        // timeZone={zone} // todo?
-        // min={DateTime.now().minus({ years: 3 }).toString()}
-        // max={DateTime.now().toISO()}
-        onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
-        value={value.endDate}
+        value={end}
+        onChange={(newVal) => setEnd(newVal as string)}
         className={classes.textField}
         margin='dense'
       />

@@ -25,7 +25,7 @@ const defaultOptions = {
 
 const DEFAULT_QUERY = ''
 
-export const useFuse = <T>({
+export function useFuse<T>({
   data,
   keys,
   options,
@@ -38,9 +38,8 @@ export const useFuse = <T>({
   console.log('f', data, search, fuseResults)
 
   useEffect(() => {
-    if (!data) {
-      return
-    }
+    if (!data) return
+
     fuse.current = new Fuse(data, {
       ...defaultOptions,
       ...options,
