@@ -138,6 +138,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
 
   const nodes = data?.data?.nodes ?? []
   const items = nodes.map(mapDataNode)
+  const itemCount = items.length
   let loadMore: ((numberToLoad?: number) => void) | undefined
 
   // isLoading returns true if the parent says we are, or
@@ -146,13 +147,14 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     if (!data && loading) return true
 
     // We are on a future/incomplete page and loadMore is true
-    const itemCount = items.length
     if ((page + 1) * ITEMS_PER_PAGE > itemCount && loadMore) return true
 
     return false
   })()
 
   const pageCount = Math.ceil(items.length / ITEMS_PER_PAGE)
+
+  if (itemCount < ITEMS_PER_PAGE && page > 0) setPage(0)
 
   if (data?.data?.pageInfo?.hasNextPage) {
     loadMore = buildFetchMore(
