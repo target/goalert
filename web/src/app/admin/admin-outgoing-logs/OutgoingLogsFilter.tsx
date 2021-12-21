@@ -41,6 +41,8 @@ export default function OutgoingLogsFilter(): JSX.Element {
   const [start, setStart] = useURLParam<string>('start', '')
   const [end, setEnd] = useURLParam<string>('end', '')
 
+  // todo: add reset button or handle clearing start/end with backspace
+
   return (
     <div className={classes.filterContainer}>
       <ISODateTimePicker

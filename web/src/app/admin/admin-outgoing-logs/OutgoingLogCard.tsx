@@ -15,8 +15,8 @@ import { theme } from '../../mui'
 
 const useStyles = makeStyles<typeof theme>((theme) => ({
   card: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(0.5),
+    marginBottom: theme.spacing(0.5),
     cursor: 'pointer',
   },
   chip: {
@@ -96,7 +96,7 @@ export default function OutgoingLogCard({
       />
       <CardContent style={{ paddingTop: 0 }}>
         <Typography className={classes.serviceName} color='textSecondary'>
-          {debugMessage.serviceName}
+          Service: {debugMessage.serviceName}
         </Typography>
         <Typography variant='body2' component='p'>
           Destination: {debugMessage.destination}
