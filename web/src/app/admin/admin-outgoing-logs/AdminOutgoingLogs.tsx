@@ -33,9 +33,18 @@ const debugMessageLogsQuery = gql`
 `
 
 const useStyles = makeStyles<typeof theme>((theme) => ({
-  gridContainer: {
+  containerDefault: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
+    },
+  },
+  containerSelected: {
+    [theme.breakpoints.up('md')]: {
+      justifyContent: 'left',
+      maxWidth: '70%',
+      // transitionDuration: theme.transitions.duration.standard,
+      // transitionTimingFunction: theme.transitions.easing.easeInOut,
+      // WebkitTransition: '1s'
     },
   },
   groupTitle: {
@@ -72,7 +81,13 @@ export default function AdminOutgoingLogs(): JSX.Element {
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
       />
-      <Grid container spacing={2} className={classes.gridContainer}>
+      <Grid
+        container
+        spacing={2}
+        className={
+          selectedLog ? classes.containerSelected : classes.containerDefault
+        }
+      >
         <Grid container item xs={12}>
           <Grid item xs={12}>
             <Typography
