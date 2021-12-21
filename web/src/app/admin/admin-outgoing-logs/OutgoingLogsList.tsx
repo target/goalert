@@ -23,7 +23,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
 
-  const [limit, setLimit] = useState(0)
+  const [limit, setLimit] = useState(1)
 
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
@@ -108,13 +108,15 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
         width='full'
       >
         {/* TODO: change card's outline color in list when selected */}
-        {filteredResults.map(({ item: debugMessage }) => (
-          <OutgoingLogCard
-            key={debugMessage.id}
-            debugMessage={debugMessage}
-            onClick={() => onSelect(debugMessage)}
-          />
-        ))}
+        {filteredResults
+          .slice(0, limit * LOAD_AMOUNT)
+          .map(({ item: debugMessage }) => (
+            <OutgoingLogCard
+              key={debugMessage.id}
+              debugMessage={debugMessage}
+              onClick={() => onSelect(debugMessage)}
+            />
+          ))}
       </Box>
     </InfiniteScroll>
   )
