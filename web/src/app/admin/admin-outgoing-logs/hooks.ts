@@ -30,7 +30,7 @@ export function useFuse<T>({
   keys,
   options,
   customOptions,
-}: FuseParams<T>): FuseResults<T> => {
+}: FuseParams<T>): FuseResults<T> {
   const [fuseResults, setFuseResults] = useState<Fuse.FuseResult<T>[]>([])
   const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
