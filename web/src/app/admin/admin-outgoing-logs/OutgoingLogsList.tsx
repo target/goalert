@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Box } from '@mui/system'
-import InfiniteScroll from 'react-infinite-scroll-component'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
 import OutgoingLogCard from './OutgoingLogCard'
 import { useFuse } from './hooks'
 import { useURLParam } from '../../actions'
-import { Typography } from '@mui/material'
-import Spinner from '../../loading/components/Spinner'
+import { Typography, Button } from '@mui/material'
 
 const INITIAL_LIMIT = 1
 const LOAD_AMOUNT = 8
@@ -65,24 +63,48 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   // what appends stuff to results
   function onNext(): void {
     console.log('onNext called', limit * LOAD_AMOUNT)
-    setLimit(limit + LOAD_AMOUNT)
+    setLimit(limit + 1)
     console.log('onNext called (after)', limit * LOAD_AMOUNT)
   }
 
-  function hasMore(): boolean {
-    if (filteredResults.length > limit * LOAD_AMOUNT) {
-      return true
-    }
+  // function hasMore(): boolean {
+  //   if (filteredResults.length > limit * LOAD_AMOUNT) {
+  //     return true
+  //   }
 
-    return false
-  }
+  //   return false
+  // }
 
   return (
-    <InfiniteScroll
-      hasMore={hasMore()}
-      next={onNext}
-      scrollableTarget='content'
-      endMessage={
+    <Box
+      display='flex'
+      flexDirection='column'
+      alignItems='stretch'
+      width='full'
+    >
+      {/* TODO: change card's outline color in list when selected */}
+      {filteredResults
+        .slice(0, limit * LOAD_AMOUNT)
+        .map(({ item: debugMessage }, index) => (
+          <OutgoingLogCard
+            key={debugMessage.id}
+            index={index}
+            debugMessage={debugMessage}
+            onClick={() => onSelect(debugMessage)}
+          />
+        ))}
+      {limit * LOAD_AMOUNT < filteredResults.length ? (
+        // load more
+        <Button
+          variant='contained'
+          color='primary'
+          sx={{ marginTop: '1rem', marginBottom: '1rem' }}
+          onClick={onNext}
+        >
+          Load more...
+        </Button>
+      ) : (
+        // done loading
         <Typography
           color='textSecondary'
           variant='body2'
@@ -94,38 +116,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
         >
           Displaying all results.
         </Typography>
-      }
-      loader={
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '0.25em 0 0.25em 0',
-          }}
-        >
-          <Spinner text='Loading...' />
-        </div>
-      }
-      dataLength={filteredResults.length}
-    >
-      <Box
-        display='flex'
-        flexDirection='column'
-        alignItems='stretch'
-        width='full'
-      >
-        {/* TODO: change card's outline color in list when selected */}
-        {filteredResults
-          .slice(0, limit * LOAD_AMOUNT)
-          .map(({ item: debugMessage }, index) => (
-            <OutgoingLogCard
-              key={debugMessage.id}
-              index={index}
-              debugMessage={debugMessage}
-              onClick={() => onSelect(debugMessage)}
-            />
-          ))}
-      </Box>
-    </InfiniteScroll>
+      )}
+    </Box>
   )
 }
