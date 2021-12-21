@@ -33,11 +33,13 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 
 interface AdminOutgoingLogsProps {
   debugMessage: DebugMessage
+  index: number
   onClick?: React.MouseEventHandler<HTMLDivElement>
 }
 
 export default function OutgoingLogCard({
   debugMessage,
+  index,
   onClick,
 }: AdminOutgoingLogsProps): JSX.Element {
   const classes = useStyles()
@@ -77,7 +79,7 @@ export default function OutgoingLogCard({
       <CardHeader
         action={
           <Typography color='textSecondary'>
-            {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
+            {index} - {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
           </Typography>
         }
         title={`${type} Notification`}

@@ -13,7 +13,7 @@ import { DebugMessage } from '../../../schema'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
-    debugMessages {
+    debugMessages(input: { first: 1000 }) {
       id
       createdAt
       updatedAt

@@ -9,7 +9,8 @@ import { useURLParam } from '../../actions'
 import { Typography } from '@mui/material'
 import Spinner from '../../loading/components/Spinner'
 
-const LOAD_AMOUNT = 15
+const INITIAL_LIMIT = 1
+const LOAD_AMOUNT = 8
 
 interface Props {
   debugMessages?: DebugMessage[]
@@ -23,7 +24,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
 
-  const [limit, setLimit] = useState(1)
+  const [limit, setLimit] = useState(INITIAL_LIMIT)
 
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
@@ -54,12 +55,18 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   })
 
   useEffect(() => {
+    setLimit(INITIAL_LIMIT)
+  }, [searchTerm, start, end])
+
+  useEffect(() => {
     setSearch(searchTerm)
   }, [searchTerm])
 
   // what appends stuff to results
   function onNext(): void {
-    setLimit(limit + 1)
+    console.log('onNext called', limit * LOAD_AMOUNT)
+    setLimit(limit + LOAD_AMOUNT)
+    console.log('onNext called (after)', limit * LOAD_AMOUNT)
   }
 
   function hasMore(): boolean {
@@ -110,9 +117,10 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
         {/* TODO: change card's outline color in list when selected */}
         {filteredResults
           .slice(0, limit * LOAD_AMOUNT)
-          .map(({ item: debugMessage }) => (
+          .map(({ item: debugMessage }, index) => (
             <OutgoingLogCard
               key={debugMessage.id}
+              index={index}
               debugMessage={debugMessage}
               onClick={() => onSelect(debugMessage)}
             />
