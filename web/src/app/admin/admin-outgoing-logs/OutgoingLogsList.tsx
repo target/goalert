@@ -8,7 +8,7 @@ import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
 const INITIAL_LIMIT = 1
-const LOAD_AMOUNT = 8
+const LOAD_AMOUNT = 50
 
 interface Props {
   debugMessages?: DebugMessage[]
@@ -29,8 +29,6 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
     keys: ['status'], // todo: add more keys, phone number/service/user name/etc
     options: { shouldSort: false, showResultsWhenNoSearchTerm: true },
   })
-
-  console.log(searchTerm, debugMessages, results)
 
   let filteredResults = results.slice() // copy results array
   filteredResults = filteredResults.filter((result) => {
@@ -61,18 +59,8 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
 
   // what appends stuff to results
   function onNext(): void {
-    console.log('onNext called', limit * LOAD_AMOUNT)
     setLimit(limit + 1)
-    console.log('onNext called (after)', limit * LOAD_AMOUNT)
   }
-
-  // function hasMore(): boolean {
-  //   if (filteredResults.length > limit * LOAD_AMOUNT) {
-  //     return true
-  //   }
-
-  //   return false
-  // }
 
   return (
     <Box
@@ -94,14 +82,18 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
         ))}
       {limit * LOAD_AMOUNT < filteredResults.length ? (
         // load more
-        <Button
-          variant='contained'
-          color='primary'
-          sx={{ marginTop: '1rem', marginBottom: '1rem' }}
-          onClick={onNext}
+        <div
+          style={{
+            marginTop: '0.5rem',
+            marginBottom: '0.5rem',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
         >
-          Load more...
-        </Button>
+          <Button variant='contained' color='primary' onClick={onNext}>
+            Load more
+          </Button>
+        </div>
       ) : (
         // done loading
         <Typography

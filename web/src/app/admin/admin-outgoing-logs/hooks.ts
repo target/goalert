@@ -38,8 +38,6 @@ export function useFuse<T>({
   const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
 
-  console.log('f', data, search, fuseResults)
-
   useEffect(() => {
     if (!data) return
 
