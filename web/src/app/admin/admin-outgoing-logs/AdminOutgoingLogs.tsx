@@ -60,7 +60,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
-  const [searchParam, setSearchParam] = useURLParam('search', '')
+  const [searchParam, setSearchParam] = useURLParam<string>('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -108,7 +108,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
                   placeholder='Search'
                   name='search'
                   hiddenLabel
-                  onChange={(e) => setSearchParam(e?.target?.value ?? '')}
+                  onChange={(e) => setSearchParam(e.target.value)}
                   value={searchParam}
                   className={classes.textField}
                 />
