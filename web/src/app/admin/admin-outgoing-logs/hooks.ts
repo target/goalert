@@ -24,11 +24,11 @@ const defaultOptions = {
 
 const DEFAULT_QUERY = ''
 
-export const useFuse = <T>({
+export function useFuse<T>({
   data,
   keys,
   options,
-}: FuseParams<T>): FuseResults<T> => {
+}: FuseParams<T>): FuseResults<T> {
   const [results, setResults] = useState<{ item: T; refIndex: number }[]>([])
   const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
@@ -36,9 +36,8 @@ export const useFuse = <T>({
   console.log('f', data, search, results)
 
   useEffect(() => {
-    if (!data) {
-      return
-    }
+    if (!data) return
+
     fuse.current = new Fuse(data, {
       ...defaultOptions,
       ...options,
@@ -49,7 +48,7 @@ export const useFuse = <T>({
   useEffect(() => {
     async function set(): Promise<void> {
       if (fuse.current) {
-        setResults(await fuse.current.search(search))
+        setResults(fuse.current.search(search))
       }
     }
     set()

@@ -41,7 +41,7 @@ export interface FilterValues {
 
 interface OutgoingLogsFilterProps {
   value: FilterValues
-  onChange?: (filter: FilterValues) => void
+  onChange: (filter: FilterValues) => void
 }
 
 export default function OutgoingLogsFilter({
@@ -56,8 +56,6 @@ export default function OutgoingLogsFilter({
         placeholder='Start'
         name='startDate'
         // timeZone={zone} // todo?
-        // min={DateTime.now().minus({ years: 3 }).toString()}
-        // max={DateTime.now().toISO()}
         onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
         value={value.startDate}
         className={classes.textField}
@@ -69,8 +67,6 @@ export default function OutgoingLogsFilter({
         placeholder='End'
         name='endDate'
         // timeZone={zone} // todo?
-        // min={DateTime.now().minus({ years: 3 }).toString()}
-        // max={DateTime.now().toISO()}
         onChange={(newVal: any) => onChange({ ...value, startDate: newVal })}
         value={value.endDate}
         className={classes.textField}

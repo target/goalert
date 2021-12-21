@@ -91,7 +91,6 @@ export default function AdminOutgoingLogs(): JSX.Element {
                 <OutgoingLogsFilter value={filter} onChange={setFilter} />
               </div>
               <div>
-                {/* ts-lint-expect-error */}
                 <Search />
               </div>
             </Box>

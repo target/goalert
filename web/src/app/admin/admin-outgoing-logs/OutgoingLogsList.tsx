@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import OutgoingLogCard from './OutgoingLogCard'
 import { FilterValues } from './OutgoingLogsFilter'
 import { useFuse } from './hooks'
+
 interface Props {
   debugMessages: DebugMessage[]
   onSelect: (debugMessage: DebugMessage) => void
@@ -11,11 +12,9 @@ interface Props {
   searchTerm: string
 }
 
-const OutgoingLogsList = ({
-  debugMessages,
-  onSelect,
-  searchTerm,
-}: Props): JSX.Element => {
+export default function OutgoingLogsList(props: Props): JSX.Element {
+  const { debugMessages, onSelect, searchTerm } = props
+
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
     keys: ['status'],
@@ -27,6 +26,7 @@ const OutgoingLogsList = ({
   useEffect(() => {
     setSearch(searchTerm)
   }, [searchTerm])
+
   return (
     <Box
       display='flex'
@@ -45,5 +45,3 @@ const OutgoingLogsList = ({
     </Box>
   )
 }
-
-export default OutgoingLogsList
