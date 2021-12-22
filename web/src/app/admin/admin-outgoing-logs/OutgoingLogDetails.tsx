@@ -68,7 +68,6 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
               </ListItem>
             )}
 
-            {/* TODO: use AppLink to point to user/service/alert pages */}
             {log?.userID && log?.userName && (
               <ListItem divider>
                 <ListItemText

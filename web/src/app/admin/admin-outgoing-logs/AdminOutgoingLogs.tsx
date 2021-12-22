@@ -9,7 +9,6 @@ import OutgoingLogsFilter from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
-// import { Search } from '@mui/icons-material'
 import Search from '../../util/Search'
 
 const debugMessageLogsQuery = gql`
@@ -67,7 +66,6 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
-  // const [searchParam, setSearchParam] = useURLParam<string>('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />

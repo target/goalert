@@ -37,7 +37,6 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
   const { debugMessage, onClick } = props
   const classes = useStyles()
 
-  //   We can do all the logic here to convert dates, phone number, etc to readable format
   const type = debugMessage.type
   const status = toTitleCase(debugMessage.status)
   const statusDict = {
