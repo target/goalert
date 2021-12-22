@@ -1,7 +1,5 @@
 import React, { forwardRef, ForwardRefRenderFunction } from 'react'
-import { Link, LinkProps } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { urlPathSelector } from '../selectors'
+import { Link, LinkProps, useLocation } from 'react-router-dom'
 import joinURL from './joinURL'
 import { OpenInNew } from '@mui/icons-material'
 
@@ -14,7 +12,7 @@ export interface AppLinkProps extends LinkProps {
 const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   function AppLink(props, ref): JSX.Element {
     const { to: _to, newTab, icon, ...other } = props
-    const path = useSelector(urlPathSelector)
+    const { pathname } = useLocation()
 
     if (newTab) {
       other.target = '_blank'
@@ -29,7 +27,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
       )
     }
 
-    const to = _to.startsWith('/') ? _to : joinURL(path, _to)
+    const to = _to.startsWith('/') ? _to : joinURL(pathname, _to)
 
     if (icon) {
       return (

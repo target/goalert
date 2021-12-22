@@ -33,13 +33,18 @@ func (srv *Server) SetAuthSubject(ctx context.Context, req *sysapi.SetAuthSubjec
 func (srv *Server) AuthSubjects(req *sysapi.AuthSubjectsRequest, rSrv sysapi.SysAPI_AuthSubjectsServer) error {
 	ctx := permission.SystemContext(rSrv.Context(), "SystemAPI")
 
-	return srv.UserStore.AuthSubjectsFunc(ctx, req.ProviderId, func(s user.AuthSubject) error {
+	var filterUsers []string
+	if req.UserId != "" {
+		filterUsers = append(filterUsers, req.UserId)
+	}
+
+	return srv.UserStore.AuthSubjectsFunc(ctx, req.ProviderId, filterUsers, func(s user.AuthSubject) error {
 		return rSrv.Send(&sysapi.AuthSubject{
 			ProviderId: s.ProviderID,
 			SubjectId:  s.SubjectID,
 			UserId:     s.UserID,
 		})
-	}, req.UserId)
+	})
 }
 
 func (srv *Server) DeleteUser(ctx context.Context, req *sysapi.DeleteUserRequest) (*sysapi.DeleteUserResponse, error) {
