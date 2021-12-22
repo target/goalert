@@ -26,27 +26,19 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
   msgType: {
     fontSize: 14,
   },
-  serviceName: {
-    marginBottom: 12,
-  },
 }))
 
-interface AdminOutgoingLogsProps {
+interface Props {
   debugMessage: DebugMessage
-  index: number
   onClick?: React.MouseEventHandler<HTMLDivElement>
 }
 
-export default function OutgoingLogCard({
-  debugMessage,
-  index,
-  onClick,
-}: AdminOutgoingLogsProps): JSX.Element {
+export default function OutgoingLogCard(props: Props): JSX.Element {
+  const { debugMessage, onClick } = props
   const classes = useStyles()
 
   //   We can do all the logic here to convert dates, phone number, etc to readable format
   const type = debugMessage.type
-  const formattedUsername = debugMessage.userName || '(Unknown)'
   const status = toTitleCase(debugMessage.status)
   const statusDict = {
     success: {
@@ -79,7 +71,7 @@ export default function OutgoingLogCard({
       <CardHeader
         action={
           <Typography color='textSecondary'>
-            {index} - {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
+            {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
           </Typography>
         }
         title={`${type} Notification`}
@@ -88,7 +80,7 @@ export default function OutgoingLogCard({
           color: 'textSecondary',
           gutterBottom: true,
         }}
-        subheader={`To ${formattedUsername}`}
+        subheader={`Destination: ${debugMessage.destination}`}
         subheaderTypographyProps={{
           component: 'span',
           variant: 'h6',
@@ -96,14 +88,20 @@ export default function OutgoingLogCard({
         }}
         style={{ paddingBottom: 0 }}
       />
-      <CardContent style={{ paddingTop: 0 }}>
-        <Typography className={classes.serviceName} color='textSecondary'>
-          Service: {debugMessage.serviceName}
-        </Typography>
-        <Typography variant='body2' component='p'>
-          Destination: {debugMessage.destination}
-        </Typography>
-      </CardContent>
+      {(debugMessage.serviceName || debugMessage.userName) && (
+        <CardContent>
+          {debugMessage.serviceName && (
+            <Typography color='textSecondary'>
+              Service: {debugMessage.serviceName}
+            </Typography>
+          )}
+          {debugMessage.userName && (
+            <Typography color='textSecondary'>
+              User: {debugMessage.userName}
+            </Typography>
+          )}
+        </CardContent>
+      )}
       <CardActions>
         <Chip className={classes.chip} label={status} style={statusStyles} />
       </CardActions>

@@ -72,10 +72,9 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       {/* TODO: change card's outline color in list when selected */}
       {filteredResults
         .slice(0, limit * LOAD_AMOUNT)
-        .map(({ item: debugMessage }, index) => (
+        .map(({ item: debugMessage }) => (
           <OutgoingLogCard
             key={debugMessage.id}
-            index={index}
             debugMessage={debugMessage}
             onClick={() => onSelect(debugMessage)}
           />
