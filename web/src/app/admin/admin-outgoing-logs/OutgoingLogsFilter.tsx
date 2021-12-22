@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { useURLParam } from '../../actions'
+import { useResetURLParams, useURLParam } from '../../actions'
 import { IconButton } from '@mui/material'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
@@ -37,7 +37,7 @@ const useStyles = makeStyles<typeof theme>((theme) => {
     resetButton: {
       height: 'min-content',
       alignSelf: 'center',
-      marginLeft: theme.spacing(0.5),
+      marginLeft: theme.spacing(1),
     },
   }
 })
@@ -47,18 +47,16 @@ export default function OutgoingLogsFilter(): JSX.Element {
 
   const [start, setStart] = useURLParam<string>('start', '')
   const [end, setEnd] = useURLParam<string>('end', '')
-  const [resetId, setResetId] = useState(1)
-
-  // todo: make reset button reset ISODateTimePicker
+  const [key, setKey] = useState(0)
+  const resetDateRange = useResetURLParams('start', 'end')
 
   const resetFilters = (): void => {
-    setStart('')
-    setEnd('')
-    setResetId(resetId + 1)
+    resetDateRange()
+    setKey(key + 1)
   }
 
   return (
-    <div className={classes.filterContainer} key={resetId}>
+    <div className={classes.filterContainer} key={key}>
       <div>
         <ISODateTimePicker
           placeholder='Start'
