@@ -35,16 +35,14 @@ const debugMessageLogsQuery = gql`
 const useStyles = makeStyles<typeof theme>((theme) => ({
   containerDefault: {
     [theme.breakpoints.up('md')]: {
-      justifyContent: 'center',
+      maxWidth: '100%',
+      transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
     },
   },
   containerSelected: {
     [theme.breakpoints.up('md')]: {
-      justifyContent: 'left',
       maxWidth: '70%',
-      // transitionDuration: theme.transitions.duration.standard,
-      // transitionTimingFunction: theme.transitions.easing.easeInOut,
-      // WebkitTransition: '1s'
+      transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
     },
   },
   groupTitle: {
