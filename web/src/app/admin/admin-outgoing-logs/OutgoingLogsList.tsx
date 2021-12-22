@@ -27,7 +27,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
 
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
-    keys: ['status'], // todo: add more keys, phone number/service/user name/etc
+    keys: ['destination', 'userName', 'serviceName', 'status'],
     options: { shouldSort: false, showResultsWhenNoSearchTerm: true },
   })
 
