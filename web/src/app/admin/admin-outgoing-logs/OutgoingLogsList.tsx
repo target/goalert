@@ -12,11 +12,12 @@ const LOAD_AMOUNT = 50
 
 interface Props {
   debugMessages?: DebugMessage[]
+  selectedLog: DebugMessage | null
   onSelect: (debugMessage: DebugMessage) => void
 }
 
 export default function OutgoingLogsList(props: Props): JSX.Element {
-  const { debugMessages = [], onSelect } = props
+  const { debugMessages = [], selectedLog, onSelect } = props
 
   const [searchTerm] = useURLParam('search', '')
   const [start] = useURLParam('start', '')
@@ -69,14 +70,14 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {/* TODO: change card's outline color in list when selected */}
       {filteredResults
         .slice(0, limit * LOAD_AMOUNT)
         .map(({ item: debugMessage }) => (
           <OutgoingLogCard
             key={debugMessage.id}
             debugMessage={debugMessage}
-            onClick={() => onSelect(debugMessage)}
+            selected={selectedLog?.id === debugMessage.id}
+            onSelect={() => onSelect(debugMessage)}
           />
         ))}
       {limit * LOAD_AMOUNT < filteredResults.length ? (

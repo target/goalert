@@ -30,11 +30,12 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 
 interface Props {
   debugMessage: DebugMessage
-  onClick?: React.MouseEventHandler<HTMLDivElement>
+  selected: boolean
+  onSelect: () => void
 }
 
 export default function OutgoingLogCard(props: Props): JSX.Element {
-  const { debugMessage, onClick } = props
+  const { debugMessage, selected, onSelect } = props
   const classes = useStyles()
 
   const type = debugMessage.type
@@ -65,8 +66,15 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
   if (s.includes('temp')) statusStyles = statusDict.warning
   if (s.includes('pend')) statusStyles = statusDict.info
 
+  console.log('selected: ', selected)
+
   return (
-    <Card onClick={onClick} key={debugMessage.id} className={classes.card}>
+    <Card
+      onClick={onSelect}
+      key={debugMessage.id}
+      className={classes.card}
+      sx={selected ? { border: '2px solid green' } : { border: 'none' }}
+    >
       <CardHeader
         action={
           <Typography color='textSecondary'>
