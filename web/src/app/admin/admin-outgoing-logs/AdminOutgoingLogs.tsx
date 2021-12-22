@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -9,8 +9,8 @@ import OutgoingLogsFilter from './OutgoingLogsFilter'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
-import { Search } from '@mui/icons-material'
-import { useURLParam } from '../../actions'
+// import { Search } from '@mui/icons-material'
+import Search from '../../util/Search'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
@@ -67,7 +67,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery)
-  const [searchParam, setSearchParam] = useURLParam<string>('search', '')
+  // const [searchParam, setSearchParam] = useURLParam<string>('search', '')
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -108,7 +108,8 @@ export default function AdminOutgoingLogs(): JSX.Element {
                 <OutgoingLogsFilter />
               </div>
               <div>
-                <TextField
+                <Search />
+                {/* <TextField
                   InputProps={{
                     // ref: fieldRef,
                     startAdornment: (
@@ -124,7 +125,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
                   onChange={(e) => setSearchParam(e.target.value)}
                   value={searchParam}
                   className={classes.textField}
-                />
+                /> */}
               </div>
             </Box>
           </Grid>
