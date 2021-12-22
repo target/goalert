@@ -1,67 +1,111 @@
+import { History, Location } from 'history'
 import { useHistory, useLocation } from 'react-router-dom'
-import { urlParamSelector, urlPathSelector } from '../selectors'
-import { setURLParam as setParam } from './main'
-import { useSelector, useDispatch } from 'react-redux'
-import { warn } from '../util/debug'
-import joinURL from '../util/joinURL'
-import { pathPrefix } from '../env'
 
 export type Value = string | boolean | number | string[]
 
+// sanitizeURLParam serializes a value to be ready to store in a URL.
+// If a value cannot or should not be stored, an empty string is returned.
+export function sanitizeURLParam(value: Value): string | string[] {
+  if (Array.isArray(value)) {
+    const filtered = value.map((v) => v.trim()).filter(Boolean)
+    if (filtered.length === 0) return ''
+    return filtered
+  }
+
+  switch (typeof value) {
+    case 'string':
+      return value.trim()
+    case 'boolean':
+      if (value === true) return '1'
+      return ''
+    case 'number':
+      return value.toString()
+    default:
+      return ''
+  }
+}
+
+// getURLParam gets the URL param value and converts it from string|string[]
+// to the desired type based on the provided default value.
+export function getURLParam<T extends Value>(
+  url: URLSearchParams,
+  name: string,
+  defaultValue: T,
+): T {
+  if (!url.has(name)) return defaultValue
+  if (Array.isArray(defaultValue)) return url.getAll(name) as T
+  if (typeof defaultValue === 'boolean') return (url.get(name) === '1') as T
+  if (typeof defaultValue === 'string') return (url.get(name) || '') as T
+  if (typeof defaultValue === 'number') return +(url.get(name) as string) as T
+  return defaultValue
+}
+
+// setURL will replace the latest browser history entry with the provided config.
+function setURL(
+  config: URLSearchParams,
+  location: Location,
+  history: History,
+): void {
+  if (config.sort) config.sort()
+  let newSearch = config.toString()
+  newSearch = newSearch ? '?' + newSearch : ''
+
+  if (newSearch === location.search) {
+    // no action for no param change
+    return
+  }
+  history.replace(location.pathname + newSearch + location.hash)
+}
+
+// useURLParam returns the value for a given URL param name if present, else the given default.
+// It also returns a setter function that, when called, updates the URL param value.
+// The native history stack will not push a new entry; instead, its
+// latest entry will be replaced.
 export function useURLParam<T extends Value>(
   name: string,
   defaultValue: T,
 ): [T, (newValue: T) => void] {
-  const dispatch = useDispatch()
-  const urlParam = useSelector(urlParamSelector)
-  const urlPath = joinURL(pathPrefix, useSelector(urlPathSelector))
-  const value = urlParam(name, defaultValue) as T
+  const location = useLocation()
+  const history = useHistory()
+  const url = new URLSearchParams(location.search)
 
-  function setValue(newValue: T): void {
-    if (window.location.pathname !== urlPath) {
-      warn(
-        'useURLParam was called to set a parameter, but location.pathname has changed, aborting',
-      )
-      return
+  const value = getURLParam<T>(url, name, defaultValue)
+
+  function setValue(_newValue: T): void {
+    const newValue =
+      name === 'search' ? (_newValue as string) : sanitizeURLParam(_newValue)
+
+    url.delete(name)
+
+    if (Array.isArray(newValue)) {
+      newValue.forEach((v) => url.append(name, v))
+    } else if (newValue) {
+      url.set(name, newValue)
     }
-    dispatch(setParam(name, newValue, defaultValue))
+
+    setURL(url, location, history)
   }
 
   return [value, setValue]
 }
 
-// useResetURLParams returns a function that, when called, will remove
-// the query parameters for a given list of key names. If no list is
-// provided, all existing query paramters are removed.
+// useResetURLParams returns a function that, when called, removes
+// URL parameters for the given list of param names.
 // The native history stack will not push a new entry; instead, its
 // latest entry will be replaced.
-export function useResetURLParams(...keys: string[]): () => void {
-  const { pathname, search, hash } = useLocation()
+export function useResetURLParams(...names: string[]): () => void {
+  const location = useLocation()
   const history = useHistory()
 
   return function resetURLParams(): void {
-    if (!keys.length) {
-      // by default, clear all params
-      return history.replace(pathname)
-    }
-
-    const q = new URLSearchParams(search)
-    keys.forEach((key) => q.delete(key))
-
-    if (q.sort) {
-      q.sort()
-    }
-
-    let newSearch = q.toString()
-    if (newSearch) {
-      newSearch = '?' + newSearch
-    }
-
-    if (newSearch === search) {
-      // no action for no param change
+    if (!names.length) {
+      // nothing to do
       return
     }
 
-    history.replace(pathname + newSearch + hash)
+    const url = new URLSearchParams(location.search)
+    names.forEach((name) => url.delete(name))
+
+    setURL(url, location, history)
   }
 }
