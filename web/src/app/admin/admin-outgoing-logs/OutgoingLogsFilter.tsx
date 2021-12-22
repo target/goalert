@@ -3,7 +3,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useURLParam } from '../../actions'
-import { Button } from '@mui/material'
+import { IconButton } from '@mui/material'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
 const useStyles = makeStyles<typeof theme>((theme) => {
@@ -33,6 +33,11 @@ const useStyles = makeStyles<typeof theme>((theme) => {
           transitionTimingFunction: theme.transitions.easing.easeInOut,
         },
       },
+    },
+    resetButton: {
+      height: 'min-content',
+      alignSelf: 'center',
+      marginLeft: theme.spacing(0.5),
     },
   }
 })
@@ -78,9 +83,13 @@ export default function OutgoingLogsFilter(): JSX.Element {
         />
       </div>
 
-      <Button type='button' onClick={resetFilters}>
+      <IconButton
+        className={classes.resetButton}
+        type='button'
+        onClick={resetFilters}
+      >
         <RestartAltIcon />
-      </Button>
+      </IconButton>
     </div>
   )
 }

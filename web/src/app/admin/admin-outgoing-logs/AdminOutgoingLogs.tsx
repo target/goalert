@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -109,23 +109,6 @@ export default function AdminOutgoingLogs(): JSX.Element {
               </div>
               <div style={{ paddingBottom: '.25rem' }}>
                 <Search />
-                {/* <TextField
-                  InputProps={{
-                    // ref: fieldRef,
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Search color='action' />
-                      </InputAdornment>
-                    ),
-                  }}
-                  data-cy='search-field'
-                  placeholder='Search'
-                  name='search'
-                  hiddenLabel
-                  onChange={(e) => setSearchParam(e.target.value)}
-                  value={searchParam}
-                  className={classes.textField}
-                /> */}
               </div>
             </Box>
           </Grid>
