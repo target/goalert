@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
@@ -101,13 +101,13 @@ export default function AdminOutgoingLogs(): JSX.Element {
             <Box
               display='flex'
               flexDirection='row'
-              alignItems='center'
+              alignItems='flex-end'
               justifyContent='space-between'
             >
               <div>
                 <OutgoingLogsFilter />
               </div>
-              <div>
+              <div style={{ paddingBottom: '.25rem' }}>
                 <Search />
                 {/* <TextField
                   InputProps={{

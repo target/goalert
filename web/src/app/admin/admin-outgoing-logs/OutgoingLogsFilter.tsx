@@ -54,25 +54,30 @@ export default function OutgoingLogsFilter(): JSX.Element {
 
   return (
     <div className={classes.filterContainer} key={resetId}>
-      <ISODateTimePicker
-        placeholder='Start'
-        name='startDate'
-        value={start}
-        onChange={(newVal) => setStart(newVal as string)}
-        className={classes.textField}
-        margin='dense'
-        size='small'
-      />
-      <div className={classes.spacer} />
-      <ISODateTimePicker
-        placeholder='End'
-        name='endDate'
-        value={end}
-        onChange={(newVal) => setEnd(newVal as string)}
-        className={classes.textField}
-        margin='dense'
-        size='small'
-      />
+      <div>
+        <ISODateTimePicker
+          placeholder='Start'
+          name='startDate'
+          value={start}
+          onChange={(newVal) => setStart(newVal as string)}
+          className={classes.textField}
+          label='Created after'
+          margin='dense'
+          size='small'
+        />
+        <div className={classes.spacer} />
+        <ISODateTimePicker
+          placeholder='End'
+          name='endDate'
+          value={end}
+          label='Created before'
+          onChange={(newVal) => setEnd(newVal as string)}
+          className={classes.textField}
+          margin='dense'
+          size='small'
+        />
+      </div>
+
       <Button type='button' onClick={resetFilters}>
         <RestartAltIcon />
       </Button>
