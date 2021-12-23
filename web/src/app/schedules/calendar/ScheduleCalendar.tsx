@@ -1,10 +1,11 @@
 import React, { useContext } from 'react'
-import { Card, Button, makeStyles } from '@material-ui/core'
-import { darken } from '@material-ui/core/styles'
-import Grid from '@material-ui/core/Grid'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import Typography from '@material-ui/core/Typography'
+import { Card, Button } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { darken } from '@mui/material/styles'
+import Grid from '@mui/material/Grid'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
+import Typography from '@mui/material/Typography'
 import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
@@ -14,7 +15,7 @@ import { theme } from '../../mui'
 import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
-import GroupAdd from '@material-ui/icons/GroupAdd'
+import GroupAdd from '@mui/icons-material/GroupAdd'
 import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
@@ -31,7 +32,7 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<typeof theme>((theme) => ({
   card: {
     padding: theme.spacing(2),
   },

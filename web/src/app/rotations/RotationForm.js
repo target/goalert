@@ -5,10 +5,10 @@ import {
   Grid,
   MenuItem,
   Typography,
-  makeStyles,
   Switch,
   FormControlLabel,
-} from '@material-ui/core'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
 import { useQuery, gql } from '@apollo/client'

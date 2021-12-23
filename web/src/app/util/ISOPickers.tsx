@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
 import { DateTime, DurationObjectUnits } from 'luxon'
-import { TextField, TextFieldProps } from '@material-ui/core'
-import V5TextField from '@mui/material/TextField'
+import { TextField, TextFieldProps } from '@mui/material'
 import DatePicker from '@mui/lab/DatePicker'
 import DateTimePicker from '@mui/lab/DateTimePicker'
 import TimePicker from '@mui/lab/TimePicker'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
-import { urlParamSelector } from '../selectors'
+import { useURLParam } from '../actions'
 
 interface ISOPickerProps extends ISOTextFieldProps {
   Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
@@ -52,8 +50,8 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   } = props
 
   const native = hasInputSupport(type)
-  const getURLParam = useSelector(urlParamSelector)
-  const zone = timeZone || (getURLParam('tz', 'local') as string)
+  const [_zone] = useURLParam('tz', 'local')
+  const zone = timeZone || _zone
   const valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
@@ -151,8 +149,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
       disabled={textFieldProps?.disabled}
       renderInput={(params) => (
-        // @ts-expect-error potential type mismatches until fully on v5
-        <V5TextField
+        <TextField
           data-cy-fallback-type={type}
           {...params}
           label={defaultLabel}

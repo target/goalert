@@ -3,7 +3,7 @@ import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import _ from 'lodash'
 import { Redirect } from 'react-router-dom'
-import { Edit, Delete } from '@material-ui/icons'
+import { Edit, Delete } from '@mui/icons-material'
 
 import CreateFAB from '../lists/CreateFAB'
 import { handoffSummary } from './util'

@@ -1,6 +1,6 @@
 import React from 'react'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
 import { useURLParam } from '../../actions'
 
 const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']

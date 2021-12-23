@@ -38,7 +38,7 @@ function findByLabel(
 
       return cy
         .get('body')
-        .contains('[data-cy=select-dropdown] [role=menuitem]', label)
+        .contains('[data-cy=select-dropdown] [role=option]', label)
     }
 
     cy.wrap(sub).parent().find('[role=button]').click()
