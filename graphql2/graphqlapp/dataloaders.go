@@ -4,11 +4,13 @@ import (
 	context "context"
 	"io"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
@@ -32,6 +34,7 @@ const (
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
 	dataLoaderKeyNotificationMessageStatus
+	dataLoaderKeyNC
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -46,6 +49,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewNotificationMessageStatusLoader(ctx, a.NotificationStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewHeartbeatMonitorLoader(ctx, a.HeartbeatStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewNCLoader(ctx, a.NCStore))
 	return ctx
 }
 func (a *App) closeLoaders(ctx context.Context) {
@@ -100,9 +104,23 @@ func (app *App) FindOneUser(ctx context.Context, id string) (*user.User, error) 
 
 // FindOneCM will return a single contact method for the given id, using the contexts dataloader if enabled.
 func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
-	loader, ok := ctx.Value(dataLoaderKeyUser).(*dataloader.CMLoader)
+	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.CMLoader)
 	if !ok {
 		return app.CMStore.FindOne(ctx, id)
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+// FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.
+func (app *App) FindOneNC(ctx context.Context, id string) (*notificationchannel.Channel, error) {
+	loader, ok := ctx.Value(dataLoaderKeyNC).(*dataloader.NCLoader)
+	if !ok {
+		u, err := uuid.Parse(id)
+		if err != nil {
+			return nil, err
+		}
+		return app.NCStore.FindOne(ctx, u)
 	}
 
 	return loader.FetchOne(ctx, id)
