@@ -113,14 +113,11 @@ func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.Contac
 }
 
 // FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.
-func (app *App) FindOneNC(ctx context.Context, id string) (*notificationchannel.Channel, error) {
+func (app *App) FindOneNC(ctx context.Context, id uuid.UUID) (*notificationchannel.Channel, error) {
 	loader, ok := ctx.Value(dataLoaderKeyNC).(*dataloader.NCLoader)
 	if !ok {
-		u, err := uuid.Parse(id)
-		if err != nil {
-			return nil, err
-		}
-		return app.NCStore.FindOne(ctx, u)
+
+		return app.NCStore.FindOne(ctx, id)
 	}
 
 	return loader.FetchOne(ctx, id)

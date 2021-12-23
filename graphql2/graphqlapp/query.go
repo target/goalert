@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -20,7 +21,12 @@ type DebugMessage App
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
 func (a *App) formatNC(ctx context.Context, id string) (string, error) {
-	n, err := a.FindOneNC(ctx, id)
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return "", err
+	}
+
+	n, err := a.FindOneNC(ctx, uid)
 	if err != nil {
 		return "", err
 	}

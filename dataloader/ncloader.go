@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/notificationchannel"
 )
 
@@ -28,8 +29,8 @@ func NewNCLoader(ctx context.Context, store notificationchannel.Store) *NCLoader
 }
 
 // FetchOne will fetch a single record from the store, batching requests to the store.
-func (l *NCLoader) FetchOne(ctx context.Context, id string) (*notificationchannel.Channel, error) {
-	v, err := l.loader.FetchOne(ctx, id)
+func (l *NCLoader) FetchOne(ctx context.Context, id uuid.UUID) (*notificationchannel.Channel, error) {
+	v, err := l.loader.FetchOne(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
