@@ -62,8 +62,6 @@ interface BaseCalendarEvent {
   }
   type: 'tempSched' | 'overrideShift' | 'tempSchedShift' | 'onCallShift'
   title: React.ReactNode
-  // fixed: boolean
-  // fixed: if is 'tempSched' or 'tempSchedShift'
 }
 
 export interface TempSchedEvent extends BaseCalendarEvent {
@@ -209,7 +207,6 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       override: o,
     }))
 
-    // flat list of all fixed shifts, with `fixed` set to true
     const tempSchedShifts: TempSchedShiftEvent[] = _.flatten(
       _tempScheds.map((sched) => {
         return sched.shifts.map((s) => ({
