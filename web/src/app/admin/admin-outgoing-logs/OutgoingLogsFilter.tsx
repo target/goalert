@@ -67,6 +67,7 @@ export default function OutgoingLogsFilter(): JSX.Element {
           label='Created after'
           margin='dense'
           size='small'
+          variant='filled'
         />
         <div className={classes.spacer} />
         <ISODateTimePicker
@@ -78,6 +79,7 @@ export default function OutgoingLogsFilter(): JSX.Element {
           className={classes.textField}
           margin='dense'
           size='small'
+          variant='filled'
         />
       </div>
 
