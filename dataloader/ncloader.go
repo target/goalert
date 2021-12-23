@@ -35,7 +35,7 @@ func (l *NCLoader) FetchOne(ctx context.Context, id uuid.UUID) (*notificationcha
 		return nil, err
 	}
 	if v == nil {
-		return nil, err
+		return nil, nil
 	}
 	return v.(*notificationchannel.Channel), nil
 }
