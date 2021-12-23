@@ -47,8 +47,8 @@ interface ScheduleCalendarEventWrapperProps {
 }
 
 export default function ScheduleCalendarEventWrapper({
-  children,
   event,
+  children,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
@@ -185,7 +185,6 @@ export default function ScheduleCalendarEventWrapper({
       return renderTempSchedButtons(event as TempSchedEvent)
     if (event.type === 'tempSchedShift')
       return renderTempSchedButtons(event as TempSchedShiftEvent)
-    // if (event.fixed) return <React.Fragment /> //todo
     if (event.type === 'overrideShift')
       return renderOverrideButtons(event as OverrideShiftEvent)
 
