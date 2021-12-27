@@ -66,8 +66,6 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
   if (s.includes('temp')) statusStyles = statusDict.warning
   if (s.includes('pend')) statusStyles = statusDict.info
 
-  console.log('selected: ', selected)
-
   return (
     <Card
       onClick={onSelect}
