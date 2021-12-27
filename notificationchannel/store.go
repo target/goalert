@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
@@ -16,6 +17,7 @@ import (
 type Store interface {
 	FindAll(context.Context) ([]Channel, error)
 	FindOne(context.Context, uuid.UUID) (*Channel, error)
+	FindMany(context.Context, []string) ([]Channel, error)
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 
 	MapToID(context.Context, *sql.Tx, *Channel) (uuid.UUID, error)
@@ -26,6 +28,7 @@ type DB struct {
 
 	findAll    *sql.Stmt
 	findOne    *sql.Stmt
+	findMany   *sql.Stmt
 	create     *sql.Stmt
 	deleteMany *sql.Stmt
 
@@ -33,6 +36,8 @@ type DB struct {
 	findByValue *sql.Stmt
 	lock        *sql.Stmt
 }
+
+var _ Store = (*DB)(nil)
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
@@ -45,6 +50,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		findOne: p.P(`
 			select id, name, type, value from notification_channels where id = $1
+		`),
+		findMany: p.P(`
+			select id, name, type, value from notification_channels where id = any($1)
 		`),
 		create: p.P(`
 			insert into notification_channels (id, name, type, value)
@@ -68,6 +76,41 @@ func stmt(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 
 	return tx.StmtContext(ctx, stmt)
 }
+
+func (db *DB) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.ManyUUID("ID", ids, search.MaxResults)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var channels []Channel
+	for rows.Next() {
+		var c Channel
+		err = rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		channels = append(channels, c)
+	}
+
+	return channels, nil
+}
+
 func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {

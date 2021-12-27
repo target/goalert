@@ -33,7 +33,7 @@ func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
 }
 
 func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
-	ch, err := a.NCStore.FindOne(ctx, raw.ChannelID)
+	ch, err := (*App)(a).FindOneNC(ctx, raw.ChannelID)
 	if err != nil {
 		return nil, err
 	}
