@@ -24,7 +24,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
-	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254
+	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/yamux v0.0.0-20210707203944-259a57b3608c // pinned version - see https://github.com/target/goalert/issues/1239
