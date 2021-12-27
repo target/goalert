@@ -5,13 +5,13 @@ go 1.17
 require (
 	cloud.google.com/go v0.99.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.6
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.10
 	github.com/99designs/gqlgen v0.14.0
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/alexeyco/simpletable v1.0.0
-	github.com/aws/aws-sdk-go v1.38.41 // indirect
+	github.com/aws/aws-sdk-go v1.42.25 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/coreos/go-oidc v2.2.1+incompatible
@@ -27,7 +27,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hashicorp/yamux v0.0.0-20210707203944-259a57b3608c // pinned version - see https://github.com/target/goalert/issues/1239
+	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // pinned version - see https://github.com/target/goalert/issues/1239
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
 	github.com/ian-kent/go-log v0.0.0-20160113211217-5731446c36ab // indirect
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/jackc/pgtype v1.9.1
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jmespath/go-jmespath v0.4.0
-	github.com/joho/godotenv v1.3.0
+	github.com/joho/godotenv v1.4.0
 	github.com/mailhog/MailHog v1.0.1
 	github.com/mailhog/MailHog-Server v1.0.1
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
-	github.com/prometheus/client_golang v1.10.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20210408115534-a32ed26c37ea
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -77,7 +77,7 @@ require (
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
-	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/tools v0.1.8
 	google.golang.org/genproto v0.0.0-20211223182754-3ac035c7e7cb // indirect
 	google.golang.org/grpc v1.43.0
@@ -142,7 +142,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.18.0 // indirect
+	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
