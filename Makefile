@@ -146,7 +146,7 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules pkg/sysapi/sysapi.pb.go
+generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	go generate ./...
 
 smoketest:
