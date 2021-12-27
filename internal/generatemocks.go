@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/target/goalert/alert"
-	"github.com/target/goalert/escalation"
-	"github.com/target/goalert/schedule"
-	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
 	"os"
 	"os/exec"
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/target/goalert/alert"
+	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/schedule/rule"
 )
 
 func gen(types ...interface{}) {
@@ -47,7 +48,6 @@ func run(pkg string, iface string) {
 func main() {
 	gen(
 		(*escalation.Store)(nil),
-		(*escalation.Manager)(nil),
 		(*rule.Store)(nil),
 		(*schedule.Store)(nil),
 		(*rotation.Store)(nil),
