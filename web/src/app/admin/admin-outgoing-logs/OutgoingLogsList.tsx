@@ -28,7 +28,11 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
     keys: ['destination', 'userName', 'serviceName', 'status'],
-    options: { shouldSort: false, showResultsWhenNoSearchTerm: true },
+    options: {
+      shouldSort: false,
+      showResultsWhenNoSearchTerm: true,
+      ignoreLocation: true,
+    },
   })
 
   let filteredResults = results.slice() // copy results array
