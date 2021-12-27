@@ -43,7 +43,7 @@ func TokenSubject(secret []byte, aud, token string) (string, error) {
 		return "", err
 	}
 
-	claims := tok.Claims.(*jwt.StandardClaims)
+	claims := tok.Claims.(*jwt.RegisteredClaims)
 	if !claims.VerifyIssuer(TokenIssuer, true) {
 		return "", jwt.NewValidationError("invalid issuer", jwt.ValidationErrorIssuer)
 	}
