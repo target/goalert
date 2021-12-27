@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Box } from '@mui/system'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
@@ -7,8 +7,7 @@ import { useFuse } from './hooks'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
-const INITIAL_LIMIT = 1
-const LOAD_AMOUNT = 50
+export const LOAD_AMOUNT = 50
 
 interface Props {
   debugMessages?: DebugMessage[]
@@ -22,8 +21,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [searchTerm] = useURLParam('search', '')
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
-
-  const [limit, setLimit] = useState(INITIAL_LIMIT)
+  const [limit, setLimit] = useURLParam<string>('limit', '1')
 
   const { setSearch, results } = useFuse<DebugMessage>({
     data: debugMessages,
@@ -54,17 +52,21 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
     return false
   })
 
+  const _limit = parseInt(limit, 10)
+
+  // reset page load amount when filters change
   useEffect(() => {
-    setLimit(INITIAL_LIMIT)
+    setLimit('1')
   }, [searchTerm, start, end])
 
+  // set search within fuse on search change
   useEffect(() => {
     setSearch(searchTerm)
   }, [searchTerm])
 
   // what appends stuff to results
   function onNext(): void {
-    setLimit(limit + 1)
+    setLimit((_limit + 1).toString())
   }
 
   return (
@@ -75,7 +77,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       width='full'
     >
       {filteredResults
-        .slice(0, limit * LOAD_AMOUNT)
+        .slice(0, _limit * LOAD_AMOUNT)
         .map(({ item: debugMessage }) => (
           <OutgoingLogCard
             key={debugMessage.id}
@@ -84,7 +86,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
             onSelect={() => onSelect(debugMessage)}
           />
         ))}
-      {limit * LOAD_AMOUNT < filteredResults.length ? (
+      {_limit * LOAD_AMOUNT < filteredResults.length ? (
         // load more
         <div
           style={{

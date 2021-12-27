@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Box, Grid, Typography } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import OutgoingLogsList from './OutgoingLogsList'
-import OutgoingLogsFilter from './OutgoingLogsFilter'
+import OutgoingLogsControls from './OutgoingLogsControls'
 import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
-import Search from '../../util/Search'
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery {
@@ -96,19 +95,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <Box
-              display='flex'
-              flexDirection='row'
-              alignItems='flex-end'
-              justifyContent='space-between'
-            >
-              <div>
-                <OutgoingLogsFilter />
-              </div>
-              <div style={{ paddingBottom: '.25rem' }}>
-                <Search />
-              </div>
-            </Box>
+            <OutgoingLogsControls totalCount={data.debugMessages.length} />
           </Grid>
           <Grid item xs={12}>
             <OutgoingLogsList
