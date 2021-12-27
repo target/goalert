@@ -26,7 +26,7 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 		return "", err
 	}
 
-	n, err := a.NCStore.FindOne(ctx, uid)
+	n, err := a.FindOneNC(ctx, uid)
 	if err != nil {
 		return "", err
 	}
