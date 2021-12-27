@@ -33,16 +33,15 @@ type Store struct {
 
 	findSlackChan *sql.Stmt
 
-	findOnePolicy             *sql.Stmt
-	findOnePolicyForUpdate    *sql.Stmt
-	findManyPolicies          *sql.Stmt
-	findAllPolicies           *sql.Stmt
+	findOnePolicy          *sql.Stmt
+	findOnePolicyForUpdate *sql.Stmt
+	findManyPolicies       *sql.Stmt
+
 	findAllPoliciesBySchedule *sql.Stmt
 	createPolicy              *sql.Stmt
 	updatePolicy              *sql.Stmt
 	deletePolicy              *sql.Stmt
 
-	findOneStep          *sql.Stmt
 	findOneStepForUpdate *sql.Stmt
 	findAllSteps         *sql.Stmt
 	findAllOnCallSteps   *sql.Stmt
@@ -50,9 +49,6 @@ type Store struct {
 	updateStepDelay      *sql.Stmt
 	updateStepNumber     *sql.Stmt
 	deleteStep           *sql.Stmt
-	moveStep             *sql.Stmt
-
-	activeStep *sql.Stmt
 
 	addStepTarget      *sql.Stmt
 	deleteStepTarget   *sql.Stmt
@@ -104,7 +100,6 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
                 fav.tgt_escalation_policy_id = e.id AND fav.user_id = $2
             WHERE e.id = any($1)
         `),
-		findAllPolicies: p.P(`SELECT id, name, description, repeat FROM escalation_policies`),
 		findAllPoliciesBySchedule: p.P(`
 			SELECT DISTINCT
 				step.escalation_policy_id,
@@ -162,7 +157,6 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 				escalation_policy_step_id = $1
 		`),
 
-		findOneStep:          p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1`),
 		findOneStepForUpdate: p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1 FOR UPDATE`),
 		findAllSteps:         p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE escalation_policy_id = $1 ORDER BY step_number`),
 		findAllOnCallSteps: p.P(`
@@ -182,43 +176,6 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		updateStepDelay:  p.P(`UPDATE escalation_policy_steps SET delay = $2 WHERE id = $1`),
 		updateStepNumber: p.P(`UPDATE escalation_policy_steps SET step_number = $2 WHERE id = $1`),
 		deleteStep:       p.P(`DELETE FROM escalation_policy_steps WHERE id = $1 RETURNING escalation_policy_id`),
-		moveStep: p.P(`
-			WITH calc AS (
-				SELECT
-					escalation_policy_id esc_id,
-					step_number old_pos,
-					LEAST(step_number, $2) min,
-					GREATEST(step_number, $2) max,
-					($2 - step_number) diff,
-					CASE
-						WHEN step_number < $2 THEN abs($2-step_number)
-						WHEN step_number > $2 THEN 1
-						ELSE 0
-					END shift
-				FROM escalation_policy_steps
-				WHERE id = $1
-				FOR UPDATE
-			)
-			UPDATE escalation_policy_steps
-			SET step_number =  ((step_number - calc.min) + calc.shift) % (abs(calc.diff) + 1) + calc.min
-			FROM calc
-			WHERE
-				escalation_policy_id = calc.esc_id AND
-				step_number >= calc.min AND
-				step_number <= calc.max
-			RETURNING escalation_policy_id
-		`),
-
-		activeStep: p.P(`
-			SELECT
-				escalation_policy_step_id,
-				last_escalation,
-				loop_count,
-				force_escalation,
-				escalation_policy_step_number
-			FROM escalation_policy_state
-			WHERE alert_id = $1 AND escalation_policy_id = $2
-		`),
 	}, p.Err
 }
 
