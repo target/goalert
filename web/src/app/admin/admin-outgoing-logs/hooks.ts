@@ -52,10 +52,11 @@ export function useFuse<T>({
     if (!fuse.current) return
 
     let callback = setFuseResults
-    fuse.current.search(search).then(results => callback(results))
-    
+    fuse.current.search(search).then((results) => callback(results))
     // reset callback before unmount/update
-    return () => {callback = ()=>{}}
+    return () => {
+      callback = () => {}
+    }
   }, [search, fuse, data])
 
   const results =
