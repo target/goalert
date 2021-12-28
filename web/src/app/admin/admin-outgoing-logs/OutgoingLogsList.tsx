@@ -27,7 +27,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [searchTerm] = useURLParam('search', '')
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
-  const [limit, setLimit] = useURLParam<string>('limit', '1')
+  const [limit, setLimit] = useURLParam<string>('limit', LOAD_AMOUNT)
 
   const { setSearch, results } = useFuse<KeyedDebugMessage>({
     data: debugMessages,
@@ -79,7 +79,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
 
   // what appends stuff to results
   function onNext(): void {
-    setLimit((_limit + 1).toString())
+    setLimit(limit + LOAD_AMOUNT)
   }
 
   return (
@@ -90,7 +90,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       width='full'
     >
       {filteredResults
-        .slice(0, _limit * LOAD_AMOUNT)
+        .slice(0, limit)
         .map(({ item: debugMessage }) => (
           <OutgoingLogCard
             key={debugMessage.id}
@@ -99,7 +99,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
             onSelect={() => onSelect(debugMessage)}
           />
         ))}
-      {_limit * LOAD_AMOUNT < filteredResults.length ? (
+      {limit < filteredResults.length ? (
         // load more
         <div
           style={{
