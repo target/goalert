@@ -49,12 +49,13 @@ export function useFuse<T>({
   }, [search, fuse, data, keys, options])
 
   useEffect(() => {
-    async function set(): Promise<void> {
-      if (fuse.current) {
-        setFuseResults(await fuse.current.search(search))
-      }
-    }
-    set()
+    if (!fuse.current) return
+
+    let callback = setFuseResults
+    fuse.current.search(search).then(results => callback(results))
+    
+    // reset callback before unmount/update
+    return () => {callback = ()=>{}}
   }, [search, fuse, data])
 
   const results =
