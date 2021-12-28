@@ -30,8 +30,8 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
   const [end, setEnd] = useURLParam<string>('end', '')
   const [key, setKey] = useState(0)
   const resetDateRange = useResetURLParams('start', 'end')
-  const [limit] = useURLParam<string>('limit', '1')
-  const _limit = parseInt(limit, 10)
+  const [_limit] = useURLParam<string>('limit', LOAD_AMOUNT.toString())
+  const limit = parseInt(_limit, 10)
 
   const resetFilters = (): void => {
     resetDateRange()
@@ -94,7 +94,7 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(_limit * LOAD_AMOUNT, p.totalCount)} of
+            {`Fetched ${Math.min(limit * LOAD_AMOUNT, p.totalCount)} of
             ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>
