@@ -30,27 +30,32 @@ type alertSMS struct {
 	Type    notification.MessageType
 }
 
-// statusTempl uses the ID and Body to render a message
-var statusTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
+// alertTempl uses the ID, Summary, Link, and Code to render a message
+var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
 
-{{.Body}}
-`))
+{{- if .Link }}
+{{.Link}}
+{{end}}
+
+{{- if .Code}}
+Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.
+{{end}}`))
 
 // bundleTempl uses the Count, Body, Link, and Code to render a message
 var bundleTempl = template.Must(template.New("alertSMS").Parse(`Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 
+{{- if .Link }}
 {{.Link}}
+{{end}}
 
+{{- if .Code}}
 Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.
-`))
+{{end}}`))
 
-// alertTempl uses the ID, Summary, Link, and Code to render a message
-var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
+// statusTempl uses the ID, Summary, and Body to render a message
+var statusTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
 
-{{.Link}}
-
-Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.
-`))
+{{.Body}}`))
 
 const gsmAlphabet = "@∆ 0¡P¿p£!1AQaq$Φ\"2BRbr¥Γ#3CScsèΛ¤4DTdtéΩ%5EUeuùΠ&6FVfvìΨ'7GWgwòΣ(8HXhxÇΘ)9IYiy\n Ξ *:JZjzØ+;KÄkäøÆ,<LÖlö\ræ-=MÑmñÅß.>NÜnüåÉ/?O§oà"
 
@@ -134,7 +139,7 @@ func (a alertSMS) Render(maxLen int) (string, error) {
 	case notification.MessageTypeAlert:
 		tmpl = *alertTempl
 	default:
-		return "", errors.Errorf("unsupported message type: ", a.Type)
+		return "", errors.Errorf("unsupported message type: %v", a.Type)
 	}
 
 	err := tmpl.Execute(&buf, a)
