@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/target/goalert/notification"
 )
 
 func TestMapGSM(t *testing.T) {
@@ -47,10 +49,11 @@ func TestAlertSMS_Render(t *testing.T) {
 
 	check("normal",
 		alertSMS{
-			ID:   123,
-			Code: 1,
-			Link: "https://example.com/alerts/123",
-			Body: "Testing",
+			ID:      123,
+			Code:    1,
+			Link:    "https://example.com/alerts/123",
+			Summary: "Testing",
+			Type:    notification.MessageTypeAlert,
 		},
 		`Alert #123: Testing
 
@@ -61,9 +64,10 @@ Reply '1a' to ack, '1c' to close.`,
 
 	check("no-reply",
 		alertSMS{
-			ID:   123,
-			Link: "https://example.com/alerts/123",
-			Body: "Testing",
+			ID:      123,
+			Link:    "https://example.com/alerts/123",
+			Summary: "Testing",
+			Type:    notification.MessageTypeAlert,
 		},
 		`Alert #123: Testing
 
@@ -85,6 +89,7 @@ Reply '1a' to ack, '1c' to close.`,
 		alertSMS{
 			ID:   123,
 			Body: "Testing",
+			Type: notification.MessageTypeAlert,
 		},
 		`Alert #123: Testing`,
 	)
@@ -95,6 +100,7 @@ Reply '1a' to ack, '1c' to close.`,
 			Code: 1,
 			Link: "https://example.com/alerts/123",
 			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
+			Type: notification.MessageTypeAlert,
 		},
 		`Alert #123: Testing with a really really obnoxiously long message that will be need to be tru
 
@@ -109,6 +115,7 @@ Reply '1a' to ack, '1c' to close.`,
 			Code: 1,
 			Link: "https://example.com/alerts/123",
 			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
+			Type: notification.MessageTypeAlert,
 		},
 		`Alert #123456789: Testing with a really really obnoxiously long message that will be need to
 
@@ -124,6 +131,7 @@ Reply '1a' to ack, '1c' to close.`,
 			Code: 123456789,
 			Link: "https://example.com/alerts/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff",
 			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
+			Type: notification.MessageTypeAlert,
 		},
 		"",
 	)
@@ -134,6 +142,7 @@ Reply '1a' to ack, '1c' to close.`,
 			Body:  "My Service",
 			Code:  100,
 			Link:  "https://example.com/services/321-654/alerts",
+			Type:  notification.MessageTypeAlertBundle,
 		},
 		`Svc 'My Service': 1 unacked alert
 
@@ -148,6 +157,7 @@ Reply '100aa' to ack all, '100cc' to close all.`,
 			Body:  "My Service",
 			Code:  100,
 			Link:  "https://example.com/services/321-654/alerts",
+			Type:  notification.MessageTypeAlertBundle,
 		},
 		`Svc 'My Service': 5 unacked alerts
 
@@ -156,28 +166,17 @@ https://example.com/services/321-654/alerts
 Reply '100aa' to ack all, '100cc' to close all.`,
 	)
 
-	check("status-bundle-one",
+	check("alert-status",
 		// can't fit body
 		alertSMS{
-			ID:    123,
-			Count: 1,
-			Body:  "Some log entry",
+			ID:      123,
+			Summary: "Testing",
+			Body:    "Some log entry",
+			Type:    notification.MessageTypeAlertStatus,
 		},
-		`Alert #123: Some log entry
+		`Alert #123: Testing
 
-1 other alert has been updated.`,
-	)
-
-	check("status-bundle",
-		// can't fit body
-		alertSMS{
-			ID:    123,
-			Count: 2,
-			Body:  "Some log entry",
-		},
-		`Alert #123: Some log entry
-
-2 other alerts have been updated.`,
+Some log entry`,
 	)
 
 }
