@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
 )
 
 // 160 GSM characters (140 bytes) is the max for a single segment message.
@@ -20,30 +21,36 @@ import (
 const maxGSMLen = 160
 
 type alertSMS struct {
-	ID    int
-	Count int
-	Body  string
-	Link  string
-	Code  int
+	ID      int
+	Count   int
+	Body    string
+	Summary string
+	Link    string
+	Code    int
+	Type    notification.MessageType
 }
 
-var smsTmpl = template.Must(template.New("alertSMS").Parse(`
-{{- if .ID}}Alert #{{.ID}}: {{.Body}}
-{{- else if .Count}}Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
-{{- end}}
-{{- if .Link }}
+// statusTempl uses the ID and Body to render a message
+var statusTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
+
+{{.Body}}
+`))
+
+// bundleTempl uses the Count, Body, Link, and Code to render a message
+var bundleTempl = template.Must(template.New("alertSMS").Parse(`Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 
 {{.Link}}
-{{- end}}
-{{- if and .Count .ID }}
 
-{{.Count}} other alert{{if gt .Count 1}}s have{{else}} has{{end}} been updated.
-{{- end}}
-{{- if .Code}}
+Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.
+`))
 
-Reply '{{.Code}}a{{if .Count}}a{{end}}' to ack{{if .Count}} all{{end}}, '{{.Code}}c{{if .Count}}c{{end}}' to close{{if .Count}} all{{end}}.
-{{- end}}`,
-))
+// alertTempl uses the ID, Summary, Link, and Code to render a message
+var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
+
+{{.Link}}
+
+Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.
+`))
 
 const gsmAlphabet = "@∆ 0¡P¿p£!1AQaq$Φ\"2BRbr¥Γ#3CScsèΛ¤4DTdtéΩ%5EUeuùΠ&6FVfvìΨ'7GWgwòΣ(8HXhxÇΘ)9IYiy\n Ξ *:JZjzØ+;KÄkäøÆ,<LÖlö\ræ-=MÑmñÅß.>NÜnüåÉ/?O§oà"
 
@@ -112,8 +119,25 @@ func (a alertSMS) Render(maxLen int) (string, error) {
 	a.Body = strings.Replace(a.Body, "  ", " ", -1)
 	a.Body = strings.TrimSpace(a.Body)
 
+	a.Summary = strings.Map(mapGSM, a.Summary)
+	a.Summary = strings.Replace(a.Summary, "  ", " ", -1)
+	a.Summary = strings.TrimSpace(a.Summary)
+
 	var buf bytes.Buffer
-	err := smsTmpl.Execute(&buf, a)
+
+	var tmpl template.Template
+	switch a.Type {
+	case notification.MessageTypeAlertStatus:
+		tmpl = *statusTempl
+	case notification.MessageTypeAlertBundle:
+		tmpl = *bundleTempl
+	case notification.MessageTypeAlert:
+		tmpl = *alertTempl
+	default:
+		return "", errors.Errorf("unsupported message type: ", a.Type)
+	}
+
+	err := tmpl.Execute(&buf, a)
 	if err != nil {
 		return "", err
 	}
@@ -125,7 +149,7 @@ func (a alertSMS) Render(maxLen int) (string, error) {
 		}
 		a.Body = strings.TrimSpace(a.Body[:newBodyLen])
 		buf.Reset()
-		err = smsTmpl.Execute(&buf, a)
+		err = tmpl.Execute(&buf, a)
 		if err != nil {
 			return "", err
 		}

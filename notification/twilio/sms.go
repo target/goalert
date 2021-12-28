@@ -114,8 +114,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	switch t := msg.(type) {
 	case notification.AlertStatus:
 		message, err = alertSMS{
-			ID:   t.AlertID,
-			Body: t.LogEntry,
+			ID:      t.AlertID,
+			Summary: t.Summary,
+			Body:    t.LogEntry,
+			Type:    notification.MessageTypeAlertStatus,
 		}.Render(maxLen)
 	case notification.AlertBundle:
 		var link string
@@ -128,6 +130,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Body:  t.ServiceName,
 			Link:  link,
 			Code:  makeSMSCode(0, t.ServiceID),
+			Type:  notification.MessageTypeAlertBundle,
 		}.Render(maxLen)
 	case notification.Alert:
 		var link string
@@ -136,10 +139,11 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		}
 
 		message, err = alertSMS{
-			ID:   t.AlertID,
-			Body: t.Summary,
-			Link: link,
-			Code: makeSMSCode(t.AlertID, ""),
+			ID:      t.AlertID,
+			Summary: t.Summary,
+			Link:    link,
+			Code:    makeSMSCode(t.AlertID, ""),
+			Type:    notification.MessageTypeAlert,
 		}.Render(maxLen)
 	case notification.Test:
 		message = "Test message."
