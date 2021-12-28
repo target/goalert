@@ -7,7 +7,7 @@ import { useFuse } from './hooks'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
-export const LOAD_AMOUNT = 10
+export const LOAD_AMOUNT = 50
 
 interface KeyedDebugMessage extends DebugMessage {
   additonalKeys: {
@@ -52,23 +52,15 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
     },
   })
 
+  const startDT = start ? DateTime.fromISO(start) : null
+  const endDT = end ? DateTime.fromISO(end) : null
+
   let filteredResults = results.slice() // copy results array
   filteredResults = filteredResults.filter((result) => {
-    if (!start && !end) return true
-
-    const startDT = DateTime.fromISO(start)
-    let endDT = DateTime.fromISO(end)
     const createdAtDT = DateTime.fromISO(result.item.createdAt)
-
-    if (start && !end) {
-      endDT = DateTime.now()
-    }
-
-    if (createdAtDT > startDT && createdAtDT < endDT) {
-      return true
-    }
-
-    return false
+    if (startDT && startDT > createdAtDT) return false
+    if (endDT && endDT < createdAtDT) return false
+    return true
   })
 
   // reset page load amount when filters change
