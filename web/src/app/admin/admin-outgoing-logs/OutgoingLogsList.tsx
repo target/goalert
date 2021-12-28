@@ -19,21 +19,24 @@ interface Props {
   debugMessages?: KeyedDebugMessage[]
   selectedLog: DebugMessage | null
   onSelect: (debugMessage: DebugMessage) => void
+  onLoadMore: () => void
+  onResetLoadMore: () => void
+  showingLimit: number
 }
 
 export default function OutgoingLogsList(props: Props): JSX.Element {
-  const { debugMessages = [], selectedLog, onSelect } = props
+  const {
+    debugMessages = [],
+    selectedLog,
+    onSelect,
+    showingLimit,
+    onLoadMore,
+    onResetLoadMore,
+  } = props
 
   const [searchTerm] = useURLParam('search', '')
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
-  const [_limit, _setLimit] = useURLParam<string>(
-    'limit',
-    LOAD_AMOUNT.toString(),
-  )
-
-  const setLimit = (newLimit: number): void => _setLimit(newLimit.toString())
-  const limit = parseInt(_limit, 10)
 
   const { setSearch, results } = useFuse<KeyedDebugMessage>({
     data: debugMessages,
@@ -65,18 +68,13 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
 
   // reset page load amount when filters change
   useEffect(() => {
-    setLimit(LOAD_AMOUNT)
+    onResetLoadMore()
   }, [searchTerm, start, end])
 
   // set search within fuse on search change
   useEffect(() => {
     setSearch(searchTerm)
   }, [searchTerm])
-
-  // what appends stuff to results
-  function onNext(): void {
-    setLimit(limit + LOAD_AMOUNT)
-  }
 
   return (
     <Box
@@ -85,7 +83,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {filteredResults.slice(0, limit).map(({ item: debugMessage }) => (
+      {filteredResults.slice(0, showingLimit).map(({ item: debugMessage }) => (
         <OutgoingLogCard
           key={debugMessage.id}
           debugMessage={debugMessage}
@@ -93,7 +91,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
           onSelect={() => onSelect(debugMessage)}
         />
       ))}
-      {limit < filteredResults.length ? (
+      {showingLimit < filteredResults.length ? (
         // load more
         <div
           style={{
@@ -103,7 +101,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
             justifyContent: 'center',
           }}
         >
-          <Button variant='contained' color='primary' onClick={onNext}>
+          <Button variant='contained' color='primary' onClick={onLoadMore}>
             Load more
           </Button>
         </div>

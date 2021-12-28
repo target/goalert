@@ -11,6 +11,8 @@ import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
+const DEFAULT_LOAD_AMOUNT = 50
+const LOAD_AMOUNT = 50
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery($first: Int!) {
@@ -65,6 +67,7 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
+  const [showingLimit, setShowingLimit] = useState(DEFAULT_LOAD_AMOUNT)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery, {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
@@ -99,7 +102,10 @@ export default function AdminOutgoingLogs(): JSX.Element {
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <OutgoingLogsControls totalCount={data.debugMessages.length} />
+            <OutgoingLogsControls
+              showingLimit={showingLimit}
+              totalCount={data.debugMessages.length}
+            />
           </Grid>
           <Grid item xs={12}>
             <OutgoingLogsList
@@ -111,6 +117,9 @@ export default function AdminOutgoingLogs(): JSX.Element {
               }))}
               selectedLog={selectedLog}
               onSelect={setSelectedLog}
+              showingLimit={showingLimit}
+              onResetLoadMore={() => setShowingLimit(DEFAULT_LOAD_AMOUNT)}
+              onLoadMore={() => setShowingLimit(showingLimit + LOAD_AMOUNT)}
             />
           </Grid>
         </Grid>

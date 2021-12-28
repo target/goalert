@@ -6,9 +6,9 @@ import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
-import { LOAD_AMOUNT } from './OutgoingLogsList'
 import { MAX_QUERY_ITEMS_COUNT } from './AdminOutgoingLogs'
 interface Props {
+  showingLimit: number
   totalCount: number
 }
 
@@ -30,8 +30,6 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
   const [end, setEnd] = useURLParam<string>('end', '')
   const [key, setKey] = useState(0)
   const resetDateRange = useResetURLParams('start', 'end')
-  const [_limit] = useURLParam<string>('limit', LOAD_AMOUNT.toString())
-  const limit = parseInt(_limit, 10)
 
   const resetFilters = (): void => {
     resetDateRange()
@@ -94,7 +92,7 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(limit * LOAD_AMOUNT, p.totalCount)} of
+            {`Fetched ${Math.min(p.showingLimit, p.totalCount)} of
             ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>
