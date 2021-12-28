@@ -103,7 +103,12 @@ export default function AdminOutgoingLogs(): JSX.Element {
           </Grid>
           <Grid item xs={12}>
             <OutgoingLogsList
-              debugMessages={data.debugMessages}
+              debugMessages={data.debugMessages.map((d: DebugMessage) => ({
+                ...d,
+                additionalKeys: {
+                  filteredDestination: d.destination.replace('-', ''),
+                },
+              }))}
               selectedLog={selectedLog}
               onSelect={setSelectedLog}
             />

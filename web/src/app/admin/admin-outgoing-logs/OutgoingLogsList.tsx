@@ -9,8 +9,14 @@ import { Typography, Button } from '@mui/material'
 
 export const LOAD_AMOUNT = 50
 
+interface KeyedDebugMessage extends DebugMessage {
+  additonalKeys: {
+    filteredDestination: string
+  }
+}
+
 interface Props {
-  debugMessages?: DebugMessage[]
+  debugMessages?: KeyedDebugMessage[]
   selectedLog: DebugMessage | null
   onSelect: (debugMessage: DebugMessage) => void
 }
@@ -23,13 +29,20 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [end] = useURLParam('end', '')
   const [limit, setLimit] = useURLParam<string>('limit', '1')
 
-  const { setSearch, results } = useFuse<DebugMessage>({
+  const { setSearch, results } = useFuse<KeyedDebugMessage>({
     data: debugMessages,
-    keys: ['destination', 'userName', 'serviceName', 'status'],
+    keys: [
+      'destination',
+      'userName',
+      'serviceName',
+      'status',
+      'additionalKeys.filteredDestination',
+    ],
     options: {
       shouldSort: false,
       showResultsWhenNoSearchTerm: true,
       ignoreLocation: true,
+      useExtendedSearch: true,
     },
   })
 
