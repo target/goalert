@@ -76,9 +76,10 @@ https://example.com/alerts/123`,
 
 	check("no-Link",
 		alertSMS{
-			ID:   123,
-			Code: 1,
-			Body: "Testing",
+			ID:      123,
+			Code:    1,
+			Summary: "Testing",
+			Type:    notification.MessageTypeAlert,
 		},
 		`Alert #123: Testing
 
@@ -167,7 +168,6 @@ Reply '100aa' to ack all, '100cc' to close all.`,
 	)
 
 	check("alert-status",
-		// can't fit body
 		alertSMS{
 			ID:      123,
 			Summary: "Testing",
@@ -178,5 +178,4 @@ Reply '100aa' to ack all, '100cc' to close all.`,
 
 Some log entry`,
 	)
-
 }

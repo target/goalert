@@ -38,8 +38,7 @@ var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {
 {{end}}
 
 {{- if .Code}}
-Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.
-{{end}}`))
+Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
 
 // bundleTempl uses the Count, Body, Link, and Code to render a message
 var bundleTempl = template.Must(template.New("alertSMS").Parse(`Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
@@ -49,8 +48,7 @@ var bundleTempl = template.Must(template.New("alertSMS").Parse(`Svc '{{.Body}}':
 {{end}}
 
 {{- if .Code}}
-Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.
-{{end}}`))
+Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
 
 // statusTempl uses the ID, Summary, and Body to render a message
 var statusTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
