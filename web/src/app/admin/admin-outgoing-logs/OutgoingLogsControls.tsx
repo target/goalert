@@ -7,7 +7,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
 import { LOAD_AMOUNT } from './OutgoingLogsList'
-
+import { MAX_QUERY_ITEMS_COUNT } from './AdminOutgoingLogs'
 interface Props {
   totalCount: number
 }
@@ -37,6 +37,11 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
     resetDateRange()
     setKey(key + 1)
   }
+
+  const totalFetchedResultsCount =
+    p.totalCount < MAX_QUERY_ITEMS_COUNT
+      ? p.totalCount
+      : `${MAX_QUERY_ITEMS_COUNT}+`
 
   return (
     <Grid container spacing={2} key={key}>
@@ -89,7 +94,8 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            Showing {_limit * LOAD_AMOUNT} of {p.totalCount} results
+            {`Fetched ${Math.min(_limit * LOAD_AMOUNT, p.totalCount)} of
+            ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>
       </Grid>

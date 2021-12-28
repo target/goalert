@@ -10,9 +10,11 @@ import OutgoingLogDetails from './OutgoingLogDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
 
+export const MAX_QUERY_ITEMS_COUNT = 1000
+
 const debugMessageLogsQuery = gql`
-  query debugMessageLogsQuery {
-    debugMessages(input: { first: 1000 }) {
+  query debugMessageLogsQuery($first: Int!) {
+    debugMessages(input: { first: $first }) {
       id
       createdAt
       updatedAt
@@ -64,7 +66,9 @@ export default function AdminOutgoingLogs(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  const { data, loading, error } = useQuery(debugMessageLogsQuery)
+  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
+    variables: { first: MAX_QUERY_ITEMS_COUNT },
+  })
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
