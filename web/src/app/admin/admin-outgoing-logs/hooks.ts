@@ -50,13 +50,7 @@ export function useFuse<T>({
 
   useEffect(() => {
     if (!fuse.current) return
-
-    let callback = setFuseResults
-    fuse.current.search(search).then((results) => callback(results))
-    // reset callback before unmount/update
-    return () => {
-      callback = () => {}
-    }
+    setFuseResults(fuse.current.search(search))
   }, [search, fuse, data])
 
   const results =

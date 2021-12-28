@@ -7,7 +7,7 @@ import { useFuse } from './hooks'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
-export const LOAD_AMOUNT = 50
+export const LOAD_AMOUNT = 10
 
 interface KeyedDebugMessage extends DebugMessage {
   additonalKeys: {
@@ -27,7 +27,13 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
   const [searchTerm] = useURLParam('search', '')
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
-  const [limit, setLimit] = useURLParam<string>('limit', LOAD_AMOUNT)
+  const [_limit, _setLimit] = useURLParam<string>(
+    'limit',
+    LOAD_AMOUNT.toString(),
+  )
+
+  const setLimit = (newLimit: number): void => _setLimit(newLimit.toString())
+  const limit = parseInt(_limit, 10)
 
   const { setSearch, results } = useFuse<KeyedDebugMessage>({
     data: debugMessages,
@@ -65,11 +71,9 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
     return false
   })
 
-  const _limit = parseInt(limit, 10)
-
   // reset page load amount when filters change
   useEffect(() => {
-    setLimit('1')
+    setLimit(LOAD_AMOUNT)
   }, [searchTerm, start, end])
 
   // set search within fuse on search change
@@ -89,16 +93,14 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {filteredResults
-        .slice(0, limit)
-        .map(({ item: debugMessage }) => (
-          <OutgoingLogCard
-            key={debugMessage.id}
-            debugMessage={debugMessage}
-            selected={selectedLog?.id === debugMessage.id}
-            onSelect={() => onSelect(debugMessage)}
-          />
-        ))}
+      {filteredResults.slice(0, limit).map(({ item: debugMessage }) => (
+        <OutgoingLogCard
+          key={debugMessage.id}
+          debugMessage={debugMessage}
+          selected={selectedLog?.id === debugMessage.id}
+          onSelect={() => onSelect(debugMessage)}
+        />
+      ))}
       {limit < filteredResults.length ? (
         // load more
         <div
