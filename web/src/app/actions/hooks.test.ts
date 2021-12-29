@@ -8,12 +8,18 @@ interface GetParamTest {
 }
 
 describe('getURLParam', () => {
-  const init = 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee'
-  const q = new URLSearchParams(init)
+  const mockLocationObject = {
+    search: 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee',
+    pathname: '',
+    state: '',
+    hash: '',
+  }
 
   function check(x: GetParamTest): void {
     it(x.desc, () => {
-      expect(getURLParam(q, x.name, x.defaultValue)).toEqual(x.expected)
+      expect(getURLParam(mockLocationObject, x.name, x.defaultValue)).toEqual(
+        x.expected,
+      )
     })
   }
 

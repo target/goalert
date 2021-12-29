@@ -28,10 +28,11 @@ export function sanitizeURLParam(value: Value): string | string[] {
 // getURLParam gets the URL param value and converts it from string|string[]
 // to the desired type based on the provided default value.
 export function getURLParam<T extends Value>(
-  url: URLSearchParams,
+  location: Location,
   name: string,
   defaultValue: T,
 ): T {
+  const url = new URLSearchParams(location.search)
   if (!url.has(name)) return defaultValue
   if (Array.isArray(defaultValue)) return url.getAll(name) as T
   if (typeof defaultValue === 'boolean') return (url.get(name) === '1') as T
@@ -67,11 +68,12 @@ export function useURLParam<T extends Value>(
 ): [T, (newValue: T) => void] {
   const location = useLocation()
   const history = useHistory()
-  const url = new URLSearchParams(location.search)
 
-  const value = getURLParam<T>(url, name, defaultValue)
+  const value = getURLParam<T>(location, name, defaultValue)
 
   function setValue(_newValue: T): void {
+    const url = new URLSearchParams(location.search)
+
     const newValue =
       name === 'search' ? (_newValue as string) : sanitizeURLParam(_newValue)
 
