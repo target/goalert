@@ -503,7 +503,7 @@ input ScheduleTargetInput {
 }
 
 input ScheduleRuleInput {
-  id: ID @deprecated(reason: "ignored")
+  id: ID
   start: ClockTime
   end: ClockTime
 
