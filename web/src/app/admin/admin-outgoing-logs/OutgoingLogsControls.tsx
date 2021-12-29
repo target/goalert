@@ -33,6 +33,8 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
 
   const resetFilters = (): void => {
     resetDateRange()
+    // The ISODateTimePicker doesn't update to changes in it's `value` prop. It only uses it's internal state.
+    // This key is a hotfix to set the ISODateTimePicker's value by just completely re-rendering it.
     setKey(key + 1)
   }
 

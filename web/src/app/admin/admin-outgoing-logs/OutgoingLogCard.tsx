@@ -62,6 +62,7 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
   let statusStyles
   const s = status.toLowerCase()
   if (s.includes('deliver')) statusStyles = statusDict.success
+  if (s.includes('sent')) statusStyles = statusDict.success
   if (s.includes('fail')) statusStyles = statusDict.error
   if (s.includes('temp')) statusStyles = statusDict.warning
   if (s.includes('pend')) statusStyles = statusDict.info
