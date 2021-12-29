@@ -584,7 +584,7 @@ func (s *Store) FindAllSteps(ctx context.Context, policyID string) ([]Step, erro
 	return s.FindAllStepsTx(ctx, nil, policyID)
 }
 
-// FindAllOnCallStepsForUser returns all steps a user is currently on-call for.
+// FindAllOnCallStepsForUserTx returns all steps a user is currently on-call for.
 func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, userID string) ([]Step, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
