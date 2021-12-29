@@ -584,7 +584,7 @@ func (s *Store) FindAllSteps(ctx context.Context, policyID string) ([]Step, erro
 	return s.FindAllStepsTx(ctx, nil, policyID)
 }
 
-// FindAllOnCallStepsForUser returns all steps a user is currently on-call for.
+// FindAllOnCallStepsForUserTx returns all steps a user is currently on-call for.
 func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, userID string) ([]Step, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -737,7 +737,7 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 	return nil
 }
 
-// DeleteStepTx deletes a step from the database.
+// DeleteStepTx deletes a step from an escalation policy.
 func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
 	err := validate.UUID("EscalationPolicyStepID", id)
 	if err != nil {
