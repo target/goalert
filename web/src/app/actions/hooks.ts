@@ -45,9 +45,9 @@ export function getURLParam<T extends Value>(
 
 // setURLParams will replace the latest browser history entry with the provided params.
 function setURLParams(
-  params: URLSearchParams,
-  location: Location,
   history: History,
+  location: Location,
+  params: URLSearchParams,
 ): void {
   if (params.sort) params.sort()
   let newSearch = params.toString()
@@ -87,7 +87,7 @@ export function useURLParam<T extends Value>(
       params.set(name, newValue)
     }
 
-    setURLParams(params, location, history)
+    setURLParams(history, location, params)
   }
 
   return [value, setValue]
@@ -110,6 +110,6 @@ export function useResetURLParams(...names: string[]): () => void {
     const params = new URLSearchParams(location.search)
     names.forEach((name) => params.delete(name))
 
-    setURLParams(params, location, history)
+    setURLParams(history, location, params)
   }
 }
