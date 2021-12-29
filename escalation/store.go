@@ -737,7 +737,7 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 	return nil
 }
 
-// DeleteStepTx deletes a step from the database.
+// DeleteStepTx deletes a step from an escalation policy.
 func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
 	err := validate.UUID("EscalationPolicyStepID", id)
 	if err != nil {
