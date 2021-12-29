@@ -32,23 +32,25 @@ export function getURLParam<T extends Value>(
   name: string,
   defaultValue: T,
 ): T {
-  const url = new URLSearchParams(location.search)
-  if (!url.has(name)) return defaultValue
-  if (Array.isArray(defaultValue)) return url.getAll(name) as T
-  if (typeof defaultValue === 'boolean') return (url.get(name) === '1') as T
-  if (typeof defaultValue === 'string') return (url.get(name) || '') as T
-  if (typeof defaultValue === 'number') return +(url.get(name) as string) as T
+  const params = new URLSearchParams(location.search)
+  if (!params.has(name)) return defaultValue
+  if (Array.isArray(defaultValue)) return params.getAll(name) as T
+  if (typeof defaultValue === 'boolean') return (params.get(name) === '1') as T
+  if (typeof defaultValue === 'string') return (params.get(name) || '') as T
+  if (typeof defaultValue === 'number') {
+    return +(params.get(name) as string) as T
+  }
   return defaultValue
 }
 
-// setURL will replace the latest browser history entry with the provided config.
-function setURL(
-  config: URLSearchParams,
+// setURLParams will replace the latest browser history entry with the provided params.
+function setURLParams(
+  params: URLSearchParams,
   location: Location,
   history: History,
 ): void {
-  if (config.sort) config.sort()
-  let newSearch = config.toString()
+  if (params.sort) params.sort()
+  let newSearch = params.toString()
   newSearch = newSearch ? '?' + newSearch : ''
 
   if (newSearch === location.search) {
@@ -72,20 +74,20 @@ export function useURLParam<T extends Value>(
   const value = getURLParam<T>(location, name, defaultValue)
 
   function setValue(_newValue: T): void {
-    const url = new URLSearchParams(location.search)
+    const params = new URLSearchParams(location.search)
 
     const newValue =
       name === 'search' ? (_newValue as string) : sanitizeURLParam(_newValue)
 
-    url.delete(name)
+    params.delete(name)
 
     if (Array.isArray(newValue)) {
-      newValue.forEach((v) => url.append(name, v))
+      newValue.forEach((v) => params.append(name, v))
     } else if (newValue) {
-      url.set(name, newValue)
+      params.set(name, newValue)
     }
 
-    setURL(url, location, history)
+    setURLParams(params, location, history)
   }
 
   return [value, setValue]
@@ -105,9 +107,9 @@ export function useResetURLParams(...names: string[]): () => void {
       return
     }
 
-    const url = new URLSearchParams(location.search)
-    names.forEach((name) => url.delete(name))
+    const params = new URLSearchParams(location.search)
+    names.forEach((name) => params.delete(name))
 
-    setURL(url, location, history)
+    setURLParams(params, location, history)
   }
 }
