@@ -140,6 +140,11 @@ export default [
         path: '/admin/toolbox',
         component: AdminRouter,
       },
+      {
+        title: 'Metrics',
+        path: '/admin/metrics',
+        component: AdminRouter,
+      },
     ],
   },
   {
