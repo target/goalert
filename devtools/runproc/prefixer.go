@@ -31,25 +31,23 @@ func (w *prefixer) Write(p []byte) (int, error) {
 			w.buf = append(w.buf, p...)
 			return n + len(p), nil
 		}
+		w.buf = append(w.buf, p[:l+1]...)
+		n += l + 1
 
 		err := w.writePrefix()
 		if err != nil {
 			return n, err
 		}
 
-		if len(w.buf) > 0 {
-			_, err = w.out.Write(w.buf)
-			if err != nil {
-				return n, err
-			}
-			w.buf = w.buf[:0]
-		}
+		// replace yarn escape sequences
+		w.buf = bytes.ReplaceAll(w.buf, []byte("\x1b[2K"), nil)
+		w.buf = bytes.ReplaceAll(w.buf, []byte("\x1b[1G"), nil)
 
-		_n, err := w.out.Write(p[:l+1])
-		n += _n
+		_, err = w.out.Write(w.buf)
 		if err != nil {
 			return n, err
 		}
+		w.buf = w.buf[:0]
 
 		p = p[l+1:]
 	}
