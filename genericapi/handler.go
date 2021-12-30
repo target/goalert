@@ -2,6 +2,8 @@ package genericapi
 
 import (
 	"database/sql"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -18,6 +20,12 @@ import (
 // Handler responds to generic API requests
 type Handler struct {
 	c Config
+}
+
+type AlertMessage struct {
+	Summary string `json:summary`
+	Details string `json:details`
+	Action  string `json:action`
 }
 
 // NewHandler creates a new Handler, registering generic API routes using chi.
@@ -85,13 +93,28 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	summary := r.FormValue("summary")
 	details := r.FormValue("details")
 
-	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
-	details = validate.SanitizeText(details, alert.MaxDetailsLength)
-
 	status := alert.StatusTriggered
 	if r.FormValue("action") == "close" {
 		status = alert.StatusClosed
 	}
+
+	contentType := r.Header.Get("Content-type")
+	if contentType == "application/json" {
+		requestBoday, _ := ioutil.ReadAll(r.Body)
+
+		var alertMessage AlertMessage
+		json.Unmarshal(requestBoday, &alertMessage)
+
+		summary = alertMessage.Summary
+		details = alertMessage.Details
+		action := alertMessage.Action
+		if action == "close" {
+			status = alert.StatusClosed
+		}
+	}
+
+	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
+	details = validate.SanitizeText(details, alert.MaxDetailsLength)
 
 	a := &alert.Alert{
 		Summary:   summary,
