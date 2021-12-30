@@ -25,22 +25,31 @@ export function sanitizeURLParam(value: Value): string | string[] {
   }
 }
 
-// getURLParam gets the URL param value and converts it from string|string[]
-// to the desired type based on the provided default value.
-export function getURLParam<T extends Value>(
+// getParamValues converts each value from string|string[]
+// into the desired type based on the respective default value.
+export function getParamValues<T extends Record<string, Value>>(
   location: Location,
-  name: string,
-  defaultValue: T,
+  params: T,
 ): T {
-  const params = new URLSearchParams(location.search)
-  if (!params.has(name)) return defaultValue
-  if (Array.isArray(defaultValue)) return params.getAll(name) as T
-  if (typeof defaultValue === 'boolean') return (params.get(name) === '1') as T
-  if (typeof defaultValue === 'string') return (params.get(name) || '') as T
-  if (typeof defaultValue === 'number') {
-    return +(params.get(name) as string) as T
+  const result = {} as Record<string, Value>
+  const q = new URLSearchParams(location.search)
+
+  for (const [k, defaultv] of Object.entries(params)) {
+    if (!q.has(k)) {
+      result[k] = defaultv
+    } else if (Array.isArray(defaultv)) {
+      result[k] = q.getAll(k)
+    } else if (typeof defaultv === 'boolean') {
+      result[k] = q.get(k) === '1'
+    } else if (typeof defaultv === 'string') {
+      result[k] = q.get(k) || ''
+    } else if (typeof defaultv === 'number') {
+      result[k] = +(q.get(k) as string)
+    } else {
+      result[k] = defaultv
+    }
   }
-  return defaultValue
+  return result as T
 }
 
 // setURLParams will replace the latest browser history entry with the provided params.
@@ -60,37 +69,50 @@ function setURLParams(
   history.replace(location.pathname + newSearch + location.hash)
 }
 
-// useURLParam returns the value for a given URL param name if present, else the given default.
-// It also returns a setter function that, when called, updates the URL param value.
+// useURLParams returns the values for the given URL params if present, else the given defaults.
+// It also returns a setter function that, when called, updates the URL param values.
 // The native history stack will not push a new entry; instead, its
 // latest entry will be replaced.
+export function useURLParams<T extends Record<string, Value>>(
+  params: T, // <name, default> pairs
+): [T, (newValues: Partial<T>) => void] {
+  const location = useLocation()
+  const history = useHistory()
+  const q = new URLSearchParams(location.search)
+
+  function setParams(newParams: Partial<T>): void {
+    for (const [k, _v] of Object.entries(newParams)) {
+      const v = k === 'search' ? (_v as string) : sanitizeURLParam(_v)
+
+      q.delete(k)
+
+      if (Array.isArray(v)) {
+        v.forEach((v) => q.append(k, v))
+      } else if (v) {
+        q.set(k, v)
+      }
+    }
+
+    setURLParams(history, location, q)
+  }
+
+  const values = getParamValues<T>(location, params)
+
+  return [values, setParams]
+}
+
+// useURLParam is like useURLParams but only handles one parameter.
 export function useURLParam<T extends Value>(
   name: string,
   defaultValue: T,
 ): [T, (newValue: T) => void] {
-  const location = useLocation()
-  const history = useHistory()
+  const [params, setParams] = useURLParams({ [name]: defaultValue })
 
-  const value = getURLParam<T>(location, name, defaultValue)
-
-  function setValue(_newValue: T): void {
-    const params = new URLSearchParams(location.search)
-
-    const newValue =
-      name === 'search' ? (_newValue as string) : sanitizeURLParam(_newValue)
-
-    params.delete(name)
-
-    if (Array.isArray(newValue)) {
-      newValue.forEach((v) => params.append(name, v))
-    } else if (newValue) {
-      params.set(name, newValue)
-    }
-
-    setURLParams(history, location, params)
+  function setValue(newValue: T): void {
+    setParams({ [name]: newValue })
   }
 
-  return [value, setValue]
+  return [params[name], setValue]
 }
 
 // useResetURLParams returns a function that, when called, removes
