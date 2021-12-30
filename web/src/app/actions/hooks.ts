@@ -131,12 +131,21 @@ export function useURLParam<T extends Value>(
 export function useResetURLParams(...names: string[]): () => void {
   const location = useLocation()
   const history = useHistory()
+  let called = false
 
   return function resetURLParams(): void {
     if (!names.length) {
       // nothing to do
       return
     }
+
+    if (called) {
+      console.error(
+        'useResetURLParams: resetURLParams was called multiple times in one render, aborting',
+      )
+      return
+    }
+    called = true
 
     const params = new URLSearchParams(location.search)
     names.forEach((name) => params.delete(name))
