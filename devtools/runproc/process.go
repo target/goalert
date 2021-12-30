@@ -55,10 +55,25 @@ var colors = []color.Attribute{
 }
 var colorIndex int
 
+var pColors = make(map[string]color.Attribute)
+
+func coloredName(pName string) string {
+	logMx.Lock()
+	defer logMx.Unlock()
+
+	c, ok := pColors[pName]
+	if !ok {
+		c = colors[colorIndex%len(colors)]
+		colorIndex++
+		pColors[pName] = c
+	}
+
+	return color.New(color.Reset, c).Sprint(pName)
+}
+
 func NewProcess(t Task, padding int) *Process {
 	pName := t.Name + strings.Repeat(" ", padding-len(t.Name))
-	pName = color.New(color.Reset, colors[colorIndex%len(colors)]).Sprint(pName)
-	colorIndex++
+	pName = coloredName(pName)
 	stateCh := make(chan ProcessState, 1)
 	stateCh <- ProcessStateIdle
 	return &Process{
