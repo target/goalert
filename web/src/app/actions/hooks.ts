@@ -79,8 +79,17 @@ export function useURLParams<T extends Record<string, Value>>(
   const location = useLocation()
   const history = useHistory()
   const q = new URLSearchParams(location.search)
+  let called = false
 
   function setParams(newParams: Partial<T>): void {
+    if (called) {
+      console.error(
+        'useURLParams: setParams was called multiple times in one render, aborting',
+      )
+      return
+    }
+    called = true
+
     for (const [k, _v] of Object.entries(newParams)) {
       const v = k === 'search' ? (_v as string) : sanitizeURLParam(_v)
 
