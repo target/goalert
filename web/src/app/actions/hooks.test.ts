@@ -1,13 +1,12 @@
-import { getURLParam, sanitizeURLParam, Value } from './hooks'
+import { getParamValues, sanitizeURLParam, Value } from './hooks'
 
 interface GetParamTest {
   desc: string
-  name: string
-  defaultValue: Value
-  expected: Value
+  params: Record<string, Value>
+  expected: Record<string, Value>
 }
 
-describe('getURLParam', () => {
+describe('getParamValues', () => {
   const mockLocationObject = {
     search: 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee',
     pathname: '',
@@ -17,87 +16,86 @@ describe('getURLParam', () => {
 
   function check(x: GetParamTest): void {
     it(x.desc, () => {
-      expect(getURLParam(mockLocationObject, x.name, x.defaultValue)).toEqual(
-        x.expected,
-      )
+      expect(getParamValues(mockLocationObject, x.params)).toEqual(x.expected)
     })
   }
 
   check({
+    desc: 'empty params',
+    params: {},
+    expected: {},
+  })
+
+  check({
     desc: 'string value',
-    name: 'a',
-    defaultValue: 'aaa',
-    expected: 'str',
+    params: { a: 'aaa' },
+    expected: { a: 'str' },
   })
 
   check({
     desc: 'mising string value',
-    name: 'zzz',
-    defaultValue: 'aaa',
-    expected: 'aaa',
+    params: { zzz: 'aaa' },
+    expected: { zzz: 'aaa' },
   })
 
   check({
     desc: 'string multi-value',
-    name: 'e',
-    defaultValue: ['extra'],
-    expected: ['e', 'e', 'ee'],
+    params: { e: ['extra'] },
+    expected: { e: ['e', 'e', 'ee'] },
   })
 
   check({
     desc: 'missing multi-value',
-    name: 'zzz',
-    defaultValue: ['extra'],
-    expected: ['extra'],
+    params: { zzz: ['extra'] },
+    expected: { zzz: ['extra'] },
   })
 
   check({
     desc: 'number value 1',
-    name: 'b',
-    defaultValue: 4,
-    expected: 3,
+    params: { b: 4 },
+    expected: { b: 3 },
   })
 
   check({
     desc: 'number value 2',
-    name: 'c',
-    defaultValue: 4,
-    expected: 1,
+    params: { c: 4 },
+    expected: { c: 1 },
   })
 
   check({
     desc: 'number value 3',
-    name: 'd',
-    defaultValue: 4,
-    expected: 0,
+    params: { d: 4 },
+    expected: { d: 0 },
   })
 
   check({
     desc: 'missing number value',
-    name: 'zzz',
-    defaultValue: 4,
-    expected: 4,
+    params: { zzz: 4 },
+    expected: { zzz: 4 },
   })
 
   check({
     desc: 'bool value (true)',
-    name: 'c',
-    defaultValue: false,
-    expected: true,
+    params: { c: false },
+    expected: { c: true },
   })
 
   check({
     desc: 'bool value (false)',
-    name: 'd',
-    defaultValue: false,
-    expected: false,
+    params: { d: false },
+    expected: { d: false },
   })
 
   check({
     desc: 'missing bool value',
-    name: 'zzz',
-    defaultValue: true,
-    expected: true,
+    params: { zzz: true },
+    expected: { zzz: true },
+  })
+
+  check({
+    desc: 'multi param',
+    params: { a: '', b: 0, e: [], zzz: false },
+    expected: { a: 'str', b: 3, e: ['e', 'e', 'ee'], zzz: false },
   })
 })
 
