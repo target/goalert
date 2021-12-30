@@ -21,13 +21,23 @@ type Process struct {
 	cmd *exec.Cmd
 	pty *os.File
 
-	cmdErr  error
-	cmdDone chan struct{}
+	state chan ProcessState
 
-	doneCh, failCh   chan struct{}
-	stopped, started bool
-	mx               sync.Mutex
+	result bool
+	exited chan struct{}
 }
+
+type ProcessState int
+
+const (
+	ProcessStateIdle ProcessState = iota
+	ProcessStateStarting
+	ProcessStateRunning
+	ProcessStateStopping
+	ProcessStateKilling
+	ProcessStateRestarting
+	ProcessStateExited
+)
 
 var colors = []color.Attribute{
 	color.FgGreen,
@@ -49,13 +59,17 @@ func NewProcess(t Task, padding int) *Process {
 	pName := t.Name + strings.Repeat(" ", padding-len(t.Name))
 	pName = color.New(color.Reset, colors[colorIndex%len(colors)]).Sprint(pName)
 	colorIndex++
+	stateCh := make(chan ProcessState, 1)
+	stateCh <- ProcessStateIdle
 	return &Process{
 		Task:   t,
 		p:      NewPrefixer(os.Stdout, pName),
-		doneCh: make(chan struct{}),
-		failCh: make(chan struct{}),
+		state:  stateCh,
+		exited: make(chan struct{}),
 	}
 }
+
+var _ ProcessRunner = (*Process)(nil)
 
 var logMx sync.Mutex
 
@@ -70,21 +84,27 @@ func (p *Process) logAction(s string) {
 	color.New(color.Reset, color.Bold).Fprintln(p.p, s)
 }
 func (p *Process) Stop() {
-	p.mx.Lock()
-	defer p.mx.Unlock()
-
-	if p.stopped {
+	s := <-p.state
+	if s != ProcessStateRunning {
+		// nothing to do
+		p.state <- s
 		return
 	}
 
 	p.logAction("Stopping...")
+	go p.gracefulTerm()
+	p.state <- ProcessStateStopping
 
-	p.gracefulTerm()
-	<-p.cmdDone
+	t := time.NewTimer(time.Second)
+	defer t.Stop()
+	select {
+	case <-p.exited:
+	case <-t.C:
+		p.Kill()
+	}
 }
+
 func (p *Process) gracefulTerm() {
-	logMx.Lock()
-	defer logMx.Unlock()
 	if p.pty != nil {
 		io.WriteString(p.pty, "\x03")
 		time.Sleep(100 * time.Millisecond)
@@ -94,57 +114,23 @@ func (p *Process) gracefulTerm() {
 
 	p.cmd.Process.Signal(os.Interrupt)
 }
+
 func (p *Process) Kill() {
-	p.logAction("Killing...")
-	logMx.Lock()
-	p.cmd.Process.Kill()
-	if p.pty != nil {
-		p.pty.Close()
-	}
-	logMx.Unlock()
-
-	<-p.cmdDone
-}
-
-func (p *Process) finish() {
-	p.stopped = true
-	close(p.cmdDone)
-
-	defer p.logAction("Exited.")
-	if p.cmdErr != nil {
-		p.logError(p.cmdErr)
-		close(p.failCh)
+	s := <-p.state
+	switch s {
+	case ProcessStateStopping, ProcessStateRunning:
+	default:
 		return
 	}
 
-	close(p.doneCh)
+	p.logAction("Killing...")
+	p.cmd.Process.Kill()
+	p.state <- ProcessStateKilling
+
+	<-p.exited
 }
 
-func (p *Process) watchFiles() {
-	hash := groupHash(p.WatchFiles)
-	t := time.NewTicker(100 * time.Millisecond)
-	defer t.Stop()
-
-	for {
-		select {
-		case <-p.doneCh:
-			return
-		case <-p.failCh:
-			return
-		case <-t.C:
-		}
-
-		newHash := groupHash(p.WatchFiles)
-		if newHash == hash {
-			continue
-		}
-
-		hash = newHash
-		p.Restart()
-	}
-}
-
-func (p *Process) run() {
+func (p *Process) run() error {
 	p.cmd = exec.Command("sh", "-ce", p.Command)
 
 	ptty, tty, err := pty.Open()
@@ -172,62 +158,54 @@ func (p *Process) run() {
 		err = p.cmd.Start()
 	}
 	if err != nil {
-		p.cmdErr = err
-		p.finish()
-		return
+		return err
 	}
 
-	p.cmdDone = make(chan struct{})
 	go func() {
-		p.cmdErr = p.cmd.Wait()
-		p.finish()
+		err := p.cmd.Wait()
+		<-p.state
+		p.result = err == nil
+		p.logAction("Exited.")
+		if err != nil {
+			p.logError(err)
+		}
+		close(p.exited)
+		p.state <- ProcessStateExited
 	}()
+
+	return nil
 }
 
 func (p *Process) Start() {
+	s := <-p.state
+	if s != ProcessStateIdle {
+		p.state <- s
+		return
+	}
+
 	p.logAction("Starting...")
-	p.mx.Lock()
-	defer p.mx.Unlock()
-
-	if p.stopped || p.started {
+	err := p.run()
+	if err != nil {
+		p.logError(err)
+		close(p.exited)
+		p.state <- ProcessStateExited
 		return
 	}
 
-	if len(p.WatchFiles) > 0 {
-		go p.watchFiles()
-	}
-	p.run()
-
-	p.started = true
-}
-
-func (p *Process) Restart() {
-	p.logAction("Restarting...")
-	p.mx.Lock()
-	defer p.mx.Unlock()
-
-	if p.stopped {
-		return
-	}
-
-	if !p.started {
-		panic("cannot restart process that didn't start")
-	}
-
-	p.gracefulTerm()
-	<-p.cmdDone
-	if p.cmdErr != nil {
-		p.logError(p.cmdErr)
-	}
-
-	p.run()
+	p.state <- ProcessStateRunning
 }
 
 func (p *Process) Wait() bool {
+	<-p.exited
+
+	return p.result
+}
+
+func (p *Process) Done() bool {
 	select {
-	case <-p.doneCh:
+	case <-p.exited:
 		return true
-	case <-p.failCh:
+	default:
 		return false
 	}
 }
