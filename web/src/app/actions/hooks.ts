@@ -25,28 +25,28 @@ export function sanitizeURLParam(value: Value): string | string[] {
   }
 }
 
-// getParamValues converts each value from string|string[]
-// into the desired type based on the respective default value.
+// getParamValues converts each URL search param into the
+// desired type based on its respective default value.
 export function getParamValues<T extends Record<string, Value>>(
   location: Location,
-  params: T,
+  params: T, // <name, default> pairs
 ): T {
   const result = {} as Record<string, Value>
   const q = new URLSearchParams(location.search)
 
-  for (const [k, defaultv] of Object.entries(params)) {
-    if (!q.has(k)) {
-      result[k] = defaultv
-    } else if (Array.isArray(defaultv)) {
-      result[k] = q.getAll(k)
-    } else if (typeof defaultv === 'boolean') {
-      result[k] = q.get(k) === '1'
-    } else if (typeof defaultv === 'string') {
-      result[k] = q.get(k) || ''
-    } else if (typeof defaultv === 'number') {
-      result[k] = +(q.get(k) as string)
+  for (const [name, defaultVal] of Object.entries(params)) {
+    if (!q.has(name)) {
+      result[name] = defaultVal
+    } else if (Array.isArray(defaultVal)) {
+      result[name] = q.getAll(name)
+    } else if (typeof defaultVal === 'boolean') {
+      result[name] = q.get(name) === '1'
+    } else if (typeof defaultVal === 'string') {
+      result[name] = q.get(name) || ''
+    } else if (typeof defaultVal === 'number') {
+      result[name] = +(q.get(name) as string)
     } else {
-      result[k] = defaultv
+      result[name] = defaultVal
     }
   }
   return result as T
@@ -90,15 +90,15 @@ export function useURLParams<T extends Record<string, Value>>(
     }
     called = true
 
-    for (const [k, _v] of Object.entries(newParams)) {
-      const v = k === 'search' ? (_v as string) : sanitizeURLParam(_v)
+    for (const [name, _v] of Object.entries(newParams)) {
+      const value = name === 'search' ? (_v as string) : sanitizeURLParam(_v)
 
-      q.delete(k)
+      q.delete(name)
 
-      if (Array.isArray(v)) {
-        v.forEach((v) => q.append(k, v))
-      } else if (v) {
-        q.set(k, v)
+      if (Array.isArray(value)) {
+        value.forEach((v) => q.append(name, v))
+      } else if (value) {
+        q.set(name, value)
       }
     }
 
