@@ -91,7 +91,7 @@
     "json-loader": "0.5.7",
     "postcss": "8.4.5",
     "postcss-loader": "6.2.0",
-    "prop-types": "15.7.2",
+    "prop-types": "15.8.0",
     "redux": "4.1.1",
     "redux-devtools-extension": "2.13.9",
     "style-loader": "3.3.0",
