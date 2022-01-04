@@ -4,17 +4,19 @@ interface GetParamTest {
   desc: string
   params: Record<string, Value>
   expected: Record<string, Value>
+  search?: string
 }
 
 describe('getParamValues', () => {
-  const mockLocationObject = {
-    search: 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee',
-    pathname: '',
-    state: '',
-    hash: '',
-  }
-
   function check(x: GetParamTest): void {
+    const defaultSearch = 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee&f=ok%2Cgo%21'
+    const mockLocationObject = {
+      search: x.search ? x.search : defaultSearch,
+      pathname: '',
+      state: '',
+      hash: '',
+    }
+
     it(x.desc, () => {
       expect(getParamValues(mockLocationObject, x.params)).toEqual(x.expected)
     })
@@ -97,6 +99,40 @@ describe('getParamValues', () => {
     params: { a: '', b: 0, e: [], zzz: false },
     expected: { a: 'str', b: 3, e: ['e', 'e', 'ee'], zzz: false },
   })
+
+  check({
+    desc: 'char encoding 1',
+    params: { f: '' },
+    expected: { f: 'ok,go!' },
+  })
+
+  check({
+    desc: 'char encoding 2',
+    search: 'search=asdf%26%3D',
+    params: { search: '' },
+    expected: { search: 'asdf&=' },
+  })
+
+  check({
+    desc: 'search foo',
+    search: 'search=foo',
+    params: { search: '' },
+    expected: { search: 'foo' },
+  })
+
+  check({
+    desc: '& prefix',
+    search: '&search=foo',
+    params: { search: '' },
+    expected: { search: 'foo' },
+  })
+
+  check({
+    desc: '&&& suffix',
+    search: 'search=foo&&&',
+    params: { search: '' },
+    expected: { search: 'foo' },
+  })
 })
 
 interface SanitizeTest {
@@ -155,7 +191,7 @@ describe('sanitizeURLParam', () => {
   })
 
   check({
-    desc: 'num value 2',
+    desc: 'num value 0',
     val: 0,
     expected: '0',
   })
