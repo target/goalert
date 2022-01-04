@@ -71,37 +71,45 @@ export default function AdminMetrics(): JSX.Element {
     name: date,
     count: alerts.length,
   }))
+
   return (
     <Grid container spacing={2} className={classes.gridContainer}>
       <Grid item xs={12}>
         <Card>
           <CardHeader
-            component='h3'
+            component='h2'
             title='Daily alert counts over the last 28 days'
           />
-          <CardContent className={classes.graphContent}>
+          <CardContent>
             <Grid container>
               <Grid item xs={6}>
                 <ServiceSelect
-                  onChange={(e) => setServices(e)}
+                  onChange={(v) => setServices(v)}
                   multiple
                   value={services}
+                  label='Filter by Service'
                 />
               </Grid>
               <Grid item xs={6}>
-              {/*  date range filter spot holder */}
+                {/*  date range filter spot holder */}
               </Grid>
             </Grid>
-            <ResponsiveContainer width='100%' height='100%'>
-              <BarChart width={730} height={250} data={data}>
-                <CartesianGrid strokeDasharray='3 3' />
-                <XAxis dataKey='name' />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey='count' fill='#82ca9d' />
-              </BarChart>
-            </ResponsiveContainer>
+          </CardContent>
+          <CardContent>
+            <Grid container className={classes.graphContent}>
+              <Grid item xs={12}>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <BarChart width={730} height={250} data={data}>
+                    <CartesianGrid strokeDasharray='3 3' />
+                    <XAxis dataKey='name' />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey='count' fill='#82ca9d' />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Grid>

@@ -130,6 +130,8 @@ export const querySelectPropTypes = {
   multiple: p.bool,
   name: p.string,
   placeholder: p.string,
+
+  label: p.string,
 }
 
 // makeQuerySelect will return a new React component that can be used
