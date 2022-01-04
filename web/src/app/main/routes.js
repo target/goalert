@@ -141,8 +141,8 @@ export default [
         component: AdminRouter,
       },
       {
-        title: 'Metrics',
-        path: '/admin/metrics',
+        title: 'Alert Metrics',
+        path: '/admin/alert-metrics',
         component: AdminRouter,
       },
     ],

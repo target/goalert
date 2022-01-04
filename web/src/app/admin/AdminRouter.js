@@ -22,7 +22,7 @@ function AdminRouter() {
       <Route exact path='/admin/config' component={AdminConfig} />
       <Route exact path='/admin/limits' component={AdminLimits} />
       <Route exact path='/admin/toolbox' component={AdminToolbox} />
-      <Route exact path='/admin/metrics' component={AdminMetrics} />
+      <Route exact path='/admin/alert-metrics' component={AdminMetrics} />
       <Route component={PageNotFound} />
     </Switch>
   )
