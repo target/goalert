@@ -39,24 +39,6 @@ export const urlParamSelector = createSelector(
     },
 )
 
-export const searchSelector = createSelector(urlParamSelector, (params) =>
-  params('search', ''),
-)
-
-export const alertFilterSelector = createSelector(urlParamSelector, (params) =>
-  params('filter', 'active'),
-)
-
-export const alertAllServicesSelector = createSelector(
-  urlParamSelector,
-  (params) => params('allServices', false),
-)
-
-export const alertShowAsFullTimeSelector = createSelector(
-  urlParamSelector,
-  (params) => params('fullTime', false),
-)
-
 // absURLSelector will return an absolute URL (including protocol) for the given
 // relative or from-root path. It will automatically add any path prefix.
 export const absURLSelector = createSelector(urlPathSelector, (base) =>

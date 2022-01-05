@@ -2,12 +2,7 @@
  * @jest-environment jsdom
  */
 
-import {
-  urlParamSelector,
-  searchSelector,
-  absURLSelector,
-  ReduxState,
-} from './url'
+import { urlParamSelector, absURLSelector, ReduxState } from './url'
 
 describe('urlParamSelector', () => {
   ;(
@@ -31,23 +26,6 @@ describe('urlParamSelector', () => {
       }
     }),
   )
-})
-
-describe('searchSelector', () => {
-  test('return the search parameter', () => {
-    expect(
-      searchSelector({
-        router: { location: { search: '?search=testing' } },
-      } as ReduxState),
-    ).toBe('testing')
-  })
-  test('always return a string', () => {
-    expect(
-      searchSelector({
-        router: { location: { search: '' } },
-      } as ReduxState),
-    ).toBe('')
-  })
 })
 
 describe('absURLSelector', () => {
