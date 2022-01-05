@@ -6,7 +6,7 @@ let oldZone: Zone
 beforeAll(() => {
   // 01/02 03:04:05PM '06 -0700
   Settings.now = () => 1136239445
-  oldZone = Settings.defaultZone as Zone
+  oldZone = Settings.defaultZone as Zone // getting defaultZone always returns a Zone object
   Settings.defaultZone = 'UTC'
 })
 afterAll(() => {
