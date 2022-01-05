@@ -177,7 +177,7 @@ export default function AdminMetrics(): JSX.Element {
                     <Legend />
                     <Bar
                       dataKey='count'
-                      fill={theme.palette.primary.main}
+                      fill='rgb(205, 24, 49)'
                       className={classes.bar}
                       name='Alert Count'
                     />
