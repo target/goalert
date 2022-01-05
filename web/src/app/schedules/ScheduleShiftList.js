@@ -70,7 +70,7 @@ function ScheduleShiftList({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
 
   const defaultStart = useMemo(
-    () => DateTime.fromObject({ zone }).startOf('day').toISO(),
+    () => DateTime.now().setZone(zone).startOf('day').toISO(),
     [zone],
   )
   const [_start, setStart] = useURLParam('start', defaultStart)
@@ -120,8 +120,7 @@ function ScheduleShiftList({ scheduleID }) {
       }))
 
     if (activeOnly) {
-      const now = DateTime.fromObject({ zone })
-      shifts = shifts.filter((s) => s.interval.contains(now))
+      shifts = shifts.filter((s) => s.interval.contains(DateTime.now()))
     }
 
     if (!shifts.length) return []
