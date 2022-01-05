@@ -6,16 +6,21 @@ declare namespace Cypress {
 }
 
 interface OutgoingMessageOptions {
-  serviceID: string
-  alertID: string
-  userID: string
-
   id?: string
+  serviceID?: string
+  serviceName?: string
+  epID?: string
+  alertID?: string
+  alertLogID?: string
+  userID?: string
+  userName?: string
+  contactMethodID?: string
   messageType?: string
   createdAt?: string
+  sentAt?: string
   status?: string
 }
 
 type createOutgoingMessageFn = (
-  log: OutgoingMessageOptions,
+  message: OutgoingMessageOptions,
 ) => Cypress.Chainable

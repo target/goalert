@@ -1,71 +1,140 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+import { DebugMessage } from '../../schema'
 
 const c = new Chance()
 
 const messageTypes = [
   'alert_notification',
-  'verification_message',
   'test_notification',
   'alert_status_update',
   'alert_notification_bundle',
-  'alert_status_update_bundle',
   'schedule_on_call_notification',
+  // 'verification_message',
+  // 'alert_status_update_bundle',
 ]
 
 const statuses = ['delivered', 'failed']
 
 // createOutgoingMessage inserts mock outgoing message data to the db based on some provided options
-// returns true/false depending on success of db insert
-// params not inserted: contact method dest, provider info, and status details
-function createOutgoingMessage(msg: OutgoingMessageOptions): Cypress.Chainable {
-  const createdAt =
-    msg?.createdAt ??
-    DateTime.fromJSDate(
-      c.date({
-        year: new Date().getFullYear(),
-        string: false,
-      }) as Date,
-    ).toISO()
+// does not support setting the notification channel, updatedAt, source, or providerID columns.
+function createOutgoingMessage(
+  msg: OutgoingMessageOptions = {},
+): Cypress.Chainable<DebugMessage> {
+  // create all unused optional params before attempting db insert
 
-  const sentAt = DateTime.fromISO(createdAt).plus(1000).toISO()
+  // user and contact method
+  if (!msg.userID) {
+    return cy
+      .createUser()
+      .then((u: Profile) =>
+        createOutgoingMessage({ ...msg, userID: u.id, userName: u.name }),
+      )
+  }
+  if (!msg.contactMethodID) {
+    return cy
+      .addContactMethod({ userID: msg.userID })
+      .then((cm: ContactMethod) =>
+        createOutgoingMessage({ ...msg, contactMethodID: cm.id }),
+      )
+  }
 
-  // craft message for insert
+  // escalation policy with user on a step
+  if (!msg.epID) {
+    return cy.createEP().then((ep: EP) =>
+      cy
+        .createEPStep({
+          targets: [
+            {
+              id: msg.userID,
+              type: 'user',
+            },
+          ],
+        })
+        .then(() => {
+          createOutgoingMessage({
+            ...msg,
+            epID: ep.id,
+          })
+        }),
+    )
+  }
+
+  // service
+  if (!msg.serviceID) {
+    return cy.createService().then((s: Service) =>
+      createOutgoingMessage({
+        ...msg,
+        serviceID: s.id,
+        serviceName: s.name,
+      }),
+    )
+  }
+
+  // alert and alert log
+  if (!msg.alertID) {
+    return cy.createAlert({ serviceID: msg.serviceID }).then((a: Alert) =>
+      createOutgoingMessage({
+        ...msg,
+        alertID: a.id.toString(),
+      }),
+    )
+  }
+  if (!msg.alertLogID) {
+    return cy
+      .createAlertLogs({ alertID: msg.alertID })
+      .then((alertLogObj: AlertLogs) =>
+        createOutgoingMessage({
+          ...msg,
+          alertLogID: alertLogObj.logs[0].id,
+        }),
+      )
+  }
+
+  const someDate = DateTime.fromJSDate(
+    c.date({
+      year: new Date().getFullYear(),
+      string: false,
+    }) as Date,
+  )
+  const createdAt = msg?.createdAt ?? someDate.toISO()
+  const sentAt = msg?.sentAt ?? DateTime.fromISO(createdAt).plus(1000).toISO()
+
+  // craft helper message obj for insert
   const m = {
-    id: c.guid(),
-    userID: msg.userID,
+    id: msg?.id ?? c.guid(),
     serviceID: msg.serviceID,
+    epID: msg.epID,
     alertID: msg.alertID,
+    alertLogID: msg.alertLogID,
+    userID: msg.userID,
+    contactMethodID: msg.contactMethodID,
     createdAt,
     sentAt,
-    messageType: msg?.messageType || c.pickone(messageTypes),
-    status: msg?.status || c.pickone(statuses),
+    messageType: msg?.messageType ?? c.pickone(messageTypes),
+    status: msg?.status ?? c.pickone(statuses),
   }
-
-  // create a contact method from user
-  const cm = {
-    id: c.guid(),
-    userID: msg.userID,
-    name: c.word(),
-    type: c.pickone(['SMS', 'VOICE']),
-    value: c.phone(),
-    disabled: true,
-  }
-
-  console.log('userID: ', msg.userID)
 
   return cy
     .sql(
-      `insert into user_contact_methods (id, user_id, name, type, value, disabled) values` +
-        `('${cm.id}', '${cm.userID}', '${cm.name}', '${cm.type}', '${cm.value}', '${cm.disabled}');`,
+      `insert into outgoing_messages ` +
+        `(id, user_id, contact_method_id, service_id, escalation_policy_id, alert_id, ` +
+        `alert_log_id, created_at, sent_at, message_type, last_status) values` +
+        `('${m.id}', '${m.userID}', '${m.contactMethodID}', '${m.serviceID}', '${m.epID}', '` +
+        `${m.alertID}', '${m.alertLogID}', '${m.createdAt}', '${m.sentAt}', '${m.messageType}', '${m.status}');`,
     )
-    .then(() => {
-      const dbQuery =
-        `insert into outgoing_messages (id, user_id, contact_method_id, service_id, alert_id, created_at, sent_at, message_type, last_status) values` +
-        `('${m.id}', '${m.userID}', '${cm.id}', '${m.serviceID}', '${m.alertID}', '${m.createdAt}', '${m.sentAt}', '${m.messageType}', '${m.status}');`
-
-      return cy.sql(dbQuery)
-    })
+    .then(() => ({
+      id: m.id,
+      createdAt: m.createdAt,
+      type: m.messageType,
+      status: m.status,
+      userID: m.userID,
+      userName: msg.userName,
+      destination: m.contactMethodID,
+      serviceID: m.serviceID,
+      serviceName: msg.serviceName,
+      alertID: m.alertID,
+    }))
 }
 
 Cypress.Commands.add('createOutgoingMessage', createOutgoingMessage)

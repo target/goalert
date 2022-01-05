@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { DebugMessage } from '../../schema'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
@@ -196,39 +197,23 @@ function testAdmin(): void {
   })
 
   describe.only('Admin Outgoing Logs Page', () => {
-    let service: Service
-    let alert: Alert
-    let user: Profile
+    let debugMessage: DebugMessage
 
     beforeEach(() => {
-      cy.createService()
-        .then((s: Service) => {
-          service = s
-        })
-        .then(() =>
-          cy.createAlert({ serviceID: service.id }).then((a: Alert) => {
-            alert = a
-          }),
-        )
-        .then(() =>
-          cy.createUser().then((u: Profile) => {
-            user = u
-          }),
-        )
-        .then(() =>
-          cy.createOutgoingMessage({
-            serviceID: service.id,
-            alertID: alert.id.toString(),
-            userID: user.id,
-          }),
-        )
-        .then(() => {
-          cy.visit('/admin/logs?poll=0')
-        })
+      cy.createOutgoingMessage().then((msg: DebugMessage) => {
+        debugMessage = msg
+        cy.visit('/admin/logs?poll=0')
+      })
     })
 
-    it('should view the logs list', () => {
-      cy.get('body')
+    it('should view the logs list with one log', () => {
+      cy.get('[data-cy="outgoing-message-list"]')
+        .children('div')
+        .should('have.length', 1)
+      cy.get('[data-cy="outgoing-message-list"]').should(
+        'contain',
+        'Displaying all results.',
+      )
     })
     // it('should select and view a logs details', () => {})
     // it('should visit a users page from a logs details', () => {})

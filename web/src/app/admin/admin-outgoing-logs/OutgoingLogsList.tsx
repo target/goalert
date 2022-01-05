@@ -78,6 +78,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
 
   return (
     <Box
+      data-cy='outgoing-message-list'
       display='flex'
       flexDirection='column'
       alignItems='stretch'

@@ -9,6 +9,7 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
       alert(id: $id) {
         recentEvents(input: { limit: 149, after: $after }) {
           nodes {
+            id
             timestamp
             message
           }
