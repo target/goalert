@@ -27,7 +27,7 @@ export function useScheduleTZ(scheduleID: string): ScheduleTZResult {
   })
   const zone = q.data?.schedule?.timeZone ?? ''
   const isLocalZone = zone === DateTime.local().zoneName
-  const zoneAbbr = zone ? DateTime.now().setZone(zone).toFormat('ZZZZ') : ''
+  const zoneAbbr = zone ? DateTime.local({ zone }).toFormat('ZZZZ') : ''
 
   if (q.error) {
     console.error(
