@@ -31,7 +31,6 @@
     "@mui/styles": "5.2.3",
     "bowser": "2.11.0",
     "classnames": "2.3.1",
-    "connected-react-router": "6.9.1",
     "diff": "5.0.0",
     "graphql": "16.0.1",
     "history": "4.10.1",
