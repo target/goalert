@@ -91,7 +91,10 @@ require (
 	honnef.co/go/tools v0.2.2
 )
 
-require github.com/golang-jwt/jwt/v4 v4.2.0
+require (
+	github.com/creack/pty v1.1.7
+	github.com/golang-jwt/jwt/v4 v4.2.0
+)
 
 require (
 	cloud.google.com/go/monitoring v1.1.0 // indirect
