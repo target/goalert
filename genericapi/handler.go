@@ -92,11 +92,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 	summary := r.FormValue("summary")
 	details := r.FormValue("details")
-
-	status := alert.StatusTriggered
-	if r.FormValue("action") == "close" {
-		status = alert.StatusClosed
-	}
+	action := r.FormValue("action")
 
 	contentType := r.Header.Get("Content-type")
 	if contentType == "application/json" {
@@ -107,10 +103,12 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 		summary = alertMessage.Summary
 		details = alertMessage.Details
-		action := alertMessage.Action
-		if action == "close" {
-			status = alert.StatusClosed
-		}
+		action = alertMessage.Action
+	}
+
+	status := alert.StatusTriggered
+	if action == "close" {
+		status = alert.StatusClosed
 	}
 
 	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
