@@ -4,7 +4,7 @@ import { GenericError, PageNotFound } from '../error-pages/Errors'
 import AdminConfig from './AdminConfig'
 import AdminLimits from './AdminLimits'
 import AdminToolbox from './AdminToolbox'
-import AdminDebugMessagesLayout from './admin-outgoing-messages/AdminDebugMessagesLayout'
+import AdminDebugMessagesLayout from './admin-message-logs/AdminDebugMessagesLayout'
 import { useSessionInfo } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 
