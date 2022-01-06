@@ -43,22 +43,22 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
 export default function AlertMetrics(): JSX.Element {
   const classes = useStyles()
   const now = useMemo(() => DateTime.now(), [])
-  const [minDate, maxDate] = [
-    useMemo(() => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'), [now]),
-    now,
-  ]
+  const minDate = useMemo(
+    () => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'),
+    [now],
+  )
+
   const [services] = useURLParam<string[]>('services', [])
   const [_since] = useURLParam('since', minDate.toISO())
-  const since = DateTime.max(DateTime.fromISO(_since), minDate).toISO()
-  const until = maxDate
+  const since = DateTime.max(DateTime.fromISO(_since), minDate) // set a floor
 
   const q = useQuery(query, {
     variables: {
       input: {
         filterByServiceID: services.length ? services : null,
         first: 100,
-        notCreatedBefore: since,
-        createdBefore: until,
+        notCreatedBefore: since.toISO(),
+        createdBefore: now.toISO(),
       },
     },
   })
@@ -72,10 +72,7 @@ export default function AlertMetrics(): JSX.Element {
     }),
   )
 
-  const data = Interval.fromDateTimes(
-    DateTime.fromISO(since).startOf('day'),
-    until.endOf('day'),
-  )
+  const data = Interval.fromDateTimes(since.startOf('day'), now.endOf('day'))
     .splitBy({ days: 1 })
     .map((day) => {
       let alertCount = 0
