@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
 import DebugMessageCard from './DebugMessageCard'
-import { useFuse } from './hooks'
+import { useFuse } from './useFuse'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
