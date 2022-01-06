@@ -33,7 +33,7 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
 
   const resetFilters = (): void => {
     resetDateRange()
-    // The ISODateTimePicker doesn't update to changes in it's `value` prop. It only uses it's internal state.
+    // The ISODateTimePicker doesn't update to changes in its `value` prop. It only uses its internal state.
     // This key is a hotfix to set the ISODateTimePicker's value by just completely re-rendering it.
     setKey(key + 1)
   }
