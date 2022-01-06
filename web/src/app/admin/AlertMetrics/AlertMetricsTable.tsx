@@ -8,7 +8,6 @@ import {
 import { Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
-import _ from 'lodash'
 import { DateTime } from 'luxon'
 import AppLink from '../../util/AppLink'
 
