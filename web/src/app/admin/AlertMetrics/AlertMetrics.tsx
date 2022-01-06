@@ -19,6 +19,7 @@ const query = gql`
         status
         service {
           name
+          id
         }
         createdAt
       }

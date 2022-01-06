@@ -1,10 +1,11 @@
 import React from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridRenderCellParams } from '@mui/x-data-grid'
 import { Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
+import AppLink from '../../util/AppLink'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
@@ -27,6 +28,7 @@ export default function AlertMetricsTable(
       id: idx,
       alertID: alert.id,
       serviceName: alert.service?.name,
+      serviceID: alert.service?.id,
       createdAt: DateTime.fromISO(alert.createdAt).toLocaleString(
         DateTime.DATE_SHORT,
       ),
@@ -36,11 +38,23 @@ export default function AlertMetricsTable(
   })
 
   const columns = [
-    { field: 'alertID', headerName: 'Alert ID', width: 90 },
+    {
+      field: 'alertID',
+      headerName: 'Alert ID',
+      width: 90,
+      renderCell: (params: GridRenderCellParams<string>) => (
+        <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
+      ),
+    },
     {
       field: 'serviceName',
       headerName: 'ServiceName',
       width: 150,
+      renderCell: (params: GridRenderCellParams<string>) => (
+        <AppLink to={`/services/${params.row.serviceID}`}>
+          {params.value}
+        </AppLink>
+      ),
     },
     {
       field: 'createdAt',
