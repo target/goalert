@@ -7,6 +7,7 @@ import { useURLParam } from '../../actions/hooks'
 import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
+import AlertMetricsCSV from './AlertMetricsCSV'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -15,6 +16,7 @@ const query = gql`
         id
         alertID
         summary
+        details
         status
         service {
           name
@@ -52,7 +54,7 @@ export default function AlertMetrics(): JSX.Element {
     },
   })
 
-  const alerts = q?.data?.alerts?.nodes
+  const alerts = q?.data?.alerts?.nodes ?? []
 
   const dateToAlerts = _.groupBy(alerts ?? [], (node) =>
     DateTime.fromISO(node.createdAt).toLocaleString({
@@ -90,7 +92,8 @@ export default function AlertMetrics(): JSX.Element {
           <CardContent>
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={data} />
-            <AlertMetricsTable alerts={alerts || []} />
+            <AlertMetricsTable alerts={alerts} />
+            <AlertMetricsCSV alerts={alerts} />
           </CardContent>
         </Card>
       </Grid>
