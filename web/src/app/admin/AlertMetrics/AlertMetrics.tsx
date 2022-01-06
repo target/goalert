@@ -1,15 +1,5 @@
 import React, { useMemo } from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from '@mui/material'
+import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import {
   XAxis,
@@ -22,11 +12,11 @@ import {
   Legend,
 } from 'recharts'
 import { useQuery, gql } from '@apollo/client'
-import { theme } from '../mui'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
-import { ServiceSelect } from '../selection'
-import { useURLParam } from '../actions/hooks'
+import { theme } from '../../mui'
+import { useURLParam } from '../../actions/hooks'
+import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -60,15 +50,15 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
   },
 }))
 
-export default function AdminMetrics(): JSX.Element {
+export default function AlertMetrics(): JSX.Element {
   const classes = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const [minDate, maxDate] = [
-    useMemo(() => now.minus({ weeks: 4 }).startOf('day'), [now]),
+    useMemo(() => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'), [now]),
     now,
   ]
-  const [services, setServices] = useURLParam<string[]>('services', [])
-  const [_since, setSince] = useURLParam('since', minDate.toISO())
+  const [services] = useURLParam<string[]>('services', [])
+  const [_since] = useURLParam('since', minDate.toISO())
   const since = DateTime.max(DateTime.fromISO(_since), minDate).toISO()
   const until = maxDate
 
@@ -77,8 +67,8 @@ export default function AdminMetrics(): JSX.Element {
       input: {
         filterByServiceID: services.length ? services : null,
         first: 100,
-        createdBefore: until,
         notCreatedBefore: since,
+        createdBefore: until,
       },
     },
   })
@@ -109,11 +99,6 @@ export default function AdminMetrics(): JSX.Element {
       }
     })
 
-  const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
-    const weeks = e?.target?.value as number
-    setSince(now.minus({ weeks }).startOf('day').toISO())
-  }
-
   return (
     <Grid container spacing={2} className={classes.gridContainer}>
       <Grid item xs={12}>
@@ -123,39 +108,7 @@ export default function AdminMetrics(): JSX.Element {
             title='Daily alert counts over the last 28 days'
           />
           <CardContent>
-            <Grid container justifyContent='space-around'>
-              <Grid item xs={5}>
-                <ServiceSelect
-                  onChange={(v) => setServices(v)}
-                  multiple
-                  value={services}
-                  label='Filter by Service'
-                />
-              </Grid>
-              <Grid item xs={5}>
-                <FormControl sx={{ width: '100%' }}>
-                  <InputLabel id='demo-simple-select-helper-label'>
-                    Date Range
-                  </InputLabel>
-                  <Select
-                    fullWidth
-                    labelId='demo-simple-select-helper-label'
-                    id='demo-simple-select-helper'
-                    value={Math.floor(
-                      -DateTime.fromISO(since).diffNow('weeks').weeks,
-                    )}
-                    label='Date Range'
-                    name='date-range'
-                    onChange={handleDateRangeChange}
-                  >
-                    <MenuItem value={1}>Past week</MenuItem>
-                    <MenuItem value={2}>Past 2 weeks</MenuItem>
-                    <MenuItem value={3}>Past 3 weeks</MenuItem>
-                    <MenuItem value={4}>Past 4 weeks</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
+            <AlertMetricsFilter now={now} />
           </CardContent>
           <CardContent>
             <Grid container className={classes.graphContent}>
