@@ -7,9 +7,10 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
 import { MAX_QUERY_ITEMS_COUNT } from './AdminDebugMessagesLayout'
+
 interface Props {
-  showingLimit: number
-  totalCount: number
+  numRendered: number // the amount of logs rendered, since all logs are fetched on page load
+  totalCount: number // the total number of logs fetched
 }
 
 const useStyles = makeStyles<typeof theme>({
@@ -94,7 +95,7 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(p.showingLimit, p.totalCount)} of
+            {`Fetched ${Math.min(p.numRendered, p.totalCount)} of
             ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>

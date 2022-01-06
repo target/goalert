@@ -7,8 +7,6 @@ import { useFuse } from './useFuse'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
-export const LOAD_AMOUNT = 50
-
 interface KeyedDebugMessage extends DebugMessage {
   additonalKeys: {
     filteredDestination: string
@@ -21,7 +19,7 @@ interface Props {
   onSelect: (debugMessage: DebugMessage) => void
   onLoadMore: () => void
   onResetLoadMore: () => void
-  showingLimit: number
+  numRendered: number
 }
 
 export default function DebugMessagesList(props: Props): JSX.Element {
@@ -29,7 +27,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
     debugMessages = [],
     selectedLog,
     onSelect,
-    showingLimit,
+    numRendered,
     onLoadMore,
     onResetLoadMore,
   } = props
@@ -83,7 +81,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {filteredResults.slice(0, showingLimit).map(({ item: debugMessage }) => (
+      {filteredResults.slice(0, numRendered).map(({ item: debugMessage }) => (
         <DebugMessageCard
           key={debugMessage.id}
           debugMessage={debugMessage}
@@ -91,7 +89,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
           onSelect={() => onSelect(debugMessage)}
         />
       ))}
-      {showingLimit < filteredResults.length ? (
+      {numRendered < filteredResults.length ? (
         // load more
         <div
           style={{
