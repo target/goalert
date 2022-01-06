@@ -30,9 +30,6 @@ export default function AlertMetricsFilter(
     setSince(props.now.minus({ weeks }).startOf('day').toISO())
   }
 
-  //   justify-content: left;
-  // margin-left: 3rem;
-
   return (
     <Grid container sx={{ marginLeft: '3rem' }}>
       <Grid item xs={5}>
