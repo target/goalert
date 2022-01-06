@@ -6,7 +6,7 @@ import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
-import { MAX_QUERY_ITEMS_COUNT } from './AdminOutgoingLogs'
+import { MAX_QUERY_ITEMS_COUNT } from './AdminDebugMessagesLayout'
 interface Props {
   showingLimit: number
   totalCount: number
@@ -23,7 +23,7 @@ const useStyles = makeStyles<typeof theme>({
   },
 })
 
-export default function OutgoingLogsControls(p: Props): JSX.Element {
+export default function DebugMessagesControls(p: Props): JSX.Element {
   const classes = useStyles()
 
   const [start, setStart] = useURLParam<string>('start', '')

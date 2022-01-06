@@ -141,8 +141,8 @@ export default [
         component: AdminRouter,
       },
       {
-        title: 'Outgoing Logs',
-        path: '/admin/logs',
+        title: 'Message Logs',
+        path: '/admin/message-logs',
         component: AdminRouter,
       },
     ],

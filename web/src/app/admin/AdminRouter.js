@@ -4,7 +4,7 @@ import { GenericError, PageNotFound } from '../error-pages/Errors'
 import AdminConfig from './AdminConfig'
 import AdminLimits from './AdminLimits'
 import AdminToolbox from './AdminToolbox'
-import AdminOutgoingLogs from './admin-outgoing-logs/AdminOutgoingLogs'
+import AdminDebugMessagesLayout from './admin-outgoing-messages/AdminDebugMessagesLayout'
 import { useSessionInfo } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 
@@ -22,7 +22,11 @@ function AdminRouter() {
       <Route exact path='/admin/config' component={AdminConfig} />
       <Route exact path='/admin/limits' component={AdminLimits} />
       <Route exact path='/admin/toolbox' component={AdminToolbox} />
-      <Route exact path='/admin/logs' component={AdminOutgoingLogs} />
+      <Route
+        exact
+        path='/admin/message-logs'
+        component={AdminDebugMessagesLayout}
+      />
 
       <Route component={PageNotFound} />
     </Switch>

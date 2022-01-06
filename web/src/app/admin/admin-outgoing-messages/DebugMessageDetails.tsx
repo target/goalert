@@ -20,7 +20,7 @@ interface Props {
   log?: DebugMessage | null
 }
 
-export default function OutgoingLogDetails(props: Props): JSX.Element {
+export default function DebugMessageDetails(props: Props): JSX.Element {
   const { open, onClose, log } = props
 
   return (

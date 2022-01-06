@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Box } from '@mui/system'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
-import OutgoingLogCard from './OutgoingLogCard'
+import DebugMessageCard from './DebugMessageCard'
 import { useFuse } from './hooks'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
@@ -24,7 +24,7 @@ interface Props {
   showingLimit: number
 }
 
-export default function OutgoingLogsList(props: Props): JSX.Element {
+export default function DebugMessagesList(props: Props): JSX.Element {
   const {
     debugMessages = [],
     selectedLog,
@@ -84,7 +84,7 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       width='full'
     >
       {filteredResults.slice(0, showingLimit).map(({ item: debugMessage }) => (
-        <OutgoingLogCard
+        <DebugMessageCard
           key={debugMessage.id}
           debugMessage={debugMessage}
           selected={selectedLog?.id === debugMessage.id}

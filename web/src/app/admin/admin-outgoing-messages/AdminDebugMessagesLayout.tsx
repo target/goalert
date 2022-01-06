@@ -4,9 +4,9 @@ import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import OutgoingLogsList from './OutgoingLogsList'
-import OutgoingLogsControls from './OutgoingLogsControls'
-import OutgoingLogDetails from './OutgoingLogDetails'
+import DebugMessagesList from './DebugMessagesList'
+import DebugMessagesControls from './DebugMessagesControls'
+import DebugMessageDetails from './DebugMessageDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
 
@@ -64,7 +64,7 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
   },
 }))
 
-export default function AdminOutgoingLogs(): JSX.Element {
+export default function AdminDebugMessagesLayout(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
   const [showingLimit, setShowingLimit] = useState(DEFAULT_LOAD_AMOUNT)
@@ -78,7 +78,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
 
   return (
     <React.Fragment>
-      <OutgoingLogDetails
+      <DebugMessageDetails
         open={Boolean(selectedLog)}
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
@@ -98,17 +98,17 @@ export default function AdminOutgoingLogs(): JSX.Element {
               color='textSecondary'
               classes={{ subtitle1: classes.groupTitle }}
             >
-              Outgoing Messages
+              Outgoing Message Logs
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <OutgoingLogsControls
+            <DebugMessagesControls
               showingLimit={showingLimit}
               totalCount={data.debugMessages.length}
             />
           </Grid>
           <Grid item xs={12}>
-            <OutgoingLogsList
+            <DebugMessagesList
               debugMessages={data.debugMessages.map((d: DebugMessage) => ({
                 ...d,
                 additionalKeys: {
