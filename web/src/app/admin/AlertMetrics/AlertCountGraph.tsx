@@ -44,6 +44,7 @@ export default function AlertCountGraph(
             margin={{
               top: 50,
               right: 30,
+              bottom: 50,
             }}
           >
             <CartesianGrid strokeDasharray='4' vertical={false} />

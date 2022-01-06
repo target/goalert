@@ -8,12 +8,18 @@ import { theme } from '../../mui'
 import { useURLParam } from '../../actions/hooks'
 import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
+import AlertMetricsTable from './AlertMetricsTable'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
     alerts(input: $input) {
       nodes {
         id
+        summary
+        status
+        service {
+          name
+        }
         createdAt
       }
       pageInfo {
@@ -55,7 +61,9 @@ export default function AlertMetrics(): JSX.Element {
     },
   })
 
-  const dateToAlerts = _.groupBy(q?.data?.alerts?.nodes ?? [], (node) =>
+  const alerts = q?.data?.alerts?.nodes
+
+  const dateToAlerts = _.groupBy(alerts ?? [], (node) =>
     DateTime.fromISO(node.createdAt).toLocaleString({
       month: 'short',
       day: 'numeric',
@@ -94,6 +102,7 @@ export default function AlertMetrics(): JSX.Element {
           </CardContent>
           <CardContent>
             <AlertCountGraph data={data} />
+            <AlertMetricsTable alerts={alerts || []} />
           </CardContent>
         </Card>
       </Grid>
