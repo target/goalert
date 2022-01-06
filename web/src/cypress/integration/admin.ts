@@ -250,7 +250,30 @@ function testAdmin(): void {
     })
 
     it.only('should select and view a logs details', () => {
-      // id, createdAt, updatedAt, type, status, user, service, alert, source, destination, providerID
+      // not asserting updatedAt, destination, or providerID
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"').as('details').should('exist')
+
+      cy.get('@details').should('contain.text', 'ID')
+      cy.get('@details').should('contain.text', debugMessage.id)
+
+      cy.get('@details').should('contain.text', 'Created At')
+      cy.get('@details').should(
+        'contain.text',
+        DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
+      )
+
+      cy.get('@details').should('contain.text', 'Notification Type')
+      cy.get('@details').should('contain.text', debugMessage.type)
+
+      cy.get('@details').should('contain.text', 'Current Status')
+      cy.get('@details').should('include.text', debugMessage.status)
+
+      cy.get('@details').should('contain.text', 'User')
+      cy.get('@details').should('contain.text', debugMessage.userName)
+
+      cy.get('@details').should('contain.text', 'Service')
+      cy.get('@details').should('contain.text', debugMessage.serviceName)
     })
 
     // it('should visit a users page from a logs details', () => {})
