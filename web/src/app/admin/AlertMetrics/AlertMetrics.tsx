@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
-import { theme } from '../../mui'
 import { useURLParam } from '../../actions/hooks'
 import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
@@ -32,16 +30,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
-  gridContainer: {
-    [theme.breakpoints.up('md')]: {
-      justifyContent: 'center',
-    },
-  },
-}))
-
 export default function AlertMetrics(): JSX.Element {
-  const classes = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const minDate = useMemo(
     () => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'),
@@ -89,7 +78,7 @@ export default function AlertMetrics(): JSX.Element {
     })
 
   return (
-    <Grid container spacing={2} className={classes.gridContainer}>
+    <Grid container spacing={2}>
       <Grid item xs={12}>
         <Card>
           <CardHeader
