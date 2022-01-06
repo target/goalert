@@ -197,7 +197,7 @@ function testAdmin(): void {
     })
   })
 
-  describe.only('Admin Outgoing Logs Page', () => {
+  describe('Admin Outgoing Logs Page', () => {
     let debugMessage: DebugMessage
 
     before(() => {
