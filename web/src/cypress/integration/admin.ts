@@ -200,7 +200,7 @@ function testAdmin(): void {
   describe.only('Admin Outgoing Logs Page', () => {
     let debugMessage: DebugMessage
 
-    beforeEach(() => {
+    before(() => {
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
         cy.visit('/admin/logs?poll=0')
@@ -249,11 +249,11 @@ function testAdmin(): void {
         .should('include.text', debugMessage.status)
     })
 
-    it.only('should select and view a logs details', () => {
-      // not asserting updatedAt, destination, or providerID
+    it('should select and view a logs details', () => {
       cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
+      // todo: not asserting updatedAt, destination, or providerID
       cy.get('@details').should('contain.text', 'ID')
       cy.get('@details').should('contain.text', debugMessage.id)
 
@@ -276,8 +276,25 @@ function testAdmin(): void {
       cy.get('@details').should('contain.text', debugMessage.serviceName)
     })
 
-    // it('should visit a users page from a logs details', () => {})
-    // it('should visit a service page from a logs details', () => {})
+    it('should visit a users page from a logs details', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"')
+        .find('a')
+        .contains(debugMessage?.userName ?? '')
+        .should('have.attr', 'href', '/users/' + debugMessage.userID)
+        .should('have.attr', 'target', '_blank')
+        .should('have.attr', 'rel', 'noopener noreferrer')
+    })
+
+    it('should visit a service page from a logs details', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"')
+        .find('a')
+        .contains(debugMessage?.serviceName ?? '')
+        .should('have.attr', 'href', '/services/' + debugMessage.serviceID)
+        .should('have.attr', 'target', '_blank')
+        .should('have.attr', 'rel', 'noopener noreferrer')
+    })
   })
 }
 
