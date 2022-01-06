@@ -15,6 +15,7 @@ const query = gql`
     alerts(input: $input) {
       nodes {
         id
+        alertID
         summary
         status
         service {

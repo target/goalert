@@ -1,5 +1,10 @@
 import React from 'react'
-import { DataGrid, GridRenderCellParams } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  GridRenderCellParams,
+  GridValueGetterParams,
+  GridValueFormatterParams,
+} from '@mui/x-data-grid'
 import { Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
@@ -23,20 +28,6 @@ export default function AlertMetricsTable(
   const classes = useStyles()
   const { alerts } = props
 
-  const rows = _.map(alerts, (alert, idx) => {
-    return {
-      id: idx,
-      alertID: alert.id,
-      serviceName: alert.service?.name,
-      serviceID: alert.service?.id,
-      createdAt: DateTime.fromISO(alert.createdAt).toLocaleString(
-        DateTime.DATE_SHORT,
-      ),
-      summary: alert.summary,
-      details: alert.details,
-    }
-  })
-
   const columns = [
     {
       field: 'alertID',
@@ -50,6 +41,9 @@ export default function AlertMetricsTable(
       field: 'serviceName',
       headerName: 'ServiceName',
       width: 150,
+      valueGetter: (params: GridValueGetterParams) => {
+        return `${params.row.service.name || ''}`
+      },
       renderCell: (params: GridRenderCellParams<string>) => (
         <AppLink to={`/services/${params.row.serviceID}`}>
           {params.value}
@@ -60,6 +54,11 @@ export default function AlertMetricsTable(
       field: 'createdAt',
       headerName: 'Created At',
       width: 150,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return `${DateTime.fromISO(params.value as string).toLocaleString(
+          DateTime.DATE_MED,
+        )}`
+      },
     },
     {
       field: 'summary',
@@ -75,7 +74,7 @@ export default function AlertMetricsTable(
   return (
     <Grid container className={classes.tableContent}>
       <Grid item xs={12}>
-        <DataGrid rows={rows} columns={columns} disableSelectionOnClick />
+        <DataGrid rows={alerts} columns={columns} disableSelectionOnClick />
       </Grid>
     </Grid>
   )
