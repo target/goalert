@@ -32,21 +32,26 @@ const query = gql`
   }
 `
 
-export default function AlertMetrics(): JSX.Element {
+interface AlertMetricsProps {
+  serviceID: string
+}
+
+export default function AlertMetrics({
+  serviceID,
+}: AlertMetricsProps): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
   const minDate = useMemo(
     () => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'),
     [now],
   )
 
-  const [services] = useURLParam<string[]>('services', [])
   const [_since] = useURLParam('since', minDate.toISO())
   const since = DateTime.max(DateTime.fromISO(_since), minDate) // set a floor
 
   const q = useQuery(query, {
     variables: {
       input: {
-        filterByServiceID: services.length ? services : null,
+        filterByServiceID: [serviceID],
         first: 100,
         notCreatedBefore: since.toISO(),
         createdBefore: now.toISO(),

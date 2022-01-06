@@ -9,7 +9,6 @@ import {
 import { DateTime } from 'luxon'
 import React from 'react'
 import { useURLParam } from '../../actions/hooks'
-import { ServiceSelect } from '../../selection/ServiceSelect'
 
 interface AlertMetricsFilterProps {
   now: DateTime
@@ -20,7 +19,6 @@ export const MAX_WEEKS_COUNT = 4
 export default function AlertMetricsFilter(
   props: AlertMetricsFilterProps,
 ): JSX.Element {
-  const [services, setServices] = useURLParam<string[]>('services', [])
   const [since, setSince] = useURLParam<string>('since', '')
 
   const dateRangeValue = since
@@ -32,16 +30,11 @@ export default function AlertMetricsFilter(
     setSince(props.now.minus({ weeks }).startOf('day').toISO())
   }
 
+  //   justify-content: left;
+  // margin-left: 3rem;
+
   return (
-    <Grid container justifyContent='space-around'>
-      <Grid item xs={5}>
-        <ServiceSelect
-          onChange={(v) => setServices(v)}
-          multiple
-          value={services}
-          label='Filter by Service'
-        />
-      </Grid>
+    <Grid container sx={{ marginLeft: '3rem' }}>
       <Grid item xs={5}>
         <FormControl sx={{ width: '100%' }}>
           <InputLabel id='demo-simple-select-helper-label'>
