@@ -76,18 +76,20 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
     >
       <CardHeader
         action={
-          <Typography color='textSecondary'>
+          <Typography color='textSecondary' data-cy='created-at'>
             {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
           </Typography>
         }
         title={`${type} Notification`}
         titleTypographyProps={{
+          'data-cy': 'type',
           className: classes.msgType,
           color: 'textSecondary',
           gutterBottom: true,
         }}
         subheader={`Destination: ${debugMessage.destination}`}
         subheaderTypographyProps={{
+          'data-cy': 'destination',
           component: 'span',
           variant: 'h6',
           color: 'textPrimary',
@@ -97,19 +99,24 @@ export default function OutgoingLogCard(props: Props): JSX.Element {
       {(debugMessage.serviceName || debugMessage.userName) && (
         <CardContent>
           {debugMessage.serviceName && (
-            <Typography color='textSecondary'>
+            <Typography color='textSecondary' data-cy='service-name'>
               Service: {debugMessage.serviceName}
             </Typography>
           )}
           {debugMessage.userName && (
-            <Typography color='textSecondary'>
+            <Typography color='textSecondary' data-cy='user-name'>
               User: {debugMessage.userName}
             </Typography>
           )}
         </CardContent>
       )}
       <CardActions>
-        <Chip className={classes.chip} label={status} style={statusStyles} />
+        <Chip
+          className={classes.chip}
+          label={status}
+          style={statusStyles}
+          data-cy='status'
+        />
       </CardActions>
     </Card>
   )

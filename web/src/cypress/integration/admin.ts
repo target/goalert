@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
@@ -207,15 +208,51 @@ function testAdmin(): void {
     })
 
     it('should view the logs list with one log', () => {
-      cy.get('[data-cy="outgoing-message-list"]')
-        .children('div')
-        .should('have.length', 1)
+      cy.get('[data-cy="outgoing-message-list"]').children('div').as('list')
+
+      cy.get('@list').should('have.length', 1)
       cy.get('[data-cy="outgoing-message-list"]').should(
-        'contain',
+        'contain.text',
         'Displaying all results.',
       )
+
+      cy.get('@list')
+        .eq(0)
+        .find('[data-cy="created-at"]')
+        .should(
+          'contain.text',
+          DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
+        )
+
+      cy.get('@list')
+        .eq(0)
+        .find('[data-cy="type"]')
+        .should('contain.text', debugMessage.type + ' Notification')
+
+      // todo: destination not supported: phone number value is pre-formatted
+      // likely need to create a support function cy.getPhoneNumberInfo thru
+      // gql to verify this info.
+
+      cy.get('@list')
+        .eq(0)
+        .find('[data-cy="service-name"]')
+        .should('contain.text', debugMessage.serviceName)
+
+      cy.get('@list')
+        .eq(0)
+        .find('[data-cy="user-name"]')
+        .should('contain.text', debugMessage.userName)
+
+      cy.get('@list')
+        .eq(0)
+        .find('[data-cy="status"]')
+        .should('include.text', debugMessage.status)
     })
-    // it('should select and view a logs details', () => {})
+
+    it.only('should select and view a logs details', () => {
+      // id, createdAt, updatedAt, type, status, user, service, alert, source, destination, providerID
+    })
+
     // it('should visit a users page from a logs details', () => {})
     // it('should visit a service page from a logs details', () => {})
   })

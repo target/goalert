@@ -1,23 +1,41 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
+import toTitleCase from '../../app/util/toTitleCase'
 
 const c = new Chance()
 
 const messageTypes = [
   'alert_notification',
-  'test_notification',
   'alert_status_update',
+  'test_notification',
   'alert_notification_bundle',
   'schedule_on_call_notification',
-  // 'verification_message',
-  // 'alert_status_update_bundle',
 ]
+
+function msgTypeToDebugMsg(type: string): string {
+  switch (type) {
+    case 'alert_notification':
+      return 'Alert'
+    case 'alert_status_update':
+      return 'AlertStatus'
+    case 'test_notification':
+      return 'Test'
+    case 'alert_notification_bundle':
+      return 'AlertBundle'
+    case 'schedule_on_call_notification':
+      return 'ScheduleOnCallUsers'
+    default:
+      console.warn('could not process unknown type for DebugMessage type')
+      return ''
+  }
+}
 
 const statuses = ['delivered', 'failed']
 
 // createOutgoingMessage inserts mock outgoing message data to the db based on some provided options
-// does not support setting the notification channel, updatedAt, source, or providerID columns.
+// does not support setting the notification channel, updatedAt, source, providerID,
+// or the 'verification_message' and 'alert_status_update_bundle' message types.
 function createOutgoingMessage(
   msg: OutgoingMessageOptions = {},
 ): Cypress.Chainable<DebugMessage> {
@@ -126,8 +144,8 @@ function createOutgoingMessage(
     .then(() => ({
       id: m.id,
       createdAt: m.createdAt,
-      type: m.messageType,
-      status: m.status,
+      type: msgTypeToDebugMsg(m.messageType),
+      status: toTitleCase(m.status),
       userID: m.userID,
       userName: msg.userName,
       destination: m.contactMethodID,
