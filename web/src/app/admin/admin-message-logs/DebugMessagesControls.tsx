@@ -46,7 +46,7 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
 
   return (
     <Grid container spacing={2} key={key}>
-      <Grid item direction='column'>
+      <Grid item container direction='column' sx={{ width: 'fit-content' }}>
         <Grid item>
           <ISODateTimePicker
             placeholder='Start'

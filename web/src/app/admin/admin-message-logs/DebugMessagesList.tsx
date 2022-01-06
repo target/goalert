@@ -8,7 +8,7 @@ import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
 interface KeyedDebugMessage extends DebugMessage {
-  additonalKeys: {
+  additonalKeys?: {
     filteredDestination: string
   }
 }
