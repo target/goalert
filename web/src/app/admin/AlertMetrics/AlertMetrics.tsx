@@ -1,22 +1,13 @@
 import React, { useMemo } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-} from 'recharts'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
 import { theme } from '../../mui'
 import { useURLParam } from '../../actions/hooks'
 import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
+import AlertCountGraph from './AlertCountGraph'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -37,15 +28,6 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
-    },
-  },
-  graphContent: {
-    height: '500px',
-    fontFamily: theme.typography.body2.fontFamily,
-  },
-  bar: {
-    '&:hover': {
-      cursor: 'pointer',
     },
   },
 }))
@@ -111,33 +93,7 @@ export default function AlertMetrics(): JSX.Element {
             <AlertMetricsFilter now={now} />
           </CardContent>
           <CardContent>
-            <Grid container className={classes.graphContent}>
-              <Grid item xs={12}>
-                <ResponsiveContainer width='100%' height='100%'>
-                  <BarChart
-                    width={730}
-                    height={250}
-                    data={data}
-                    margin={{
-                      top: 50,
-                      right: 30,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray='4' vertical={false} />
-                    <XAxis dataKey='date' type='category' />
-                    <YAxis allowDecimals={false} dataKey='count' />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      dataKey='count'
-                      fill='rgb(205, 24, 49)'
-                      className={classes.bar}
-                      name='Alert Count'
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Grid>
-            </Grid>
+            <AlertCountGraph data={data} />
           </CardContent>
         </Card>
       </Grid>
