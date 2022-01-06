@@ -45,7 +45,7 @@ export default function AlertMetricsCSV(
             className={classes.anchor}
           >
             <React.Fragment>
-              <DownloadIcon /> Export to CSV
+              <DownloadIcon /> Export Raw to CSV
             </React.Fragment>
           </CSVLink>
         </Typography>

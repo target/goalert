@@ -4,6 +4,9 @@ import {
   GridRenderCellParams,
   GridValueGetterParams,
   GridValueFormatterParams,
+  GridToolbarContainer,
+  GridToolbarExport,
+  gridClasses,
 } from '@mui/x-data-grid'
 import { Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
@@ -29,6 +32,16 @@ export default function AlertMetricsTable(
 
   const columns = [
     {
+      field: 'createdAt',
+      headerName: 'Created At',
+      width: 200,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return `${DateTime.fromISO(params.value as string).toLocaleString(
+          DateTime.DATETIME_SHORT,
+        )}`
+      },
+    },
+    {
       field: 'alertID',
       headerName: 'Alert ID',
       width: 90,
@@ -37,8 +50,35 @@ export default function AlertMetricsTable(
       ),
     },
     {
+      field: 'summary',
+      headerName: 'Summary',
+      width: 110,
+    },
+    {
+      field: 'details',
+      headerName: 'Details',
+      width: 110,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 200,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return (params?.value as string).replace(/Status/, '')
+      },
+    },
+    {
+      field: 'serviceID',
+      headerName: 'Service ID',
+      valueGetter: (params: GridValueGetterParams) => {
+        return `${params.row.service.id || ''}`
+      },
+      hide: true,
+    },
+    {
       field: 'serviceName',
       headerName: 'ServiceName',
+      hide: true,
       width: 150,
       valueGetter: (params: GridValueGetterParams) => {
         return `${params.row.service.name || ''}`
@@ -49,31 +89,30 @@ export default function AlertMetricsTable(
         </AppLink>
       ),
     },
-    {
-      field: 'createdAt',
-      headerName: 'Created At',
-      width: 150,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return `${DateTime.fromISO(params.value as string).toLocaleString(
-          DateTime.DATE_MED,
-        )}`
-      },
-    },
-    {
-      field: 'summary',
-      headerName: 'Summary',
-      width: 110,
-    },
-    {
-      field: 'details',
-      headerName: 'Details',
-    },
+
   ]
+
+  function CustomToolbar(): JSX.Element {
+    return (
+      <GridToolbarContainer className={gridClasses.toolbarContainer}>
+        <GridToolbarExport
+          csvOptions={{ fileName: 'GoAlert_Alert_Metrics', allColumns: true }}
+        />
+      </GridToolbarContainer>
+    )
+  }
 
   return (
     <Grid container className={classes.tableContent}>
       <Grid item xs={12}>
-        <DataGrid rows={alerts} columns={columns} disableSelectionOnClick />
+        <DataGrid
+          rows={alerts}
+          columns={columns}
+          disableSelectionOnClick
+          components={{
+            Toolbar: CustomToolbar,
+          }}
+        />
       </Grid>
     </Grid>
   )
