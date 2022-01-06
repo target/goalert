@@ -45,7 +45,7 @@ export default function AlertMetrics({
     [now],
   )
 
-  const [_since] = useURLParam('since', minDate.toISO())
+  const [_since] = useURLParam('since', minDate.toFormat('y-M-d'))
   const since = DateTime.max(DateTime.fromISO(_since), minDate) // set a floor
 
   const q = useQuery(query, {

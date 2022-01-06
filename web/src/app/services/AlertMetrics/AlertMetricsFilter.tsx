@@ -22,13 +22,17 @@ export default function AlertMetricsFilter(
   const [since, setSince] = useURLParam<string>('since', '')
 
   const dateRangeValue = since
-    ? Math.floor(-DateTime.fromISO(since).diff(props.now, 'weeks').weeks)
+    ? Math.floor(
+        props.now.diff(DateTime.fromFormat(since, 'y-M-d'), 'weeks').weeks,
+      )
     : MAX_WEEKS_COUNT // default
 
   const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
     const weeks = e?.target?.value as number
-    setSince(props.now.minus({ weeks }).startOf('day').toISO())
+    setSince(props.now.minus({ weeks }).toFormat('y-M-d'))
   }
+
+  console.log(since, DateTime.fromISO(since).diff(props.now, 'weeks').weeks)
 
   return (
     <Grid container sx={{ marginLeft: '3rem' }}>
