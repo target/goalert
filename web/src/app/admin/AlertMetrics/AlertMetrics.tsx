@@ -101,8 +101,6 @@ export default function AlertMetrics(): JSX.Element {
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-          </CardContent>
-          <CardContent>
             <AlertCountGraph data={data} />
             <AlertMetricsTable alerts={alerts || []} />
           </CardContent>
