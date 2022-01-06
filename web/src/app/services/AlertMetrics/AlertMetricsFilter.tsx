@@ -17,20 +17,20 @@ interface AlertMetricsFilterProps {
 export const MAX_WEEKS_COUNT = 4
 export const DATE_FORMAT = 'y-MM-dd'
 
-export default function AlertMetricsFilter(
-  props: AlertMetricsFilterProps,
-): JSX.Element {
+export default function AlertMetricsFilter({
+  now,
+}: AlertMetricsFilterProps): JSX.Element {
   const [since, setSince] = useURLParam<string>('since', '')
 
   const dateRangeValue = since
     ? Math.floor(
-        -DateTime.fromFormat(since, DATE_FORMAT).diff(props.now, 'weeks').weeks,
+        now.diff(DateTime.fromFormat(since, DATE_FORMAT), 'weeks').weeks,
       )
     : MAX_WEEKS_COUNT // default
 
   const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
     const weeks = e.target.value as number
-    setSince(props.now.minus({ weeks }).startOf('day').toFormat(DATE_FORMAT))
+    setSince(now.minus({ weeks }).startOf('day').toFormat(DATE_FORMAT))
   }
 
   return (

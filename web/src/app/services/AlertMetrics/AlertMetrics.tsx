@@ -87,7 +87,7 @@ export default function AlertMetrics({
       }
     })
 
-  const daycount = Math.floor(-since.diff(now, 'days').days)
+  const daycount = Math.floor(now.diff(since, 'days').days)
 
   return (
     <Grid container spacing={2}>
