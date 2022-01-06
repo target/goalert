@@ -77,13 +77,15 @@ export default function AlertMetrics(): JSX.Element {
       }
     })
 
+  const daycount = Math.floor(-since.diff(now, 'days').days)
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Card>
           <CardHeader
             component='h2'
-            title='Daily alert counts over the last 28 days'
+            title={`Daily alert counts over the last ${daycount} days`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
