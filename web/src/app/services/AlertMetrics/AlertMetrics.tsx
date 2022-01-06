@@ -71,7 +71,10 @@ export default function AlertMetrics({
     }),
   )
 
-  const data = Interval.fromDateTimes(since.startOf('day'), now.endOf('day'))
+  const data = Interval.fromDateTimes(
+    since.plus({ day: 1 }).startOf('day'),
+    now.endOf('day'),
+  )
     .splitBy({ days: 1 })
     .map((day) => {
       let alertCount = 0
