@@ -98,7 +98,7 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert counts over the last ${daycount} days`}
+            title={`Daily alert counts over the past ${daycount} days`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
