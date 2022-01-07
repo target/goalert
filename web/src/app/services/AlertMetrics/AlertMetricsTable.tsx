@@ -96,6 +96,7 @@ export default function AlertMetricsTable(
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <GridToolbarExport
           csvOptions={{ fileName: 'GoAlert_Alert_Metrics', allColumns: true }}
+          printOptions={{ disableToolbarButton: true }}
         />
       </GridToolbarContainer>
     )
