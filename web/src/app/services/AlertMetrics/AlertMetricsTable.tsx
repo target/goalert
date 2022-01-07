@@ -77,7 +77,7 @@ export default function AlertMetricsTable(
     },
     {
       field: 'serviceName',
-      headerName: 'ServiceName',
+      headerName: 'Service Name',
       hide: true,
       width: 150,
       valueGetter: (params: GridValueGetterParams) => {
@@ -89,7 +89,6 @@ export default function AlertMetricsTable(
         </AppLink>
       ),
     },
-
   ]
 
   function CustomToolbar(): JSX.Element {
