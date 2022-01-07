@@ -29,7 +29,7 @@
     "@mui/lab": "5.0.0-alpha.59",
     "@mui/material": "5.2.3",
     "@mui/styles": "5.2.3",
-    "@mui/x-data-grid": "^5.2.1",
+    "@mui/x-data-grid": "5.2.1",
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
