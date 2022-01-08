@@ -7,7 +7,6 @@ import { useURLParam } from '../../actions/hooks'
 import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import AlertMetricsCSV from './AlertMetricsCSV'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -98,7 +97,6 @@ export default function AlertMetrics({
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={data} />
             <AlertMetricsTable alerts={alerts} />
-            <AlertMetricsCSV alerts={alerts} />
           </CardContent>
         </Card>
       </Grid>

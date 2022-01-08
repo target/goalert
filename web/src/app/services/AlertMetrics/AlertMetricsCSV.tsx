@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Typography } from '@mui/material'
+import { Grid, Typography, Button } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSVLink } from 'react-csv'
@@ -9,16 +9,18 @@ interface AlertMetricsCSVProps {
   alerts: Alert[]
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   paragraph: {
     display: 'flex',
     justifyContent: 'flex-end',
-    margin: '1rem',
   },
   anchor: {
-    display: 'flex',
+    color: theme.palette.primary.main,
+    '&:hover': {
+      textDecoration: 'none',
+    },
   },
-})
+}))
 
 export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
@@ -41,12 +43,13 @@ export default function AlertMetricsCSV(
         <Typography className={classes.paragraph}>
           <CSVLink
             data={data}
-            filename='GoAlert_alert_metrics.csv'
+            filename='GoAlert_Raw_Alert_Metrics.csv'
             className={classes.anchor}
           >
-            <React.Fragment>
-              <DownloadIcon /> Export Raw to CSV
-            </React.Fragment>
+            <Button data-cy='raw-metrics-download' size='small'>
+              <DownloadIcon sx={{ fontSize: '18px', marginRight: '8px' }} />{' '}
+              Export Raw
+            </Button>
           </CSVLink>
         </Typography>
       </Grid>

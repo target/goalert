@@ -9,10 +9,12 @@ import {
   gridClasses,
 } from '@mui/x-data-grid'
 import { Grid } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
 import { DateTime } from 'luxon'
 import AppLink from '../../util/AppLink'
+import AlertMetricsCSV from './AlertMetricsCSV'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
@@ -89,15 +91,16 @@ export default function AlertMetricsTable(
         </AppLink>
       ),
     },
-
   ]
 
   function CustomToolbar(): JSX.Element {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <GridToolbarExport
+          data-cy='table-metrics-download'
           csvOptions={{ fileName: 'GoAlert_Alert_Metrics', allColumns: true }}
         />
+        <AlertMetricsCSV alerts={alerts} />
       </GridToolbarContainer>
     )
   }
@@ -110,6 +113,7 @@ export default function AlertMetricsTable(
           columns={columns}
           disableSelectionOnClick
           components={{
+            ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,
           }}
         />
