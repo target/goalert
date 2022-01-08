@@ -79,7 +79,7 @@ export default function AlertMetricsTable(
     },
     {
       field: 'serviceName',
-      headerName: 'ServiceName',
+      headerName: 'Service Name',
       hide: true,
       width: 150,
       valueGetter: (params: GridValueGetterParams) => {
@@ -99,6 +99,7 @@ export default function AlertMetricsTable(
         <GridToolbarExport
           data-cy='table-metrics-download'
           csvOptions={{ fileName: 'GoAlert_Alert_Metrics', allColumns: true }}
+          printOptions={{ disableToolbarButton: true }}
         />
         <AlertMetricsCSV alerts={alerts} />
       </GridToolbarContainer>

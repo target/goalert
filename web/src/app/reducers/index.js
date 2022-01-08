@@ -1,12 +1,10 @@
 import { combineReducers } from 'redux'
 import auth from './auth'
 import main from './main'
-import { connectRouter } from 'connected-react-router'
 
-export default (history) =>
-  combineReducers({
-    router: connectRouter(history),
-
+export default function createRootReducer() {
+  return combineReducers({
     auth, // auth status
     main, // reducer for new user setup flag
   })
+}

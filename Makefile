@@ -98,12 +98,9 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
 
-start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
-	bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	# force rebuild to ensure build-flags are set
-	touch cmd/goalert/main.go
-	make bin/goalert BUILD_TAGS+=sql_highlight
-	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
+start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc <Procfile
 
 start-prod: bin/waitfor web/src/build/static/app.js bin/runjson $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set

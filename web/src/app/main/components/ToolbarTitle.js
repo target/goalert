@@ -171,7 +171,7 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
+        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels|alert-metrics)'
         render={renderSubPageTitle}
       />
       <Route

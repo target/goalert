@@ -4,7 +4,10 @@ import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
 import { useURLParam } from '../../actions/hooks'
-import AlertMetricsFilter, { MAX_WEEKS_COUNT } from './AlertMetricsFilter'
+import AlertMetricsFilter, {
+  DATE_FORMAT,
+  MAX_WEEKS_COUNT,
+} from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 
@@ -44,8 +47,8 @@ export default function AlertMetrics({
     [now],
   )
 
-  const [_since] = useURLParam('since', minDate.toFormat('y-M-d'))
-  const since = DateTime.max(DateTime.fromISO(_since), minDate) // set a floor
+  const [_since] = useURLParam('since', minDate.toFormat(DATE_FORMAT))
+  const since = DateTime.max(DateTime.fromFormat(_since, DATE_FORMAT), minDate) // set a floor
 
   const q = useQuery(query, {
     variables: {
@@ -60,14 +63,17 @@ export default function AlertMetrics({
 
   const alerts = q?.data?.alerts?.nodes ?? []
 
-  const dateToAlerts = _.groupBy(alerts ?? [], (node) =>
+  const dateToAlerts = _.groupBy(alerts, (node) =>
     DateTime.fromISO(node.createdAt).toLocaleString({
       month: 'short',
       day: 'numeric',
     }),
   )
 
-  const data = Interval.fromDateTimes(since.startOf('day'), now.endOf('day'))
+  const data = Interval.fromDateTimes(
+    since.plus({ day: 1 }).startOf('day'),
+    now.endOf('day'),
+  )
     .splitBy({ days: 1 })
     .map((day) => {
       let alertCount = 0
@@ -83,7 +89,7 @@ export default function AlertMetrics({
       }
     })
 
-  const daycount = Math.floor(-since.diff(now, 'days').days)
+  const daycount = Math.floor(now.diff(since, 'days').days)
 
   return (
     <Grid container spacing={2}>
@@ -91,7 +97,7 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert counts over the last ${daycount} days`}
+            title={`Daily alert counts over the past ${daycount} days`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
