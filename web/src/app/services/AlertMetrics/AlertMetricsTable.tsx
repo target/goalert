@@ -6,6 +6,9 @@ import {
   GridValueFormatterParams,
   GridToolbarContainer,
   GridToolbarExport,
+  GridToolbarColumnsButton,
+  GridToolbarDensitySelector,
+  GridToolbarFilterButton,
   gridClasses,
 } from '@mui/x-data-grid'
 import { Grid } from '@mui/material'
@@ -96,12 +99,24 @@ export default function AlertMetricsTable(
   function CustomToolbar(): JSX.Element {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
-        <GridToolbarExport
-          data-cy='table-metrics-download'
-          csvOptions={{ fileName: 'GoAlert_Alert_Metrics', allColumns: true }}
-          printOptions={{ disableToolbarButton: true }}
-        />
-        <AlertMetricsCSV alerts={alerts} />
+        <Grid container>
+          <Grid item xs={8}>
+            <GridToolbarColumnsButton />
+            <GridToolbarFilterButton />
+            <GridToolbarDensitySelector />
+            <GridToolbarExport
+              data-cy='table-metrics-download'
+              csvOptions={{
+                fileName: 'GoAlert_Alert_Metrics',
+                allColumns: true,
+              }}
+              printOptions={{ disableToolbarButton: true }}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <AlertMetricsCSV alerts={alerts} />
+          </Grid>
+        </Grid>
       </GridToolbarContainer>
     )
   }

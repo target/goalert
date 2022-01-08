@@ -4,12 +4,13 @@ import DownloadIcon from '@mui/icons-material/Download'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSVLink } from 'react-csv'
 import { Alert } from '../../../schema'
+import { theme } from '../../mui'
 
 interface AlertMetricsCSVProps {
   alerts: Alert[]
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   paragraph: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -20,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
       textDecoration: 'none',
     },
   },
-}))
+})
 
 export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
