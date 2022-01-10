@@ -11,9 +11,14 @@ import AlertMetricsFilter, {
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import Notices from '../../details/Notices'
+import { GenericError, ObjectNotFound } from '../../error-pages'
+import Spinner from '../../loading/components/Spinner'
 
 const query = gql`
-  query alerts($input: AlertSearchOptions!) {
+  query alertmetrics($serviceID: ID!, $input: AlertSearchOptions!) {
+    service(id: $serviceID) {
+      id
+    }
     alerts(input: $input) {
       nodes {
         id
@@ -54,6 +59,7 @@ export default function AlertMetrics({
 
   const q = useQuery(query, {
     variables: {
+      serviceID,
       input: {
         filterByServiceID: [serviceID],
         first: QUERY_LIMIT,
@@ -62,6 +68,16 @@ export default function AlertMetrics({
       },
     },
   })
+
+  if (q.error) {
+    return <GenericError error={q.error.message} />
+  }
+  if (!q.loading && !q.data?.service?.id) {
+    return <ObjectNotFound type='service' />
+  }
+  if (q.loading || !q?.data?.alerts) {
+    return <Spinner />
+  }
 
   const hasNextPage = q?.data?.alerts?.pageInfo?.hasNextPage ?? false
   const alerts = q?.data?.alerts?.nodes ?? []
