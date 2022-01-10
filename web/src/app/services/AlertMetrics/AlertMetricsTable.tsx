@@ -41,7 +41,9 @@ export default function AlertMetricsTable(
       headerName: 'Created At',
       width: 250,
       valueFormatter: (params: GridValueFormatterParams) => {
-        return `${DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ')}`
+        return `${DateTime.fromISO(params.value as string).toFormat(
+          'ccc, DD, t ZZZZ',
+        )}`
       },
     },
     {
@@ -53,22 +55,22 @@ export default function AlertMetricsTable(
       ),
     },
     {
+      field: 'status',
+      headerName: 'Status',
+      width: 160,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return (params?.value as string).replace(/Status/, '')
+      },
+    },
+    {
       field: 'summary',
       headerName: 'Summary',
-      width: 110,
+      width: 200,
     },
     {
       field: 'details',
       headerName: 'Details',
-      width: 110,
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
       width: 200,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return (params?.value as string).replace(/Status/, '')
-      },
     },
     {
       field: 'serviceID',

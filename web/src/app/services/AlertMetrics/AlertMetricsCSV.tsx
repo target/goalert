@@ -31,9 +31,9 @@ export default function AlertMetricsCSV(
   const data = props.alerts.map((a) => ({
     createdAt: a.createdAt,
     alertID: a.alertID,
+    status: a.status,
     summary: a.summary,
     details: a.details,
-    status: a.status,
     serviceID: a.service?.id,
     serviceName: a.service?.name,
   }))
