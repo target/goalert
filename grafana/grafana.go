@@ -20,12 +20,26 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-var detailsTmpl = template.Must(template.New("details").Parse(`
+var detailsTmpl = template.Must(template.New("details").Funcs(template.FuncMap{
+	"escapeTableCell": func(s string) string {
+		s = strings.Replace(s, "\n", "<br />", -1)
+		s = strings.Replace(s, "|", "\\|", -1)
+		return s
+	},
+	"codeBlock": func(s string) string {
+		delim := "```"
+		for strings.Contains(s, delim) {
+			delim += "`"
+		}
+
+		return delim + "\n" + s + "\n" + delim
+	},
+}).Parse(`
 {{- if .Labels }}
 | Label | Value |
 | ----- | ----- |
 {{- range $k, $v := .Labels }}
-| {{ $k }} | {{ $v }} |
+| {{ $k }} | {{escapeTableCell $v }} |
 {{- end }}
 {{- end }}
 
@@ -34,7 +48,7 @@ var detailsTmpl = template.Must(template.New("details").Parse(`
 | Annotation | Value |
 | ---------- | ----- |
 {{- range $k, $v := .Annotations }}
-| {{ $k }} | {{ $v }} |
+| {{ $k }} | {{escapeTableCell $v }} |
 {{- end }}
 {{- end }}
 
@@ -44,7 +58,8 @@ var detailsTmpl = template.Must(template.New("details").Parse(`
 {{if .SlienceURL}}Silence: {{ .SlienceURL }}{{end}}
 
 
-` + "```\n{{ .ValueString }}\n```"))
+{{codeBlock .ValueString }}
+`))
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
 	if err == nil {
