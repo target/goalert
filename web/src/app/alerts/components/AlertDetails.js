@@ -263,7 +263,6 @@ export default function AlertDetails(props) {
     if (!fullDescription && details.length > 1000) {
       details = details.slice(0, 1000).trim() + ' ...'
     }
-    if (details.split('```').length % 2 === 0) details += '\n```'
 
     let expandTextAction = null
     if (details.length > 1000) {
@@ -304,7 +303,7 @@ export default function AlertDetails(props) {
               Details
             </Typography>
             <Typography variant='body1' component='div'>
-              <Markdown value={details} />
+              <Markdown value={details + '\n'} />
             </Typography>
             {expandTextAction}
           </CardContent>
