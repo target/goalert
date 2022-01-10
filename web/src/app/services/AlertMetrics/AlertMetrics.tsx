@@ -49,13 +49,15 @@ export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
-  const minDate = useMemo(
-    () => now.minus({ weeks: MAX_WEEKS_COUNT }).startOf('day'),
-    [now],
-  )
+  const [minTime, maxTime] = [
+    now.minus({ weeks: MAX_WEEKS_COUNT }).plus({ days: 1 }).startOf('day'),
+    now,
+  ]
 
-  const [_since] = useURLParam('since', minDate.toFormat(DATE_FORMAT))
-  const since = DateTime.max(DateTime.fromFormat(_since, DATE_FORMAT), minDate) // set a floor
+  const [_since] = useURLParam('since', minTime.toFormat(DATE_FORMAT))
+  const since = DateTime.fromFormat(_since, DATE_FORMAT)
+
+  const isValidRange = since >= minTime && since < maxTime
 
   const q = useQuery(query, {
     variables: {
@@ -67,7 +69,12 @@ export default function AlertMetrics({
         createdBefore: now.toISO(),
       },
     },
+    skip: !isValidRange,
   })
+
+  if (!isValidRange) {
+    return <GenericError error='The requested date range is out-of-bounds' />
+  }
 
   if (q.error) {
     return <GenericError error={q.error.message} />
@@ -89,10 +96,7 @@ export default function AlertMetrics({
     }),
   )
 
-  const data = Interval.fromDateTimes(
-    since.plus({ day: 1 }).startOf('day'),
-    now.endOf('day'),
-  )
+  const data = Interval.fromDateTimes(since.startOf('day'), now.endOf('day'))
     .splitBy({ days: 1 })
     .map((day) => {
       let alertCount = 0

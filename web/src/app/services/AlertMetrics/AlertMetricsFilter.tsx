@@ -24,13 +24,22 @@ export default function AlertMetricsFilter({
 
   const dateRangeValue = since
     ? Math.floor(
-        now.diff(DateTime.fromFormat(since, DATE_FORMAT), 'weeks').weeks,
+        now.diff(
+          DateTime.fromFormat(since, DATE_FORMAT).minus({ day: 1 }),
+          'weeks',
+        ).weeks,
       )
     : MAX_WEEKS_COUNT // default
 
   const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
     const weeks = e.target.value as number
-    setSince(now.minus({ weeks }).startOf('day').toFormat(DATE_FORMAT))
+    setSince(
+      now
+        .minus({ weeks })
+        .plus({ days: 1 })
+        .startOf('day')
+        .toFormat(DATE_FORMAT),
+    )
   }
 
   return (
