@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Card, CardContent, CardHeader, Grid } from '@mui/material'
+import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
@@ -10,6 +10,7 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
+import Notices from '../../details/Notices'
 
 const query = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -28,7 +29,6 @@ const query = gql`
       }
       pageInfo {
         hasNextPage
-        endCursor
       }
     }
   }
@@ -37,6 +37,8 @@ const query = gql`
 interface AlertMetricsProps {
   serviceID: string
 }
+
+const QUERY_LIMIT = 100
 
 export default function AlertMetrics({
   serviceID,
@@ -54,13 +56,14 @@ export default function AlertMetrics({
     variables: {
       input: {
         filterByServiceID: [serviceID],
-        first: 100,
+        first: QUERY_LIMIT,
         notCreatedBefore: since.toISO(),
         createdBefore: now.toISO(),
       },
     },
   })
 
+  const hasNextPage = q?.data?.alerts?.pageInfo?.hasNextPage ?? false
   const alerts = q?.data?.alerts?.nodes ?? []
 
   const dateToAlerts = _.groupBy(alerts, (node) =>
@@ -94,6 +97,19 @@ export default function AlertMetrics({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
+        {hasNextPage && (
+          <Box sx={{ marginBottom: '1rem' }}>
+            <Notices
+              notices={[
+                {
+                  type: 'WARNING',
+                  message: 'Query limit reached',
+                  details: `More than ${QUERY_LIMIT} alerts were found, but only the first ${QUERY_LIMIT} are represented below.`,
+                },
+              ]}
+            />
+          </Box>
+        )}
         <Card>
           <CardHeader
             component='h2'
