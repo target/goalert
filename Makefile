@@ -33,12 +33,13 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-
 all: test install
 
 release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
-docker-all-in-one: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/resetdb bin/linux-arm64/resetdb bin/linux-arm/resetdb
-	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
+
+docker-all-in-one-%: bin/linux-%/goalert bin/linux-%/resetdb
+	podman build --build-arg BUILDPLATFORM=linux/amd64 --platform=linux/$* --build-arg TARGETPLATFORM=linux/$* -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
+
 docker-goalert: bin/build/goalert-linux-amd64 bin/build/goalert-linux-arm64 bin/build/goalert-linux-arm
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
@@ -187,13 +188,13 @@ config.json.bak: bin/goalert
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
 postgres: bin/waitfor
-	(docker run -d \
+	(podman run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
