@@ -41,6 +41,25 @@ const useStyles = makeStyles({
   },
 })
 
+function TableCell({ children, isHeader, align, ...rest }) {
+  const content = React.Children.map(children, (c) => {
+    switch (c) {
+      case '<br>':
+      case '<br/>':
+      case '<br />':
+        return <br />
+      default:
+        return c
+    }
+  })
+
+  return (
+    <td style={{ textAlign: align }} {...rest}>
+      {content}
+    </td>
+  )
+}
+
 // Markdown accepts plain text to transform into styled html
 // Typically it is wrapped in a <Typography component='div' /> component
 export default function Markdown(props) {
@@ -51,8 +70,10 @@ export default function Markdown(props) {
   return (
     <ReactMarkdown
       className={classes.markdown}
+      components={{ td: TableCell }}
       remarkPlugins={[remarkGfm]}
       allowElement={(element) => {
+        if (element.tagName === 'br') return true
         if (
           element.tagName === 'a' &&
           element.children[0].type === 'text' &&
