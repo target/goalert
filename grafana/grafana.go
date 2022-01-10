@@ -21,21 +21,30 @@ import (
 )
 
 var detailsTmpl = template.Must(template.New("details").Parse(`
-Labels:
+{{- if .Labels }}
+| Label | Value |
+| ----- | ----- |
 {{- range $k, $v := .Labels }}
-- {{ $k }}: {{ $v }}
+| {{ $k }} | {{ $v }} |
+{{- end }}
 {{- end }}
 
-Annotations:
+
+{{- if .Annotations }}
+| Annotation | Value |
+| ---------- | ----- |
 {{- range $k, $v := .Annotations }}
-- {{ $k }}: {{ $v }}
+| {{ $k }} | {{ $v }} |
+{{- end }}
 {{- end }}
 
-Source: {{ .GeneratorURL }}
 
-Silence: {{ .SlienceURL }}
+{{if .GeneratorURL}}Source: {{ .GeneratorURL }}{{end}}
 
-Value: ` + "```\n{{ .ValueString }}\n```"))
+{{if .SlienceURL}}Silence: {{ .SlienceURL }}{{end}}
+
+
+` + "```\n{{ .ValueString }}\n```"))
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
 	if err == nil {
@@ -123,9 +132,13 @@ func alertsFromV1(ctx context.Context, serviceID string, data []byte) ([]alert.A
 		if err != nil {
 			return nil, err
 		}
+		summary := a.Annotations["summary"]
+		if summary == "" {
+			summary = a.Labels["alertname"]
+		}
 
 		alerts = append(alerts, alert.Alert{
-			Summary:   validate.SanitizeText(a.Labels["alertname"], alert.MaxSummaryLength),
+			Summary:   validate.SanitizeText(summary, alert.MaxSummaryLength),
 			Details:   validate.SanitizeText(buf.String(), alert.MaxDetailsLength),
 			Status:    alertStatus,
 			ServiceID: serviceID,
