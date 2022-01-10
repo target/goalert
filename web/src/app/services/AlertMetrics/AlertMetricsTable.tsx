@@ -59,7 +59,7 @@ export default function AlertMetricsTable(
       headerName: 'Status',
       width: 160,
       valueFormatter: (params: GridValueFormatterParams) => {
-        return (params?.value as string).replace(/Status/, '')
+        return (params.value as string).replace('Status', '')
       },
     },
     {
@@ -76,23 +76,29 @@ export default function AlertMetricsTable(
       field: 'serviceID',
       headerName: 'Service ID',
       valueGetter: (params: GridValueGetterParams) => {
-        return `${params.row.service.id || ''}`
+        return params.row.service?.id || ''
       },
       hide: true,
+      width: 300,
     },
     {
       field: 'serviceName',
       headerName: 'Service Name',
       hide: true,
-      width: 150,
+      width: 200,
       valueGetter: (params: GridValueGetterParams) => {
-        return `${params.row.service.name || ''}`
+        return params.row.service?.name || ''
       },
-      renderCell: (params: GridRenderCellParams<string>) => (
-        <AppLink to={`/services/${params.row.serviceID}`}>
-          {params.value}
-        </AppLink>
-      ),
+      renderCell: (params: GridRenderCellParams<string>) => {
+        if (params.row.service?.id && params.value) {
+          return (
+            <AppLink to={`/services/${params.row.service.id}`}>
+              {params.value}
+            </AppLink>
+          )
+        }
+        return ''
+      },
     },
   ]
 
