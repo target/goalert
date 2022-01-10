@@ -39,11 +39,9 @@ export default function AlertMetricsTable(
     {
       field: 'createdAt',
       headerName: 'Created At',
-      width: 200,
+      width: 250,
       valueFormatter: (params: GridValueFormatterParams) => {
-        return `${DateTime.fromISO(params.value as string).toLocaleString(
-          DateTime.DATETIME_SHORT,
-        )}`
+        return `${DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ')}`
       },
     },
     {
@@ -97,6 +95,13 @@ export default function AlertMetricsTable(
   ]
 
   function CustomToolbar(): JSX.Element {
+    const getFileName = (): string => {
+      if (alerts.length) {
+        return 'GoAlert_Alert_Metrics[' + alerts[0].service?.name + ']'
+      }
+      return 'GoAlert_Alert_Metrics'
+    }
+
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container>
@@ -107,8 +112,7 @@ export default function AlertMetricsTable(
             <GridToolbarExport
               data-cy='table-metrics-download'
               csvOptions={{
-                fileName: 'GoAlert_Alert_Metrics',
-                allColumns: true,
+                fileName: getFileName(),
               }}
               printOptions={{ disableToolbarButton: true }}
             />

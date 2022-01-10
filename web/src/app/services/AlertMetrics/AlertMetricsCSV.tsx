@@ -38,13 +38,22 @@ export default function AlertMetricsCSV(
     serviceName: a.service?.name,
   }))
 
+  const getFileName = (): string => {
+    if (props.alerts.length) {
+      return (
+        'GoAlert_Raw_Alert_Metrics[' + props.alerts[0].service?.name + '].csv'
+      )
+    }
+    return 'GoAlert_Raw_Alert_Metrics.csv'
+  }
+
   return (
     <Grid container>
       <Grid item xs={12}>
         <Typography className={classes.paragraph}>
           <CSVLink
             data={data}
-            filename='GoAlert_Raw_Alert_Metrics.csv'
+            filename={getFileName()}
             className={classes.anchor}
           >
             <Button data-cy='raw-metrics-download' size='small'>
