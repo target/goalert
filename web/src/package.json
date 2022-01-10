@@ -33,7 +33,7 @@
     "classnames": "2.3.1",
     "diff": "5.0.0",
     "graphql": "16.0.1",
-    "history": "4.10.1",
+    "history": "5.2.0",
     "lodash": "4.17.21",
     "luxon": "2.3.0",
     "mdi-material-ui": "7.1.0",
