@@ -35,16 +35,28 @@ endif
 
 all: test install
 
+podman-init:
+	# ensure running
+	podman ps || podman machine start || (podman machine init && podman machine start)
+
+	# check that it's working
+	podman run --rm alpine:latest uname -m
+
+	# check that arm support is working, or install it
+	podman run --rm --arch arm alpine:latest uname -m || (podman machine ssh sudo rpm-ostree install qemu-user-static && podman machine ssh sudo systemctl reboot)
+
 release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
 
 docker-all-in-one-%: bin/linux-%/goalert bin/linux-%/resetdb
-	podman build --build-arg BUILDPLATFORM=linux/amd64 --platform=linux/$* --build-arg TARGETPLATFORM=linux/$* -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
+	podman build --build-arg ARCH=$* --platform=linux/$* -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.prebuilt .
 
 docker-goalert: bin/build/goalert-linux-amd64 bin/build/goalert-linux-arm64 bin/build/goalert-linux-arm
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
+
+docker-all-in-one: docker-all-in-one-arm docker-all-in-one-arm64 docker-all-in-one-amd64
 
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
