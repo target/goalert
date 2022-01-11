@@ -57,26 +57,11 @@ interface BaseCalendarEvent {
   start: Date
   end: Date
   user?: {
-    name?: React.ReactNode
-    id?: string
+    name: string
+    id: string
   }
-  type: 'tempSched' | 'overrideShift' | 'tempSchedShift' | 'onCallShift'
+  type: 'onCallShift' | 'overrideShift' | 'tempSched' | 'tempSchedShift'
   title: React.ReactNode
-}
-
-export interface TempSchedEvent extends BaseCalendarEvent {
-  type: 'tempSched'
-  tempSched: TemporarySchedule
-}
-
-export interface OverrideShiftEvent extends BaseCalendarEvent {
-  type: 'overrideShift'
-  override: UserOverride
-}
-
-export interface TempSchedShiftEvent extends BaseCalendarEvent {
-  type: 'tempSchedShift'
-  tempSched: TemporarySchedule
 }
 
 export interface OnCallShiftEvent extends BaseCalendarEvent {
@@ -86,11 +71,26 @@ export interface OnCallShiftEvent extends BaseCalendarEvent {
   truncated: boolean
 }
 
+export interface OverrideShiftEvent extends BaseCalendarEvent {
+  type: 'overrideShift'
+  override: UserOverride
+}
+
+export interface TempSchedEvent extends BaseCalendarEvent {
+  type: 'tempSched'
+  tempSched: TemporarySchedule
+}
+
+export interface TempSchedShiftEvent extends BaseCalendarEvent {
+  type: 'tempSchedShift'
+  tempSched: TemporarySchedule
+}
+
 export type ScheduleCalendarEvent =
-  | TempSchedEvent
-  | OverrideShiftEvent
-  | TempSchedShiftEvent
   | OnCallShiftEvent
+  | OverrideShiftEvent
+  | TempSchedEvent
+  | TempSchedShiftEvent
 
 interface ScheduleCalendarProps {
   scheduleID: string
