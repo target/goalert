@@ -5,7 +5,6 @@ import {
   GridValueGetterParams,
   GridValueFormatterParams,
   GridToolbarContainer,
-  GridToolbarExport,
   GridToolbarColumnsButton,
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
@@ -103,13 +102,6 @@ export default function AlertMetricsTable(
   ]
 
   function CustomToolbar(): JSX.Element {
-    const getFileName = (): string => {
-      if (alerts.length) {
-        return 'GoAlert_Alert_Metrics[' + alerts[0].service?.name + ']'
-      }
-      return 'GoAlert_Alert_Metrics'
-    }
-
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container>
@@ -117,13 +109,6 @@ export default function AlertMetricsTable(
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
-            <GridToolbarExport
-              data-cy='table-metrics-download'
-              csvOptions={{
-                fileName: getFileName(),
-              }}
-              printOptions={{ disableToolbarButton: true }}
-            />
           </Grid>
           <Grid item xs={4}>
             <AlertMetricsCSV alerts={alerts} />

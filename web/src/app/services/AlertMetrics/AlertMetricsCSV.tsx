@@ -5,6 +5,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { CSVLink } from 'react-csv'
 import { Alert } from '../../../schema'
 import { theme } from '../../mui'
+import { DateTime } from 'luxon'
 
 interface AlertMetricsCSVProps {
   alerts: Alert[]
@@ -29,9 +30,11 @@ export default function AlertMetricsCSV(
   const classes = useStyles()
   // Note: the data object is ordered
   const data = props.alerts.map((a) => ({
-    createdAt: a.createdAt,
+    'createdAt (UTC)': DateTime.fromISO(a.createdAt).toUTC().toSQL({
+      includeOffset: false,
+    }),
     alertID: a.alertID,
-    status: a.status,
+    status: a.status.replace('Status', ''),
     summary: a.summary,
     details: a.details,
     serviceID: a.service?.id,
@@ -40,11 +43,9 @@ export default function AlertMetricsCSV(
 
   const getFileName = (): string => {
     if (props.alerts.length) {
-      return (
-        'GoAlert_Raw_Alert_Metrics[' + props.alerts[0].service?.name + '].csv'
-      )
+      return 'GoAlert_Alert_Metrics[' + props.alerts[0].service?.name + '].csv'
     }
-    return 'GoAlert_Raw_Alert_Metrics.csv'
+    return 'GoAlert_Alert_Metrics.csv'
   }
 
   return (
@@ -56,9 +57,9 @@ export default function AlertMetricsCSV(
             filename={getFileName()}
             className={classes.anchor}
           >
-            <Button data-cy='raw-metrics-download' size='small'>
-              <DownloadIcon sx={{ fontSize: '18px', marginRight: '8px' }} />{' '}
-              Export Raw
+            <Button size='small'>
+              <DownloadIcon sx={{ fontSize: '18px', marginRight: '8px' }} />
+              Export
             </Button>
           </CSVLink>
         </Typography>
