@@ -192,7 +192,6 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       start: new Date(sched.start),
       end: new Date(sched.end),
       title: 'Temporary Schedule',
-      user: { name: 'Temporary Schedule' },
       tempSched: sched,
     }))
 
@@ -201,9 +200,6 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       start: new Date(o.start),
       end: new Date(o.end),
       title: getOverrideTitle(o),
-      user: {
-        name: getOverrideTitle(o),
-      },
       override: o,
     }))
 
