@@ -203,7 +203,7 @@ function testAdmin(): void {
     before(() => {
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
-        cy.visit('/admin/logs?poll=0')
+        cy.visit('/admin/message-logs?poll=0')
       })
     })
 
