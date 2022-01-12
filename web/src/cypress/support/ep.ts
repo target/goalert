@@ -89,10 +89,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
         targets: step.targets || [],
       },
     })
-    .then((res: GraphQLResponse) => {
-      console.log('res: ', res)
-      return res.createEscalationPolicyStep
-    })
+    .then((res: GraphQLResponse) => res.createEscalationPolicyStep)
 }
 
 Cypress.Commands.add('createEP', createEP)
