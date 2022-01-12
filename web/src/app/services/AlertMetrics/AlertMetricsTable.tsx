@@ -20,6 +20,7 @@ import AlertMetricsCSV from './AlertMetricsCSV'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
+  loading: boolean
 }
 
 const useStyles = makeStyles(() => ({
@@ -123,6 +124,7 @@ export default function AlertMetricsTable(
       <Grid item xs={12}>
         <DataGrid
           rows={alerts}
+          loading={props.loading}
           columns={columns}
           disableSelectionOnClick
           components={{

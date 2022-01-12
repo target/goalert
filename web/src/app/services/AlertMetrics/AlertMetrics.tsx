@@ -134,7 +134,10 @@ export default function AlertMetrics({
           <CardContent>
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={data} />
-            <AlertMetricsTable alerts={alerts} />
+            <AlertMetricsTable
+              alerts={alerts}
+              loading={q.loading || !q?.data?.alerts}
+            />
           </CardContent>
         </Card>
       </Grid>
