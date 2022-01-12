@@ -95,8 +95,10 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(p.numRendered, p.totalCount)} of
-            ${totalFetchedResultsCount} results`}
+            {`Fetched ${Math.min(
+              p.numRendered,
+              p.totalCount,
+            )} of ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>
       </Grid>
