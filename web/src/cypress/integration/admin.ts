@@ -279,7 +279,7 @@ function testAdmin(): void {
       cy.get('@details').should('contain.text', debugMessage.alertID)
     })
 
-    it('should visit a users page from a logs details', () => {
+    it('should verify user link from a logs details', () => {
       cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
@@ -289,7 +289,7 @@ function testAdmin(): void {
         .should('have.attr', 'rel', 'noopener noreferrer')
     })
 
-    it('should visit a service page from a logs details', () => {
+    it('should verify service link from a logs details', () => {
       cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
