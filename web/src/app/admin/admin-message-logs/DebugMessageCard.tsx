@@ -34,7 +34,7 @@ interface Props {
   onSelect: () => void
 }
 
-export default function OutgoingLogCard(props: Props): JSX.Element {
+export default function DebugMessageCard(props: Props): JSX.Element {
   const { debugMessage, selected, onSelect } = props
   const classes = useStyles()
 

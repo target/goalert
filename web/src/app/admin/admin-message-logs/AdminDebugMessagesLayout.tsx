@@ -4,14 +4,13 @@ import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import OutgoingLogsList from './OutgoingLogsList'
-import OutgoingLogsControls from './OutgoingLogsControls'
-import OutgoingLogDetails from './OutgoingLogDetails'
+import DebugMessagesList from './DebugMessagesList'
+import DebugMessagesControls from './DebugMessagesControls'
+import DebugMessageDetails from './DebugMessageDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
-const DEFAULT_LOAD_AMOUNT = 50
 const LOAD_AMOUNT = 50
 
 const debugMessageLogsQuery = gql`
@@ -64,10 +63,12 @@ const useStyles = makeStyles<typeof theme>((theme) => ({
   },
 }))
 
-export default function AdminOutgoingLogs(): JSX.Element {
+export default function AdminDebugMessagesLayout(): JSX.Element {
   const classes = useStyles()
+
+  // all data is fetched on page load, but the number of logs rendered is limited
+  const [numRendered, setNumRendered] = useState(LOAD_AMOUNT)
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
-  const [showingLimit, setShowingLimit] = useState(DEFAULT_LOAD_AMOUNT)
 
   const { data, loading, error } = useQuery(debugMessageLogsQuery, {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
@@ -78,7 +79,7 @@ export default function AdminOutgoingLogs(): JSX.Element {
 
   return (
     <React.Fragment>
-      <OutgoingLogDetails
+      <DebugMessageDetails
         open={Boolean(selectedLog)}
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
@@ -98,17 +99,17 @@ export default function AdminOutgoingLogs(): JSX.Element {
               color='textSecondary'
               classes={{ subtitle1: classes.groupTitle }}
             >
-              Outgoing Messages
+              Outgoing Message Logs
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <OutgoingLogsControls
-              showingLimit={showingLimit}
+            <DebugMessagesControls
+              numRendered={numRendered}
               totalCount={data.debugMessages.length}
             />
           </Grid>
           <Grid item xs={12}>
-            <OutgoingLogsList
+            <DebugMessagesList
               debugMessages={data.debugMessages.map((d: DebugMessage) => ({
                 ...d,
                 additionalKeys: {
@@ -117,9 +118,9 @@ export default function AdminOutgoingLogs(): JSX.Element {
               }))}
               selectedLog={selectedLog}
               onSelect={setSelectedLog}
-              showingLimit={showingLimit}
-              onResetLoadMore={() => setShowingLimit(DEFAULT_LOAD_AMOUNT)}
-              onLoadMore={() => setShowingLimit(showingLimit + LOAD_AMOUNT)}
+              numRendered={numRendered}
+              onResetLoadMore={() => setNumRendered(LOAD_AMOUNT)}
+              onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
             />
           </Grid>
         </Grid>

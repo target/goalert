@@ -2,15 +2,13 @@ import React, { useEffect } from 'react'
 import { Box } from '@mui/system'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
-import OutgoingLogCard from './OutgoingLogCard'
-import { useFuse } from './hooks'
+import DebugMessageCard from './DebugMessageCard'
+import { useFuse } from './useFuse'
 import { useURLParam } from '../../actions'
 import { Typography, Button } from '@mui/material'
 
-export const LOAD_AMOUNT = 50
-
 interface KeyedDebugMessage extends DebugMessage {
-  additonalKeys: {
+  additonalKeys?: {
     filteredDestination: string
   }
 }
@@ -21,15 +19,15 @@ interface Props {
   onSelect: (debugMessage: DebugMessage) => void
   onLoadMore: () => void
   onResetLoadMore: () => void
-  showingLimit: number
+  numRendered: number
 }
 
-export default function OutgoingLogsList(props: Props): JSX.Element {
+export default function DebugMessagesList(props: Props): JSX.Element {
   const {
     debugMessages = [],
     selectedLog,
     onSelect,
-    showingLimit,
+    numRendered,
     onLoadMore,
     onResetLoadMore,
   } = props
@@ -84,15 +82,15 @@ export default function OutgoingLogsList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {filteredResults.slice(0, showingLimit).map(({ item: debugMessage }) => (
-        <OutgoingLogCard
+      {filteredResults.slice(0, numRendered).map(({ item: debugMessage }) => (
+        <DebugMessageCard
           key={debugMessage.id}
           debugMessage={debugMessage}
           selected={selectedLog?.id === debugMessage.id}
           onSelect={() => onSelect(debugMessage)}
         />
       ))}
-      {showingLimit < filteredResults.length ? (
+      {numRendered < filteredResults.length ? (
         // load more
         <div
           style={{

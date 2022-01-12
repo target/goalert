@@ -10,6 +10,9 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
+import { OpenInNew } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import AppLink from '../../util/AppLink'
 import { DebugMessage } from '../../../schema'
@@ -20,8 +23,19 @@ interface Props {
   log?: DebugMessage | null
 }
 
-export default function OutgoingLogDetails(props: Props): JSX.Element {
+const useStyles = makeStyles((theme: Theme) => ({
+  appLink: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  appLinkIcon: {
+    paddingLeft: theme.spacing(0.5),
+  },
+}))
+
+export default function DebugMessageDetails(props: Props): JSX.Element {
   const { open, onClose, log } = props
+  const classes = useStyles()
 
   return (
     <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
@@ -78,8 +92,16 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
                 <ListItemText
                   primary='User'
                   secondary={
-                    <AppLink to={`/users/${log?.userID}`} newTab icon>
+                    <AppLink
+                      className={classes.appLink}
+                      to={`/users/${log?.userID}`}
+                      newTab
+                    >
                       {log.userName}
+                      <OpenInNew
+                        className={classes.appLinkIcon}
+                        fontSize='small'
+                      />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -91,8 +113,16 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
                 <ListItemText
                   primary='Service'
                   secondary={
-                    <AppLink to={`/services/${log.serviceID}`} newTab icon>
+                    <AppLink
+                      className={classes.appLink}
+                      to={`/services/${log.serviceID}`}
+                      newTab
+                    >
                       {log.serviceName}
+                      <OpenInNew
+                        className={classes.appLinkIcon}
+                        fontSize='small'
+                      />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -104,8 +134,16 @@ export default function OutgoingLogDetails(props: Props): JSX.Element {
                 <ListItemText
                   primary='Alert'
                   secondary={
-                    <AppLink to={`/alerts/${log.alertID}`} newTab icon>
+                    <AppLink
+                      className={classes.appLink}
+                      to={`/alerts/${log.alertID}`}
+                      newTab
+                    >
                       {log.alertID}
+                      <OpenInNew
+                        className={classes.appLinkIcon}
+                        fontSize='small'
+                      />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}

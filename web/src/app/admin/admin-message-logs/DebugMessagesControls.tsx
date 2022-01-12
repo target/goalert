@@ -6,10 +6,11 @@ import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
-import { MAX_QUERY_ITEMS_COUNT } from './AdminOutgoingLogs'
+import { MAX_QUERY_ITEMS_COUNT } from './AdminDebugMessagesLayout'
+
 interface Props {
-  showingLimit: number
-  totalCount: number
+  numRendered: number // the amount of logs rendered, since all logs are fetched on page load
+  totalCount: number // the total number of logs fetched
 }
 
 const useStyles = makeStyles<typeof theme>({
@@ -23,7 +24,7 @@ const useStyles = makeStyles<typeof theme>({
   },
 })
 
-export default function OutgoingLogsControls(p: Props): JSX.Element {
+export default function DebugMessagesControls(p: Props): JSX.Element {
   const classes = useStyles()
 
   const [start, setStart] = useURLParam<string>('start', '')
@@ -33,7 +34,7 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
 
   const resetFilters = (): void => {
     resetDateRange()
-    // The ISODateTimePicker doesn't update to changes in it's `value` prop. It only uses it's internal state.
+    // The ISODateTimePicker doesn't update to changes in its `value` prop. It only uses its internal state.
     // This key is a hotfix to set the ISODateTimePicker's value by just completely re-rendering it.
     setKey(key + 1)
   }
@@ -45,7 +46,7 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
 
   return (
     <Grid container spacing={2} key={key}>
-      <Grid item direction='column'>
+      <Grid item container direction='column' sx={{ width: 'fit-content' }}>
         <Grid item>
           <ISODateTimePicker
             placeholder='Start'
@@ -94,7 +95,7 @@ export default function OutgoingLogsControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(p.showingLimit, p.totalCount)} of
+            {`Fetched ${Math.min(p.numRendered, p.totalCount)} of
             ${totalFetchedResultsCount} results`}
           </Typography>
         </Grid>
