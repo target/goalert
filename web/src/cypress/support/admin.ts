@@ -49,6 +49,7 @@ function createOutgoingMessage(
         createOutgoingMessage({ ...msg, userID: u.id, userName: u.name }),
       )
   }
+  // needed for db constraint + destination
   if (!msg.contactMethodID) {
     return cy
       .addContactMethod({ userID: msg.userID })
@@ -98,6 +99,7 @@ function createOutgoingMessage(
       }),
     )
   }
+  // needed for db constraint
   if (!msg.alertLogID) {
     return cy
       .createAlertLogs({ alertID: msg.alertID })
