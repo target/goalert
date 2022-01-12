@@ -274,6 +274,9 @@ function testAdmin(): void {
 
       cy.get('@details').should('contain.text', 'Service')
       cy.get('@details').should('contain.text', debugMessage.serviceName)
+
+      cy.get('@details').should('contain.text', 'Alert')
+      cy.get('@details').should('contain.text', debugMessage.alertID)
     })
 
     it('should visit a users page from a logs details', () => {
