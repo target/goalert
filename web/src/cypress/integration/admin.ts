@@ -197,7 +197,7 @@ function testAdmin(): void {
     })
   })
 
-  describe.only('Admin Outgoing Logs Page', () => {
+  describe('Admin Outgoing Logs Page', () => {
     let debugMessage: DebugMessage
 
     before(() => {
@@ -237,7 +237,7 @@ function testAdmin(): void {
       cy.get('@list').eq(0).should('include.text', debugMessage.status) // "Failed" or "Failed (Permanent)" can exist
     })
 
-    it.skip('should select and view a logs details', () => {
+    it('should select and view a logs details', () => {
       cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
