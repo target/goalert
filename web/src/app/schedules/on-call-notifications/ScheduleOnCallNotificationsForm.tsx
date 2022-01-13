@@ -43,7 +43,7 @@ export default function ScheduleOnCallNotificationsForm(
     props.onChange({
       ...props.value,
       weekdayFilter: EVERY_DAY,
-      time: DateTime.fromObject({ hour: 9, zone }).toISO(),
+      time: DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
     })
   }
 

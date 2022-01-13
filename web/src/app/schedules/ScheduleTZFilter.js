@@ -29,7 +29,7 @@ export function ScheduleTZFilter(props) {
     label = 'Fetching timezone information...'
   } else {
     tz = data.schedule.timeZone
-    const short = DateTime.fromObject({ zone: tz }).toFormat('ZZZZ')
+    const short = DateTime.local({ zone: tz }).toFormat('ZZZZ')
     const tzName = tz === short ? tz : tz + ` (${short})`
     label = props.label ? props.label(tzName) : `Show times in ${tzName}`
   }
