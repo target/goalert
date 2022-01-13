@@ -14,7 +14,7 @@ interface AlertMetricsFilterProps {
   now: DateTime
 }
 
-export const MAX_WEEKS_COUNT = 4
+export const MAX_DAY_COUNT = 28
 export const DATE_FORMAT = 'y-MM-dd'
 
 export default function AlertMetricsFilter({
@@ -29,7 +29,7 @@ export default function AlertMetricsFilter({
           'weeks',
         ).weeks,
       )
-    : MAX_WEEKS_COUNT // default
+    : MAX_DAY_COUNT / 7 // default
 
   const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
     const weeks = e.target.value as number
