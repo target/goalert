@@ -53,8 +53,8 @@ export default function ScheduleCalendarEventWrapper({
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
 
-  const [showEditDialog, setShowEditDialog] = useState<string | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null)
+  const [showEditDialog, setShowEditDialog] = useState('')
+  const [showDeleteDialog, setShowDeleteDialog] = useState('')
 
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     ScheduleCalendarContext,
@@ -288,13 +288,13 @@ export default function ScheduleCalendarEventWrapper({
       {showEditDialog && (
         <ScheduleOverrideEditDialog
           overrideID={showEditDialog}
-          onClose={() => setShowEditDialog(null)}
+          onClose={() => setShowEditDialog('')}
         />
       )}
       {showDeleteDialog && (
         <ScheduleOverrideDeleteDialog
           overrideID={showDeleteDialog}
-          onClose={() => setShowDeleteDialog(null)}
+          onClose={() => setShowDeleteDialog('')}
         />
       )}
     </React.Fragment>
