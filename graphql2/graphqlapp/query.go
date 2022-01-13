@@ -147,6 +147,9 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 		if m.ServiceName != "" {
 			msg.ServiceName = &m.ServiceName
 		}
+		if m.AlertID != 0 {
+			msg.AlertID = &m.AlertID
+		}
 		if m.ProviderID.ExternalID != "" {
 			msg.ProviderID = &m.ProviderID.ExternalID
 		}
