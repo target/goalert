@@ -78,13 +78,13 @@ cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc <Procfile.cypress
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
 cy-mobile: cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc <Procfile.cypress
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc <Procfile.cypress.prod
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc <Procfile.cypress.prod
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-wide-prod-run: web/src/build/static/app.js cypress
 	make cy-wide-prod CY_ACTION=run
 cy-mobile-prod-run: web/src/build/static/app.js cypress
@@ -95,13 +95,13 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go d
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc <Procfile
+	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUNDLE=1
-	go run ./devtools/runproc <Procfile.prod
+	go run ./devtools/runproc -f Procfile.prod
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
