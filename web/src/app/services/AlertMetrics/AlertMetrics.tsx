@@ -97,6 +97,7 @@ export default function AlertMetrics({
     .map((day) => {
       let alertCount = 0
       const date = day.start.toLocaleString({ month: 'short', day: 'numeric' })
+      const label = day.start.toLocaleString({ month: 'short', day: 'numeric', year: 'numeric' })
 
       if (dateToAlerts[date]) {
         alertCount = dateToAlerts[date].length
@@ -105,6 +106,7 @@ export default function AlertMetrics({
       return {
         date: date,
         count: alertCount,
+        label: label,
       }
     })
 

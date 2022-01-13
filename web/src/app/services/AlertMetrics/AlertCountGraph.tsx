@@ -50,7 +50,11 @@ export default function AlertCountGraph(
             <CartesianGrid strokeDasharray='4' vertical={false} />
             <XAxis dataKey='date' type='category' />
             <YAxis allowDecimals={false} dataKey='count' />
-            <Tooltip />
+            <Tooltip
+              labelFormatter={(label, props) => {
+                return props.length ? props[0].payload.label : label
+              }}
+            />
             <Legend />
             <Bar
               dataKey='count'
