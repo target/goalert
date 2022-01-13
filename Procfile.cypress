@@ -1,7 +1,7 @@
 build: while true; do make -qs bin/goalert || make bin/goalert; sleep 0.1; done
 
 @watch-file=./bin/goalert
-goalert: go run ./devtools/procwrap -test=localhost:3042 bin/goalert -l=localhost:3042 --ui-url=http://localhost:3045 --db-url=postgres://postgres@localhost:5433/postgres?sslmode=disable --slack-base-url=http://localhost:3040/slack --log-errors-only
+goalert: go run ./devtools/waitfor postgres://postgres@localhost:5433 && go run ./devtools/procwrap -test=localhost:3042 bin/goalert -l=localhost:3042 --ui-url=http://localhost:3045 --db-url=postgres://postgres@localhost:5433 --slack-base-url=http://localhost:3040/slack --log-errors-only
 
 @watch-file=./web/src/webpack.config.js
 ui: yarn workspace goalert-web webpack serve --config ./webpack.config.js --port=3045
@@ -10,6 +10,6 @@ slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.0000000
 
 proxy: go run ./devtools/simpleproxy -addr=localhost:3040 /slack/=http://localhost:3046 http://localhost:3042
 
-cypress: CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable yarn workspace goalert-web cypress open --config baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX
+cypress: CYPRESS_DB_URL=postgres://postgres@localhost:5433 go run ./devtools/waitfor http://localhost:3040 && yarn workspace goalert-web cypress open --config baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX
 
-postgres: docker rm -f smoketest-postgres; docker run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
+db: docker rm -f smoketest-postgres; docker run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
