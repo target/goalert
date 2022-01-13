@@ -1,13 +1,24 @@
 # Development Setup
 
-This guide assumes you have the commands `docker`, `go` (>= 1.16), `node`, `yarn`, and `make` installed/available.
+This guide assumes you have the commands `podman`, `go` (>= 1.17), `node`, `yarn`, and `make` installed/available.
+
+### Cross-Platform Images
+
+To build cross-platform container images you will need `qemu-user-static` installed.
+
+If using MacOS you can do this with the following one-time commands:
+
+```sh
+podman machine ssh sudo rpm-ostree install qemu-user-static
+podman machine ssh sudo systemctl reboot
+```
 
 ## Database (PostgreSQL)
 
 GoAlert is built and tested against Postgres 11. Version 9.6 should still work as of this writing, but is not recommended as future versions may begin using newer features.
 
 The easiest way to setup Postgres for development is to run `make postgres`.
-This will start a docker container with the correct configuration for the dev environment.
+This will start a container with the correct configuration for the dev environment.
 
 ### Manual Configuration
 
