@@ -23,11 +23,8 @@ export default function AlertMetricsFilter({
   const [since, setSince] = useURLParam<string>('since', '')
 
   const dateRangeValue = since
-    ? Math.floor(
-        now.diff(
-          DateTime.fromFormat(since, DATE_FORMAT).minus({ day: 1 }),
-          'weeks',
-        ).weeks,
+    ? Math.ceil(
+        now.diff(DateTime.fromFormat(since, DATE_FORMAT), 'weeks').weeks,
       )
     : MAX_DAY_COUNT / 7 // default
 
