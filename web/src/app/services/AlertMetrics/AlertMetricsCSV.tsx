@@ -28,9 +28,10 @@ export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
 ): JSX.Element {
   const classes = useStyles()
+  const zoneAbbr = DateTime.local().toFormat('ZZZZ')
   // Note: the data object is ordered
   const data = props.alerts.map((a) => ({
-    'createdAt (UTC)': DateTime.fromISO(a.createdAt).toUTC().toSQL({
+    [`createdAt (${zoneAbbr})`]: DateTime.fromISO(a.createdAt).toLocal().toSQL({
       includeOffset: false,
     }),
     alertID: a.alertID,
