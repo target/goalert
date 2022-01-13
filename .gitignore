@@ -16,7 +16,7 @@
 *.so
 *.out
 *.pid
-.env
+*.env
 .ready
 /run.sh
 /config.json*
