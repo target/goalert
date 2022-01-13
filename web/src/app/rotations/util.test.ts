@@ -1,20 +1,26 @@
 import { calcNewActiveIndex, handoffSummary, reorderList } from './util'
-import { Settings } from 'luxon'
+import { Settings, Zone } from 'luxon'
+import { CreateRotationInput } from '../../schema'
 
-let oldZone = ''
+let oldZone: Zone
 beforeAll(() => {
   // 01/02 03:04:05PM '06 -0700
   Settings.now = () => 1136239445
-  oldZone = Settings.defaultZoneName
-  Settings.defaultZoneName = 'UTC'
+  oldZone = Settings.defaultZone as Zone // getting defaultZone always returns a Zone object
+  Settings.defaultZone = 'UTC'
 })
 afterAll(() => {
   Settings.now = () => Date.now()
-  Settings.defaultZoneName = oldZone
+  Settings.defaultZone = oldZone
 })
 
 describe('calcNewActiveIndex', () => {
-  const check = (aIdx, oldIdx, newIdx, exp) => {
+  const check = (
+    aIdx: number,
+    oldIdx: number,
+    newIdx: number,
+    exp: number,
+  ): void => {
     expect(calcNewActiveIndex(aIdx, oldIdx, newIdx)).toBe(exp)
   }
   test('should return -1 when no change', () => {
@@ -39,7 +45,7 @@ describe('calcNewActiveIndex', () => {
 })
 
 describe('handoffSummary', () => {
-  const check = (rotation, exp) => {
+  const check = (rotation: Partial<CreateRotationInput>, exp: string): void => {
     expect(handoffSummary(rotation)).toBe(exp)
   }
 
@@ -111,7 +117,12 @@ describe('handoffSummary', () => {
 })
 
 describe('reorderList', () => {
-  const check = (users, oldIdx, newIdx, exp) => {
+  const check = (
+    users: string[],
+    oldIdx: number,
+    newIdx: number,
+    exp: string[],
+  ): void => {
     expect(reorderList(users, oldIdx, newIdx)).toEqual(exp)
   }
 

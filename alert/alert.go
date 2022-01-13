@@ -11,7 +11,7 @@ import (
 
 // maximum lengths
 const (
-	MaxSummaryLength = 118
+	MaxSummaryLength = 1024     // 1KiB
 	MaxDetailsLength = 6 * 1024 // 6KiB
 )
 

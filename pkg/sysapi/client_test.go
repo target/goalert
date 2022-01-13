@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/pkg/sysapi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // List auth subjects from an insecure server (no certs configured)
@@ -18,7 +19,7 @@ func ExampleSysAPIClient_AuthSubjects() {
 	target := flag.String("target", "localhost:1234", "Server address.")
 	flag.Parse()
 
-	conn, err := grpc.Dial(*target, grpc.WithInsecure())
+	conn, err := grpc.Dial(*target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -126,7 +126,7 @@ func (app *App) FindOneNC(ctx context.Context, id uuid.UUID) (*notificationchann
 func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Policy, error) {
 	loader, ok := ctx.Value(dataLoaderKeyEP).(*dataloader.PolicyLoader)
 	if !ok {
-		return app.PolicyStore.FindOnePolicy(ctx, id)
+		return app.PolicyStore.FindOnePolicyTx(ctx, nil, id)
 	}
 
 	return loader.FetchOne(ctx, id)
