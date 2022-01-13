@@ -1,0 +1,12 @@
+FROM docker.io/library/alpine:3.14 AS build
+ADD /bin/goalert-linux-$ARCH.tgz /extract
+COPY /bin/linux-$ARCH/resetdb /extract/goalert/bin/
+COPY devtools/ci/dockerfiles/demo/start.sh /extract/goalert/bin/
+
+FROM docker.io/library/alpine:3.14
+ARG ARCH
+RUN apk --no-cache add postgresql postgresql-contrib musl-locales ca-certificates
+COPY --from=build /extract/goalert/bin/* /bin/
+ENV GOALERT_LISTEN :8081
+EXPOSE 8081
+CMD ["/bin/start.sh"]
