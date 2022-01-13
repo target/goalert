@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
 function PolicyStep(props) {
   const classes = useStyles()
 
-  const [editStep, setEditStep] = useURLParam('editStep', '')
+  const [editStep, setEditStep] = useURLParam('editStep', null)
   const resetEditStep = useResetURLParams('editStep')
   const [deleteStep, setDeleteStep] = useState(false)
 

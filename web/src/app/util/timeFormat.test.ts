@@ -1,8 +1,8 @@
 import { formatTimeSince } from './timeFormat'
-import { DateTime, Duration, DurationLikeObject } from 'luxon'
+import { DateTime, Duration, DurationObject } from 'luxon'
 
 describe('formatTimeSince', () => {
-  const check = (time: DurationLikeObject, exp: string): void => {
+  const check = (time: DurationObject, exp: string): void => {
     const dur = Duration.fromObject(time)
     it(`${dur.toFormat('dDays h:m:s')} === ${exp}`, () => {
       const since = DateTime.utc()

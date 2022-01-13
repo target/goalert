@@ -104,194 +104,160 @@ describe('getNextWeekday', () => {
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 9,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 9,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next tues from sunday', () => {
     const result = getNextWeekday(
       2, // tues
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 8,
-        },
-        { zone: chicago },
-      ), // sunday
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }), // sunday
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 10,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 10,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next sat from sunday', () => {
     const result = getNextWeekday(
       6, // saturday
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 8,
-        },
-        { zone: chicago },
-      ), // sunday
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }), // sunday
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 14,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next sun from sunday', () => {
     const result = getNextWeekday(
       7,
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 8,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 8,
+        zone: chicago,
+      }),
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 15,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next friday from saturday', () => {
     const result = getNextWeekday(
       5,
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 7,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 7,
+        zone: chicago,
+      }),
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 13,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 13,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next sunday from tues', () => {
     const result = getNextWeekday(
       7,
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 10,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 10,
+        zone: chicago,
+      }),
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 15,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
     )
   })
 
   it('get next sunday in asia from late-night saturday in america', () => {
     const result = getNextWeekday(
       7,
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 14,
-          hour: 23,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        hour: 23,
+        zone: chicago,
+      }),
       singapore,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 22,
-        },
-        {
-          zone: singapore,
-        },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 22,
+        zone: singapore,
+      }),
     )
   })
 
   it('get next sunday in america from saturday in asia', () => {
     const result = getNextWeekday(
       7,
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 14,
-        },
-        {
-          zone: singapore,
-        },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 14,
+        zone: singapore,
+      }),
       chicago,
     )
     expect(result).toEqual(
-      DateTime.fromObject(
-        {
-          year: 2021,
-          month: 8,
-          day: 15,
-        },
-        { zone: chicago },
-      ),
+      DateTime.fromObject({
+        year: 2021,
+        month: 8,
+        day: 15,
+        zone: chicago,
+      }),
     )
   })
 })

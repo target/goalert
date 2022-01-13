@@ -302,7 +302,7 @@ func (step *EscalationPolicyStep) Targets(ctx context.Context, raw *escalation.S
 	if len(raw.Targets) > 0 {
 		targets = raw.Targets
 	} else {
-		targets, err = step.PolicyStore.FindAllStepTargetsTx(ctx, nil, raw.ID)
+		targets, err = step.PolicyStore.FindAllStepTargets(ctx, raw.ID)
 		if err != nil {
 			return nil, err
 		}

@@ -90,7 +90,9 @@ func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierIn
 	if c.BaseURL == "" {
 		c.BaseURL = DefaultLookupURL
 	}
-	c.BaseURL = strings.TrimSuffix(c.BaseURL, "/")
+	if strings.HasSuffix(c.BaseURL, "/") {
+		c.BaseURL = strings.TrimSuffix(c.BaseURL, "/")
+	}
 
 	url := c.BaseURL + "/v1/PhoneNumbers/" + url.PathEscape(number) + "?Type=carrier"
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)

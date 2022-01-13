@@ -96,8 +96,9 @@ export default function AlertsList(props) {
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
-  const [allServices] = useURLParam('allServices', false)
-  const [fullTime] = useURLParam('fullTime', false)
+  // get redux url vars
+  const [allServices] = useURLParam('allServices')
+  const [fullTime] = useURLParam('fullTime')
   const [filter] = useURLParam('filter', 'active')
 
   // query for current service name if props.serviceID is provided

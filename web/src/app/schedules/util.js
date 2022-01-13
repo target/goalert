@@ -22,14 +22,12 @@ function dstWeekOffset(expectedOffset, dt) {
 }
 
 export function parseClock(s, zone) {
-  const dt = DateTime.fromObject(
-    {
-      hour: parseInt(s.split(':')[0], 10),
-      minute: parseInt(s.split(':')[1], 10),
-      weekday: 7, // sunday
-    },
-    { zone },
-  )
+  const dt = DateTime.fromObject({
+    hours: parseInt(s.split(':')[0], 10),
+    minutes: parseInt(s.split(':')[1], 10),
+    weekday: 7, // sunday
+    zone,
+  })
 
   return dstWeekOffset(DateTime.utc().setZone(zone).offset, dt)
 }

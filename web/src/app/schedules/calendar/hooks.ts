@@ -1,27 +1,27 @@
 import { DateTime } from 'luxon'
-import { useURLParams } from '../../actions'
+import { useURLParam } from '../../actions'
 import { getStartOfWeek } from '../../util/luxon-helpers'
 
-interface CalendarNavParams {
+interface CalendarNavigation {
   weekly: boolean
+  setWeekly: (val: boolean) => void
   start: string
-}
-interface CalendarNavigation extends CalendarNavParams {
-  setParams: (val: Partial<CalendarNavParams>) => void
+  setStart: (val: string) => void
 }
 
 export function useCalendarNavigation(): CalendarNavigation {
-  const [_params] = useURLParams({ weekly: false })
-  const [params, setParams] = useURLParams({
-    weekly: false as boolean,
-    start: _params.weekly
+  const [weekly, setWeekly] = useURLParam<boolean>('weekly', false)
+  const [start, setStart] = useURLParam(
+    'start',
+    weekly
       ? getStartOfWeek().toISODate()
       : DateTime.now().startOf('month').toISODate(),
-  })
+  )
 
   return {
-    weekly: params.weekly,
-    start: params.start,
-    setParams,
+    weekly,
+    setWeekly,
+    start,
+    setStart,
   }
 }

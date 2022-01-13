@@ -60,7 +60,7 @@ type App struct {
 	AlertLogStore  alertlog.Store
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
-	PolicyStore    *escalation.Store
+	PolicyStore    escalation.Store
 	ScheduleStore  *schedule.Store
 	CalSubStore    *calendarsubscription.Store
 	RotationStore  rotation.Store

@@ -11,3 +11,8 @@ updates:
       # ignore all patch updates
       - dependency-name: '*'
         update-types: ['version-update:semver-patch']
+
+      # @date-io/luxon@1 requires luxon@1
+      - dependency-name: 'luxon'
+      # luxon@1 requires @types/luxon@1
+      - dependency-name: '@types/luxon'

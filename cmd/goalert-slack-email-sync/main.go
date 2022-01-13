@@ -16,7 +16,6 @@ import (
 	"github.com/target/goalert/pkg/sysapi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -30,16 +29,16 @@ func main() {
 
 	log.SetFlags(log.Lshortfile)
 
-	creds := insecure.NewCredentials()
+	opt := grpc.WithInsecure()
 	if *cert+*key+*ca != "" {
 		cfg, err := sysapi.NewTLS(*ca, *cert, *key)
 		if err != nil {
 			log.Fatal("tls credentials:", err)
 		}
-		creds = credentials.NewTLS(cfg)
+		opt = grpc.WithTransportCredentials(credentials.NewTLS(cfg))
 	}
 
-	conn, err := grpc.Dial(*api, grpc.WithTransportCredentials(creds))
+	conn, err := grpc.Dial(*api, opt)
 	if err != nil {
 		log.Fatal("connect to GoAlert:", err)
 	}

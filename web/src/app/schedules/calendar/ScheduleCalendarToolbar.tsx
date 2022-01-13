@@ -34,7 +34,7 @@ function ScheduleCalendarToolbar(
   props: ScheduleCalendarToolbarProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { weekly, start, setParams: setNavParams } = useCalendarNavigation()
+  const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
   const getHeader = (): string => {
     if (weekly) {
@@ -73,33 +73,31 @@ function ScheduleCalendarToolbar(
 
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
-      setNavParams({ weekly: true, start: getStartOfWeek().toISODate() })
+      setWeekly(true)
+      setStart(getStartOfWeek().toISODate())
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
-      setNavParams({
-        weekly: true,
-        start: DateTime.fromISO(start).startOf('month').toISODate(),
-      })
+      setWeekly(true)
+      setStart(DateTime.fromISO(start).startOf('month').toISODate())
 
       // go from week to monthly view
       // e.g. if navigating to an overlap of two months such as
       // Jan 27 - Feb 2, show the latter month (February)
     } else {
-      setNavParams({
-        weekly: false,
-        start: getEndOfWeek(DateTime.fromISO(start))
-          .startOf('month')
-          .toISODate(),
-      })
+      setWeekly(false)
+
+      setStart(
+        getEndOfWeek(DateTime.fromISO(start)).startOf('month').toISODate(),
+      )
     }
   }
 
   const onNavigate = (next: DateTime): void => {
     if (weekly) {
-      setNavParams({ start: getStartOfWeek(next).toISODate() })
+      setStart(getStartOfWeek(next).toISODate())
     } else {
-      setNavParams({ start: next.startOf('month').toISODate() })
+      setStart(next.startOf('month').toISODate())
     }
   }
 

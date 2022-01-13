@@ -172,7 +172,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.EscalationStore == nil {
-		app.EscalationStore, err = escalation.NewStore(ctx, app.db, escalation.Config{
+		app.EscalationStore, err = escalation.NewDB(ctx, app.db, escalation.Config{
 			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {

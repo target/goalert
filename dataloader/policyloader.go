@@ -2,17 +2,16 @@ package dataloader
 
 import (
 	"context"
-	"time"
-
 	"github.com/target/goalert/escalation"
+	"time"
 )
 
 type PolicyLoader struct {
 	*loader
-	store *escalation.Store
+	store escalation.Store
 }
 
-func NewPolicyLoader(ctx context.Context, store *escalation.Store) *PolicyLoader {
+func NewPolicyLoader(ctx context.Context, store escalation.Store) *PolicyLoader {
 	p := &PolicyLoader{
 		store: store,
 	}

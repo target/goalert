@@ -18,13 +18,86 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Store interface {
+	PolicyStore
+	StepStore
+	ActiveStepReader
+}
+
+type PolicyStore interface {
+	FindOnePolicy(context.Context, string) (*Policy, error)
+	FindOnePolicyTx(context.Context, *sql.Tx, string) (*Policy, error)
+	FindOnePolicyForUpdateTx(context.Context, *sql.Tx, string) (*Policy, error)
+	FindAllPolicies(context.Context) ([]Policy, error)
+	CreatePolicy(context.Context, *Policy) (*Policy, error)
+	CreatePolicyTx(context.Context, *sql.Tx, *Policy) (*Policy, error)
+	UpdatePolicy(context.Context, *Policy) error
+	UpdatePolicyTx(context.Context, *sql.Tx, *Policy) error
+	DeletePolicy(ctx context.Context, id string) error
+	DeletePolicyTx(ctx context.Context, tx *sql.Tx, id string) error
+	FindAllStepTargets(ctx context.Context, stepID string) ([]assignment.Target, error)
+	FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID string) ([]assignment.Target, error)
+	AddStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error
+	AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error
+	DeleteStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error
+	DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error
+	FindAllPoliciesBySchedule(ctx context.Context, scheduleID string) ([]Policy, error)
+	FindManyPolicies(ctx context.Context, ids []string) ([]Policy, error)
+	DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error
+
+	Search(context.Context, *SearchOptions) ([]Policy, error)
+}
+
+type StepStore interface {
+	// CreateStep is replaced by CreateStepTx.
+	CreateStep(context.Context, *Step) (*Step, error)
+
+	// CreateStepTx will create an escalation policy step within the given transaction.
+	// Note: Targets are not assigned during creation.
+	CreateStepTx(context.Context, *sql.Tx, *Step) (*Step, error)
+	UpdateStepNumberTx(context.Context, *sql.Tx, string, int) error
+
+	// Update step allows updating a steps delay
+	// Note: it does not update the Targets.
+	UpdateStep(context.Context, *Step) error
+	UpdateStepDelayTx(context.Context, *sql.Tx, string, int) error
+	DeleteStep(context.Context, string) (string, error)
+	DeleteStepTx(context.Context, *sql.Tx, string) (string, error)
+	MoveStep(context.Context, string, int) error
+}
+
+type ActiveStepReader interface {
+	ActiveStep(ctx context.Context, alertID int, policyID string) (*ActiveStep, error)
+
+	// FindOneStep will return a single escalation policy step.
+	// Note: it does not currently fetch the Targets.
+	FindOneStep(context.Context, string) (*Step, error)
+	FindOneStepTx(context.Context, *sql.Tx, string) (*Step, error)
+	FindOneStepForUpdateTx(context.Context, *sql.Tx, string) (*Step, error)
+
+	// FindAllSteps will return escalation policy steps for the given policy ID.
+	// Note: it does not currently fetch the Targets.
+	FindAllSteps(context.Context, string) ([]Step, error)
+	FindAllStepsTx(context.Context, *sql.Tx, string) ([]Step, error)
+	FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, userID string) ([]Step, error)
+}
+
+type Manager interface {
+	ActiveStepReader
+
+	FindOnePolicy(context.Context, string) (*Policy, error)
+}
+
+var _ Manager = &DB{}
+var _ Store = &DB{}
+
 type Config struct {
 	NCStore         notificationchannel.Store
 	LogStore        alertlog.Store
 	SlackLookupFunc func(ctx context.Context, channelID string) (*slack.Channel, error)
 }
 
-type Store struct {
+type DB struct {
 	db *sql.DB
 
 	log     alertlog.Store
@@ -33,15 +106,16 @@ type Store struct {
 
 	findSlackChan *sql.Stmt
 
-	findOnePolicy          *sql.Stmt
-	findOnePolicyForUpdate *sql.Stmt
-	findManyPolicies       *sql.Stmt
-
+	findOnePolicy             *sql.Stmt
+	findOnePolicyForUpdate    *sql.Stmt
+	findManyPolicies          *sql.Stmt
+	findAllPolicies           *sql.Stmt
 	findAllPoliciesBySchedule *sql.Stmt
 	createPolicy              *sql.Stmt
 	updatePolicy              *sql.Stmt
 	deletePolicy              *sql.Stmt
 
+	findOneStep          *sql.Stmt
 	findOneStepForUpdate *sql.Stmt
 	findAllSteps         *sql.Stmt
 	findAllOnCallSteps   *sql.Stmt
@@ -49,16 +123,19 @@ type Store struct {
 	updateStepDelay      *sql.Stmt
 	updateStepNumber     *sql.Stmt
 	deleteStep           *sql.Stmt
+	moveStep             *sql.Stmt
+
+	activeStep *sql.Stmt
 
 	addStepTarget      *sql.Stmt
 	deleteStepTarget   *sql.Stmt
 	findAllStepTargets *sql.Stmt
 }
 
-func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
+func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &Store{
+	return &DB{
 		db:      db,
 		log:     cfg.LogStore,
 		slackFn: cfg.SlackLookupFunc,
@@ -100,6 +177,7 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
                 fav.tgt_escalation_policy_id = e.id AND fav.user_id = $2
             WHERE e.id = any($1)
         `),
+		findAllPolicies: p.P(`SELECT id, name, description, repeat FROM escalation_policies`),
 		findAllPoliciesBySchedule: p.P(`
 			SELECT DISTINCT
 				step.escalation_policy_id,
@@ -157,6 +235,7 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 				escalation_policy_step_id = $1
 		`),
 
+		findOneStep:          p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1`),
 		findOneStepForUpdate: p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1 FOR UPDATE`),
 		findAllSteps:         p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE escalation_policy_id = $1 ORDER BY step_number`),
 		findAllOnCallSteps: p.P(`
@@ -176,11 +255,48 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		updateStepDelay:  p.P(`UPDATE escalation_policy_steps SET delay = $2 WHERE id = $1`),
 		updateStepNumber: p.P(`UPDATE escalation_policy_steps SET step_number = $2 WHERE id = $1`),
 		deleteStep:       p.P(`DELETE FROM escalation_policy_steps WHERE id = $1 RETURNING escalation_policy_id`),
+		moveStep: p.P(`
+			WITH calc AS (
+				SELECT
+					escalation_policy_id esc_id,
+					step_number old_pos,
+					LEAST(step_number, $2) min,
+					GREATEST(step_number, $2) max,
+					($2 - step_number) diff,
+					CASE
+						WHEN step_number < $2 THEN abs($2-step_number)
+						WHEN step_number > $2 THEN 1
+						ELSE 0
+					END shift
+				FROM escalation_policy_steps
+				WHERE id = $1
+				FOR UPDATE
+			)
+			UPDATE escalation_policy_steps
+			SET step_number =  ((step_number - calc.min) + calc.shift) % (abs(calc.diff) + 1) + calc.min
+			FROM calc
+			WHERE
+				escalation_policy_id = calc.esc_id AND
+				step_number >= calc.min AND
+				step_number <= calc.max
+			RETURNING escalation_policy_id
+		`),
+
+		activeStep: p.P(`
+			SELECT
+				escalation_policy_step_id,
+				last_escalation,
+				loop_count,
+				force_escalation,
+				escalation_policy_step_number
+			FROM escalation_policy_state
+			WHERE alert_id = $1 AND escalation_policy_id = $2
+		`),
 	}, p.Err
 }
 
-func (s *Store) logChange(ctx context.Context, tx *sql.Tx, policyID string) {
-	err := s.log.LogEPTx(ctx, tx, policyID, alertlog.TypePolicyUpdated, nil)
+func (db *DB) logChange(ctx context.Context, tx *sql.Tx, policyID string) {
+	err := db.log.LogEPTx(ctx, tx, policyID, alertlog.TypePolicyUpdated, nil)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alertlog (escalation policy update)"))
 	}
@@ -233,8 +349,7 @@ func tgtFields(id string, tgt assignment.Target, insert bool) []interface{} {
 	}
 }
 
-// FindManyPolicies returns escalation policies for the given IDs.
-func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, error) {
+func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -245,7 +360,7 @@ func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, e
 		return nil, err
 	}
 	userID := permission.UserID(ctx)
-	rows, err := s.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -267,7 +382,7 @@ func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, e
 	return result, nil
 }
 
-func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assignment.Target, stmt *sql.Stmt, insert bool) error {
+func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignment.Target, stmt *sql.Stmt, insert bool) error {
 	err := validate.Many(
 		validate.UUID("StepID", stepID),
 		validStepTarget(tgt),
@@ -286,13 +401,13 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 	return err
 }
 
-func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID string) (assignment.Target, error) {
-	ch, err := s.slackFn(ctx, slackChanID)
+func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID string) (assignment.Target, error) {
+	ch, err := db.slackFn(ctx, slackChanID)
 	if err != nil {
 		return nil, err
 	}
 
-	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
+	notifID, err := db.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
 		Type:  notificationchannel.TypeSlack,
 		Name:  ch.Name,
 		Value: ch.ID,
@@ -303,10 +418,9 @@ func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID str
 
 	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
-
-func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
+func (db *DB) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
 	var notifChanID string
-	err := tx.StmtContext(ctx, s.findSlackChan).QueryRowContext(ctx, stepID, slackChanID).Scan(&notifChanID)
+	err := tx.StmtContext(ctx, db.findSlackChan).QueryRowContext(ctx, stepID, slackChanID).Scan(&notifChanID)
 	if err != nil {
 		return nil, err
 	}
@@ -314,32 +428,41 @@ func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slac
 	return assignment.NotificationChannelTarget(notifChanID), nil
 }
 
-// AddStepTargetTx adds a target to an escalation policy step.
-func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
+func (db *DB) AddStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error {
+	return db._updateStepTarget(ctx, stepID, tgt, db.addStepTarget, true)
+}
+
+func (db *DB) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
 		var err error
-		tgt, err = s.newSlackChannel(ctx, tx, tgt.TargetID())
+		tgt, err = db.newSlackChannel(ctx, tx, tgt.TargetID())
 		if err != nil {
 			return err
 		}
 	}
-	return s._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, s.addStepTarget), true)
+	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.addStepTarget), true)
 }
 
-// DeleteStepTargetTx removes the target from the step.
-func (s *Store) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
+func (db *DB) DeleteStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error {
+	return db._updateStepTarget(ctx, stepID, tgt, db.deleteStepTarget, false)
+}
+
+func (db *DB) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
 		var err error
-		tgt, err = s.lookupSlackChannel(ctx, tx, stepID, tgt.TargetID())
+		tgt, err = db.lookupSlackChannel(ctx, tx, stepID, tgt.TargetID())
 		if err != nil {
 			return err
 		}
 	}
-	return s._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, s.deleteStepTarget), false)
+	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.deleteStepTarget), false)
 }
 
-// FindAllStepTargetsTx returns the targets for a step.
-func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID string) ([]assignment.Target, error) {
+func (db *DB) FindAllStepTargets(ctx context.Context, stepID string) ([]assignment.Target, error) {
+	return db.FindAllStepTargetsTx(ctx, nil, stepID)
+}
+
+func (db *DB) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID string) ([]assignment.Target, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -350,7 +473,7 @@ func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID str
 		return nil, err
 	}
 
-	stmt := s.findAllStepTargets
+	stmt := db.findAllStepTargets
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -402,8 +525,34 @@ func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID str
 	return tgts, nil
 }
 
-// CreatePolicyTx creates a new escalation policy in the database.
-func (s *Store) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Policy, error) {
+func (db *DB) ActiveStep(ctx context.Context, alertID int, policyID string) (*ActiveStep, error) {
+	err := validate.UUID("EscalationPolicyID", policyID)
+	if err != nil {
+		return nil, err
+	}
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	row := db.activeStep.QueryRowContext(ctx, alertID, policyID)
+	var step ActiveStep
+	var stepID sql.NullString
+	err = row.Scan(&stepID, &step.LastEscalation, &step.LoopCount, &step.ForceEscalation, &step.StepNumber)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	step.StepID = stepID.String
+	step.PolicyID = policyID
+	step.AlertID = alertID
+	return &step, nil
+}
+
+func (db *DB) CreatePolicy(ctx context.Context, p *Policy) (*Policy, error) {
+	return db.CreatePolicyTx(ctx, nil, p)
+}
+
+func (db *DB) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Policy, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
@@ -414,7 +563,7 @@ func (s *Store) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Pol
 		return nil, err
 	}
 
-	stmt := s.createPolicy
+	stmt := db.createPolicy
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -428,8 +577,11 @@ func (s *Store) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Pol
 	return n, nil
 }
 
-// UpdatePolicyTx will update a single escalation policy.
-func (s *Store) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error {
+func (db *DB) UpdatePolicy(ctx context.Context, p *Policy) error {
+	return db.UpdatePolicyTx(ctx, nil, p)
+}
+
+func (db *DB) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error {
 	err := validate.UUID("EscalationPolicyID", p.ID)
 	if err != nil {
 		return err
@@ -444,7 +596,7 @@ func (s *Store) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error
 		return err
 	}
 
-	stmt := s.updatePolicy
+	stmt := db.updatePolicy
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -454,13 +606,20 @@ func (s *Store) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error
 		return err
 	}
 
-	s.logChange(ctx, nil, p.ID)
+	db.logChange(ctx, nil, p.ID)
 
 	return nil
 }
 
-// DeleteManyPoliciesTx deletes multiple policies in a single transaction.
-func (s *Store) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (db *DB) DeletePolicy(ctx context.Context, id string) error {
+	return db.DeletePolicyTx(ctx, nil, id)
+}
+
+func (db *DB) DeletePolicyTx(ctx context.Context, tx *sql.Tx, id string) error {
+	return db.DeleteManyPoliciesTx(ctx, tx, []string{id})
+}
+
+func (db *DB) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -470,16 +629,19 @@ func (s *Store) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []stri
 		return err
 	}
 
-	stmt := s.deletePolicy
+	s := db.deletePolicy
 	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
+		s = tx.StmtContext(ctx, s)
 	}
-	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
-// FindOnePolicyTx returns a policy by ID.
-func (s *Store) FindOnePolicyTx(ctx context.Context, tx *sql.Tx, id string) (*Policy, error) {
+func (db *DB) FindOnePolicy(ctx context.Context, id string) (*Policy, error) {
+	return db.FindOnePolicyTx(ctx, nil, id)
+}
+
+func (db *DB) FindOnePolicyTx(ctx context.Context, tx *sql.Tx, id string) (*Policy, error) {
 	err := validate.UUID("EscalationPolicyID", id)
 	if err != nil {
 		return nil, err
@@ -490,7 +652,7 @@ func (s *Store) FindOnePolicyTx(ctx context.Context, tx *sql.Tx, id string) (*Po
 		return nil, err
 	}
 
-	stmt := s.findOnePolicy
+	stmt := db.findOnePolicy
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -501,8 +663,7 @@ func (s *Store) FindOnePolicyTx(ctx context.Context, tx *sql.Tx, id string) (*Po
 	return &p, err
 }
 
-// FindOnePolicyForUpdateTx returns a single policy locked to the tx for updating.
-func (s *Store) FindOnePolicyForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*Policy, error) {
+func (db *DB) FindOnePolicyForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*Policy, error) {
 	err := validate.UUID("EscalationPolicyID", id)
 	if err != nil {
 		return nil, err
@@ -513,7 +674,7 @@ func (s *Store) FindOnePolicyForUpdateTx(ctx context.Context, tx *sql.Tx, id str
 		return nil, err
 	}
 
-	stmt := s.findOnePolicyForUpdate
+	stmt := db.findOnePolicyForUpdate
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -524,8 +685,33 @@ func (s *Store) FindOnePolicyForUpdateTx(ctx context.Context, tx *sql.Tx, id str
 	return &p, err
 }
 
-// FindAllPoliciesBySchedule will return all policies that have the given schedule assigned to them.
-func (s *Store) FindAllPoliciesBySchedule(ctx context.Context, scheduleID string) ([]Policy, error) {
+func (db *DB) FindAllPolicies(ctx context.Context) ([]Policy, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.findAllPolicies.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var p Policy
+	policies := []Policy{}
+	for rows.Next() {
+		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat)
+		if err != nil {
+			return nil, err
+		}
+		policies = append(policies, p)
+	}
+
+	return policies, nil
+
+}
+
+func (db *DB) FindAllPoliciesBySchedule(ctx context.Context, scheduleID string) ([]Policy, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -534,7 +720,7 @@ func (s *Store) FindAllPoliciesBySchedule(ctx context.Context, scheduleID string
 	if err != nil {
 		return nil, err
 	}
-	rows, err := s.findAllPoliciesBySchedule.QueryContext(ctx, scheduleID)
+	rows, err := db.findAllPoliciesBySchedule.QueryContext(ctx, scheduleID)
 	if err != nil {
 		return nil, err
 	}
@@ -553,8 +739,11 @@ func (s *Store) FindAllPoliciesBySchedule(ctx context.Context, scheduleID string
 	return policies, nil
 }
 
-// FindOneStepForUpdateTx returns a step locked within the tx for update.
-func (s *Store) FindOneStepForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*Step, error) {
+func (db *DB) FindOneStep(ctx context.Context, id string) (*Step, error) {
+	return db.FindOneStepTx(ctx, nil, id)
+}
+
+func (db *DB) FindOneStepTx(ctx context.Context, tx *sql.Tx, id string) (*Step, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -565,27 +754,51 @@ func (s *Store) FindOneStepForUpdateTx(ctx context.Context, tx *sql.Tx, id strin
 		return nil, err
 	}
 
-	stmt := s.findOneStepForUpdate
+	stmt := db.findOneStep
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
 	row := stmt.QueryRowContext(ctx, id)
-	var st Step
-	err = row.Scan(&st.ID, &st.PolicyID, &st.DelayMinutes, &st.StepNumber)
+	var s Step
+	err = row.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	return &st, nil
+	return &s, nil
 }
 
-func (s *Store) FindAllSteps(ctx context.Context, policyID string) ([]Step, error) {
-	return s.FindAllStepsTx(ctx, nil, policyID)
+func (db *DB) FindOneStepForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*Step, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("EscalationPolicyStepID ", id)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := db.findOneStepForUpdate
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	row := stmt.QueryRowContext(ctx, id)
+	var s Step
+	err = row.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return &s, nil
 }
 
-// FindAllOnCallStepsForUserTx returns all steps a user is currently on-call for.
-func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, userID string) ([]Step, error) {
+func (db *DB) FindAllSteps(ctx context.Context, policyID string) ([]Step, error) {
+	return db.FindAllStepsTx(ctx, nil, policyID)
+}
+func (db *DB) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, userID string) ([]Step, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -595,7 +808,7 @@ func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, use
 		return nil, err
 	}
 
-	stmt := s.findAllOnCallSteps
+	stmt := db.findAllOnCallSteps
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -617,9 +830,7 @@ func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, use
 	}
 	return result, nil
 }
-
-// FindAllStepsTx returns all steps for a policy.
-func (s *Store) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string) ([]Step, error) {
+func (db *DB) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string) ([]Step, error) {
 	err := validate.UUID("EscalationPolicyID", policyID)
 	if err != nil {
 		return nil, err
@@ -630,7 +841,7 @@ func (s *Store) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string)
 		return nil, err
 	}
 
-	stmt := s.findAllSteps
+	stmt := db.findAllSteps
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -653,19 +864,22 @@ func (s *Store) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string)
 	return result, nil
 }
 
-// CreateStepTx adds a step to an escalation policy.
-func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, error) {
+func (db *DB) CreateStep(ctx context.Context, s *Step) (*Step, error) {
+	return db.CreateStepTx(ctx, nil, s)
+}
+
+func (db *DB) CreateStepTx(ctx context.Context, tx *sql.Tx, s *Step) (*Step, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := st.Normalize()
+	n, err := s.Normalize()
 	if err != nil {
 		return nil, err
 	}
 
-	stmt := s.createStep
+	stmt := db.createStep
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -677,13 +891,12 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 		return nil, err
 	}
 
-	s.logChange(ctx, tx, st.PolicyID)
+	db.logChange(ctx, tx, s.PolicyID)
 
 	return n, nil
 }
 
-// UpdateStepNumberTx updates the step number for a step.
-func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID string, stepNumber int) error {
+func (db *DB) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID string, stepNumber int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -694,7 +907,7 @@ func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID strin
 		return err
 	}
 
-	numStmt := s.updateStepNumber
+	numStmt := db.updateStepNumber
 	if tx != nil {
 		numStmt = tx.StmtContext(ctx, numStmt)
 	}
@@ -707,8 +920,11 @@ func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID strin
 	return nil
 }
 
-// UpdateStepDelayTx updates the delay for a step.
-func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string, stepDelay int) error {
+func (db *DB) UpdateStep(ctx context.Context, s *Step) error {
+	return db.UpdateStepDelayTx(ctx, nil, s.ID, s.DelayMinutes)
+}
+
+func (db *DB) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string, stepDelay int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -724,7 +940,7 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 		return err
 	}
 
-	stmt := s.updateStepDelay
+	stmt := db.updateStepDelay
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -737,8 +953,11 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 	return nil
 }
 
-// DeleteStepTx deletes a step from an escalation policy.
-func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
+func (db *DB) DeleteStep(ctx context.Context, id string) (string, error) {
+	return db.DeleteStepTx(ctx, nil, id)
+}
+
+func (db *DB) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
 	err := validate.UUID("EscalationPolicyStepID", id)
 	if err != nil {
 		return "", err
@@ -748,18 +967,41 @@ func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string
 	if err != nil {
 		return "", err
 	}
-	stmt := s.deleteStep
+	s := db.deleteStep
 	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
+		s = tx.StmtContext(ctx, s)
 	}
-	row := stmt.QueryRowContext(ctx, id)
+	row := s.QueryRowContext(ctx, id)
 	var polID string
 	err = row.Scan(&polID)
 	if err != nil {
 		return "", err
 	}
 
-	s.logChange(ctx, tx, polID)
+	db.logChange(ctx, tx, polID)
 
 	return polID, nil
+}
+
+func (db *DB) MoveStep(ctx context.Context, id string, newPos int) error {
+	err := validate.Many(
+		validate.UUID("EscalationPolicyStepID", id),
+		validate.Range("NewPosition", newPos, 0, 9000),
+	)
+	if err != nil {
+		return err
+	}
+	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return err
+	}
+
+	var polID string
+	err = db.moveStep.QueryRowContext(ctx, id, newPos).Scan(&polID)
+	if err != nil {
+		return err
+	}
+	db.logChange(ctx, nil, polID)
+
+	return nil
 }
