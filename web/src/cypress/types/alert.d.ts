@@ -35,6 +35,7 @@ interface AlertLogs {
   logs: Array<AlertLog>
 }
 interface AlertLog {
+  id: string
   timestamp: string
   message: string
 }

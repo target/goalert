@@ -39,7 +39,12 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
 
   return (
     <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
-      <Drawer anchor='right' open={open} variant='persistent'>
+      <Drawer
+        anchor='right'
+        open={open}
+        variant='persistent'
+        data-cy='debug-message-details'
+      >
         <Toolbar />
         <Grid style={{ width: '30vw' }}>
           <Typography variant='h6' style={{ margin: '16px' }}>

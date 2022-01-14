@@ -1,4 +1,6 @@
 import { Chance } from 'chance'
+import { DateTime } from 'luxon'
+import { DebugMessage } from '../../schema'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
@@ -68,6 +70,7 @@ function testAdmin(): void {
       )
     })
   })
+
   describe('Admin Config Page', () => {
     let cfg: Config
     beforeEach(() => {
@@ -191,6 +194,97 @@ function testAdmin(): void {
       cy.get('[data-cy="configure-in-slack"]')
         .should('have.attr', 'href')
         .and('contain', 'https://api.slack.com/apps?new_app=1&manifest_yaml=')
+    })
+  })
+
+  describe('Admin Outgoing Logs Page', () => {
+    let debugMessage: DebugMessage
+
+    before(() => {
+      cy.createOutgoingMessage().then((msg: DebugMessage) => {
+        debugMessage = msg
+        cy.visit('/admin/message-logs?poll=0')
+      })
+    })
+
+    it('should view the logs list with one log', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').as('list')
+
+      cy.get('@list').should('have.length', 1)
+      cy.get('body').should('contain.text', 'Fetched 1 of 1 results')
+      cy.get('[data-cy="outgoing-message-list"]').should(
+        'contain.text',
+        'Displaying all results.',
+      )
+
+      cy.get('@list')
+        .eq(0)
+        .should(
+          'contain.text',
+          DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
+        )
+
+      cy.get('@list')
+        .eq(0)
+        .should('contain.text', debugMessage.type + ' Notification')
+
+      // todo: destination not supported: phone number value is pre-formatted
+      // likely need to create a support function cy.getPhoneNumberInfo thru
+      // gql to verify this info.
+
+      cy.get('@list').eq(0).should('contain.text', debugMessage.serviceName)
+      cy.get('@list').eq(0).should('contain.text', debugMessage.userName)
+      cy.get('@list').eq(0).should('include.text', debugMessage.status) // "Failed" or "Failed (Permanent)" can exist
+    })
+
+    it('should select and view a logs details', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"').as('details').should('exist')
+
+      // todo: not asserting updatedAt, destination, or providerID
+      cy.get('@details').should('contain.text', 'ID')
+      cy.get('@details').should('contain.text', debugMessage.id)
+
+      cy.get('@details').should('contain.text', 'Created At')
+      cy.get('@details').should(
+        'contain.text',
+        DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
+      )
+
+      cy.get('@details').should('contain.text', 'Notification Type')
+      cy.get('@details').should('contain.text', debugMessage.type)
+
+      cy.get('@details').should('contain.text', 'Current Status')
+      cy.get('@details').should('include.text', debugMessage.status)
+
+      cy.get('@details').should('contain.text', 'User')
+      cy.get('@details').should('contain.text', debugMessage.userName)
+
+      cy.get('@details').should('contain.text', 'Service')
+      cy.get('@details').should('contain.text', debugMessage.serviceName)
+
+      cy.get('@details').should('contain.text', 'Alert')
+      cy.get('@details').should('contain.text', debugMessage.alertID)
+    })
+
+    it('should verify user link from a logs details', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"')
+        .find('a')
+        .contains(debugMessage?.userName ?? '')
+        .should('have.attr', 'href', '/users/' + debugMessage.userID)
+        .should('have.attr', 'target', '_blank')
+        .should('have.attr', 'rel', 'noopener noreferrer')
+    })
+
+    it('should verify service link from a logs details', () => {
+      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="debug-message-details"')
+        .find('a')
+        .contains(debugMessage?.serviceName ?? '')
+        .should('have.attr', 'href', '/services/' + debugMessage.serviceID)
+        .should('have.attr', 'target', '_blank')
+        .should('have.attr', 'rel', 'noopener noreferrer')
     })
   })
 }
