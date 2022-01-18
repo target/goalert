@@ -95,13 +95,13 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go d
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile
+	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUNDLE=1
-	go run ./devtools/runproc -f Procfile.prod
+	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)

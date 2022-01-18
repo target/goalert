@@ -17,6 +17,7 @@
 *.out
 *.pid
 *.env
+Procfile.local
 .ready
 /run.sh
 /config.json*

@@ -10,6 +10,7 @@ import (
 
 func main() {
 	file := flag.String("f", "", "Procfile to run.")
+	localFile := flag.String("l", "", "Local Procfile to append.")
 	flag.Parse()
 
 	log.SetFlags(log.Lshortfile)
@@ -23,7 +24,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	envData, _ := os.ReadFile(*file + ".env")
+	var envData []byte
+	if *localFile != "" {
+		envData, _ = os.ReadFile(*localFile)
+	}
 
 	buf := bytes.NewBuffer(data)
 	buf.WriteString("\n")
