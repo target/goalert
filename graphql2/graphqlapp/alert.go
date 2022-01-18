@@ -1,7 +1,7 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
 	"strconv"
 	"strings"
 	"time"
@@ -175,6 +175,61 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	}
 
 	return svcs, nil
+}
+
+func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []alert.Alert) []graphql2.AlertDataPoint {
+	var result []graphql2.AlertDataPoint
+
+	if since.After(until) {
+		return result
+	}
+
+	iter := since
+
+	for iter.Before(until) {
+		dataPoint := graphql2.AlertDataPoint{Timestamp: iter, AlertCount: 0}
+		upperBound := iter.Add(period)
+		for _, alert := range alerts {
+			if alert.CreatedAt.After(iter) && alert.CreatedAt.Before(upperBound) {
+				dataPoint.AlertCount++
+			}
+			if alert.CreatedAt.After(upperBound) { break }
+		}
+		result = append(result, dataPoint)
+		iter = iter.Add(period)
+	}
+
+	return result
+}
+
+func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) ([]graphql2.AlertDataPoint, error) {
+	var result []graphql2.AlertDataPoint
+	var s alert.SearchOptions
+
+	// requiring only 1 service ID is provided for MVP
+	err := validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1)
+	if err != nil {
+		 return nil, err
+	}
+
+	s.Before = opts.Until
+	s.NotBefore = opts.Since
+	s.ServiceFilter.IDs = opts.FilterByServiceID
+	s.Limit = 100
+
+	alerts, err := q.AlertStore.Search(ctx, &s)
+	if err != nil {
+		return nil, err
+	}
+
+	duration, err := time.ParseDuration(*opts.Period)
+	if err != nil {
+		return nil, err
+	}
+
+	result = splitRangeByPeriod(opts.Since, opts.Until, duration, alerts)
+
+	return result, nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
