@@ -34,7 +34,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
 
-  const results = useFuse<KeyedDebugMessage>({
+  const results = useFuse({
     data: debugMessages,
     keys: [
       'destination',
