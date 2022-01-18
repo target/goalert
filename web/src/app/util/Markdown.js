@@ -66,7 +66,6 @@ export default function Markdown(props) {
       components={{ td: TableCell }}
       remarkPlugins={[remarkGfm]}
       allowElement={(element) => {
-        if (element.tagName === 'br') return true
         if (
           element.tagName === 'a' &&
           element.children[0].type === 'text' &&
