@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // Token values
@@ -18,12 +18,13 @@ const (
 // GenerateToken will create a new token string with the given audience and subject,
 // signed with the provided secret.
 func GenerateToken(secret []byte, aud, sub string) (string, error) {
-	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
+
+	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
 		Issuer:    TokenIssuer,
-		Audience:  aud,
+		Audience:  []string{aud},
 		Subject:   sub,
-		IssuedAt:  time.Now().Unix(),
-		NotBefore: time.Now().Add(-15 * time.Minute).Unix(),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		NotBefore: jwt.NewNumericDate(time.Now().Add(-15 * time.Minute)),
 	})
 
 	return tok.SignedString(secret)
@@ -32,7 +33,7 @@ func GenerateToken(secret []byte, aud, sub string) (string, error) {
 // TokenSubject will return the subject of a token, after verifying the signature
 // and audience.
 func TokenSubject(secret []byte, aud, token string) (string, error) {
-	tok, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(tok *jwt.Token) (interface{}, error) {
+	tok, err := jwt.ParseWithClaims(token, &jwt.RegisteredClaims{}, func(tok *jwt.Token) (interface{}, error) {
 		if tok.Method.Alg() != jwt.SigningMethodHS256.Name {
 			return nil, jwt.ErrInvalidKeyType
 		}
@@ -42,7 +43,7 @@ func TokenSubject(secret []byte, aud, token string) (string, error) {
 		return "", err
 	}
 
-	claims := tok.Claims.(*jwt.StandardClaims)
+	claims := tok.Claims.(*jwt.RegisteredClaims)
 	if !claims.VerifyIssuer(TokenIssuer, true) {
 		return "", jwt.NewValidationError("invalid issuer", jwt.ValidationErrorIssuer)
 	}
