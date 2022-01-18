@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/system'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
@@ -18,7 +18,6 @@ interface Props {
   selectedLog: DebugMessage | null
   onSelect: (debugMessage: DebugMessage) => void
   onLoadMore: () => void
-  onResetLoadMore: () => void
   numRendered: number
 }
 
@@ -29,7 +28,6 @@ export default function DebugMessagesList(props: Props): JSX.Element {
     onSelect,
     numRendered,
     onLoadMore,
-    onResetLoadMore,
   } = props
 
   const [searchTerm] = useURLParam('search', '')
@@ -65,10 +63,6 @@ export default function DebugMessagesList(props: Props): JSX.Element {
     return true
   })
 
-  // reset page load amount when filters change
-  useEffect(() => {
-    onResetLoadMore()
-  }, [searchTerm, start, end])
   return (
     <Box
       data-cy='outgoing-message-list'

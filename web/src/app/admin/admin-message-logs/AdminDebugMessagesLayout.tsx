@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -9,6 +9,7 @@ import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
+import { useURLParam } from '../../actions'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
 const LOAD_AMOUNT = 50
@@ -74,6 +75,15 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
   })
 
+  const [searchTerm] = useURLParam('search', '')
+  const [start] = useURLParam('start', '')
+  const [end] = useURLParam('end', '')
+
+  // reset page load amount when search/filters change
+  useEffect(() => {
+    setNumRendered(LOAD_AMOUNT)
+  }, [searchTerm, start, end])
+
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
 
@@ -119,7 +129,6 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
               selectedLog={selectedLog}
               onSelect={setSelectedLog}
               numRendered={numRendered}
-              onResetLoadMore={() => setNumRendered(LOAD_AMOUNT)}
               onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
             />
           </Grid>
