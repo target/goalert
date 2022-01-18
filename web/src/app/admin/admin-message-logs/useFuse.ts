@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface FuseParams<T> {
   data: T[]
