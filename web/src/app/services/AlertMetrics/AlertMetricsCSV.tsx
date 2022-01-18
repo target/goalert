@@ -1,33 +1,17 @@
 import React from 'react'
-import { Grid, Typography, Button } from '@mui/material'
+import { Button } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
-import makeStyles from '@mui/styles/makeStyles'
 import { CSVLink } from 'react-csv'
 import { Alert } from '../../../schema'
-import { theme } from '../../mui'
 import { DateTime } from 'luxon'
 
 interface AlertMetricsCSVProps {
   alerts: Alert[]
 }
 
-const useStyles = makeStyles({
-  paragraph: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  anchor: {
-    color: theme.palette.primary.main,
-    '&:hover': {
-      textDecoration: 'none',
-    },
-  },
-})
-
 export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
 ): JSX.Element {
-  const classes = useStyles()
   const zoneAbbr = DateTime.local().toFormat('ZZZZ')
   // Note: the data object is ordered
   const data = props.alerts.map((a) => ({
@@ -50,21 +34,10 @@ export default function AlertMetricsCSV(
   }
 
   return (
-    <Grid container>
-      <Grid item xs={12}>
-        <Typography className={classes.paragraph}>
-          <CSVLink
-            data={data}
-            filename={getFileName()}
-            className={classes.anchor}
-          >
-            <Button size='small'>
-              <DownloadIcon sx={{ fontSize: '18px', marginRight: '8px' }} />
-              Export
-            </Button>
-          </CSVLink>
-        </Typography>
-      </Grid>
-    </Grid>
+    <CSVLink data={data} filename={getFileName()}>
+      <Button size='small' startIcon={<DownloadIcon fontSize='small' />}>
+        Export
+      </Button>
+    </CSVLink>
   )
 }

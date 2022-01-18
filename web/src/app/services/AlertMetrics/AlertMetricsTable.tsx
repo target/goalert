@@ -105,13 +105,13 @@ export default function AlertMetricsTable(
   function CustomToolbar(): JSX.Element {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
-        <Grid container>
-          <Grid item xs={8}>
+        <Grid container justifyContent='space-between'>
+          <Grid item>
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item>
             <AlertMetricsCSV alerts={alerts} />
           </Grid>
         </Grid>
