@@ -146,7 +146,7 @@ export default function ServiceDetails({ serviceID }) {
           {
             label: 'Alert Metrics',
             url: 'alert-metrics',
-            subText: 'Look over alert activity',
+            subText: 'Review alert activity',
           },
         ]}
       />
