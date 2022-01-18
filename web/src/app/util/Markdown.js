@@ -42,16 +42,9 @@ const useStyles = makeStyles({
 })
 
 function TableCell({ children, isHeader, align, ...rest }) {
-  const content = React.Children.map(children, (c) => {
-    switch (c) {
-      case '<br>':
-      case '<br/>':
-      case '<br />':
-        return <br />
-      default:
-        return c
-    }
-  })
+  const content = React.Children.map(children, (c) =>
+    ['<br>', '<br/>', '<br />'].includes(c) ? <br /> : c,
+  )
 
   return (
     <td style={{ textAlign: align }} {...rest}>
