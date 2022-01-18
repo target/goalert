@@ -4,17 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 interface FuseParams<T> {
   data: T[]
   keys?: Fuse.FuseOptionKey[]
+  search: string
   options?: Fuse.IFuseOptions<T> & CustomOptions
 }
 
 interface CustomOptions {
   showResultsWhenNoSearchTerm?: boolean
-}
-
-interface FuseResults<T> {
-  results: Fuse.FuseResult<T>[]
-  search: string
-  setSearch: (search: string) => void
 }
 
 const defaultOptions = {
@@ -31,11 +26,10 @@ const DEFAULT_QUERY = ''
 export function useFuse<T>({
   data,
   keys,
+  search = DEFAULT_QUERY,
   options = {},
-}: FuseParams<T>): FuseResults<T> {
+}: FuseParams<T>): Fuse.FuseResult<T>[] {
   const { showResultsWhenNoSearchTerm, ...fuseOptions } = options
-  const [fuseResults, setFuseResults] = useState<Fuse.FuseResult<T>[]>([])
-  const [search, setSearch] = useState(DEFAULT_QUERY)
   const fuse = useRef<Fuse<T>>()
 
   useEffect(() => {
@@ -46,12 +40,9 @@ export function useFuse<T>({
       ...fuseOptions,
       keys,
     })
-  }, [search, fuse, data, keys, options])
+  }, [fuse, data, keys, fuseOptions])
 
-  useEffect(() => {
-    if (!fuse.current) return
-    setFuseResults(fuse.current.search(search))
-  }, [search, fuse, data])
+  const fuseResults = fuse.current ? fuse.current.search(search) : []
 
   const results =
     showResultsWhenNoSearchTerm && search === ''
@@ -62,5 +53,5 @@ export function useFuse<T>({
         }))
       : fuseResults
 
-  return { results, search, setSearch }
+  return results
 }

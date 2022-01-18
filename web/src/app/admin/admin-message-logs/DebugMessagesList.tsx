@@ -36,7 +36,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
   const [start] = useURLParam('start', '')
   const [end] = useURLParam('end', '')
 
-  const { setSearch, results } = useFuse<KeyedDebugMessage>({
+  const results = useFuse<KeyedDebugMessage>({
     data: debugMessages,
     keys: [
       'destination',
@@ -45,6 +45,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
       'status',
       'additionalKeys.filteredDestination',
     ],
+    search: searchTerm,
     options: {
       shouldSort: false,
       showResultsWhenNoSearchTerm: true,
@@ -68,12 +69,6 @@ export default function DebugMessagesList(props: Props): JSX.Element {
   useEffect(() => {
     onResetLoadMore()
   }, [searchTerm, start, end])
-
-  // set search within fuse on search change
-  useEffect(() => {
-    setSearch(searchTerm)
-  }, [searchTerm])
-
   return (
     <Box
       data-cy='outgoing-message-list'
