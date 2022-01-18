@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -9,7 +9,9 @@ import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
-import { useURLParam } from '../../actions'
+import { useURLParams } from '../../actions'
+import { DateTime } from 'luxon'
+import { useFuse } from './useFuse'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
 const LOAD_AMOUNT = 50
@@ -75,14 +77,47 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
   })
 
-  const [searchTerm] = useURLParam('search', '')
-  const [start] = useURLParam('start', '')
-  const [end] = useURLParam('end', '')
+  const [params, setParams] = useURLParams({
+    search: '',
+    start: '',
+    end: '',
+  })
 
-  // reset page load amount when search/filters change
-  useEffect(() => {
-    setNumRendered(LOAD_AMOUNT)
-  }, [searchTerm, start, end])
+  const results = useFuse<DebugMessage>({
+    data:
+      data?.debugMessages.map((d: DebugMessage) => ({
+        ...d,
+        additionalKeys: {
+          filteredDestination: d.destination.replace('-', ''),
+        },
+      })) || [],
+    keys: [
+      'destination',
+      'userName',
+      'serviceName',
+      'status',
+      'additionalKeys.filteredDestination',
+    ],
+    search: params.search,
+    options: {
+      shouldSort: false,
+      showResultsWhenNoSearchTerm: true,
+      ignoreLocation: true,
+      useExtendedSearch: true,
+    },
+  })
+
+  const startDT = params.start ? DateTime.fromISO(params.start) : null
+  const endDT = params.end ? DateTime.fromISO(params.end) : null
+
+  const filteredResults = results.filter((result) => {
+    const createdAtDT = DateTime.fromISO(result.item.createdAt)
+    if (startDT && startDT > createdAtDT) return false
+    if (endDT && endDT < createdAtDT) return false
+    return true
+  })
+
+  const displayedResults = filteredResults.slice(0, numRendered)
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -90,7 +125,6 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
   return (
     <React.Fragment>
       <DebugMessageDetails
-        open={Boolean(selectedLog)}
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
       />
@@ -114,21 +148,21 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           </Grid>
           <Grid item xs={12}>
             <DebugMessagesControls
-              numRendered={numRendered}
-              totalCount={data.debugMessages.length}
+              value={params}
+              onChange={(newParams) => {
+                setParams(newParams)
+                setNumRendered(LOAD_AMOUNT)
+              }}
+              displayedCount={displayedResults.length}
+              resultsCount={filteredResults.length}
             />
           </Grid>
           <Grid item xs={12}>
             <DebugMessagesList
-              debugMessages={data.debugMessages.map((d: DebugMessage) => ({
-                ...d,
-                additionalKeys: {
-                  filteredDestination: d.destination.replace('-', ''),
-                },
-              }))}
+              debugMessages={displayedResults}
               selectedLog={selectedLog}
               onSelect={setSelectedLog}
-              numRendered={numRendered}
+              hasMore={numRendered < results.length}
               onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
             />
           </Grid>

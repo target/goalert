@@ -4,13 +4,19 @@ import makeStyles from '@mui/styles/makeStyles'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { useResetURLParams, useURLParam } from '../../actions'
 import Search from '../../util/Search'
 import { MAX_QUERY_ITEMS_COUNT } from './AdminDebugMessagesLayout'
 
+interface DebugMessageControlsValue {
+  search: string
+  start: string
+  end: string
+}
 interface Props {
-  numRendered: number // the amount of logs rendered, since all logs are fetched on page load
-  totalCount: number // the total number of logs fetched
+  value: DebugMessageControlsValue
+  onChange: (newValue: DebugMessageControlsValue) => void
+  displayedCount: number
+  resultsCount: number
 }
 
 const useStyles = makeStyles<typeof theme>({
@@ -24,24 +30,25 @@ const useStyles = makeStyles<typeof theme>({
   },
 })
 
-export default function DebugMessagesControls(p: Props): JSX.Element {
+export default function DebugMessagesControls({
+  value,
+  onChange,
+  displayedCount,
+  resultsCount,
+}: Props): JSX.Element {
   const classes = useStyles()
-
-  const [start, setStart] = useURLParam<string>('start', '')
-  const [end, setEnd] = useURLParam<string>('end', '')
   const [key, setKey] = useState(0)
-  const resetDateRange = useResetURLParams('start', 'end')
 
   const resetFilters = (): void => {
-    resetDateRange()
+    onChange({ ...value, start: '', end: '' })
     // The ISODateTimePicker doesn't update to changes in its `value` prop. It only uses its internal state.
     // This key is a hotfix to set the ISODateTimePicker's value by just completely re-rendering it.
     setKey(key + 1)
   }
 
-  const totalFetchedResultsCount =
-    p.totalCount < MAX_QUERY_ITEMS_COUNT
-      ? p.totalCount
+  const totalResultsCount =
+    resultsCount < MAX_QUERY_ITEMS_COUNT
+      ? resultsCount
       : `${MAX_QUERY_ITEMS_COUNT}+`
 
   return (
@@ -51,8 +58,10 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
           <ISODateTimePicker
             placeholder='Start'
             name='startDate'
-            value={start}
-            onChange={(newVal) => setStart(newVal as string)}
+            value={value.start}
+            onChange={(newStart) =>
+              onChange({ ...value, start: newStart as string })
+            }
             label='Created after'
             margin='dense'
             size='small'
@@ -63,9 +72,9 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
           <ISODateTimePicker
             placeholder='End'
             name='endDate'
-            value={end}
+            value={value.end}
             label='Created before'
-            onChange={(newVal) => setEnd(newVal as string)}
+            onChange={(newEnd) => onChange({ ...value, end: newEnd as string })}
             margin='dense'
             size='small'
             variant='filled'
@@ -95,10 +104,7 @@ export default function DebugMessagesControls(p: Props): JSX.Element {
         </Grid>
         <Grid item>
           <Typography color='textSecondary'>
-            {`Fetched ${Math.min(
-              p.numRendered,
-              p.totalCount,
-            )} of ${totalFetchedResultsCount} results`}
+            {`Showing ${displayedCount} of ${totalResultsCount} results`}
           </Typography>
         </Grid>
       </Grid>

@@ -18,9 +18,8 @@ import AppLink from '../../util/AppLink'
 import { DebugMessage } from '../../../schema'
 
 interface Props {
-  open: boolean
   onClose: () => void
-  log?: DebugMessage | null
+  log: DebugMessage | null
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -34,14 +33,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 export default function DebugMessageDetails(props: Props): JSX.Element {
-  const { open, onClose, log } = props
+  const { onClose, log } = props
   const classes = useStyles()
+
+  const isOpen = Boolean(log)
 
   return (
     <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
       <Drawer
         anchor='right'
-        open={open}
+        open={isOpen}
         variant='persistent'
         data-cy='debug-message-details'
       >
