@@ -22,6 +22,9 @@ type Query {
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
 
+  # Returns an array of alert metric data points
+  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]
+
   # Returns a single service with the given ID.
   service(id: ID!): Service
 
@@ -109,6 +112,20 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+}
+
+input AlertMetricsOptions {
+  since: ISOTimestamp!
+  until: ISOTimestamp!
+
+  period: ISODuration = "24h"
+
+  filterByServiceID: [ID!]
+}
+
+type AlertDataPoint {
+  timestamp: ISOTimestamp!
+  alertCount: Int!
 }
 
 input DebugMessagesInput {
@@ -862,6 +879,8 @@ enum AlertSearchSort {
   dateID
   dateIDReverse
 }
+
+scalar ISODuration
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp

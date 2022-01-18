@@ -105,6 +105,11 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	AlertDataPoint struct {
+		AlertCount func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
+	}
+
 	AlertLogEntry struct {
 		ID        func(childComplexity int) int
 		Message   func(childComplexity int) int
@@ -325,6 +330,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Alert                    func(childComplexity int, id int) int
+		AlertMetrics             func(childComplexity int, input AlertMetricsOptions) int
 		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
 		CalcRotationHandoffTimes func(childComplexity int, input *CalcRotationHandoffTimesInput) int
@@ -647,6 +653,7 @@ type QueryResolver interface {
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
 	Alerts(ctx context.Context, input *AlertSearchOptions) (*AlertConnection, error)
+	AlertMetrics(ctx context.Context, input AlertMetricsOptions) ([]AlertDataPoint, error)
 	Service(ctx context.Context, id string) (*service.Service, error)
 	IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error)
 	HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error)
@@ -860,6 +867,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertConnection.PageInfo(childComplexity), true
+
+	case "AlertDataPoint.alertCount":
+		if e.complexity.AlertDataPoint.AlertCount == nil {
+			break
+		}
+
+		return e.complexity.AlertDataPoint.AlertCount(childComplexity), true
+
+	case "AlertDataPoint.timestamp":
+		if e.complexity.AlertDataPoint.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.AlertDataPoint.Timestamp(childComplexity), true
 
 	case "AlertLogEntry.id":
 		if e.complexity.AlertLogEntry.ID == nil {
@@ -2062,6 +2083,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Alert(childComplexity, args["id"].(int)), true
+
+	case "Query.alertMetrics":
+		if e.complexity.Query.AlertMetrics == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alertMetrics_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AlertMetrics(childComplexity, args["input"].(AlertMetricsOptions)), true
 
 	case "Query.alerts":
 		if e.complexity.Query.Alerts == nil {
@@ -3375,6 +3408,9 @@ var sources = []*ast.Source{
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
 
+  # Returns an array of alert metric data points
+  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]
+
   # Returns a single service with the given ID.
   service(id: ID!): Service
 
@@ -3462,6 +3498,20 @@ var sources = []*ast.Source{
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+}
+
+input AlertMetricsOptions {
+  since: ISOTimestamp!
+  until: ISOTimestamp!
+
+  period: ISODuration = "24h"
+
+  filterByServiceID: [ID!]
+}
+
+type AlertDataPoint {
+  timestamp: ISOTimestamp!
+  alertCount: Int!
 }
 
 input DebugMessagesInput {
@@ -4215,6 +4265,8 @@ enum AlertSearchSort {
   dateID
   dateIDReverse
 }
+
+scalar ISODuration
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
@@ -5227,6 +5279,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alertMetrics_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 AlertMetricsOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAlertMetricsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertMetricsOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -6271,6 +6338,76 @@ func (ec *executionContext) _AlertConnection_pageInfo(ctx context.Context, field
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertDataPoint_timestamp(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertDataPoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertDataPoint_alertCount(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertDataPoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AlertCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntry_id(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
@@ -11618,6 +11755,45 @@ func (ec *executionContext) _Query_alerts(ctx context.Context, field graphql.Col
 	res := resTmp.(*AlertConnection)
 	fc.Result = res
 	return ec.marshalNAlertConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_alertMetrics(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_alertMetrics_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AlertMetrics(rctx, args["input"].(AlertMetricsOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]AlertDataPoint)
+	fc.Result = res
+	return ec.marshalOAlertDataPoint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertDataPointᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18081,6 +18257,57 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Context, obj interface{}) (AlertMetricsOptions, error) {
+	var it AlertMetricsOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["period"]; !present {
+		asMap["period"] = "24h"
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "since":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("since"))
+			it.Since, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "until":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("until"))
+			it.Until, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalOISODuration2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filterByServiceID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByServiceID"))
+			it.FilterByServiceID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.Context, obj interface{}) (AlertRecentEventsOptions, error) {
 	var it AlertRecentEventsOptions
 	asMap := map[string]interface{}{}
@@ -21156,6 +21383,38 @@ func (ec *executionContext) _AlertConnection(ctx context.Context, sel ast.Select
 	return out
 }
 
+var alertDataPointImplementors = []string{"AlertDataPoint"}
+
+func (ec *executionContext) _AlertDataPoint(ctx context.Context, sel ast.SelectionSet, obj *AlertDataPoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertDataPointImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertDataPoint")
+		case "timestamp":
+			out.Values[i] = ec._AlertDataPoint_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "alertCount":
+			out.Values[i] = ec._AlertDataPoint_alertCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var alertLogEntryImplementors = []string{"AlertLogEntry"}
 
 func (ec *executionContext) _AlertLogEntry(ctx context.Context, sel ast.SelectionSet, obj *alertlog.Entry) graphql.Marshaler {
@@ -22556,6 +22815,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "alertMetrics":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alertMetrics(ctx, field)
 				return res
 			})
 		case "service":
@@ -24734,6 +25004,10 @@ func (ec *executionContext) marshalNAlertConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._AlertConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAlertDataPoint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertDataPoint(ctx context.Context, sel ast.SelectionSet, v AlertDataPoint) graphql.Marshaler {
+	return ec._AlertDataPoint(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx context.Context, sel ast.SelectionSet, v alertlog.Entry) graphql.Marshaler {
 	return ec._AlertLogEntry(ctx, sel, &v)
 }
@@ -24794,6 +25068,11 @@ func (ec *executionContext) marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋta
 		return graphql.Null
 	}
 	return ec._AlertLogEntryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAlertMetricsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertMetricsOptions(ctx context.Context, v interface{}) (AlertMetricsOptions, error) {
+	res, err := ec.unmarshalInputAlertMetricsOptions(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNAlertPendingNotification2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertPendingNotification(ctx context.Context, sel ast.SelectionSet, v AlertPendingNotification) graphql.Marshaler {
@@ -27439,6 +27718,53 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 	return ec._Alert(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOAlertDataPoint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertDataPointᚄ(ctx context.Context, sel ast.SelectionSet, v []AlertDataPoint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlertDataPoint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertDataPoint(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (*AlertRecentEventsOptions, error) {
 	if v == nil {
 		return nil, nil
@@ -27882,6 +28208,21 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return graphql.MarshalID(*v)
+}
+
+func (ec *executionContext) unmarshalOISODuration2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOISODuration2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*v)
 }
 
 func (ec *executionContext) unmarshalOISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

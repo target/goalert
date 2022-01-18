@@ -30,9 +30,21 @@ type AlertConnection struct {
 	PageInfo *PageInfo     `json:"pageInfo"`
 }
 
+type AlertDataPoint struct {
+	Timestamp  time.Time `json:"timestamp"`
+	AlertCount int       `json:"alertCount"`
+}
+
 type AlertLogEntryConnection struct {
 	Nodes    []alertlog.Entry `json:"nodes"`
 	PageInfo *PageInfo        `json:"pageInfo"`
+}
+
+type AlertMetricsOptions struct {
+	Since             time.Time `json:"since"`
+	Until             time.Time `json:"until"`
+	Period            *string   `json:"period"`
+	FilterByServiceID []string  `json:"filterByServiceID"`
 }
 
 type AlertPendingNotification struct {
