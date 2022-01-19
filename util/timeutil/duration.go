@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ISODuration contains the components of an ISO duration string.
-// The time components are combined into seconds, and the weeks component
+// ISODuration represents an ISO duration string.
+// The time components are combined, and the weeks component
 // is interpreted as a shorthand for 7 days.
 type ISODuration struct {
 	Years, Months, Days int
@@ -19,10 +19,9 @@ type ISODuration struct {
 
 var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)
 
-// ParseISODuration parses the components of an ISO Duration string into years, months, days, and seconds.
-// The time components are aggregated into seconds as "the base unit for expressing duration".
-// Nominal date components cannot be aggregated without accounting for daylight savings time, except weeks,
-// which are interpreted as a shorthand for 7 days.
+// ParseISODuration parses the components of an ISO Duration string.
+// The time components are accurate and are aggregated into one TimePart.
+// The nominal date components cannot be aggregated without accounting for daylight savings time.
 // Supported formats are "PnYnMnDTnHnMnS" and "PnW".
 // Negative and decimal units are not supported.
 func ParseISODuration(s string) (d ISODuration, err error) {
