@@ -15,11 +15,6 @@ GOPATH:=$(shell go env GOPATH)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
-export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
-
-ifdef LOG_DIR
-RUNJSON_ARGS += -logs=$(LOG_DIR)
-endif
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
@@ -79,17 +74,17 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
 cy-mobile: cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-wide-prod-run: web/src/build/static/app.js cypress
 	make cy-wide-prod CY_ACTION=run
 cy-mobile-prod-run: web/src/build/static/app.js cypress
@@ -100,13 +95,13 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go d
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc <Procfile
+	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: bin/waitfor web/src/build/static/app.js bin/runjson $(BIN_DIR)/tools/prometheus
+start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
-	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
-	bin/runjson <devtools/runjson/localdev-prod.json
+	make bin/goalert BUNDLE=1
+	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
