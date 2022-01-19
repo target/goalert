@@ -32,6 +32,11 @@ func TestParseISODuration(t *testing.T) {
 		seconds: 60,
 	})
 
+	check("one month and 1 minute", "P1MT1M", ISODuration{
+		months:  1,
+		seconds: 60,
+	})
+
 	check("two days with leading zeros", "P0002D", ISODuration{
 		// If a time element in a defined representation has a defined length, then leading zeros shall be used as required
 		days: 2,
@@ -41,6 +46,13 @@ func TestParseISODuration(t *testing.T) {
 		years:   3,
 		months:  6,
 		days:    14,
+		seconds: 12*3600 + 30*60 + 5,
+	})
+
+	check("mixed with week", "P3Y6M2W14DT12H30M5S", ISODuration{
+		years:   3,
+		months:  6,
+		days:    2*7 + 14,
 		seconds: 12*3600 + 30*60 + 5,
 	})
 
@@ -80,6 +92,7 @@ func TestParseISODurationErrors(t *testing.T) {
 	check("Ends with T", "P1Y1M1DT")
 	check("junk", "junk")
 	check("missing T", "P1H")
+	check("mistaken format", "PY3M6D14TH12M30S5")
 	check("missing T 2", "P3Y6M14D12H30M5S")
 	check("bad date order", "P1M1Y")
 	check("bad time order", "PT1M1H")
