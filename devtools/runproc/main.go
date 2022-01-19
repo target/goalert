@@ -1,13 +1,39 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
 )
 
 func main() {
-	tasks, err := Parse(os.Stdin)
+	file := flag.String("f", "", "Procfile to run.")
+	localFile := flag.String("l", "", "Local Procfile to append.")
+	flag.Parse()
+
+	log.SetFlags(log.Lshortfile)
+
+	if *file == "" {
+		log.Fatal("No Procfile specified.")
+	}
+
+	data, err := os.ReadFile(*file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var envData []byte
+	if *localFile != "" {
+		envData, _ = os.ReadFile(*localFile)
+	}
+
+	buf := bytes.NewBuffer(data)
+	buf.WriteString("\n")
+	buf.Write(envData)
+
+	tasks, err := Parse(buf)
 	if err != nil {
 		log.Fatalln(err)
 	}
