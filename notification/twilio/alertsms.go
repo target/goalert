@@ -146,6 +146,21 @@ func (a alertSMS) Render(maxLen int) (string, error) {
 	}
 
 	if buf.Len() > maxLen {
+		// message too long, trim summary (until empty if needed)
+		newSumLen := len(a.Summary) - (buf.Len() - maxLen)
+		if newSumLen <= 0 {
+			a.Summary = ""
+		}
+		a.Summary = strings.TrimSpace(a.Summary[:newSumLen])
+		buf.Reset()
+		err = tmpl.Execute(&buf, a)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if buf.Len() > maxLen {
+		// trim body of message if message still too long
 		newBodyLen := len(a.Body) - (buf.Len() - maxLen)
 		if newBodyLen <= 0 {
 			return "", errors.New("message too long to include body")
