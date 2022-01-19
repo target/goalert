@@ -206,8 +206,15 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 	var result []graphql2.AlertDataPoint
 	var s alert.SearchOptions
 
+	// time frame cannot be more than 50 days apart
+	validTimeframe, _ := time.ParseDuration("1200h")
+	
 	// requiring only 1 service ID is provided for MVP
-	err := validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1)
+	err := validate.Many(
+		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1), 
+		validate.TimeFrame("Timeframe", opts.Since, opts.Until, validTimeframe),
+	)
+
 	if err != nil {
 		 return nil, err
 	}
