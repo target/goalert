@@ -118,6 +118,10 @@ func TestParseISODuration(t *testing.T) {
 	check("fractional seconds without integral", "PT,1S", ISODuration{
 		TimePart: dur("100ms"),
 	})
+
+	check("one and a half seconds", "PT1,5S", ISODuration{
+		TimePart: dur("1.5s"),
+	})
 }
 
 func TestParseISODurationErrors(t *testing.T) {
