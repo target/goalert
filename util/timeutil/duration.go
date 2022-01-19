@@ -67,7 +67,7 @@ func (dur ISODuration) String() string {
 	return b.String()
 }
 
-var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?([\d.]+S)?)?$`)
+var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\B|[.,])(\d+H)?(\d+M)?([\d.,]+S)?)?$`)
 
 // ParseISODuration parses the components of an ISO Duration string.
 // The time components are accurate and are aggregated into one TimePart.
@@ -79,8 +79,8 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 		return d, errors.Errorf(`invalid format: %s must be an ISO Duration`, s)
 	}
 
-	left, right := 1, 1 // sliding window
-	isTime := false
+	var left, right = 1, 1 // sliding window
+	var isTime, isDecimal bool
 
 	for _, c := range s[1:] {
 		if unicode.IsDigit(c) {
@@ -90,6 +90,13 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 
 		if string(c) == "T" {
 			isTime = true
+			right++
+			left = right
+			continue
+		}
+
+		if string(c) == "." || string(c) == "," {
+			isDecimal = true
 			right++
 			left = right
 			continue
@@ -122,7 +129,11 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 		}
 
 		if isTime {
-			dur, err := time.ParseDuration(strconv.Itoa(digits) + "s")
+			durStr := strconv.Itoa(digits) + "s"
+			if isDecimal {
+				durStr = "." + durStr
+			}
+			dur, err := time.ParseDuration(durStr)
 			if err != nil {
 				return d, err
 			}
