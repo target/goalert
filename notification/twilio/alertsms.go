@@ -51,7 +51,7 @@ var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.Bo
 Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
 
 // statusTempl uses the ID, Summary, and Body to render a message
-var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.ID}}: {{.Summary}}
+var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.ID}}{{-if .Summary }}: {{.Summary}}{{end}}
 
 {{.Body}}`))
 
