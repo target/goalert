@@ -185,7 +185,6 @@ func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []a
 	}
 
 	iter := since
-
 	for iter.Before(until) {
 		dataPoint := graphql2.AlertDataPoint{Timestamp: iter, AlertCount: 0}
 		upperBound := iter.Add(period)
@@ -193,7 +192,7 @@ func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []a
 			if alert.CreatedAt.After(iter) && alert.CreatedAt.Before(upperBound) {
 				dataPoint.AlertCount++
 			}
-			if alert.CreatedAt.After(upperBound) { break }
+			if alert.CreatedAt.Before(iter) { break }
 		}
 		result = append(result, dataPoint)
 		iter = iter.Add(period)
@@ -203,28 +202,34 @@ func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []a
 }
 
 func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) ([]graphql2.AlertDataPoint, error) {
-	var result []graphql2.AlertDataPoint
-	var s alert.SearchOptions
+	var search alert.SearchOptions
+	var filter alert.IDFilter
 
 	// time frame cannot be more than 50 days apart
 	validTimeFrame, _ := time.ParseDuration("1200h")
-	
+
 	// requiring only 1 service ID is provided for MVP
 	err := validate.Many(
-		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1), 
+		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
 		validate.TimeFrame("Timeframe", opts.Since, opts.Until, validTimeFrame),
 	)
 
 	if err != nil {
-		 return nil, err
+		return nil, err
 	}
 
-	s.Before = opts.Until
-	s.NotBefore = opts.Since
-	s.ServiceFilter.IDs = opts.FilterByServiceID
-	s.Limit = 100
+	filter = alert.IDFilter{
+		IDs:   opts.FilterByServiceID,
+		Valid: true,
+	}
 
-	alerts, err := q.AlertStore.Search(ctx, &s)
+	search = alert.SearchOptions{
+		Before:        opts.Until,
+		NotBefore:     opts.Since,
+		ServiceFilter: filter,
+		Limit:         100}
+
+	alerts, err := q.AlertStore.Search(ctx, &search)
 	if err != nil {
 		return nil, err
 	}
@@ -234,9 +239,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, err
 	}
 
-	result = splitRangeByPeriod(opts.Since, opts.Until, duration, alerts)
-
-	return result, nil
+	return splitRangeByPeriod(opts.Since, opts.Until, duration, alerts), nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
