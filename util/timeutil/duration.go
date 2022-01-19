@@ -9,7 +9,7 @@ import (
 )
 
 type ISODuration struct {
-	years, months, days, seconds int
+	Years, Months, Days, Seconds int
 }
 
 var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)
@@ -48,22 +48,22 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 
 		switch string(c) {
 		case "Y":
-			d.years += digits
+			d.Years += digits
 		case "M":
 			if isTime {
 				// minutes
-				d.seconds += (digits * 60)
+				d.Seconds += (digits * 60)
 			} else {
-				d.months += digits
+				d.Months += digits
 			}
 		case "D":
-			d.days += digits
+			d.Days += digits
 		case "W":
-			d.days += (digits * 7)
+			d.Days += (digits * 7)
 		case "H":
-			d.seconds += (digits * 60 * 60)
+			d.Seconds += (digits * 60 * 60)
 		case "S":
-			d.seconds += digits
+			d.Seconds += digits
 		default:
 			return d, errors.Errorf("invalid character encountered: %s", string(c))
 		}

@@ -21,59 +21,59 @@ func TestParseISODuration(t *testing.T) {
 	}
 
 	check("year only", "P12345Y", ISODuration{
-		years: 12345,
+		Years: 12345,
 	})
 
 	check("one month", "P1M", ISODuration{
-		months: 1,
+		Months: 1,
 	})
 
 	check("one minute", "PT1M", ISODuration{
-		seconds: 60,
+		Seconds: 60,
 	})
 
 	check("one month and 1 minute", "P1MT1M", ISODuration{
-		months:  1,
-		seconds: 60,
+		Months:  1,
+		Seconds: 60,
 	})
 
 	check("two days with leading zeros", "P0002D", ISODuration{
 		// If a time element in a defined representation has a defined length, then leading zeros shall be used as required
-		days: 2,
+		Days: 2,
 	})
 
 	check("mixed", "P3Y6M14DT12H30M5S", ISODuration{
-		years:   3,
-		months:  6,
-		days:    14,
-		seconds: 12*3600 + 30*60 + 5,
+		Years:   3,
+		Months:  6,
+		Days:    14,
+		Seconds: 12*3600 + 30*60 + 5,
 	})
 
 	check("mixed with week", "P3Y6M2W14DT12H30M5S", ISODuration{
-		years:   3,
-		months:  6,
-		days:    2*7 + 14,
-		seconds: 12*3600 + 30*60 + 5,
+		Years:   3,
+		Months:  6,
+		Days:    2*7 + 14,
+		Seconds: 12*3600 + 30*60 + 5,
 	})
 
 	check("time without seconds", "PT1H22M", ISODuration{
 		// The lowest order components may be omitted to represent duration with reduced accuracy.
-		seconds: 3600 + 22*60,
+		Seconds: 3600 + 22*60,
 	})
 
 	check("time without minutes", "PT1H22S", ISODuration{
-		seconds: 3600 + 22,
+		Seconds: 3600 + 22,
 	})
 
 	check("date only", "P1997Y11M26D", ISODuration{
 		// The designator [T] shall be absent if all of the time components are absent.
-		years:  1997,
-		months: 11,
-		days:   26,
+		Years:  1997,
+		Months: 11,
+		Days:   26,
 	})
 
 	check("week only", "P12W", ISODuration{
-		days: 12 * 7,
+		Days: 12 * 7,
 	})
 
 }
