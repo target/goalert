@@ -8,6 +8,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ISODuration contains the components of an ISO duration string.
+// The time components are combined into seconds, and the weeks component
+// is interpreted as a shorthand for 7 days.
 type ISODuration struct {
 	Years, Months, Days, Seconds int
 }
