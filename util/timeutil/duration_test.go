@@ -115,12 +115,15 @@ func TestParseISODuration(t *testing.T) {
 		TimePart: dur("100ms"),
 	})
 
-	check("fractional seconds without integral", "PT,1S", ISODuration{
-		TimePart: dur("100ms"),
-	})
-
 	check("one and a half seconds", "PT1,5S", ISODuration{
 		TimePart: dur("1.5s"),
+	})
+
+	check("full fractional", "P23Y0M2W012DT1H1M0123.0522S", ISODuration{
+		Years:    23,
+		Months:   0,
+		Days:     2*7 + 12,
+		TimePart: dur("1h1m123.0522s"),
 	})
 }
 
@@ -135,6 +138,7 @@ func TestParseISODurationErrors(t *testing.T) {
 	check("empty", "")
 	check("P only", "P")
 	check("T only", "T")
+	check("no units", "PT")
 	check("Ends with T", "P1Y1M1DT")
 	check("junk", "junk")
 	check("missing T", "P1H")
@@ -144,5 +148,6 @@ func TestParseISODurationErrors(t *testing.T) {
 	check("bad time order", "PT1M1H")
 	check("missing seconds val", "PTS")
 	check("multi decimal", "PT1.2.4S")
-	check("missing decimal", "PT1.S")
+	check("missing fractional", "PT1.S")
+	check("missing integral", "PT,1S")
 }
