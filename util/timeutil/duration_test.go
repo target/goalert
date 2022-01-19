@@ -4,7 +4,6 @@
 package timeutil
 
 import (
-	"strconv"
 	"testing"
 	"time"
 
@@ -77,14 +76,14 @@ func TestParseISODuration(t *testing.T) {
 		Years:    3,
 		Months:   6,
 		Days:     14,
-		TimePart: dur(strconv.Itoa(12*3600+30*60+5) + "s"),
+		TimePart: dur("12h30m5s"),
 	})
 
 	check("mixed with week", "P3Y6M2W14DT12H30M5S", ISODuration{
 		Years:    3,
 		Months:   6,
 		Days:     2*7 + 14,
-		TimePart: dur(strconv.Itoa(12*3600+30*60+5) + "s"),
+		TimePart: dur("12h30m5s"),
 	})
 
 	check("time without seconds", "PT1H22M", ISODuration{
@@ -108,9 +107,17 @@ func TestParseISODuration(t *testing.T) {
 	})
 
 	check("fractional seconds", "PT0.1S", ISODuration{
-		TimePart: 100 * time.Millisecond,
+		TimePart: dur("100ms"),
 	})
 
+	check("fractional seconds with comma", "PT0,1S", ISODuration{
+		// comma [,] is preferred over full stop [.]
+		TimePart: dur("100ms"),
+	})
+
+	check("fractional seconds without integral", "PT,1S", ISODuration{
+		TimePart: dur("100ms"),
+	})
 }
 
 func TestParseISODurationErrors(t *testing.T) {
@@ -131,4 +138,7 @@ func TestParseISODurationErrors(t *testing.T) {
 	check("missing T 2", "P3Y6M14D12H30M5S")
 	check("bad date order", "P1M1Y")
 	check("bad time order", "PT1M1H")
+	check("missing seconds val", "PTS")
+	check("multi decimal", "PT1.2.4S")
+	check("missing decimal", "PT1.S")
 }
