@@ -1,8 +1,10 @@
 package timeutil
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 	"unicode"
 
@@ -15,6 +17,54 @@ import (
 type ISODuration struct {
 	Years, Months, Days int
 	TimePart            time.Duration
+}
+
+var zeroDur ISODuration
+
+// String returns an ISO 8601 duration string.
+func (dur ISODuration) String() string {
+	if dur == zeroDur {
+		return "P0D"
+	}
+
+	var b strings.Builder
+	b.WriteRune('P')
+
+	if dur.Years > 0 {
+		fmt.Fprintf(&b, "%dY", dur.Years)
+	}
+	if dur.Months > 0 {
+		fmt.Fprintf(&b, "%dM", dur.Months)
+	}
+	if dur.Days/7 > 0 {
+		fmt.Fprintf(&b, "%dW", dur.Days/7)
+		dur.Days %= 7
+	}
+	if dur.Days > 0 {
+		fmt.Fprintf(&b, "%dD", dur.Days)
+	}
+
+	if dur.TimePart == 0 {
+		return b.String()
+	}
+
+	b.WriteRune('T')
+
+	if dur.TimePart/time.Hour > 0 {
+		fmt.Fprintf(&b, "%dH", dur.TimePart/time.Hour)
+		dur.TimePart %= time.Hour
+	}
+
+	if dur.TimePart/time.Minute > 0 {
+		fmt.Fprintf(&b, "%dM", dur.TimePart/time.Minute)
+		dur.TimePart %= time.Minute
+	}
+
+	if dur.TimePart.Seconds() > 0 {
+		fmt.Fprintf(&b, "%gS", dur.TimePart.Seconds())
+	}
+
+	return b.String()
 }
 
 var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)

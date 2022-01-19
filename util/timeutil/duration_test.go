@@ -12,6 +12,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestISODuration_String(t *testing.T) {
+	check := func(exp string, dur ISODuration) {
+		t.Helper()
+
+		assert.Equal(t, exp, dur.String())
+	}
+
+	check("P1Y", ISODuration{Years: 1})
+	check("P1Y4M", ISODuration{Years: 1, Months: 4})
+	check("P1D", ISODuration{Days: 1})
+	check("PT1H", ISODuration{TimePart: time.Hour})
+	check("P1YT0.1S", ISODuration{Years: 1, TimePart: time.Millisecond * 100})
+
+	check("P1Y2M3W4DT5H6M7S", ISODuration{
+		Years:  1,
+		Months: 2,
+		Days:   25,
+
+		TimePart: 5*time.Hour + 6*time.Minute + 7*time.Second,
+	})
+	check("P1Y2W1D", ISODuration{Years: 1, Days: 15})
+	check("P0D", ISODuration{}) // must contain at least one element
+}
+
 func TestParseISODuration(t *testing.T) {
 
 	check := func(desc string, iso string, exp ISODuration) {
