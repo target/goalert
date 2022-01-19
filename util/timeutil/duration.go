@@ -3,6 +3,7 @@ package timeutil
 import (
 	"regexp"
 	"strconv"
+	"time"
 	"unicode"
 
 	"github.com/pkg/errors"
@@ -12,7 +13,8 @@ import (
 // The time components are combined into seconds, and the weeks component
 // is interpreted as a shorthand for 7 days.
 type ISODuration struct {
-	Years, Months, Days, Seconds int
+	Years, Months, Days int
+	TimePart            time.Duration
 }
 
 var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)
@@ -54,8 +56,7 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 			d.Years += digits
 		case "M":
 			if isTime {
-				// minutes
-				d.Seconds += (digits * 60)
+				digits *= 60
 			} else {
 				d.Months += digits
 			}
@@ -64,11 +65,20 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 		case "W":
 			d.Days += (digits * 7)
 		case "H":
-			d.Seconds += (digits * 60 * 60)
+			digits *= 3600
 		case "S":
-			d.Seconds += digits
+			// ok
 		default:
 			return d, errors.Errorf("invalid character encountered: %s", string(c))
+		}
+
+		if isTime {
+			dur, err := time.ParseDuration(strconv.Itoa(digits) + "s")
+			if err != nil {
+				return d, err
+			}
+
+			d.TimePart += dur
 		}
 
 		right++

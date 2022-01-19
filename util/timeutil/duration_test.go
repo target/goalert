@@ -4,7 +4,9 @@
 package timeutil
 
 import (
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +22,11 @@ func TestParseISODuration(t *testing.T) {
 		assert.Equal(t, res, exp, desc)
 	}
 
+	dur := func(s string) time.Duration {
+		res, _ := time.ParseDuration(s)
+		return res
+	}
+
 	check("year only", "P12345Y", ISODuration{
 		Years: 12345,
 	})
@@ -29,12 +36,12 @@ func TestParseISODuration(t *testing.T) {
 	})
 
 	check("one minute", "PT1M", ISODuration{
-		Seconds: 60,
+		TimePart: dur("60s"),
 	})
 
 	check("one month and 1 minute", "P1MT1M", ISODuration{
-		Months:  1,
-		Seconds: 60,
+		Months:   1,
+		TimePart: dur("60s"),
 	})
 
 	check("two days with leading zeros", "P0002D", ISODuration{
@@ -43,26 +50,26 @@ func TestParseISODuration(t *testing.T) {
 	})
 
 	check("mixed", "P3Y6M14DT12H30M5S", ISODuration{
-		Years:   3,
-		Months:  6,
-		Days:    14,
-		Seconds: 12*3600 + 30*60 + 5,
+		Years:    3,
+		Months:   6,
+		Days:     14,
+		TimePart: dur(strconv.Itoa(12*3600+30*60+5) + "s"),
 	})
 
 	check("mixed with week", "P3Y6M2W14DT12H30M5S", ISODuration{
-		Years:   3,
-		Months:  6,
-		Days:    2*7 + 14,
-		Seconds: 12*3600 + 30*60 + 5,
+		Years:    3,
+		Months:   6,
+		Days:     2*7 + 14,
+		TimePart: dur(strconv.Itoa(12*3600+30*60+5) + "s"),
 	})
 
 	check("time without seconds", "PT1H22M", ISODuration{
 		// The lowest order components may be omitted to represent duration with reduced accuracy.
-		Seconds: 3600 + 22*60,
+		TimePart: dur("1h22m"),
 	})
 
 	check("time without minutes", "PT1H22S", ISODuration{
-		Seconds: 3600 + 22,
+		TimePart: dur("1h22s"),
 	})
 
 	check("date only", "P1997Y11M26D", ISODuration{
