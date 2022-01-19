@@ -107,6 +107,10 @@ func TestParseISODuration(t *testing.T) {
 		Days: 12 * 7,
 	})
 
+	check("fractional seconds", "PT0.1S", ISODuration{
+		TimePart: 100 * time.Millisecond,
+	})
+
 }
 
 func TestParseISODurationErrors(t *testing.T) {

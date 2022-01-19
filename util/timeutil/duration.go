@@ -67,7 +67,7 @@ func (dur ISODuration) String() string {
 	return b.String()
 }
 
-var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)
+var re = regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?([\d.]+S)?)?$`)
 
 // ParseISODuration parses the components of an ISO Duration string.
 // The time components are accurate and are aggregated into one TimePart.
