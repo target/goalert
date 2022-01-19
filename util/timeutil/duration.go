@@ -19,53 +19,57 @@ type ISODuration struct {
 // Supported formats are "PnYnMnDTnHnMnS" and "PnW".
 // Negative and decimal units are not supported.
 func ParseISODuration(s string) (d ISODuration, err error) {
-	var nextDigits []rune
-	var isTime bool
-
 	re := regexp.MustCompile(`^P\B(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T\B(\d+H)?(\d+M)?(\d+S)?)?$`)
-
 	if !re.MatchString(s) {
 		return d, errors.Errorf(`invalid format: %s must be an ISO Duration`, s)
 	}
 
+	left, right := 1, 1 // sliding window
+	isTime := false
+
 	for _, c := range s[1:] {
 		if unicode.IsDigit(c) {
-			nextDigits = append(nextDigits, c)
+			right++
 			continue
+		}
+
+		if string(c) == "T" {
+			isTime = true
+			right++
+			left = right
+			continue
+		}
+
+		digits, err := strconv.Atoi(s[left:right])
+		if err != nil {
+			return d, err
 		}
 
 		switch string(c) {
 		case "Y":
-			d.years += runesToInt(nextDigits)
+			d.years += digits
 		case "M":
 			if isTime {
 				// minutes
-				d.seconds += (runesToInt(nextDigits) * 60)
+				d.seconds += (digits * 60)
 			} else {
-				d.months += runesToInt(nextDigits)
+				d.months += digits
 			}
 		case "D":
-			d.days += runesToInt(nextDigits)
+			d.days += digits
 		case "W":
-			d.days += (runesToInt(nextDigits) * 7)
+			d.days += (digits * 7)
 		case "H":
-			d.seconds += (runesToInt(nextDigits) * 60 * 60)
+			d.seconds += (digits * 60 * 60)
 		case "S":
-			d.seconds += runesToInt(nextDigits)
-		case "T":
-			isTime = true
+			d.seconds += digits
 		default:
 			return d, errors.Errorf("invalid character encountered: %s", string(c))
 		}
 
-		nextDigits = nextDigits[:0]
-
+		right++
+		left = right
 	}
 
 	return d, err
-}
-
-func runesToInt(r []rune) int {
-	res, _ := strconv.Atoi(string(r))
-	return res
 }
