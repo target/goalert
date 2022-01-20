@@ -211,7 +211,7 @@ function testAdmin(): void {
       cy.get('[data-cy="outgoing-message-list"]').children('div').as('list')
 
       cy.get('@list').should('have.length', 1)
-      cy.get('body').should('contain.text', 'Fetched 1 of 1 results')
+      cy.get('body').should('contain.text', 'Showing 1 of 1 results')
       cy.get('[data-cy="outgoing-message-list"]').should(
         'contain.text',
         'Displaying all results.',
