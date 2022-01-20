@@ -31,16 +31,17 @@ func SplitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 	for iter.Before(until) {
 		dataPoint := AlertDataPoint{Timestamp: iter, AlertCount: 0}
 		upperBound := iter.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+		if upperBound.After(until) {
+			upperBound = until
+		}
+
 		for _, alert := range alerts {
 			if !alert.CreatedAt.Before(iter) && alert.CreatedAt.Before(upperBound) {
 				dataPoint.AlertCount++
 			}
-			if alert.CreatedAt.Before(iter) {
-				break
-			}
 		}
 		result = append(result, dataPoint)
-		iter = iter.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+		iter = upperBound
 	}
 
 	return result
