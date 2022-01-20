@@ -3504,7 +3504,7 @@ input AlertMetricsOptions {
   since: ISOTimestamp!
   until: ISOTimestamp!
 
-  period: ISODuration = "24h"
+  period: ISODuration = "PT24H"
 
   filterByServiceID: [ID!]
 }
@@ -18265,7 +18265,7 @@ func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Contex
 	}
 
 	if _, present := asMap["period"]; !present {
-		asMap["period"] = "24h"
+		asMap["period"] = "PT24H"
 	}
 
 	for k, v := range asMap {
