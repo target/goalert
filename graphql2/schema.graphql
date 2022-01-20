@@ -118,7 +118,7 @@ input AlertMetricsOptions {
   since: ISOTimestamp!
   until: ISOTimestamp!
 
-  period: ISODuration = "24h"
+  period: ISODuration = "PT24H"
 
   filterByServiceID: [ID!]
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -177,7 +178,7 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
-func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []alert.Alert) []graphql2.AlertDataPoint {
+func splitRangeByPeriod(since, until time.Time, period timeutil.ISODuration, alerts []alert.Alert) []graphql2.AlertDataPoint {
 	var result []graphql2.AlertDataPoint
 
 	if since.After(until) {
@@ -187,15 +188,17 @@ func splitRangeByPeriod(since, until time.Time, period time.Duration, alerts []a
 	iter := since
 	for iter.Before(until) {
 		dataPoint := graphql2.AlertDataPoint{Timestamp: iter, AlertCount: 0}
-		upperBound := iter.Add(period)
+		upperBound := iter.AddDate(period.Years, period.Months, period.Days).Add(period.TimePart)
 		for _, alert := range alerts {
-			if alert.CreatedAt.After(iter) && alert.CreatedAt.Before(upperBound) {
+			if !alert.CreatedAt.Before(iter) && alert.CreatedAt.Before(upperBound) {
 				dataPoint.AlertCount++
 			}
-			if alert.CreatedAt.Before(iter) { break }
+			if alert.CreatedAt.Before(iter) {
+				break
+			}
 		}
 		result = append(result, dataPoint)
-		iter = iter.Add(period)
+		iter = iter.AddDate(period.Years, period.Months, period.Days).Add(period.TimePart)
 	}
 
 	return result
@@ -208,7 +211,6 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 	// time frame cannot be more than 50 days apart
 	validTimeFrame, _ := time.ParseDuration("1200h")
 
-	// requiring only 1 service ID is provided for MVP
 	err := validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
 		validate.TimeFrame("Timeframe", opts.Since, opts.Until, validTimeFrame),
@@ -234,12 +236,21 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, err
 	}
 
-	duration, err := time.ParseDuration(*opts.Period)
+	period, err := timeutil.ParseISODuration(*opts.Period)
 	if err != nil {
-		return nil, err
+		return nil, err // TODO propogate friendly error
 	}
 
-	return splitRangeByPeriod(opts.Since, opts.Until, duration, alerts), nil
+	_24hr, err := time.ParseDuration("24h")
+	if err != nil {
+		return nil, err // TODO propogate friendly error
+	}
+
+	if period.Years == 0 && period.Months == 0 && period.Days == 0 && period.TimePart < _24hr {
+		return nil, err // TODO propogate "period must be at least 24 hours in duration"
+	}
+
+	return splitRangeByPeriod(opts.Since, opts.Until, period, alerts), nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
