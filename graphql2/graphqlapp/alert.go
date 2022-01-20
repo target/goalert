@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -178,79 +179,55 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
-func splitRangeByPeriod(since, until time.Time, period timeutil.ISODuration, alerts []alert.Alert) []graphql2.AlertDataPoint {
-	var result []graphql2.AlertDataPoint
-
-	if since.After(until) {
-		return result
+func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
+	validTimeFrame, err := time.ParseDuration("1200h")
+	if err != nil {
+		return nil, err
 	}
-
-	iter := since
-	for iter.Before(until) {
-		dataPoint := graphql2.AlertDataPoint{Timestamp: iter, AlertCount: 0}
-		upperBound := iter.AddDate(period.Years, period.Months, period.Days).Add(period.TimePart)
-		for _, alert := range alerts {
-			if !alert.CreatedAt.Before(iter) && alert.CreatedAt.Before(upperBound) {
-				dataPoint.AlertCount++
-			}
-			if alert.CreatedAt.Before(iter) {
-				break
-			}
-		}
-		result = append(result, dataPoint)
-		iter = iter.AddDate(period.Years, period.Months, period.Days).Add(period.TimePart)
-	}
-
-	return result
-}
-
-func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) ([]graphql2.AlertDataPoint, error) {
-	var search alert.SearchOptions
-	var filter alert.IDFilter
-
-	// time frame cannot be more than 50 days apart
-	validTimeFrame, _ := time.ParseDuration("1200h")
-
-	err := validate.Many(
+	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
 		validate.TimeFrame("Timeframe", opts.Since, opts.Until, validTimeFrame),
 	)
-
 	if err != nil {
 		return nil, err
 	}
 
-	filter = alert.IDFilter{
-		IDs:   opts.FilterByServiceID,
-		Valid: true,
-	}
-
-	search = alert.SearchOptions{
-		Before:        opts.Until,
-		NotBefore:     opts.Since,
-		ServiceFilter: filter,
-		Limit:         100}
-
-	alerts, err := q.AlertStore.Search(ctx, &search)
+	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{
+		Before:    opts.Until,
+		NotBefore: opts.Since,
+		ServiceFilter: alert.IDFilter{
+			IDs:   opts.FilterByServiceID,
+			Valid: true,
+		},
+		Limit: 100,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	period, err := timeutil.ParseISODuration(*opts.Period)
 	if err != nil {
-		return nil, err // TODO propogate friendly error
+		return nil, err
 	}
 
 	_24hr, err := time.ParseDuration("24h")
 	if err != nil {
-		return nil, err // TODO propogate friendly error
+		return nil, err
 	}
 
 	if period.Years == 0 && period.Months == 0 && period.Days == 0 && period.TimePart < _24hr {
-		return nil, err // TODO propogate "period must be at least 24 hours in duration"
+		return nil, fmt.Errorf("period must be at least 24 hours")
 	}
 
-	return splitRangeByPeriod(opts.Since, opts.Until, period, alerts), nil
+	datapoints := alert.SplitRangeByDuration(opts.Since, opts.Until, period, alerts)
+	for _, val := range datapoints {
+		result = append(result, graphql2.AlertDataPoint{
+			Timestamp:  val.Timestamp,
+			AlertCount: val.AlertCount,
+		})
+	}
+
+	return result, nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
