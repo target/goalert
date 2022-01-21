@@ -22,7 +22,9 @@ type AlertDataPoint struct {
 	AlertCount int
 }
 
-// SplitRangeByDuration requires that alerts is sorted by CreatedAt
+// SplitRangeByDuration splits the timeframe given between since and until by the duration provided.
+// Each segment is then transformed into an AlertDataPoint based on the given alerts.
+// The given alerts are required to be sorted by their CreatedAt field.
 func SplitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, alerts []Alert) (result []AlertDataPoint) {
 	if since.After(until) {
 		return result
