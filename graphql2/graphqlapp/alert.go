@@ -179,6 +179,41 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
+// splitRangeByDuration splits the timeframe given between since and until by the duration provided.
+// Each segment is then transformed into an AlertDataPoint based on the given alerts.
+// The given alerts are required to be sorted by their CreatedAt field.
+func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
+	if since.After(until) {
+		return result
+	}
+
+	i := 0
+	// ignore alerts created before since
+	for i < len(alerts) && alerts[i].CreatedAt.Before(since) {
+		i++
+	}
+
+	ts, upperBound := since, since.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	if upperBound.After(until) {
+		upperBound = until
+	}
+
+	for ts.Before(until) {
+		next := graphql2.AlertDataPoint{Timestamp: ts, AlertCount: 0}
+		for i < len(alerts) && alerts[i].CreatedAt.Before(upperBound) {
+			next.AlertCount++
+			i++
+		}
+		result = append(result, next)
+		ts, upperBound = upperBound, upperBound.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+		if upperBound.After(until) {
+			upperBound = until
+		}
+	}
+
+	return result
+}
+
 func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
 	validTimeFrame, err := time.ParseDuration("1200h")
 	if err != nil {
@@ -220,15 +255,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, fmt.Errorf("period must be at least 24 hours")
 	}
 
-	datapoints := alert.SplitRangeByDuration(opts.Since, opts.Until, period, alerts)
-	for _, val := range datapoints {
-		result = append(result, graphql2.AlertDataPoint{
-			Timestamp:  val.Timestamp,
-			AlertCount: val.AlertCount,
-		})
-	}
-
-	return result, nil
+	return splitRangeByDuration(opts.Since, opts.Until, period, alerts), nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {

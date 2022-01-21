@@ -1,4 +1,4 @@
-package alert
+package graphqlapp
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -14,13 +15,13 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	loc, err := time.LoadLocation("America/Chicago")
 	require.NoError(t, err)
 
-	check := func(desc string, since, until time.Time, ISOduration string, alerts []Alert, exp []int) {
+	check := func(desc string, since, until time.Time, ISOduration string, alerts []alert.Alert, exp []int) {
 		t.Helper()
 		dur, err := timeutil.ParseISODuration(ISOduration)
 		require.NoError(t, err)
 
 		var actual []int
-		for _, val := range SplitRangeByDuration(since, until, dur, alerts) {
+		for _, val := range splitRangeByDuration(since, until, dur, alerts) {
 			actual = append(actual, val.AlertCount)
 		}
 		assert.Equal(t, exp, actual)
@@ -31,10 +32,10 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	// Jan 2 has 2 alerts at 12am and 1am
 	// Jan 3 has 3 alerts at 12, 1, and 2 am
 	// ...
-	jan := []Alert{}
+	jan := []alert.Alert{}
 	for day := 0; day < 20; day++ {
 		for hour := 0; hour <= day; hour++ {
-			jan = append(jan, Alert{
+			jan = append(jan, alert.Alert{
 				CreatedAt: time.Date(2000, time.January, day, hour, 0, 0, 0, loc),
 			})
 		}
@@ -45,7 +46,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
 		time.Date(2000, time.February, 0, 0, 0, 0, 0, loc),
 		"P1W",
-		[]Alert{},
+		[]alert.Alert{},
 		[]int{0, 0, 0, 0, 0},
 	)
 
