@@ -22,26 +22,34 @@ type AlertDataPoint struct {
 	AlertCount int
 }
 
+// SplitRangeByDuration requires that alerts is sorted by CreatedAt
 func SplitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, alerts []Alert) (result []AlertDataPoint) {
 	if since.After(until) {
 		return result
 	}
 
-	iter := since
-	for iter.Before(until) {
-		dataPoint := AlertDataPoint{Timestamp: iter, AlertCount: 0}
-		upperBound := iter.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	i := 0
+	// ignore alerts created before since
+	for i < len(alerts) && alerts[i].CreatedAt.Before(since) {
+		i++
+	}
+
+	ts, upperBound := since, since.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	if upperBound.After(until) {
+		upperBound = until
+	}
+
+	for ts.Before(until) {
+		next := AlertDataPoint{Timestamp: ts, AlertCount: 0}
+		for i < len(alerts) && alerts[i].CreatedAt.Before(upperBound) {
+			next.AlertCount++
+			i++
+		}
+		result = append(result, next)
+		ts, upperBound = upperBound, upperBound.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
 		if upperBound.After(until) {
 			upperBound = until
 		}
-
-		for _, alert := range alerts {
-			if !alert.CreatedAt.Before(iter) && alert.CreatedAt.Before(upperBound) {
-				dataPoint.AlertCount++
-			}
-		}
-		result = append(result, dataPoint)
-		iter = upperBound
 	}
 
 	return result

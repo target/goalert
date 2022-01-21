@@ -200,6 +200,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 			Valid: true,
 		},
 		Limit: 100,
+		Sort:  alert.SortModeDateIDReverse,
 	})
 	if err != nil {
 		return nil, err
