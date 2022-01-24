@@ -70,17 +70,17 @@ cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
 cy-mobile: cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	make cy-wide-prod CY_ACTION=run
+	make cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	make cy-mobile-prod CY_ACTION=run
+	make cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
 
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
@@ -180,7 +180,7 @@ postgres: bin/waitfor
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
