@@ -20,7 +20,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 		dur, err := timeutil.ParseISODuration(ISOduration)
 		require.NoError(t, err)
 
-		var actual []int
+		actual := []int{}
 		for _, val := range splitRangeByDuration(since, until, dur, alerts) {
 			actual = append(actual, val.AlertCount)
 		}
@@ -65,7 +65,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
 		"P1D",
 		jan,
-		nil,
+		[]int{},
 	)
 
 	check(
@@ -74,7 +74,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
 		"P1D",
 		jan,
-		nil,
+		[]int{},
 	)
 
 	check(
