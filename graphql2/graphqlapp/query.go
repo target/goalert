@@ -2,8 +2,13 @@ package graphqlapp
 
 import (
 	context "context"
+	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 
@@ -11,8 +16,149 @@ import (
 )
 
 type Query App
+type DebugMessage App
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
+
+func (a *App) formatNC(ctx context.Context, id string) (string, error) {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return "", err
+	}
+
+	n, err := a.FindOneNC(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	var typeName string
+	switch n.Type {
+	case notificationchannel.TypeSlack:
+		typeName = "Slack"
+	default:
+		typeName = string(n.Type)
+	}
+
+	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
+}
+
+func (a *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
+	if !dst.Type.IsUserCM() {
+		return (*App)(a).formatNC(ctx, dst.ID)
+	}
+
+	var str strings.Builder
+	str.WriteString((*App)(a).FormatDestFunc(ctx, dst.Type, dst.Value))
+	switch dst.Type {
+	case notification.DestTypeSMS:
+		str.WriteString(" (SMS)")
+	case notification.DestTypeUserEmail:
+		str.WriteString(" (Email)")
+	case notification.DestTypeVoice:
+		str.WriteString(" (Voice)")
+	case notification.DestTypeUserWebhook:
+		str.Reset()
+		str.WriteString("Webhook")
+	default:
+		str.Reset()
+		str.WriteString(dst.Type.String())
+	}
+
+	return str.String(), nil
+}
+
+func msgStatus(stat notification.Status) string {
+	var str strings.Builder
+	switch stat.State {
+	case notification.StateBundled:
+		str.WriteString("Bundled")
+	case notification.StateUnknown:
+		str.WriteString("Unknown")
+	case notification.StateSending:
+		str.WriteString("Sending")
+	case notification.StatePending:
+		str.WriteString("Pending")
+	case notification.StateSent:
+		str.WriteString("Sent")
+	case notification.StateDelivered:
+		str.WriteString("Delivered")
+	case notification.StateFailedTemp:
+		str.WriteString("Failed (temporary)")
+	case notification.StateFailedPerm:
+		str.WriteString("Failed (permanent)")
+	}
+	if stat.Details != "" {
+		str.WriteString(": ")
+		str.WriteString(stat.Details)
+	}
+	return str.String()
+}
+
+func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessagesInput) ([]graphql2.DebugMessage, error) {
+	var options notification.RecentMessageSearchOptions
+	if input == nil {
+		input = &graphql2.DebugMessagesInput{}
+	}
+	if input.CreatedAfter != nil {
+		options.After = *input.CreatedAfter
+	}
+	if input.CreatedBefore != nil {
+		options.Before = *input.CreatedBefore
+	}
+	if input.First != nil {
+		options.Limit = *input.First
+	}
+	msgs, err := a.NotificationStore.RecentMessages(ctx, &options)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []graphql2.DebugMessage
+	for _, _m := range msgs {
+		m := _m // clone since we're taking pointers to fields
+		dest, err := a.formatDest(ctx, m.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("format dest: %w", err)
+		}
+
+		msg := graphql2.DebugMessage{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			UpdatedAt:   m.UpdatedAt,
+			Type:        strings.TrimPrefix(m.Type.String(), "MessageType"),
+			Status:      msgStatus(m.Status),
+			Destination: dest,
+		}
+		if m.UserID != "" {
+			msg.UserID = &m.UserID
+		}
+		if m.UserName != "" {
+			msg.UserName = &m.UserName
+		}
+		if m.Status.SrcValue != "" && m.Dest.Type.IsUserCM() {
+			src, err := a.formatDest(ctx, notification.Dest{Type: m.Dest.Type, Value: m.Status.SrcValue})
+			if err != nil {
+				return nil, fmt.Errorf("format src: %w", err)
+			}
+			msg.Source = &src
+		}
+		if m.ServiceID != "" {
+			msg.ServiceID = &m.ServiceID
+		}
+		if m.ServiceName != "" {
+			msg.ServiceName = &m.ServiceName
+		}
+		if m.AlertID != 0 {
+			msg.AlertID = &m.AlertID
+		}
+		if m.ProviderID.ExternalID != "" {
+			msg.ProviderID = &m.ProviderID.ExternalID
+		}
+
+		res = append(res, msg)
+	}
+
+	return res, nil
+}
 
 func (a *Query) AuthSubjectsForProvider(ctx context.Context, _first *int, _after *string, providerID string) (conn *graphql2.AuthSubjectConnection, err error) {
 	var first int

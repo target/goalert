@@ -1,9 +1,9 @@
 import React from 'react'
 import p from 'prop-types'
-import Typography from '@material-ui/core/Typography'
+import Typography from '@mui/material/Typography'
 import { Switch, Route } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles'
-import { ChevronRight } from '@material-ui/icons'
+import makeStyles from '@mui/styles/makeStyles'
+import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
@@ -171,7 +171,7 @@ function ToolbarTitle() {
         render={renderSubPageTitle}
       />
       <Route
-        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
+        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels|alert-metrics)'
         render={renderSubPageTitle}
       />
       <Route

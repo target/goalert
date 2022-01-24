@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Card } from '@material-ui/core'
+import { Card } from '@mui/material'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash'
 import Spinner from '../loading/components/Spinner'

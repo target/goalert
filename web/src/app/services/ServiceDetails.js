@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
-import { Edit, Delete } from '@material-ui/icons'
+import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
@@ -116,7 +116,8 @@ export default function ServiceDetails({ serviceID }) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            serviceID={serviceID}
+            id={serviceID}
+            type='service'
           />,
         ]}
         links={[
@@ -141,6 +142,11 @@ export default function ServiceDetails({ serviceID }) {
             label: 'Labels',
             url: 'labels',
             subText: 'Group together services',
+          },
+          {
+            label: 'Alert Metrics',
+            url: 'alert-metrics',
+            subText: 'Review alert activity',
           },
         ]}
       />

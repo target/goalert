@@ -139,7 +139,7 @@ function testFavorites(): void {
         .then((service: Service) => {
           return cy.visit(`/services/${service.id}`)
         })
-        .get('button[title=Edit]')
+        .get('button[aria-label=Edit]')
         .click()
         .get('input[name=escalation-policy]'),
   )

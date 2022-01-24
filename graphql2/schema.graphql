@@ -1,6 +1,9 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  # Returns the list of recent messages.
+  debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -106,6 +109,28 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+}
+
+input DebugMessagesInput {
+  first: Int = 15
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
+}
+
+type DebugMessage {
+  id: ID!
+  createdAt: ISOTimestamp!
+  updatedAt: ISOTimestamp!
+  type: String!
+  status: String!
+  userID: ID
+  userName: String
+  source: String
+  destination: String!
+  serviceID: ID
+  serviceName: String
+  alertID: Int
+  providerID: ID
 }
 
 input SlackChannelSearchOptions {
@@ -478,7 +503,7 @@ input ScheduleTargetInput {
 }
 
 input ScheduleRuleInput {
-  id: ID @deprecated(reason: "ignored")
+  id: ID
   start: ClockTime
   end: ClockTime
 

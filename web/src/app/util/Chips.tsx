@@ -1,13 +1,12 @@
 import React from 'react'
-import Chip, { ChipProps } from '@material-ui/core/Chip'
-import { push } from 'connected-react-router'
-import { useDispatch } from 'react-redux'
+import Chip, { ChipProps } from '@mui/material/Chip'
+import { useHistory } from 'react-router-dom'
 import { useQuery, gql } from '@apollo/client'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
-} from '@material-ui/icons'
-import Avatar from '@material-ui/core/Avatar'
+} from '@mui/icons-material'
+import Avatar from '@mui/material/Avatar'
 
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
@@ -26,7 +25,7 @@ type WithID<T> = { id: string } & T
 
 export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   const { id, label, ...rest } = props
-  const dispatch = useDispatch()
+  const history = useHistory()
 
   const { data, loading, error } = useQuery(serviceQuery, {
     variables: {
@@ -48,7 +47,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
     <Chip
       data-cy='service-chip'
       avatar={<ServiceAvatar />}
-      onClick={() => dispatch(push(`/services/${id}`))}
+      onClick={() => history.push(`/services/${id}`)}
       label={getLabel()}
       {...rest}
     />
@@ -57,13 +56,13 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
 
 export function UserChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const dispatch = useDispatch()
+  const history = useHistory()
 
   return (
     <Chip
       data-cy='user-chip'
       avatar={<UserAvatar userID={id} />}
-      onClick={() => dispatch(push(`/users/${id}`))}
+      onClick={() => history.push(`/users/${id}`)}
       {...rest}
     />
   )
@@ -71,7 +70,7 @@ export function UserChip(props: WithID<ChipProps>): JSX.Element {
 
 export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const dispatch = useDispatch()
+  const history = useHistory()
 
   return (
     <Chip
@@ -81,7 +80,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
           <RotationIcon />
         </Avatar>
       }
-      onClick={() => dispatch(push(`/rotations/${id}`))}
+      onClick={() => history.push(`/rotations/${id}`)}
       {...rest}
     />
   )
@@ -89,7 +88,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
 
 export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const dispatch = useDispatch()
+  const history = useHistory()
 
   return (
     <Chip
@@ -99,7 +98,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
           <ScheduleIcon />
         </Avatar>
       }
-      onClick={() => dispatch(push(`/schedules/${id}`))}
+      onClick={() => history.push(`/schedules/${id}`)}
       {...rest}
     />
   )

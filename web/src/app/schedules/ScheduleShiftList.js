@@ -11,8 +11,8 @@ import {
   Switch,
   TextField,
   MenuItem,
-  makeStyles,
-} from '@material-ui/core'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
@@ -70,7 +70,7 @@ function ScheduleShiftList({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
 
   const defaultStart = useMemo(
-    () => DateTime.fromObject({ zone }).startOf('day').toISO(),
+    () => DateTime.local({ zone }).startOf('day').toISO(),
     [zone],
   )
   const [_start, setStart] = useURLParam('start', defaultStart)
@@ -120,7 +120,7 @@ function ScheduleShiftList({ scheduleID }) {
       }))
 
     if (activeOnly) {
-      const now = DateTime.fromObject({ zone })
+      const now = DateTime.local({ zone })
       shifts = shifts.filter((s) => s.interval.contains(now))
     }
 

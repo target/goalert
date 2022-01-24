@@ -5,8 +5,8 @@ import {
   SpeedDialAction,
   SpeedDialActionProps,
   SpeedDialProps,
-} from '@material-ui/lab'
-import { makeStyles } from '@material-ui/styles'
+} from '@mui/material'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles({
   speedDial: {

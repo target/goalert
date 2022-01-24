@@ -2,16 +2,17 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { Grid, Typography, makeStyles } from '@material-ui/core'
+import { Grid, Typography } from '@mui/material'
+
+import makeStyles from '@mui/styles/makeStyles'
 
 import { ScheduleTZFilter } from './ScheduleTZFilter'
-import { useSelector } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { UserSelect } from '../selection'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
+import { useURLParam } from '../actions'
 
 const query = gql`
   query ($id: ID!) {
@@ -49,8 +50,7 @@ export default function ScheduleOverrideForm(props) {
   } = props
 
   const classes = useStyles()
-  const params = useSelector(urlParamSelector)
-  const zone = params('tz', 'local')
+  const [zone] = useURLParam('tz', 'local')
 
   const conflictingUserFieldError = props.errors.find(
     (e) => e && e.field === 'userID',

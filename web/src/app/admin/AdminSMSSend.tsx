@@ -12,9 +12,9 @@ import {
   Grid,
   TextField,
   Typography,
-  makeStyles,
-} from '@material-ui/core'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+} from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
@@ -93,7 +93,12 @@ export default function AdminSMSSend(): JSX.Element {
 
   return (
     <React.Fragment>
-      <Form>
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault()
+          send()
+        }}
+      >
         <Card>
           <CardContent>
             <Grid container spacing={2}>
@@ -127,14 +132,7 @@ export default function AdminSMSSend(): JSX.Element {
           </CardContent>
 
           <CardActions>
-            <LoadingButton
-              buttonText='Send'
-              onClick={() => {
-                send()
-              }}
-              loading={smsLoading}
-              noSubmit
-            />
+            <LoadingButton buttonText='Send' loading={smsLoading} />
             {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>

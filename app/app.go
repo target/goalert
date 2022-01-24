@@ -19,7 +19,6 @@ import (
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
-	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -71,7 +70,6 @@ type App struct {
 
 	notificationManager *notification.Manager
 	Engine              *engine.Engine
-	graphql             *graphql.Handler
 	graphql2            *graphqlapp.App
 	AuthHandler         *auth.Handler
 
@@ -93,7 +91,7 @@ type App struct {
 	FavoriteStore         favorite.Store
 
 	ServiceStore        service.Store
-	EscalationStore     escalation.Store
+	EscalationStore     *escalation.Store
 	IntegrationKeyStore integrationkey.Store
 	ScheduleRuleStore   rule.Store
 	NotificationStore   notification.Store

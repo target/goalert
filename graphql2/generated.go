@@ -158,6 +158,22 @@ type ComplexityRoot struct {
 		Type              func(childComplexity int) int
 	}
 
+	DebugMessage struct {
+		AlertID     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Destination func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ProviderID  func(childComplexity int) int
+		ServiceID   func(childComplexity int) int
+		ServiceName func(childComplexity int) int
+		Source      func(childComplexity int) int
+		Status      func(childComplexity int) int
+		Type        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+		UserID      func(childComplexity int) int
+		UserName    func(childComplexity int) int
+	}
+
 	DebugMessageStatusInfo struct {
 		State func(childComplexity int) int
 	}
@@ -315,6 +331,7 @@ type ComplexityRoot struct {
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
 		DebugMessageStatus       func(childComplexity int, input DebugMessageStatusInput) int
+		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
 		GenerateSlackAppManifest func(childComplexity int) int
@@ -625,6 +642,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
@@ -1024,6 +1042,97 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DebugCarrierInfo.Type(childComplexity), true
+
+	case "DebugMessage.alertID":
+		if e.complexity.DebugMessage.AlertID == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.AlertID(childComplexity), true
+
+	case "DebugMessage.createdAt":
+		if e.complexity.DebugMessage.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.CreatedAt(childComplexity), true
+
+	case "DebugMessage.destination":
+		if e.complexity.DebugMessage.Destination == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.Destination(childComplexity), true
+
+	case "DebugMessage.id":
+		if e.complexity.DebugMessage.ID == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.ID(childComplexity), true
+
+	case "DebugMessage.providerID":
+		if e.complexity.DebugMessage.ProviderID == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.ProviderID(childComplexity), true
+
+	case "DebugMessage.serviceID":
+		if e.complexity.DebugMessage.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.ServiceID(childComplexity), true
+
+	case "DebugMessage.serviceName":
+		if e.complexity.DebugMessage.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.ServiceName(childComplexity), true
+
+	case "DebugMessage.source":
+		if e.complexity.DebugMessage.Source == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.Source(childComplexity), true
+
+	case "DebugMessage.status":
+		if e.complexity.DebugMessage.Status == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.Status(childComplexity), true
+
+	case "DebugMessage.type":
+		if e.complexity.DebugMessage.Type == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.Type(childComplexity), true
+
+	case "DebugMessage.updatedAt":
+		if e.complexity.DebugMessage.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.UpdatedAt(childComplexity), true
+
+	case "DebugMessage.userID":
+		if e.complexity.DebugMessage.UserID == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.UserID(childComplexity), true
+
+	case "DebugMessage.userName":
+		if e.complexity.DebugMessage.UserName == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.UserName(childComplexity), true
 
 	case "DebugMessageStatusInfo.state":
 		if e.complexity.DebugMessageStatusInfo.State == nil {
@@ -2020,6 +2129,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.DebugMessageStatus(childComplexity, args["input"].(DebugMessageStatusInput)), true
+
+	case "Query.debugMessages":
+		if e.complexity.Query.DebugMessages == nil {
+			break
+		}
+
+		args, err := ec.field_Query_debugMessages_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DebugMessages(childComplexity, args["input"].(*DebugMessagesInput)), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -3233,6 +3354,9 @@ var sources = []*ast.Source{
 	{Name: "./schema.graphql", Input: `type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  # Returns the list of recent messages.
+  debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -3338,6 +3462,28 @@ var sources = []*ast.Source{
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+}
+
+input DebugMessagesInput {
+  first: Int = 15
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
+}
+
+type DebugMessage {
+  id: ID!
+  createdAt: ISOTimestamp!
+  updatedAt: ISOTimestamp!
+  type: String!
+  status: String!
+  userID: ID
+  userName: String
+  source: String
+  destination: String!
+  serviceID: ID
+  serviceName: String
+  alertID: Int
+  providerID: ID
 }
 
 input SlackChannelSearchOptions {
@@ -3710,7 +3856,7 @@ input ScheduleTargetInput {
 }
 
 input ScheduleRuleInput {
-  id: ID @deprecated(reason: "ignored")
+  id: ID
   start: ClockTime
   end: ClockTime
 
@@ -5184,6 +5330,21 @@ func (ec *executionContext) field_Query_debugMessageStatus_args(ctx context.Cont
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNDebugMessageStatusInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_debugMessages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *DebugMessagesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalODebugMessagesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessagesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7017,6 +7178,440 @@ func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Cont
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_id(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_updatedAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_status(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_userID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_userName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_source(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_destination(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_serviceID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_serviceName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_alertID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AlertID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DebugMessage_providerID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProviderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
@@ -10819,6 +11414,48 @@ func (ec *executionContext) _Query_phoneNumberInfo(ctx context.Context, field gr
 	res := resTmp.(*PhoneNumberInfo)
 	fc.Result = res
 	return ec.marshalOPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_debugMessages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_debugMessages_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DebugMessages(rctx, args["input"].(*DebugMessagesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]DebugMessage)
+	fc.Result = res
+	return ec.marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16459,6 +17096,41 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsRepeatable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17411,7 +18083,10 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.Context, obj interface{}) (AlertRecentEventsOptions, error) {
 	var it AlertRecentEventsOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17439,7 +18114,10 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 
 func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context, obj interface{}) (AlertSearchOptions, error) {
 	var it AlertSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -17546,7 +18224,10 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 
 func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, obj interface{}) (user.AuthSubject, error) {
 	var it user.AuthSubject
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17582,7 +18263,10 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 
 func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx context.Context, obj interface{}) (CalcRotationHandoffTimesInput, error) {
 	var it CalcRotationHandoffTimesInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17634,7 +18318,10 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 
 func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx context.Context, obj interface{}) (ClearTemporarySchedulesInput, error) {
 	var it ClearTemporarySchedulesInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17670,7 +18357,10 @@ func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx conte
 
 func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, obj interface{}) (ConfigValueInput, error) {
 	var it ConfigValueInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17698,7 +18388,10 @@ func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, 
 
 func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, obj interface{}) (CreateAlertInput, error) {
 	var it CreateAlertInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17742,7 +18435,10 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 
 func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx context.Context, obj interface{}) (CreateEscalationPolicyInput, error) {
 	var it CreateEscalationPolicyInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["repeat"]; !present {
 		asMap["repeat"] = 3
@@ -17798,7 +18494,10 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 
 func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx context.Context, obj interface{}) (CreateEscalationPolicyStepInput, error) {
 	var it CreateEscalationPolicyStepInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17850,7 +18549,10 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 
 func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx context.Context, obj interface{}) (CreateHeartbeatMonitorInput, error) {
 	var it CreateHeartbeatMonitorInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17886,7 +18588,10 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 
 func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.Context, obj interface{}) (CreateIntegrationKeyInput, error) {
 	var it CreateIntegrationKeyInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -17922,7 +18627,10 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 
 func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Context, obj interface{}) (CreateRotationInput, error) {
 	var it CreateRotationInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["shiftLength"]; !present {
 		asMap["shiftLength"] = 1
@@ -18002,7 +18710,10 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Context, obj interface{}) (CreateScheduleInput, error) {
 	var it CreateScheduleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18062,7 +18773,10 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context, obj interface{}) (CreateServiceInput, error) {
 	var it CreateServiceInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18138,7 +18852,10 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 
 func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ctx context.Context, obj interface{}) (CreateUserCalendarSubscriptionInput, error) {
 	var it CreateUserCalendarSubscriptionInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18182,7 +18899,10 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 
 func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx context.Context, obj interface{}) (CreateUserContactMethodInput, error) {
 	var it CreateUserContactMethodInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18234,7 +18954,10 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 
 func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, obj interface{}) (CreateUserInput, error) {
 	var it CreateUserInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18294,7 +19017,10 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 
 func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx context.Context, obj interface{}) (CreateUserNotificationRuleInput, error) {
 	var it CreateUserNotificationRuleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18330,7 +19056,10 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 
 func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Context, obj interface{}) (CreateUserOverrideInput, error) {
 	var it CreateUserOverrideInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18382,7 +19111,10 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 
 func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Context, obj interface{}) (DebugCarrierInfoInput, error) {
 	var it DebugCarrierInfoInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18402,7 +19134,10 @@ func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Context, obj interface{}) (DebugMessageStatusInput, error) {
 	var it DebugMessageStatusInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18420,9 +19155,55 @@ func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDebugMessagesInput(ctx context.Context, obj interface{}) (DebugMessagesInput, error) {
+	var it DebugMessagesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 15
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
+			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdAfter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
+			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context, obj interface{}) (DebugSendSMSInput, error) {
 	var it DebugSendSMSInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18458,7 +19239,10 @@ func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx context.Context, obj interface{}) (EscalationPolicySearchOptions, error) {
 	var it EscalationPolicySearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18522,7 +19306,10 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 
 func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Context, obj interface{}) (LabelKeySearchOptions, error) {
 	var it LabelKeySearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18570,7 +19357,10 @@ func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context, obj interface{}) (LabelSearchOptions, error) {
 	var it LabelSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18626,7 +19416,10 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 
 func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Context, obj interface{}) (LabelValueSearchOptions, error) {
 	var it LabelValueSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18682,7 +19475,10 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 
 func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx context.Context, obj interface{}) (OnCallNotificationRuleInput, error) {
 	var it OnCallNotificationRuleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18726,7 +19522,10 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 
 func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Context, obj interface{}) (RotationSearchOptions, error) {
 	var it RotationSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18790,7 +19589,10 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context, obj interface{}) (ScheduleRuleInput, error) {
 	var it ScheduleRuleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18834,7 +19636,10 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Context, obj interface{}) (ScheduleSearchOptions, error) {
 	var it ScheduleSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -18898,7 +19703,10 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Context, obj interface{}) (ScheduleTargetInput, error) {
 	var it ScheduleTargetInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18942,7 +19750,10 @@ func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx context.Context, obj interface{}) (SendContactMethodVerificationInput, error) {
 	var it SendContactMethodVerificationInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -18962,7 +19773,10 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 
 func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Context, obj interface{}) (ServiceSearchOptions, error) {
 	var it ServiceSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -19026,7 +19840,10 @@ func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Conte
 
 func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, obj interface{}) (SetFavoriteInput, error) {
 	var it SetFavoriteInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19054,7 +19871,10 @@ func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, 
 
 func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj interface{}) (SetLabelInput, error) {
 	var it SetLabelInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19090,7 +19910,10 @@ func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj
 
 func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInput(ctx context.Context, obj interface{}) (SetScheduleOnCallNotificationRulesInput, error) {
 	var it SetScheduleOnCallNotificationRulesInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19118,7 +19941,10 @@ func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInpu
 
 func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Context, obj interface{}) (schedule.FixedShift, error) {
 	var it schedule.FixedShift
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19154,7 +19980,10 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.Context, obj interface{}) (SetTemporaryScheduleInput, error) {
 	var it SetTemporaryScheduleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19214,7 +20043,10 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 
 func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.Context, obj interface{}) (SlackChannelSearchOptions, error) {
 	var it SlackChannelSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -19262,7 +20094,10 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 
 func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, obj interface{}) (SystemLimitInput, error) {
 	var it SystemLimitInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19290,7 +20125,10 @@ func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, 
 
 func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj interface{}) (assignment.RawTarget, error) {
 	var it assignment.RawTarget
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19318,7 +20156,10 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 
 func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Context, obj interface{}) (TimeZoneSearchOptions, error) {
 	var it TimeZoneSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -19366,7 +20207,10 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 
 func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context.Context, obj interface{}) (UpdateAlertsByServiceInput, error) {
 	var it UpdateAlertsByServiceInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19394,7 +20238,10 @@ func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context
 
 func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context, obj interface{}) (UpdateAlertsInput, error) {
 	var it UpdateAlertsInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19422,7 +20269,10 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx context.Context, obj interface{}) (UpdateEscalationPolicyInput, error) {
 	var it UpdateEscalationPolicyInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19474,7 +20324,10 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx contex
 
 func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx context.Context, obj interface{}) (UpdateEscalationPolicyStepInput, error) {
 	var it UpdateEscalationPolicyStepInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19510,7 +20363,10 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 
 func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx context.Context, obj interface{}) (UpdateHeartbeatMonitorInput, error) {
 	var it UpdateHeartbeatMonitorInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19546,7 +20402,10 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 
 func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Context, obj interface{}) (UpdateRotationInput, error) {
 	var it UpdateRotationInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19630,7 +20489,10 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Context, obj interface{}) (UpdateScheduleInput, error) {
 	var it UpdateScheduleInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19674,7 +20536,10 @@ func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Contex
 
 func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context, obj interface{}) (UpdateServiceInput, error) {
 	var it UpdateServiceInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19718,7 +20583,10 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 
 func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UpdateUserCalendarSubscriptionInput, error) {
 	var it UpdateUserCalendarSubscriptionInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19762,7 +20630,10 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 
 func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx context.Context, obj interface{}) (UpdateUserContactMethodInput, error) {
 	var it UpdateUserContactMethodInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19798,7 +20669,10 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 
 func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj interface{}) (UpdateUserInput, error) {
 	var it UpdateUserInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19850,7 +20724,10 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Context, obj interface{}) (UpdateUserOverrideInput, error) {
 	var it UpdateUserOverrideInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -19902,7 +20779,10 @@ func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Co
 
 func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.Context, obj interface{}) (UserOverrideSearchOptions, error) {
 	var it UserOverrideSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -19990,7 +20870,10 @@ func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.
 
 func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context, obj interface{}) (UserSearchOptions, error) {
 	var it UserSearchOptions
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
@@ -20070,7 +20953,10 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 
 func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.Context, obj interface{}) (VerifyContactMethodInput, error) {
 	var it VerifyContactMethodInput
-	var asMap = obj.(map[string]interface{})
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -20602,6 +21488,72 @@ func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var debugMessageImplementors = []string{"DebugMessage"}
+
+func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.SelectionSet, obj *DebugMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, debugMessageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DebugMessage")
+		case "id":
+			out.Values[i] = ec._DebugMessage_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._DebugMessage_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._DebugMessage_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._DebugMessage_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._DebugMessage_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userID":
+			out.Values[i] = ec._DebugMessage_userID(ctx, field, obj)
+		case "userName":
+			out.Values[i] = ec._DebugMessage_userName(ctx, field, obj)
+		case "source":
+			out.Values[i] = ec._DebugMessage_source(ctx, field, obj)
+		case "destination":
+			out.Values[i] = ec._DebugMessage_destination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceID":
+			out.Values[i] = ec._DebugMessage_serviceID(ctx, field, obj)
+		case "serviceName":
+			out.Values[i] = ec._DebugMessage_serviceName(ctx, field, obj)
+		case "alertID":
+			out.Values[i] = ec._DebugMessage_alertID(ctx, field, obj)
+		case "providerID":
+			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21540,6 +22492,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			})
+		case "debugMessages":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_debugMessages(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "user":
@@ -23484,6 +24450,11 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isRepeatable":
+			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23739,6 +24710,13 @@ func (ec *executionContext) marshalNAlert2ᚕgithubᚗcomᚋtargetᚋgoalertᚋa
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23794,6 +24772,13 @@ func (ec *executionContext) marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoa
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23849,6 +24834,13 @@ func (ec *executionContext) marshalNAlertPendingNotification2ᚕgithubᚗcomᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23900,6 +24892,13 @@ func (ec *executionContext) marshalNAuthSubject2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -23990,6 +24989,13 @@ func (ec *executionContext) marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoaler
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24041,6 +25047,13 @@ func (ec *executionContext) marshalNConfigValue2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24148,6 +25161,54 @@ func (ec *executionContext) unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtarge
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx context.Context, sel ast.SelectionSet, v DebugMessage) graphql.Marshaler {
+	return ec._DebugMessage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []DebugMessage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNDebugMessageStatusInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, v DebugMessageStatusInfo) graphql.Marshaler {
 	return ec._DebugMessageStatusInfo(ctx, sel, &v)
 }
@@ -24210,6 +25271,13 @@ func (ec *executionContext) marshalNEscalationPolicy2ᚕgithubᚗcomᚋtargetᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24265,6 +25333,13 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24306,6 +25381,13 @@ func (ec *executionContext) marshalNHeartbeatMonitor2ᚕgithubᚗcomᚋtargetᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24377,6 +25459,12 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24420,6 +25508,12 @@ func (ec *executionContext) marshalNISOTimestamp2ᚕtimeᚐTimeᚄ(ctx context.C
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNISOTimestamp2timeᚐTime(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
 
 	return ret
@@ -24467,6 +25561,12 @@ func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.S
 		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24508,6 +25608,13 @@ func (ec *executionContext) marshalNIntegrationKey2ᚕgithubᚗcomᚋtargetᚋgo
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24559,6 +25666,13 @@ func (ec *executionContext) marshalNLabel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋl
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24614,6 +25728,13 @@ func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24675,6 +25796,13 @@ func (ec *executionContext) marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtar
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24742,6 +25870,13 @@ func (ec *executionContext) marshalNOnCallShift2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24793,6 +25928,13 @@ func (ec *executionContext) marshalNRotation2ᚕgithubᚗcomᚋtargetᚋgoalert�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24858,6 +26000,13 @@ func (ec *executionContext) marshalNSchedule2ᚕgithubᚗcomᚋtargetᚋgoalert�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24913,6 +26062,13 @@ func (ec *executionContext) marshalNScheduleRule2ᚕgithubᚗcomᚋtargetᚋgoal
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -24980,6 +26136,13 @@ func (ec *executionContext) marshalNScheduleTarget2ᚕgithubᚗcomᚋtargetᚋgo
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25031,6 +26194,13 @@ func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋtargetᚋgoalert�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25086,6 +26256,13 @@ func (ec *executionContext) marshalNServiceOnCallUser2ᚕgithubᚗcomᚋtarget�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25173,6 +26350,13 @@ func (ec *executionContext) marshalNSlackChannel2ᚕgithubᚗcomᚋtargetᚋgoal
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25232,6 +26416,12 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25287,6 +26477,13 @@ func (ec *executionContext) marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25370,6 +26567,13 @@ func (ec *executionContext) marshalNTarget2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25441,6 +26645,13 @@ func (ec *executionContext) marshalNTemporarySchedule2ᚕgithubᚗcomᚋtarget�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25482,6 +26693,13 @@ func (ec *executionContext) marshalNTimeZone2ᚕgithubᚗcomᚋtargetᚋgoalert�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25597,6 +26815,13 @@ func (ec *executionContext) marshalNUser2ᚕgithubᚗcomᚋtargetᚋgoalertᚋus
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25638,6 +26863,13 @@ func (ec *executionContext) marshalNUserCalendarSubscription2ᚕgithubᚗcomᚋt
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25703,6 +26935,13 @@ func (ec *executionContext) marshalNUserContactMethod2ᚕgithubᚗcomᚋtarget�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25744,6 +26983,13 @@ func (ec *executionContext) marshalNUserNotificationRule2ᚕgithubᚗcomᚋtarge
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25785,6 +27031,13 @@ func (ec *executionContext) marshalNUserOverride2ᚕgithubᚗcomᚋtargetᚋgoal
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25850,6 +27103,13 @@ func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25906,6 +27166,13 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -25979,6 +27246,13 @@ func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26028,6 +27302,13 @@ func (ec *executionContext) marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26069,6 +27350,13 @@ func (ec *executionContext) marshalN__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26134,6 +27422,13 @@ func (ec *executionContext) marshalOAlert2ᚕgithubᚗcomᚋtargetᚋgoalertᚋa
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26244,6 +27539,13 @@ func (ec *executionContext) marshalOAlertStatus2ᚕgithubᚗcomᚋtargetᚋgoale
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26471,6 +27773,14 @@ func (ec *executionContext) unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋ
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalODebugMessagesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessagesInput(ctx context.Context, v interface{}) (*DebugMessagesInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDebugMessagesInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInfo(ctx context.Context, sel ast.SelectionSet, v *DebugSendSMSInfo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -26550,6 +27860,12 @@ func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast
 		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -26623,6 +27939,12 @@ func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
 	}
 
 	return ret
@@ -26877,6 +28199,12 @@ func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
 	}
 
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -27055,6 +28383,13 @@ func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgq
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -27095,6 +28430,13 @@ func (ec *executionContext) marshalO__Field2ᚕgithubᚗcomᚋ99designsᚋgqlgen
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -27135,6 +28477,13 @@ func (ec *executionContext) marshalO__InputValue2ᚕgithubᚗcomᚋ99designsᚋg
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 
@@ -27182,6 +28531,13 @@ func (ec *executionContext) marshalO__Type2ᚕgithubᚗcomᚋ99designsᚋgqlgen�
 
 	}
 	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
 	return ret
 }
 

@@ -1,6 +1,5 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { useDispatch, useSelector } from 'react-redux'
 import { Switch, Route } from 'react-router-dom'
 
 import SimpleListPage from '../lists/SimpleListPage'
@@ -11,10 +10,10 @@ import { PageNotFound } from '../error-pages/Errors'
 import ServiceAlerts from './ServiceAlerts'
 import ServiceCreateDialog from './ServiceCreateDialog'
 import HeartbeatMonitorList from './HeartbeatMonitorList'
-import { searchSelector } from '../selectors'
-import { setURLParam } from '../actions'
+import { useURLParam } from '../actions'
 import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
 import getServiceLabel from '../util/getServiceLabel'
+import AlertMetrics from './AlertMetrics/AlertMetrics'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -34,10 +33,7 @@ const query = gql`
 `
 
 export default function ServiceRouter() {
-  const searchParam = useSelector(searchSelector) // current total search string on page load
-  const dispatch = useDispatch()
-  const setSearchParam = (value) => dispatch(setURLParam('search', value))
-
+  const [searchParam, setSearchParam] = useURLParam('search', '')
   const { labelKey, labelValue } = getServiceLabel(searchParam)
 
   function renderList() {
@@ -86,6 +82,10 @@ export default function ServiceRouter() {
     return <ServiceLabelList serviceID={match.params.serviceID} />
   }
 
+  function renderAlertMetrics({ match }) {
+    return <AlertMetrics serviceID={match.params.serviceID} />
+  }
+
   return (
     <Switch>
       <Route exact path='/services' render={renderList} />
@@ -102,7 +102,11 @@ export default function ServiceRouter() {
         render={renderHeartbeatMonitors}
       />
       <Route exact path='/services/:serviceID/labels' render={renderLabels} />
-
+      <Route
+        exact
+        path='/services/:serviceID/alert-metrics'
+        render={renderAlertMetrics}
+      />
       <Route component={PageNotFound} />
     </Switch>
   )

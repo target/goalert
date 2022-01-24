@@ -248,8 +248,8 @@ func (s *Store) WithoutAuthProviderFunc(ctx context.Context, providerID string, 
 // If an error is returned by forEachFn it will stop reading subjects and be returned.
 //
 // providerID, if not empty, will limit AuthSubjects to those with the same providerID.
-// userID, if not empty, will limit AuthSubjects to those assigned to the given userID.
-func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID string, forEachFn func(AuthSubject) error, userIDs ...string) error {
+// userID, if not empty, will limit AuthSubjects to those assigned to the given userID(s).
+func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID string, userIDs []string, forEachFn func(AuthSubject) error) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return err
@@ -688,10 +688,10 @@ func (s *Store) FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, 
 // FindAllAuthSubjectsForUser returns all auth subjects associated with a given userID.
 func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error) {
 	var result []AuthSubject
-	err := s.AuthSubjectsFunc(ctx, "", func(sub AuthSubject) error {
+	err := s.AuthSubjectsFunc(ctx, "", []string{userID}, func(sub AuthSubject) error {
 		result = append(result, sub)
 		return nil
-	}, userID)
+	})
 	if err != nil {
 		return nil, err
 	}

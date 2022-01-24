@@ -160,7 +160,9 @@ function testRotations(): void {
     })
 
     it('should allow deleting the rotation', () => {
-      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
+      cy.get('[data-cy="card-actions"]')
+        .find('button[aria-label="Delete"]')
+        .click()
 
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
@@ -179,7 +181,7 @@ function testRotations(): void {
 
           cy.visit(`/rotations/${r.id}`)
           cy.get('[data-cy="card-actions"]')
-            .find('button[title="Edit"]')
+            .find('button[aria-label="Edit"]')
             .click()
 
           cy.dialogTitle('Edit Rotation')

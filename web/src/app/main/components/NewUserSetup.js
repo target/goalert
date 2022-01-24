@@ -1,16 +1,12 @@
 import React, { useState } from 'react'
 import UserContactMethodCreateDialog from '../../users/UserContactMethodCreateDialog'
 import UserContactMethodVerificationDialog from '../../users/UserContactMethodVerificationDialog'
-import { useDispatch, useSelector } from 'react-redux'
-import { urlParamSelector } from '../../selectors'
 import { useSessionInfo, useConfigValue } from '../../util/RequireConfig'
-import { resetURLParams } from '../../actions'
+import { useResetURLParams, useURLParam } from '../../actions'
 
 export default function NewUserSetup() {
-  const urlParams = useSelector(urlParamSelector)
-  const isFirstLogin = urlParams('isFirstLogin', '')
-  const dispatch = useDispatch()
-  const clearIsFirstLogin = () => dispatch(resetURLParams('isFirstLogin'))
+  const [isFirstLogin] = useURLParam('isFirstLogin', '')
+  const clearIsFirstLogin = useResetURLParams('isFirstLogin')
   const [contactMethodID, setContactMethodID] = useState('')
   const { userID, ready } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
