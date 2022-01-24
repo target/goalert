@@ -190,27 +190,34 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 		return result
 	}
 
+	// fill in timestamps
+	t1, t2 := since, since.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	for t1.Before(until) {
+		result = append(result, graphql2.AlertDataPoint{
+			Timestamp: t1,
+		})
+		t1, t2 = t2, t2.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	}
+
+	if len(result) == 0 {
+		return result
+	}
+
 	i := 0
 	// ignore alerts created before since
 	for i < len(alerts) && alerts[i].CreatedAt.Before(since) {
 		i++
 	}
 
-	ts, upperBound := since, since.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
-	if upperBound.After(until) {
-		upperBound = until
-	}
-
-	for ts.Before(until) {
-		next := graphql2.AlertDataPoint{Timestamp: ts, AlertCount: 0}
-		for i < len(alerts) && alerts[i].CreatedAt.Before(upperBound) {
-			next.AlertCount++
-			i++
+	for ptindex := range result {
+		upperBound := until
+		if ptindex != len(result)-1 {
+			upperBound = result[ptindex+1].Timestamp
 		}
-		result = append(result, next)
-		ts, upperBound = upperBound, upperBound.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
-		if upperBound.After(until) {
-			upperBound = until
+
+		for i < len(alerts) && alerts[i].CreatedAt.Before(upperBound) {
+			result[ptindex].AlertCount++
+			i++
 		}
 	}
 
