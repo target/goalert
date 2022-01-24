@@ -191,12 +191,12 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 	}
 
 	// fill in timestamps
-	t1, t2 := since, since.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	t1 := since
 	for t1.Before(until) {
 		result = append(result, graphql2.AlertDataPoint{
 			Timestamp: t1,
 		})
-		t1, t2 = t2, t2.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+		t1 = t1.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
 	}
 
 	if len(result) == 0 {
