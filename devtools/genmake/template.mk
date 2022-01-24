@@ -27,14 +27,22 @@ IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
 CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
+PUSH:=0
 
 {{range $.ContainerArch}}
 container-demo-{{.}}: bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
+	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
 	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
 container-goalert-{{.}}: bin/goalert-linux-{{.}}.tgz
-	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
 {{end}}
-
 container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
 container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
 

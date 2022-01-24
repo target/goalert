@@ -29,23 +29,47 @@ IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
 CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
+PUSH:=0
 
 
 container-demo-amd64: bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb
+	$(CONTAINER_TOOL) pull --platform=linux/amd64 docker.io/library/alpine:3.14
 	$(CONTAINER_TOOL) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
 container-goalert-amd64: bin/goalert-linux-amd64.tgz
-	$(CONTAINER_TOOL) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) pull --platform=linux/amd64 docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
 
 container-demo-arm: bin/goalert-linux-arm.tgz bin/linux-arm/resetdb
+	$(CONTAINER_TOOL) pull --platform=linux/arm docker.io/library/alpine:3.14
 	$(CONTAINER_TOOL) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
 container-goalert-arm: bin/goalert-linux-arm.tgz
-	$(CONTAINER_TOOL) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) pull --platform=linux/arm docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
 
 container-demo-arm64: bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
+	$(CONTAINER_TOOL) pull --platform=linux/arm64 docker.io/library/alpine:3.14
 	$(CONTAINER_TOOL) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
 container-goalert-arm64: bin/goalert-linux-arm64.tgz
-	$(CONTAINER_TOOL) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
+	$(CONTAINER_TOOL) pull --platform=linux/arm64 docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
 
 container-demo:  container-demo-amd64 container-demo-arm container-demo-arm64
 container-goalert:  container-goalert-amd64 container-goalert-arm container-goalert-arm64
