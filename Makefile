@@ -174,7 +174,7 @@ config.json.bak: bin/goalert
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
 postgres: bin/waitfor
-	(podman run -d \
+	($(CONTAINER_TOOL) run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
