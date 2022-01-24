@@ -25,26 +25,26 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
 LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
-IMAGE_PREFIX=docker.io/goalert
+IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
-IMAGE_CMD:=$(shell which podman || which docker || exit 1)
+CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 
 
 container-demo-amd64: bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb
-	$(IMAGE_CMD) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
 container-goalert-amd64: bin/goalert-linux-amd64.tgz
-	$(IMAGE_CMD) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=amd64 --platform=linux/amd64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
 
 container-demo-arm: bin/goalert-linux-arm.tgz bin/linux-arm/resetdb
-	$(IMAGE_CMD) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
 container-goalert-arm: bin/goalert-linux-arm.tgz
-	$(IMAGE_CMD) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm --platform=linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
 
 container-demo-arm64: bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
-	$(IMAGE_CMD) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
 container-goalert-arm64: bin/goalert-linux-arm64.tgz
-	$(IMAGE_CMD) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH=arm64 --platform=linux/arm64 -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
 
 
 container-demo:  container-demo-amd64 container-demo-arm container-demo-arm64

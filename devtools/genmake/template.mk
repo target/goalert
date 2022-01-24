@@ -23,16 +23,16 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
 LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
-IMAGE_PREFIX=docker.io/goalert
+IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
-IMAGE_CMD:=$(shell which podman || which docker || exit 1)
+CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 
 {{range $.ContainerArch}}
 container-demo-{{.}}: bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
-	$(IMAGE_CMD) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
 container-goalert-{{.}}: bin/goalert-linux-{{.}}.tgz
-	$(IMAGE_CMD) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_PREFIX)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
 {{end}}
 
 container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
