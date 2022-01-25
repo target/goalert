@@ -183,9 +183,6 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 // Each segment is then transformed into an AlertDataPoint based on the given alerts.
 // The given alerts are required to be sorted by their CreatedAt field.
 func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
-	// serialized as empty array
-	result = []graphql2.AlertDataPoint{}
-
 	if since.After(until) {
 		return result
 	}

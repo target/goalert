@@ -23,7 +23,7 @@ type Query {
   alerts(input: AlertSearchOptions): AlertConnection!
 
   # Returns an array of alert metric data points
-  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]
+  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]!
 
   # Returns a single service with the given ID.
   service(id: ID!): Service

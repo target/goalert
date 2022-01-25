@@ -41,7 +41,7 @@ export interface AlertMetricsOptions {
   since: ISOTimestamp
   until: ISOTimestamp
   period?: ISODuration
-  filterByServiceID?: string[]
+  filterByServiceID: string[]
 }
 
 export interface AlertDataPoint {
