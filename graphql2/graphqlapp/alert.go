@@ -229,13 +229,9 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 }
 
 func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
-	validTimeFrame, err := time.ParseDuration("1200h")
-	if err != nil {
-		return nil, err
-	}
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
-		validate.TimeFrame("Timeframe", opts.Since, opts.Until, validTimeFrame),
+		validate.TimeFrame("Timeframe", opts.Since, opts.Until, 1200*time.Hour),
 	)
 	if err != nil {
 		return nil, err
@@ -260,12 +256,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, err
 	}
 
-	_24hr, err := time.ParseDuration("24h")
-	if err != nil {
-		return nil, err
-	}
-
-	if period.Years == 0 && period.Months == 0 && period.Days == 0 && period.TimePart < _24hr {
+	if period.Years == 0 && period.Months == 0 && period.Days == 0 && period.TimePart < 24*time.Hour {
 		return nil, fmt.Errorf("period must be at least 24 hours")
 	}
 
