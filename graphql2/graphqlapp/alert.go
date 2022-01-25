@@ -232,6 +232,9 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, err
 	}
 
+	opts.Since = opts.Since.UTC()
+	opts.Until = opts.Until.UTC()
+
 	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{
 		Before:    opts.Until,
 		NotBefore: opts.Since,
