@@ -4266,6 +4266,7 @@ enum AlertSearchSort {
   dateIDReverse
 }
 
+# An ISODuration is an RFC3339-formatted duration string.
 scalar ISODuration
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
