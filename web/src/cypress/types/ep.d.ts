@@ -24,7 +24,11 @@ interface EPOptions {
 }
 
 interface EPStep {
+  id: string
+  stepNumber: number
   delayMinutes: number
+  targets: Target[]
+  escalationPolicy: EP
 }
 
 interface EPStepOptions {
