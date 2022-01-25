@@ -194,12 +194,11 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 	countAlertsUntil := func(ts time.Time) int {
 		var count int
 		for len(alerts) > 0 {
-			if alerts[0].CreatedAt.Before(ts) {
-				count++
-			} else {
+			if !alerts[0].CreatedAt.Before(ts) {
 				break
 			}
 
+			count++
 			alerts = alerts[1:]
 		}
 		return count
