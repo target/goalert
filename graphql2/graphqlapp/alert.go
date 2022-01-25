@@ -191,35 +191,35 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 		panic("duration must not be zero")
 	}
 
-	// fill in timestamps
+	countAlerts := func(t1 time.Time, t2 time.Time) int {
+		var count int
+		for {
+			if len(alerts) == 0 {
+				break
+			}
+			if !alerts[0].CreatedAt.Before(t2) || !alerts[0].CreatedAt.Before(until) {
+				break
+			}
+			if !alerts[0].CreatedAt.Before(t1) && alerts[0].CreatedAt.Before(t2) {
+				count++
+			}
+
+			alerts = alerts[1:]
+		}
+		return count
+	}
+
+	// trim alerts before since
+	countAlerts(since, since)
+
 	t1 := since
 	for t1.Before(until) {
+		t2 := t1.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
 		result = append(result, graphql2.AlertDataPoint{
-			Timestamp: t1,
+			Timestamp:  t1,
+			AlertCount: countAlerts(t1, t2),
 		})
-		t1 = t1.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
-	}
-
-	if len(result) == 0 {
-		return result
-	}
-
-	i := 0
-	// ignore alerts created before since
-	for i < len(alerts) && alerts[i].CreatedAt.Before(since) {
-		i++
-	}
-
-	for ptindex := range result {
-		upperBound := until
-		if ptindex != len(result)-1 {
-			upperBound = result[ptindex+1].Timestamp
-		}
-
-		for i < len(alerts) && alerts[i].CreatedAt.Before(upperBound) {
-			result[ptindex].AlertCount++
-			i++
-		}
+		t1 = t2
 	}
 
 	return result
