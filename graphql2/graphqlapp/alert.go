@@ -190,6 +190,10 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 		return result
 	}
 
+	if dur.IsZero() {
+		panic("duration must not be zero")
+	}
+
 	// fill in timestamps
 	t1 := since
 	for t1.Before(until) {
