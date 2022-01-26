@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
@@ -12,6 +12,8 @@ import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
+import { POLL_INTERVAL } from '../../config'
+import { Alert } from '../../../schema'
 
 const query = gql`
   query alertmetrics($serviceID: ID!, $input: AlertSearchOptions!) {
@@ -32,6 +34,7 @@ const query = gql`
         createdAt
       }
       pageInfo {
+        endCursor
         hasNextPage
       }
     }
@@ -47,6 +50,7 @@ const QUERY_LIMIT = 100
 export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
+  const [poll, setPoll] = useState(POLL_INTERVAL)
   const now = useMemo(() => DateTime.now(), [])
   const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
   const maxDate = now.endOf('day')
@@ -67,17 +71,47 @@ export default function AlertMetrics({
     since <= until
 
   const q = useQuery(query, {
+    pollInterval: poll,
     variables: {
       serviceID,
       input: {
         filterByServiceID: [serviceID],
         first: QUERY_LIMIT,
-        notCreatedBefore: since.toISO(),
-        createdBefore: until.toISO(),
+        // notCreatedBefore: since.toISO(),
+        // createdBefore: until.toISO(),
       },
     },
     skip: !isValidRange,
   })
+
+  useEffect(() => {
+    console.log('here', q)
+    if (!q.loading && q?.data?.alerts?.pageInfo?.hasNextPage) {
+      setPoll(0)
+      q.fetchMore({
+        variables: {
+          input: {
+            first: QUERY_LIMIT,
+            after: q.data?.alerts?.pageInfo?.endCursor,
+          },
+        },
+        updateQuery: (
+          prev: { alerts: { nodes: Alert[] } },
+          { fetchMoreResult },
+        ) => {
+          if (!fetchMoreResult) return prev
+          let alerts = prev.alerts.nodes.concat(fetchMoreResult.alerts.nodes)
+          alerts = alerts.filter((alert, idx) => alerts.indexOf(alert) === idx)
+          return {
+            alerts: {
+              ...fetchMoreResult.alerts,
+              nodes: alerts,
+            },
+          }
+        },
+      })
+    }
+  }, [q])
 
   if (!isValidRange) {
     return <GenericError error='The requested date range is out-of-bounds' />

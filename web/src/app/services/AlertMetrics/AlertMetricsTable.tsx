@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
@@ -29,11 +29,22 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+const PAGE_SIZE = 10
+
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { alerts } = props
+  const [page, setPage] = useState(0)
+  const [rowCount, setRowCount] = useState(100)
+
+  useEffect(() => {
+    if (props.alerts.length) {
+      setRowCount(props.alerts.length)
+    }
+  }, [page, props.alerts])
+
+  const { alerts, loading } = props
 
   const columns = [
     {
@@ -102,6 +113,10 @@ export default function AlertMetricsTable(
     },
   ]
 
+  const getRows = (): Alert[] => {
+    return alerts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  }
+
   function CustomToolbar(): JSX.Element {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
@@ -123,14 +138,20 @@ export default function AlertMetricsTable(
     <Grid container className={classes.tableContent}>
       <Grid item xs={12}>
         <DataGrid
-          rows={alerts}
-          loading={props.loading}
+          rows={getRows()}
+          loading={loading}
           columns={columns}
           disableSelectionOnClick
           components={{
             ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,
           }}
+          onPageChange={(newPage: number) => setPage(newPage)}
+          page={page}
+          paginationMode='server'
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          rowCount={rowCount}
         />
       </Grid>
     </Grid>
