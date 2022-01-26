@@ -8,6 +8,24 @@ import (
 	"github.com/target/goalert/notification"
 )
 
+func resultCheck(t *testing.T, expected string, res string, err error) {
+	if len(res) > 160 {
+		t.Errorf("message exceeded 160 characters")
+	} else {
+		t.Log("Length", len(res))
+	}
+	if err != nil && expected != "" {
+		t.Fatalf("got err %v; want nil", err)
+	} else if err == nil && expected == "" {
+		t.Log(res)
+		t.Fatal("got nil; want err")
+	}
+
+	if res != expected {
+		t.Errorf("got %s; want %s", strconv.Quote(res), strconv.Quote(expected))
+	}
+}
+
 func TestMapGSM(t *testing.T) {
 	check := func(input, exp string) {
 		t.Run("", func(t *testing.T) {
@@ -25,36 +43,21 @@ func TestMapGSM(t *testing.T) {
 	check("[Testing] {alert_message: `okay`}", "(Testing) (alert-message: 'okay')")
 }
 
-func TestAlertSMS_Render(t *testing.T) {
-	check := func(name string, a alertSMS, exp string) {
+func TestSMS_RenderAlert(t *testing.T) {
+	check := func(name string, a notification.Alert, link string, code int, exp string) {
 		t.Run(name, func(t *testing.T) {
-			res, err := a.Render(maxGSMLen)
-			if len(res) > 160 {
-				t.Errorf("message exceeded 160 characters")
-			} else {
-				t.Log("Length", len(res))
-			}
-			if err != nil && exp != "" {
-				t.Fatalf("got err %v; want nil", err)
-			} else if err == nil && exp == "" {
-				t.Log(res)
-				t.Fatal("got nil; want err")
-			}
-
-			if res != exp {
-				t.Errorf("got %s; want %s", strconv.Quote(res), strconv.Quote(exp))
-			}
+			res, err := renderAlertMessage(maxGSMLen, a, link, code)
+			resultCheck(t, exp, res, err)
 		})
 	}
 
 	check("normal",
-		alertSMS{
-			ID:      123,
-			Code:    1,
-			Link:    "https://example.com/alerts/123",
+		notification.Alert{
+			AlertID: 123,
 			Summary: "Testing",
-			Type:    notification.MessageTypeAlert,
 		},
+		"https://example.com/alerts/123",
+		1,
 		`Alert #123: Testing
 
 https://example.com/alerts/123
@@ -62,47 +65,47 @@ https://example.com/alerts/123
 Reply '1a' to ack, '1c' to close.`,
 	)
 
-	check("no-reply",
-		alertSMS{
-			ID:      123,
-			Link:    "https://example.com/alerts/123",
+	check("no-reply-code",
+		notification.Alert{
+			AlertID: 123,
 			Summary: "Testing",
-			Type:    notification.MessageTypeAlert,
 		},
+		"https://example.com/alerts/123",
+		0,
 		`Alert #123: Testing
 
 https://example.com/alerts/123`,
 	)
 
-	check("no-Link",
-		alertSMS{
-			ID:      123,
-			Code:    1,
+	check("no-link",
+		notification.Alert{
+			AlertID: 123,
 			Summary: "Testing",
-			Type:    notification.MessageTypeAlert,
 		},
+		"",
+		1,
 		`Alert #123: Testing
 
 Reply '1a' to ack, '1c' to close.`,
 	)
 
-	check("no-reply-Link",
-		alertSMS{
-			ID:   123,
-			Body: "Testing",
-			Type: notification.MessageTypeAlert,
+	check("no-link-or-reply-code",
+		notification.Alert{
+			AlertID: 123,
+			Summary: "Testing",
 		},
+		"",
+		0,
 		`Alert #123: Testing`,
 	)
 
 	check("truncate",
-		alertSMS{
-			ID:   123,
-			Code: 1,
-			Link: "https://example.com/alerts/123",
-			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
-			Type: notification.MessageTypeAlert,
+		notification.Alert{
+			AlertID: 123,
+			Summary: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
 		},
+		"https://example.com/alerts/123",
+		1,
 		`Alert #123: Testing with a really really obnoxiously long message that will be need to be tru
 
 https://example.com/alerts/123
@@ -111,13 +114,12 @@ Reply '1a' to ack, '1c' to close.`,
 	)
 
 	check("truncate-long-id",
-		alertSMS{
-			ID:   123456789,
-			Code: 1,
-			Link: "https://example.com/alerts/123",
-			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
-			Type: notification.MessageTypeAlert,
+		notification.Alert{
+			AlertID: 123456789,
+			Summary: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
 		},
+		"https://example.com/alerts/123",
+		1,
 		`Alert #123456789: Testing with a really really obnoxiously long message that will be need to
 
 https://example.com/alerts/123
@@ -126,56 +128,70 @@ Reply '1a' to ack, '1c' to close.`,
 	)
 
 	check("message-too-long",
-		// can't fit body
-		alertSMS{
-			ID:   123456789,
-			Code: 123456789,
-			Link: "https://example.com/alerts/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff",
-			Body: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
-			Type: notification.MessageTypeAlert,
+		// can't fit summary
+		notification.Alert{
+			AlertID: 123456789,
+			Summary: "Testing with a really really obnoxiously long message that will be need to be truncated at some point.",
 		},
+		"https://example.com/alerts/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff/123ff",
+		123456789,
 		"",
 	)
+}
+
+func TestSMS_RenderAlertBundle(t *testing.T) {
+	check := func(name string, a notification.AlertBundle, link string, code int, exp string) {
+		t.Run(name, func(t *testing.T) {
+			res, err := renderAlertBundleMessage(maxGSMLen, a, link, code)
+			resultCheck(t, exp, res, err)
+		})
+	}
 
 	check("alert-bundle-one",
-		alertSMS{
-			Count: 1,
-			Body:  "My Service",
-			Code:  100,
-			Link:  "https://example.com/services/321-654/alerts",
-			Type:  notification.MessageTypeAlertBundle,
+		notification.AlertBundle{
+			Count:       1,
+			ServiceName: "My Service",
 		},
+		"https://example.com/services/321-654/alerts",
+		100,
 		`Svc 'My Service': 1 unacked alert
 
-https://example.com/services/321-654/alerts
+	https://example.com/services/321-654/alerts
 
-Reply '100aa' to ack all, '100cc' to close all.`,
+	Reply '100aa' to ack all, '100cc' to close all.`,
 	)
 
 	check("alert-bundle",
-		alertSMS{
-			Count: 5,
-			Body:  "My Service",
-			Code:  100,
-			Link:  "https://example.com/services/321-654/alerts",
-			Type:  notification.MessageTypeAlertBundle,
+		notification.AlertBundle{
+			Count:       5,
+			ServiceName: "My Service",
 		},
+		"https://example.com/services/321-654/alerts",
+		100,
 		`Svc 'My Service': 5 unacked alerts
 
-https://example.com/services/321-654/alerts
+	https://example.com/services/321-654/alerts
 
-Reply '100aa' to ack all, '100cc' to close all.`,
+	Reply '100aa' to ack all, '100cc' to close all.`,
 	)
+}
+
+func TestSMS_RenderAlertStatus(t *testing.T) {
+	check := func(name string, a notification.AlertStatus, exp string) {
+		t.Run(name, func(t *testing.T) {
+			res, err := renderAlertStatusMessage(maxGSMLen, a)
+			resultCheck(t, exp, res, err)
+		})
+	}
 
 	check("alert-status",
-		alertSMS{
-			ID:      123,
-			Summary: "Testing",
-			Body:    "Some log entry",
-			Type:    notification.MessageTypeAlertStatus,
+		notification.AlertStatus{
+			AlertID:  123,
+			Summary:  "Testing",
+			LogEntry: "Some log entry",
 		},
 		`Alert #123: Testing
 
-Some log entry`,
+	Some log entry`,
 	)
 }

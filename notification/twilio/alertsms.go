@@ -23,6 +23,7 @@ const maxGSMLen = 160
 var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.AlertID}}: {{.Summary}}
 
 {{- if .Link }}
+
 {{.Link}}
 {{end}}
 
@@ -32,15 +33,16 @@ Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
 var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 
 {{- if .Link }}
-{{.Link}}
+
+	{{.Link}}
 {{end}}
 
 {{- if .Code}}
-Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
+	Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
 
-var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.AlertID}}{{-if .Summary }}: {{.Summary}}{{end}}
+var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.AlertID}}{{- if .Summary }}: {{.Summary}}{{end}}
 
-{{.LogEntry}}`))
+	{{.LogEntry}}`))
 
 const gsmAlphabet = "@∆ 0¡P¿p£!1AQaq$Φ\"2BRbr¥Γ#3CScsèΛ¤4DTdtéΩ%5EUeuùΠ&6FVfvìΨ'7GWgwòΣ(8HXhxÇΘ)9IYiy\n Ξ *:JZjzØ+;KÄkäøÆ,<LÖlö\ræ-=MÑmñÅß.>NÜnüåÉ/?O§oà"
 
@@ -159,29 +161,29 @@ func renderAlertMessage(maxLen int, a notification.Alert, link string, code int)
 	return buf.String(), nil
 }
 
-// renderAlertStatusMsg will render a single-segment SMS for an Alert Status.
+// renderAlertStatusMessage will render a single-segment SMS for an Alert Status.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
 // truncated (if needed) until the output is <= maxLen characters.
-func renderAlertStatusMsg(maxLen int, a notification.AlertStatus) (string, error) {
+func renderAlertStatusMessage(maxLen int, a notification.AlertStatus) (string, error) {
 	var buf bytes.Buffer
 	a.Summary = normalizeGSM(a.Summary)
 	a.LogEntry = normalizeGSM(a.LogEntry)
 
-	err := alertTempl.Execute(&buf, a)
+	err := statusTempl.Execute(&buf, a)
 	if err != nil {
 		return "", err
 	}
 
 	if trimString(&a.Summary, &buf, maxLen) {
-		err = alertTempl.Execute(&buf, a)
+		err = statusTempl.Execute(&buf, a)
 		if err != nil {
 			return "", err
 		}
 	}
 
 	if trimString(&a.LogEntry, &buf, maxLen) {
-		err = alertTempl.Execute(&buf, a)
+		err = statusTempl.Execute(&buf, a)
 		if err != nil {
 			return "", err
 		}
@@ -195,11 +197,11 @@ func renderAlertStatusMsg(maxLen int, a notification.AlertStatus) (string, error
 	return buf.String(), nil
 }
 
-// renderAlertBundleMsg will render a single-segment SMS for an Alert Bundle.
+// renderAlertBundleMessage will render a single-segment SMS for an Alert Bundle.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
 // truncated (if needed) until the output is <= maxLen characters.
-func renderAlertBundleMsg(maxLen int, a notification.AlertBundle, link string, code int) (string, error) {
+func renderAlertBundleMessage(maxLen int, a notification.AlertBundle, link string, code int) (string, error) {
 	var buf bytes.Buffer
 	a.ServiceName = normalizeGSM(a.ServiceName)
 
@@ -212,13 +214,13 @@ func renderAlertBundleMsg(maxLen int, a notification.AlertBundle, link string, c
 	data.Link = link
 	data.Code = code
 
-	err := alertTempl.Execute(&buf, data)
+	err := bundleTempl.Execute(&buf, data)
 	if err != nil {
 		return "", err
 	}
 
 	if trimString(&a.ServiceName, &buf, maxLen) {
-		err = alertTempl.Execute(&buf, data)
+		err = bundleTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
 		}

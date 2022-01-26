@@ -113,14 +113,14 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	var err error
 	switch t := msg.(type) {
 	case notification.AlertStatus:
-		message, err = renderAlertStatusMsg(maxLen, t)
+		message, err = renderAlertStatusMessage(maxLen, t)
 	case notification.AlertBundle:
 		var link string
 		if !cfg.General.DisableSMSLinks {
 			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
 		}
 
-		message, err = renderAlertBundleMsg(maxLen, t, link, makeSMSCode(0, t.ServiceID))
+		message, err = renderAlertBundleMessage(maxLen, t, link, makeSMSCode(0, t.ServiceID))
 	case notification.Alert:
 		var link string
 		if !cfg.General.DisableSMSLinks {
