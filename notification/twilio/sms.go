@@ -113,38 +113,21 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	var err error
 	switch t := msg.(type) {
 	case notification.AlertStatus:
-		message, err = alertSMS{
-			ID:      t.AlertID,
-			Summary: t.Summary,
-			Body:    t.LogEntry,
-			Type:    notification.MessageTypeAlertStatus,
-		}.Render(maxLen)
+		message, err = renderAlertStatusMsg(maxLen, t)
 	case notification.AlertBundle:
 		var link string
 		if !cfg.General.DisableSMSLinks {
 			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
 		}
 
-		message, err = alertSMS{
-			Count: t.Count,
-			Body:  t.ServiceName,
-			Link:  link,
-			Code:  makeSMSCode(0, t.ServiceID),
-			Type:  notification.MessageTypeAlertBundle,
-		}.Render(maxLen)
+		message, err = renderAlertBundleMsg(maxLen, t, link, makeSMSCode(0, t.ServiceID))
 	case notification.Alert:
 		var link string
 		if !cfg.General.DisableSMSLinks {
 			link = cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID))
 		}
 
-		message, err = alertSMS{
-			ID:      t.AlertID,
-			Summary: t.Summary,
-			Link:    link,
-			Code:    makeSMSCode(t.AlertID, ""),
-			Type:    notification.MessageTypeAlert,
-		}.Render(maxLen)
+		message, err = renderAlertMessage(maxLen, t, link, makeSMSCode(t.AlertID, ""))
 	case notification.Test:
 		message = "Test message."
 	case notification.Verification:
