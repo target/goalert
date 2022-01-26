@@ -226,7 +226,7 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
-		validate.TimeFrame("Timeframe", opts.Since, opts.Until, 1200*time.Hour),
+		validate.Duration("Duration", opts.Until.Sub(opts.Since), 0, 1200*time.Hour),
 	)
 	if err != nil {
 		return nil, err
