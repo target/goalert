@@ -7,7 +7,7 @@ export interface Query {
   users: UserConnection
   alert?: Alert
   alerts: AlertConnection
-  alertMetrics?: AlertDataPoint[]
+  alertMetrics: AlertDataPoint[]
   service?: Service
   integrationKey?: IntegrationKey
   heartbeatMonitor?: HeartbeatMonitor
@@ -41,7 +41,7 @@ export interface AlertMetricsOptions {
   since: ISOTimestamp
   until: ISOTimestamp
   period?: ISODuration
-  filterByServiceID: string[]
+  filterByServiceID?: string[]
 }
 
 export interface AlertDataPoint {
