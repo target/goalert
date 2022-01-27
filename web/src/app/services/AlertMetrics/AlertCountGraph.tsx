@@ -12,9 +12,11 @@ import {
   Legend,
 } from 'recharts'
 import { theme } from '../../mui'
+import Spinner from '../../loading/components/Spinner'
 
 interface AlertCountGraphProps {
   data: typeof BarChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles<typeof theme>((theme) => ({
@@ -36,6 +38,7 @@ export default function AlertCountGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12}>
+        {props.loading && <Spinner />}
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
             width={730}
@@ -52,16 +55,18 @@ export default function AlertCountGraph(
             <YAxis allowDecimals={false} dataKey='count' />
             <Tooltip
               labelFormatter={(label, props) => {
-                return props.length ? props[0].payload.label : label
+                return props?.length ? props[0]?.payload?.label : label
               }}
             />
             <Legend />
-            <Bar
-              dataKey='count'
-              fill='rgb(205, 24, 49)'
-              className={classes.bar}
-              name='Alert Count'
-            />
+            {!props.loading && (
+              <Bar
+                dataKey='count'
+                fill='rgb(205, 24, 49)'
+                className={classes.bar}
+                name='Alert Count'
+              />
+            )}
           </BarChart>
         </ResponsiveContainer>
       </Grid>

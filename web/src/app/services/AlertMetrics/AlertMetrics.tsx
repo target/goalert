@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
+import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash'
@@ -10,7 +10,6 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { POLL_INTERVAL } from '../../config'
 import { Alert } from '../../../schema'
@@ -77,15 +76,14 @@ export default function AlertMetrics({
       input: {
         filterByServiceID: [serviceID],
         first: QUERY_LIMIT,
-        // notCreatedBefore: since.toISO(),
-        // createdBefore: until.toISO(),
+        notCreatedBefore: since.toISO(),
+        createdBefore: until.toISO(),
       },
     },
     skip: !isValidRange,
   })
 
   useEffect(() => {
-    console.log('here', q)
     if (!q.loading && q?.data?.alerts?.pageInfo?.hasNextPage) {
       setPoll(0)
       q.fetchMore({
@@ -161,19 +159,6 @@ export default function AlertMetrics({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        {hasNextPage && (
-          <Box sx={{ marginBottom: '1rem' }}>
-            <Notices
-              notices={[
-                {
-                  type: 'WARNING',
-                  message: 'Query limit reached',
-                  details: `More than ${QUERY_LIMIT} alerts were found, but only the first ${QUERY_LIMIT} are represented below.`,
-                },
-              ]}
-            />
-          </Box>
-        )}
         <Card>
           <CardHeader
             component='h2'
@@ -181,10 +166,13 @@ export default function AlertMetrics({
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-            <AlertCountGraph data={data} />
+            <AlertCountGraph
+              data={data}
+              loading={q.loading || !q?.data?.alerts || hasNextPage}
+            />
             <AlertMetricsTable
               alerts={alerts}
-              loading={q.loading || !q?.data?.alerts}
+              loading={q.loading || !q?.data?.alerts || hasNextPage}
             />
           </CardContent>
         </Card>
