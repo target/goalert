@@ -1,4 +1,6 @@
 node_modules
 smoketest_db_dump
 .git/
-/bin
+/bin/tools
+/bin/prom-data
+/bin/goalert
