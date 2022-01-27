@@ -36,7 +36,7 @@ export default function AlertMetricsTable(
 ): JSX.Element {
   const classes = useStyles()
   const [page, setPage] = useState(0)
-  const [rowCount, setRowCount] = useState(100)
+  const [rowCount, setRowCount] = useState(0)
 
   useEffect(() => {
     if (props.alerts.length) {
