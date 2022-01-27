@@ -191,7 +191,7 @@ resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	git clean -xdf
+	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 lint: $(GOALERT_DEPS)
 	go run github.com/golang/lint/golint $(shell go list ./...)
