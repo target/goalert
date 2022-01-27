@@ -199,7 +199,7 @@ resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	rm -rf bin node_modules web/src/node_modules web/src/cypress/videos web/src/cypress/screenshots web/src/build/static
+	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 build-docker: bin/goalert bin/mockslack
 
