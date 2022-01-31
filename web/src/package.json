@@ -33,7 +33,7 @@
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
-    "fuse.js": "6.4.6",
+    "fuse.js": "6.5.3",
     "graphql": "16.3.0",
     "lodash": "4.17.21",
     "luxon": "2.3.0",
