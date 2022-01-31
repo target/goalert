@@ -41,6 +41,11 @@ func (r RInterval) End() time.Time {
 
 // String returns the string representation of the interval.
 func (r RInterval) String() string {
+	if r.Period.Years == 0 && r.Period.Months == 0 && r.Period.Days == 0 {
+		// just a duration, use start/end format
+		return fmt.Sprintf("R%d/%s/%s", r.Count, r.Start.Format(time.RFC3339Nano), r.End().Format(time.RFC3339Nano))
+	}
+
 	return fmt.Sprintf("R%d/%s/%s", r.Count, r.Start.Format(time.RFC3339Nano), r.Period.String())
 }
 
@@ -67,23 +72,23 @@ func ParseRIntervalFrom(t time.Time, s string) (RInterval, error) {
 	var err error
 	ivl.Count, err = strconv.Atoi(parts[0][1:])
 	if err != nil {
-		return RInterval{}, fmt.Errorf("invalid interval: invalid R value: %s", s)
+		return RInterval{}, fmt.Errorf("invalid interval: invalid R value: %s", parts[0][1:])
 	}
 	if ivl.Count < 0 {
-		return RInterval{}, fmt.Errorf("invalid interval: R value must be positive: %s", s)
+		return RInterval{}, fmt.Errorf("invalid interval: R value must be positive: %d", ivl.Count)
 	}
 
 	var hasStart bool
 	if parts[1][0] == 'P' {
 		ivl.Period, err = ParseISODuration(parts[1])
 		if err != nil {
-			return RInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", s)
+			return RInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", parts[1])
 		}
 	} else {
 		hasStart = true
 		ivl.Start, err = time.Parse(time.RFC3339Nano, parts[1])
 		if err != nil {
-			return RInterval{}, fmt.Errorf("invalid interval: invalid start time: %s", s)
+			return RInterval{}, fmt.Errorf("invalid interval: invalid start time: %s", parts[1])
 		}
 	}
 
@@ -100,16 +105,16 @@ func ParseRIntervalFrom(t time.Time, s string) (RInterval, error) {
 	}
 
 	if parts[2][0] == 'P' {
-		ivl.Period, err = ParseISODuration(parts[1])
+		ivl.Period, err = ParseISODuration(parts[2])
 		if err != nil {
-			return RInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", s)
+			return RInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", parts[2])
 		}
 		return ivl, nil
 	}
 
 	end, err := time.Parse(time.RFC3339Nano, parts[2])
 	if err != nil {
-		return RInterval{}, fmt.Errorf("invalid interval: invalid end time: %s", s)
+		return RInterval{}, fmt.Errorf("invalid interval: invalid end time: %s", parts[2])
 	}
 	if hasStart {
 		err = ivl.calcPeriod(end)
