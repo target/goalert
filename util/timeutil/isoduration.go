@@ -18,6 +18,10 @@ type ISODuration struct {
 
 var zeroDur ISODuration
 
+func (dur ISODuration) IsZero() bool {
+	return dur == zeroDur
+}
+
 // String returns an ISO 8601 duration string.
 func (dur ISODuration) String() string {
 	if dur == zeroDur {
