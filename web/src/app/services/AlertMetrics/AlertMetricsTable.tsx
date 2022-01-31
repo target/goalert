@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
@@ -36,15 +36,9 @@ export default function AlertMetricsTable(
 ): JSX.Element {
   const classes = useStyles()
   const [page, setPage] = useState(0)
-  const [rowCount, setRowCount] = useState(0)
 
-  useEffect(() => {
-    if (props.alerts.length) {
-      setRowCount(props.alerts.length)
-    }
-  }, [page, props.alerts])
-
-  const { alerts, loading } = props
+  const { alerts = [], loading } = props
+  const rows = alerts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const columns = [
     {
@@ -113,10 +107,6 @@ export default function AlertMetricsTable(
     },
   ]
 
-  const getRows = (): Alert[] => {
-    return alerts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
-  }
-
   function CustomToolbar(): JSX.Element {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
@@ -138,7 +128,7 @@ export default function AlertMetricsTable(
     <Grid container className={classes.tableContent}>
       <Grid item xs={12}>
         <DataGrid
-          rows={getRows()}
+          rows={rows}
           loading={loading}
           columns={columns}
           disableSelectionOnClick
@@ -151,7 +141,7 @@ export default function AlertMetricsTable(
           paginationMode='server'
           pageSize={10}
           rowsPerPageOptions={[10]}
-          rowCount={rowCount}
+          rowCount={alerts.length}
         />
       </Grid>
     </Grid>
