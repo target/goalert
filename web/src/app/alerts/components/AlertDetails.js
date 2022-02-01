@@ -263,7 +263,6 @@ export default function AlertDetails(props) {
     if (!fullDescription && details.length > 1000) {
       details = details.slice(0, 1000).trim() + ' ...'
     }
-    if (details.split('```').length % 2 === 0) details += '\n```'
 
     let expandTextAction = null
     if (details.length > 1000) {
@@ -303,12 +302,8 @@ export default function AlertDetails(props) {
             <Typography component='h3' variant='h5'>
               Details
             </Typography>
-            <Typography
-              variant='body1'
-              component='div'
-              style={{ whiteSpace: 'pre-wrap' }}
-            >
-              <Markdown value={details} />
+            <Typography variant='body1' component='div'>
+              <Markdown value={details + '\n'} />
             </Typography>
             {expandTextAction}
           </CardContent>

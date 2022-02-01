@@ -13,7 +13,11 @@ See our [Getting Started Guide](./docs/getting-started.md) for running GoAlert i
 ### Quick Start
 
 ```bash
-docker run -it --rm -p 8081:8081 goalert/all-in-one-demo
+# podman
+podman run -it --rm -p 8081:8081 goalert/demo
+
+# docker
+docker run -it --rm -p 8081:8081 goalert/demo
 ```
 
 GoAlert will be running at [localhost:8081](http://localhost:8081). You can login with `admin/admin123`.

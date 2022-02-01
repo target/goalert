@@ -14,6 +14,7 @@
 // ***********************************************************
 
 import './slack'
+import './admin'
 import './alert'
 import './calendar-subscription'
 import './fail-fast'

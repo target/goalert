@@ -12,7 +12,7 @@ fi
 
 # assert Cypress versions are identical
 PKG_JSON_VER=$(grep '"cypress":' web/src/package.json | awk -F '"' '{print $4}')
-DOCKERFILE_VER=$(grep 'FROM cypress/included:' devtools/ci/dockerfiles/cypress-env/Dockerfile | awk -F ':' '{print $2}')
+DOCKERFILE_VER=$(grep 'FROM docker.io/cypress/included:' devtools/ci/dockerfiles/cypress-env/Dockerfile | awk -F ':' '{print $2}')
 TASKFILE_VER=$(grep 'goalert/cypress-env' devtools/ci/tasks/test-integration.yml | awk '{print $6}')
 if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
   echo "Cypress versions do not match:"
