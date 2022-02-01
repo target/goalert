@@ -2,9 +2,13 @@ package timeutil
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/target/goalert/validation"
 )
 
 // ISORInterval represents an ISO recurring interval.
@@ -14,9 +18,13 @@ type ISORInterval struct {
 	Period ISODuration
 }
 
-func (r *ISORInterval) calcStart(end time.Time) {
+func (r *ISORInterval) calcStart(end time.Time) error {
+	if r.Period.IsZero() {
+		return fmt.Errorf("invalid interval: duration must be non-zero")
+	}
 	n := r.Count + 1
 	r.Start = end.AddDate(-r.Period.Years*n, -r.Period.Months*n, -r.Period.Days*n).Add(-r.Period.TimePart * time.Duration(n))
+	return nil
 }
 
 func (r *ISORInterval) calcPeriod(end time.Time) error {
@@ -119,8 +127,33 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 	if hasStart {
 		err = ivl.calcPeriod(end)
 	} else {
-		ivl.calcStart(end)
+		err = ivl.calcStart(end)
 	}
 
 	return ivl, err
+}
+
+func (r ISORInterval) MarshalGQL(w io.Writer) {
+	if r == (ISORInterval{}) {
+		io.WriteString(w, "null")
+		return
+	}
+
+	io.WriteString(w, `"`+r.String()+`"`)
+}
+
+func (r *ISORInterval) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return errors.New("ISORIntervals must be strings")
+	}
+	str = strings.Trim(str, `"`)
+
+	t, err := ParseISORInterval(str)
+	if err != nil {
+		return validation.WrapError(err)
+	}
+
+	*r = t
+	return nil
 }
