@@ -1,9 +1,9 @@
-FROM goalert/build-env:go1.17.2-postgres13 AS build
+FROM docker.io/goalert/build-env:go1.17.5-postgres13 AS build
 COPY / /build/
 WORKDIR /build
 RUN make bin/build/goalert-linux-amd64
 
-FROM alpine
+FROM docker.io/library/alpine
 RUN apk --no-cache add ca-certificates
 ENV GOALERT_LISTEN :8081
 EXPOSE 8081

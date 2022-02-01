@@ -1,4 +1,5 @@
 .PHONY:{{range $.Builds}} $(BIN_DIR)/{{.Name}}/_all{{end}}
+.PHONY:{{range $.ContainerArch}} container-goalert-{{.}} container-demo-{{.}}{{end}} container-goalert container-demo
 
 BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
@@ -22,7 +23,28 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
 LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
+IMAGE_REPO=docker.io/goalert
+IMAGE_TAG=$(GIT_VERSION)
 
+CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
+PUSH:=0
+
+{{range $.ContainerArch}}
+container-demo-{{.}}: bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
+	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
+container-goalert-{{.}}: bin/goalert-linux-{{.}}.tgz
+	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
+	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
+ifeq ($(PUSH),1)
+	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
+{{end}}
+container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
+container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
 
 $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >$@

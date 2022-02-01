@@ -143,6 +143,11 @@ export default function ServiceDetails({ serviceID }) {
             url: 'labels',
             subText: 'Group together services',
           },
+          {
+            label: 'Alert Metrics',
+            url: 'alert-metrics',
+            subText: 'Review alert activity',
+          },
         ]}
       />
       {showEdit && (
