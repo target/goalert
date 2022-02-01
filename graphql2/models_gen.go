@@ -41,10 +41,8 @@ type AlertLogEntryConnection struct {
 }
 
 type AlertMetricsOptions struct {
-	Since             time.Time `json:"since"`
-	Until             time.Time `json:"until"`
-	Period            *string   `json:"period"`
-	FilterByServiceID []string  `json:"filterByServiceID"`
+	RInterval         timeutil.ISORInterval `json:"rInterval"`
+	FilterByServiceID []string              `json:"filterByServiceID"`
 }
 
 type AlertPendingNotification struct {

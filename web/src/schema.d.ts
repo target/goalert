@@ -38,9 +38,7 @@ export interface Query {
 }
 
 export interface AlertMetricsOptions {
-  since: ISOTimestamp
-  until: ISOTimestamp
-  period?: ISODuration
+  rInterval: ISORInterval
   filterByServiceID?: string[]
 }
 
@@ -676,6 +674,8 @@ export interface AlertSearchOptions {
 export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
 
 export type ISODuration = string
+
+export type ISORInterval = string
 
 export type ISOTimestamp = string
 

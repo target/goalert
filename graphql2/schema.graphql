@@ -115,10 +115,7 @@ type Query {
 }
 
 input AlertMetricsOptions {
-  since: ISOTimestamp!
-  until: ISOTimestamp!
-
-  period: ISODuration = "PT24H"
+  rInterval: ISORInterval!
 
   filterByServiceID: [ID!]
 }
@@ -882,6 +879,9 @@ enum AlertSearchSort {
 
 # An ISODuration is an RFC3339-formatted duration string.
 scalar ISODuration
+
+# An ISORInterval is an RFC3339-formatted recurrin interval string.
+scalar ISORInterval
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp

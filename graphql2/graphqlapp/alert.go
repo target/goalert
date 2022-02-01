@@ -2,7 +2,6 @@ package graphqlapp
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -182,12 +182,10 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 // splitRangeByDuration splits the timeframe given between since and until by the duration provided.
 // Each segment is then transformed into an AlertDataPoint based on the given alerts.
 // The given alerts are required to be sorted by their CreatedAt field.
-func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
-	if since.After(until) {
-		return result
-	}
-
-	if dur.IsZero() {
+func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
+	if r.Period.IsZero() {
+		// should be handled by ISORInterval parsing/validation, but just in case
+		// prefer panic to infinite loop
 		panic("duration must not be zero")
 	}
 
@@ -205,13 +203,14 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 	}
 
 	// trim alerts before since
-	countAlertsUntil(since)
+	countAlertsUntil(r.Start)
 
-	ts := since
-	for ts.Before(until) {
-		next := ts.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
-		if next.After(until) {
-			next = until
+	ts := r.Start
+	end := r.End()
+	for ts.Before(end) {
+		next := r.Period.AddTo(ts)
+		if next.After(end) {
+			next = end
 		}
 		result = append(result, graphql2.AlertDataPoint{
 			Timestamp:  ts,
@@ -226,18 +225,23 @@ func splitRangeByDuration(since, until time.Time, dur timeutil.ISODuration, aler
 func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
-		validate.Duration("Duration", opts.Until.Sub(opts.Since), 0, 1200*time.Hour),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	opts.Since = opts.Since.UTC()
-	opts.Until = opts.Until.UTC()
+	// only daily supported for now
+	if opts.RInterval.Period != (timeutil.ISODuration{Days: 1}) {
+		return nil, validation.NewFieldError("rInterval", "only daily currently supported")
+	}
+
+	if opts.RInterval.Count > 30 {
+		return nil, validation.NewFieldError("rInterval", "count must be <= 30")
+	}
 
 	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{
-		Before:    opts.Until,
-		NotBefore: opts.Since,
+		Before:    opts.RInterval.Start,
+		NotBefore: opts.RInterval.End(),
 		ServiceFilter: alert.IDFilter{
 			IDs:   opts.FilterByServiceID,
 			Valid: true,
@@ -249,16 +253,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, err
 	}
 
-	period, err := timeutil.ParseISODuration(*opts.Period)
-	if err != nil {
-		return nil, err
-	}
-
-	if period.Years == 0 && period.Months == 0 && period.Days == 0 && period.TimePart < 24*time.Hour {
-		return nil, fmt.Errorf("period must be at least 24 hours")
-	}
-
-	return splitRangeByDuration(opts.Since, opts.Until, period, alerts), nil
+	return splitRangeByDuration(opts.RInterval, alerts), nil
 }
 
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {

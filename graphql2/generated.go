@@ -3501,10 +3501,7 @@ var sources = []*ast.Source{
 }
 
 input AlertMetricsOptions {
-  since: ISOTimestamp!
-  until: ISOTimestamp!
-
-  period: ISODuration = "PT24H"
+  rInterval: ISORInterval!
 
   filterByServiceID: [ID!]
 }
@@ -4268,6 +4265,9 @@ enum AlertSearchSort {
 
 # An ISODuration is an RFC3339-formatted duration string.
 scalar ISODuration
+
+# An ISORInterval is an RFC3339-formatted recurrin interval string.
+scalar ISORInterval
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
@@ -18268,33 +18268,13 @@ func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Contex
 		asMap[k] = v
 	}
 
-	if _, present := asMap["period"]; !present {
-		asMap["period"] = "PT24H"
-	}
-
 	for k, v := range asMap {
 		switch k {
-		case "since":
+		case "rInterval":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("since"))
-			it.Since, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "until":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("until"))
-			it.Until, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "period":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
-			it.Period, err = ec.unmarshalOISODuration2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rInterval"))
+			it.RInterval, err = ec.unmarshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -25798,6 +25778,16 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
+func (ec *executionContext) unmarshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx context.Context, v interface{}) (timeutil.ISORInterval, error) {
+	var res timeutil.ISORInterval
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx context.Context, sel ast.SelectionSet, v timeutil.ISORInterval) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := UnmarshalISOTimestamp(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -28212,21 +28202,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return graphql.MarshalID(*v)
-}
-
-func (ec *executionContext) unmarshalOISODuration2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOISODuration2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalString(*v)
 }
 
 func (ec *executionContext) unmarshalOISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
