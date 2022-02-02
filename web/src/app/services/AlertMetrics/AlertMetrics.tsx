@@ -82,8 +82,9 @@ export default function AlertMetrics({
         createdBefore: until.toISO(),
       },
       alertMetricsInput: {
-        since: since,
-        until: until,
+        rInterval: `R${Math.floor(
+          maxDate.diff(minDate, 'days').toObject().days || 0,
+        )}/${since.toISO()}/P1D`,
         filterByServiceID: [serviceID],
       },
     },
