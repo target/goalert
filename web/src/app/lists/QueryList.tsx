@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -17,7 +17,7 @@ import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
 import { PageControls } from './PageControls'
-import { ListHeader } from './ListHeader'
+import { ListHeader, ListHeaderProps } from './ListHeader'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -56,7 +56,9 @@ const buildFetchMore = (
   })
 }
 
-export interface _QueryListProps extends ControlledPaginatedListProps {
+export interface _QueryListProps
+  extends ControlledPaginatedListProps,
+    ListHeaderProps {
   /*
    * query must provide a single field that returns nodes
    *
@@ -73,12 +75,6 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
    *   }
    *  ```
    */
-  // cardHeader will be displayed at the top of the card
-  cardHeader?: ReactNode
-
-  // header elements will be displayed at the top of the list.
-  headerNote?: string // left-aligned
-  headerAction?: JSX.Element // right-aligned
 
   query: DocumentNode
 

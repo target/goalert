@@ -8,11 +8,15 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-export function ListHeader(props: {
+export interface ListHeaderProps {
+  // cardHeader will be displayed at the top of the card
   cardHeader?: ReactNode
-  headerNote?: string
-  headerAction?: JSX.Element
-}): JSX.Element {
+  // header elements will be displayed at the top of the list.
+  headerNote?: string // left-aligned
+  headerAction?: JSX.Element // right-aligned
+}
+
+export function ListHeader(props: ListHeaderProps): JSX.Element {
   const classes = useStyles()
   const { headerNote, headerAction, cardHeader } = props
   return (
