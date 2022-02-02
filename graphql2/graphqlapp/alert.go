@@ -240,6 +240,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 	}
 
 	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{
+		Status:    []alert.Status{alert.StatusClosed},
 		Before:    opts.RInterval.Start,
 		NotBefore: opts.RInterval.End(),
 		ServiceFilter: alert.IDFilter{
