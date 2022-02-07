@@ -20,10 +20,10 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.0"
 
-"@babel/cli@7.16.0":
-  version "7.16.0"
-  resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.16.0.tgz#a729b7a48eb80b49f48a339529fc4129fd7bcef3"
-  integrity sha512-WLrM42vKX/4atIoQB+eb0ovUof53UUvecb4qGjU2PDDWRiZr50ZpiV8NpcLo7iSxeGYrRG0Mqembsa+UrTAV6Q==
+"@babel/cli@7.17.0":
+  version "7.17.0"
+  resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.17.0.tgz#9b932d8f08a2e218fcdd9bba456044eb0a2e0b2c"
+  integrity sha512-es10YH/ejXbg551vtnmEzIPe3MQRNOS644o3pf8vUr1tIeNzVNlP8BBvs1Eh7roh5A+k2fEHUas+ZptOWHA1fQ==
   dependencies:
     commander "^4.0.1"
     convert-source-map "^1.1.0"
