@@ -235,8 +235,8 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 		return nil, validation.NewFieldError("rInterval", "only daily currently supported")
 	}
 
-	if opts.RInterval.Count > 30 {
-		return nil, validation.NewFieldError("rInterval", "count must be <= 30")
+	if opts.RInterval.Repeat > 30 {
+		return nil, validation.NewFieldError("rInterval", "repeat count must be <= 30")
 	}
 
 	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{

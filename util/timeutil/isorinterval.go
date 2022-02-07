@@ -13,7 +13,7 @@ import (
 
 // ISORInterval represents an ISO recurring interval.
 type ISORInterval struct {
-	Count  int
+	Repeat int
 	Start  time.Time
 	Period ISODuration
 }
@@ -22,7 +22,7 @@ func (r *ISORInterval) calcStart(end time.Time) error {
 	if r.Period.IsZero() {
 		return fmt.Errorf("invalid interval: duration must be non-zero")
 	}
-	n := r.Count + 1
+	n := r.Repeat + 1
 	r.Start = end.AddDate(-r.Period.Years*n, -r.Period.Months*n, -r.Period.Days*n).Add(-r.Period.TimePart * time.Duration(n))
 	return nil
 }
@@ -32,18 +32,18 @@ func (r *ISORInterval) calcPeriod(end time.Time) error {
 		return fmt.Errorf("invalid interval: end time must be after start time: %s", end.Format(time.RFC3339Nano))
 	}
 
-	r.Period.TimePart = end.Sub(r.Start) / time.Duration(r.Count+1)
+	r.Period.TimePart = end.Sub(r.Start) / time.Duration(r.Repeat+1)
 
 	return nil
 }
 
 // End returns the end time of the interval.
 func (r ISORInterval) End() time.Time {
-	if r.Count < 0 {
+	if r.Repeat < 0 {
 		panic("cannot calculate end time for infinite interval")
 	}
 
-	n := r.Count + 1
+	n := r.Repeat + 1
 	return r.Start.UTC().AddDate(r.Period.Years*n, r.Period.Months*n, r.Period.Days*n).Add(r.Period.TimePart * time.Duration(n))
 }
 
@@ -51,10 +51,10 @@ func (r ISORInterval) End() time.Time {
 func (r ISORInterval) String() string {
 	if r.Period.Years == 0 && r.Period.Months == 0 && r.Period.Days == 0 {
 		// just a duration, use start/end format
-		return fmt.Sprintf("R%d/%s/%s", r.Count, r.Start.Format(time.RFC3339Nano), r.End().Format(time.RFC3339Nano))
+		return fmt.Sprintf("R%d/%s/%s", r.Repeat, r.Start.Format(time.RFC3339Nano), r.End().Format(time.RFC3339Nano))
 	}
 
-	return fmt.Sprintf("R%d/%s/%s", r.Count, r.Start.Format(time.RFC3339Nano), r.Period.String())
+	return fmt.Sprintf("R%d/%s/%s", r.Repeat, r.Start.Format(time.RFC3339Nano), r.Period.String())
 }
 
 // ParseRInterval parses an ISO recurring interval string. If the string has a duration only,
@@ -78,12 +78,12 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 	var ivl ISORInterval
 
 	var err error
-	ivl.Count, err = strconv.Atoi(parts[0][1:])
+	ivl.Repeat, err = strconv.Atoi(parts[0][1:])
 	if err != nil {
 		return ISORInterval{}, fmt.Errorf("invalid interval: invalid R value: %s", parts[0][1:])
 	}
-	if ivl.Count < 0 {
-		return ISORInterval{}, fmt.Errorf("invalid interval: R value must be positive: %d", ivl.Count)
+	if ivl.Repeat < 0 {
+		return ISORInterval{}, fmt.Errorf("invalid interval: R value must be positive: %d", ivl.Repeat)
 	}
 
 	var hasStart bool
