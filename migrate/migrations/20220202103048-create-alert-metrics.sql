@@ -10,8 +10,11 @@ CREATE TABLE alert_metrics (
 
 CREATE INDEX idx_closed_events ON alert_logs (timestamp) WHERE event = 'closed';
 
+ALTER TYPE engine_processing_type ADD VALUE IF NOT EXISTS 'metrics';
+INSERT INTO engine_processing_versions (type_id) VALUES ('metrics');
+
+
 -- +migrate Down
-
+DELETE FROM engine_processing_versions WHERE type_id = 'metrics';
 DROP INDEX idx_closed_events;
-
 DROP TABLE alert_metrics;
