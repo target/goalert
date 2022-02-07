@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
@@ -20,12 +21,6 @@ import (
 // Handler responds to generic API requests
 type Handler struct {
 	c Config
-}
-
-type AlertMessage struct {
-	Summary string `json:summary`
-	Details string `json:details`
-	Action  string `json:action`
 }
 
 // NewHandler creates a new Handler, registering generic API routes using chi.
@@ -94,16 +89,32 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	details := r.FormValue("details")
 	action := r.FormValue("action")
 
-	contentType := r.Header.Get("Content-type")
-	if contentType == "application/json" {
-		requestBoday, _ := ioutil.ReadAll(r.Body)
+	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if ct == "application/json" {
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-		var alertMessage AlertMessage
-		json.Unmarshal(requestBoday, &alertMessage)
+		var b struct {
+			Summary, Details, Action *string
+		}
+		err = json.Unmarshal(data, &b)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-		summary = alertMessage.Summary
-		details = alertMessage.Details
-		action = alertMessage.Action
+		if b.Summary != nil {
+			summary = *b.Summary
+		}
+		if b.Details != nil {
+			details = *b.Details
+		}
+		if b.Action != nil {
+			action = *b.Action
+		}
 	}
 
 	status := alert.StatusTriggered
