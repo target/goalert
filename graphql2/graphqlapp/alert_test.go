@@ -15,13 +15,10 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	loc, err := time.LoadLocation("America/Chicago")
 	require.NoError(t, err)
 
-	check := func(desc string, since, until time.Time, ISOduration string, alerts []alert.Alert, exp []int) {
+	check := func(desc string, r timeutil.ISORInterval, alerts []alert.Alert, exp []int) {
 		t.Helper()
-		dur, err := timeutil.ParseISODuration(ISOduration)
-		require.NoError(t, err)
-
 		actual := []int{}
-		for _, val := range splitRangeByDuration(since, until, dur, alerts) {
+		for _, val := range splitRangeByDuration(r, alerts) {
 			actual = append(actual, val.AlertCount)
 		}
 		assert.Equal(t, exp, actual)
@@ -43,99 +40,99 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 
 	check(
 		"empty alerts",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.February, 0, 0, 0, 0, 0, loc),
-		"P1W",
+		timeutil.ISORInterval{
+			Repeat: 4,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 7},
+		},
 		[]alert.Alert{},
 		[]int{0, 0, 0, 0, 0},
 	)
 
 	check(
 		"nil alerts",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.February, 0, 0, 0, 0, 0, loc),
-		"P1W",
+		timeutil.ISORInterval{
+			Repeat: 4,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 7},
+		},
 		nil,
 		[]int{0, 0, 0, 0, 0},
 	)
 
 	check(
-		"since == until",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		"P1D",
-		jan,
-		[]int{},
-	)
-
-	check(
-		"since before until",
-		time.Date(9999, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		"P1D",
-		jan,
-		[]int{},
-	)
-
-	check(
 		"no alerts",
-		time.Date(1999, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(1999, time.January, 2, 3, 4, 5, 6, loc),
-		"P1D",
+		timeutil.ISORInterval{
+			Repeat: 2,
+			Start:  time.Date(1999, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 1},
+		},
 		jan,
 		[]int{0, 0, 0},
 	)
 
 	check(
 		"Jan 1st",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 1, 0, 0, 0, 0, loc),
-		"P1D",
+		timeutil.ISORInterval{
+			Repeat: 0,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 1},
+		},
 		jan,
 		[]int{1},
 	)
 
 	check(
 		"Jan 2nd",
-		time.Date(2000, time.January, 1, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 2, 0, 0, 0, 0, loc),
-		"P1D",
+		timeutil.ISORInterval{
+			Repeat: 0,
+			Start:  time.Date(2000, time.January, 1, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 1},
+		},
 		jan,
 		[]int{2},
 	)
 
 	check(
 		"Jan 1st and 2nd",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 2, 0, 0, 0, 0, loc),
-		"P1D",
+		timeutil.ISORInterval{
+			Repeat: 1,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 1},
+		},
 		jan,
 		[]int{1, 2},
 	)
 
 	check(
 		"Jan 1st thru 15th",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 15, 0, 0, 0, 0, loc),
-		"P1D",
+		timeutil.ISORInterval{
+			Repeat: 14,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 1},
+		},
 		jan,
 		[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 	)
 
 	check(
-		"Jan 1st thru 15th, 2-day chunks",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.January, 15, 0, 0, 0, 0, loc),
-		"P2D",
+		"Jan 1st thru 31st, 2-day chunks",
+		timeutil.ISORInterval{
+			Repeat: 7,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 2},
+		},
 		jan,
-		[]int{3, 7, 11, 15, 19, 23, 27, 15},
+		[]int{3, 7, 11, 15, 19, 23, 27, 31},
 	)
 
 	check(
 		"Jan weekly chunks",
-		time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
-		time.Date(2000, time.February, 0, 0, 0, 0, 0, loc),
-		"P1W",
+		timeutil.ISORInterval{
+			Repeat: 4,
+			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
+			Period: timeutil.ISODuration{Days: 7},
+		},
 		jan,
 		[]int{28, 77, 105, 0, 0},
 	)
