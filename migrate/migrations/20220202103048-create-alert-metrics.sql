@@ -8,6 +8,10 @@ CREATE TABLE alert_metrics (
     escalated BOOLEAN DEFAULT FALSE NOT NULL
 );
 
+CREATE INDEX idx_closed_events ON alert_logs (timestamp) WHERE event = 'closed';
+
 -- +migrate Down
+
+DROP INDEX idx_closed_events;
 
 DROP TABLE alert_metrics;
