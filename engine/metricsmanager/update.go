@@ -2,11 +2,16 @@ package metricsmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 )
+
+type State struct {
+	MaxAlertID int
+}
 
 // UpdateAll will update the alert metrics table
 func (db *DB) UpdateAll(ctx context.Context) error {
@@ -32,7 +37,26 @@ func (db *DB) update(ctx context.Context) error {
 		return fmt.Errorf("set timeout: %w", err)
 	}
 
-	fmt.Println("HERE")
+	var state State
+	var stateData []byte
+	err = tx.StmtContext(ctx, db.findCurrentState).QueryRowContext(ctx).Scan(&stateData)
+	if err != nil {
+		return fmt.Errorf("get state: %w", err)
+	}
 
+	if len(stateData) > 0 {
+		err = json.Unmarshal(stateData, &state)
+		if err != nil {
+			return fmt.Errorf("unmarshal state: %w", err)
+		}
+	}
+
+	if state.MaxAlertID == 0 {
+		err = tx.StmtContext(ctx, db.findMaxAlertID).QueryRowContext(ctx).Scan(&state.MaxAlertID)
+		if err != nil {
+			return fmt.Errorf("get max alertID: %w", err)
+		}
+	}
+	
 	return tx.Commit()
 }

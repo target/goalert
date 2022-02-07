@@ -15,6 +15,9 @@ type DB struct {
 
 	setTimeout       *sql.Stmt
 	findNextAlertIDs *sql.Stmt
+
+	findCurrentState 	*sql.Stmt
+	findMaxAlertID		*sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -41,5 +44,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		setTimeout: p.P(`SET LOCAL statement_timeout = 3000`),
 
 		findNextAlertIDs: p.P(`select id from alerts limit 3000`),
+
+		findCurrentState: p.P(`select state -> (select 'V' || version::text from engine_processing_versions where type_id = 'metrics') as state from engine_processing_versions where type_id = 'metrics'; `),
+
+		findMaxAlertID: p.P(`select max(id) from alerts`),
 	}, p.Err
 }
