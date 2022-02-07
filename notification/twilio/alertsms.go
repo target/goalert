@@ -21,13 +21,11 @@ import (
 const maxGSMLen = 160
 
 var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.AlertID}}: {{.Summary}}
-
 {{- if .Link }}
 
-{{.Link}}
-{{end}}
-
+{{.Link}}{{end}}
 {{- if .Code}}
+
 Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
 
 var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
@@ -36,7 +34,6 @@ var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.Se
 
 	{{.Link}}
 {{end}}
-
 {{- if .Code}}
 	Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
 
@@ -149,7 +146,7 @@ func renderAlertMessage(maxLen int, a notification.Alert, link string, code int)
 		return "", err
 	}
 
-	if trimString(&a.Summary, &buf, maxLen) {
+	if trimString(&data.Alert.Summary, &buf, maxLen) {
 		err = alertTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
@@ -222,7 +219,7 @@ func renderAlertBundleMessage(maxLen int, a notification.AlertBundle, link strin
 		return "", err
 	}
 
-	if trimString(&a.ServiceName, &buf, maxLen) {
+	if trimString(&data.AlertBundle.ServiceName, &buf, maxLen) {
 		err = bundleTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
