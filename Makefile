@@ -1,8 +1,8 @@
-.PHONY: stop start build-docker lint tools regendb resetdb
+.PHONY: stop start lint tools regendb resetdb
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
-.PHONY: docker-goalert docker-all-in-one release force-yarn
+.PHONY: goalert-container demo-container release force-yarn
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -15,32 +15,19 @@ GOPATH:=$(shell go env GOPATH)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
-export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
-
-ifdef LOG_DIR
-RUNJSON_ARGS += -logs=$(LOG_DIR)
-endif
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
-DOCKER_IMAGE_PREFIX=docker.io/goalert
-DOCKER_TAG=$(GIT_VERSION)
-
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-
 all: test install
 
-release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
-docker-all-in-one: bin/linux-amd64/goalert bin/linux-arm64/goalert bin/linux-arm/goalert bin/linux-amd64/resetdb bin/linux-arm64/resetdb bin/linux-arm/resetdb
-	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
-docker-goalert: bin/build/goalert-linux-amd64 bin/build/goalert-linux-arm64 bin/build/goalert-linux-arm
-	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
+release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
 
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
@@ -79,34 +66,34 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
 cy-mobile: cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	make cy-wide-prod CY_ACTION=run
+	make cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	make cy-mobile-prod CY_ACTION=run
+	make cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
 
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc <Procfile
+	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: bin/waitfor web/src/build/static/app.js bin/runjson $(BIN_DIR)/tools/prometheus
+start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
-	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
-	bin/runjson <devtools/runjson/localdev-prod.json
+	make bin/goalert BUNDLE=1
+	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
@@ -187,13 +174,13 @@ config.json.bak: bin/goalert
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
 postgres: bin/waitfor
-	(docker run -d \
+	($(CONTAINER_TOOL) run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || docker start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
@@ -204,9 +191,7 @@ resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	git clean -xdf
-
-build-docker: bin/goalert bin/mockslack
+	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 lint: $(GOALERT_DEPS)
 	go run github.com/golang/lint/golint $(shell go list ./...)

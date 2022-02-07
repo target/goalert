@@ -18,18 +18,6 @@ const query = gql`
   }
 `
 
-const updateQuery = gql`
-  query ($id: ID!) {
-    service(id: $id) {
-      id
-      integrationKeys {
-        id
-        name
-      }
-    }
-  }
-`
-
 const mutation = gql`
   mutation ($input: [TargetInput!]!) {
     deleteAll(input: $input)
@@ -43,25 +31,6 @@ export default function IntegrationKeyDeleteDialog(props) {
 
   const [deleteKey, deleteKeyStatus] = useMutation(mutation, {
     onCompleted: props.onClose,
-    update: (cache) => {
-      const { service } = cache.readQuery({
-        query: updateQuery,
-        variables: { id: data.integrationKey.serviceID },
-      })
-
-      cache.writeQuery({
-        query: updateQuery,
-        variables: { id: data.integrationKey.serviceID },
-        data: {
-          service: {
-            ...service,
-            integrationKeys: (service.integrationKeys || []).filter(
-              (key) => key.id !== props.integrationKeyID,
-            ),
-          },
-        },
-      })
-    },
   })
 
   if (loading && !data) return <Spinner />

@@ -37,12 +37,15 @@ export function useUserInfo<T extends HasUserID>(
     skip: items.length === 0,
   })
 
+  // handle error
   if (error && !loading) {
     return items.map((item) => ({
       ...item,
       user: { id: item.userID, name: 'Error: ' + error.message },
     }))
   }
+
+  // handle none loaded
   if (!data) {
     return items.map((item) => ({
       ...item,
@@ -50,9 +53,12 @@ export function useUserInfo<T extends HasUserID>(
     }))
   }
 
+  // handle some loaded
   const lookup: Record<string, string> = {}
   data.forEach((res: WithUserInfo) => {
-    lookup[res.user.id] = res.user.name
+    if (res?.user) {
+      lookup[res.user.id] = res.user.name
+    }
   })
 
   return items.map((item: T) => ({

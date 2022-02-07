@@ -93,7 +93,12 @@ export default function AdminSMSSend(): JSX.Element {
 
   return (
     <React.Fragment>
-      <Form>
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault()
+          send()
+        }}
+      >
         <Card>
           <CardContent>
             <Grid container spacing={2}>
@@ -127,14 +132,7 @@ export default function AdminSMSSend(): JSX.Element {
           </CardContent>
 
           <CardActions>
-            <LoadingButton
-              buttonText='Send'
-              onClick={() => {
-                send()
-              }}
-              loading={smsLoading}
-              noSubmit
-            />
+            <LoadingButton buttonText='Send' loading={smsLoading} />
             {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
                 <div className={classes.twilioLink}>
