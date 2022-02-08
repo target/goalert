@@ -116,7 +116,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	)
 
 	check(
-		"Jan 1st thru 31st, 2-day chunks",
+		"Jan 1st thru 16th, 2-day chunks",
 		timeutil.ISORInterval{
 			Repeat: 7,
 			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
