@@ -2,7 +2,9 @@ package metricsmanager
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/target/goalert/permission"
@@ -37,6 +39,12 @@ func (db *DB) update(ctx context.Context) error {
 		return fmt.Errorf("set timeout: %w", err)
 	}
 
+	var minAlertID int
+	err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minAlertID)
+	if err != nil {
+		return fmt.Errorf("get min closed alert id: %w", err)
+	}
+
 	var state State
 	var stateData []byte
 	err = tx.StmtContext(ctx, db.findState).QueryRowContext(ctx).Scan(&stateData)
@@ -68,6 +76,17 @@ func (db *DB) update(ctx context.Context) error {
 		}
 
 	}
+
+	rows, err := tx.StmtContext(ctx, db.findAlerts).QueryContext(ctx, state.MaxAlertID - 3000,  state.MaxAlertID)
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Debugf(ctx, "escalate alert: no rows matched")
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("get alerts: %w", err)
+	}
+
+	defer rows.Close()
 
 	return tx.Commit()
 }
