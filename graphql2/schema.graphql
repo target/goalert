@@ -880,7 +880,7 @@ enum AlertSearchSort {
 # An ISODuration is an RFC3339-formatted duration string.
 scalar ISODuration
 
-# An ISORInterval is an RFC3339-formatted recurrin interval string.
+# An ISORInterval is an RFC3339-formatted repeating interval string.
 scalar ISORInterval
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
