@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
