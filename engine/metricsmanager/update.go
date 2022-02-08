@@ -2,9 +2,7 @@ package metricsmanager
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/target/goalert/permission"
@@ -17,11 +15,6 @@ type State struct {
 
 // UpdateAll will update the alert metrics table
 func (db *DB) UpdateAll(ctx context.Context) error {
-	err := db.update(ctx)
-	return err
-}
-
-func (db *DB) update(ctx context.Context) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
@@ -77,16 +70,10 @@ func (db *DB) update(ctx context.Context) error {
 
 	}
 
-	rows, err := tx.StmtContext(ctx, db.findAlerts).QueryContext(ctx, state.MaxAlertID - 3000,  state.MaxAlertID)
-	if errors.Is(err, sql.ErrNoRows) {
-		log.Debugf(ctx, "escalate alert: no rows matched")
-		err = nil
-	}
+	_, err = tx.StmtContext(ctx, db.insertAlertMetrics).ExecContext(ctx, state.MaxAlertID-3000, state.MaxAlertID)
 	if err != nil {
-		return fmt.Errorf("get alerts: %w", err)
+		return fmt.Errorf("insert alert metrics: %w", err)
 	}
-
-	defer rows.Close()
 
 	return tx.Commit()
 }
