@@ -57,7 +57,7 @@ func (r ISORInterval) String() string {
 	return fmt.Sprintf("R%d/%s/%s", r.Repeat, r.Start.Format(time.RFC3339Nano), r.Period.String())
 }
 
-// ParseRInterval parses an ISO recurring interval string. If the string has a duration only,
+// ParseISORInterval parses an ISO recurring interval string. If the string has a duration only,
 // the start time will be set to the current time. Infinite intervals are not supported.
 func ParseISORInterval(s string) (ISORInterval, error) {
 	return ParseISORIntervalFrom(time.Now(), s)
