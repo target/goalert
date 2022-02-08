@@ -3,7 +3,7 @@ package alert
 import (
 	"context"
 
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 
 	"github.com/pkg/errors"
 )

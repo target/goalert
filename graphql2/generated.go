@@ -14,7 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
@@ -4266,7 +4266,7 @@ enum AlertSearchSort {
 # An ISODuration is an RFC3339-formatted duration string.
 scalar ISODuration
 
-# An ISORInterval is an RFC3339-formatted recurrin interval string.
+# An ISORInterval is an RFC3339-formatted repeating interval string.
 scalar ISORInterval
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
@@ -6580,7 +6580,7 @@ func (ec *executionContext) _AlertLogEntryConnection_nodes(ctx context.Context, 
 	}
 	res := resTmp.([]alertlog.Entry)
 	fc.Result = res
-	return ec.marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntryᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋalertlogᚐEntryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) (ret graphql.Marshaler) {
@@ -25039,11 +25039,11 @@ func (ec *executionContext) marshalNAlertDataPoint2ᚕgithubᚗcomᚋtargetᚋgo
 	return ret
 }
 
-func (ec *executionContext) marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx context.Context, sel ast.SelectionSet, v alertlog.Entry) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋalertlogᚐEntry(ctx context.Context, sel ast.SelectionSet, v alertlog.Entry) graphql.Marshaler {
 	return ec._AlertLogEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []alertlog.Entry) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋalertlogᚐEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []alertlog.Entry) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -25067,7 +25067,7 @@ func (ec *executionContext) marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoa
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx, sel, v[i])
+			ret[i] = ec.marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋalertlogᚐEntry(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
