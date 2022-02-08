@@ -179,8 +179,7 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
-// splitRangeByDuration splits the timeframe given between since and until by the duration provided.
-// Each segment is then transformed into an AlertDataPoint based on the given alerts.
+// splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alerts.
 // The given alerts are required to be sorted by their CreatedAt field.
 func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
 	if r.Period.IsZero() {
