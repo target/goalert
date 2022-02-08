@@ -63,7 +63,7 @@ func ParseISORInterval(s string) (ISORInterval, error) {
 	return ParseISORIntervalFrom(time.Now(), s)
 }
 
-// ParseRInterval parses an ISO recurring interval string. If the string has a duration only,
+// ParseISORIntervalFrom parses an ISO recurring interval string. If the string has a duration only,
 // the start time will be set to t. Infinite intervals are not supported.
 func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 	parts := strings.SplitN(s, "/", 3)
