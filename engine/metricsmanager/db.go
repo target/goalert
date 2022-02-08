@@ -3,10 +3,13 @@ package metricsmanager
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
+
+const engineVersion = 1
 
 // DB handles updating metrics
 type DB struct {
@@ -16,8 +19,8 @@ type DB struct {
 	setTimeout       *sql.Stmt
 	findNextAlertIDs *sql.Stmt
 
-	findCurrentState 	*sql.Stmt
-	findMaxAlertID		*sql.Stmt
+	findState      *sql.Stmt
+	findMaxAlertID *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -26,7 +29,7 @@ func (db *DB) Name() string { return "Engine.MetricsManager" }
 // NewDB creates a new DB.
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
-		Version: 1,
+		Version: engineVersion,
 		Type:    processinglock.TypeMetrics,
 	})
 	if err != nil {
@@ -45,7 +48,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		findNextAlertIDs: p.P(`select id from alerts limit 3000`),
 
-		findCurrentState: p.P(`select state -> (select 'V' || version::text from engine_processing_versions where type_id = 'metrics') as state from engine_processing_versions where type_id = 'metrics'; `),
+		findState: p.P(fmt.Sprintf(`select state -> 'V%d' from engine_processing_versions where type_id = 'metrics'`, engineVersion)),
 
 		findMaxAlertID: p.P(`select max(id) from alerts`),
 	}, p.Err

@@ -39,7 +39,7 @@ func (db *DB) update(ctx context.Context) error {
 
 	var state State
 	var stateData []byte
-	err = tx.StmtContext(ctx, db.findCurrentState).QueryRowContext(ctx).Scan(&stateData)
+	err = tx.StmtContext(ctx, db.findState).QueryRowContext(ctx).Scan(&stateData)
 	if err != nil {
 		return fmt.Errorf("get state: %w", err)
 	}
@@ -57,6 +57,6 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("get max alertID: %w", err)
 		}
 	}
-	
+
 	return tx.Commit()
 }
