@@ -20,6 +20,7 @@ type DB struct {
 	findNextAlertIDs *sql.Stmt
 
 	findState      *sql.Stmt
+	updateState    *sql.Stmt
 	findMaxAlertID *sql.Stmt
 }
 
@@ -49,6 +50,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		findNextAlertIDs: p.P(`select id from alerts limit 3000`),
 
 		findState: p.P(fmt.Sprintf(`select state -> 'V%d' from engine_processing_versions where type_id = 'metrics'`, engineVersion)),
+
+		updateState: p.P(fmt.Sprintf(`update engine_processing_versions set state = jsonb_set(state, '{V%d}', $1, true) where type_id = 'metrics'`, engineVersion)),
 
 		findMaxAlertID: p.P(`select max(id) from alerts`),
 	}, p.Err

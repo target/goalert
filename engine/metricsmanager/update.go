@@ -56,6 +56,17 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("get max alertID: %w", err)
 		}
+
+		b, err := json.Marshal(state)
+		if err != nil {
+			return fmt.Errorf("marshal state struct: %w", err)
+		}
+
+		_, err = tx.StmtContext(ctx, db.updateState).ExecContext(ctx, string(b))
+		if err != nil {
+			return fmt.Errorf("update state: %w", err)
+		}
+
 	}
 
 	return tx.Commit()
