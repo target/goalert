@@ -201,7 +201,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.Alert) (result
 		return count
 	}
 
-	// trim alerts before since
+	// trim alerts
 	countAlertsUntil(r.Start)
 
 	ts := r.Start
