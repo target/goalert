@@ -111,7 +111,7 @@ type App struct {
 	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
-	NCStore       notificationchannel.Store
+	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 }

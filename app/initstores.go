@@ -165,7 +165,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewDB(ctx, app.db)
+		app.NCStore, err = notificationchannel.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")
