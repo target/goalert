@@ -20,25 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Store interface {
-	FindOne(ctx context.Context, logID int) (*Entry, error)
-	FindAll(ctx context.Context, alertID int) ([]Entry, error)
-	Log(ctx context.Context, alertID int, _type Type, meta interface{}) error
-	LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error
-	LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error
-	LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error
-	LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error
-	FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error)
-	LegacySearch(ctx context.Context, opt *LegacySearchOptions) ([]Entry, int, error)
-	Search(ctx context.Context, opt *SearchOptions) ([]Entry, error)
-
-	MustLog(ctx context.Context, alertID int, _type Type, meta interface{})
-	MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{})
-}
-
-var _ Store = &DB{}
-
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	insert        *sql.Stmt
@@ -55,10 +37,10 @@ type DB struct {
 	lookupHBInterval   *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db: db,
 		lookupCallbackType: p.P(`
 			select cm."type", ch."type"
@@ -214,23 +196,23 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {
-	db.MustLogTx(ctx, nil, alertID, _type, meta)
+func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {
+	s.MustLogTx(ctx, nil, alertID, _type, meta)
 }
-func (db *DB) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
-	err := db.LogTx(ctx, tx, alertID, _type, meta)
+func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
+	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
 	}
 }
-func (db *DB) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error {
+func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error {
 	err := validate.UUID("EscalationPolicyID", epID)
 	if err != nil {
 		return err
 	}
-	return db.logAny(ctx, tx, db.insertEP, epID, _type, meta)
+	return s.logAny(ctx, tx, s.insertEP, epID, _type, meta)
 }
-func (db *DB) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error {
+func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error {
 	err := validate.UUID("ServiceID", serviceID)
 	if err != nil {
 		return err
@@ -242,19 +224,19 @@ func (db *DB) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _t
 	case TypeClosed:
 		t = _TypeCloseAll
 	}
-	return db.logAny(ctx, tx, db.insertSvc, serviceID, t, meta)
+	return s.logAny(ctx, tx, s.insertSvc, serviceID, t, meta)
 }
 
-func (db *DB) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error {
-	return db.logAny(ctx, tx, db.insert, alertIDs, _type, meta)
+func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error {
+	return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
 }
 
-func (db *DB) Log(ctx context.Context, alertID int, _type Type, meta interface{}) error {
-	return db.LogTx(ctx, nil, alertID, _type, meta)
+func (s *Store) Log(ctx context.Context, alertID int, _type Type, meta interface{}) error {
+	return s.LogTx(ctx, nil, alertID, _type, meta)
 }
 
-func (db *DB) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
-	return db.logAny(ctx, tx, db.insert, alertID, _type, meta)
+func (s *Store) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
+	return s.logAny(ctx, tx, s.insert, alertID, _type, meta)
 }
 func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	if tx == nil {
@@ -262,7 +244,7 @@ func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
-func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
+func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
@@ -295,7 +277,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			r.subject._type = SubjectTypeChannel
 			var ncType notificationchannel.Type
 			var name string
-			err = txWrap(ctx, tx, db.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			err = txWrap(ctx, tx, s.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
 				return errors.Wrap(err, "lookup contact method type for callback ID")
 			}
@@ -326,7 +308,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				break
 			}
 			var cmType contactmethod.Type
-			err = txWrap(ctx, tx, db.lookupCMType).QueryRowContext(ctx, src.ID).Scan(&cmType)
+			err = txWrap(ctx, tx, s.lookupCMType).QueryRowContext(ctx, src.ID).Scan(&cmType)
 			if err != nil {
 				return errors.Wrap(err, "lookup contact method type for callback ID")
 			}
@@ -344,7 +326,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
 			var dt notification.ScannableDestType
-			err = txWrap(ctx, tx, db.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
+			err = txWrap(ctx, tx, s.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
 			if err != nil {
 				return errors.Wrap(err, "lookup notification type for callback ID")
 			}
@@ -367,7 +349,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
 			var minutes int
-			err = txWrap(ctx, tx, db.lookupHBInterval).QueryRowContext(ctx, src.ID).Scan(&minutes)
+			err = txWrap(ctx, tx, s.lookupHBInterval).QueryRowContext(ctx, src.ID).Scan(&minutes)
 			if err != nil {
 				return errors.Wrap(err, "lookup heartbeat monitor interval by ID")
 			}
@@ -385,7 +367,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		case permission.SourceTypeIntegrationKey:
 			r.subject._type = SubjectTypeIntegrationKey
 			var ikeyType integrationkey.Type
-			err = txWrap(ctx, tx, db.lookupIKeyType).QueryRowContext(ctx, src.ID).Scan(&ikeyType)
+			err = txWrap(ctx, tx, s.lookupIKeyType).QueryRowContext(ctx, src.ID).Scan(&ikeyType)
 			if err != nil {
 				return errors.Wrap(err, "lookup integration key type by ID")
 			}
@@ -425,14 +407,14 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
 	return err
 }
-func (db *DB) FindOne(ctx context.Context, logID int) (*Entry, error) {
+func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
 	var e Entry
-	row := db.findOne.QueryRowContext(ctx, logID)
+	row := s.findOne.QueryRowContext(ctx, logID)
 	err = e.scanWith(row.Scan)
 	if err != nil {
 		return nil, err
@@ -440,13 +422,13 @@ func (db *DB) FindOne(ctx context.Context, logID int) (*Entry, error) {
 
 	return &e, nil
 }
-func (db *DB) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
+func (s *Store) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findAll.QueryContext(ctx, alertID)
+	rows, err := s.findAll.QueryContext(ctx, alertID)
 	if err != nil {
 		return nil, err
 	}
@@ -519,13 +501,13 @@ func dedupEvents(raw []Entry) []Entry {
 }
 
 // FindLatestByType returns the latest Log Entry given alertID and status type
-func (db *DB) FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error) {
+func (s *Store) FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 	var e Entry
-	row := db.findAllByType.QueryRowContext(ctx, alertID, status)
+	row := s.findAllByType.QueryRowContext(ctx, alertID, status)
 	err = e.scanWith(row.Scan)
 	if err != nil {
 		return nil, err
