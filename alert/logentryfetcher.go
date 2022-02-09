@@ -18,7 +18,7 @@ type logError struct {
 	isAlreadyClosed       bool
 	alertID               int
 	_type                 alertlog.Type
-	logDB                 alertlog.Store
+	logDB                 *alertlog.Store
 }
 
 func (e logError) LogEntry(ctx context.Context) (*alertlog.Entry, error) {
