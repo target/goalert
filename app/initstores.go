@@ -198,7 +198,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NotificationStore == nil {
-		app.NotificationStore, err = notification.NewDB(ctx, app.db)
+		app.NotificationStore, err = notification.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification store")
