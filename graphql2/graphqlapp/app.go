@@ -57,7 +57,7 @@ type App struct {
 	NRStore        notificationrule.Store
 	NCStore        notificationchannel.Store
 	AlertStore     alert.Store
-	AlertLogStore  alertlog.Store
+	AlertLogStore  *alertlog.Store
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
 	PolicyStore    *escalation.Store
