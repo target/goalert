@@ -351,7 +351,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	})
 }
 
-// NewAlertLog will generate an alert log with the provided status.
+// NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(alert alert.Alert) {
 
 	// Add 'created' event log
