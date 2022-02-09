@@ -116,7 +116,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ContactMethodStore == nil {
-		app.ContactMethodStore, err = contactmethod.NewDB(ctx, app.db)
+		app.ContactMethodStore, err = contactmethod.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init contact method store")
