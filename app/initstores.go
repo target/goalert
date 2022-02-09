@@ -10,7 +10,6 @@ import (
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -217,13 +216,6 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init override store")
-	}
-
-	if app.Resolver == nil {
-		app.Resolver, err = resolver.NewDB(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
-	}
-	if err != nil {
-		return errors.Wrap(err, "init resolver")
 	}
 
 	if app.LimitStore == nil {
