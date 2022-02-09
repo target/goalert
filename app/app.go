@@ -17,7 +17,6 @@ import (
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
-	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
@@ -82,7 +81,7 @@ type App struct {
 	ConfigStore *config.Store
 
 	AlertStore    alert.Store
-	AlertLogStore alertlog.Store
+	AlertLogStore *alertlog.Store
 
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
@@ -94,13 +93,12 @@ type App struct {
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore integrationkey.Store
 	ScheduleRuleStore   rule.Store
-	NotificationStore   notification.Store
+	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
 	RotationStore       rotation.Store
 
 	CalSubStore    *calendarsubscription.Store
 	OverrideStore  override.Store
-	Resolver       resolver.Resolver
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 

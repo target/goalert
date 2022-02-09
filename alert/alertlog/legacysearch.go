@@ -65,7 +65,7 @@ const (
 )
 
 // LegacySearch will return a list of matching log entries.
-func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Entry, int, error) {
+func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Entry, int, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User, permission.System)
 	if err != nil {
 		return nil, 0, err
@@ -168,7 +168,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 		JOIN alerts ON alerts.id = a.alert_id
 	` + whereStr
 
-	tx, err := db.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if err != nil {
 		return nil, 0, err
 	}

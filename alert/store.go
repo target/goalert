@@ -59,7 +59,7 @@ type Manager interface {
 
 type DB struct {
 	db    *sql.DB
-	logDB alertlog.Store
+	logDB *alertlog.Store
 
 	insert          *sql.Stmt
 	update          *sql.Stmt
@@ -95,7 +95,7 @@ type Trigger interface {
 	TriggerAlert(int)
 }
 
-func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*DB, error) {
 	prep := &util.Prepare{DB: db, Ctx: ctx}
 
 	p := prep.P
