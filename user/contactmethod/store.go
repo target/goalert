@@ -324,7 +324,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 	return &c, nil
 }
 
-// FindOneTx finds the contact method from the database using the provided ID.
+// FindOne finds the contact method from the database using the provided ID.
 func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
 	err := validate.UUID("ContactMethodID", id)
 	if err != nil {
@@ -350,7 +350,7 @@ func (s *Store) Update(ctx context.Context, c *ContactMethod) error {
 	return s.UpdateTx(ctx, nil, c)
 }
 
-// Update updates the contact method with the newly provided values within a transaction.
+// UpdateTx updates the contact method with the newly provided values within a transaction.
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
