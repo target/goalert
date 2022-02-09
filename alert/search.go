@@ -210,7 +210,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) serviceNameSearch(ctx context.Context, data *renderData) error {
+func (s *Store) serviceNameSearch(ctx context.Context, data *renderData) error {
 	if data.Search == "" {
 		data.serviceNameIDs = nil
 		return nil
@@ -221,7 +221,7 @@ func (db *DB) serviceNameSearch(ctx context.Context, data *renderData) error {
 		return fmt.Errorf("render service-search query: %w", err)
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		data.serviceNameIDs = nil
 		return nil
@@ -245,7 +245,7 @@ func (db *DB) serviceNameSearch(ctx context.Context, data *renderData) error {
 	return nil
 }
 
-func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) 
 		return nil, err
 	}
 
-	err = db.serviceNameSearch(ctx, data)
+	err = s.serviceNameSearch(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Alert, error) 
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "query")
 	}
