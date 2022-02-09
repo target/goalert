@@ -102,7 +102,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertLogStore == nil {
-		app.AlertLogStore, err = alertlog.NewDB(ctx, app.db)
+		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alertlog store")
