@@ -79,7 +79,7 @@ type App struct {
 
 	AuthHandler *auth.Handler
 
-	NotificationStore notification.Store
+	NotificationStore *notification.Store
 	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store

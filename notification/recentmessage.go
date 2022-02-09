@@ -76,7 +76,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) RecentMessages(ctx context.Context, opts *RecentMessageSearchOptions) ([]RecentMessage, error) {
+func (s *Store) RecentMessages(ctx context.Context, opts *RecentMessageSearchOptions) ([]RecentMessage, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (db *DB) RecentMessages(ctx context.Context, opts *RecentMessageSearchOptio
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
