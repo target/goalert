@@ -2,7 +2,9 @@ package metricsmanager
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/target/goalert/permission"
@@ -77,12 +79,18 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return err
 	}
 
-	var recentAlertID, lowerBound, upperBound int
-	err = tx.StmtContext(ctx, db.findRecentAlert).QueryRowContext(ctx).Scan(&recentAlertID)
+	var lowerBound, upperBound int
+	var _recentAlertID sql.NullInt32
+	err = tx.StmtContext(ctx, db.findRecentAlert).QueryRowContext(ctx).Scan(&_recentAlertID)
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Debugf(ctx, "no recent alerts, continuing")
+		err = nil
+	}
 	if err != nil {
-		return fmt.Errorf("get recentl alert id: %w", err)
+		return fmt.Errorf("get recent alert id: %w", err)
 	}
 
+	recentAlertID := int(_recentAlertID.Int32)
 	isUsingState := false
 	if recentAlertID != 0 {
 		lowerBound = recentAlertID - 3000
