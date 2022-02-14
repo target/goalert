@@ -13,7 +13,7 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	alertStore alert.Store
+	alertStore *alert.Store
 
 	fetchFailed  *sql.Stmt
 	fetchHealthy *sql.Stmt
@@ -23,7 +23,7 @@ type DB struct {
 func (db *DB) Name() string { return "Engine.HeartbeatManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, a alert.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, a *alert.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeHeartbeat,
 		Version: 1,

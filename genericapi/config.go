@@ -9,7 +9,7 @@ import (
 
 // Config contains the values needed to implement the generic API handler.
 type Config struct {
-	AlertStore          alert.Store
+	AlertStore          *alert.Store
 	IntegrationKeyStore integrationkey.Store
 	HeartbeatStore      *heartbeat.Store
 	UserStore           *user.Store

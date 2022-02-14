@@ -56,7 +56,7 @@ type App struct {
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
 	NCStore        notificationchannel.Store
-	AlertStore     alert.Store
+	AlertStore     *alert.Store
 	AlertLogStore  *alertlog.Store
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
