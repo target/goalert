@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -54,7 +54,7 @@ func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmet
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
 	return a.NRStore.FindAll(ctx, obj.ID)
 }
-func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error) {
+func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calsub.CalendarSubscription, error) {
 	return a.CalSubStore.FindAllByUser(ctx, obj.ID)
 }
 

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -18,13 +18,13 @@ func (a *App) UserCalendarSubscription() graphql2.UserCalendarSubscriptionResolv
 	return (*UserCalendarSubscription)(a)
 }
 
-func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
+func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calsub.CalendarSubscription) ([]int, error) {
 	return obj.Config.ReminderMinutes, nil
 }
-func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
+func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calsub.CalendarSubscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
-func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
+func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calsub.CalendarSubscription) (*string, error) {
 	tok := obj.Token()
 	if tok == "" {
 		return nil, nil
@@ -38,13 +38,13 @@ func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscri
 	return &callback, nil
 }
 
-func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
+func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calsub.CalendarSubscription, error) {
 	return q.CalSubStore.FindOne(ctx, id)
 }
 
 // todo: return UserCalendarSubscription with generated url once endpoint has been created
-func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
-	cs = &calendarsubscription.CalendarSubscription{
+func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calsub.CalendarSubscription, err error) {
+	cs = &calsub.CalendarSubscription{
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		UserID:     permission.UserID(ctx),

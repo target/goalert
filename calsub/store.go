@@ -1,4 +1,4 @@
-package calendarsubscription
+package calsub
 
 import (
 	"context"
