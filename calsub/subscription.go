@@ -29,6 +29,8 @@ type Subscription struct {
 	token *authtoken.Token
 }
 
+func (Subscription) TableName() string { return "user_calendar_subscriptions" }
+
 // SubscriptionConfig is the configuration for a calendar subscription.
 type SubscriptionConfig struct {
 	ReminderMinutes []int

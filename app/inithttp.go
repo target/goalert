@@ -137,7 +137,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// pause has to become before anything that uses the DB (like auth)
 		app.pauseHandler,
 
-		// db access
+		// DB access
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				ctx := req.Context()
@@ -147,6 +147,14 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 		// authenticate requests
 		app.AuthHandler.WrapHandler,
+
+		// authed DB access
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				ctx := req.Context()
+				next.ServeHTTP(w, req.WithContext(sqlutil.Context(ctx, sqlutil.FromContext(ctx).WithContext(ctx))))
+			})
+		},
 
 		// add auth info to request logs
 		logRequestAuth,

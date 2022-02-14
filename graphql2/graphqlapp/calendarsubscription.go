@@ -76,7 +76,7 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
 	err := sqlutil.Transaction(ctx, func(ctx context.Context, db *gorm.DB) error {
 		var cs calsub.Subscription
-		err := db.Where("id = ?", input.ID).Clauses(clause.Locking{Strength: "FOR UPDATE"}).Take(&cs).Error
+		err := db.Where("id = ?", input.ID).Where("user_id", permission.UserID(ctx)).Clauses(clause.Locking{Strength: "UPDATE"}).Take(&cs).Error
 		if err != nil {
 			return err
 		}
