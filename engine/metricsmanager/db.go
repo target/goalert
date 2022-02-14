@@ -60,14 +60,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		findMinClosedAlertID: p.P(`select min(id) from alerts where status = 'closed'`),
 
 		insertAlertMetrics: p.P(`insert into alert_metrics 
-			select
-				a.id,
-				a.service_id,
-				(select timestamp - a.created_at from alert_logs l where l.alert_id = a.id and l.event = 'acknowledged' order by timestamp limit 1),
-				(select timestamp - a.created_at from alert_logs l where l.alert_id = a.id and l.event = 'closed' order by timestamp limit 1),
-				(exists  (select 1 from alert_logs where alert_id = a.id and event = 'escalated' limit 1))
-			from alerts a
-			left join alert_metrics m on m.alert_id = a.id
-			where m isnull and a.id between $1 and $2 and a.status='closed'`),
+		select
+			a.id,
+			a.service_id,
+			(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'acknowledged' order by timestamp limit 1),
+			(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1),
+			(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated')
+		from alerts a
+		left join alert_metrics m on m.alert_id = a.id
+		where m isnull and a.id between $1 and $2 and a.status='closed'`),
 	}, p.Err
 }
