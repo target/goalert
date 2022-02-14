@@ -17,6 +17,9 @@ type Lock struct {
 	db       *sql.DB
 	lockStmt *sql.Stmt
 
+	loadState *sql.Stmt
+	saveState *sql.Stmt
+
 	advLockStmt *sql.Stmt
 }
 type txBeginner interface {
@@ -36,6 +39,8 @@ func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
 			where type_id = $1
 			for update nowait
 		`),
+		loadState: p.P(`select state from engine_processing_versions where type_id = $1 for update nowait`),
+		saveState: p.P(`update engine_processing_versions set state = $2 where type_id = $1`),
 	}, p.Err
 }
 

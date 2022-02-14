@@ -3,7 +3,6 @@ package metricsmanager
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
@@ -16,14 +15,12 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	setTimeout *sql.Stmt
+	highAlertID *sql.Stmt
+	lowAlertID  *sql.Stmt
 
-	findState            *sql.Stmt
-	updateState          *sql.Stmt
-	findMaxAlertID       *sql.Stmt
-	findMinClosedAlertID *sql.Stmt
-	findRecentAlert      *sql.Stmt
-	insertAlertMetrics   *sql.Stmt
+	recentlyClosed *sql.Stmt
+	scanAlerts     *sql.Stmt
+	insertMetrics  *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -45,34 +42,34 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		// Abort any cleanup operation that takes longer than 3 seconds
-		// error will be logged.
-		setTimeout: p.P(`SET LOCAL statement_timeout = 3000`),
+		highAlertID: p.P(`select max(id) from alerts where status = 'closed'`),
+		lowAlertID:  p.P(`select min(id) from alerts where status = 'closed'`),
 
-		findState: p.P(fmt.Sprintf(`select state -> 'V%d' from engine_processing_versions where type_id = 'metrics'`, engineVersion)),
-
-		updateState: p.P(fmt.Sprintf(`update engine_processing_versions set state = jsonb_set(state, '{V%d}', $1, true) where type_id = 'metrics'`, engineVersion)),
-
-		findMaxAlertID: p.P(`select max(id) from alerts`),
-
-		findMinClosedAlertID: p.P(`select min(id) from alerts where status = 'closed'`),
-
-		findRecentAlert: p.P(`
-		select 
-			max(a.alert_id) 
-		from alert_logs a left join alert_metrics m on m.alert_id = a.id
-		where m isnull and event = 'closed' and timestamp > now() - '1 hour'::interval
+		recentlyClosed: p.P(`
+			select distinct log.alert_id
+			from alert_logs log
+			left join alert_metrics m on m.id = log.id
+			where m isnull and log.event = 'closed' and log.timestamp >= now() - '1 hour'::interval
+			limit 3000
 		`),
 
-		insertAlertMetrics: p.P(`insert into alert_metrics 
-		select
-			a.id,
-			a.service_id,
-			(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'acknowledged' order by timestamp limit 1),
-			(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1),
-			(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated')
-		from alerts a
-		left join alert_metrics m on m.alert_id = a.id
-		where m isnull and a.id between $1 and $2 and a.status='closed'`),
+		scanAlerts: p.P(`
+			select a.id
+			from alerts a
+			left join alert_metrics m on m.id = a.id
+			where m isnull and a.status = 'closed' and a.id between $1 and $2
+		`),
+
+		insertMetrics: p.P(`
+			insert into alert_metrics
+			select
+				a.id,
+				a.service_id,
+				(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'acknowledged' order by timestamp limit 1),
+				(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1),
+				(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated')
+			from alerts a
+			where a.id = any($1)
+		`),
 	}, p.Err
 }

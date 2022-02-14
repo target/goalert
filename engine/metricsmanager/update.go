@@ -2,9 +2,6 @@ package metricsmanager
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/target/goalert/permission"
@@ -12,8 +9,21 @@ import (
 )
 
 type State struct {
-	MaxAlertID int
+	V1 struct {
+		NextAlertID int
+	}
 }
+
+/*
+	Theory of Operation:
+
+	1. Aquire processing lock
+	2. Look for recently closed alerts without a metrics entry
+	3. If any, insert metrics for them and exit
+	4. If no state, start scan from last closed alert id
+	5. If state, resume scan until min closed alert id
+
+*/
 
 // UpdateAll will update the alert metrics table
 func (db *DB) UpdateAll(ctx context.Context) error {
@@ -23,96 +33,100 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 	log.Debugf(ctx, "Running metrics operations.")
 
-	tx, err := db.lock.BeginTx(ctx, nil)
+	tx, lockState, err := db.lock.BeginTxWithState(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 	defer tx.Rollback()
 
-	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
+	rows, err := tx.StmtContext(ctx, db.recentlyClosed).QueryContext(ctx)
 	if err != nil {
-		return fmt.Errorf("set timeout: %w", err)
+		return fmt.Errorf("query recently closed alerts: %w", err)
 	}
+	defer rows.Close()
 
-	var minClosedAlertID int
-	err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minClosedAlertID)
-	if err != nil {
-		return fmt.Errorf("get min closed alert id: %w", err)
-	}
-
-	var state State
-	var stateData []byte
-	err = tx.StmtContext(ctx, db.findState).QueryRowContext(ctx).Scan(&stateData)
-	if err != nil {
-		return fmt.Errorf("get state: %w", err)
-	}
-
-	if len(stateData) > 0 {
-		err = json.Unmarshal(stateData, &state)
+	var alertIDs []int
+	for rows.Next() {
+		var alertID int
+		err = rows.Scan(&alertID)
 		if err != nil {
-			return fmt.Errorf("unmarshal state: %w", err)
+			return fmt.Errorf("scan alert id: %w", err)
 		}
+		alertIDs = append(alertIDs, alertID)
 	}
 
-	updateState := func() error {
-		if state.MaxAlertID <= 0 || state.MaxAlertID < minClosedAlertID {
-			err = tx.StmtContext(ctx, db.findMaxAlertID).QueryRowContext(ctx).Scan(&state.MaxAlertID)
-			if err != nil {
-				return fmt.Errorf("get max alertID: %w", err)
-			}
-		}
-
-		b, err := json.Marshal(state)
+	if len(alertIDs) > 0 {
+		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, alertIDs)
 		if err != nil {
-			return fmt.Errorf("marshal state struct: %w", err)
+			return fmt.Errorf("insert metrics: %w", err)
 		}
-
-		_, err = tx.StmtContext(ctx, db.updateState).ExecContext(ctx, string(b))
+		err = tx.Commit()
 		if err != nil {
-			return fmt.Errorf("update state: %w", err)
+			return fmt.Errorf("commit: %w", err)
 		}
 		return nil
 	}
 
-	err = updateState()
+	var state State
+	err = lockState.Load(ctx, &state)
 	if err != nil {
-		return err
+		return fmt.Errorf("load state: %w", err)
 	}
 
-	var lowerBound, upperBound int
-	var _recentAlertID sql.NullInt32
-	err = tx.StmtContext(ctx, db.findRecentAlert).QueryRowContext(ctx).Scan(&_recentAlertID)
-	if errors.Is(err, sql.ErrNoRows) {
-		log.Debugf(ctx, "no recent alerts, continuing")
-		err = nil
-	}
+	// fetch min alert id from db for later
+	var minAlertID int
+	err = tx.StmtContext(ctx, db.lowAlertID).QueryRowContext(ctx).Scan(&minAlertID)
 	if err != nil {
-		return fmt.Errorf("get recent alert id: %w", err)
+		return fmt.Errorf("query min alert id: %w", err)
 	}
 
-	recentAlertID := int(_recentAlertID.Int32)
-	isUsingState := false
-	if recentAlertID != 0 {
-		lowerBound = recentAlertID - 3000
-		upperBound = recentAlertID
-	} else {
-		lowerBound = state.MaxAlertID - 3000
-		upperBound = state.MaxAlertID
-		state.MaxAlertID = lowerBound
-		isUsingState = true
-	}
-
-	_, err = tx.StmtContext(ctx, db.insertAlertMetrics).ExecContext(ctx, lowerBound, upperBound)
-	if err != nil {
-		return fmt.Errorf("insert alert metrics: %w", err)
-	}
-
-	if isUsingState {
-		err := updateState()
+	if state.V1.NextAlertID == 0 || state.V1.NextAlertID < minAlertID {
+		// no state, or reset, set to the highest alert id from the db
+		err = tx.StmtContext(ctx, db.highAlertID).QueryRowContext(ctx).Scan(&state.V1.NextAlertID)
 		if err != nil {
-			return err
+			return fmt.Errorf("query high alert id: %w", err)
 		}
 	}
 
-	return tx.Commit()
+	// clamp min alert ID 3000 below next
+	if minAlertID < state.V1.NextAlertID-3000 {
+		minAlertID = state.V1.NextAlertID - 3000
+	}
+
+	// fetch alerts to update
+	rows, err = tx.StmtContext(ctx, db.scanAlerts).QueryContext(ctx, minAlertID, state.V1.NextAlertID)
+	if err != nil {
+		return fmt.Errorf("query alerts: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var alertID int
+		err = rows.Scan(&alertID)
+		if err != nil {
+			return fmt.Errorf("scan alert id: %w", err)
+		}
+		alertIDs = append(alertIDs, alertID)
+	}
+
+	if len(alertIDs) > 0 {
+		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, alertIDs)
+		if err != nil {
+			return fmt.Errorf("insert metrics: %w", err)
+		}
+	}
+
+	// update and save state
+	state.V1.NextAlertID = minAlertID - 1
+	err = lockState.Save(ctx, &state)
+	if err != nil {
+		return fmt.Errorf("save state: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
 }
