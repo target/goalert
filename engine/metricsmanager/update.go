@@ -32,11 +32,13 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return fmt.Errorf("set timeout: %w", err)
 	}
 
-	var minAlertID int
-	err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minAlertID)
-	if err != nil {
-		return fmt.Errorf("get min closed alert id: %w", err)
-	}
+	// else
+
+	// var minAlertID int
+	// err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minAlertID)
+	// if err != nil {
+	// 	return fmt.Errorf("get min closed alert id: %w", err)
+	// }
 
 	var state State
 	var stateData []byte
@@ -70,7 +72,21 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 	}
 
-	_, err = tx.StmtContext(ctx, db.insertAlertMetrics).ExecContext(ctx, state.MaxAlertID-3000, state.MaxAlertID)
+	var recentAlertID, lowerBound, upperBound int
+	err = tx.StmtContext(ctx, db.findRecentAlert).QueryRowContext(ctx).Scan(&recentAlertID)
+	if err != nil {
+		return fmt.Errorf("get recentl alert id: %w", err)
+	}
+
+	if recentAlertID != 0 {
+		lowerBound = recentAlertID - 3000
+		upperBound = recentAlertID
+	} else {
+		lowerBound = state.MaxAlertID - 3000
+		upperBound = state.MaxAlertID
+	}
+
+	_, err = tx.StmtContext(ctx, db.insertAlertMetrics).ExecContext(ctx, lowerBound, upperBound)
 	if err != nil {
 		return fmt.Errorf("insert alert metrics: %w", err)
 	}

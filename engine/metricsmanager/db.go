@@ -24,6 +24,7 @@ type DB struct {
 	findMaxAlertID       *sql.Stmt
 	findMinClosedAlertID *sql.Stmt
 	insertAlertMetrics   *sql.Stmt
+	findRecentAlert      *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -58,6 +59,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		findMaxAlertID: p.P(`select max(id) from alerts`),
 
 		findMinClosedAlertID: p.P(`select min(id) from alerts where status = 'closed'`),
+
+		findRecentAlert: p.P(`
+		select 
+			max(a.alert_id) 
+		from alert_logs a left join alert_metrics m on m.alert_id = a.id
+		where m isnull and event = 'closed' and timestamp > now() - '1 hour'::interval
+		`),
 
 		insertAlertMetrics: p.P(`insert into alert_metrics 
 		select
