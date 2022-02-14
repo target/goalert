@@ -86,6 +86,8 @@ require (
 	cloud.google.com/go/compute v0.1.0
 	github.com/creack/pty v1.1.17
 	github.com/golang-jwt/jwt/v4 v4.3.0
+	gorm.io/driver/postgres v1.2.3
+	gorm.io/gorm v1.22.5
 )
 
 require (
@@ -161,6 +163,4 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	gorm.io/driver/postgres v1.2.3 // indirect
-	gorm.io/gorm v1.22.5 // indirect
 )
