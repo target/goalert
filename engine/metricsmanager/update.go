@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type State struct {
@@ -56,7 +57,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	if len(alertIDs) > 0 {
-		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, alertIDs)
+		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, sqlutil.IntArray(alertIDs))
 		if err != nil {
 			return fmt.Errorf("insert metrics: %w", err)
 		}
@@ -88,9 +89,9 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		}
 	}
 
-	// clamp min alert ID 3000 below next
-	if minAlertID < state.V1.NextAlertID-3000 {
-		minAlertID = state.V1.NextAlertID - 3000
+	// clamp min alert ID 500 below next
+	if minAlertID < state.V1.NextAlertID-500 {
+		minAlertID = state.V1.NextAlertID - 500
 	}
 
 	// fetch alerts to update
@@ -110,7 +111,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	if len(alertIDs) > 0 {
-		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, alertIDs)
+		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, sqlutil.IntArray(alertIDs))
 		if err != nil {
 			return fmt.Errorf("insert metrics: %w", err)
 		}

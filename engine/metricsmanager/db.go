@@ -50,7 +50,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from alert_logs log
 			left join alert_metrics m on m.id = log.id
 			where m isnull and log.event = 'closed' and log.timestamp >= now() - '1 hour'::interval
-			limit 3000
+			limit 500
 		`),
 
 		scanAlerts: p.P(`
