@@ -32,13 +32,11 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return fmt.Errorf("set timeout: %w", err)
 	}
 
-	// else
-
-	// var minAlertID int
-	// err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minAlertID)
-	// if err != nil {
-	// 	return fmt.Errorf("get min closed alert id: %w", err)
-	// }
+	var minClosedAlertID int
+	err = tx.StmtContext(ctx, db.findMinClosedAlertID).QueryRowContext(ctx).Scan(&minClosedAlertID)
+	if err != nil {
+		return fmt.Errorf("get min closed alert id: %w", err)
+	}
 
 	var state State
 	var stateData []byte
@@ -55,7 +53,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	updateState := func() error {
-		if state.MaxAlertID <= 0 {
+		if state.MaxAlertID <= 0 || state.MaxAlertID < minClosedAlertID {
 			err = tx.StmtContext(ctx, db.findMaxAlertID).QueryRowContext(ctx).Scan(&state.MaxAlertID)
 			if err != nil {
 				return fmt.Errorf("get max alertID: %w", err)
