@@ -47,7 +47,7 @@ models:
   Schedule:
     model: github.com/target/goalert/schedule.Schedule
   UserCalendarSubscription:
-    model: github.com/target/goalert/calsub.CalendarSubscription
+    model: github.com/target/goalert/calsub.Subscription
   ServiceOnCallUser:
     model: github.com/target/goalert/oncall.ServiceOnCallUser
   EscalationPolicyStep:

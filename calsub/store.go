@@ -95,7 +95,7 @@ func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	return tx.StmtContext(ctx, stmt)
 }
 
-func (cs *CalendarSubscription) scanFrom(scanFn func(...interface{}) error) error {
+func (cs *Subscription) scanFrom(scanFn func(...interface{}) error) error {
 	var lastAccess sql.NullTime
 	var cfgData []byte
 	err := scanFn(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.ScheduleID, &cfgData, &lastAccess)
@@ -131,7 +131,7 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Con
 }
 
 // FindOne will return a single calendar subscription for the given id.
-func (s *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
+func (s *Store) FindOne(ctx context.Context, id string) (*Subscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 		return nil, err
 	}
 
-	var cs CalendarSubscription
+	var cs Subscription
 	err = cs.scanFrom(s.findOne.QueryRowContext(ctx, id).Scan)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, validation.NewFieldError("ID", "not found")
@@ -155,7 +155,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 }
 
 // CreateTx will return a created calendar subscription with the given input.
-func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (*CalendarSubscription, error) {
+func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *Subscription) (*Subscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 }
 
 // FindOneForUpdateTx will return a CalendarSubscription for the given userID that is locked for updating.
-func (s *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, userID, id string) (*CalendarSubscription, error) {
+func (s *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, userID, id string) (*Subscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.MatchUser(userID))
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (s *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, userID, id s
 		return nil, err
 	}
 
-	var cs CalendarSubscription
+	var cs Subscription
 	row := wrapTx(ctx, tx, s.findOneUpd).QueryRowContext(ctx, id, userID)
 	err = cs.scanFrom(row.Scan)
 	if err != nil {
@@ -222,7 +222,7 @@ func (s *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, userID, id s
 }
 
 // UpdateTx updates a calendar subscription with given information.
-func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
+func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *Subscription) error {
 	err := permission.LimitCheckAny(ctx, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return err
@@ -243,7 +243,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 }
 
 // FindAllByUser returns all calendar subscriptions of a user.
-func (s *Store) FindAllByUser(ctx context.Context, userID string) ([]CalendarSubscription, error) {
+func (s *Store) FindAllByUser(ctx context.Context, userID string) ([]Subscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.MatchUser(userID))
 	if err != nil {
 		return nil, err
@@ -259,18 +259,18 @@ func (s *Store) FindAllByUser(ctx context.Context, userID string) ([]CalendarSub
 	}
 	defer rows.Close()
 
-	var calendarsubscriptions []CalendarSubscription
+	var subs []Subscription
 	for rows.Next() {
-		var cs CalendarSubscription
+		var cs Subscription
 		err = cs.scanFrom(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
 
-		calendarsubscriptions = append(calendarsubscriptions, cs)
+		subs = append(subs, cs)
 	}
 
-	return calendarsubscriptions, nil
+	return subs, nil
 }
 
 // DeleteTx removes calendar subscriptions with the given ids for the given user.
