@@ -6,11 +6,13 @@ import (
 	"fmt"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -196,7 +198,8 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		case assignment.TargetTypeSchedule:
 			err = errors.Wrap(a.ScheduleStore.DeleteManyTx(ctx, tx, ids), "delete schedules")
 		case assignment.TargetTypeCalendarSubscription:
-			err = errors.Wrap(a.CalSubStore.DeleteTx(ctx, tx, permission.UserID(ctx), ids...), "delete calendar subscriptions")
+			// TODO: will be executed in a separate transaction, convert all to gorm later
+			err = errors.Wrap(sqlutil.FromContext(ctx).Where("id in (?)", ids).Delete(&calsub.Subscription{}).Error, "delete calendar subscriptions")
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:

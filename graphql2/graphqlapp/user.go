@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -55,7 +56,14 @@ func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notific
 	return a.NRStore.FindAll(ctx, obj.ID)
 }
 func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calsub.Subscription, error) {
-	return a.CalSubStore.FindAllByUser(ctx, obj.ID)
+	err := permission.LimitCheckAny(ctx, permission.MatchUser(obj.ID))
+	if err != nil {
+		return nil, err
+	}
+
+	var subs []calsub.Subscription
+	err = sqlutil.FromContext(ctx).Where("user_id = ?", obj.ID).Find(&subs).Error
+	return subs, err
 }
 
 func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error) {

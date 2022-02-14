@@ -2,7 +2,6 @@ package graphqlapp
 
 import (
 	"context"
-	"database/sql"
 	"net/url"
 
 	"github.com/target/goalert/calsub"
@@ -10,6 +9,9 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/util/sqlutil"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserCalendarSubscription App
@@ -25,7 +27,10 @@ func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calsub.Sub
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
 func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calsub.Subscription) (*string, error) {
-	tok := obj.Token()
+	tok, err := a.CalSubStore.SignToken(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
 	if tok == "" {
 		return nil, nil
 	}
@@ -39,7 +44,13 @@ func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calsub.Subscrip
 }
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calsub.Subscription, error) {
-	return q.CalSubStore.FindOne(ctx, id)
+	var cs calsub.Subscription
+	err := sqlutil.FromContext(ctx).Where("id = ?", id).Take(&cs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &cs, nil
 }
 
 // todo: return UserCalendarSubscription with generated url once endpoint has been created
@@ -53,18 +64,22 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 		cs.Disabled = *input.Disabled
 	}
 	cs.Config.ReminderMinutes = input.ReminderMinutes
-	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		cs, err = m.CalSubStore.CreateTx(ctx, tx, cs)
-		return err
-	})
 
-	return cs, err
+	err = sqlutil.FromContext(ctx).Create(cs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return cs, nil
 }
 
 func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
-	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cs, err := m.CalSubStore.FindOneForUpdateTx(ctx, tx, permission.UserID(ctx), input.ID)
+	err := sqlutil.Transaction(ctx, func(ctx context.Context, db *gorm.DB) error {
+		var cs calsub.Subscription
+		err := db.Where("id = ?", input.ID).Clauses(clause.Locking{Strength: "FOR UPDATE"}).Take(&cs).Error
+		if err != nil {
+			return err
+		}
 		if err != nil {
 			return err
 		}
@@ -77,7 +92,8 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 		if input.ReminderMinutes != nil {
 			cs.Config.ReminderMinutes = input.ReminderMinutes
 		}
-		return m.CalSubStore.UpdateTx(ctx, tx, cs)
+		return db.Save(&cs).Error
 	})
+
 	return err == nil, err
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
@@ -556,7 +557,7 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 	case "/api/v2/prometheusalertmanager/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypePrometheusAlertmanager)
 	case "/api/v2/calendar":
-		ctx, err = h.cfg.CalSubStore.Authorize(ctx, *tok)
+		ctx, err = calsub.Authorize(ctx, *tok)
 	default:
 		return false
 	}
