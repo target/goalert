@@ -84,7 +84,13 @@ export default function AdminNumberLookup(): JSX.Element {
 
   return (
     <React.Fragment>
-      <Form>
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault()
+          lookup()
+          setStaleCarrier(false)
+        }}
+      >
         <Card>
           <CardContent>
             <Grid container spacing={2}>
@@ -129,13 +135,8 @@ export default function AdminNumberLookup(): JSX.Element {
                 <Tooltip title='May incur Twilio charges' placement='right'>
                   <LoadingButton
                     buttonText='Lookup Carrier Info'
-                    onClick={() => {
-                      lookup()
-                      setStaleCarrier(false)
-                    }}
                     disabled={!numInfo?.valid}
                     loading={carrLoading}
-                    noSubmit
                   />
                 </Tooltip>
               </CardActions>

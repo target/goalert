@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { DateTime, DurationObjectUnits } from 'luxon'
+import { DateTime, DateTimeUnit } from 'luxon'
 import { TextField, TextFieldProps } from '@mui/material'
 import DatePicker from '@mui/lab/DatePicker'
 import DateTimePicker from '@mui/lab/DateTimePicker'
@@ -11,7 +11,7 @@ interface ISOPickerProps extends ISOTextFieldProps {
   Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
   format: string
   timeZone?: string
-  truncateTo: keyof DurationObjectUnits
+  truncateTo: DateTimeUnit
   type: 'time' | 'date' | 'datetime-local'
 
   min?: string

@@ -51,7 +51,7 @@ type Engine struct {
 	modules []updater
 	msg     *message.DB
 
-	am  alert.Manager
+	a   *alert.Store
 	cfg *Config
 
 	triggerPauseCh chan *pauseReq
@@ -79,7 +79,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		runLoopExit:    make(chan struct{}),
 		nextCycle:      make(chan chan struct{}),
 
-		am: c.AlertStore,
+		a: c.AlertStore,
 	}
 
 	p.mgr = lifecycle.NewManager(p._run, p._shutdown)
@@ -349,10 +349,10 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 	}
 
 	if cb.AlertID != 0 {
-		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
 	return errors.New("unknown callback type")
@@ -404,10 +404,10 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	}
 
 	if cb.AlertID != 0 {
-		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
 	return errors.New("unknown callback type")

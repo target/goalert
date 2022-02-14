@@ -3,12 +3,13 @@ package twilio
 import (
 	"bytes"
 	"context"
+	"errors"
 	"strings"
 	"text/template"
 	"unicode"
 
-	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
 )
 
 // 160 GSM characters (140 bytes) is the max for a single segment message.
@@ -19,31 +20,26 @@ import (
 // then be 70 or 67 characters for single or multi-segmented messages, respectively.
 const maxGSMLen = 160
 
-type alertSMS struct {
-	ID    int
-	Count int
-	Body  string
-	Link  string
-	Code  int
-}
-
-var smsTmpl = template.Must(template.New("alertSMS").Parse(`
-{{- if .ID}}Alert #{{.ID}}: {{.Body}}
-{{- else if .Count}}Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
-{{- end}}
+var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.AlertID}}: {{.Summary}}
 {{- if .Link }}
 
-{{.Link}}
-{{- end}}
-{{- if and .Count .ID }}
-
-{{.Count}} other alert{{if gt .Count 1}}s have{{else}} has{{end}} been updated.
-{{- end}}
+{{.Link}}{{end}}
 {{- if .Code}}
 
-Reply '{{.Code}}a{{if .Count}}a{{end}}' to ack{{if .Count}} all{{end}}, '{{.Code}}c{{if .Count}}c{{end}}' to close{{if .Count}} all{{end}}.
-{{- end}}`,
-))
+Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
+
+var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
+
+{{- if .Link }}
+
+	{{.Link}}
+{{end}}
+{{- if .Code}}
+	Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
+
+var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.AlertID}}{{- if .Summary }}: {{.Summary}}{{end}}
+
+	{{.LogEntry}}`))
 
 const gsmAlphabet = "@∆ 0¡P¿p£!1AQaq$Φ\"2BRbr¥Γ#3CScsèΛ¤4DTdtéΩ%5EUeuùΠ&6FVfvìΨ'7GWgwòΣ(8HXhxÇΘ)9IYiy\n Ξ *:JZjzØ+;KÄkäøÆ,<LÖlö\ræ-=MÑmñÅß.>NÜnüåÉ/?O§oà"
 
@@ -103,32 +99,136 @@ func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 	return !strings.HasPrefix(number, "+91")
 }
 
-// Render will render a single-segment SMS.
-//
-// Non-GSM characters will be replaced with '?' and Body will be
-// truncated (if needed) until the output is <= maxLen characters.
-func (a alertSMS) Render(maxLen int) (string, error) {
-	a.Body = strings.Map(mapGSM, a.Body)
-	a.Body = strings.Replace(a.Body, "  ", " ", -1)
-	a.Body = strings.TrimSpace(a.Body)
+func normalizeGSM(str string) (s string) {
+	s = strings.Map(mapGSM, str)
+	s = strings.Replace(s, "  ", " ", -1)
+	s = strings.TrimSpace(s)
+	return s
+}
 
+// trimString will trim the string by the difference between the maxLen and the
+// buffer length. If the string is trimmed, it returns true and the buffer is reset.
+func trimString(str *string, buf *bytes.Buffer, maxLen int) bool {
+	if buf.Len() <= maxLen {
+		return false
+	}
+
+	newLen := len(*str) - (buf.Len() - maxLen)
+	if newLen <= 0 {
+		*str = ""
+	} else {
+		*str = strings.TrimSpace((*str)[:newLen])
+	}
+	buf.Reset()
+
+	return true
+}
+
+// renderAlertMessage will render a single-segment SMS for an Alert.
+//
+// Non-GSM characters will be replaced with '?' and fields will be
+// truncated (if needed) until the output is <= maxLen characters.
+func renderAlertMessage(maxLen int, a notification.Alert, link string, code int) (string, error) {
 	var buf bytes.Buffer
-	err := smsTmpl.Execute(&buf, a)
+	a.Summary = normalizeGSM(a.Summary)
+
+	var data struct {
+		notification.Alert
+		Link string
+		Code int
+	}
+	data.Alert = a
+	data.Link = link
+	data.Code = code
+
+	err := alertTempl.Execute(&buf, data)
 	if err != nil {
 		return "", err
 	}
 
-	if buf.Len() > maxLen {
-		newBodyLen := len(a.Body) - (buf.Len() - maxLen)
-		if newBodyLen <= 0 {
-			return "", errors.New("message too long to include body")
-		}
-		a.Body = strings.TrimSpace(a.Body[:newBodyLen])
-		buf.Reset()
-		err = smsTmpl.Execute(&buf, a)
+	if trimString(&data.Alert.Summary, &buf, maxLen) {
+		err = alertTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
 		}
+	}
+
+	// should maybe revisit templates if this starts occurring
+	if buf.Len() > maxLen {
+		return "", errors.New("message too long")
+	}
+
+	return buf.String(), nil
+}
+
+// renderAlertStatusMessage will render a single-segment SMS for an Alert Status.
+//
+// Non-GSM characters will be replaced with '?' and fields will be
+// truncated (if needed) until the output is <= maxLen characters.
+func renderAlertStatusMessage(maxLen int, a notification.AlertStatus) (string, error) {
+	var buf bytes.Buffer
+	a.Summary = normalizeGSM(a.Summary)
+	a.LogEntry = normalizeGSM(a.LogEntry)
+
+	err := statusTempl.Execute(&buf, a)
+	if err != nil {
+		return "", err
+	}
+
+	if trimString(&a.Summary, &buf, maxLen) {
+		err = statusTempl.Execute(&buf, a)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if trimString(&a.LogEntry, &buf, maxLen) {
+		err = statusTempl.Execute(&buf, a)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// should maybe revisit templates if this starts occurring
+	if buf.Len() > maxLen {
+		return "", errors.New("message too long")
+	}
+
+	return buf.String(), nil
+}
+
+// renderAlertBundleMessage will render a single-segment SMS for an Alert Bundle.
+//
+// Non-GSM characters will be replaced with '?' and fields will be
+// truncated (if needed) until the output is <= maxLen characters.
+func renderAlertBundleMessage(maxLen int, a notification.AlertBundle, link string, code int) (string, error) {
+	var buf bytes.Buffer
+	a.ServiceName = normalizeGSM(a.ServiceName)
+
+	var data struct {
+		notification.AlertBundle
+		Link string
+		Code int
+	}
+	data.AlertBundle = a
+	data.Link = link
+	data.Code = code
+
+	err := bundleTempl.Execute(&buf, data)
+	if err != nil {
+		return "", err
+	}
+
+	if trimString(&data.AlertBundle.ServiceName, &buf, maxLen) {
+		err = bundleTempl.Execute(&buf, data)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// should maybe revisit templates if this starts occurring
+	if buf.Len() > maxLen {
+		return "", errors.New("message too long")
 	}
 
 	return buf.String(), nil

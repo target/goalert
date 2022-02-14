@@ -1,0 +1,13 @@
+FROM docker.io/library/alpine:3.14 AS build
+ARG ARCH
+COPY /bin/goalert-linux-$ARCH.tgz /work/goalert.tgz
+RUN mkdir -p /work/bin && tar xfv /work/goalert.tgz -C /work && cp /work/goalert/bin/* /work/bin/
+
+FROM docker.io/library/alpine
+RUN apk --no-cache add ca-certificates
+ENV GOALERT_LISTEN :8081
+EXPOSE 8081
+CMD ["/usr/bin/goalert"]
+
+COPY --from=build /work/bin/* /usr/bin/
+RUN /usr/bin/goalert self-test

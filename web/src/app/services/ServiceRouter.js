@@ -13,6 +13,7 @@ import HeartbeatMonitorList from './HeartbeatMonitorList'
 import { useURLParam } from '../actions'
 import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
 import getServiceLabel from '../util/getServiceLabel'
+import AlertMetrics from './AlertMetrics/AlertMetrics'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -81,6 +82,10 @@ export default function ServiceRouter() {
     return <ServiceLabelList serviceID={match.params.serviceID} />
   }
 
+  function renderAlertMetrics({ match }) {
+    return <AlertMetrics serviceID={match.params.serviceID} />
+  }
+
   return (
     <Switch>
       <Route exact path='/services' render={renderList} />
@@ -97,7 +102,11 @@ export default function ServiceRouter() {
         render={renderHeartbeatMonitors}
       />
       <Route exact path='/services/:serviceID/labels' render={renderLabels} />
-
+      <Route
+        exact
+        path='/services/:serviceID/alert-metrics'
+        render={renderAlertMetrics}
+      />
       <Route component={PageNotFound} />
     </Switch>
   )
