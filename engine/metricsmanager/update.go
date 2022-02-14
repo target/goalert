@@ -54,10 +54,12 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		}
 	}
 
-	if state.MaxAlertID == 0 {
-		err = tx.StmtContext(ctx, db.findMaxAlertID).QueryRowContext(ctx).Scan(&state.MaxAlertID)
-		if err != nil {
-			return fmt.Errorf("get max alertID: %w", err)
+	updateState := func() error {
+		if state.MaxAlertID <= 0 {
+			err = tx.StmtContext(ctx, db.findMaxAlertID).QueryRowContext(ctx).Scan(&state.MaxAlertID)
+			if err != nil {
+				return fmt.Errorf("get max alertID: %w", err)
+			}
 		}
 
 		b, err := json.Marshal(state)
@@ -69,7 +71,12 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("update state: %w", err)
 		}
+		return nil
+	}
 
+	err = updateState()
+	if err != nil {
+		return err
 	}
 
 	var recentAlertID, lowerBound, upperBound int
@@ -78,17 +85,27 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return fmt.Errorf("get recentl alert id: %w", err)
 	}
 
+	isUsingState := false
 	if recentAlertID != 0 {
 		lowerBound = recentAlertID - 3000
 		upperBound = recentAlertID
 	} else {
 		lowerBound = state.MaxAlertID - 3000
 		upperBound = state.MaxAlertID
+		state.MaxAlertID = lowerBound
+		isUsingState = true
 	}
 
 	_, err = tx.StmtContext(ctx, db.insertAlertMetrics).ExecContext(ctx, lowerBound, upperBound)
 	if err != nil {
 		return fmt.Errorf("insert alert metrics: %w", err)
+	}
+
+	if isUsingState {
+		err := updateState()
+		if err != nil {
+			return err
+		}
 	}
 
 	return tx.Commit()
