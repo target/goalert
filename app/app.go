@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"fmt"
 	"net"
 	"net/http"
 
@@ -31,6 +32,7 @@ import (
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
@@ -44,6 +46,8 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // App represents an instance of the GoAlert application.
@@ -53,6 +57,7 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -137,9 +142,26 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		return ctx
 	})
 
+	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{
+		PrepareStmt: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("wrap db for GORM: %w", err)
+	}
+
+	// permission check *before* query is run
+	gdb.Callback().Query().Before("gorm:query").
+		Register("goalert:permission-check", func(gDB *gorm.DB) {
+			err := permission.LimitCheckAny(gDB.Statement.Context, permission.All)
+			if err != nil {
+				gDB.AddError(err)
+			}
+		})
+
 	app := &App{
 		l:      l,
 		db:     db,
+		gdb:    gdb,
 		cfg:    c,
 		doneCh: make(chan struct{}),
 
