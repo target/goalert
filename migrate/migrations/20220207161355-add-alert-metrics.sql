@@ -9,9 +9,11 @@ CREATE TABLE alert_metrics (
 );
 
 CREATE INDEX idx_closed_events ON alert_logs (timestamp) WHERE event = 'closed';
-
-ALTER TYPE engine_processing_type ADD VALUE IF NOT EXISTS 'metrics';
+ALTER TABLE engine_processing_versions ADD COLUMN state JSONB NOT NULL DEFAULT '{}'::jsonb;
+INSERT INTO engine_processing_versions (type_id, version) VALUES ('metrics', 1);
 
 -- +migrate Down
-DROP INDEX idx_closed_events;
+
+ALTER TABLE engine_processing_versions DROP COLUMN state;
+DELETE FROM engine_processing_versions WHERE type_id = 'metrics';
 DROP TABLE alert_metrics;
