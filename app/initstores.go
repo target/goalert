@@ -249,7 +249,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.CalSubStore == nil {
-		app.CalSubStore, err = calsub.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
+		app.CalSubStore, err = calsub.NewStore(ctx, app.gdb, app.APIKeyring, app.OnCallStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")

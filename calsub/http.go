@@ -19,13 +19,14 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	cs, err := s.FindOne(ctx, src.ID)
+	var cs Subscription
+	err := s.db.WithContext(ctx).Where("id = ?", src.ID).Take(&cs).Error
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
 	var n time.Time
-	err = s.now.QueryRowContext(ctx).Scan(&n)
+	err = s.db.WithContext(ctx).Raw("SELECT now()").Row().Scan(&n)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
