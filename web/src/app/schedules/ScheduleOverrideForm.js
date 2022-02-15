@@ -4,15 +4,13 @@ import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { Grid, Typography } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles'
-
-import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { UserSelect } from '../selection'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
-import { useURLParam } from '../actions'
+import { useScheduleTZ } from './useScheduleTZ'
+import { fmtLocal } from '../util/timeFormat'
 
 const query = gql`
   query ($id: ID!) {
@@ -31,12 +29,6 @@ const query = gql`
     }
   }
 `
-const useStyles = makeStyles({
-  tzNote: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-})
 
 export default function ScheduleOverrideForm(props) {
   const {
@@ -49,8 +41,7 @@ export default function ScheduleOverrideForm(props) {
     ...formProps
   } = props
 
-  const classes = useStyles()
-  const [zone] = useURLParam('tz', 'local')
+  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   const conflictingUserFieldError = props.errors.find(
     (e) => e && e.field === 'userID',
@@ -81,23 +72,6 @@ export default function ScheduleOverrideForm(props) {
       {...formProps}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
-          <Typography
-            // variant='caption'
-            color='textSecondary'
-            style={{ fontStyle: 'italic' }}
-          >
-            Start and end time shown in {zone === 'local' ? 'local time' : zone}
-            .
-          </Typography>
-        </Grid>
-        <Grid item xs={12} sm={12} md={6}>
-          {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-          <ScheduleTZFilter
-            label={(tz) => `Configure in ${tz}`}
-            scheduleID={scheduleID}
-          />
-        </Grid>
         {remove && (
           <Grid item xs={12}>
             <FormField
@@ -122,19 +96,30 @@ export default function ScheduleOverrideForm(props) {
           </Grid>
         )}
         <Grid item xs={12}>
+          <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
+            Configuring in {zone}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
+            timeZone={zone}
             required
             name='start'
+            disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.start, true)}
           />
         </Grid>
         <Grid item xs={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
+            timeZone={zone}
             name='end'
             required
+            disabled={q.loading}
+            hint={isLocalZone ? '' : fmtLocal(value.end, true)}
           />
         </Grid>
         {conflictingUserFieldError && (
