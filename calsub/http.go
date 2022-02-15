@@ -2,7 +2,6 @@ package calsub
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
@@ -27,11 +26,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var n time.Time
-	err = db.Raw("SELECT now()").Row().Scan(&n)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
+	n := db.NowFunc()
 
 	shifts, err := s.oc.HistoryBySchedule(ctx, cs.ScheduleID, n, n.AddDate(0, 1, 0))
 	if errutil.HTTPError(ctx, w, err) {
