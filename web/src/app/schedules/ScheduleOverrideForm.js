@@ -41,7 +41,7 @@ export default function ScheduleOverrideForm(props) {
     ...formProps
   } = props
 
-  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   const conflictingUserFieldError = props.errors.find(
     (e) => e && e.field === 'userID',
@@ -107,8 +107,8 @@ export default function ScheduleOverrideForm(props) {
             timeZone={zone}
             required
             name='start'
-            disabled={q.loading}
-            hint={isLocalZone ? '' : fmtLocal(value.start, true)}
+            disabled={!zone}
+            hint={isLocalZone ? '' : fmtLocal(value.start)}
           />
         </Grid>
         <Grid item xs={12}>
@@ -118,8 +118,8 @@ export default function ScheduleOverrideForm(props) {
             timeZone={zone}
             name='end'
             required
-            disabled={q.loading}
-            hint={isLocalZone ? '' : fmtLocal(value.end, true)}
+            disabled={!zone}
+            hint={isLocalZone ? '' : fmtLocal(value.end)}
           />
         </Grid>
         {conflictingUserFieldError && (

@@ -106,7 +106,7 @@ const useStyles = makeStyles({
 export default function ScheduleRuleForm(props) {
   const { value, scheduleID, onChange } = props
   const classes = useStyles()
-  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
 
   const Spacer = () =>
@@ -123,7 +123,7 @@ export default function ScheduleRuleForm(props) {
             required
             label=''
             name={`rules[${idx}].start`}
-            disabled={q.loading}
+            disabled={!zone}
             timeZone={zone}
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
           />
@@ -136,7 +136,7 @@ export default function ScheduleRuleForm(props) {
             required
             label=''
             name={`rules[${idx}].end`}
-            disabled={q.loading}
+            disabled={!zone}
             timeZone={zone}
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
           />
