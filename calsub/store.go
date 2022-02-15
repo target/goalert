@@ -2,7 +2,6 @@ package calsub
 
 import (
 	"context"
-	"errors"
 
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
@@ -10,7 +9,6 @@ import (
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -33,7 +31,7 @@ func NewStore(ctx context.Context, apiKeyring keyring.Keyring, oc oncall.Store) 
 // or otherwise can not be authenticated, an error is returned.
 func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error) {
 	if tok.Type != authtoken.TypeCalSub {
-		return ctx, validation.NewFieldError("token", "invalid type")
+		return ctx, permission.NewAccessDenied("invalid token")
 	}
 
 	cfg := config.FromContext(ctx)
@@ -46,19 +44,19 @@ func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error
 	sCtx = permission.SystemContext(sCtx, "CalSubAuthorize")
 
 	var cs Subscription
-	err := sqlutil.FromContext(ctx).
+	db := sqlutil.FromContext(ctx).
 		WithContext(sCtx).
 		Model(&cs).
 		Where("not disabled").
 		Where("id = ?", tok.ID).
 		Where("date_trunc('second', created_at) = ?", tok.CreatedAt).
 		Clauses(clause.Returning{}).
-		UpdateColumn("last_access", gorm.Expr("now()")).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return ctx, validation.NewFieldError("sub", "invalid")
+		UpdateColumn("last_access", gorm.Expr("now()"))
+	if db.Error != nil {
+		return ctx, db.Error
 	}
-	if err != nil {
-		return ctx, err
+	if db.RowsAffected == 0 {
+		return ctx, permission.NewAccessDenied("invalid token")
 	}
 
 	return permission.UserSourceContext(ctx, cs.UserID, permission.RoleUser, &permission.SourceInfo{

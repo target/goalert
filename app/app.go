@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	stdlog "log"
 	"net"
 	"net/http"
 	"sync"
@@ -50,6 +51,7 @@ import (
 	"google.golang.org/grpc/health"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // App represents an instance of the GoAlert application.
@@ -162,6 +164,13 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	}
 	if c.JSON {
 		gCfg.Logger = &gormJSONLogger{}
+	} else {
+		gCfg.Logger = logger.New(stdlog.New(c.Logger, "", 0), logger.Config{
+			SlowThreshold:             50 * time.Millisecond,
+			LogLevel:                  logger.Warn,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
+		})
 	}
 	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
 	if err != nil {

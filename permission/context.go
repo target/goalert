@@ -3,10 +3,11 @@ package permission
 import (
 	"context"
 	"errors"
-	"github.com/target/goalert/util/log"
 	"regexp"
 	"strings"
 	"sync/atomic"
+
+	"github.com/target/goalert/util/log"
 
 	"go.opencensus.io/trace"
 )
@@ -51,6 +52,9 @@ func UserSourceContext(ctx context.Context, id string, r Role, src *SourceInfo) 
 
 // UserContext will return a context authenticated with the users privileges.
 func UserContext(ctx context.Context, id string, r Role) context.Context {
+	if id == "" {
+		return ctx
+	}
 	id = strings.ToLower(id)
 	ctx = context.WithValue(ctx, contextHasAuth, 1)
 	ctx = context.WithValue(ctx, contextKeyUserID, id)

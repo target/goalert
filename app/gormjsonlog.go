@@ -29,7 +29,7 @@ func (l *gormJSONLogger) Error(ctx context.Context, s string, args ...interface{
 }
 
 func (l *gormJSONLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err == nil || errors.Is(err, gorm.ErrRecordNotFound) {
 		return
 	}
 
