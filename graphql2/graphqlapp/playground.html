@@ -9,26 +9,30 @@
     <link
       rel="stylesheet"
       crossorigin="anonymous"
-      href="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlVersion}}/graphiql.min.css"
+      href="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlCSS.Version}}/graphiql.min.css"
+      integrity="{{.GraphiqlCSS.SRI}}"
     />
 
     <script
       async="false"
       defer="false"
       crossorigin="anonymous"
-      src="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlVersion}}/graphiql.min.js"
+      src="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlJS.Version}}/graphiql.min.js"
+      integrity="{{.GraphiqlJS.SRI}}"
     ></script>
     <script
       async="false"
       defer="false"
       crossorigin="anonymous"
-      src="//cdn.jsdelivr.net/npm/react@{{ .ReactVersion }}/umd/react.production.min.js"
+      src="//cdn.jsdelivr.net/npm/react@{{ .React.Version }}/umd/react.production.min.js"
+      integrity="{{.React.SRI}}"
     ></script>
     <script
       async="false"
       defer="false"
       crossorigin="anonymous"
-      src="//cdn.jsdelivr.net/npm/react-dom@{{ .ReactVersion }}/umd/react-dom.production.min.js"
+      src="//cdn.jsdelivr.net/npm/react-dom@{{ .ReactDOM.Version }}/umd/react-dom.production.min.js"
+      integrity="{{.ReactDOM.SRI}}"
     ></script>
 
     <title>{{ .ApplicationName }} - GraphQL API</title>
