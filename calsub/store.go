@@ -35,8 +35,13 @@ func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error
 		return ctx, validation.NewFieldError("token", "invalid type")
 	}
 
+	sCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	sCtx = permission.SystemContext(sCtx, "CalSubAuthorize")
+
 	var cs Subscription
 	err := sqlutil.FromContext(ctx).
+		WithContext(sCtx).
 		Model(&cs).
 		Where("not disabled").
 		Where("id = ?", tok.ID).

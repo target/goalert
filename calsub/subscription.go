@@ -37,14 +37,11 @@ type SubscriptionConfig struct {
 }
 
 var (
-	_ = driver.Valuer(&SubscriptionConfig{})
+	_ = driver.Valuer(SubscriptionConfig{})
 	_ = sql.Scanner(&SubscriptionConfig{})
 )
 
-func (scfg *SubscriptionConfig) Value() (driver.Value, error) {
-	if scfg == nil {
-		return nil, nil
-	}
+func (scfg SubscriptionConfig) Value() (driver.Value, error) {
 	data, err := json.Marshal(scfg)
 	if err != nil {
 		return nil, err
@@ -69,6 +66,8 @@ func (cs *Subscription) BeforeCreate(db *gorm.DB) error {
 		return err
 	}
 
+	id := uuid.New()
+	cs.ID = id.String()
 	err = validate.Many(
 		validate.Range("ReminderMinutes", len(cs.Config.ReminderMinutes), 0, 15),
 		validate.IDName("Name", cs.Name),
@@ -90,13 +89,16 @@ func (cs *Subscription) BeforeCreate(db *gorm.DB) error {
 		Type:      authtoken.TypeCalSub,
 		Version:   2,
 		CreatedAt: now,
-		ID:        uuid.New(),
+		ID:        id,
 	}
-	cs.ID = cs.token.ID.String()
 	return nil
 }
 
 func (cs *Subscription) BeforeUpdate(db *gorm.DB) error {
+	if permission.SystemComponentName(db.Statement.Context) == "CalSubAuthorize" {
+		return nil
+	}
+
 	// if not the same user, they will get not-found
 	db.Statement.Where("user_id = ?", permission.UserID(db.Statement.Context))
 
