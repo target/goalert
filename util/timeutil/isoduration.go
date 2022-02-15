@@ -22,6 +22,21 @@ func (dur ISODuration) IsZero() bool {
 	return dur == zeroDur
 }
 
+// AddTo adds the duration to the given time.
+func (dur ISODuration) AddTo(t time.Time) time.Time {
+	return t.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+}
+
+// LessThan returns true if the duration is less than the other duration from the given reference time.
+func (dur ISODuration) LessThan(t time.Time, other ISODuration) bool {
+	return dur.AddTo(t).Before(other.AddTo(t))
+}
+
+// Equal returns true if the duration is equal to the other duration from the given reference time.
+func (dur ISODuration) Equal(t time.Time, other ISODuration) bool {
+	return dur.AddTo(t).Equal(other.AddTo(t))
+}
+
 // String returns an ISO 8601 duration string.
 func (dur ISODuration) String() string {
 	if dur == zeroDur {

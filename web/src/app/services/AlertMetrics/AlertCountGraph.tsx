@@ -52,7 +52,7 @@ export default function AlertCountGraph(
             <YAxis allowDecimals={false} dataKey='count' />
             <Tooltip
               labelFormatter={(label, props) => {
-                return props.length ? props[0].payload.label : label
+                return props?.length ? props[0].payload.label : label
               }}
             />
             <Legend />
