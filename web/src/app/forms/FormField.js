@@ -147,8 +147,8 @@ export function FormField(props) {
       <Component
         {...fieldProps}
         error={checkbox ? undefined : Boolean(fieldProps.error)}
-        // NOTE: empty string label leave gap in outlined field; use undefined instead
-        label={formLabel ? null : fieldProps.label || undefined}
+        // NOTE: empty string label leaves gap in outlined field; fallback to undefined instead
+        label={(!formLabel && fieldProps.label) || undefined}
       >
         {fieldProps.children}
       </Component>
