@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"errors"
 	"net/url"
 
 	"github.com/target/goalert/calsub"
@@ -10,6 +11,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -45,7 +47,10 @@ func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calsub.Subscrip
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calsub.Subscription, error) {
 	var cs calsub.Subscription
-	err := sqlutil.FromContext(ctx).Where("id = ?", id).Take(&cs).Error
+	err := sqlutil.FromContext(ctx).Where("id = ?", id).Where("user_id = ?", permission.UserID(ctx)).Take(&cs).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +99,8 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 		}
 		return db.Save(&cs).Error
 	})
-
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, validation.NewGenericError("unknown calendar subscription id")
+	}
 	return err == nil, err
 }
