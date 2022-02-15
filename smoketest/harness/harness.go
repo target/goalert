@@ -367,7 +367,9 @@ func (h *Harness) setDBOffset(d time.Duration) {
 	elapsed := time.Since(h.resumed)
 	h.t.Logf("Updating DB time offset to: %s (+ %s elapsed = %s since test start)", h.delayOffset.String(), elapsed.String(), (h.delayOffset + elapsed).String())
 
-	h.App().SetTimeOffset(d)
+	if h.App() != nil {
+		h.App().SetTimeOffset(d)
+	}
 
 	h.execQuery(fmt.Sprintf(`
 		create or replace function testing_overrides.now()
