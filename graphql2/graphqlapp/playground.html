@@ -8,42 +8,72 @@
     />
     <link
       rel="stylesheet"
-      href="//cdn.jsdelivr.net/npm/{{ .PackageName }}@{{ .Version }}/build/static/css/index.css"
+      crossorigin="anonymous"
+      href="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlVersion}}/graphiql.min.css"
     />
-    <link
-      rel="shortcut icon"
-      href="//cdn.jsdelivr.net/npm/{{ .PackageName }}@{{ .Version }}/build/favicon.png"
-    />
-    <script src="//cdn.jsdelivr.net/npm/{{ .PackageName }}@{{ .Version }}/build/static/js/middleware.js"></script>
+
+    <script
+      async="false"
+      defer="false"
+      crossorigin="anonymous"
+      src="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlVersion}}/graphiql.min.js"
+    ></script>
+    <script
+      async="false"
+      defer="false"
+      crossorigin="anonymous"
+      src="//cdn.jsdelivr.net/npm/react@{{ .ReactVersion }}/umd/react.production.min.js"
+    ></script>
+    <script
+      async="false"
+      defer="false"
+      crossorigin="anonymous"
+      src="//cdn.jsdelivr.net/npm/react-dom@{{ .ReactVersion }}/umd/react-dom.production.min.js"
+    ></script>
+
     <title>{{ .ApplicationName }} - GraphQL API</title>
     <style type="text/css">
-      html {
-        font-family: 'Open Sans', sans-serif;
+      body {
+        height: 100%;
+        margin: 0;
+        width: 100%;
         overflow: hidden;
       }
-      body {
-        margin: 0;
-        background: #172a3a;
-      }
-      .CodeMirror-cursor {
-        background-color: white !important;
-        width: 1px !important;
+
+      #root {
+        height: 100vh;
       }
     </style>
   </head>
   <body>
     <div id="root" />
-    <script type="text/javascript">
+    <script type="text/javascript" async="false" defer>
       window.addEventListener('load', function (event) {
         var root = document.getElementById('root')
         var path = location.host + location.pathname.replace(/\/explore.*$/, '')
+        function graphQLFetcher(graphQLParams) {
+          return fetch(location.protocol + '//' + path, {
+            method: 'post',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(graphQLParams),
+            credentials: 'same-origin',
+          }).then(function (response) {
+            return response.json().catch(function () {
+              return response.text()
+            })
+          })
+        }
 
-        GraphQLPlayground.init(root, {
-          endpoint: location.protocol + '//' + path,
-          settings: {
-            'request.credentials': 'same-origin',
-          },
-        })
+        ReactDOM.render(
+          React.createElement(GraphiQL, {
+            fetcher: graphQLFetcher,
+            defaultVariableEditorOpen: true,
+          }),
+          root,
+        )
       })
     </script>
   </body>

@@ -90,8 +90,8 @@ type App struct {
 func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 	var data struct {
 		ApplicationName string
-		Version         string
-		PackageName     string
+		GraphiqlVersion string
+		ReactVersion    string
 	}
 
 	ctx := req.Context()
@@ -104,8 +104,8 @@ func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
 	cfg := config.FromContext(ctx)
 
 	data.ApplicationName = cfg.ApplicationName()
-	data.Version = playVersion
-	data.PackageName = playPackageName
+	data.GraphiqlVersion = graphiqlVersion
+	data.ReactVersion = reactVersion
 
 	err = playTmpl.Execute(w, data)
 	if errutil.HTTPError(ctx, w, err) {

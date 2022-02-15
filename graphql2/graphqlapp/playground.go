@@ -5,8 +5,8 @@ import (
 	"html/template"
 )
 
-const playVersion = "1.7.33"
-const playPackageName = "@apollographql/graphql-playground-react"
+const graphiqlVersion = "1.5.19"
+const reactVersion = "17.0.2"
 
 //go:embed playground.html
 var playHTML string
