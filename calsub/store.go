@@ -61,6 +61,7 @@ func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error
 	}), nil
 }
 
+// SignToken will sign a token for the given subscription.
 func (s *Store) SignToken(ctx context.Context, cs *Subscription) (string, error) {
 	if cs.token == nil {
 		return "", nil
