@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
@@ -60,6 +62,9 @@ type App struct {
 	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
+
+	timeOffset time.Duration
+	timeMx     sync.Mutex
 
 	cooldown *cooldown
 	doneCh   chan struct{}
@@ -142,12 +147,31 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		return ctx
 	})
 
-	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{
+	app := &App{
+		l:      l,
+		db:     db,
+		cfg:    c,
+		doneCh: make(chan struct{}),
+
+		requestLock: newContextLocker(),
+	}
+
+	var gdb *gorm.DB
+	gdb, err = gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{
 		PrepareStmt: true,
+		NowFunc:     app.Now,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("wrap db for GORM: %w", err)
 	}
+	app.gdb = gdb
+
+	var n time.Time
+	err = db.QueryRow("SELECT now()").Scan(&n)
+	if err != nil {
+		return nil, fmt.Errorf("get current time: %w", err)
+	}
+	app.SetTimeOffset(time.Until(n))
 
 	// permission check *before* query is run
 	gdb.Callback().Query().Before("gorm:query").
@@ -158,15 +182,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 			}
 		})
 
-	app := &App{
-		l:      l,
-		db:     db,
-		gdb:    gdb,
-		cfg:    c,
-		doneCh: make(chan struct{}),
-
-		requestLock: newContextLocker(),
-	}
 	if c.KubernetesCooldown > 0 {
 		app.cooldown = newCooldown(c.KubernetesCooldown)
 	}

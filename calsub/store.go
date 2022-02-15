@@ -47,7 +47,7 @@ func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error
 		Where("id = ?", tok.ID).
 		Where("date_trunc('second', created_at) = ?", tok.CreatedAt).
 		Clauses(clause.Returning{}).
-		Update("last_access", gorm.Expr("now()")).Error
+		UpdateColumn("last_access", gorm.Expr("now()")).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}

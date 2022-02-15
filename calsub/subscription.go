@@ -21,6 +21,7 @@ type Subscription struct {
 	UserID     string
 	ScheduleID string
 	LastAccess time.Time
+	LastUpdate time.Time `gorm:"autoUpdateTime"`
 	Disabled   bool
 
 	// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
@@ -110,9 +111,8 @@ func (cs *Subscription) BeforeUpdate(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-
-	db.Statement.Select("name", "disabled", "config")
-	db.Statement.UpdateColumn("last_update", gorm.Expr("now()"))
+	db.Statement.Select("name", "disabled", "config", "last_update")
+	cs.LastUpdate = time.Now()
 	return nil
 }
 
