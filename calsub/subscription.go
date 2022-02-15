@@ -112,7 +112,7 @@ func (cs *Subscription) BeforeUpdate(db *gorm.DB) error {
 		return err
 	}
 	db.Statement.Select("name", "disabled", "config", "last_update")
-	cs.LastUpdate = time.Now()
+	cs.LastUpdate = db.NowFunc()
 	return nil
 }
 
