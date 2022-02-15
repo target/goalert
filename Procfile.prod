@@ -1,4 +1,4 @@
-build: while true; do make -qs bin/goalert BUNDLE=1 || make bin/goalert BUNDLE=1; sleep 0.1; done
+build: while true; do make -qs bin/goalert BUNDLE=1 || make bin/goalert BUNDLE=1 || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert
 goalert: ./bin/goalert -l=localhost:3030 --db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable --listen-sysapi=localhost:1234 --listen-prometheus=localhost:2112
