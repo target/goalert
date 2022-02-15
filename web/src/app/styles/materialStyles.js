@@ -61,10 +61,10 @@ export const styles = (theme) => ({
     padding: 0,
   },
   highlightRow: {
-    backgroundColor: theme.palette.primary['100'],
+    backgroundColor: theme.palette.secondary.main,
   },
   error: {
-    color: theme.palette.error['700'],
+    color: theme.palette.error.main,
   },
   selectedOption: {
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
