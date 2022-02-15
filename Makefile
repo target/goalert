@@ -78,9 +78,9 @@ cy-wide-prod: web/src/build/static/app.js cypress
 cy-mobile-prod: web/src/build/static/app.js cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	make cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
+	$(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	make cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL)
+	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
@@ -92,7 +92,7 @@ start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
-	make bin/goalert BUNDLE=1
+	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 jest: node_modules 
