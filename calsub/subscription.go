@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
 	"gorm.io/gorm"
@@ -65,6 +66,11 @@ func (cs *Subscription) BeforeCreate(db *gorm.DB) error {
 	err := permission.LimitCheckAny(db.Statement.Context, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return err
+	}
+
+	cfg := config.FromContext(db.Statement.Context)
+	if cfg.General.DisableCalendarSubscriptions {
+		return permission.NewAccessDenied("disabled by administrator")
 	}
 
 	id := uuid.New()

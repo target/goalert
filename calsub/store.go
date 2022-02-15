@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
@@ -33,6 +34,11 @@ func NewStore(ctx context.Context, apiKeyring keyring.Keyring, oc oncall.Store) 
 func Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error) {
 	if tok.Type != authtoken.TypeCalSub {
 		return ctx, validation.NewFieldError("token", "invalid type")
+	}
+
+	cfg := config.FromContext(ctx)
+	if cfg.General.DisableCalendarSubscriptions {
+		return nil, permission.NewAccessDenied("disabled by administrator")
 	}
 
 	sCtx, cancel := context.WithCancel(ctx)
