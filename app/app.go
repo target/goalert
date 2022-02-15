@@ -156,11 +156,14 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		requestLock: newContextLocker(),
 	}
 
-	var gdb *gorm.DB
-	gdb, err = gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{
+	gCfg := &gorm.Config{
 		PrepareStmt: true,
 		NowFunc:     app.Now,
-	})
+	}
+	if c.JSON {
+		gCfg.Logger = &gormJSONLogger{}
+	}
+	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
 	if err != nil {
 		return nil, fmt.Errorf("wrap db for GORM: %w", err)
 	}
