@@ -11,11 +11,11 @@ import (
 // NCLoader will load notification channels from postgres.
 type NCLoader struct {
 	*loader
-	store notificationchannel.Store
+	store *notificationchannel.Store
 }
 
 // NewNCLoader will create a new NCLoader using the provided store for fetch operations.
-func NewNCLoader(ctx context.Context, store notificationchannel.Store) *NCLoader {
+func NewNCLoader(ctx context.Context, store *notificationchannel.Store) *NCLoader {
 	p := &NCLoader{
 		store: store,
 	}
