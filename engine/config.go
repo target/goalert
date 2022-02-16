@@ -17,7 +17,7 @@ import (
 type Config struct {
 	AlertLogStore       *alertlog.Store
 	AlertStore          *alert.Store
-	ContactMethodStore  contactmethod.Store
+	ContactMethodStore  *contactmethod.Store
 	NotificationManager *notification.Manager
 	UserStore           *user.Store
 	NotificationStore   *notification.Store
