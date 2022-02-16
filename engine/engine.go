@@ -479,8 +479,10 @@ passSignals:
 		return
 	}
 
-	log.Logf(ctx, "Engine cycle start.")
-	defer log.Logf(ctx, "Engine cycle end.")
+	if p.cfg.LogCycles {
+		log.Logf(ctx, "Engine cycle start.")
+		defer log.Logf(ctx, "Engine cycle end.")
+	}
 
 	startAll := time.Now()
 	aborted := p.processAll(ctx)

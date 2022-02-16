@@ -639,6 +639,7 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
+		LogEngine:   viper.GetBool("log-engine-cycles"),
 		Verbose:     viper.GetBool("verbose"),
 		APIOnly:     viper.GetBool("api-only"),
 
@@ -768,6 +769,7 @@ func init() {
 
 	RootCmd.PersistentFlags().BoolP("verbose", "v", def.Verbose, "Enable verbose logging.")
 	RootCmd.Flags().Bool("log-requests", def.LogRequests, "Log all HTTP requests. If false, requests will be logged for debug/trace contexts only.")
+	RootCmd.Flags().Bool("log-engine-cycles", def.LogEngine, "Log start and end of each engine cycle.")
 	RootCmd.PersistentFlags().Bool("json", def.JSON, "Log in JSON format.")
 	RootCmd.PersistentFlags().Bool("log-errors-only", false, "Only log errors (superseeds other flags).")
 
