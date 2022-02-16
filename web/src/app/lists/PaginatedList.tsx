@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, ReactElement, forwardRef } from 'react'
+import React, { ReactNode, ReactElement, forwardRef } from 'react'
 import Avatar from '@mui/material/Avatar'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -15,7 +15,6 @@ import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
-import { PageControlsContext } from './PageControls'
 
 // gray boxes on load
 // disable overflow
@@ -85,6 +84,7 @@ export interface PaginatedListProps {
   itemsPerPage?: number
 
   pageCount?: number
+  page: number
 
   isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
@@ -116,13 +116,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
     pageCount,
+    page,
     infiniteScroll,
+    isLoading,
     loadMore,
     emptyMessage = 'No results',
     noPlaceholder,
   } = props
-
-  const { page, isLoading } = useContext(PageControlsContext)
 
   const classes = useStyles()
 

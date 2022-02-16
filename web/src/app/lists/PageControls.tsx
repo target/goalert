@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { CircularProgress, Grid, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
@@ -19,25 +19,15 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export const PageControlsContext = React.createContext<{
-  page: number
-  setPage: (page: number) => void
-  isLoading: boolean
-}>({
-  page: 0,
-  setPage: () => {},
-  isLoading: false,
-})
-
-PageControlsContext.displayName = 'PageControlsContext'
-
 export function PageControls(props: {
   loadMore?: (numberToLoad?: number) => void
   pageCount: number
+  page: number
+  setPage: (page: number) => void
+  isLoading: boolean
 }): JSX.Element {
-  const { page, setPage, isLoading } = useContext(PageControlsContext)
   const classes = useStyles()
-  const { loadMore, pageCount } = props
+  const { loadMore, pageCount, page, setPage, isLoading } = props
 
   const hasNextPage = (() => {
     const nextPage = page + 1

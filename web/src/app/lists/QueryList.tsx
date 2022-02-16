@@ -16,7 +16,7 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { PageControls, PageControlsContext } from './PageControls'
+import { PageControls } from './PageControls'
 import { ListHeader } from './ListHeader'
 
 // any && object type map
@@ -172,59 +172,61 @@ export default function QueryList(props: QueryListProps): JSX.Element {
       !props.noSearch
     ) {
       return (
-        <Grid container spacing={2}>
-          <ControlledPaginatedList
-            {...listProps}
-            listHeader={
-              <ListHeader
-                cardHeader={props.cardHeader}
-                headerNote={props.headerNote}
-                headerAction={props.headerAction}
-              />
-            }
-            items={items}
-            itemsPerPage={queryVariables.input.first}
-            pageCount={pageCount}
-            loadMore={loadMore}
-            isLoading={!data && loading}
-            noSearch={noSearch}
-          />
-          {!props.infiniteScroll && (
-            <PageControls pageCount={pageCount} loadMore={loadMore} />
-          )}
-        </Grid>
-      )
-    }
-
-    return (
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card>
+        <ControlledPaginatedList
+          {...listProps}
+          listHeader={
             <ListHeader
               cardHeader={props.cardHeader}
               headerNote={props.headerNote}
               headerAction={props.headerAction}
             />
-            <PaginatedList
-              {...listProps}
-              key={urlKey}
-              items={items}
-              pageCount={pageCount}
-              itemsPerPage={queryVariables.input.first}
-              loadMore={loadMore}
-            />
-          </Card>
-          {!props.infiniteScroll && (
-            <PageControls pageCount={pageCount} loadMore={loadMore} />
-          )}
-        </Grid>
+          }
+          items={items}
+          itemsPerPage={queryVariables.input.first}
+          page={page}
+          pageCount={pageCount}
+          isLoading={isLoading}
+          loadMore={loadMore}
+          noSearch={noSearch}
+        />
+      )
+    }
+
+    return (
+      <Grid item xs={12}>
+        <Card>
+          <ListHeader
+            cardHeader={props.cardHeader}
+            headerNote={props.headerNote}
+            headerAction={props.headerAction}
+          />
+          <PaginatedList
+            {...listProps}
+            key={urlKey}
+            items={items}
+            page={page}
+            pageCount={pageCount}
+            isLoading={isLoading}
+            itemsPerPage={queryVariables.input.first}
+            loadMore={loadMore}
+          />
+        </Card>
       </Grid>
     )
   }
 
   return (
-    <PageControlsContext.Provider value={{ page, setPage, isLoading }}>
+    <Grid container spacing={2}>
       {renderList()}
-    </PageControlsContext.Provider>
+      {!props.infiniteScroll && (
+        <PageControls
+          pageCount={pageCount}
+          loadMore={loadMore}
+          page={page}
+          setPage={setPage}
+          isLoading={isLoading}
+        />
+      )}
+    </Grid>
   )
 }
