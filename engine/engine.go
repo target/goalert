@@ -463,12 +463,16 @@ func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 	go func() {
 		watch := time.NewTicker(5 * time.Second)
 		defer watch.Stop()
+		watchErr := time.NewTicker(time.Minute)
+		defer watchErr.Stop()
 
 	loop:
 		for {
 			select {
+			case <-watchErr.C:
+				log.Log(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), fmt.Errorf("engine possibly stuck"))
 			case <-watch.C:
-				log.Logf(ctx, "Long engine cycle (%s+).", time.Since(start))
+				log.Logf(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), "long engine cycle")
 			case <-ctx.Done():
 				break loop
 			}
@@ -479,7 +483,7 @@ func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 			return
 		}
 
-		log.Log(log.WithField(ctx, "elapsedSec", dur.Seconds()), fmt.Errorf("engine cycle took longer than 5s"))
+		log.Log(log.WithField(ctx, "elapsedSec", dur.Seconds()), fmt.Errorf("slow cycle finished"))
 	}()
 
 	return cancel
