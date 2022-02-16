@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@babel/cli": "7.17.0",
-    "@babel/core": "7.16.0",
+    "@babel/core": "7.17.2",
     "@babel/plugin-proposal-class-properties": "7.16.0",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
     "@babel/plugin-transform-runtime": "7.17.0",
@@ -89,7 +89,7 @@
     "css-loader": "6.6.0",
     "cssnano": "5.0.7",
     "cypress": "8.7.0",
-    "jest": "27.4.5",
+    "jest": "27.5.1",
     "json-loader": "0.5.7",
     "postcss": "8.4.5",
     "postcss-loader": "6.2.0",

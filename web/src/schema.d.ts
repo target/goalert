@@ -7,6 +7,7 @@ export interface Query {
   users: UserConnection
   alert?: Alert
   alerts: AlertConnection
+  alertMetrics: AlertDataPoint[]
   service?: Service
   integrationKey?: IntegrationKey
   heartbeatMonitor?: HeartbeatMonitor
@@ -34,6 +35,16 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
   generateSlackAppManifest: string
+}
+
+export interface AlertMetricsOptions {
+  rInterval: ISORInterval
+  filterByServiceID?: string[]
+}
+
+export interface AlertDataPoint {
+  timestamp: ISOTimestamp
+  alertCount: number
 }
 
 export interface DebugMessagesInput {
@@ -661,6 +672,10 @@ export interface AlertSearchOptions {
 }
 
 export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
+
+export type ISODuration = string
+
+export type ISORInterval = string
 
 export type ISOTimestamp = string
 

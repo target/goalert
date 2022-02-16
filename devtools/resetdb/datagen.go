@@ -28,6 +28,13 @@ import (
 var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
 var rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
 
+type AlertLog struct {
+	AlertID   int
+	Timestamp time.Time
+	Event     string
+	Message   string
+}
+
 type datagenConfig struct {
 	UserCount            int
 	CMMax                int
@@ -85,6 +92,7 @@ type datagen struct {
 	IntKeys            []integrationkey.IntegrationKey
 	Monitors           []heartbeat.Monitor
 	Alerts             []alert.Alert
+	AlertLogs          []AlertLog
 	Favorites          []userFavorite
 	Labels             []label.Label
 
@@ -333,12 +341,36 @@ func (d *datagen) NewAlert(status alert.Status) {
 		serviceID = d.Services[rand.Intn(len(d.Services))].ID
 	}
 	d.Alerts = append(d.Alerts, alert.Alert{
+		ID:        len(d.Alerts) + 1,
+		CreatedAt: gofakeit.DateRange(time.Now().Add(-2*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
 		Summary:   d.ids.Gen(func() string { return gofakeit.Sentence(rand.Intn(10) + 3) }, serviceID),
 		Details:   details,
 		Source:    src,
 	})
+}
+
+// NewAlertLog will generate an alert log for the provided alert.
+func (d *datagen) NewAlertLogs(alert alert.Alert) {
+
+	// Add 'created' event log
+	d.AlertLogs = append(d.AlertLogs, AlertLog{
+		AlertID:   alert.ID,
+		Timestamp: alert.CreatedAt,
+		Event:     "created",
+		Message:   "",
+	})
+
+	// Add 'closed' event log
+	if alert.Status == "closed" {
+		d.AlertLogs = append(d.AlertLogs, AlertLog{
+			AlertID:   alert.ID,
+			Timestamp: gofakeit.DateRange(alert.CreatedAt, alert.CreatedAt.Add(30*time.Minute)),
+			Event:     "closed",
+			Message:   "",
+		})
+	}
 }
 
 // NewFavorite will generate a new favorite for the provided user ID.
@@ -483,6 +515,10 @@ func (cfg datagenConfig) Generate() datagen {
 
 	run(cfg.AlertClosedCount, func() { d.NewAlert(alert.StatusClosed) })
 	run(cfg.AlertActiveCount, func() { d.NewAlert(alert.StatusActive) })
+
+	for _, alert := range d.Alerts {
+		d.NewAlertLogs(alert)
+	}
 
 	return d
 }

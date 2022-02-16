@@ -23,28 +23,7 @@ import (
 
 const minTimeBetweenTests = time.Minute
 
-type Store interface {
-	SendContactMethodTest(ctx context.Context, cmID string) error
-	SendContactMethodVerification(ctx context.Context, cmID string) error
-	VerifyContactMethod(ctx context.Context, cmID string, code int) error
-	Code(ctx context.Context, id string) (int, error)
-	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error)
-
-	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
-	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error)
-
-	// OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
-	OriginalMessageStatus(ctx context.Context, alertID int, dest Dest) (*SendResult, error)
-
-	// FindPendingNotifications will return destination info for alerts that are waiting to be sent
-	FindPendingNotifications(ctx context.Context, alertID int) ([]AlertPendingNotification, error)
-
-	RecentMessages(context.Context, *RecentMessageSearchOptions) ([]RecentMessage, error)
-}
-
-var _ Store = &DB{}
-
-type DB struct {
+type Store struct {
 	db                           *sql.DB
 	getCMUserID                  *sql.Stmt
 	setVerificationCode          *sql.Stmt
@@ -64,7 +43,7 @@ type DB struct {
 	findPendingNotifications *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	var seed int64
@@ -73,7 +52,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		return nil, errors.Wrap(err, "generate random seed")
 	}
 
-	return &DB{
+	return &Store{
 		db: db,
 
 		rand: rand.New(rand.NewSource(seed)),
@@ -216,7 +195,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
+// OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
+func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return nil, err
@@ -234,8 +214,8 @@ func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) 
 		chanID.String, chanID.Valid = dst.ID, true
 	}
 
-	row := db.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
-	s, _, err := scanStatus(row)
+	row := s.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
+	stat, _, err := scanStatus(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -243,10 +223,10 @@ func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) 
 		return nil, err
 	}
 
-	return s, nil
+	return stat, nil
 }
 
-func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
+func (s *Store) cmUserID(ctx context.Context, id string) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return "", err
@@ -258,7 +238,7 @@ func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
 	}
 
 	var userID string
-	err = db.getCMUserID.QueryRowContext(ctx, id).Scan(&userID)
+	err = s.getCMUserID.QueryRowContext(ctx, id).Scan(&userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", validation.NewFieldError("ContactMethodID", "does not exist")
 	}
@@ -275,7 +255,7 @@ func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
 	return userID, nil
 }
 
-func (db *DB) Code(ctx context.Context, id string) (int, error) {
+func (s *Store) Code(ctx context.Context, id string) (int, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return 0, err
@@ -286,16 +266,16 @@ func (db *DB) Code(ctx context.Context, id string) (int, error) {
 	}
 
 	var code int
-	err = db.getCode.QueryRowContext(ctx, id).Scan(&code)
+	err = s.getCode.QueryRowContext(ctx, id).Scan(&code)
 	return code, err
 }
 
-func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
-	_, err := db.cmUserID(ctx, id)
+func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
+	_, err := s.cmUserID(ctx, id)
 	if err != nil {
 		return err
 	}
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -303,13 +283,13 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 
 	// Lock outgoing_messages first, before we modify user_contact methods
 	// to prevent deadlock.
-	_, err = tx.StmtContext(ctx, db.sendTestLock).ExecContext(ctx)
+	_, err = tx.StmtContext(ctx, s.sendTestLock).ExecContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	var isDisabled bool
-	err = tx.StmtContext(ctx, db.isDisabled).QueryRowContext(ctx, id).Scan(&isDisabled)
+	err = tx.StmtContext(ctx, s.isDisabled).QueryRowContext(ctx, id).Scan(&isDisabled)
 	if err != nil {
 		return err
 	}
@@ -317,7 +297,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 		return validation.NewFieldError("ContactMethod", "contact method disabled")
 	}
 
-	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.StmtContext(ctx, s.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -330,7 +310,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	}
 
 	vID := uuid.New().String()
-	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
+	_, err = tx.StmtContext(ctx, s.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
 	}
@@ -338,19 +318,19 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) error {
-	_, err := db.cmUserID(ctx, cmID)
+func (s *Store) SendContactMethodVerification(ctx context.Context, cmID string) error {
+	_, err := s.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.StmtContext(ctx, s.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -363,8 +343,8 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 	}
 
 	vcID := uuid.New().String()
-	code := db.rand.Intn(900000) + 100000
-	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
+	code := s.rand.Intn(900000) + 100000
+	_, err = tx.StmtContext(ctx, s.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
@@ -372,13 +352,13 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
-	_, err := db.cmUserID(ctx, cmID)
+func (s *Store) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
+	_, err := s.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
 	}
 
-	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
+	res, err := s.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewFieldError("code", "invalid code")
 	}
@@ -404,13 +384,14 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
-func (db *DB) FindPendingNotifications(ctx context.Context, alertID int) ([]AlertPendingNotification, error) {
+// FindPendingNotifications will return destination info for alerts that are waiting to be sent
+func (s *Store) FindPendingNotifications(ctx context.Context, alertID int) ([]AlertPendingNotification, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findPendingNotifications.QueryContext(ctx, alertID)
+	rows, err := s.findPendingNotifications.QueryContext(ctx, alertID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -471,7 +452,7 @@ func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error)
 	}
 }
 
-func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error) {
+func (s *Store) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -485,7 +466,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Sen
 		return nil, err
 	}
 
-	rows, err := db.findManyMessageStatuses.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	rows, err := s.findManyMessageStatuses.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +484,9 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Sen
 	return result, nil
 }
 
-func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error) {
+// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type
+// for the provided contact method ID, if one was created from the provided from time.
+func (s *Store) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -514,12 +497,12 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 		return nil, time.Time{}, err
 	}
 
-	s, createdAt, err := scanStatus(db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from))
+	stat, createdAt, err := scanStatus(s.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from))
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	return s, createdAt, nil
+	return stat, createdAt, nil
 }
 
 type scannable interface {
