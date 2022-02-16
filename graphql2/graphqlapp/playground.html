@@ -53,6 +53,10 @@
     <div id="root" />
     <script type="text/javascript" async="false" defer>
       window.addEventListener('load', function (event) {
+        if (!GraphiQL || !React || !ReactDOM) {
+          console.error('failed to load resources')
+          return
+        }
         var root = document.getElementById('root')
         var path = location.host + location.pathname.replace(/\/explore.*$/, '')
         function graphQLFetcher(graphQLParams) {
