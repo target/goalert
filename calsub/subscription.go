@@ -23,6 +23,7 @@ type Subscription struct {
 	ScheduleID string
 	LastAccess time.Time
 	LastUpdate time.Time `gorm:"autoUpdateTime"`
+	CreatedAt  time.Time
 	Disabled   bool
 
 	// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
@@ -86,18 +87,17 @@ func (cs *Subscription) BeforeCreate(db *gorm.DB) error {
 		return err
 	}
 
-	var now time.Time
-	err = db.Raw("select now()").Scan(&now).Error
-	if err != nil {
-		return nil
-	}
+	return nil
+}
 
+func (cs *Subscription) AfterCreate(db *gorm.DB) error {
 	cs.token = &authtoken.Token{
 		Type:      authtoken.TypeCalSub,
 		Version:   2,
-		CreatedAt: now,
-		ID:        id,
+		CreatedAt: cs.CreatedAt,
+		ID:        uuid.MustParse(cs.ID),
 	}
+
 	return nil
 }
 
