@@ -80,7 +80,7 @@ func validSignature(ctx context.Context, req *http.Request, apikey string) bool 
 }
 
 type ingressHandler struct {
-	alerts  alert.Store
+	alerts  *alert.Store
 	intKeys integrationkey.Store
 }
 
@@ -201,7 +201,7 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // IngressWebhooks is used to accept webhooks from Mailgun to support email as an alert creation mechanism.
 // Will read POST form parameters, validate, sanitize and use to create a new alert.
 // https://documentation.mailgun.com/en/latest/user_manual.html#parsed-messages-parameters
-func IngressWebhooks(aDB alert.Store, intDB integrationkey.Store) http.HandlerFunc {
+func IngressWebhooks(aDB *alert.Store, intDB integrationkey.Store) http.HandlerFunc {
 	return (&ingressHandler{
 		alerts:  aDB,
 		intKeys: intDB,

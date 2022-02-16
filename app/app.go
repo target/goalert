@@ -14,7 +14,7 @@ import (
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/escalation"
@@ -80,7 +80,7 @@ type App struct {
 
 	ConfigStore *config.Store
 
-	AlertStore    alert.Store
+	AlertStore    *alert.Store
 	AlertLogStore *alertlog.Store
 
 	AuthBasicStore        *basic.Store
@@ -97,7 +97,7 @@ type App struct {
 	ScheduleStore       *schedule.Store
 	RotationStore       rotation.Store
 
-	CalSubStore    *calendarsubscription.Store
+	CalSubStore    *calsub.Store
 	OverrideStore  override.Store
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store

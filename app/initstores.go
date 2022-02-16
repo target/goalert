@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -108,7 +108,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertStore == nil {
-		app.AlertStore, err = alert.NewDB(ctx, app.db, app.AlertLogStore)
+		app.AlertStore, err = alert.NewStore(ctx, app.db, app.AlertLogStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alert store")
@@ -249,7 +249,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.CalSubStore == nil {
-		app.CalSubStore, err = calendarsubscription.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
+		app.CalSubStore, err = calsub.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")

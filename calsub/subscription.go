@@ -1,4 +1,4 @@
-package calendarsubscription
+package calsub
 
 import (
 	"bytes"
@@ -15,8 +15,8 @@ import (
 	"github.com/target/goalert/version"
 )
 
-// CalendarSubscription stores the information from user subscriptions
-type CalendarSubscription struct {
+// Subscription stores the information from user subscriptions
+type Subscription struct {
 	ID         string
 	Name       string
 	UserID     string
@@ -73,10 +73,10 @@ END:VCALENDAR
 
 // Token returns the authorization token associated with this CalendarSubscription. It
 // is only available when calling CreateTx.
-func (cs CalendarSubscription) Token() string { return cs.token }
+func (cs Subscription) Token() string { return cs.token }
 
 // Normalize will validate and produce a normalized CalendarSubscription struct.
-func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
+func (cs Subscription) Normalize() (*Subscription, error) {
 	if cs.ID == "" {
 		cs.ID = uuid.New().String()
 	}
@@ -94,7 +94,7 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) renderICalFromShifts(appName string, shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
+func (cs Subscription) renderICalFromShifts(appName string, shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
 	var eventUIDs []string
 	for _, s := range shifts {
 		t := s.End

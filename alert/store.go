@@ -19,45 +19,7 @@ import (
 
 const maxBatch = 500
 
-type Store interface {
-	Manager
-	Create(context.Context, *Alert) (*Alert, error)
-
-	// CreateOrUpdate will create an alert or log a "duplicate suppressed message" if
-	// Status is Triggered. If Status is Closed, it will close and return the result.
-	//
-	// In the case that Status is closed but a matching alert is not present, nil is returned.
-	// Otherwise the current alert is returned.
-	CreateOrUpdate(context.Context, *Alert) (*Alert, error)
-
-	// CreateOrUpdateTx returns `isNew` to indicate if the returned alert was a new one.
-	// It is the caller's responsibility to log alert creation if the transaction is committed (and isNew is true).
-	CreateOrUpdateTx(context.Context, *sql.Tx, *Alert) (a *Alert, isNew bool, err error)
-
-	FindAllSummary(ctx context.Context) ([]Summary, error)
-	Escalate(ctx context.Context, alertID int, currentLevel int) error
-	EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
-	GetCreationTime(ctx context.Context, alertID int) (time.Time, error)
-
-	LegacySearch(ctx context.Context, opt *LegacySearchOptions) ([]Alert, int, error)
-	Search(ctx context.Context, opts *SearchOptions) ([]Alert, error)
-	State(ctx context.Context, alertIDs []int) ([]State, error)
-}
-type Manager interface {
-	FindOne(context.Context, int) (*Alert, error)
-	FindMany(context.Context, []int) ([]Alert, error)
-	UpdateStatus(context.Context, int, Status) error
-	UpdateStatusByService(ctx context.Context, serviceID string, status Status) error
-	UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) (updatedAlertIDs []int, err error)
-	UpdateStatusTx(context.Context, *sql.Tx, int, Status) error
-	EPID(ctx context.Context, alertID int) (string, error)
-
-	// ServiceInfo will return the name of the given service ID as well as the current number
-	// of unacknowledged alerts.
-	ServiceInfo(ctx context.Context, serviceID string) (string, int, error)
-}
-
-type DB struct {
+type Store struct {
 	db    *sql.DB
 	logDB *alertlog.Store
 
@@ -95,12 +57,12 @@ type Trigger interface {
 	TriggerAlert(int)
 }
 
-func NewDB(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, error) {
 	prep := &util.Prepare{DB: db, Ctx: ctx}
 
 	p := prep.P
 
-	return &DB{
+	return &Store{
 		db:    db,
 		logDB: logDB,
 
@@ -258,7 +220,9 @@ func NewDB(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*DB, error) 
 	}, prep.Err
 }
 
-func (db *DB) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
+// ServiceInfo will return the name of the given service ID as well as the current number
+// of unacknowledged alerts.
+func (s *Store) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return "", 0, err
@@ -271,7 +235,7 @@ func (db *DB) ServiceInfo(ctx context.Context, serviceID string) (string, int, e
 
 	var name string
 	var count int
-	err = db.svcInfo.QueryRowContext(ctx, serviceID).Scan(&name, &count)
+	err = s.svcInfo.QueryRowContext(ctx, serviceID).Scan(&name, &count)
 	if err != nil {
 		return "", 0, err
 	}
@@ -279,13 +243,13 @@ func (db *DB) ServiceInfo(ctx context.Context, serviceID string) (string, int, e
 	return name, count, nil
 }
 
-func (db *DB) EPID(ctx context.Context, alertID int) (string, error) {
+func (s *Store) EPID(ctx context.Context, alertID int) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return "", err
 	}
 
-	row := db.epID.QueryRowContext(ctx, alertID)
+	row := s.epID.QueryRowContext(ctx, alertID)
 	var epID string
 	err = row.Scan(&epID)
 	if err != nil {
@@ -294,7 +258,7 @@ func (db *DB) EPID(ctx context.Context, alertID int) (string, error) {
 	return epID, nil
 }
 
-func (db *DB) canTouchAlert(ctx context.Context, alertID int) error {
+func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {
 	checks := []permission.Checker{
 		permission.System,
 		permission.Admin,
@@ -302,7 +266,7 @@ func (db *DB) canTouchAlert(ctx context.Context, alertID int) error {
 	}
 	if permission.Service(ctx) {
 		var serviceID string
-		err := db.getServiceID.QueryRowContext(ctx, alertID).Scan(&serviceID)
+		err := s.getServiceID.QueryRowContext(ctx, alertID).Scan(&serviceID)
 		if err != nil {
 			return err
 		}
@@ -312,15 +276,15 @@ func (db *DB) canTouchAlert(ctx context.Context, alertID int) error {
 	return permission.LimitCheckAny(ctx, checks...)
 }
 
-func (db *DB) Escalate(ctx context.Context, alertID int, currentLevel int) error {
-	_, err := db.EscalateMany(ctx, []int{alertID})
+func (s *Store) Escalate(ctx context.Context, alertID int, currentLevel int) error {
+	_, err := s.EscalateMany(ctx, []int{alertID})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
+func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -337,18 +301,18 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 
 	ids := sqlutil.IntArray(alertIDs)
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids)
+	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := tx.StmtContext(ctx, db.escalate).QueryContext(ctx, ids)
+	rows, err := tx.StmtContext(ctx, s.escalate).QueryContext(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		log.Debugf(ctx, "escalate alert: no rows matched")
 		err = nil
@@ -368,7 +332,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 		updatedIDs = append(updatedIDs, id)
 	}
 
-	err = db.logDB.LogManyTx(ctx, tx, updatedIDs, alertlog.TypeEscalationRequest, nil)
+	err = s.logDB.LogManyTx(ctx, tx, updatedIDs, alertlog.TypeEscalationRequest, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +344,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 	return updatedIDs, err
 }
 
-func (db *DB) UpdateStatusByService(ctx context.Context, serviceID string, status Status) error {
+func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, status Status) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -396,7 +360,7 @@ func (db *DB) UpdateStatusByService(ctx context.Context, serviceID string, statu
 		return err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -407,17 +371,17 @@ func (db *DB) UpdateStatusByService(ctx context.Context, serviceID string, statu
 		t = alertlog.TypeClosed
 	}
 
-	err = db.logDB.LogServiceTx(ctx, tx, serviceID, t, nil)
+	err = s.logDB.LogServiceTx(ctx, tx, serviceID, t, nil)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, db.lockSvc).ExecContext(ctx, serviceID)
+	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, serviceID)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, db.updateByStatusAndService).ExecContext(ctx, serviceID, status)
+	_, err = tx.StmtContext(ctx, s.updateByStatusAndService).ExecContext(ctx, serviceID, status)
 	if err != nil {
 		return err
 	}
@@ -425,7 +389,7 @@ func (db *DB) UpdateStatusByService(ctx context.Context, serviceID string, statu
 	return tx.Commit()
 }
 
-func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) ([]int, error) {
+func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) ([]int, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -445,7 +409,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 
 	ids := sqlutil.IntArray(alertIDs)
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -458,12 +422,12 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 
 	var updatedIDs []int
 
-	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids)
+	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := tx.StmtContext(ctx, db.updateByIDAndStatus).QueryContext(ctx, status, ids)
+	rows, err := tx.StmtContext(ctx, s.updateByIDAndStatus).QueryContext(ctx, status, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -479,7 +443,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 	}
 
 	// Logging Batch Updates for every alertID whose status was updated
-	err = db.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil)
+	err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +455,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 	return updatedIDs, nil
 }
 
-func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
+func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	n, err := a.Normalize() // validation
 	if err != nil {
 		return nil, err
@@ -510,23 +474,23 @@ func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	_, err = tx.StmtContext(ctx, db.lockSvc).ExecContext(ctx, n.ServiceID)
+	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {
 		return nil, err
 	}
 
-	n, meta, err := db._create(ctx, tx, *n)
+	n, meta, err := s._create(ctx, tx, *n)
 	if err != nil {
 		return nil, err
 	}
 
-	db.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, meta)
+	s.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, meta)
 
 	err = tx.Commit()
 	if err != nil {
@@ -546,22 +510,25 @@ func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
 
 	return n, nil
 }
-func (db *DB) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
+func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
-	row := tx.StmtContext(ctx, db.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
+	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
 	err := row.Scan(&a.ID, &a.CreatedAt)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = tx.StmtContext(ctx, db.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
+	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return &a, &meta, nil
 }
-func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, bool, error) {
+
+// CreateOrUpdateTx returns `isNew` to indicate if the returned alert was a new one.
+// It is the caller's responsibility to log alert creation if the transaction is committed (and isNew is true).
+func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -587,7 +554,7 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 		return nil, false, err
 	}
 
-	_, err = tx.StmtContext(ctx, db.lockSvc).ExecContext(ctx, n.ServiceID)
+	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -598,14 +565,14 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 	switch n.Status {
 	case StatusTriggered:
 		var m alertlog.CreatedMetaData
-		err = tx.Stmt(db.createUpdNew).
+		err = tx.Stmt(s.createUpdNew).
 			QueryRowContext(ctx, n.Summary, n.Details, n.ServiceID, n.Source, n.DedupKey()).
 			Scan(&n.ID, &n.Summary, &n.Details, &n.Status, &n.Source, &n.CreatedAt, &inserted)
 		if !inserted {
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			stepErr := tx.StmtContext(ctx, db.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
+			stepErr := tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
 			if stepErr != nil {
 				return nil, false, err
 			}
@@ -613,14 +580,14 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 		meta = &m
 	case StatusActive:
 		var oldStatus Status
-		err = tx.Stmt(db.createUpdAck).
+		err = tx.Stmt(s.createUpdAck).
 			QueryRowContext(ctx, n.ServiceID, n.DedupKey()).
 			Scan(&n.ID, &n.Summary, &n.Details, &oldStatus, &n.CreatedAt)
 		if oldStatus != n.Status {
 			logType = alertlog.TypeAcknowledged
 		}
 	case StatusClosed:
-		err = tx.Stmt(db.createUpdClose).
+		err = tx.Stmt(s.createUpdClose).
 			QueryRowContext(ctx, n.ServiceID, n.DedupKey()).
 			Scan(&n.ID, &n.Summary, &n.Details, &n.CreatedAt)
 		logType = alertlog.TypeClosed
@@ -633,13 +600,18 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 		return nil, false, err
 	}
 	if logType != "" {
-		db.logDB.MustLogTx(ctx, tx, n.ID, logType, meta)
+		s.logDB.MustLogTx(ctx, tx, n.ID, logType, meta)
 	}
 
 	return n, inserted, nil
 }
 
-func (db *DB) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
+// CreateOrUpdate will create an alert or log a "duplicate suppressed message" if
+// Status is Triggered. If Status is Closed, it will close and return the result.
+//
+// In the case that Status is closed but a matching alert is not present, nil is returned.
+// Otherwise the current alert is returned.
+func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -650,13 +622,13 @@ func (db *DB) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	n, isNew, err := db.CreateOrUpdateTx(ctx, tx, a)
+	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
 		return nil, err
 	}
@@ -684,105 +656,105 @@ func (db *DB) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 	return n, nil
 }
 
-func (db *DB) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, s Status) error {
-	var stat Status
-	err := tx.Stmt(db.getStatusAndLockSvc).QueryRowContext(ctx, id).Scan(&stat)
+func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Status) error {
+	var _stat Status
+	err := tx.Stmt(s.getStatusAndLockSvc).QueryRowContext(ctx, id).Scan(&_stat)
 	if err != nil {
 		return err
 	}
+	if _stat == StatusClosed {
+		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
+	}
+	if _stat == StatusActive && stat == StatusActive {
+		return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: s.logDB}
+	}
+
+	_, err = tx.Stmt(s.update).ExecContext(ctx, id, stat)
+	if err != nil {
+		return err
+	}
+
 	if stat == StatusClosed {
-		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: db.logDB}
-	}
-	if stat == StatusActive && s == StatusActive {
-		return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: db.logDB}
-	}
-
-	_, err = tx.Stmt(db.update).ExecContext(ctx, id, s)
-	if err != nil {
-		return err
-	}
-
-	if s == StatusClosed {
-		db.logDB.MustLogTx(ctx, tx, id, alertlog.TypeClosed, nil)
-	} else if s == StatusActive {
-		db.logDB.MustLogTx(ctx, tx, id, alertlog.TypeAcknowledged, nil)
-	} else if s != StatusTriggered {
-		log.Log(ctx, errors.Errorf("unknown/unhandled alert status update: %s", s))
+		s.logDB.MustLogTx(ctx, tx, id, alertlog.TypeClosed, nil)
+	} else if stat == StatusActive {
+		s.logDB.MustLogTx(ctx, tx, id, alertlog.TypeAcknowledged, nil)
+	} else if stat != StatusTriggered {
+		log.Log(ctx, errors.Errorf("unknown/unhandled alert status update: %s", stat))
 	}
 
 	return nil
 }
 
-func (db *DB) UpdateStatus(ctx context.Context, id int, s Status) error {
-	err := validate.OneOf("Status", s, StatusTriggered, StatusActive, StatusClosed)
+func (s *Store) UpdateStatus(ctx context.Context, id int, stat Status) error {
+	err := validate.OneOf("Status", stat, StatusTriggered, StatusActive, StatusClosed)
 	if err != nil {
 		return err
 	}
-	err = db.canTouchAlert(ctx, id)
+	err = s.canTouchAlert(ctx, id)
 	if err != nil {
 		return err
 	}
-	tx, err := db.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	err = db.UpdateStatusTx(ctx, tx, id, s)
+	err = s.UpdateStatusTx(ctx, tx, id, stat)
 	if err != nil {
 		return err
 	}
 	return tx.Commit()
 }
 
-func (db *DB) GetCreationTime(ctx context.Context, id int) (t time.Time, err error) {
+func (s *Store) GetCreationTime(ctx context.Context, id int) (t time.Time, err error) {
 	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
 	if err != nil {
 		return t, err
 	}
 
-	row := db.getCreationTime.QueryRowContext(ctx, id)
+	row := s.getCreationTime.QueryRowContext(ctx, id)
 	err = row.Scan(&t)
 	return t, err
 }
 
-func (db *DB) FindAllSummary(ctx context.Context) ([]Summary, error) {
+func (s *Store) FindAllSummary(ctx context.Context) ([]Summary, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findAllSummary.QueryContext(ctx)
+	rows, err := s.findAllSummary.QueryContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var s Summary
+	var sum Summary
 
 	var result []Summary
 	var unack, ack, clos sql.NullInt64
 	for rows.Next() {
 		err = rows.Scan(
-			&s.ServiceID,
-			&s.ServiceName,
+			&sum.ServiceID,
+			&sum.ServiceName,
 			&unack, &ack, &clos,
 		)
 		if err != nil {
 			return nil, err
 		}
-		s.Totals.Unack = int(unack.Int64)
-		s.Totals.Ack = int(ack.Int64)
-		s.Totals.Closed = int(clos.Int64)
+		sum.Totals.Unack = int(unack.Int64)
+		sum.Totals.Ack = int(ack.Int64)
+		sum.Totals.Closed = int(clos.Int64)
 
-		result = append(result, s)
+		result = append(result, sum)
 	}
 
 	return result, nil
 }
 
-func (db *DB) FindOne(ctx context.Context, id int) (*Alert, error) {
-	alerts, err := db.FindMany(ctx, []int{id})
+func (s *Store) FindOne(ctx context.Context, id int) (*Alert, error) {
+	alerts, err := s.FindMany(ctx, []int{id})
 	if err != nil {
 		return nil, err
 	}
@@ -793,7 +765,7 @@ func (db *DB) FindOne(ctx context.Context, id int) (*Alert, error) {
 	return &alerts[0], nil
 }
 
-func (db *DB) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
+func (s *Store) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -807,7 +779,7 @@ func (db *DB) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 		return nil, err
 	}
 
-	rows, err := db.findMany.QueryContext(ctx, sqlutil.IntArray(alertIDs))
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if err != nil {
 		return nil, err
 	}
@@ -827,7 +799,7 @@ func (db *DB) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 	return alerts, nil
 }
 
-func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
+func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -839,7 +811,7 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	}
 
 	var t sqlutil.NullTime
-	rows, err := db.epState.QueryContext(ctx, sqlutil.IntArray(alertIDs))
+	rows, err := s.epState.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}

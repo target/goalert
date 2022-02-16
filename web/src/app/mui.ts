@@ -1,4 +1,4 @@
-import { createTheme, adaptV4Theme } from '@mui/material/styles'
+import { createTheme } from '@mui/material/styles'
 import { grey, red } from '@mui/material/colors'
 import { isCypress } from './env'
 
@@ -12,25 +12,15 @@ if (isCypress) {
   }
 }
 
-export const theme = createTheme(
-  adaptV4Theme({
-    palette: {
-      primary: {
-        ...grey,
-        main: '#616161',
-        500: '#616161',
-        400: '#757575',
-      },
-      secondary: grey,
-      error: red,
+export const theme = createTheme({
+  palette: {
+    primary: {
+      ...grey,
+      main: '#616161',
     },
+    secondary: grey,
+    error: red,
+  },
 
-    props: {
-      MuiTextField: {
-        variant: 'outlined',
-      },
-    },
-
-    ...testOverrides,
-  }),
-)
+  ...testOverrides,
+})

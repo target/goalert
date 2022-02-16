@@ -12,10 +12,10 @@ type AlertLoader struct {
 	alertLoader *loader
 	stateLoader *loader
 
-	store alert.Store
+	store *alert.Store
 }
 
-func NewAlertLoader(ctx context.Context, store alert.Store) *AlertLoader {
+func NewAlertLoader(ctx context.Context, store *alert.Store) *AlertLoader {
 	p := &AlertLoader{
 		store: store,
 	}

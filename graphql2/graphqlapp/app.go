@@ -17,7 +17,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -56,13 +56,13 @@ type App struct {
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
 	NCStore        *notificationchannel.Store
-	AlertStore     alert.Store
+	AlertStore     *alert.Store
 	AlertLogStore  *alertlog.Store
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
 	PolicyStore    *escalation.Store
 	ScheduleStore  *schedule.Store
-	CalSubStore    *calendarsubscription.Store
+	CalSubStore    *calsub.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
 	IntKeyStore    integrationkey.Store
