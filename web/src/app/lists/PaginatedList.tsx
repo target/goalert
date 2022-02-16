@@ -84,7 +84,7 @@ export interface PaginatedListProps {
   itemsPerPage?: number
 
   pageCount?: number
-  page: number
+  page?: number
 
   isLoading?: boolean
   loadMore?: (numberToLoad?: number) => void
@@ -207,7 +207,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     if (pageCount === 0 && !isLoading) return renderNoResults()
 
     let newItems: Array<PaginatedListItemProps> = items.slice()
-    if (!infiniteScroll) {
+    if (!infiniteScroll && page) {
       newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
     }
     const renderedItems: ReactElement[] = newItems.map(renderItem)
