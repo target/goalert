@@ -15,7 +15,7 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, Icon, actions, placement }) {
+export default function OtherActions({ color, IconComponent, actions, placement }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
@@ -30,7 +30,7 @@ export default function OtherActions({ color, Icon, actions, placement }) {
         }}
         ref={ref}
       >
-        <Icon
+        <IconComponent
           aria-label='Other Actions'
           data-cy='other-actions'
           aria-expanded={Boolean(anchorEl)}
@@ -65,11 +65,11 @@ OtherActions.propTypes = {
     }),
   ).isRequired,
   color: p.string,
-  Icon: p.elementType,
+  IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
 }
 
 OtherActions.defaultProps = {
-  Icon: OptionsIcon,
+  IconComponent: OptionsIcon,
   placement: 'left',
 }
