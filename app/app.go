@@ -85,7 +85,7 @@ type App struct {
 
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
-	ContactMethodStore    contactmethod.Store
+	ContactMethodStore    *contactmethod.Store
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
 
@@ -109,7 +109,7 @@ type App struct {
 	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
-	NCStore       notificationchannel.Store
+	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 }

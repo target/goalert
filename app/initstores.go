@@ -115,7 +115,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ContactMethodStore == nil {
-		app.ContactMethodStore, err = contactmethod.NewDB(ctx, app.db)
+		app.ContactMethodStore, err = contactmethod.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init contact method store")
@@ -164,7 +164,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewDB(ctx, app.db)
+		app.NCStore, err = notificationchannel.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")

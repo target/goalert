@@ -19,7 +19,7 @@ import (
 )
 
 type Config struct {
-	NCStore         notificationchannel.Store
+	NCStore         *notificationchannel.Store
 	LogStore        *alertlog.Store
 	SlackLookupFunc func(ctx context.Context, channelID string) (*slack.Channel, error)
 }
@@ -28,7 +28,7 @@ type Store struct {
 	db *sql.DB
 
 	log     *alertlog.Store
-	ncStore notificationchannel.Store
+	ncStore *notificationchannel.Store
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
 	findSlackChan *sql.Stmt

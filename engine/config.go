@@ -17,11 +17,11 @@ import (
 type Config struct {
 	AlertLogStore       *alertlog.Store
 	AlertStore          *alert.Store
-	ContactMethodStore  contactmethod.Store
+	ContactMethodStore  *contactmethod.Store
 	NotificationManager *notification.Manager
 	UserStore           *user.Store
 	NotificationStore   *notification.Store
-	NCStore             notificationchannel.Store
+	NCStore             *notificationchannel.Store
 	OnCallStore         oncall.Store
 	ScheduleStore       *schedule.Store
 
@@ -32,4 +32,5 @@ type Config struct {
 	MaxMessages int
 
 	DisableCycle bool
+	LogCycles    bool
 }
