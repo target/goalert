@@ -22,6 +22,7 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
+import ThemeToggle from './components/ThemeToggle'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,7 +30,10 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 1,
     position: 'relative',
     display: 'flex',
-    backgroundColor: 'lightgrey',
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.background.default
+        : 'lightgrey',
     height: '100%',
   },
   main: {
@@ -57,7 +61,11 @@ export default function App() {
   const authValid = useSelector(authSelector)
 
   if (!authValid) {
-    return <Login />
+    return (
+      <div className={classes.root}>
+        <Login />
+      </div>
+    )
   }
 
   let cyFormat = 'wide'
@@ -80,6 +88,7 @@ export default function App() {
               />
               <ToolbarTitle />
 
+              <ThemeToggle />
               <PageActionContainer />
               <SearchContainer />
             </Toolbar>
