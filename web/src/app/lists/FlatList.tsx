@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   buttonBase: {
     borderRadius: 4,
   },
-  background: { backgroundColor: 'white' },
+  background: { backgroundColor: 'transparent' },
   highlightedItem: {
     borderLeft: '6px solid ' + lime,
     background: lightLime,
