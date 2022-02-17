@@ -16,7 +16,7 @@ import { useURLParam } from '../actions'
 const useStyles = makeStyles((theme) => {
   return {
     textField: {
-      backgroundColor: 'white',
+      backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
       borderRadius: '4px',
       [theme.breakpoints.down('sm')]: {
         flex: 1,
