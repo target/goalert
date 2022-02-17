@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken } from '@mui/material/styles'
+import { darken, useTheme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -13,7 +13,6 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import { theme } from '../../mui'
 import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
@@ -50,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
 
 function ScheduleCalendar(props) {
   const classes = useStyles()
+  const theme = useTheme()
 
   const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
