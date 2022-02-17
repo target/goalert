@@ -3,7 +3,7 @@ import IconButton from '@mui/material/IconButton'
 import makeStyles from '@mui/styles/makeStyles'
 import DarkModeIcon from '@mui/icons-material/Brightness4'
 import LightModeIcon from '@mui/icons-material/BrightnessHigh'
-import { ThemeContext } from './ThemeProvider'
+import { ThemeContext } from '../themeConfig'
 
 const useStyles = makeStyles(() => ({
   icon: {

@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react'
 import { PaletteOptions } from '@mui/material/styles/createPalette'
 import { grey } from '@mui/material/colors'
-import { isCypress } from '../../env'
+import { isCypress } from '../env'
 import {
   createTheme,
   Theme,
@@ -73,7 +73,7 @@ function makeTheme(mode: string): Theme {
   })
 }
 
-export default function ThemeProvider(props: ThemeProviderProps): JSX.Element {
+export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const [themeMode, setThemeMode] = useState(getThemePreference())
 
   return (
