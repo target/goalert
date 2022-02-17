@@ -6,6 +6,8 @@
       name="viewport"
       content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui"
     />
+    <title>{{ .ApplicationName }} - GraphQL API</title>
+
     <link
       rel="stylesheet"
       crossorigin="anonymous"
@@ -14,68 +16,21 @@
     />
 
     <script
-      async="false"
-      defer="true"
-      crossorigin="anonymous"
-      src="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlJS.Version}}/graphiql.min.js"
-      integrity="{{.GraphiqlJS.SRI}}"
-    ></script>
-    <script
-      async="false"
-      defer="true"
       crossorigin="anonymous"
       src="//cdn.jsdelivr.net/npm/react@{{ .React.Version }}/umd/react.production.min.js"
       integrity="{{.React.SRI}}"
     ></script>
     <script
-      async="false"
-      defer="true"
       crossorigin="anonymous"
       src="//cdn.jsdelivr.net/npm/react-dom@{{ .ReactDOM.Version }}/umd/react-dom.production.min.js"
       integrity="{{.ReactDOM.SRI}}"
     ></script>
-    <script type="text/javascript" async="false" defer="true">
-      function main() {
-        window.addEventListener('load', function (event) {
-          var root = document.getElementById('root')
-          var path =
-            location.host + location.pathname.replace(/\/explore.*$/, '')
+    <script
+      crossorigin="anonymous"
+      src="//cdn.jsdelivr.net/npm/graphiql@{{.GraphiqlJS.Version}}/graphiql.min.js"
+      integrity="{{.GraphiqlJS.SRI}}"
+    ></script>
 
-          function graphQLFetcher(graphQLParams) {
-            return fetch(location.protocol + '//' + path, {
-              method: 'post',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(graphQLParams),
-              credentials: 'same-origin',
-            }).then(function (response) {
-              return response.json().catch(function () {
-                return response.text()
-              })
-            })
-          }
-
-          if (!GraphiQL || !React || !ReactDOM) {
-            console.error('failed to load resources')
-            return
-          }
-
-          ReactDOM.render(
-            React.createElement(GraphiQL, {
-              fetcher: graphQLFetcher,
-              defaultVariableEditorOpen: true,
-            }),
-            root,
-          )
-        })
-      }
-
-      main()
-    </script>
-
-    <title>{{ .ApplicationName }} - GraphQL API</title>
     <style type="text/css">
       body {
         height: 100%;
@@ -91,5 +46,34 @@
   </head>
   <body>
     <div id="root" />
+
+    <script type="text/javascript">
+      var root = document.getElementById('root')
+      var path = location.host + location.pathname.replace(/\/explore.*$/, '')
+
+      function graphQLFetcher(graphQLParams) {
+        return fetch(location.protocol + '//' + path, {
+          method: 'post',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(graphQLParams),
+          credentials: 'same-origin',
+        }).then(function (response) {
+          return response.json().catch(function () {
+            return response.text()
+          })
+        })
+      }
+
+      ReactDOM.render(
+        React.createElement(GraphiQL, {
+          fetcher: graphQLFetcher,
+          defaultVariableEditorOpen: true,
+        }),
+        root,
+      )
+    </script>
   </body>
 </html>
