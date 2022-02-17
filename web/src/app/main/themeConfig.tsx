@@ -53,10 +53,7 @@ function getPalette(mode: string): PaletteOptions {
           ...grey,
           main: '#616161',
         },
-        secondary: {
-          ...grey,
-          main: '#616161',
-        },
+        secondary: grey,
       }
   }
 }
