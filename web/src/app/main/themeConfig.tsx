@@ -42,6 +42,7 @@ function getPalette(mode: string): PaletteOptions {
     case 'dark':
       return {
         mode: 'dark',
+        secondary: grey,
       }
 
     case 'light':
@@ -49,6 +50,10 @@ function getPalette(mode: string): PaletteOptions {
       return {
         mode: 'light',
         primary: {
+          ...grey,
+          main: '#616161',
+        },
+        secondary: {
           ...grey,
           main: '#616161',
         },
