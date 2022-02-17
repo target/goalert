@@ -15,7 +15,7 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, icon, actions, placement }) {
+export default function OtherActions({ color, Icon, actions, placement }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
@@ -30,12 +30,12 @@ export default function OtherActions({ color, icon, actions, placement }) {
         }}
         ref={ref}
       >
-        {React.cloneElement(icon, {
-          'aria-label': 'Other Actions',
-          'data-cy': 'other-actions',
-          color: color || 'inherit',
-          'aria-expanded': Boolean(anchorEl),
-        })}
+        <Icon
+          aria-label='Other Actions'
+          data-cy='other-actions'
+          aria-expanded={Boolean(anchorEl)}
+          style={{ color }}
+        />
       </IconButton>
       <Hidden mdDown>
         <OtherActionsDesktop
@@ -65,11 +65,11 @@ OtherActions.propTypes = {
     }),
   ).isRequired,
   color: p.string,
-  icon: p.element,
+  Icon: p.object,
   placement: p.oneOf(['left', 'right']),
 }
 
 OtherActions.defaultProps = {
-  icon: <OptionsIcon />,
+  Icon: OptionsIcon,
   placement: 'left',
 }

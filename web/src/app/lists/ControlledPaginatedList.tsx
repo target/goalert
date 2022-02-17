@@ -168,7 +168,7 @@ export default function ControlledPaginatedList(
           data-cy='checkboxes-menu'
         >
           <OtherActions
-            icon={<ArrowDropDown />}
+            Icon={ArrowDropDown}
             actions={[
               {
                 label: 'All',
