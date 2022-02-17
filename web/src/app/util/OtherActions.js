@@ -65,7 +65,7 @@ OtherActions.propTypes = {
     }),
   ).isRequired,
   color: p.string,
-  Icon: p.object,
+  Icon: p.elementType,
   placement: p.oneOf(['left', 'right']),
 }
 
