@@ -24,18 +24,21 @@ export default function OtherActions({ color, icon, actions, placement }) {
 
   return (
     <React.Fragment>
-      <span ref={ref}>
+      <IconButton
+        size='large'
+        onClick={(e) => {
+          onClose.cancel()
+          setAnchorEl(e.currentTarget)
+        }}
+        ref={ref}
+      >
         {React.cloneElement(icon, {
           'aria-label': 'Other Actions',
           'data-cy': 'other-actions',
           style: { color: color || theme.palette.secondary.main },
           'aria-expanded': Boolean(anchorEl),
-          onClick: (e) => {
-            onClose.cancel()
-            setAnchorEl(e.currentTarget)
-          },
         })}
-      </span>
+      </IconButton>
       <Hidden mdDown>
         <OtherActionsDesktop
           isOpen={Boolean(anchorEl)}
@@ -69,10 +72,6 @@ OtherActions.propTypes = {
 }
 
 OtherActions.defaultProps = {
-  icon: (
-    <IconButton size='large'>
-      <OptionsIcon />
-    </IconButton>
-  ),
+  icon: <OptionsIcon />,
   placement: 'left',
 }
