@@ -278,8 +278,16 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		details = ""
 	}
 	if details != "" {
+		escaped := slackutilsx.EscapeMessage(details)
+		if len(escaped) > 3000 {
+			newDetailsLen := len(details) - (len(escaped) - 3000)
+			if newDetailsLen < 0 {
+				newDetailsLen = 0
+			}
+			escaped = slackutilsx.EscapeMessage(details[:newDetailsLen])
+		}
 		blocks = append(blocks, slack.NewSectionBlock(
-			slack.NewTextBlockObject("mrkdwn", slackutilsx.EscapeMessage(details), false, false), nil, nil),
+			slack.NewTextBlockObject("mrkdwn", escaped, false, false), nil, nil),
 		)
 	}
 
