@@ -6,6 +6,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
+import { Theme } from '@mui/material/styles'
 import {
   DragDropContext,
   Droppable,
@@ -28,7 +29,7 @@ const lime = '#93ed94'
 const lightLime = '#defadf'
 const lightGrey = '#ebebeb'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme: Theme) => ({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
     width: '100%',
@@ -46,6 +47,11 @@ const useStyles = makeStyles({
   highlightedItem: {
     borderLeft: '6px solid ' + lime,
     background: lightLime,
+    color: theme.palette.getContrastText(lightLime),
+  },
+  highlightedSecondaryText: {
+    whiteSpace: 'pre-line',
+    color: theme.palette.getContrastText(lightLime),
   },
   participantDragging: {
     backgroundColor: lightGrey,
@@ -82,7 +88,7 @@ const useStyles = makeStyles({
     opacity: 0.6,
     width: '100%',
   },
-})
+}))
 
 export interface FlatListSub {
   id?: string
@@ -257,7 +263,12 @@ export default function FlatList({
         <ListItemText
           primary={item.title}
           secondary={item.subText}
-          secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
+          secondaryTypographyProps={{
+            className: classnames({
+              [classes.highlightedSecondaryText]: item.highlight,
+              [classes.listItemDisabled]: item.disabled,
+            }),
+          }}
           inset={inset && !item.icon}
         />
         {item.secondaryAction && (
