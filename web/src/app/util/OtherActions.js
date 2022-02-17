@@ -15,7 +15,12 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, IconComponent, actions, placement }) {
+export default function OtherActions({
+  color,
+  IconComponent,
+  actions,
+  placement,
+}) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
