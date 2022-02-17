@@ -3,6 +3,7 @@ import p from 'prop-types'
 import IconButton from '@mui/material/IconButton'
 import { MoreHoriz as OptionsIcon } from '@mui/icons-material'
 import Hidden from '@mui/material/Hidden'
+import { useTheme } from '@mui/material/styles'
 import OtherActionsDesktop from './OtherActionsDesktop'
 import OtherActionsMobile from './OtherActionsMobile'
 
@@ -16,6 +17,7 @@ const cancelable = (_fn) => {
 }
 
 export default function OtherActions({ color, icon, actions, placement }) {
+  const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
@@ -26,7 +28,7 @@ export default function OtherActions({ color, icon, actions, placement }) {
         {React.cloneElement(icon, {
           'aria-label': 'Other Actions',
           'data-cy': 'other-actions',
-          color: color || 'inherit',
+          style: { color: color || theme.palette.secondary.main },
           'aria-expanded': Boolean(anchorEl),
           onClick: (e) => {
             onClose.cancel()
