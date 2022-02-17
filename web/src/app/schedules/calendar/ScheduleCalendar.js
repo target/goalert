@@ -83,6 +83,23 @@ function ScheduleCalendar(props) {
     }
   }
 
+  const dayStyleGetter = (date) => {
+    const outOfBounds =
+      DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
+    const currentDay = DateTime.local().hasSame(
+      DateTime.fromJSDate(date),
+      'day',
+    )
+
+    if (theme.palette.mode === 'dark' && (outOfBounds || currentDay)) {
+      return {
+        style: {
+          backgroundColor: theme.palette.background.default,
+        },
+      }
+    }
+  }
+
   const getOverrideTitle = (o) => {
     if (o.addUser && o.removeUser) {
       // replace override
@@ -273,6 +290,7 @@ function ScheduleCalendar(props) {
             view={weekly ? 'week' : 'month'}
             showAllEvents
             eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
