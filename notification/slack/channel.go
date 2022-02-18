@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
@@ -278,8 +279,15 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		details = ""
 	}
 	if details != "" {
+		escaped, err := util.RenderSize(3000, details, func(s string) (string, error) {
+			return slackutilsx.EscapeMessage(s), nil
+		})
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("slack: render alert details: %w", err))
+			escaped = ""
+		}
 		blocks = append(blocks, slack.NewSectionBlock(
-			slack.NewTextBlockObject("mrkdwn", slackutilsx.EscapeMessage(details), false, false), nil, nil),
+			slack.NewTextBlockObject("mrkdwn", escaped, false, false), nil, nil),
 		)
 	}
 
