@@ -106,24 +106,6 @@ func normalizeGSM(str string) (s string) {
 	return s
 }
 
-// trimString will trim the string by the difference between the maxLen and the
-// buffer length. If the string is trimmed, it returns true and the buffer is reset.
-func trimString(str *string, buf *bytes.Buffer, maxLen int) bool {
-	if buf.Len() <= maxLen {
-		return false
-	}
-
-	newLen := len(*str) - (buf.Len() - maxLen)
-	if newLen <= 0 {
-		*str = ""
-	} else {
-		*str = strings.TrimSpace((*str)[:newLen])
-	}
-	buf.Reset()
-
-	return true
-}
-
 // renderAlertMessage will render a single-segment SMS for an Alert.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
