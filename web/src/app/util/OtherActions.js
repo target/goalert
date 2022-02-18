@@ -28,6 +28,9 @@ export default function OtherActions({
   return (
     <React.Fragment>
       <IconButton
+        aria-label='Other Actions'
+        data-cy='other-actions'
+        aria-expanded={Boolean(anchorEl)}
         size='large'
         onClick={(e) => {
           onClose.cancel()
@@ -35,12 +38,7 @@ export default function OtherActions({
         }}
         ref={ref}
       >
-        <IconComponent
-          aria-label='Other Actions'
-          data-cy='other-actions'
-          aria-expanded={Boolean(anchorEl)}
-          style={{ color }}
-        />
+        <IconComponent style={{ color }} />
       </IconButton>
       <Hidden mdDown>
         <OtherActionsDesktop
