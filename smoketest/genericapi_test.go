@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/target/goalert/smoketest/harness"
@@ -62,4 +63,15 @@ func TestGenericAPI(t *testing.T) {
 	resp.Body.Close()
 
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("hello")
+
+	resp, err = http.Post(u, "application/json", strings.NewReader(`{"summary": "json"}`))
+	if err != nil {
+		t.Fatal("post to generic endpoint failed:", err)
+	} else if resp.StatusCode/100 != 2 {
+		t.Error("non-2xx response:", resp.Status)
+	}
+	resp.Body.Close()
+
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("json")
+
 }
