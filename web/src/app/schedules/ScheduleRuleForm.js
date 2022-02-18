@@ -1,5 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
+import classNames from 'classnames'
 import { FormContainer, FormField } from '../forms'
 import {
   Grid,
@@ -14,17 +15,19 @@ import {
   MenuItem,
   TextField,
   Typography,
+  FormHelperText,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { useURLParam } from '../actions/hooks'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
 import { gql } from '@apollo/client'
 import { ISOTimePicker } from '../util/ISOPickers'
 import { DateTime } from 'luxon'
+import { useScheduleTZ } from './useScheduleTZ'
+import { fmtLocal } from '../util/timeFormat'
+import { useIsWidthDown } from '../util/useWidth'
 
 const days = [
   'Sunday',
@@ -91,20 +94,28 @@ const useStyles = makeStyles({
     minWidth: '6em',
     paddingRight: '1em',
   },
-  tzNote: {
-    display: 'flex',
-    alignItems: 'center',
+  noBorder: {
+    border: 'none',
+  },
+  table: {
+    borderCollapse: 'separate',
+    borderSpacing: '0px 5px',
   },
 })
 
 export default function ScheduleRuleForm(props) {
   const { value, scheduleID, onChange } = props
   const classes = useStyles()
-  const [zone] = useURLParam('tz', 'local')
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const isMobile = useIsWidthDown('md')
+
+  const Spacer = () =>
+    isLocalZone ? null : <FormHelperText>&nbsp;</FormHelperText>
+
   function renderRuleField(idx) {
     return (
       <TableRow key={idx}>
-        <TableCell className={classes.startEnd}>
+        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
           <FormField
             fullWidth
             noError
@@ -112,9 +123,12 @@ export default function ScheduleRuleForm(props) {
             required
             label=''
             name={`rules[${idx}].start`}
+            disabled={!zone}
+            timeZone={zone}
+            hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
           />
         </TableCell>
-        <TableCell className={classes.startEnd}>
+        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
           <FormField
             fullWidth
             noError
@@ -122,11 +136,18 @@ export default function ScheduleRuleForm(props) {
             required
             label=''
             name={`rules[${idx}].end`}
+            disabled={!zone}
+            timeZone={zone}
+            hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
           />
         </TableCell>
         <Hidden mdDown>
           {days.map((day, dayIdx) => (
-            <TableCell key={dayIdx} padding='checkbox'>
+            <TableCell
+              key={dayIdx}
+              padding='checkbox'
+              className={classes.noBorder}
+            >
               <FormField
                 noError
                 className={classes.noPadding}
@@ -135,11 +156,14 @@ export default function ScheduleRuleForm(props) {
                 fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
                 name={day}
               />
+              <Spacer />
             </TableCell>
           ))}
         </Hidden>
         <Hidden mdUp>
-          <TableCell className={classes.dayFilter}>
+          <TableCell
+            className={classNames(classes.dayFilter, classes.noBorder)}
+          >
             <FormField
               fullWidth
               component={TextField}
@@ -165,9 +189,10 @@ export default function ScheduleRuleForm(props) {
                 </MenuItem>
               ))}
             </FormField>
+            <Spacer />
           </TableCell>
         </Hidden>
-        <TableCell padding='none'>
+        <TableCell padding='none' className={classes.noBorder}>
           {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
@@ -182,6 +207,7 @@ export default function ScheduleRuleForm(props) {
               <Trash />
             </IconButton>
           )}
+          <Spacer />
         </TableCell>
       </TableRow>
     )
@@ -193,19 +219,6 @@ export default function ScheduleRuleForm(props) {
     return (
       <FormContainer {...formProps} optionalLabels>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
-            <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
-              Times and weekdays shown in{' '}
-              {zone === 'local' ? 'local time' : zone}.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-            <ScheduleTZFilter
-              label={(tz) => `Configure in ${tz}`}
-              scheduleID={scheduleID}
-            />
-          </Grid>
           <Grid item xs={12}>
             <FormField
               fullWidth
@@ -217,11 +230,24 @@ export default function ScheduleRuleForm(props) {
             />
           </Grid>
           <Grid item xs={12}>
-            <Table data-cy='target-rules'>
+            <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
+              Configuring in {zone || '...'}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} style={{ paddingTop: 0 }}>
+            <Table data-cy='target-rules' className={classes.table}>
               <TableHead>
                 <TableRow>
-                  <TableCell className={classes.startEnd}>Start</TableCell>
-                  <TableCell className={classes.startEnd}>End</TableCell>
+                  <TableCell
+                    className={classNames(classes.startEnd, classes.noBorder)}
+                  >
+                    Start
+                  </TableCell>
+                  <TableCell
+                    className={classNames(classes.startEnd, classes.noBorder)}
+                  >
+                    End
+                  </TableCell>
                   <Hidden mdDown>
                     {days.map((d) => (
                       <TableCell key={d} padding='checkbox'>
@@ -230,9 +256,19 @@ export default function ScheduleRuleForm(props) {
                     ))}
                   </Hidden>
                   <Hidden mdUp>
-                    <TableCell className={classes.dayFilter}>Days</TableCell>
+                    <TableCell
+                      className={classNames(
+                        classes.dayFilter,
+                        classes.noBorder,
+                      )}
+                    >
+                      Days
+                    </TableCell>
                   </Hidden>
-                  <TableCell padding='none'>
+                  <TableCell
+                    padding='none'
+                    className={classNames({ [classes.noBorder]: isMobile })}
+                  >
                     <IconButton
                       aria-label='Add rule'
                       onClick={() =>
