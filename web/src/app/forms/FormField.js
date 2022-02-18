@@ -108,22 +108,24 @@ export function FormField(props) {
   }
 
   function renderFormHelperText(error, hint) {
-    if (error?.helpLink) {
-      return (
-        <FormHelperText>
-          <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
-            {error.message.replace(/^./, (str) => str.toUpperCase())}
-          </AppLink>
-        </FormHelperText>
-      )
-    }
+    if (!noError) {
+      if (error?.helpLink) {
+        return (
+          <FormHelperText>
+            <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
+              {error.message.replace(/^./, (str) => str.toUpperCase())}
+            </AppLink>
+          </FormHelperText>
+        )
+      }
 
-    if (error?.message) {
-      return (
-        <FormHelperText>
-          {error.message.replace(/^./, (str) => str.toUpperCase())}
-        </FormHelperText>
-      )
+      if (error?.message) {
+        return (
+          <FormHelperText>
+            {error.message.replace(/^./, (str) => str.toUpperCase())}
+          </FormHelperText>
+        )
+      }
     }
 
     if (hint) {
@@ -145,11 +147,12 @@ export function FormField(props) {
       <Component
         {...fieldProps}
         error={checkbox ? undefined : Boolean(fieldProps.error)}
-        label={formLabel ? null : fieldProps.label}
+        // NOTE: empty string label leaves gap in outlined field; fallback to undefined instead
+        label={(!formLabel && fieldProps.label) || undefined}
       >
         {fieldProps.children}
       </Component>
-      {!noError && renderFormHelperText(fieldProps.error, fieldProps.hint)}
+      {renderFormHelperText(fieldProps.error, fieldProps.hint)}
     </FormControl>
   )
 }

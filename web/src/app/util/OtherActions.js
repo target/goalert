@@ -3,7 +3,6 @@ import p from 'prop-types'
 import IconButton from '@mui/material/IconButton'
 import { MoreHoriz as OptionsIcon } from '@mui/icons-material'
 import Hidden from '@mui/material/Hidden'
-import { useTheme } from '@mui/material/styles'
 import OtherActionsDesktop from './OtherActionsDesktop'
 import OtherActionsMobile from './OtherActionsMobile'
 
@@ -16,8 +15,12 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, icon, actions, placement }) {
-  const theme = useTheme()
+export default function OtherActions({
+  color,
+  IconComponent,
+  actions,
+  placement,
+}) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
@@ -25,6 +28,9 @@ export default function OtherActions({ color, icon, actions, placement }) {
   return (
     <React.Fragment>
       <IconButton
+        aria-label='Other Actions'
+        data-cy='other-actions'
+        aria-expanded={Boolean(anchorEl)}
         size='large'
         onClick={(e) => {
           onClose.cancel()
@@ -32,12 +38,7 @@ export default function OtherActions({ color, icon, actions, placement }) {
         }}
         ref={ref}
       >
-        {React.cloneElement(icon, {
-          'aria-label': 'Other Actions',
-          'data-cy': 'other-actions',
-          style: { color: color || theme.palette.secondary.main },
-          'aria-expanded': Boolean(anchorEl),
-        })}
+        <IconComponent style={{ color }} />
       </IconButton>
       <Hidden mdDown>
         <OtherActionsDesktop
@@ -67,11 +68,11 @@ OtherActions.propTypes = {
     }),
   ).isRequired,
   color: p.string,
-  icon: p.element,
+  IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
 }
 
 OtherActions.defaultProps = {
-  icon: <OptionsIcon />,
+  IconComponent: OptionsIcon,
   placement: 'left',
 }

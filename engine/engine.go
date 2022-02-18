@@ -456,6 +456,39 @@ func (p *Engine) processAll(ctx context.Context) bool {
 	}
 	return false
 }
+
+func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
+	ctx, cancel = context.WithCancel(ctx)
+
+	go func() {
+		watch := time.NewTicker(5 * time.Second)
+		defer watch.Stop()
+		watchErr := time.NewTicker(time.Minute)
+		defer watchErr.Stop()
+
+	loop:
+		for {
+			select {
+			case <-watchErr.C:
+				log.Log(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), fmt.Errorf("engine possibly stuck"))
+			case <-watch.C:
+				log.Logf(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), "long engine cycle")
+			case <-ctx.Done():
+				break loop
+			}
+		}
+
+		dur := time.Since(start)
+		if dur < 5*time.Second {
+			return
+		}
+
+		log.Log(log.WithField(ctx, "elapsedSec", dur.Seconds()), fmt.Errorf("slow cycle finished"))
+	}()
+
+	return cancel
+}
+
 func (p *Engine) cycle(ctx context.Context) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.Cycle")
 	defer sp.End()
@@ -479,10 +512,14 @@ passSignals:
 		return
 	}
 
-	log.Logf(ctx, "Engine cycle start.")
-	defer log.Logf(ctx, "Engine cycle end.")
+	if p.cfg.LogCycles {
+		log.Logf(ctx, "Engine cycle start.")
+		defer log.Logf(ctx, "Engine cycle end.")
+	}
 
 	startAll := time.Now()
+	defer monitorCycle(ctx, startAll)()
+
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
 		sp.Annotate([]trace.Attribute{trace.BoolAttribute("cycle.abort", true)}, "Cycle aborted.")

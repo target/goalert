@@ -32,4 +32,5 @@ type Config struct {
 	MaxMessages int
 
 	DisableCycle bool
+	LogCycles    bool
 }

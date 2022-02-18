@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,5 +89,28 @@ func TestGenericAPIClose(t *testing.T) {
 	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("test1")
+
+	u := h.URL() + "/v1/api/alerts?key=" + key
+	resp, err := http.Post(u, "application/json", strings.NewReader(`{"summary": "json"}`))
+	if err != nil {
+		t.Fatal("post to generic endpoint failed:", err)
+	} else if resp.StatusCode/100 != 2 {
+		t.Error("non-2xx response:", resp.Status)
+	}
+	resp.Body.Close()
+
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("json")
+
+	u = h.URL() + "/v1/api/alerts?action=close&key=" + key
+	resp, err = http.Post(u, "application/json", strings.NewReader(`{"summary": "json"}`))
+	if err != nil {
+		t.Fatal("post to generic endpoint failed:", err)
+	} else if resp.StatusCode/100 != 2 {
+		t.Error("non-2xx response:", resp.Status)
+	}
+	resp.Body.Close()
+
+	h.FastForward(30 * time.Minute)
+	// closed, no SMS
 
 }

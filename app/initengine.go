@@ -48,6 +48,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		MaxMessages: 50,
 
 		DisableCycle: app.cfg.APIOnly,
+		LogCycles:    app.cfg.LogEngine,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init engine")
