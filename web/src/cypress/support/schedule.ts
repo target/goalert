@@ -12,6 +12,7 @@ import {
 } from '../../schema'
 import { GraphQLResponse } from './graphql'
 import { Rotation } from './rotation'
+import { SlackChannel } from './slack'
 import { randDT, randSubInterval } from './util'
 
 const c = new Chance()
