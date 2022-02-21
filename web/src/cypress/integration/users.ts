@@ -40,9 +40,9 @@ function testUsers(screen: ScreenFormat): void {
   })
 
   describe('Details Page', () => {
-    let user: User
+    let user: Profile
     beforeEach(() =>
-      cy.createUser().then((u: User) => {
+      cy.createUser().then((u: Profile) => {
         user = u
         cy.adminLogin()
         return cy.visit(`/users/${user.id}`)
@@ -80,7 +80,7 @@ function testUsers(screen: ScreenFormat): void {
 
   describe('User Subpages', () => {
     it('should navigate to and from its on-call assignments', () => {
-      cy.createUser().then((user: User) => {
+      cy.createUser().then((user: Profile) => {
         cy.visit(`users/${user.id}`)
 
         cy.navigateToAndFrom(
@@ -94,7 +94,7 @@ function testUsers(screen: ScreenFormat): void {
     })
 
     it('should see no on-call assignments text', () => {
-      cy.createUser().then((user: User) => {
+      cy.createUser().then((user: Profile) => {
         cy.visit(`users/${user.id}`)
 
         cy.get('[data-cy=route-links]').contains('On-Call Assignments').click()
@@ -107,7 +107,7 @@ function testUsers(screen: ScreenFormat): void {
 
     it('should see on-call assigment list', () => {
       const name = 'SVC ' + c.word({ length: 8 })
-      cy.createUser().then((user: User) => {
+      cy.createUser().then((user: Profile) => {
         cy.visit(`users/${user.id}`)
 
         return cy
@@ -139,7 +139,7 @@ function testUsers(screen: ScreenFormat): void {
 
     // admin only
     it('should navigate to and from its active sessions', () => {
-      cy.createUser().then((user: User) => {
+      cy.createUser().then((user: Profile) => {
         cy.adminLogin()
         cy.visit(`users/${user.id}`)
 
