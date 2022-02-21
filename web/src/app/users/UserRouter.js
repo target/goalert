@@ -39,7 +39,11 @@ export default function UserRouter() {
         path={[`/users/${userID}`, '/profile']}
         component={UserProfile}
       />
-      <Route exact path='/users/:userID' render={() => <UserDetails readOnly />} />
+      <Route
+        exact
+        path='/users/:userID'
+        render={() => <UserDetails readOnly />}
+      />
 
       <Route
         exact
