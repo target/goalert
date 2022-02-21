@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
 import toTitleCase from '../../app/util/toTitleCase'
 import { Alert, AlertLogs } from './alert'
+import { EP } from './ep'
 
 declare global {
   namespace Cypress {
@@ -91,13 +92,13 @@ function createOutgoingMessage(
         .createEPStep({
           targets: [
             {
-              id: msg.userID,
+              id: msg.userID as string, // guaranteed above
               type: 'user',
             },
           ],
         })
         .then(() => {
-          createOutgoingMessage({
+          return createOutgoingMessage({
             ...msg,
             epID: ep.id,
           })
