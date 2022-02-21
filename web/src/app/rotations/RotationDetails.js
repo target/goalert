@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import p from 'prop-types'
 import _ from 'lodash'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useParams } from 'react-router-dom'
 import { Edit, Delete } from '@mui/icons-material'
 
 import CreateFAB from '../lists/CreateFAB'
@@ -38,7 +37,8 @@ const query = gql`
   }
 `
 
-export default function RotationDetails({ rotationID }) {
+export default function RotationDetails() {
+  const { rotationID } = useParams()
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showAddUser, setShowAddUser] = useState(false)
@@ -112,8 +112,4 @@ export default function RotationDetails({ rotationID }) {
       />
     </React.Fragment>
   )
-}
-
-RotationDetails.propTypes = {
-  rotationID: p.string.isRequired,
 }

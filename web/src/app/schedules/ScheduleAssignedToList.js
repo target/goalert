@@ -3,7 +3,7 @@ import { gql } from '@apollo/client'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
 import Card from '@mui/material/Card'
-import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 
 const query = gql`
   query ($id: ID!) {
@@ -18,7 +18,8 @@ const query = gql`
   }
 `
 
-export default function ScheduleAssignedToList(props) {
+export default function ScheduleAssignedToList() {
+  const { scheduleID } = useParams()
   function renderList({ data }) {
     return (
       <Card style={{ width: '100%' }}>
@@ -34,14 +35,6 @@ export default function ScheduleAssignedToList(props) {
   }
 
   return (
-    <Query
-      query={query}
-      variables={{ id: props.scheduleID }}
-      render={renderList}
-    />
+    <Query query={query} variables={{ id: scheduleID }} render={renderList} />
   )
-}
-
-ScheduleAssignedToList.propTypes = {
-  scheduleID: p.string.isRequired,
 }

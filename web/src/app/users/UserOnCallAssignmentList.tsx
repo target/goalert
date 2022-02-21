@@ -1,5 +1,6 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import { Card } from '@mui/material'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash'
@@ -81,11 +82,11 @@ function services(onCallSteps: OnCallStep[] = []): Service[] {
 }
 
 export default function UserOnCallAssignmentList(props: {
-  userID: string
   currentUser?: boolean
 }): JSX.Element {
+  const { userID } = useParams<{ userID: string }>()
   const { data, loading, error } = useQuery(query, {
-    variables: { id: props.userID },
+    variables: { id: userID },
   })
 
   if (!data && loading) {

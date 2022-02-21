@@ -44,13 +44,7 @@ export default function RotationRouter() {
   return (
     <Switch>
       <Route exact path='/rotations' render={renderList} />
-      <Route
-        exact
-        path='/rotations/:rotationID'
-        render={({ match }) => (
-          <RotationDetails rotationID={match.params.rotationID} />
-        )}
-      />
+      <Route exact path='/rotations/:rotationID' component={RotationDetails} />
       <Route component={PageNotFound} />
     </Switch>
   )
