@@ -27,7 +27,7 @@
     "@emotion/styled": "11.6.0",
     "@mui/icons-material": "5.4.2",
     "@mui/lab": "5.0.0-alpha.59",
-    "@mui/material": "5.3.1",
+    "@mui/material": "5.4.3",
     "@mui/styles": "5.4.2",
     "@mui/x-data-grid": "5.5.0",
     "bowser": "2.11.0",
