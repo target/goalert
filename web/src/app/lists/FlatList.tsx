@@ -50,8 +50,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     color: theme.palette.getContrastText(lightLime),
   },
   highlightedSecondaryText: {
-    whiteSpace: 'pre-line',
     color: theme.palette.getContrastText(lightLime),
+  },
+  secondaryText: {
+    whiteSpace: 'pre-line',
   },
   participantDragging: {
     backgroundColor: lightGrey,
@@ -265,6 +267,7 @@ export default function FlatList({
           secondary={item.subText}
           secondaryTypographyProps={{
             className: classnames({
+              [classes.secondaryText]: true,
               [classes.highlightedSecondaryText]: item.highlight,
               [classes.listItemDisabled]: item.disabled,
             }),
