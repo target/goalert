@@ -1,5 +1,79 @@
 import { Chance } from 'chance'
+import { EP, EPOptions } from './ep'
+import { GraphQLResponse } from './graphql'
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Gets a service with a specified ID */
+      getService: typeof getService
+
+      /**
+       * Creates a new service, and escalation policy if epID is not specified
+       */
+      createService: typeof createService
+
+      /** Delete the service with the specified ID */
+      deleteService: typeof deleteService
+
+      /** Creates a label for a given service */
+      createLabel: typeof createLabel
+
+      /** Creates a label for a given service */
+      createHeartbeatMonitor: typeof createHeartbeatMonitor
+    }
+  }
+}
+
+export interface Service {
+  id: string
+  name: string
+  description: string
+  isFavorite: boolean
+
+  /** The escalation policy ID for this Service. */
+  epID: string
+
+  /** Details for the escalation policy of this Service. */
+  ep: EP
+}
+
+export interface ServiceOptions {
+  name?: string
+  description?: string
+  epID?: string
+  ep?: EPOptions
+  favorite?: boolean
+}
+
+export interface Label {
+  svcID: string
+  svc: Service
+  key: string
+  value: string
+}
+
+export interface LabelOptions {
+  svcID?: string
+  svc?: ServiceOptions
+  key?: string
+  value?: string
+}
+
+export interface HeartbeatMonitor {
+  svcID: string
+  svc: Service
+  name: string
+  timeoutMinutes: number
+}
+
+export interface HeartbeatMonitorOptions {
+  svcID?: string
+  svc?: Service
+  name?: string
+  timeoutMinutes?: number
+}
 
 function getService(svcID: string): Cypress.Chainable<Service> {
   const query = `
@@ -68,7 +142,7 @@ function deleteService(id: string): Cypress.Chainable<void> {
       deleteService(input: $input) { id }
     }
   `
-  return cy.graphql(query, { input: { id } })
+  return cy.graphqlVoid(query, { input: { id } })
 }
 
 function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
