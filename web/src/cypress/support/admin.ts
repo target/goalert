@@ -2,6 +2,32 @@ import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
 import toTitleCase from '../../app/util/toTitleCase'
+import { Alert, AlertLogs } from './alert'
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      // Creates one outgoing log based on the provided options.
+      createOutgoingMessage: typeof createOutgoingMessage
+    }
+  }
+}
+
+export interface OutgoingMessageOptions {
+  id?: string
+  serviceID?: string
+  serviceName?: string
+  epID?: string
+  alertID?: number
+  alertLogID?: number
+  userID?: string
+  userName?: string
+  contactMethodID?: string
+  messageType?: string
+  createdAt?: string
+  sentAt?: string
+  status?: string
+}
 
 const c = new Chance()
 
@@ -95,7 +121,7 @@ function createOutgoingMessage(
     return cy.createAlert({ serviceID: msg.serviceID }).then((a: Alert) =>
       createOutgoingMessage({
         ...msg,
-        alertID: a.id.toString(),
+        alertID: a.id,
       }),
     )
   }
