@@ -1,6 +1,79 @@
 import { Chance } from 'chance'
+import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Creates a new user profile. */
+      createUser: typeof createUser
+
+      /** Creates multiple new user profiles. */
+      createManyUsers: typeof createManyUsers
+
+      /**
+       * Resets the test user profile, including any existing contact methods.
+       */
+      resetProfile: typeof resetProfile
+
+      /** Adds a contact method. If userID is missing, the test user's will be used. */
+      addContactMethod: typeof addContactMethod
+
+      /** Adds a notification rule. If userID is missing, the test user's will be used. */
+      addNotificationRule: typeof addNotificationRule
+    }
+  }
+}
+
+export type UserRole = 'user' | 'admin'
+export interface Profile {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  username?: string
+  passwordHash?: string
+  isFavorite: boolean
+}
+
+export interface UserOptions {
+  name?: string
+  email?: string
+  role?: UserRole
+  favorite?: boolean
+}
+
+export type ContactMethodType = 'SMS' | 'VOICE'
+export interface ContactMethod {
+  id: string
+  userID: string
+  name: string
+  type: ContactMethodType
+  value: string
+}
+
+export interface ContactMethodOptions {
+  userID?: string
+  name?: string
+  type?: ContactMethodType
+  value?: string
+}
+
+export interface NotificationRule {
+  id: string
+  userID: string
+  contactMethodID: string
+  contactMethod: ContactMethod
+  delayMinutes: number
+}
+
+export interface NotificationRuleOptions {
+  userID?: string
+  delayMinutes?: number
+  contactMethodID?: string
+  contactMethod?: ContactMethodOptions
+}
 
 function setFavoriteUser(id: string): Cypress.Chainable {
   const query = `
@@ -83,7 +156,7 @@ function addContactMethod(
     .then((res: GraphQLResponse) => {
       res = res.createUserContactMethod
       res.userID = cm && cm.userID
-      return res
+      return res as ContactMethod
     })
 }
 
@@ -136,7 +209,7 @@ function addNotificationRule(
       res.userID = userID
       res.contactMethod.userID = userID
 
-      return res
+      return res as NotificationRule
     })
 }
 
