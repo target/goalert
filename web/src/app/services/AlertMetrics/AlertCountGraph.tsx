@@ -1,6 +1,7 @@
 import React from 'react'
 import { Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import {
   XAxis,
   YAxis,
@@ -11,13 +12,12 @@ import {
   Bar,
   Legend,
 } from 'recharts'
-import { theme } from '../../mui'
 
 interface AlertCountGraphProps {
   data: typeof BarChart.defaultProps['data']
 }
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   graphContent: {
     height: '500px',
     fontFamily: theme.typography.body2.fontFamily,
