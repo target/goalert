@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
 
@@ -233,14 +234,14 @@ function createManyAlerts(
   return cy.sql(query)
 }
 
-function closeAlert(id: number): Cypress.Chainable<Alert> {
+function closeAlert(id: number): Cypress.Chainable<void> {
   const query = `
     mutation {
       updateAlertStatus(input: $input) { id }
     }
   `
 
-  return cy.graphql(query, { input: { id } })
+  return cy.graphqlVoid(query, { input: { id } })
 }
 
 Cypress.Commands.add('createAlert', createAlert)

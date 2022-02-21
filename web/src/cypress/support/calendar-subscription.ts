@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { Schedule } from '../../schema'
+import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
 

@@ -1,11 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-interface GraphQLResponse {
-  data: any
+interface RawGraphQLResponse {
+  data: GraphQLResponse
   errors: [any]
 }
 
+export interface GraphQLResponse {
+  // NOTE graphql responses are arbitrary objects
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
+}
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      graphql: typeof graphql
+      graphqlVoid: typeof graphqlVoid
+    }
+  }
+}
+
+function graphqlVoid(
+  query: string,
+  variables?: { [key: string]: any },
+): Cypress.Chainable<void> {
+  cy.graphql(query, variables)
+
+  return cy.then(() => {})
+}
+
 // runs a graphql query returning the data response (after asserting no errors)
-function graphql(query: string, variables?: any): Cypress.Chainable<any> {
+function graphql(
+  query: string,
+  variables?: { [key: string]: any },
+): Cypress.Chainable<GraphQLResponse> {
   const url = '/api/graphql'
   if (!variables) variables = {}
 
@@ -31,5 +58,6 @@ function graphql(query: string, variables?: any): Cypress.Chainable<any> {
 }
 
 Cypress.Commands.add('graphql', graphql)
+Cypress.Commands.add('graphqlVoid', graphqlVoid)
 
 export {}

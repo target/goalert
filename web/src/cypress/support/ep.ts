@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { Target } from '../../schema'
+import { GraphQLResponse } from './graphql'
 const c = new Chance()
 
 declare global {
@@ -105,7 +106,7 @@ function deleteEP(id: string): Cypress.Chainable<void> {
     }
    `
 
-  return cy.graphql(mutation, {
+  return cy.graphqlVoid(mutation, {
     input: [
       {
         type: 'escalationPolicy',
