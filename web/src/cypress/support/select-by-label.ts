@@ -1,4 +1,35 @@
-function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
+declare global {
+  namespace Cypress {
+    interface Chainable<Subject> {
+      /**
+       * Selects an item from a dropdown by it's label. Automatically accounts for search-selects.
+       */
+      selectByLabel: selectByLabelFn
+
+      /**
+       * Finds an item from a dropdown by it's label. Automatically accounts for search-selects.
+       */
+      findByLabel: findByLabelFn
+
+      /**
+       * Finds an item from a dropdown by it's label and removes it if it is a multiselect.
+       */
+      multiRemoveByLabel: multiRemoveByLabelFn
+    }
+  }
+}
+
+export type selectByLabelFn = (
+  label: string,
+) => Cypress.Chainable<JQuery<HTMLElement>>
+export type findByLabelFn = (
+  label: string,
+) => Cypress.Chainable<JQuery<HTMLElement>>
+export type multiRemoveByLabelFn = (
+  label: string,
+) => Cypress.Chainable<JQuery<HTMLElement>>
+
+function isSearchSelect(sub: JQuery<HTMLElement>): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then((el) => {
     return (
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
@@ -6,7 +37,9 @@ function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
   })
 }
 
-function clearSelect(sub: HTMLElement): Cypress.Chainable<JQuery<HTMLElement>> {
+function clearSelect(
+  sub: JQuery<HTMLElement>,
+): Cypress.Chainable<JQuery<HTMLElement>> {
   return cy
     .wrap(sub)
     .parents('[data-cy=material-select]')
@@ -18,7 +51,7 @@ function clearSelect(sub: HTMLElement): Cypress.Chainable<JQuery<HTMLElement>> {
 }
 
 function findByLabel(
-  sub: HTMLElement,
+  sub: JQuery<HTMLElement>,
   label: string,
 ): Cypress.Chainable<JQuery<HTMLElement>> {
   return isSearchSelect(sub).then((isSearchSelect) => {
@@ -48,7 +81,7 @@ function findByLabel(
 }
 
 function selectByLabel(
-  sub: HTMLElement,
+  sub: JQuery<HTMLElement>,
   label: string,
 ): Cypress.Chainable<JQuery<HTMLElement>> {
   return isSearchSelect(sub).then((isSearchSelect) => {
@@ -67,7 +100,7 @@ function selectByLabel(
 }
 
 function multiRemoveByLabel(
-  sub: HTMLElement,
+  sub: JQuery<HTMLElement>,
   label: string,
 ): Cypress.Chainable {
   return isSearchSelect(sub).then((isSearchSelect) => {
