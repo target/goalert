@@ -263,6 +263,6 @@ export default function UserDetails(props) {
 }
 
 UserDetails.propTypes = {
-  userID: p.string.isRequired,
+  userID: p.string,
   readOnly: p.bool,
 }
