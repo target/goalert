@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { PaletteOptions } from '@mui/material/styles/createPalette'
 import { grey } from '@mui/material/colors'
 import { isCypress } from '../env'
@@ -12,50 +12,57 @@ interface ThemeProviderProps {
   children: ReactNode
 }
 
-export const ThemeContext = React.createContext({
+interface ThemeContextParams {
+  themeMode: string
+  setThemeMode: (newMode: string) => void
+}
+
+export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
-  toggleThemeMode: (): void => {},
+  setThemeMode: (): void => {},
 })
 ThemeContext.displayName = 'ThemeContext'
 
-function getThemePreference(): string {
-  const theme = localStorage.getItem('theme')
-  if (!theme) {
-    // get if system preference is set to dark mode
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    return mediaQuery.matches ? 'dark' : 'light'
-  }
-  return theme
-}
-
-function handleSetThemeMode(theme: string): string {
+function handleStoreThemeMode(theme: string): boolean {
   if (theme === 'dark') {
-    localStorage.setItem('theme', 'light')
-    return 'light'
+    localStorage.setItem('theme', 'dark')
+    return true
   }
-  localStorage.setItem('theme', 'dark')
-  return 'dark'
+  if (theme === 'light') {
+    localStorage.setItem('theme', 'light')
+    return true
+  }
+  if (theme === 'system') {
+    localStorage.setItem('theme', 'system')
+    return true
+  }
+
+  console.warn('unknown theme, aborting')
+  return false
 }
 
 function getPalette(mode: string): PaletteOptions {
-  switch (mode) {
-    case 'dark':
-      return {
-        mode: 'dark',
-        secondary: grey,
-      }
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-    case 'light':
-    default:
-      return {
-        mode: 'light',
-        primary: {
-          ...grey,
-          main: '#616161',
-        },
-        secondary: grey,
-      }
+  if (mode === 'dark' || (mode === 'system' && prefersDark)) {
+    return {
+      mode: 'dark',
+      secondary: grey,
+    }
   }
+
+  if (mode === 'light' || (mode === 'system' && !prefersDark)) {
+    return {
+      mode: 'light',
+      primary: {
+        ...grey,
+        main: '#616161',
+      },
+      secondary: grey,
+    }
+  }
+
+  return {}
 }
 
 function makeTheme(mode: string): Theme {
@@ -76,15 +83,22 @@ function makeTheme(mode: string): Theme {
 }
 
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
-  const [themeMode, setThemeMode] = useState(getThemePreference())
+  const storedTheme = localStorage.getItem('theme')
+  useEffect(() => {
+    if (!storedTheme) {
+      localStorage.setItem('theme', 'system')
+    }
+  }, [])
+  const [themeMode, setThemeMode] = useState(storedTheme ?? 'system')
 
   return (
     <ThemeContext.Provider
       value={{
         themeMode,
-        toggleThemeMode: () => {
-          const newTheme = handleSetThemeMode(themeMode)
-          setThemeMode(newTheme)
+        setThemeMode: (newMode: string) => {
+          if (handleStoreThemeMode(newMode)) {
+            setThemeMode(newMode)
+          }
         },
       }}
     >

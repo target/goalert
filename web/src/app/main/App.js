@@ -22,7 +22,6 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
-import ThemeToggle from './components/ThemeToggle'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,7 +87,6 @@ export default function App() {
               />
               <ToolbarTitle />
 
-              <ThemeToggle />
               <PageActionContainer />
               <SearchContainer />
             </Toolbar>
