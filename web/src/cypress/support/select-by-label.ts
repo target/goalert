@@ -1,6 +1,6 @@
 declare global {
   namespace Cypress {
-    interface Chainable<Subject> {
+    interface Chainable {
       /**
        * Selects an item from a dropdown by it's label. Automatically accounts for search-selects.
        */

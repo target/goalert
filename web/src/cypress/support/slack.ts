@@ -1,4 +1,3 @@
-import { SlackChannelConnection } from '../../schema'
 import { GraphQLResponse } from './graphql'
 
 declare global {

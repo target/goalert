@@ -8,7 +8,7 @@ interface MenuSelectOptions {
 
 declare global {
   namespace Cypress {
-    interface Chainable<Subject> {
+    interface Chainable {
       /** Open the selected menu and click the matching item. */
       menu: (label: string, options?: MenuSelectOptions) => Cypress.Chainable
     }

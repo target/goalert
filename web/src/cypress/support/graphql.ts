@@ -39,7 +39,7 @@ function graphql(
   return cy.request('POST', url, { query, variables }).then((res) => {
     expect(res.status, 'status code').to.eq(200)
 
-    let data: GraphQLResponse
+    let data: RawGraphQLResponse
     try {
       if (typeof res.body === 'string') data = JSON.parse(res.body)
       else data = res.body
