@@ -1,3 +1,12 @@
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Click an action from the page-level "Other Actions" menu. */
+      pageAction: typeof pageAction
+    }
+  }
+}
+
 export function pageAction(s: string): Cypress.Chainable {
   return cy
     .get('[data-cy=app-bar]')
