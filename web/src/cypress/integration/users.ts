@@ -1,5 +1,4 @@
 import { testScreen } from '../support'
-import { User } from '../../schema'
 import { Chance } from 'chance'
 
 const c = new Chance()
