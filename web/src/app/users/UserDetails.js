@@ -225,7 +225,7 @@ export default function UserDetails(props) {
             : [
                 <StatusUpdateNotification
                   key='primary-action-status-updates'
-                userID={userID}
+                  userID={userID}
                 />,
               ]
         }
@@ -251,7 +251,7 @@ export default function UserDetails(props) {
             : [
                 <QuerySetFavoriteButton
                   key='secondary-action-favorite'
-                id={userID}
+                  id={userID}
                   type='user'
                 />,
               ]

@@ -143,7 +143,7 @@ function ToolbarTitle() {
           {query ? (
             <NameLoader id={id} query={query} fallback={detailsText(type)} />
           ) : (
-              detailsText(type)
+            detailsText(type)
           )}
         </Typography>
         <ChevronRight />
