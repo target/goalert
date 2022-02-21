@@ -37,6 +37,7 @@ import './page-fab'
 import './sql'
 import './form'
 import './dialog'
+import './limits'
 
 Cypress.Cookies.defaults({
   preserve: 'goalert_session.2',
@@ -47,5 +48,4 @@ Cypress.Keyboard.defaults({
 Cypress.Cookies.debug(true)
 
 export * from './config'
-export * from './limits'
 export * from './util'
