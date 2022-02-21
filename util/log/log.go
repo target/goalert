@@ -45,6 +45,11 @@ func FromContext(ctx context.Context) *Logger {
 	return l
 }
 
+// Write is a pass-through for the underlying logger's Write method.
+func (l *Logger) Write(p []byte) (int, error) {
+	return l.l.Writer().Write(p)
+}
+
 // SetOutput will change the log output.
 func (l *Logger) SetOutput(out io.Writer) { l.l.SetOutput(out) }
 

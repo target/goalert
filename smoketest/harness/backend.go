@@ -13,6 +13,7 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 		Message      string `json:"msg"`
 		Source       string
 		Level        string
+		SQL          string
 		ProviderType json.Number
 		URL          string
 	}
@@ -40,6 +41,10 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 			entry.Level = "ignore[" + entry.Level + "]"
 		}
 		if entry.Level == "error" || entry.Level == "fatal" {
+			if entry.SQL != "" {
+				// ignore printed SQL errors
+				continue
+			}
 			h.t.Errorf("Backend: %s(%s) %s", strings.ToUpper(entry.Level), entry.Source, entry.Error)
 			continue
 		} else {
