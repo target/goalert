@@ -6,8 +6,17 @@ interface MenuSelectOptions {
   forceWidescreen?: boolean
 }
 
+declare global {
+  namespace Cypress {
+    interface Chainable<Subject> {
+      /** Open the selected menu and click the matching item. */
+      menu: (label: string, options?: MenuSelectOptions) => Cypress.Chainable
+    }
+  }
+}
+
 function menu(
-  sub: string,
+  sub: JQuery<HTMLElement>,
   s: string,
   options?: MenuSelectOptions,
 ): Cypress.Chainable {
