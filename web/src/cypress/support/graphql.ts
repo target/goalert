@@ -4,18 +4,18 @@ interface RawGraphQLResponse {
   errors: [any]
 }
 
-export interface GraphQLResponse {
-  // NOTE graphql responses are arbitrary objects
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
-}
-
 declare global {
   namespace Cypress {
     interface Chainable {
       graphql: typeof graphql
       graphqlVoid: typeof graphqlVoid
     }
+  }
+
+  interface GraphQLResponse {
+    // NOTE graphql responses are arbitrary objects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
   }
 }
 

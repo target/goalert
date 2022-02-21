@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export function sql(query: string): Cypress.Chainable {
+function sql(query: string): Cypress.Chainable {
   const dbURL =
     Cypress.env('DB_URL') || 'postgres://goalert@localhost:5432?sslmode=disable'
 
@@ -20,3 +20,5 @@ export function sql(query: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('sql', sql)
+
+export {}

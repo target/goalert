@@ -1,5 +1,3 @@
-import { GraphQLResponse } from './graphql'
-
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -7,11 +5,11 @@ declare global {
       getSlackChannels: () => Cypress.Chainable<SlackChannel[]>
     }
   }
-}
 
-export interface SlackChannel {
-  id: string
-  name: string
+  interface SlackChannel {
+    id: string
+    name: string
+  }
 }
 
 function getSlackChannels(): Cypress.Chainable<SlackChannel[]> {
@@ -23,3 +21,5 @@ function getSlackChannels(): Cypress.Chainable<SlackChannel[]> {
 }
 
 Cypress.Commands.add('getSlackChannels', getSlackChannels)
+
+export {}

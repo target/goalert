@@ -1,6 +1,4 @@
 import { Chance } from 'chance'
-import { EP, EPOptions } from './ep'
-import { GraphQLResponse } from './graphql'
 const c = new Chance()
 
 declare global {
@@ -24,55 +22,55 @@ declare global {
       createHeartbeatMonitor: typeof createHeartbeatMonitor
     }
   }
-}
 
-export interface Service {
-  id: string
-  name: string
-  description: string
-  isFavorite: boolean
+  interface Service {
+    id: string
+    name: string
+    description: string
+    isFavorite: boolean
 
-  /** The escalation policy ID for this Service. */
-  epID: string
+    /** The escalation policy ID for this Service. */
+    epID: string
 
-  /** Details for the escalation policy of this Service. */
-  ep: EP
-}
+    /** Details for the escalation policy of this Service. */
+    ep: EP
+  }
 
-export interface ServiceOptions {
-  name?: string
-  description?: string
-  epID?: string
-  ep?: EPOptions
-  favorite?: boolean
-}
+  interface ServiceOptions {
+    name?: string
+    description?: string
+    epID?: string
+    ep?: EPOptions
+    favorite?: boolean
+  }
 
-export interface Label {
-  svcID: string
-  svc: Service
-  key: string
-  value: string
-}
+  interface Label {
+    svcID: string
+    svc: Service
+    key: string
+    value: string
+  }
 
-export interface LabelOptions {
-  svcID?: string
-  svc?: ServiceOptions
-  key?: string
-  value?: string
-}
+  interface LabelOptions {
+    svcID?: string
+    svc?: ServiceOptions
+    key?: string
+    value?: string
+  }
 
-export interface HeartbeatMonitor {
-  svcID: string
-  svc: Service
-  name: string
-  timeoutMinutes: number
-}
+  interface HeartbeatMonitor {
+    svcID: string
+    svc: Service
+    name: string
+    timeoutMinutes: number
+  }
 
-export interface HeartbeatMonitorOptions {
-  svcID?: string
-  svc?: Service
-  name?: string
-  timeoutMinutes?: number
+  interface HeartbeatMonitorOptions {
+    svcID?: string
+    svc?: Service
+    name?: string
+    timeoutMinutes?: number
+  }
 }
 
 function getService(svcID: string): Cypress.Chainable<Service> {

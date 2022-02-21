@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export function pageAction(s: string): Cypress.Chainable {
+function pageAction(s: string): Cypress.Chainable {
   return cy
     .get('[data-cy=app-bar]')
     .find('button[data-cy=other-actions]')
@@ -15,3 +15,5 @@ export function pageAction(s: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageAction', pageAction)
+
+export {}

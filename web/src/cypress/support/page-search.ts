@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export function pageSearch(s: string): Cypress.Chainable {
+function pageSearch(s: string): Cypress.Chainable {
   return cy.get('[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
@@ -33,3 +33,5 @@ export function pageSearch(s: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageSearch', pageSearch)
+
+export {}

@@ -2,8 +2,7 @@ import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
 import toTitleCase from '../../app/util/toTitleCase'
-import { Alert, AlertLogs } from './alert'
-import { EP } from './ep'
+const c = new Chance()
 
 declare global {
   namespace Cypress {
@@ -12,25 +11,23 @@ declare global {
       createOutgoingMessage: typeof createOutgoingMessage
     }
   }
-}
 
-export interface OutgoingMessageOptions {
-  id?: string
-  serviceID?: string
-  serviceName?: string
-  epID?: string
-  alertID?: number
-  alertLogID?: number
-  userID?: string
-  userName?: string
-  contactMethodID?: string
-  messageType?: string
-  createdAt?: string
-  sentAt?: string
-  status?: string
+  interface OutgoingMessageOptions {
+    id?: string
+    serviceID?: string
+    serviceName?: string
+    epID?: string
+    alertID?: number
+    alertLogID?: number
+    userID?: string
+    userName?: string
+    contactMethodID?: string
+    messageType?: string
+    createdAt?: string
+    sentAt?: string
+    status?: string
+  }
 }
-
-const c = new Chance()
 
 const messageTypes = [
   'alert_notification',
@@ -173,6 +170,7 @@ function createOutgoingMessage(
     .then(() => ({
       id: m.id,
       createdAt: m.createdAt,
+      updatedAt: '',
       type: msgTypeToDebugMsg(m.messageType),
       status: toTitleCase(m.status),
       userID: m.userID,

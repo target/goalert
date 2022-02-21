@@ -19,13 +19,9 @@ declare global {
   }
 }
 
-export type selectByLabelFn = (
-  label: string,
-) => Cypress.Chainable<JQuery<HTMLElement>>
-export type findByLabelFn = (
-  label: string,
-) => Cypress.Chainable<JQuery<HTMLElement>>
-export type multiRemoveByLabelFn = (
+type selectByLabelFn = (label: string) => Cypress.Chainable<JQuery<HTMLElement>>
+type findByLabelFn = (label: string) => Cypress.Chainable<JQuery<HTMLElement>>
+type multiRemoveByLabelFn = (
   label: string,
 ) => Cypress.Chainable<JQuery<HTMLElement>>
 

@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-export function pageFab(dialOption?: string): Cypress.Chainable {
+function pageFab(dialOption?: string): Cypress.Chainable {
   // standard page fab
   if (!dialOption)
     return cy.get('button[data-cy=page-fab]').should('be.visible').click()
@@ -29,3 +29,5 @@ export function pageFab(dialOption?: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageFab', pageFab)
+
+export {}

@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { Schedule } from '../../schema'
-import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
 
@@ -19,24 +18,24 @@ declare global {
       resetCalendarSubscriptions: typeof resetCalendarSubscriptions
     }
   }
-}
 
-export interface CalendarSubscription {
-  id: string
-  name: string
-  reminderMinutes: Array<number>
-  scheduleID: string
-  schedule: Schedule
-  lastAccess: string
-  disabled: boolean
-}
+  interface CalendarSubscription {
+    id: string
+    name: string
+    reminderMinutes: Array<number>
+    scheduleID: string
+    schedule: Schedule
+    lastAccess: string
+    disabled: boolean
+  }
 
-export interface CalendarSubscriptionOptions {
-  name?: string
-  reminderMinutes?: Array<number>
-  scheduleID?: string
-  schedule?: Partial<Schedule>
-  disabled?: boolean
+  interface CalendarSubscriptionOptions {
+    name?: string
+    reminderMinutes?: Array<number>
+    scheduleID?: string
+    schedule?: Partial<Schedule>
+    disabled?: boolean
+  }
 }
 
 /*

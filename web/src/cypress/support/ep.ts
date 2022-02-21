@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { Target } from '../../schema'
-import { GraphQLResponse } from './graphql'
 const c = new Chance()
 
 declare global {
@@ -11,38 +10,38 @@ declare global {
       createEPStep: typeof createEPStep
     }
   }
-}
 
-export interface EP {
-  id: string
-  name: string
-  description: string
-  repeat: number
-  stepCount: number
-  isFavorite: boolean
-}
+  interface EP {
+    id: string
+    name: string
+    description: string
+    repeat: number
+    stepCount: number
+    isFavorite: boolean
+  }
 
-export interface EPOptions {
-  name?: string
-  description?: string
-  repeat?: number
-  stepCount?: number
-  favorite?: boolean
-}
+  interface EPOptions {
+    name?: string
+    description?: string
+    repeat?: number
+    stepCount?: number
+    favorite?: boolean
+  }
 
-export interface EPStep {
-  id: string
-  stepNumber: number
-  delayMinutes: number
-  targets: Target[]
-  escalationPolicy: EP
-}
+  interface EPStep {
+    id: string
+    stepNumber: number
+    delayMinutes: number
+    targets: Target[]
+    escalationPolicy: EP
+  }
 
-export interface EPStepOptions {
-  epID?: string
-  ep?: EPOptions
-  delay?: number
-  targets?: [Target]
+  interface EPStepOptions {
+    epID?: string
+    ep?: EPOptions
+    delay?: number
+    targets?: [Target]
+  }
 }
 
 const policyMutation = `

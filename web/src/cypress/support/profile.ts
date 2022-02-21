@@ -1,5 +1,4 @@
 import { Chance } from 'chance'
-import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
 
@@ -24,55 +23,55 @@ declare global {
       addNotificationRule: typeof addNotificationRule
     }
   }
-}
 
-export type UserRole = 'user' | 'admin'
-export interface Profile {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  username?: string
-  passwordHash?: string
-  isFavorite: boolean
-}
+  type UserRole = 'user' | 'admin'
+  interface Profile {
+    id: string
+    name: string
+    email: string
+    role: UserRole
+    username?: string
+    passwordHash?: string
+    isFavorite: boolean
+  }
 
-export interface UserOptions {
-  name?: string
-  email?: string
-  role?: UserRole
-  favorite?: boolean
-}
+  interface UserOptions {
+    name?: string
+    email?: string
+    role?: UserRole
+    favorite?: boolean
+  }
 
-export type ContactMethodType = 'SMS' | 'VOICE'
-export interface ContactMethod {
-  id: string
-  userID: string
-  name: string
-  type: ContactMethodType
-  value: string
-}
+  type ContactMethodType = 'SMS' | 'VOICE'
+  interface ContactMethod {
+    id: string
+    userID: string
+    name: string
+    type: ContactMethodType
+    value: string
+  }
 
-export interface ContactMethodOptions {
-  userID?: string
-  name?: string
-  type?: ContactMethodType
-  value?: string
-}
+  interface ContactMethodOptions {
+    userID?: string
+    name?: string
+    type?: ContactMethodType
+    value?: string
+  }
 
-export interface NotificationRule {
-  id: string
-  userID: string
-  contactMethodID: string
-  contactMethod: ContactMethod
-  delayMinutes: number
-}
+  interface NotificationRule {
+    id: string
+    userID: string
+    contactMethodID: string
+    contactMethod: ContactMethod
+    delayMinutes: number
+  }
 
-export interface NotificationRuleOptions {
-  userID?: string
-  delayMinutes?: number
-  contactMethodID?: string
-  contactMethod?: ContactMethodOptions
+  interface NotificationRuleOptions {
+    userID?: string
+    delayMinutes?: number
+    contactMethodID?: string
+    contactMethod?: ContactMethodOptions
+  }
 }
 
 function setFavoriteUser(id: string): Cypress.Chainable {

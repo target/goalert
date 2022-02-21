@@ -10,9 +10,6 @@ import {
   TemporarySchedule,
   User,
 } from '../../schema'
-import { GraphQLResponse } from './graphql'
-import { Rotation } from './rotation'
-import { SlackChannel } from './slack'
 import { randDT, randSubInterval } from './util'
 
 const c = new Chance()
@@ -35,10 +32,10 @@ declare global {
       setScheduleNotificationRules: typeof setScheduleNotificationRules
     }
   }
-}
 
-export type TemporaryScheduleOptions = Partial<TemporarySchedule> & {
-  shiftUserIDs?: string[]
+  type TemporaryScheduleOptions = Partial<TemporarySchedule> & {
+    shiftUserIDs?: string[]
+  }
 }
 
 const fmtTime = (num: number): string => {
@@ -56,7 +53,7 @@ const randWeekdayFilter = (): boolean[] =>
   new Array(7).fill(0).map(() => c.bool())
 
 function setScheduleNotificationRules(
-  _rules: [Partial<OnCallNotificationRuleInput>],
+  _rules: Array<Partial<OnCallNotificationRuleInput>>,
   schedule?: string | Partial<Schedule>,
 ): Cypress.Chainable<Schedule> {
   if (typeof schedule !== 'string') {

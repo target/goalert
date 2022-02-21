@@ -1,6 +1,4 @@
 import { Chance } from 'chance'
-import { GraphQLResponse } from './graphql'
-import { Profile } from './profile'
 
 const c = new Chance()
 
@@ -16,35 +14,35 @@ declare global {
       deleteRotation: typeof deleteRotation
     }
   }
-}
 
-export type RotationType = 'hourly' | 'daily' | 'weekly'
-export interface Rotation {
-  id: string
-  name: string
-  description: string
-  timeZone: string
-  shiftLength: number
-  type: RotationType
-  start: string
-  users: Array<{
+  type RotationType = 'hourly' | 'daily' | 'weekly'
+  interface Rotation {
     id: string
     name: string
-    email: string
-  }>
-}
+    description: string
+    timeZone: string
+    shiftLength: number
+    type: RotationType
+    start: string
+    users: Array<{
+      id: string
+      name: string
+      email: string
+    }>
+  }
 
-export interface RotationOptions {
-  name?: string
-  description?: string
-  timeZone?: string
-  shiftLength?: number
-  type?: RotationType
-  start?: string
-  favorite?: boolean
+  interface RotationOptions {
+    name?: string
+    description?: string
+    timeZone?: string
+    shiftLength?: number
+    type?: RotationType
+    start?: string
+    favorite?: boolean
 
-  /** Number of participants to add to the rotation. */
-  numUsers?: number
+    /** Number of participants to add to the rotation. */
+    numUsers?: number
+  }
 }
 
 function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {

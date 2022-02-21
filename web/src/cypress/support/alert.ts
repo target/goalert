@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { GraphQLResponse } from './graphql'
 
 const c = new Chance()
 
@@ -13,40 +12,40 @@ declare global {
       createAlertLogs: typeof createAlertLogs
     }
   }
-}
 
-export interface Alert {
-  id: number
-  alertID: number
-  summary: string
-  details: string
-  serviceID: string
-  service: Service
-}
+  interface Alert {
+    id: number
+    alertID: number
+    summary: string
+    details: string
+    serviceID: string
+    service: Service
+  }
 
-export interface AlertOptions {
-  summary?: string
-  details?: string
-  serviceID?: string
+  interface AlertOptions {
+    summary?: string
+    details?: string
+    serviceID?: string
 
-  service?: ServiceOptions
-}
+    service?: ServiceOptions
+  }
 
-export interface AlertLogOptions {
-  count?: number
-  alertID?: number
-  alert?: AlertOptions
-}
+  interface AlertLogOptions {
+    count?: number
+    alertID?: number
+    alert?: AlertOptions
+  }
 
-export interface AlertLogs {
-  alert: Alert
-  logs: Array<AlertLog>
-}
+  interface AlertLogs {
+    alert: Alert
+    logs: Array<AlertLog>
+  }
 
-export interface AlertLog {
-  id: number
-  timestamp: string
-  message: string
+  interface AlertLog {
+    id: number
+    timestamp: string
+    message: string
+  }
 }
 
 function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
