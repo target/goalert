@@ -138,7 +138,6 @@ function ToolbarTitle() {
           noWrap
           variant='h6'
           to='..'
-          replace
         >
           {query ? (
             <NameLoader

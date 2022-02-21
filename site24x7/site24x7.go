@@ -31,7 +31,7 @@ func clientError(w http.ResponseWriter, code int, err error) bool {
 	return true
 }
 
-func Site24x7ToEventsAPI(aDB alert.Store, intDB integrationkey.Store) http.HandlerFunc {
+func Site24x7ToEventsAPI(aDB *alert.Store, intDB integrationkey.Store) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 

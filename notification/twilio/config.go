@@ -24,5 +24,5 @@ type Config struct {
 	Client *http.Client
 
 	// CMStore is used for storing and fetching metadata (like carrier information).
-	CMStore contactmethod.Store
+	CMStore *contactmethod.Store
 }

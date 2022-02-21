@@ -1,5 +1,5 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
-import { Card, Checkbox, Grid, Icon, IconButton, Tooltip } from '@mui/material'
+import { Card, Checkbox, Grid, IconButton, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
@@ -171,11 +171,7 @@ export default function ControlledPaginatedList(
           data-cy='checkboxes-menu'
         >
           <OtherActions
-            icon={
-              <Icon>
-                <ArrowDropDown />
-              </Icon>
-            }
+            IconComponent={ArrowDropDown}
             actions={[
               {
                 label: 'All',
