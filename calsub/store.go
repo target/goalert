@@ -21,15 +21,13 @@ import (
 
 // Store allows the lookup and management of calendar subscriptions
 type Store struct {
-	db         *sql.DB
-	findOne    *sql.Stmt
-	create     *sql.Stmt
-	update     *sql.Stmt
-	delete     *sql.Stmt
-	findAll    *sql.Stmt
-	findOneUpd *sql.Stmt
-	authUser   *sql.Stmt
-	now        *sql.Stmt
+	db       *sql.DB
+	findOne  *sql.Stmt
+	create   *sql.Stmt
+	delete   *sql.Stmt
+	findAll  *sql.Stmt
+	authUser *sql.Stmt
+	now      *sql.Stmt
 
 	keys keyring.Keyring
 	oc   oncall.Store
@@ -64,11 +62,6 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING created_at
 		`),
-		update: p.P(`
-			UPDATE user_calendar_subscriptions
-			SET name = $3, disabled = $4, config = $5, last_update = now()
-			WHERE id = $1 AND user_id = $2
-		`),
 		delete: p.P(`
 			DELETE FROM user_calendar_subscriptions
 			WHERE id = any($1) AND user_id = $2
@@ -78,12 +71,6 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 				id, name, user_id, disabled, schedule_id, config, last_access
 			FROM user_calendar_subscriptions
 			WHERE user_id = $1
-		`),
-		findOneUpd: p.P(`
-			SELECT
-				id, name, user_id, disabled, schedule_id, config, last_access
-			FROM user_calendar_subscriptions
-			WHERE id = $1 AND user_id = $2
 		`),
 	}, p.Err
 }
