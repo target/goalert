@@ -1,3 +1,5 @@
+import { GraphQLResponse } from './graphql'
+
 interface SystemLimitInput {
   id: string
   value: number
@@ -6,6 +8,15 @@ export interface SystemLimits {
   id: string
   value: number
   description: string
+}
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      getLimits: typeof getLimits
+      updateLimits: typeof updateLimits
+    }
+  }
 }
 
 export type Limits = Map<string, { value: number; description: string }>
@@ -33,7 +44,7 @@ function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<boolean> {
     setSystemLimits(input: $input)
   }`
 
-  return cy.graphql(query, { input: input })
+  return cy.graphql(query, { input: input }).then((res) => res.setSystemLimits)
 }
 
 Cypress.Commands.add('getLimits', getLimits)
