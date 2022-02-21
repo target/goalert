@@ -6,6 +6,7 @@ import {
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
+import { ListHeaderProps } from './ListHeader'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@mui/icons-material'
@@ -41,7 +42,9 @@ const useStyles = makeStyles({
   },
 })
 
-export interface ControlledPaginatedListProps extends PaginatedListProps {
+export interface ControlledPaginatedListProps
+  extends PaginatedListProps,
+  ListHeaderProps {
   listHeader?: ReactNode
 
   checkboxActions?: ControlledPaginatedListAction[]

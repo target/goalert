@@ -17,7 +17,7 @@ import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
 import { PageControls } from './PageControls'
-import { ListHeader, ListHeaderProps } from './ListHeader'
+import { ListHeader } from './ListHeader'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -56,9 +56,7 @@ const buildFetchMore = (
   })
 }
 
-export interface _QueryListProps
-  extends ControlledPaginatedListProps,
-    ListHeaderProps {
+export interface _QueryListProps extends ControlledPaginatedListProps {
   /*
    * query must provide a single field that returns nodes
    *
