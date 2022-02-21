@@ -7,11 +7,38 @@ import {
   ScheduleTargetInput,
   SetScheduleShiftInput,
   SetTemporaryScheduleInput,
+  TemporarySchedule,
   User,
 } from '../../schema'
+import { GraphQLResponse } from './graphql'
+import { Rotation } from './rotation'
 import { randDT, randSubInterval } from './util'
 
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Creates a new schedule. */
+      createSchedule: typeof createSchedule
+
+      /** Deletes a schedule with its specified ID */
+      deleteSchedule: typeof deleteSchedule
+
+      /** Configures a schedule target and rules. */
+      setScheduleTarget: typeof setScheduleTarget
+
+      /** Creates a new temporary schedule. */
+      createTemporarySchedule: typeof createTemporarySchedule
+
+      setScheduleNotificationRules: typeof setScheduleNotificationRules
+    }
+  }
+}
+
+export type TemporaryScheduleOptions = Partial<TemporarySchedule> & {
+  shiftUserIDs?: string[]
+}
 
 const fmtTime = (num: number): string => {
   const s = num.toString()
@@ -87,8 +114,8 @@ function setScheduleNotificationRules(
         },
       })
     })
-    .then(() => cy.graphql(query, { id: schedule }) as { schedule: Schedule })
-    .then((sched: { schedule: Schedule }) => sched.schedule)
+    .then(() => cy.graphql(query, { id: schedule }))
+    .then((res: GraphQLResponse) => res.schedule)
 }
 
 function setScheduleTarget(
@@ -205,7 +232,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphql(mutation, {
+  return cy.graphqlVoid(mutation, {
     input: [
       {
         type: 'schedule',
@@ -325,7 +352,7 @@ function createTemporarySchedule(
       shifts,
     }
 
-    return cy.graphql(mutation, { input }) as void
+    return cy.graphqlVoid(mutation, { input })
   })
 }
 
