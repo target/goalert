@@ -165,21 +165,8 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 
 	var res []graphql2.DebugMessage
 	for _, m := range msgs {
-		// m := _m // clone since we're taking pointers to fields
-		var dstT notification.ScannableDestType
-		var dst notification.Dest
-		switch {
-		case m.ContactMethod != nil:
-			dst.ID = m.ContactMethod.ID
-			dst.Value = m.ContactMethod.Value
-			dstT.CM = m.ContactMethod.Type
-		case m.Channel != nil:
-			dst.ID = m.Channel.ID
-			dst.Value = m.Channel.Value
-			dstT.NC = m.Channel.Type
-		}
-		dst.Type = dstT.DestType()
-		dest, err := a.formatDest(ctx, dst)
+		dst := notification.DestFromPair(m.ContactMethod, m.Channel)
+		destStr, err := a.formatDest(ctx, dst)
 		if err != nil {
 			return nil, fmt.Errorf("format dest: %w", err)
 		}
@@ -190,7 +177,7 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 			UpdatedAt:   m.LastStatusAt,
 			Type:        strings.TrimPrefix(m.MessageType.String(), "MessageType"),
 			Status:      msgStatus(notification.Status{State: m.LastStatus, Details: m.StatusDetails}),
-			Destination: dest,
+			Destination: destStr,
 		}
 		if m.User != nil {
 			msg.UserID = &m.User.ID
