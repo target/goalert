@@ -44,7 +44,7 @@ const useStyles = makeStyles({
 
 export interface ControlledPaginatedListProps
   extends PaginatedListProps,
-  ListHeaderProps {
+    ListHeaderProps {
   listHeader?: ReactNode
 
   checkboxActions?: ControlledPaginatedListAction[]
