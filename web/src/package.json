@@ -24,7 +24,7 @@
     "@apollo/client": "3.5.7",
     "@babel/runtime": "7.17.0",
     "@emotion/react": "11.8.1",
-    "@emotion/styled": "11.6.0",
+    "@emotion/styled": "11.8.1",
     "@mui/icons-material": "5.4.2",
     "@mui/lab": "5.0.0-alpha.59",
     "@mui/material": "5.4.3",
