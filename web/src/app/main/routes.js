@@ -1,5 +1,5 @@
 import React from 'react'
-import { Redirect, Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 import joinURL from '../util/joinURL'
 import RotationRouter from '../rotations/RotationRouter'
 import AlertRouter from '../alerts/AlertRouter'
@@ -22,12 +22,10 @@ export function renderRoutes(routeConfig = []) {
 
     // redirect to remove trailing slashes
     routes.push(
-      <Redirect
+      <Route
         key={`redir_${idx}`}
-        strict
-        exact
-        from={path.replace(/\/?$/, '/')}
-        to={path.replace(/\/$/, '')}
+        path={path.replace(/\/?$/, '/')}
+        render={() => <Navigate replace to={path.replace(/\/$/, '')} />}
       />,
     )
 
@@ -35,15 +33,19 @@ export function renderRoutes(routeConfig = []) {
       // add alias routes (for compatibility)
       _path.slice(1).forEach((p, pIdx) => {
         routes.push(
-          <Redirect key={`alias_${idx}_${pIdx}`} exact from={p} to={path} />,
+          <Route
+            key={`alias_${idx}_${pIdx}`}
+            path={p}
+            render={() => <Navigate to={path} replace />}
+          />,
         )
         if (p !== '/') {
           // redirect nested paths (e.g. /on_call_schedules/foo to /schedules/foo)
           routes.push(
-            <Redirect
+            <Route
               key={`alias_${idx}_${pIdx}_splat`}
-              from={joinURL(p, '*')}
-              to={joinURL(path, '*')}
+              path={joinURL(p, '*')}
+              render={() => <Navigate replace to={joinURL(path, '*')} />}
             />,
           )
         }
@@ -52,12 +54,9 @@ export function renderRoutes(routeConfig = []) {
 
     if (cfg.subRoutes && cfg.subRoutes.length) {
       routes.push(
-        <Redirect
+        <Route
           key={`redir_sub_${idx}`}
-          strict
-          exact
-          from={path.replace(/\/$/, '')}
-          to={cfg.subRoutes[0].path}
+          render={() => <Navigate repalce to={cfg.subRoutes[0].path} />}
         />,
       )
     }
