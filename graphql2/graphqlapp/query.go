@@ -17,7 +17,6 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
 )
@@ -156,7 +155,10 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 	}
 
 	err = db.
-		Preload(clause.Associations).
+		Preload("User", sqlutil.Columns("ID", "Name")).
+		Preload("Service", sqlutil.Columns("ID", "Name")).
+		Preload("Channel", sqlutil.Columns("ID", "Type", "Value")).
+		Preload("ContactMethod", sqlutil.Columns("ID", "Type", "Value")).
 		Order("created_at DESC").
 		Find(&msgs).Error
 	if err != nil {
