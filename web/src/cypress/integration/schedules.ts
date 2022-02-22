@@ -126,6 +126,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should navigate to and from on-call notifications', () => {
+      cy.get('ul[data-cy="route-links"] li').should('have.lengthOf', 5)
       cy.navigateToAndFrom(
         screen,
         'Schedule Details',
