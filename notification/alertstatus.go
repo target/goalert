@@ -1,5 +1,7 @@
 package notification
 
+import "github.com/target/goalert/notification/nfynet"
+
 // AlertState is the current state of an Alert.
 type AlertState int
 
@@ -12,7 +14,8 @@ const (
 )
 
 type AlertStatus struct {
-	Dest       Dest
+	nfynet.Target
+
 	CallbackID string
 	AlertID    int
 	LogEntry   string
@@ -31,6 +34,4 @@ type AlertStatus struct {
 
 var _ Message = &AlertStatus{}
 
-func (s AlertStatus) Type() MessageType { return MessageTypeAlertStatus }
-func (s AlertStatus) ID() string        { return s.CallbackID }
-func (s AlertStatus) Destination() Dest { return s.Dest }
+func (s AlertStatus) ID() string { return s.CallbackID }

@@ -6,7 +6,7 @@ import "github.com/target/goalert/notification/nfynet"
 var (
 	netSlackChannel = nfynet.NetworkID{ID: "slack", SubTypeID: "channel"}
 
-	_ = nfynet.Targeter(Channel{})
+	_ = nfynet.Target(Channel{})
 )
 
 // SetTargetID sets the Type and Value appropriately for the given TargetID.

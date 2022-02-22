@@ -1,5 +1,7 @@
 package notification
 
+import "github.com/target/goalert/notification/nfynet"
+
 // User provides information about a user for notifications.
 type User struct {
 	ID   string
@@ -10,7 +12,8 @@ type User struct {
 // ScheduleOnCallUsers is a Message that indicates which users are
 // currently on-call for a Schedule
 type ScheduleOnCallUsers struct {
-	Dest       Dest
+	nfynet.Target
+
 	CallbackID string
 
 	ScheduleID   string
@@ -22,6 +25,4 @@ type ScheduleOnCallUsers struct {
 
 var _ Message = &ScheduleOnCallUsers{}
 
-func (s ScheduleOnCallUsers) ID() string        { return s.CallbackID }
-func (s ScheduleOnCallUsers) Destination() Dest { return s.Dest }
-func (s ScheduleOnCallUsers) Type() MessageType { return MessageTypeScheduleOnCallUsers }
+func (s ScheduleOnCallUsers) ID() string { return s.CallbackID }

@@ -8,7 +8,7 @@ var (
 	netEmail = nfynet.NetworkID{ID: "email"}
 	netWeb   = nfynet.NetworkID{ID: "webhook"}
 
-	_ = nfynet.Targeter(ContactMethod{})
+	_ = nfynet.Target(ContactMethod{})
 )
 
 // SetTargetID sets the Type and Value appropriately for the given TargetID.

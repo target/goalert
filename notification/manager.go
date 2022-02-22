@@ -72,7 +72,6 @@ func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, valu
 
 // MessageStatus will return the current status of a message.
 func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
-
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
 		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
@@ -166,7 +165,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(msg.Destination().Type.String(), msg.Type().String()).
+			WithLabelValues(msg.TargetID().NetworkID.String(), fmt.Sprintf("%T", msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil
