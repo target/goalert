@@ -134,10 +134,7 @@ function FormDialog(props) {
 
     return (
       <DialogActions>
-        <Button
-          disabled={loading}
-          onClick={onBack || handleOnClose}
-        >
+        <Button disabled={loading} onClick={onBack || handleOnClose}>
           {onBack ? 'Back' : 'Cancel'}
         </Button>
         <LoadingButton
