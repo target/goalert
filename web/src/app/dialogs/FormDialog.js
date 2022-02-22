@@ -18,9 +18,8 @@ import Notices from '../details/Notices'
 import { useIsWidthUp } from '../util/useWidth'
 
 const useStyles = makeStyles((theme) => {
-  const { cancelButton, dialogWidth } = globalStyles(theme)
+  const { dialogWidth } = globalStyles(theme)
   return {
-    cancelButton,
     dialogWidth,
     form: {
       height: '100%', // pushes caption to bottom if room is available
@@ -136,7 +135,6 @@ function FormDialog(props) {
     return (
       <DialogActions>
         <Button
-          className={classes.cancelButton}
           disabled={loading}
           onClick={onBack || handleOnClose}
         >

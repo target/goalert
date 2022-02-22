@@ -26,9 +26,6 @@ export const styles = (theme) => ({
   block: {
     display: 'inline-block',
   },
-  cancelButton: {
-    color: 'rgba(0,0,0, 0.54)',
-  },
   defaultFlex: {
     flex: '0 1 auto',
   },
