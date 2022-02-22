@@ -10,15 +10,14 @@ import p from 'prop-types'
 export function PageNotFound() {
   const theme = useTheme()
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
       <SentimentDissatisfied
         sx={{
           height: '33vh',
           width: '33vw',
-          color: theme.palette.text.primary,
         }}
       />
-      <Typography color='textPrimary' variant='h5'>
+      <Typography variant='h5'>
         Sorry, the page you were trying to reach could not be found.
       </Typography>
     </div>
@@ -27,21 +26,19 @@ export function PageNotFound() {
 
 export function ObjectNotFound(props) {
   const theme = useTheme()
-  console.log(theme.palette.text.primary)
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
       <SentimentDissatisfied
         sx={{
           height: '33vh',
           width: '33vw',
-          color: theme.palette.text.primary,
         }}
       />
-      <Typography color='textPrimary' variant='h5'>
+      <Typography variant='h5'>
         Sorry, the {props.type || 'thing'} you were looking for could not be
         found.
       </Typography>
-      <Typography color='textPrimary' variant='caption'>
+      <Typography variant='caption'>
         Someone may have deleted it, or it never existed.
       </Typography>
     </div>
