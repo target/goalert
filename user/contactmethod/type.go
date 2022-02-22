@@ -16,6 +16,7 @@ const (
 	TypeEmail   Type = "EMAIL"
 	TypePush    Type = "PUSH"
 	TypeWebhook Type = "WEBHOOK"
+	TypeV2      Type = "V2"
 )
 
 // Valid returns true if t is a known Type.

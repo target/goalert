@@ -10,6 +10,7 @@ type Type string
 const (
 	TypeUnknown Type = ""
 	TypeSlack   Type = "SLACK"
+	TypeV2      Type = "V2"
 )
 
 // Valid returns true if t is a known Type.
