@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import Delete from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import DetailsPage from '../details/DetailsPage'
@@ -86,6 +87,8 @@ function serviceCount(onCallSteps = []) {
 }
 
 export default function UserDetails(props) {
+  const { userID: _userID } = useParams()
+  const userID = props.userID || _userID
   const {
     userID: currentUserID,
     isAdmin,
@@ -102,13 +105,10 @@ export default function UserDetails(props) {
     data,
     loading: isQueryLoading,
     error,
-  } = useQuery(
-    isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
-    {
-      variables: { id: props.userID },
-      skip: !isSessionReady,
-    },
-  )
+  } = useQuery(isAdmin || userID === currentUserID ? profileQuery : userQuery, {
+    variables: { id: userID },
+    skip: !isSessionReady,
+  })
 
   const loading = !isSessionReady || isQueryLoading
 
@@ -118,7 +118,7 @@ export default function UserDetails(props) {
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
   const sessCount =
-    isAdmin || props.userID === currentUserID ? user.sessions.length : 0
+    isAdmin || userID === currentUserID ? user.sessions.length : 0
 
   const disableNR = user.contactMethods.length === 0
 
@@ -132,7 +132,7 @@ export default function UserDetails(props) {
     },
   ]
 
-  if (props.userID === currentUserID) {
+  if (userID === currentUserID) {
     links.push({
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
@@ -140,7 +140,7 @@ export default function UserDetails(props) {
     })
   }
 
-  if (isAdmin || props.userID === currentUserID) {
+  if (isAdmin || userID === currentUserID) {
     links.push({
       label: 'Active Sessions',
       url: 'sessions',
@@ -155,13 +155,13 @@ export default function UserDetails(props) {
       {showEdit && (
         <UserEditDialog
           onClose={() => setShowEdit(false)}
-          userID={props.userID}
+          userID={userID}
           role={user.role}
         />
       )}
       {showUserDeleteDialog && (
         <UserDeleteDialog
-          userID={props.userID}
+          userID={userID}
           onClose={() => setShowUserDeleteDialog(false)}
         />
       )}
@@ -185,7 +185,7 @@ export default function UserDetails(props) {
       )}
       {createCM && (
         <UserContactMethodCreateDialog
-          userID={props.userID}
+          userID={userID}
           disclaimer={disclaimer}
           onClose={(result) => {
             setCreateCM(false)
@@ -203,22 +203,19 @@ export default function UserDetails(props) {
       )}
       {createNR && (
         <UserNotificationRuleCreateDialog
-          userID={props.userID}
+          userID={userID}
           onClose={() => setCreateNR(false)}
         />
       )}
       <DetailsPage
-        avatar={<UserAvatar userID={props.userID} />}
+        avatar={<UserAvatar userID={userID} />}
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         subheader={user.email}
         pageContent={
           <Grid container spacing={2}>
-            <UserContactMethodList
-              userID={props.userID}
-              readOnly={props.readOnly}
-            />
+            <UserContactMethodList userID={userID} readOnly={props.readOnly} />
             <UserNotificationRuleList
-              userID={props.userID}
+              userID={userID}
               readOnly={props.readOnly}
             />
           </Grid>
@@ -229,7 +226,7 @@ export default function UserDetails(props) {
             : [
                 <StatusUpdateNotification
                   key='primary-action-status-updates'
-                  userID={props.userID}
+                  userID={userID}
                 />,
                 <ThemePicker key='primary-action-theme-picker' />,
               ]
@@ -249,14 +246,14 @@ export default function UserDetails(props) {
                 },
                 <QuerySetFavoriteButton
                   key='secondary-action-favorite'
-                  id={props.userID}
+                  id={userID}
                   type='user'
                 />,
               ]
             : [
                 <QuerySetFavoriteButton
                   key='secondary-action-favorite'
-                  id={props.userID}
+                  id={userID}
                   type='user'
                 />,
               ]
@@ -268,6 +265,6 @@ export default function UserDetails(props) {
 }
 
 UserDetails.propTypes = {
-  userID: p.string.isRequired,
+  userID: p.string,
   readOnly: p.bool,
 }

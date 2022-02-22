@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import { useParams } from 'react-router-dom'
 import PolicyServicesCard from './PolicyServicesCard'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
@@ -17,9 +17,10 @@ const query = gql`
   }
 `
 
-function PolicyServicesQuery(props) {
+function PolicyServicesQuery() {
+  const { escalationPolicyID } = useParams()
   const { data, loading, error } = useQuery(query, {
-    variables: { id: props.escalationPolicyID },
+    variables: { id: escalationPolicyID },
   })
 
   if (!data && loading) {
@@ -37,10 +38,6 @@ function PolicyServicesQuery(props) {
   return (
     <PolicyServicesCard services={data.escalationPolicy.assignedTo || []} />
   )
-}
-
-PolicyServicesQuery.propTypes = {
-  escalationPolicyID: p.string.isRequired,
 }
 
 export default PolicyServicesQuery

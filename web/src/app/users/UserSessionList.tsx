@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
+import { useParams } from 'react-router-dom'
 import {
   QueryHookOptions,
   useMutation,
@@ -58,10 +59,6 @@ const mutationLogoutAll = gql`
   }
 `
 
-export interface UserSessionListProps {
-  userID?: string
-}
-
 function friendlyUAString(ua: string): string {
   if (!ua) return 'Unknown device'
   const b = Bowser.getParser(ua)
@@ -90,13 +87,11 @@ type Session = {
   userAgent: string
 }
 
-export default function UserSessionList(
-  props: UserSessionListProps,
-): JSX.Element {
+export default function UserSessionList(): JSX.Element {
+  const { userID } = useParams<{ userID: string }>()
   // handles both logout all and logout individual sessions
   const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 
-  const userID = props.userID
   const options: QueryHookOptions = {}
   if (userID) {
     options.variables = { userID }

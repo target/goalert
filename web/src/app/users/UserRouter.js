@@ -42,9 +42,7 @@ export default function UserRouter() {
       <Route
         exact
         path='/users/:userID'
-        render={({ match }) => (
-          <UserDetails userID={match.params.userID} readOnly />
-        )}
+        render={() => <UserDetails readOnly />}
       />
 
       <Route
@@ -55,17 +53,11 @@ export default function UserRouter() {
       <Route
         exact
         path='/users/:userID/on-call-assignments'
-        render={({ match }) => (
-          <UserOnCallAssignmentList userID={match.params.userID} />
-        )}
+        component={UserOnCallAssignmentList}
       />
 
       <Route exact path='/profile/sessions' component={UserSessionList} />
-      <Route
-        exact
-        path='/users/:userID/sessions'
-        render={({ match }) => <UserSessionList userID={match.params.userID} />}
-      />
+      <Route exact path='/users/:userID/sessions' component={UserSessionList} />
 
       <Route
         exact
@@ -75,9 +67,7 @@ export default function UserRouter() {
       <Route
         exact
         path='/users/:userID/schedule-calendar-subscriptions'
-        render={({ match }) => (
-          <UserCalendarSubscriptionList userID={match.params.userID} />
-        )}
+        component={UserCalendarSubscriptionList}
       />
 
       <Route component={PageNotFound} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -36,7 +36,8 @@ const sortItems = (a, b) => {
 
 const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
 
-export default function ServiceLabelList({ serviceID }) {
+export default function ServiceLabelList() {
+  const { serviceID } = useParams()
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState(null)
   const [deleteKey, setDeleteKey] = useState(null)
@@ -114,8 +115,4 @@ export default function ServiceLabelList({ serviceID }) {
       )}
     </React.Fragment>
   )
-}
-
-ServiceLabelList.propTypes = {
-  serviceID: p.string.isRequired,
 }
