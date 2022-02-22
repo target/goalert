@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
@@ -41,7 +41,7 @@ function ToolbarAction(props) {
   )
 
   return (
-    <Switch>
+    <Routes>
       {getRoute('/schedules/:scheduleID/assignments')}
       {getRoute('/schedules/:scheduleID/escalation-policies')}
       {getRoute('/schedules/:scheduleID/overrides')}
@@ -73,7 +73,7 @@ function ToolbarAction(props) {
           </Hidden>
         )}
       />
-    </Switch>
+    </Routes>
   )
 }
 

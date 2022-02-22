@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 
 import SimpleListPage from '../lists/SimpleListPage'
 import ServiceDetails from './ServiceDetails'
@@ -63,7 +63,7 @@ export default function ServiceRouter() {
   }
 
   return (
-    <Switch>
+    <Routes>
       <Route exact path='/services' render={renderList} />
       <Route
         exact
@@ -92,6 +92,6 @@ export default function ServiceRouter() {
         component={AlertMetrics}
       />
       <Route component={PageNotFound} />
-    </Switch>
+    </Routes>
   )
 }

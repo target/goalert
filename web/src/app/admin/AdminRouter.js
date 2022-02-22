@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { GenericError, PageNotFound } from '../error-pages/Errors'
 import AdminConfig from './AdminConfig'
 import AdminLimits from './AdminLimits'
@@ -18,7 +18,7 @@ function AdminRouter() {
   }
 
   return (
-    <Switch>
+    <Routes>
       <Route exact path='/admin/config' component={AdminConfig} />
       <Route exact path='/admin/limits' component={AdminLimits} />
       <Route exact path='/admin/toolbox' component={AdminToolbox} />
@@ -29,7 +29,7 @@ function AdminRouter() {
       />
 
       <Route component={PageNotFound} />
-    </Switch>
+    </Routes>
   )
 }
 

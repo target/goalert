@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import UserDetails from './UserDetails'
 import { PageNotFound } from '../error-pages/Errors'
 import { useSessionInfo } from '../util/RequireConfig'
@@ -32,7 +32,7 @@ export default function UserRouter() {
   const { userID } = useSessionInfo()
 
   return (
-    <Switch>
+    <Routes>
       <Route exact path='/users' component={UserList} />
       <Route
         exact
@@ -71,6 +71,6 @@ export default function UserRouter() {
       />
 
       <Route component={PageNotFound} />
-    </Switch>
+    </Routes>
   )
 }

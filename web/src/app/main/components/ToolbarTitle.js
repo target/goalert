@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import Typography from '@mui/material/Typography'
-import { Switch, Route, useParams } from 'react-router-dom'
+import { Routes, Route, useParams } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
@@ -163,7 +163,7 @@ function ToolbarTitle() {
   }
 
   return (
-    <Switch>
+    <Routes>
       <Route
         path='/:type(escalation-policies)/:id/:sub(services)'
         component={SubPageTitle}
@@ -195,7 +195,7 @@ function ToolbarTitle() {
       <Route path='/wizard' render={() => renderTitle('Setup Wizard')} />
       <Route path='/admin' render={() => renderTitle('Admin Page')} />
       <Route path='/docs' render={() => renderTitle('Documentation')} />
-    </Switch>
+    </Routes>
   )
 }
 

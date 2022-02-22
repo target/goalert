@@ -6,7 +6,7 @@ import ToolbarTitle from './components/ToolbarTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import { useSelector } from 'react-redux'
 import { authSelector } from '../selectors'
@@ -121,10 +121,10 @@ export default function App() {
                 className={classes.mainContainer}
               >
                 <Grid className={classes.containerClass} item>
-                  <Switch>
+                  <Routes>
                     {renderRoutes(routeConfig)}
                     <Route component={() => <LazyPageNotFound />} />
-                  </Switch>
+                  </Routes>
                 </Grid>
               </Grid>
             </ErrorBoundary>

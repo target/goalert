@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 import ScheduleDetails from './ScheduleDetails'
 import ScheduleOverrideList from './ScheduleOverrideList'
@@ -46,7 +46,7 @@ function ScheduleList() {
 
 export default function ScheduleRouter() {
   return (
-    <Switch>
+    <Routes>
       <Route exact path='/schedules' component={ScheduleList} />
       <Route exact path='/schedules/:scheduleID' component={ScheduleDetails} />
       <Route
@@ -70,6 +70,6 @@ export default function ScheduleRouter() {
         component={ScheduleShiftList}
       />
       <Route component={PageNotFound} />
-    </Switch>
+    </Routes>
   )
 }
