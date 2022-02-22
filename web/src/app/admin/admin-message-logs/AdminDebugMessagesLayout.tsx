@@ -2,12 +2,12 @@ import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import DebugMessagesList from './DebugMessagesList'
 import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
-import { theme } from '../../mui'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
 import { DateTime } from 'luxon'
@@ -36,7 +36,7 @@ const debugMessageLogsQuery = gql`
   }
 `
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   containerDefault: {
     [theme.breakpoints.up('md')]: {
       maxWidth: '100%',

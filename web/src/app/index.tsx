@@ -6,8 +6,8 @@ import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
-import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
-import { theme } from './mui'
+import { StyledEngineProvider } from '@mui/material/styles'
+import { ThemeProvider } from './main/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
@@ -54,7 +54,7 @@ LazyGARouteTracker.displayName = 'LazyGARouteTracker'
 
 ReactDOM.render(
   <StyledEngineProvider injectFirst>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <ApolloProvider client={GraphQLClient}>
         <ReduxProvider store={store}>
           <BrowserRouter basename={pathPrefix}>

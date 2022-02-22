@@ -5,13 +5,13 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { startCase, isEmpty } from 'lodash'
 import AdminDialog from './AdminDialog'
 import { Form } from '../forms'
 import AdminSection from './AdminSection'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
-import { theme } from '../mui'
 
 const query = gql`
   query getLimits {
@@ -28,7 +28,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   actionsContainer: {
     display: 'flex',
     justifyContent: 'flex-end',
