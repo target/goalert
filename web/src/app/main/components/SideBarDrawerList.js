@@ -100,8 +100,9 @@ export default function SideBarDrawerList(props) {
       <NavLink
         key={key}
         to={path}
-        className={classes.nav}
-        activeClassName={classes.navSelected}
+        className={({ isActive }) =>
+          isActive ? classes.navSelected : classes.nav
+        }
         onClick={closeMobileSidebar}
       >
         {renderSidebarItem(icon, label)}

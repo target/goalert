@@ -77,9 +77,10 @@ export default function NavSubMenu(props) {
       return (
         <NavLink
           exact
-          activeClassName={classes.navSelected}
           key={key}
-          className={classes.nav}
+          className={({ isActive }) =>
+            isActive ? classes.navSelected : classes.nav
+          }
           to={route.path}
           onClick={closeMobileSidebar}
         >
