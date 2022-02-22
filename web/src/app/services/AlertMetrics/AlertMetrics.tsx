@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
 import { DateTime } from 'luxon'
+import { useParams } from 'react-router-dom'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
   DATE_FORMAT,
@@ -44,15 +45,11 @@ const query = gql`
     }
   }
 `
-interface AlertMetricsProps {
-  serviceID: string
-}
 
 const QUERY_LIMIT = 100
 
-export default function AlertMetrics({
-  serviceID,
-}: AlertMetricsProps): JSX.Element {
+export default function AlertMetrics(): JSX.Element {
+  const { serviceID } = useParams<{ serviceID: string }>()
   const now = useMemo(() => DateTime.now(), [])
   const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
   const maxDate = now.endOf('day')

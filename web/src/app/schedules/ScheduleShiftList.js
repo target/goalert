@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { DateTime, Duration, Interval } from 'luxon'
-import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
 import { gql, useQuery } from '@apollo/client'
 import { relativeDate } from '../util/timeFormat'
@@ -57,7 +57,8 @@ const useStyles = makeStyles({
   },
 })
 
-function ScheduleShiftList({ scheduleID }) {
+function ScheduleShiftList() {
+  const { scheduleID } = useParams()
   const classes = useStyles()
 
   const [create, setCreate] = useState(null)
@@ -304,10 +305,6 @@ function ScheduleShiftList({ scheduleID }) {
       )}
     </React.Fragment>
   )
-}
-
-ScheduleShiftList.propTypes = {
-  scheduleID: p.string.isRequired,
 }
 
 export default ScheduleShiftList

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Grid, Card } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
+import { useParams } from 'react-router-dom'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
@@ -12,17 +13,12 @@ import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificatio
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
-interface ScheduleOnCallNotificationsListProps {
-  scheduleID: string
-}
-
-export default function ScheduleOnCallNotificationsList(
-  props: ScheduleOnCallNotificationsListProps,
-): JSX.Element {
+export default function ScheduleOnCallNotificationsList(): JSX.Element {
+  const { scheduleID } = useParams<{ scheduleID: string }>()
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
-  const { q, zone, rules } = useOnCallRulesData(props.scheduleID)
+  const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
   return (
     <React.Fragment>
@@ -68,20 +64,20 @@ export default function ScheduleOnCallNotificationsList(
       </Grid>
       {createRule && (
         <ScheduleOnCallNotificationsCreateDialog
-          scheduleID={props.scheduleID}
+          scheduleID={scheduleID}
           onClose={() => setCreateRule(false)}
         />
       )}
       {editRuleID && (
         <ScheduleOnCallNotificationsEditDialog
-          scheduleID={props.scheduleID}
+          scheduleID={scheduleID}
           ruleID={editRuleID}
           onClose={() => setEditRuleID('')}
         />
       )}
       {deleteRuleID && (
         <ScheduleOnCallNotificationsDeleteDialog
-          scheduleID={props.scheduleID}
+          scheduleID={scheduleID}
           ruleID={deleteRuleID}
           onClose={() => setDeleteRuleID('')}
         />

@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Grid, Typography, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import { theme } from '../../mui'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { MAX_QUERY_ITEMS_COUNT } from './AdminDebugMessagesLayout'
@@ -19,7 +18,7 @@ interface Props {
   resultsCount: number
 }
 
-const useStyles = makeStyles<typeof theme>({
+const useStyles = makeStyles({
   filterContainer: {
     display: 'flex',
     flexDirection: 'row',

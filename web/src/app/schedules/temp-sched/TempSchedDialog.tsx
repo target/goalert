@@ -7,6 +7,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
@@ -24,7 +25,6 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
-import { theme } from '../../mui'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -36,7 +36,7 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   contentText,
   avatar: {
     backgroundColor: theme.palette.primary.main,

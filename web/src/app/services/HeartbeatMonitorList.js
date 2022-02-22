@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql } from '@apollo/client'
-import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -54,7 +54,8 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export default function HeartbeatMonitorList(props) {
+export default function HeartbeatMonitorList() {
+  const { serviceID } = useParams()
   const classes = useStyles()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
@@ -114,7 +115,7 @@ export default function HeartbeatMonitorList(props) {
           <CardContent>
             <Query
               query={query}
-              variables={{ serviceID: props.serviceID }}
+              variables={{ serviceID: serviceID }}
               render={({ data }) => renderList(data.service.heartbeatMonitors)}
             />
           </CardContent>
@@ -126,7 +127,7 @@ export default function HeartbeatMonitorList(props) {
       />
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
-          serviceID={props.serviceID}
+          serviceID={serviceID}
           onClose={() => setShowCreateDialog(false)}
         />
       )}
@@ -144,7 +145,4 @@ export default function HeartbeatMonitorList(props) {
       )}
     </React.Fragment>
   )
-}
-HeartbeatMonitorList.propTypes = {
-  serviceID: p.string.isRequired,
 }

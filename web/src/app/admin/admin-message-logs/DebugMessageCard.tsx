@@ -8,12 +8,12 @@ import {
   Chip,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
 import toTitleCase from '../../util/toTitleCase'
-import { theme } from '../../mui'
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   card: {
     marginTop: theme.spacing(0.5),
     marginBottom: theme.spacing(0.5),
