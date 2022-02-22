@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
@@ -19,7 +19,7 @@ interface UserCreateDialogProps {
 }
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
-  const history = useHistory()
+  const navigate = useNavigate()
   const [value, setValue] = useState({
     username: '',
     password: '',
@@ -41,7 +41,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
         favorite: true,
       },
     },
-    onCompleted: (data) => history.push(`/users/${data.createUser.id}`),
+    onCompleted: (data) => navigate(`/users/${data.createUser.id}`),
   })
 
   return (

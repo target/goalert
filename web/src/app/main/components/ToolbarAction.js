@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route, useHistory } from 'react-router-dom'
+import { Switch, Route, useNavigate } from 'react-router-dom'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
@@ -15,7 +15,7 @@ function removeLastPartOfPath(path) {
 function ToolbarAction(props) {
   const fullScreen = useIsWidthDown('md')
 
-  const history = useHistory()
+  const navigate = useNavigate()
 
   function renderToolbarAction() {
     const route = removeLastPartOfPath(window.location.pathname)
@@ -28,7 +28,7 @@ function ToolbarAction(props) {
         aria-label='Back a Page'
         color='inherit'
         data-cy='nav-back-icon'
-        onClick={() => history.replace(route)}
+        onClick={() => navigate(route, { replace: true })}
         size='large'
       >
         <ChevronLeft />
