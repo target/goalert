@@ -487,7 +487,7 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		ContactMethod *contactmethod.ContactMethod `gorm:"references:ContactMethodID"`
 	}
 
-	err = db.Table("outgoing_messages").Debug().
+	err = db.Table("outgoing_messages").
 		Select("UserID", "ChannelID", "ContactMethodID").Distinct().
 		Where("last_status = 'pending'").
 		Where("(now() - created_at) > interval '15 seconds'").
