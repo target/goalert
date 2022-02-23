@@ -1,5 +1,48 @@
 import { Chance } from 'chance'
+import { Target } from '../../schema'
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      createEP: typeof createEP
+      deleteEP: typeof deleteEP
+      createEPStep: typeof createEPStep
+    }
+  }
+
+  interface EP {
+    id: string
+    name: string
+    description: string
+    repeat: number
+    stepCount: number
+    isFavorite: boolean
+  }
+
+  interface EPOptions {
+    name?: string
+    description?: string
+    repeat?: number
+    stepCount?: number
+    favorite?: boolean
+  }
+
+  interface EPStep {
+    id: string
+    stepNumber: number
+    delayMinutes: number
+    targets: Target[]
+    escalationPolicy: EP
+  }
+
+  interface EPStepOptions {
+    epID?: string
+    ep?: EPOptions
+    delay?: number
+    targets?: [Target]
+  }
+}
 
 const policyMutation = `
     mutation($input: CreateEscalationPolicyInput!) {
@@ -62,7 +105,7 @@ function deleteEP(id: string): Cypress.Chainable<void> {
     }
    `
 
-  return cy.graphql(mutation, {
+  return cy.graphqlVoid(mutation, {
     input: [
       {
         type: 'escalationPolicy',

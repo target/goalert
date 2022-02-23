@@ -1,4 +1,13 @@
-export function pageSearch(s: string): Cypress.Chainable {
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Enter a page-level search (from the top bar). Works in mobile and widescreen. */
+      pageSearch: typeof pageSearch
+    }
+  }
+}
+
+function pageSearch(s: string): Cypress.Chainable {
   return cy.get('[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
@@ -24,3 +33,5 @@ export function pageSearch(s: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageSearch', pageSearch)
+
+export {}

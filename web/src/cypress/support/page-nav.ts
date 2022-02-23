@@ -1,4 +1,13 @@
-export function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Navigate to a link on the side/nav bar. */
+      pageNav: typeof pageNav
+    }
+  }
+}
+
+function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
   return cy.get('*[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'app bar format').to.be.oneOf(['mobile', 'wide'])
@@ -15,3 +24,5 @@ export function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageNav', pageNav)
+
+export {}

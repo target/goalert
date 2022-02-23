@@ -3,6 +3,51 @@ import { DateTime } from 'luxon'
 
 const c = new Chance()
 
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      createAlert: typeof createAlert
+      createManyAlerts: typeof createManyAlerts
+      closeAlert: typeof closeAlert
+      createAlertLogs: typeof createAlertLogs
+    }
+  }
+
+  interface Alert {
+    id: number
+    alertID: number
+    summary: string
+    details: string
+    serviceID: string
+    service: Service
+  }
+
+  interface AlertOptions {
+    summary?: string
+    details?: string
+    serviceID?: string
+
+    service?: ServiceOptions
+  }
+
+  interface AlertLogOptions {
+    count?: number
+    alertID?: number
+    alert?: AlertOptions
+  }
+
+  interface AlertLogs {
+    alert: Alert
+    logs: Array<AlertLog>
+  }
+
+  interface AlertLog {
+    id: number
+    timestamp: string
+    message: string
+  }
+}
+
 function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
   const query = `
     query GetLogs($id: Int!, $after: String!) {
@@ -188,14 +233,14 @@ function createManyAlerts(
   return cy.sql(query)
 }
 
-function closeAlert(id: number): Cypress.Chainable<Alert> {
+function closeAlert(id: number): Cypress.Chainable<void> {
   const query = `
     mutation {
       updateAlertStatus(input: $input) { id }
     }
   `
 
-  return cy.graphql(query, { input: { id } })
+  return cy.graphqlVoid(query, { input: { id } })
 }
 
 Cypress.Commands.add('createAlert', createAlert)
