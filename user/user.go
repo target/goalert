@@ -17,22 +17,22 @@ import (
 //
 type User struct {
 	// ID is the unique identifier for the user
-	ID string `json:"id"`
+	ID string
 
 	// Name is the full name of the user
-	Name string `json:"name"`
+	Name string
 
 	// Email is the primary contact email for the user. It is used for account-related communications
-	Email string `json:"email"`
+	Email string
 
 	// AvatarURL is an absolute address for an image to be used as the avatar.
-	AvatarURL string `json:"avatar_url"`
+	AvatarURL string
 
 	// AlertStatusCMID defines a contact method ID for alert status updates.
-	AlertStatusCMID string `json:"alert_status_log_contact_method_id"`
+	AlertStatusCMID string `gorm:"column:alert_status_log_contact_method_id"`
 
 	// The Role of the user
-	Role permission.Role `json:"role" store:"readonly"`
+	Role permission.Role
 
 	// isUserFavorite returns true if a user is favorited by the current user.
 	isUserFavorite bool
@@ -81,6 +81,7 @@ func (u *User) userUpdateFields() []interface{} {
 		statusCM,
 	}
 }
+
 func (u *User) fields() []interface{} {
 	var statusCM sql.NullString
 	if u.AlertStatusCMID != "" {

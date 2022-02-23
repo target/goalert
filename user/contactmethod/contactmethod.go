@@ -10,15 +10,17 @@ import (
 
 // ContactMethod stores the information for contacting a user.
 type ContactMethod struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Type     Type   `json:"type"`
-	Value    string `json:"value"`
-	Disabled bool   `json:"disabled"`
-	UserID   string `json:"-"`
+	ID       string
+	Name     string
+	Type     Type
+	Value    string
+	Disabled bool
+	UserID   string
 
 	lastTestVerifyAt sql.NullTime
 }
+
+func (ContactMethod) TableName() string { return "user_contact_methods" }
 
 // LastTestVerifyAt will return the timestamp of the last test/verify request.
 func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.Time }
