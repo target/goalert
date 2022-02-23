@@ -209,7 +209,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     let newItems: Array<PaginatedListItemProps> = items.slice()
     if (!infiniteScroll && page !== undefined) {
       newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
-      console.log('here', page, items, newItems, itemsPerPage)
     }
     const renderedItems: ReactElement[] = newItems.map(renderItem)
 
