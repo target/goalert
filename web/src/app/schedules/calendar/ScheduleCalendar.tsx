@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken, useTheme } from '@mui/material/styles'
+import { darken, useTheme, Theme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -31,7 +31,7 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   card: {
     padding: theme.spacing(2),
   },
@@ -142,7 +142,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     return {}
   }
 
-  const dayStyleGetter = (date: Date) => {
+  const dayStyleGetter = (date: Date): React.HTMLAttributes<HTMLDivElement> => {
     const outOfBounds =
       DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
     const currentDay = DateTime.local().hasSame(
