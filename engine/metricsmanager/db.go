@@ -48,7 +48,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		recentlyClosed: p.P(`
 			select distinct log.alert_id
 			from alert_logs log
-			left join alert_metrics m on m.id = log.id
+			left join alert_metrics m on m.id = log.alert_id
 			where m isnull and log.event = 'closed' and log.timestamp >= now() - '1 hour'::interval
 			limit 500
 		`),
