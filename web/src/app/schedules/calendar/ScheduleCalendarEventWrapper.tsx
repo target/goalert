@@ -1,4 +1,10 @@
-import React, { ReactNode, useContext, useState } from 'react'
+import React, {
+  ReactNode,
+  useContext,
+  useState,
+  MouseEvent,
+  KeyboardEvent,
+} from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -51,7 +57,7 @@ export default function ScheduleCalendarEventWrapper({
   children,
 }: ScheduleCalendarEventWrapperProps): ReactNode {
   const classes = useStyles()
-  const [anchorEl, setAnchorEl] = useState<Element | null>(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const [showEditDialog, setShowEditDialog] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState('')
@@ -62,17 +68,17 @@ export default function ScheduleCalendarEventWrapper({
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
-  function handleClick(e: MouseEvent): void {
-    setAnchorEl(e.currentTarget as Element | null)
+  function handleClick(e: MouseEvent<HTMLButtonElement>): void {
+    setAnchorEl(e.currentTarget)
   }
 
   function handleCloseShiftInfo(): void {
     setAnchorEl(null)
   }
 
-  function handleKeyDown(e: KeyboardEvent): void {
+  function handleKeyDown(e: KeyboardEvent<HTMLButtonElement>): void {
     if (e.key === 'Enter' || e.key === ' ') {
-      setAnchorEl(e.currentTarget as Element | null)
+      setAnchorEl(e.currentTarget)
     }
   }
 

@@ -113,7 +113,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const { shifts, temporarySchedules } = props
 
   const eventStyleGetter = (
-    ev: ScheduleCalendarEvent,
+    calEvent: ScheduleCalendarEvent,
     start: Date | string,
     end: Date | string,
     isSelected: boolean,
@@ -121,7 +121,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     const green = '#0C6618'
     const lavender = '#BB7E8C'
 
-    if (ev.type === 'tempSched' || ev.type === 'tempSchedShift') {
+    if (calEvent.type === 'tempSched' || calEvent.type === 'tempSchedShift') {
       return {
         style: {
           backgroundColor: isSelected ? darken(green, 0.3) : green,
@@ -129,7 +129,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         },
       }
     }
-    if (ev.type === 'override') {
+    if (calEvent.type === 'override') {
       return {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
