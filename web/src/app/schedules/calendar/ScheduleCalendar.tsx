@@ -59,7 +59,6 @@ interface CalendarEvent {
     name: string
     id: string
   }
-  type: 'onCallShift' | 'override' | 'tempSched' | 'tempSchedShift'
   title: React.ReactNode
 }
 
@@ -188,8 +187,8 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         </div>
       )
     }
+    // remove override
     return (
-      // remove override
       <div>
         <AccountMinus
           fontSize='small'
