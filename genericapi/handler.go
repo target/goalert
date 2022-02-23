@@ -2,6 +2,9 @@ package genericapi
 
 import (
 	"database/sql"
+	"encoding/json"
+	"io"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
@@ -84,14 +87,43 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 	summary := r.FormValue("summary")
 	details := r.FormValue("details")
+	action := r.FormValue("action")
+
+	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if ct == "application/json" {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var b struct {
+			Summary, Details, Action *string
+		}
+		err = json.Unmarshal(data, &b)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if b.Summary != nil {
+			summary = *b.Summary
+		}
+		if b.Details != nil {
+			details = *b.Details
+		}
+		if b.Action != nil {
+			action = *b.Action
+		}
+	}
+
+	status := alert.StatusTriggered
+	if action == "close" {
+		status = alert.StatusClosed
+	}
 
 	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
 	details = validate.SanitizeText(details, alert.MaxDetailsLength)
-
-	status := alert.StatusTriggered
-	if r.FormValue("action") == "close" {
-		status = alert.StatusClosed
-	}
 
 	a := &alert.Alert{
 		Summary:   summary,

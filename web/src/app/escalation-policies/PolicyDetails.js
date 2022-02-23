@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import p from 'prop-types'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -33,7 +32,8 @@ const query = gql`
   }
 `
 
-export default function PolicyDetails(props) {
+export default function PolicyDetails() {
+  const { escalationPolicyID } = useParams()
   const stepNumParam = 'createStep'
   const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
@@ -47,7 +47,7 @@ export default function PolicyDetails(props) {
     data: _data,
   } = useQuery(query, {
     variables: {
-      id: props.escalationPolicyID,
+      id: escalationPolicyID,
     },
   })
 
@@ -118,8 +118,4 @@ export default function PolicyDetails(props) {
       )}
     </React.Fragment>
   )
-}
-
-PolicyDetails.propTypes = {
-  escalationPolicyID: p.string.isRequired,
 }

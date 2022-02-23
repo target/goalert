@@ -33,13 +33,15 @@ models:
   Alert:
     model: github.com/target/goalert/alert.Alert
   AlertLogEntry:
-    model: github.com/target/goalert/alert/log.Entry
+    model: github.com/target/goalert/alert/alertlog.Entry
   AlertState:
     model: github.com/target/goalert/alert.State
   Service:
     model: github.com/target/goalert/service.Service
   ISOTimestamp:
     model: github.com/target/goalert/graphql2.ISOTimestamp
+  ISORInterval:
+    model: github.com/target/goalert/util/timeutil.ISORInterval
   EscalationPolicy:
     model: github.com/target/goalert/escalation.Policy
   Rotation:
@@ -47,7 +49,7 @@ models:
   Schedule:
     model: github.com/target/goalert/schedule.Schedule
   UserCalendarSubscription:
-    model: github.com/target/goalert/calendarsubscription.CalendarSubscription
+    model: github.com/target/goalert/calsub.Subscription
   ServiceOnCallUser:
     model: github.com/target/goalert/oncall.ServiceOnCallUser
   EscalationPolicyStep:

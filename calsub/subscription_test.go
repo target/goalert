@@ -1,4 +1,4 @@
-package calendarsubscription
+package calsub
 
 import (
 	"strings"
@@ -9,8 +9,8 @@ import (
 	"github.com/target/goalert/oncall"
 )
 
-func TestCalendarSubscription_RenderICalFromShifts(t *testing.T) {
-	var cs CalendarSubscription
+func TestSubscription_RenderICalFromShifts(t *testing.T) {
+	var cs Subscription
 	cs.Config.ReminderMinutes = []int{5, 10}
 	shifts := []oncall.Shift{{
 		UserID: "01020304-0506-0708-090a-0b0c0d0e0f10",

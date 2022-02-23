@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken } from '@mui/material/styles'
+import { darken, useTheme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -13,7 +13,6 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import { theme } from '../../mui'
 import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
@@ -50,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
 
 function ScheduleCalendar(props) {
   const classes = useStyles()
+  const theme = useTheme()
 
   const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
@@ -78,6 +78,23 @@ function ScheduleCalendar(props) {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
           borderColor: darken(lavender, 0.3),
+        },
+      }
+    }
+  }
+
+  const dayStyleGetter = (date) => {
+    const outOfBounds =
+      DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
+    const currentDay = DateTime.local().hasSame(
+      DateTime.fromJSDate(date),
+      'day',
+    )
+
+    if (theme.palette.mode === 'dark' && (outOfBounds || currentDay)) {
+      return {
+        style: {
+          backgroundColor: theme.palette.background.default,
         },
       }
     }
@@ -273,6 +290,7 @@ function ScheduleCalendar(props) {
             view={weekly ? 'week' : 'month'}
             showAllEvents
             eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{

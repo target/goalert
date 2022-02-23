@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
@@ -15,13 +15,13 @@ import (
 
 // Config contains parameters for controlling how the Engine operates.
 type Config struct {
-	AlertLogStore       alertlog.Store
-	AlertStore          alert.Store
-	ContactMethodStore  contactmethod.Store
+	AlertLogStore       *alertlog.Store
+	AlertStore          *alert.Store
+	ContactMethodStore  *contactmethod.Store
 	NotificationManager *notification.Manager
 	UserStore           *user.Store
-	NotificationStore   notification.Store
-	NCStore             notificationchannel.Store
+	NotificationStore   *notification.Store
+	NCStore             *notificationchannel.Store
 	OnCallStore         oncall.Store
 	ScheduleStore       *schedule.Store
 
@@ -32,4 +32,5 @@ type Config struct {
 	MaxMessages int
 
 	DisableCycle bool
+	LogCycles    bool
 }

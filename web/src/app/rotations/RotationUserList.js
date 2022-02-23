@@ -5,7 +5,7 @@ import { DateTime } from 'luxon'
 import Card from '@mui/material/Card'
 import makeStyles from '@mui/styles/makeStyles'
 import CardHeader from '@mui/material/CardHeader'
-
+import { useTheme } from '@mui/material/styles'
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
 import OtherActions from '../util/OtherActions'
@@ -47,6 +47,7 @@ const useStyles = makeStyles((theme) => {
 
 function RotationUserList({ rotationID }) {
   const classes = useStyles()
+  const theme = useTheme()
   const [deleteIndex, setDeleteIndex] = useState(null)
   const [setActiveIndex, setSetActiveIndex] = useState(null)
   const [lastSwap, setLastSwap] = useState([])
@@ -152,6 +153,11 @@ function RotationUserList({ rotationID }) {
             subText: handoff[index],
             secondaryAction: (
               <OtherActions
+                color={
+                  index === activeUserIndex && theme.palette.mode === 'dark'
+                    ? 'black'
+                    : 'inherit'
+                }
                 actions={[
                   {
                     label: 'Set Active',

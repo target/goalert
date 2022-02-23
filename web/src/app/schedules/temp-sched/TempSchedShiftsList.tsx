@@ -17,7 +17,7 @@ import FlatList, {
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
-import { useScheduleTZ } from './hooks'
+import { useScheduleTZ } from '../useScheduleTZ'
 import { CircularProgress } from '@mui/material'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {

@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react'
 import Drawer from '@mui/material/Drawer'
 import makeStyles from '@mui/styles/makeStyles'
-import { theme } from '../mui'
+import { Theme } from '@mui/material/styles'
 
 export const drawerWidth = '220px'
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   sidebarPaper: {
     width: drawerWidth,
     position: 'fixed',

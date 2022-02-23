@@ -6,6 +6,7 @@ import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
@@ -24,7 +25,6 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { ConfigValue, ConfigHint } from '../../schema'
 import SlackActions from './SlackActions'
-import { theme } from '../mui'
 
 const query = gql`
   query getConfig {
@@ -47,7 +47,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   accordionDetails: {
     padding: 0,
     display: 'block',

@@ -29,7 +29,10 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 1,
     position: 'relative',
     display: 'flex',
-    backgroundColor: 'lightgrey',
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.background.default
+        : 'lightgrey',
     height: '100%',
   },
   main: {
@@ -57,7 +60,11 @@ export default function App() {
   const authValid = useSelector(authSelector)
 
   if (!authValid) {
-    return <Login />
+    return (
+      <div className={classes.root}>
+        <Login />
+      </div>
+    )
   }
 
   let cyFormat = 'wide'
