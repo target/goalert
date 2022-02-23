@@ -62,22 +62,21 @@ export default function ScheduleCalendarEventWrapper({
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
 
-  function handleClick(ev: MouseEvent): void {
-    setAnchorEl(ev.currentTarget as Element | null)
+  function handleClick(e: MouseEvent): void {
+    setAnchorEl(e.currentTarget as Element | null)
   }
 
   function handleCloseShiftInfo(): void {
     setAnchorEl(null)
   }
 
-  function handleKeyDown(ev: KeyboardEvent): void {
-    const code = ev.key
-    if (code === 'Enter' || code === ' ') {
-      setAnchorEl(ev.currentTarget as Element | null)
+  function handleKeyDown(e: KeyboardEvent): void {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setAnchorEl(e.currentTarget as Element | null)
     }
   }
 
-  function handleShowOverrideForm(ev: OnCallShiftEvent): void {
+  function handleShowOverrideForm(calEvent: OnCallShiftEvent): void {
     handleCloseShiftInfo()
 
     setOverrideDialog({
@@ -86,15 +85,15 @@ export default function ScheduleCalendarEventWrapper({
       defaultValue: {
         start: event.start.toISOString(),
         end: event.end.toISOString(),
-        removeUserID: ev.userID,
+        removeUserID: calEvent.userID,
       },
     })
   }
 
   function renderTempSchedButtons(
-    ev: TempSchedEvent | TempSchedShiftEvent,
+    calEvent: TempSchedEvent | TempSchedShiftEvent,
   ): JSX.Element {
-    if (DateTime.fromJSDate(ev.end) <= DateTime.utc()) {
+    if (DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
       // no actions on past events
       return <React.Fragment />
     }
@@ -104,7 +103,7 @@ export default function ScheduleCalendarEventWrapper({
           <Button
             data-cy='edit-temp-sched'
             size='small'
-            onClick={() => onEditTempSched(ev.tempSched)}
+            onClick={() => onEditTempSched(calEvent.tempSched)}
             variant='contained'
             color='primary'
             title='Edit this temporary schedule'
@@ -118,7 +117,7 @@ export default function ScheduleCalendarEventWrapper({
             <Button
               data-cy='delete-temp-sched'
               size='small'
-              onClick={() => onDeleteTempSched(ev.tempSched)}
+              onClick={() => onDeleteTempSched(calEvent.tempSched)}
               variant='contained'
               color='primary'
               title='Delete this temporary schedule'
@@ -131,7 +130,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderOverrideButtons(ev: OverrideEvent): JSX.Element {
+  function renderOverrideButtons(calEvent: OverrideEvent): JSX.Element {
     return (
       <div className={classes.cardActionContainer}>
         <CardActions
@@ -141,7 +140,7 @@ export default function ScheduleCalendarEventWrapper({
               label: 'Edit',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowEditDialog(ev.override.id)
+                setShowEditDialog(calEvent.override.id)
               },
             },
             {
@@ -149,7 +148,7 @@ export default function ScheduleCalendarEventWrapper({
               label: 'Delete',
               handleOnClick: () => {
                 handleCloseShiftInfo()
-                setShowDeleteDialog(ev.override.id)
+                setShowDeleteDialog(calEvent.override.id)
               },
             },
           ]}
@@ -158,7 +157,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderShiftButtons(ev: OnCallShiftEvent): JSX.Element {
+  function renderShiftButtons(calEvent: OnCallShiftEvent): JSX.Element {
     return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
@@ -166,10 +165,10 @@ export default function ScheduleCalendarEventWrapper({
           <Button
             data-cy='override'
             size='small'
-            onClick={() => handleShowOverrideForm(ev)}
+            onClick={() => handleShowOverrideForm(calEvent)}
             variant='contained'
             color='primary'
-            title={`Temporarily remove ${ev.title} from this schedule`}
+            title={`Temporarily remove ${calEvent.title} from this schedule`}
           >
             Override Shift
           </Button>
@@ -191,7 +190,7 @@ export default function ScheduleCalendarEventWrapper({
     return renderShiftButtons(event as OnCallShiftEvent)
   }
 
-  function renderOverrideDescription(ev: OverrideEvent): JSX.Element {
+  function renderOverrideDescription(calEvent: OverrideEvent): JSX.Element {
     const getDesc = (
       addUser: User | undefined,
       removeUser: User | undefined,
@@ -221,7 +220,7 @@ export default function ScheduleCalendarEventWrapper({
     return (
       <Grid item xs={12}>
         <Typography variant='body2'>
-          {getDesc(ev.override.addUser, ev.override.removeUser)}
+          {getDesc(calEvent.override.addUser, calEvent.override.removeUser)}
         </Typography>
       </Grid>
     )
