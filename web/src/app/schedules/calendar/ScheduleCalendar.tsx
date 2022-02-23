@@ -52,42 +52,42 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-interface BaseCalendarEvent {
+interface CalendarEvent {
   start: Date
   end: Date
   user?: {
     name: string
     id: string
   }
-  type: 'onCallShift' | 'overrideShift' | 'tempSched' | 'tempSchedShift'
+  type: 'onCallShift' | 'override' | 'tempSched' | 'tempSchedShift'
   title: React.ReactNode
 }
 
-export interface OnCallShiftEvent extends BaseCalendarEvent {
+export interface OnCallShiftEvent extends CalendarEvent {
   type: 'onCallShift'
   userID: string
   user?: User
   truncated: boolean
 }
 
-export interface OverrideShiftEvent extends BaseCalendarEvent {
-  type: 'overrideShift'
+export interface OverrideEvent extends CalendarEvent {
+  type: 'override'
   override: UserOverride
 }
 
-export interface TempSchedEvent extends BaseCalendarEvent {
+export interface TempSchedEvent extends CalendarEvent {
   type: 'tempSched'
   tempSched: TemporarySchedule
 }
 
-export interface TempSchedShiftEvent extends BaseCalendarEvent {
+export interface TempSchedShiftEvent extends CalendarEvent {
   type: 'tempSchedShift'
   tempSched: TemporarySchedule
 }
 
 export type ScheduleCalendarEvent =
   | OnCallShiftEvent
-  | OverrideShiftEvent
+  | OverrideEvent
   | TempSchedEvent
   | TempSchedShiftEvent
 
@@ -130,7 +130,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         },
       }
     }
-    if (ev.type === 'overrideShift') {
+    if (ev.type === 'override') {
       return {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
@@ -214,8 +214,8 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       tempSched: sched,
     }))
 
-    const overrides: OverrideShiftEvent[] = userOverrides.map((o) => ({
-      type: 'overrideShift',
+    const overrides: OverrideEvent[] = userOverrides.map((o) => ({
+      type: 'override',
       start: new Date(o.start),
       end: new Date(o.end),
       title: getOverrideTitle(o),

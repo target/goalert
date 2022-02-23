@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { ReactNode, useContext, useState } from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -12,7 +12,7 @@ import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
 import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
 import { User } from '../../../schema'
 import {
-  OverrideShiftEvent,
+  OverrideEvent,
   ScheduleCalendarEvent,
   TempSchedEvent,
   TempSchedShiftEvent,
@@ -49,7 +49,7 @@ interface ScheduleCalendarEventWrapperProps {
 export default function ScheduleCalendarEventWrapper({
   event,
   children,
-}: ScheduleCalendarEventWrapperProps): JSX.Element {
+}: ScheduleCalendarEventWrapperProps): ReactNode {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
 
@@ -131,7 +131,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderOverrideButtons(ev: OverrideShiftEvent): JSX.Element {
+  function renderOverrideButtons(ev: OverrideEvent): JSX.Element {
     return (
       <div className={classes.cardActionContainer}>
         <CardActions
@@ -185,13 +185,13 @@ export default function ScheduleCalendarEventWrapper({
       return renderTempSchedButtons(event as TempSchedEvent)
     if (event.type === 'tempSchedShift')
       return renderTempSchedButtons(event as TempSchedShiftEvent)
-    if (event.type === 'overrideShift')
-      return renderOverrideButtons(event as OverrideShiftEvent)
+    if (event.type === 'override')
+      return renderOverrideButtons(event as OverrideEvent)
 
     return renderShiftButtons(event as OnCallShiftEvent)
   }
 
-  function renderOverrideDescription(ev: OverrideShiftEvent): JSX.Element {
+  function renderOverrideDescription(ev: OverrideEvent): JSX.Element {
     const getDesc = (
       addUser: User | undefined,
       removeUser: User | undefined,
@@ -239,8 +239,8 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
-        {event.type === 'overrideShift' &&
-          renderOverrideDescription(event as OverrideShiftEvent)}
+        {event.type === 'override' &&
+          renderOverrideDescription(event as OverrideEvent)}
         <Grid item xs={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
@@ -251,7 +251,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  if (!children) return <React.Fragment />
+  if (!children) return null
   return (
     <React.Fragment>
       <Popover
