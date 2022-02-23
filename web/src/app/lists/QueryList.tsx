@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -109,6 +109,11 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   const [searchParam] = useURLParam('search', '')
   const { key: urlKey } = useLocation()
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
+
+  // reset pageNumber on page reload
+  useEffect(() => {
+    setPage(0)
+  }, [urlKey])
 
   const queryVariables = {
     ...vars,
