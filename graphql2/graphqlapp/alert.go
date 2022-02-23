@@ -478,16 +478,17 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 	db := sqlutil.FromContext(ctx)
 
 	var rows []struct {
-		ID              string
-		ChannelID       uuid.UUID
-		Channel         *notificationchannel.Channel `gorm:"foreignKey:ID;references:ChannelID"`
 		UserID          uuid.UUID
-		User            *user.User `gorm:"foreignKey:ID;references:UserID"`
+		ChannelID       uuid.UUID
 		ContactMethodID uuid.UUID
-		ContactMethod   *contactmethod.ContactMethod `gorm:"foreignKey:ID;references:ContactMethodID"`
+
+		User          *user.User                   `gorm:"references:UserID"`
+		Channel       *notificationchannel.Channel `gorm:"references:ChannelID"`
+		ContactMethod *contactmethod.ContactMethod `gorm:"references:ContactMethodID"`
 	}
 
-	err = db.Table("outgoing_messages").
+	err = db.Table("outgoing_messages").Debug().
+		Select("UserID", "ChannelID", "ContactMethodID").Distinct().
 		Where("last_status = 'pending'").
 		Where("(now() - created_at) > interval '15 seconds'").
 		Where(
@@ -495,9 +496,9 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 				"message_type = 'alert_notification_bundle' and service_id = ?", obj.ServiceID,
 			),
 		).
-		Preload("Channel").
-		Preload("ContactMethod").
-		Preload("User").
+		Preload("Channel", sqlutil.Columns("ID", "Type", "Name")).
+		Preload("ContactMethod", sqlutil.Columns("ID", "Type")).
+		Preload("User", sqlutil.Columns("ID", "Name")).
 		Find(&rows).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -518,7 +519,7 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 				Destination: fmt.Sprintf("%s (%s)", r.Channel.Name, r.Channel.Type),
 			})
 		default:
-			log.Debugf(ctx, "unknown destination type for pending notification '%s' for alert %d", r.ID, obj.ID)
+			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)
 		}
 	}
 
