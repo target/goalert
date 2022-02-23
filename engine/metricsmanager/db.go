@@ -69,7 +69,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1),
 				(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated')
 			from alerts a
-			where a.id = any($1)
+			where a.id = any($1) and a.service_id is not null
 		`),
 	}, p.Err
 }
