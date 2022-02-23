@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Grid, Card } from '@mui/material'
@@ -40,7 +40,8 @@ const query = gql`
   }
 `
 
-export default function ScheduleRuleList(props) {
+export default function ScheduleRuleList() {
+  const { scheduleID } = useParams()
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)
@@ -49,7 +50,7 @@ export default function ScheduleRuleList(props) {
   const resetFilter = useResetURLParams('tz')
 
   const { data, loading, error } = useQuery(query, {
-    variables: { id: props.scheduleID },
+    variables: { id: scheduleID },
     pollInterval: 0,
   })
 
@@ -122,7 +123,7 @@ export default function ScheduleRuleList(props) {
             headerAction={
               <FilterContainer onReset={() => resetFilter()}>
                 <Grid item xs={12}>
-                  <ScheduleTZFilter scheduleID={props.scheduleID} />
+                  <ScheduleTZFilter scheduleID={scheduleID} />
                 </Grid>
               </FilterContainer>
             }
@@ -133,21 +134,21 @@ export default function ScheduleRuleList(props) {
         {createType && (
           <ScheduleRuleCreateDialog
             targetType={createType}
-            scheduleID={props.scheduleID}
+            scheduleID={scheduleID}
             onClose={() => setCreateType(null)}
           />
         )}
         {editTarget && (
           <ScheduleRuleEditDialog
             target={editTarget}
-            scheduleID={props.scheduleID}
+            scheduleID={scheduleID}
             onClose={() => setEditTarget(null)}
           />
         )}
         {deleteTarget && (
           <ScheduleRuleDeleteDialog
             target={deleteTarget}
-            scheduleID={props.scheduleID}
+            scheduleID={scheduleID}
             onClose={() => setDeleteTarget(null)}
           />
         )}
@@ -156,8 +157,4 @@ export default function ScheduleRuleList(props) {
   }
 
   return renderList(data.schedule.targets, data.schedule.timeZone)
-}
-
-ScheduleRuleList.propTypes = {
-  scheduleID: p.string.isRequired,
 }

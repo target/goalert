@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import { useParams } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Grid from '@mui/material/Grid'
@@ -22,8 +22,8 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ServiceAlerts(props) {
-  const { serviceID } = props
+export default function ServiceAlerts() {
+  const { serviceID } = useParams()
   const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')
@@ -88,8 +88,4 @@ export default function ServiceAlerts(props) {
       <AlertsList serviceID={serviceID} secondaryActions={secondaryActions} />
     </React.Fragment>
   )
-}
-
-ServiceAlerts.propTypes = {
-  serviceID: p.string.isRequired,
 }

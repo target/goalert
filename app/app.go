@@ -4,20 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"fmt"
+	stdlog "log"
 	"net"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
-	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
@@ -32,6 +35,7 @@ import (
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
@@ -45,6 +49,9 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // App represents an instance of the GoAlert application.
@@ -54,8 +61,12 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
+
+	timeOffset time.Duration
+	timeMx     sync.Mutex
 
 	cooldown *cooldown
 	doneCh   chan struct{}
@@ -81,26 +92,25 @@ type App struct {
 
 	ConfigStore *config.Store
 
-	AlertStore    alert.Store
-	AlertLogStore alertlog.Store
+	AlertStore    *alert.Store
+	AlertLogStore *alertlog.Store
 
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
-	ContactMethodStore    contactmethod.Store
+	ContactMethodStore    *contactmethod.Store
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
 
 	ServiceStore        service.Store
-	EscalationStore     escalation.Store
+	EscalationStore     *escalation.Store
 	IntegrationKeyStore integrationkey.Store
 	ScheduleRuleStore   rule.Store
-	NotificationStore   notification.Store
+	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
 	RotationStore       rotation.Store
 
-	CalSubStore    *calendarsubscription.Store
+	CalSubStore    *calsub.Store
 	OverrideStore  override.Store
-	Resolver       resolver.Resolver
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
@@ -111,7 +121,7 @@ type App struct {
 	NonceStore    *nonce.Store
 	LabelStore    label.Store
 	OnCallStore   oncall.Store
-	NCStore       notificationchannel.Store
+	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 }
@@ -147,6 +157,43 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 		requestLock: newContextLocker(),
 	}
+
+	gCfg := &gorm.Config{
+		PrepareStmt: true,
+		NowFunc:     app.Now,
+	}
+	if c.JSON {
+		gCfg.Logger = &gormJSONLogger{}
+	} else {
+		gCfg.Logger = logger.New(stdlog.New(c.Logger, "", 0), logger.Config{
+			SlowThreshold:             50 * time.Millisecond,
+			LogLevel:                  logger.Warn,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
+		})
+	}
+	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
+	if err != nil {
+		return nil, fmt.Errorf("wrap db for GORM: %w", err)
+	}
+	app.gdb = gdb
+
+	var n time.Time
+	err = db.QueryRow("SELECT now()").Scan(&n)
+	if err != nil {
+		return nil, fmt.Errorf("get current time: %w", err)
+	}
+	app.SetTimeOffset(time.Until(n))
+
+	// permission check *before* query is run
+	gdb.Callback().Query().Before("gorm:query").
+		Register("goalert:permission-check", func(gDB *gorm.DB) {
+			err := permission.LimitCheckAny(gDB.Statement.Context, permission.All)
+			if err != nil {
+				gDB.AddError(err)
+			}
+		})
+
 	if c.KubernetesCooldown > 0 {
 		app.cooldown = newCooldown(c.KubernetesCooldown)
 	}

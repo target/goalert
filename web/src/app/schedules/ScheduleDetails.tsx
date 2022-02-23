@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -60,13 +60,8 @@ export const ScheduleCalendarContext =
     setOverrideDialog: () => {},
   })
 
-interface ScheduleDetailsProps {
-  scheduleID: string
-}
-
-export default function ScheduleDetails({
-  scheduleID,
-}: ScheduleDetailsProps): JSX.Element {
+export default function ScheduleDetails(): JSX.Element {
+  const { scheduleID } = useParams<{ scheduleID: string }>()
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] =

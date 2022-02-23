@@ -9,11 +9,11 @@ import (
 // CMLoader will load user contact methods from postgres.
 type CMLoader struct {
 	*loader
-	store contactmethod.Store
+	store *contactmethod.Store
 }
 
 // NewCMLoader will create a new CMLoader using the provided store for fetch operations.
-func NewCMLoader(ctx context.Context, store contactmethod.Store) *CMLoader {
+func NewCMLoader(ctx context.Context, store *contactmethod.Store) *CMLoader {
 	p := &CMLoader{
 		store: store,
 	}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -84,14 +85,15 @@ IntegrationKeyDetails.propTypes = {
   type: p.string.isRequired,
 }
 
-export default function IntegrationKeyList(props) {
+export default function IntegrationKeyList() {
+  const { serviceID } = useParams()
   const classes = useStyles()
 
   const [create, setCreate] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState(null)
 
   const { loading, error, data } = useQuery(query, {
-    variables: { serviceID: props.serviceID },
+    variables: { serviceID: serviceID },
   })
 
   const typeLabels = {
@@ -149,7 +151,7 @@ export default function IntegrationKeyList(props) {
       />
       {create && (
         <IntegrationKeyCreateDialog
-          serviceID={props.serviceID}
+          serviceID={serviceID}
           onClose={() => setCreate(false)}
         />
       )}
@@ -161,8 +163,4 @@ export default function IntegrationKeyList(props) {
       )}
     </React.Fragment>
   )
-}
-
-IntegrationKeyList.propTypes = {
-  serviceID: p.string.isRequired,
 }

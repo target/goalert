@@ -1,18 +1,17 @@
 // set webpack public path for loading additional assets
-import { GOALERT_VERSION } from './env'
+import { GOALERT_VERSION, pathPrefix } from './env'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
-import { ConnectedRouter } from 'connected-react-router'
+import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
-import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
-import { theme } from './mui'
+import { StyledEngineProvider } from '@mui/material/styles'
+import { ThemeProvider } from './main/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
 import MuiPickersUtilsProvider from './mui-pickers'
-import history from './history'
 import store from './reduxStore'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
@@ -55,10 +54,10 @@ LazyGARouteTracker.displayName = 'LazyGARouteTracker'
 
 ReactDOM.render(
   <StyledEngineProvider injectFirst>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <ApolloProvider client={GraphQLClient}>
         <ReduxProvider store={store}>
-          <ConnectedRouter history={history}>
+          <BrowserRouter basename={pathPrefix}>
             <MuiPickersUtilsProvider>
               <ConfigProvider>
                 <NewVersionCheck />
@@ -72,7 +71,7 @@ ReactDOM.render(
                 <App />
               </ConfigProvider>
             </MuiPickersUtilsProvider>
-          </ConnectedRouter>
+          </BrowserRouter>
         </ReduxProvider>
       </ApolloProvider>
     </ThemeProvider>

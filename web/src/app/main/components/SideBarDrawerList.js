@@ -24,12 +24,14 @@ import routeConfig, { getPath } from '../routes'
 
 import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@mui/material/ListItemIcon'
+import { useTheme } from '@mui/material/styles'
 import { CurrentUserAvatar } from '../../util/avatars'
 import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 import logo from '../../public/goalert-alt-logo.png'
+import darkModeLogo from '../../public/goalert-alt-logo-white.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -63,6 +65,7 @@ const useStyles = makeStyles((theme) => ({
 export default function SideBarDrawerList(props) {
   const { closeMobileSidebar } = props
   const classes = useStyles()
+  const theme = useTheme()
   const dispatch = useDispatch()
   const logout = () => dispatch(authLogout(true))
 
@@ -133,7 +136,11 @@ export default function SideBarDrawerList(props) {
   return (
     <React.Fragment>
       <div aria-hidden className={classes.logoDiv}>
-        <img height={38} src={logo} alt='GoAlert Logo' />
+        <img
+          height={38}
+          src={theme.palette.mode === 'dark' ? darkModeLogo : logo}
+          alt='GoAlert Logo'
+        />
       </div>
       <Divider />
       <nav>

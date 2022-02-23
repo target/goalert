@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken } from '@mui/material/styles'
+import { darken, useTheme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -11,7 +11,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import { theme } from '../../mui'
 import LuxonLocalizer from '../../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../../util/shifts'
 import _ from 'lodash'
@@ -102,6 +101,7 @@ interface ScheduleCalendarProps {
 
 function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const classes = useStyles()
+  const theme = useTheme()
 
   const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
@@ -135,6 +135,25 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
           borderColor: darken(lavender, 0.3),
+        },
+      }
+    }
+
+    return {}
+  }
+
+  const dayStyleGetter = (date: Date) => {
+    const outOfBounds =
+      DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
+    const currentDay = DateTime.local().hasSame(
+      DateTime.fromJSDate(date),
+      'day',
+    )
+
+    if (theme.palette.mode === 'dark' && (outOfBounds || currentDay)) {
+      return {
+        style: {
+          backgroundColor: theme.palette.background.default,
         },
       }
     }
@@ -337,6 +356,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             view={weekly ? 'week' : 'month'}
             showAllEvents
             eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{

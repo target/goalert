@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import Typography from '@mui/material/Typography'
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route, useParams } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from '@apollo/client'
@@ -112,22 +112,23 @@ function ToolbarTitle() {
     )
   }
 
-  const detailsText = (match) => {
-    const typeName = startCase(match.params.type)
+  const detailsText = (type) => {
+    const typeName = startCase(type)
     return (
       (mapSingular[typeName] || typeName) +
-      (match.params.type !== 'profile' ? ' Details' : '')
+      (type !== 'profile' ? ' Details' : '')
     )
   }
 
-  const renderSubPageTitle = ({ match }) => {
-    const sub = startCase(match.params.sub)
+  function SubPageTitle() {
+    const { sub: _sub, type, id } = useParams()
+    const sub = startCase(_sub)
 
     if (fullScreen) {
       // mobile, only render current title
       return renderTitle(sub)
     }
-    const query = queries[match.params.type]
+    const query = queries[type]
 
     return (
       <div className={classes.div}>
@@ -138,16 +139,11 @@ function ToolbarTitle() {
           noWrap
           variant='h6'
           to='..'
-          replace
         >
           {query ? (
-            <NameLoader
-              id={match.params.id}
-              query={query}
-              fallback={detailsText(match)}
-            />
+            <NameLoader id={id} query={query} fallback={detailsText(type)} />
           ) : (
-            detailsText(match)
+            detailsText(type)
           )}
         </Typography>
         <ChevronRight />
@@ -156,43 +152,45 @@ function ToolbarTitle() {
     )
   }
 
-  const renderDetailsPageTitle = ({ match }) => {
-    return renderTitle(detailsText(match))
+  function DetailsPageTitle() {
+    const { type } = useParams()
+    return renderTitle(detailsText(type))
   }
 
-  const renderTopLevelTitle = ({ match }) => {
-    return renderTitle(startCase(match.params.type))
+  function TopLevelTitle() {
+    const { type } = useParams()
+    return renderTitle(startCase(type))
   }
 
   return (
     <Switch>
       <Route
         path='/:type(escalation-policies)/:id/:sub(services)'
-        render={renderSubPageTitle}
+        component={SubPageTitle}
       />
       <Route
-        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
-        render={renderSubPageTitle}
+        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels|alert-metrics)'
+        component={SubPageTitle}
       />
       <Route
         path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-        render={renderSubPageTitle}
+        component={SubPageTitle}
       />
       <Route
         path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-        render={renderSubPageTitle}
+        component={SubPageTitle}
       />
       <Route
         path='/:type(schedules)/:id/:sub(assignments|on-call-notifications|escalation-policies|overrides|shifts)'
-        render={renderSubPageTitle}
+        component={SubPageTitle}
       />
       <Route
         path='/:type(alerts|rotations|schedules|escalation-policies|services|users)/:id'
-        render={renderDetailsPageTitle}
+        component={DetailsPageTitle}
       />
       <Route
         path='/:type(alerts|rotations|schedules|escalation-policies|services|users|profile)'
-        render={renderTopLevelTitle}
+        component={TopLevelTitle}
       />
       <Route path='/wizard' render={() => renderTitle('Setup Wizard')} />
       <Route path='/admin' render={() => renderTitle('Admin Page')} />

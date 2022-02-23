@@ -14,10 +14,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -53,16 +53,16 @@ type App struct {
 	DB             *sql.DB
 	AuthBasicStore *basic.Store
 	UserStore      *user.Store
-	CMStore        contactmethod.Store
+	CMStore        *contactmethod.Store
 	NRStore        notificationrule.Store
-	NCStore        notificationchannel.Store
-	AlertStore     alert.Store
-	AlertLogStore  alertlog.Store
+	NCStore        *notificationchannel.Store
+	AlertStore     *alert.Store
+	AlertLogStore  *alertlog.Store
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
-	PolicyStore    escalation.Store
+	PolicyStore    *escalation.Store
 	ScheduleStore  *schedule.Store
-	CalSubStore    *calendarsubscription.Store
+	CalSubStore    *calsub.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
 	IntKeyStore    integrationkey.Store
@@ -79,7 +79,7 @@ type App struct {
 
 	AuthHandler *auth.Handler
 
-	NotificationStore notification.Store
+	NotificationStore *notification.Store
 	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { DateTime, Duration, Interval } from 'luxon'
-import p from 'prop-types'
+import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
 import { gql, useQuery } from '@apollo/client'
 import { relativeDate } from '../util/timeFormat'
@@ -57,7 +57,8 @@ const useStyles = makeStyles({
   },
 })
 
-function ScheduleShiftList({ scheduleID }) {
+function ScheduleShiftList() {
+  const { scheduleID } = useParams()
   const classes = useStyles()
 
   const [create, setCreate] = useState(null)
@@ -70,7 +71,7 @@ function ScheduleShiftList({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
 
   const defaultStart = useMemo(
-    () => DateTime.fromObject({ zone }).startOf('day').toISO(),
+    () => DateTime.local({ zone }).startOf('day').toISO(),
     [zone],
   )
   const [_start, setStart] = useURLParam('start', defaultStart)
@@ -120,7 +121,7 @@ function ScheduleShiftList({ scheduleID }) {
       }))
 
     if (activeOnly) {
-      const now = DateTime.fromObject({ zone })
+      const now = DateTime.local({ zone })
       shifts = shifts.filter((s) => s.interval.contains(now))
     }
 
@@ -304,10 +305,6 @@ function ScheduleShiftList({ scheduleID }) {
       )}
     </React.Fragment>
   )
-}
-
-ScheduleShiftList.propTypes = {
-  scheduleID: p.string.isRequired,
 }
 
 export default ScheduleShiftList

@@ -7,14 +7,14 @@ import {
   Typography,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@mui/icons-material/ChevronLeft'
 import RightIcon from '@mui/icons-material/ChevronRight'
-import { theme } from '../../mui'
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   arrowBtns: {
     marginLeft: theme.spacing(1.75),
     marginRight: theme.spacing(1.75),
@@ -34,7 +34,7 @@ function ScheduleCalendarToolbar(
   props: ScheduleCalendarToolbarProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
+  const { weekly, start, setParams: setNavParams } = useCalendarNavigation()
 
   const getHeader = (): string => {
     if (weekly) {
@@ -73,31 +73,33 @@ function ScheduleCalendarToolbar(
 
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
-      setWeekly(true)
-      setStart(getStartOfWeek().toISODate())
+      setNavParams({ weekly: true, start: getStartOfWeek().toISODate() })
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
-      setWeekly(true)
-      setStart(DateTime.fromISO(start).startOf('month').toISODate())
+      setNavParams({
+        weekly: true,
+        start: DateTime.fromISO(start).startOf('month').toISODate(),
+      })
 
       // go from week to monthly view
       // e.g. if navigating to an overlap of two months such as
       // Jan 27 - Feb 2, show the latter month (February)
     } else {
-      setWeekly(false)
-
-      setStart(
-        getEndOfWeek(DateTime.fromISO(start)).startOf('month').toISODate(),
-      )
+      setNavParams({
+        weekly: false,
+        start: getEndOfWeek(DateTime.fromISO(start))
+          .startOf('month')
+          .toISODate(),
+      })
     }
   }
 
   const onNavigate = (next: DateTime): void => {
     if (weekly) {
-      setStart(getStartOfWeek(next).toISODate())
+      setNavParams({ start: getStartOfWeek(next).toISODate() })
     } else {
-      setStart(next.startOf('month').toISODate())
+      setNavParams({ start: next.startOf('month').toISODate() })
     }
   }
 

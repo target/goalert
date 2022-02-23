@@ -5,12 +5,11 @@ import (
 	"net/url"
 
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -102,21 +101,21 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertLogStore == nil {
-		app.AlertLogStore, err = alertlog.NewDB(ctx, app.db)
+		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alertlog store")
 	}
 
 	if app.AlertStore == nil {
-		app.AlertStore, err = alert.NewDB(ctx, app.db, app.AlertLogStore)
+		app.AlertStore, err = alert.NewStore(ctx, app.db, app.AlertLogStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alert store")
 	}
 
 	if app.ContactMethodStore == nil {
-		app.ContactMethodStore, err = contactmethod.NewDB(ctx, app.db)
+		app.ContactMethodStore, err = contactmethod.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init contact method store")
@@ -165,14 +164,14 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewDB(ctx, app.db)
+		app.NCStore, err = notificationchannel.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")
 	}
 
 	if app.EscalationStore == nil {
-		app.EscalationStore, err = escalation.NewDB(ctx, app.db, escalation.Config{
+		app.EscalationStore, err = escalation.NewStore(ctx, app.db, escalation.Config{
 			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {
@@ -199,7 +198,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NotificationStore == nil {
-		app.NotificationStore, err = notification.NewDB(ctx, app.db)
+		app.NotificationStore, err = notification.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification store")
@@ -217,13 +216,6 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init override store")
-	}
-
-	if app.Resolver == nil {
-		app.Resolver, err = resolver.NewDB(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
-	}
-	if err != nil {
-		return errors.Wrap(err, "init resolver")
 	}
 
 	if app.LimitStore == nil {
@@ -257,7 +249,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.CalSubStore == nil {
-		app.CalSubStore, err = calendarsubscription.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
+		app.CalSubStore, err = calsub.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")

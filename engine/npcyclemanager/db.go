@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -16,14 +16,14 @@ type DB struct {
 	lock *processinglock.Lock
 
 	queueMessages *sql.Stmt
-	log           alertlog.Store
+	log           *alertlog.Store
 }
 
 // Name returns the name of the module.
 func (db *DB) Name() string { return "Engine.NotificationCycleManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeNPCycle,
 		Version: 2,

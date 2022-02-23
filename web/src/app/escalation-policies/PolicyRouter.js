@@ -42,32 +42,18 @@ export default function PolicyRouter() {
     )
   }
 
-  function renderDetails({ match }) {
-    return (
-      <PolicyDetails escalationPolicyID={match.params.escalationPolicyID} />
-    )
-  }
-
-  function renderServices({ match }) {
-    return (
-      <PolicyServicesQuery
-        escalationPolicyID={match.params.escalationPolicyID}
-      />
-    )
-  }
-
   return (
     <Switch>
       <Route exact path='/escalation-policies' render={renderList} />
       <Route
         exact
         path='/escalation-policies/:escalationPolicyID'
-        render={renderDetails}
+        component={PolicyDetails}
       />
       <Route
         exact
         path='/escalation-policies/:escalationPolicyID/services'
-        render={renderServices}
+        component={PolicyServicesQuery}
       />
       <Route component={PageNotFound} />
     </Switch>

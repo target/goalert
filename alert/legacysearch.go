@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -59,7 +60,7 @@ var searchEscape = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 
 // LegacySearch will return a list of matching alerts, up to Limit, and the total number of matches
 // available.
-func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Alert, int, error) {
+func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Alert, int, error) {
 	if opts == nil {
 		opts = &LegacySearchOptions{}
 	}
@@ -172,7 +173,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Al
 		OFFSET %d
 	`, favServiceOnlyFilter, whereStr, orderStr, opts.Limit, opts.Offset)
 
-	tx, err := db.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if err != nil {
 		return nil, 0, err
 	}

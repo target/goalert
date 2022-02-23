@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/processinglock"
@@ -43,7 +43,7 @@ type DB struct {
 	sendDeadlineExpired *sql.Stmt
 
 	failDisabledCM *sql.Stmt
-	alertlogstore  alertlog.Store
+	alertlogstore  *alertlog.Store
 
 	failSMSVoice *sql.Stmt
 
@@ -69,7 +69,7 @@ type DB struct {
 }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
 		Version: 9,

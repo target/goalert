@@ -33,7 +33,7 @@ It can be set to any value as it is internally passed through a key derivation f
 
 ## Running GoAlert
 
-To run GoAlert you can start the binary or the docker container. You will need to specify the `--db-url` and `--data-encryption-key` you plan to use.
+To run GoAlert, you can start the binary directly, or from a container image. You will need to specify the `--db-url` and `--data-encryption-key` you plan to use.
 
 The following examples use `postgres://goalert@localhost/goalert` and `super-awesome-secret-key` respectively.
 
@@ -45,10 +45,10 @@ Binary:
 goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key super-awesome-secret-key
 ```
 
-Docker:
+Container:
 
 ```bash
-docker run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key goalert/goalert
+podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key goalert/goalert
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.
