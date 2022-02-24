@@ -80,7 +80,7 @@ export default function AlertMetrics(): JSX.Element {
       },
       alertMetricsInput: {
         rInterval: `R${Math.floor(
-          maxDate.diff(minDate, 'days').toObject().days || 0,
+          until.diff(since, 'days').days,
         )}/${since.toISO()}/P1D`,
         filterByServiceID: [serviceID],
       },
