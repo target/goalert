@@ -9,11 +9,6 @@ body {
   height: 100%;
 }
 
-a {
-  text-decoration: none;
-  color: #cd1831;
-}
-
 a:hover {
   text-decoration: underline;
 }
