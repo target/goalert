@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/switchover/dbsync"
 )
 
+// TestDBSyncTables ensures the latest state of the database is compatible with the dbsync package.
 func TestDBSyncTables(t *testing.T) {
 	t.Parallel()
 
