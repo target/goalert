@@ -49,7 +49,7 @@ func TestAlertMetrics(t *testing.T) {
 	var metrics_ids []int
 
 	query := func() {
-		rows, err := conn.Query(ctx, "select id from alert_metrics")
+		rows, err := conn.Query(ctx, "select alert_id from alert_metrics")
 		assert.NoError(t, err)
 
 		metrics_ids = metrics_ids[:0]

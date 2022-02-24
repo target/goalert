@@ -1,7 +1,8 @@
 -- +migrate Up
 
 CREATE TABLE alert_metrics (
-    id BIGINT PRIMARY KEY REFERENCES alerts (id) ON DELETE CASCADE,
+    id BIGSERIAL NOT NULL UNIQUE,
+    alert_id BIGINT PRIMARY KEY REFERENCES alerts (id) ON DELETE CASCADE,
     service_id UUID NOT NULL,
     time_to_ack INTERVAL,
     time_to_close INTERVAL,

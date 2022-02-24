@@ -48,7 +48,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		recentlyClosed: p.P(`
 			select distinct log.alert_id
 			from alert_logs log
-			left join alert_metrics m on m.id = log.alert_id
+			left join alert_metrics m on m.alert_id = log.alert_id
 			where m isnull and log.event = 'closed' and log.timestamp >= now() - '1 hour'::interval
 			limit 500
 		`),
@@ -56,12 +56,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		scanAlerts: p.P(`
 			select a.id
 			from alerts a
-			left join alert_metrics m on m.id = a.id
+			left join alert_metrics m on m.alert_id = a.id
 			where m isnull and a.status = 'closed' and a.id between $1 and $2
 		`),
 
 		insertMetrics: p.P(`
-			insert into alert_metrics
+			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated)
 			select
 				a.id,
 				a.service_id,
