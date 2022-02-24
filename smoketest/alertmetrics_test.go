@@ -61,28 +61,9 @@ func TestAlertMetrics(t *testing.T) {
 		}
 	}
 
-	query()
-	assert.Len(t, metrics_ids, 0)
-
-	// cycle 1: recently closed alerts => 1, 2, 505
-	h.Trigger()
-	query()
-	assert.Len(t, metrics_ids, 3)
-	assert.Contains(t, metrics_ids, 1)
-	assert.Contains(t, metrics_ids, 2)
-	assert.Contains(t, metrics_ids, 505)
-
-	// cycle 2: no state, fill state with 505, check range 5 thru 505 => 6 (505 already processed)
-	h.Trigger()
-	query()
-	assert.Len(t, metrics_ids, 4)
-	assert.Contains(t, metrics_ids, 1)
-	assert.Contains(t, metrics_ids, 2)
-	assert.Contains(t, metrics_ids, 505)
-	assert.Contains(t, metrics_ids, 6)
-
-	// cycle 3: check range 1 thru 5 => 3, 4 (1, 2 already processed)
-	h.Trigger()
+	h.Trigger() // cycle 1: recently closed alerts => 1, 2, 505
+	h.Trigger() // cycle 2: no state, fill state with 505, check range 5 thru 505 => 6 (505 already processed)
+	h.Trigger() // cycle 3: check range 1 thru 5 => 3, 4 (1, 2 already processed)
 	query()
 	assert.Len(t, metrics_ids, 6)
 	assert.Contains(t, metrics_ids, 1)
@@ -91,5 +72,4 @@ func TestAlertMetrics(t *testing.T) {
 	assert.Contains(t, metrics_ids, 4)
 	assert.Contains(t, metrics_ids, 505)
 	assert.Contains(t, metrics_ids, 6)
-
 }
