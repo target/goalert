@@ -92,7 +92,7 @@ type Harness struct {
 	backend     *app.App
 	backendLogs io.Closer
 
-	dbURL       string
+	DBURL       string
 	dbName      string
 	delayOffset time.Duration
 	mx          sync.Mutex
@@ -141,7 +141,7 @@ func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Migrate("")
 
-	t.Fatal("DEBUG DB ::", h.dbURL)
+	t.Fatal("DEBUG DB ::", h.DBURL)
 	return nil
 }
 
@@ -189,7 +189,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		phoneCCG:       NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
 		emailG:         NewDataGen(t, "Email", DataGenFunc(func() string { return GenUUID() + "@example.com" })),
 		dbName:         name,
-		dbURL:          DBURL(name),
+		DBURL:          DBURL(name),
 		lastTimeChange: start,
 		start:          start,
 
@@ -262,7 +262,7 @@ func (h *Harness) Start() {
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 
-	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
+	_, err := migrate.ApplyAll(context.Background(), h.DBURL)
 	if err != nil {
 		h.t.Fatalf("failed to migrate backend: %v\n", err)
 	}
@@ -270,7 +270,7 @@ func (h *Harness) Start() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
+	poolCfg, err := pgxpool.ParseConfig(h.DBURL)
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
@@ -295,7 +295,7 @@ func (h *Harness) Start() {
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
 	appCfg.JSON = true
-	appCfg.DBURL = h.dbURL
+	appCfg.DBURL = h.DBURL
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
@@ -309,7 +309,7 @@ func (h *Harness) Start() {
 
 	go h.watchBackendLogs(r)
 
-	dbCfg, err := pgx.ParseConfig(h.dbURL)
+	dbCfg, err := pgx.ParseConfig(h.DBURL)
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
@@ -337,7 +337,7 @@ func (h *Harness) URL() string {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
+	_, err := migrate.Up(context.Background(), h.DBURL, migrationName)
 	if err != nil {
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
@@ -414,7 +414,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 		h.t.Fatalf("failed to render query template: %v", err)
 	}
 
-	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
+	err = ExecSQLBatch(context.Background(), h.DBURL, b.String())
 	if err != nil {
 		h.t.Fatalf("failed to exec query: %v\n%s", err, b.String())
 	}
