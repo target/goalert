@@ -2,8 +2,32 @@ import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
 import toTitleCase from '../../app/util/toTitleCase'
-
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      // Creates one outgoing log based on the provided options.
+      createOutgoingMessage: typeof createOutgoingMessage
+    }
+  }
+
+  interface OutgoingMessageOptions {
+    id?: string
+    serviceID?: string
+    serviceName?: string
+    epID?: string
+    alertID?: number
+    alertLogID?: number
+    userID?: string
+    userName?: string
+    contactMethodID?: string
+    messageType?: string
+    createdAt?: string
+    sentAt?: string
+    status?: string
+  }
+}
 
 const messageTypes = [
   'alert_notification',
@@ -65,13 +89,13 @@ function createOutgoingMessage(
         .createEPStep({
           targets: [
             {
-              id: msg.userID,
+              id: msg.userID as string, // guaranteed above
               type: 'user',
             },
           ],
         })
         .then(() => {
-          createOutgoingMessage({
+          return createOutgoingMessage({
             ...msg,
             epID: ep.id,
           })
@@ -95,7 +119,7 @@ function createOutgoingMessage(
     return cy.createAlert({ serviceID: msg.serviceID }).then((a: Alert) =>
       createOutgoingMessage({
         ...msg,
-        alertID: a.id.toString(),
+        alertID: a.id,
       }),
     )
   }
@@ -146,6 +170,7 @@ function createOutgoingMessage(
     .then(() => ({
       id: m.id,
       createdAt: m.createdAt,
+      updatedAt: '',
       type: msgTypeToDebugMsg(m.messageType),
       status: toTitleCase(m.status),
       userID: m.userID,

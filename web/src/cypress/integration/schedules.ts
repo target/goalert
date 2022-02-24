@@ -126,6 +126,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should navigate to and from on-call notifications', () => {
+      cy.get('ul[data-cy="route-links"] li').should('have.lengthOf', 5)
       cy.navigateToAndFrom(
         screen,
         'Schedule Details',
@@ -417,7 +418,7 @@ function testSchedules(screen: ScreenFormat): void {
             time: '00:00',
             weekdayFilter: [true, true, true, false, true, true, true],
           },
-          { time: null, weekdayFilter: null },
+          { time: undefined, weekdayFilter: undefined },
         ],
         { timeZone: 'UTC' },
       ).then((s: Schedule) => {
@@ -473,7 +474,7 @@ function testSchedules(screen: ScreenFormat): void {
             time: '00:00',
             weekdayFilter: [true, true, true, false, true, true, true],
           },
-          { time: null, weekdayFilter: null },
+          { time: undefined, weekdayFilter: undefined },
         ],
         { timeZone: 'UTC' },
       ).then((s: Schedule) => {
@@ -534,9 +535,12 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should edit from onChange to onSchedule', () => {
-      cy.setScheduleNotificationRules([{ time: null, weekdayFilter: null }], {
-        timeZone: 'UTC',
-      }).then((s: Schedule) => {
+      cy.setScheduleNotificationRules(
+        [{ time: undefined, weekdayFilter: undefined }],
+        {
+          timeZone: 'UTC',
+        },
+      ).then((s: Schedule) => {
         sched = s
         return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
       })

@@ -1,3 +1,12 @@
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login: typeof login
+      adminLogin: typeof adminLogin
+    }
+  }
+}
+
 function normalizeURL(url: string | null): string {
   if (!url) throw new Error('url required')
   return new URL(url).toString()

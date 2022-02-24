@@ -1,4 +1,13 @@
-export function sql(query: string): Cypress.Chainable {
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Executes a query directly against the test DB (no results). */
+      sql: typeof sql
+    }
+  }
+}
+
+function sql(query: string): Cypress.Chainable {
   const dbURL =
     Cypress.env('DB_URL') || 'postgres://goalert@localhost:5432?sslmode=disable'
 
@@ -11,3 +20,5 @@ export function sql(query: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('sql', sql)
+
+export {}
