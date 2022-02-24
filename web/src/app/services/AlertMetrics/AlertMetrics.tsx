@@ -77,6 +77,7 @@ export default function AlertMetrics(): JSX.Element {
         first: QUERY_LIMIT,
         notCreatedBefore: since.toISO(),
         createdBefore: until.toISO(),
+        filterByStatus: ['StatusClosed'],
       },
       alertMetricsInput: {
         rInterval: `R${Math.floor(
