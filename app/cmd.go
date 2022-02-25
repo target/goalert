@@ -118,19 +118,36 @@ var RootCmd = &cobra.Command{
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
-		if cfg.APIOnly {
-			err = migrate.VerifyAll(log.WithDebug(ctx), cfg.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "verify migrations")
+		doMigrations := func(url string) error {
+			if cfg.APIOnly {
+				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				if err != nil {
+					return errors.Wrap(err, "verify migrations")
+				}
+				return nil
 			}
-		} else {
+
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), cfg.DBURL)
+			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
 			if n > 0 {
 				log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+			}
+
+			return nil
+		}
+
+		err = doMigrations(cfg.DBURL)
+		if err != nil {
+			return err
+		}
+
+		if cfg.DBURLNext != "" {
+			err = doMigrations(cfg.DBURLNext)
+			if err != nil {
+				return errors.Wrap(err, "nextdb")
 			}
 		}
 
@@ -217,7 +234,6 @@ var (
 		Use:   "version",
 		Short: "Output the current version.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			migrations := migrate.Names()
 
 			fmt.Printf(`Version:   %s
@@ -472,7 +488,6 @@ Migration: %s (#%d)
 			up := viper.GetString("up")
 			if down != "" {
 				n, err := migrate.Down(ctx, c.DBURL, down)
-
 				if err != nil {
 					return errors.Wrap(err, "apply DOWN migrations")
 				}
@@ -483,7 +498,6 @@ Migration: %s (#%d)
 
 			if up != "" || down == "" {
 				n, err := migrate.Up(ctx, c.DBURL, up)
-
 				if err != nil {
 					return errors.Wrap(err, "apply UP migrations")
 				}
@@ -500,7 +514,6 @@ Migration: %s (#%d)
 		Use:   "set-config",
 		Short: "Sets current config values in the DB from stdin.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if viper.GetString("data-encryption-key") == "" && !viper.GetBool("allow-empty-data-encryption-key") {
 				return validation.NewFieldError("data-encryption-key", "Must not be empty, or set --allow-empty-data-encryption-key")
 			}
