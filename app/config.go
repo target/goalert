@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/util/log"
 )
 
@@ -71,4 +72,7 @@ type Config struct {
 	// InitialConfig will be pushed into the config store
 	// if specified before the engine is started.
 	InitialConfig *config.Config
+
+	// SWO should be set to operate in switchover mode.
+	SWO *swo.Manager
 }

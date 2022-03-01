@@ -24,8 +24,8 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
-	"github.com/target/goalert/switchover"
 	"github.com/target/goalert/switchover/dbsync"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -155,8 +155,8 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "connect to postgres")
 		}
+
 		var db *sql.DB
-		var h *switchover.Handler
 		if cfg.DBURLNext != "" {
 			u, err := url.Parse(cfg.DBURLNext)
 			if err != nil {
@@ -172,11 +172,12 @@ var RootCmd = &cobra.Command{
 			if err != nil {
 				return errors.Wrap(err, "connect to postres (next)")
 			}
-			h, err = switchover.NewHandler(ctx, l, dbc, dbcNext, cfg.DBURL, cfg.DBURLNext)
+			mgr, err := swo.NewManager(dbc, dbcNext, !cfg.APIOnly)
 			if err != nil {
 				return errors.Wrap(err, "init changeover handler")
 			}
-			db = h.DB()
+			db = mgr.DB()
+			cfg.SWO = mgr
 		} else {
 			db = sql.OpenDB(dbc)
 		}
@@ -185,16 +186,8 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
-		if h != nil {
-			h.SetApp(app)
-		}
 
-		go handleShutdown(ctx, func(ctx context.Context) error {
-			if h != nil {
-				h.Abort()
-			}
-			return app.Shutdown(ctx)
-		})
+		go handleShutdown(ctx, app.Shutdown)
 
 		// trigger engine cycles by process signal
 		trigCh := make(chan os.Signal, 1)
