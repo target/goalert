@@ -20,7 +20,7 @@ func (rc *retryConnector) Connect(ctx context.Context) (driver.Conn, error) {
 	var conn driver.Conn
 	var err error
 	err = retry.DoTemporaryError(func(_ int) error {
-		if rc.dbc == nil {
+		if rc.dbc != nil {
 			conn, err = rc.dbc.Connect(ctx)
 		} else {
 			conn, err = rc.drv.Open(rc.name)
