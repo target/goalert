@@ -24,12 +24,12 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
-	"github.com/target/goalert/sqltrace"
 	"github.com/target/goalert/switchover"
 	"github.com/target/goalert/switchover/dbsync"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqldrv"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
 	"github.com/target/goalert/web"
@@ -102,7 +102,7 @@ var RootCmd = &cobra.Command{
 			}
 		}()
 
-		wrappedDriver := sqltrace.WrapDriver(&stdlib.Driver{}, &sqltrace.WrapOptions{Query: true})
+		wrappedDriver := sqldrv.NewRetryDriver(&stdlib.Driver{}, 10)
 
 		u, err := url.Parse(cfg.DBURL)
 		if err != nil {
