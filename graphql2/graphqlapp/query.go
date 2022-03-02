@@ -4,23 +4,34 @@ import (
 	context "context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/service"
+	"github.com/target/goalert/user"
+	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
 
-type Query App
-type DebugMessage App
+type (
+	Query        App
+	DebugMessage App
+)
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
 func (a *App) formatNC(ctx context.Context, id string) (string, error) {
+	if id == "" {
+		return "", nil
+	}
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return "", err
@@ -94,28 +105,70 @@ func msgStatus(stat notification.Status) string {
 }
 
 func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessagesInput) ([]graphql2.DebugMessage, error) {
-	var options notification.RecentMessageSearchOptions
-	if input == nil {
-		input = &graphql2.DebugMessagesInput{}
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
 	}
+
+	var msgs []*struct {
+		ID           string
+		CreatedAt    time.Time
+		LastStatusAt time.Time
+		MessageType  notification.MessageType
+
+		LastStatus    notification.State
+		StatusDetails string
+		SrcValue      string
+
+		UserID string
+		User   *user.User `gorm:"foreignkey:ID;references:UserID"`
+
+		ContactMethodID string
+		ContactMethod   *contactmethod.ContactMethod `gorm:"foreignKey:ID;references:ContactMethodID"`
+
+		ChannelID string
+		Channel   *notificationchannel.Channel `gorm:"foreignKey:ID;references:ChannelID"`
+
+		ServiceID string
+		Service   *service.Service `gorm:"foreignKey:ID;references:ServiceID"`
+
+		AlertID       int
+		ProviderMsgID *notification.ProviderMessageID
+	}
+
+	db := sqlutil.FromContext(ctx).Table("outgoing_messages")
+
 	if input.CreatedAfter != nil {
-		options.After = *input.CreatedAfter
+		db = db.Where("created_at >= ?", *input.CreatedAfter)
 	}
 	if input.CreatedBefore != nil {
-		options.Before = *input.CreatedBefore
+		db = db.Where("created_at < ?", *input.CreatedBefore)
 	}
 	if input.First != nil {
-		options.Limit = *input.First
+		err = validate.Range("first", *input.First, 0, 1000)
+		if err != nil {
+			return nil, err
+		}
+		db = db.Limit(*input.First)
+	} else {
+		db = db.Limit(search.DefaultMaxResults)
 	}
-	msgs, err := a.NotificationStore.RecentMessages(ctx, &options)
+
+	err = db.
+		Preload("User", sqlutil.Columns("ID", "Name")).
+		Preload("Service", sqlutil.Columns("ID", "Name")).
+		Preload("Channel", sqlutil.Columns("ID", "Type", "Value")).
+		Preload("ContactMethod", sqlutil.Columns("ID", "Type", "Value")).
+		Order("created_at DESC").
+		Find(&msgs).Error
 	if err != nil {
 		return nil, err
 	}
 
 	var res []graphql2.DebugMessage
-	for _, _m := range msgs {
-		m := _m // clone since we're taking pointers to fields
-		dest, err := a.formatDest(ctx, m.Dest)
+	for _, m := range msgs {
+		dst := notification.DestFromPair(m.ContactMethod, m.Channel)
+		destStr, err := a.formatDest(ctx, dst)
 		if err != nil {
 			return nil, fmt.Errorf("format dest: %w", err)
 		}
@@ -123,35 +176,32 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 		msg := graphql2.DebugMessage{
 			ID:          m.ID,
 			CreatedAt:   m.CreatedAt,
-			UpdatedAt:   m.UpdatedAt,
-			Type:        strings.TrimPrefix(m.Type.String(), "MessageType"),
-			Status:      msgStatus(m.Status),
-			Destination: dest,
+			UpdatedAt:   m.LastStatusAt,
+			Type:        strings.TrimPrefix(m.MessageType.String(), "MessageType"),
+			Status:      msgStatus(notification.Status{State: m.LastStatus, Details: m.StatusDetails}),
+			Destination: destStr,
 		}
-		if m.UserID != "" {
-			msg.UserID = &m.UserID
+		if m.User != nil {
+			msg.UserID = &m.User.ID
+			msg.UserName = &m.User.Name
 		}
-		if m.UserName != "" {
-			msg.UserName = &m.UserName
-		}
-		if m.Status.SrcValue != "" && m.Dest.Type.IsUserCM() {
-			src, err := a.formatDest(ctx, notification.Dest{Type: m.Dest.Type, Value: m.Status.SrcValue})
+
+		if m.SrcValue != "" && m.ContactMethod != nil {
+			src, err := a.formatDest(ctx, notification.Dest{Type: dst.Type, Value: m.SrcValue})
 			if err != nil {
 				return nil, fmt.Errorf("format src: %w", err)
 			}
 			msg.Source = &src
 		}
-		if m.ServiceID != "" {
-			msg.ServiceID = &m.ServiceID
-		}
-		if m.ServiceName != "" {
-			msg.ServiceName = &m.ServiceName
+		if m.Service != nil {
+			msg.ServiceID = &m.Service.ID
+			msg.ServiceName = &m.Service.Name
 		}
 		if m.AlertID != 0 {
 			msg.AlertID = &m.AlertID
 		}
-		if m.ProviderID.ExternalID != "" {
-			msg.ProviderID = &m.ProviderID.ExternalID
+		if m.ProviderMsgID != nil {
+			msg.ProviderID = &m.ProviderMsgID.ExternalID
 		}
 
 		res = append(res, msg)

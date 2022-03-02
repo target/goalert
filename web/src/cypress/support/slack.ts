@@ -1,16 +1,25 @@
-import { SlackChannelConnection } from '../../schema'
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Gets a list of slack channels */
+      getSlackChannels: () => Cypress.Chainable<SlackChannel[]>
+    }
+  }
 
-export type SlackChannel = {
-  id: string
-  name: string
+  interface SlackChannel {
+    id: string
+    name: string
+  }
 }
 
 function getSlackChannels(): Cypress.Chainable<SlackChannel[]> {
   return cy
     .graphql(`query{slackChannels{nodes{id, name}}}`)
-    .then((resp: { slackChannels: SlackChannelConnection }) => {
+    .then((resp: GraphQLResponse) => {
       return resp.slackChannels.nodes
     })
 }
 
 Cypress.Commands.add('getSlackChannels', getSlackChannels)
+
+export {}

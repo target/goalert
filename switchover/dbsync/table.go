@@ -29,6 +29,7 @@ type Table struct {
 	DependsOn   map[string]bool
 	DependantOf map[string]bool
 }
+
 type Column struct {
 	Name string
 	Type string
@@ -79,6 +80,14 @@ func Tables(ctx context.Context, db *sql.DB) ([]Table, error) {
 		if col.Name == "id" {
 			tbl.IDCol = col
 		}
+	}
+
+	for _, table := range t {
+		if table.IDCol.Name != "" {
+			continue
+		}
+
+		return nil, fmt.Errorf("table %s has no id column", table.Name)
 	}
 
 	rows, err = db.QueryContext(ctx, `
@@ -170,9 +179,11 @@ func (c Column) IsInteger() bool {
 	}
 	return false
 }
+
 func (t Table) SafeName() string {
 	return sqlutil.QuoteID(t.Name)
 }
+
 func (t Table) ColumnNames() []string {
 	colNames := make([]string, len(t.Columns))
 	for i, col := range t.Columns {
@@ -184,9 +195,11 @@ func (t Table) ColumnNames() []string {
 func (t Table) FetchOneRow() string {
 	return fmt.Sprintf(`select * from %s where id = cast($1 as %s)`, t.SafeName(), t.IDCol.Type)
 }
+
 func (t Table) DeleteOneRow() string {
 	return fmt.Sprintf(`delete from %s where id = cast($1 as %s)`, t.SafeName(), t.IDCol.Type)
 }
+
 func (t Table) InsertOneRow() string {
 	return fmt.Sprintf(`
 		insert into %s

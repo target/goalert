@@ -1,18 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-interface GraphQLResponse {
-  data: any
+interface RawGraphQLResponse {
+  data: GraphQLResponse
   errors: [any]
 }
 
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      graphql: typeof graphql
+      graphqlVoid: typeof graphqlVoid
+    }
+  }
+
+  interface GraphQLResponse {
+    // NOTE graphql responses are arbitrary objects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
+}
+
+function graphqlVoid(
+  query: string,
+  variables?: { [key: string]: any },
+): Cypress.Chainable<void> {
+  cy.graphql(query, variables)
+
+  return cy.then(() => {})
+}
+
 // runs a graphql query returning the data response (after asserting no errors)
-function graphql(query: string, variables?: any): Cypress.Chainable<any> {
+function graphql(
+  query: string,
+  variables?: { [key: string]: any },
+): Cypress.Chainable<GraphQLResponse> {
   const url = '/api/graphql'
   if (!variables) variables = {}
 
   return cy.request('POST', url, { query, variables }).then((res) => {
     expect(res.status, 'status code').to.eq(200)
 
-    let data: GraphQLResponse
+    let data: RawGraphQLResponse
     try {
       if (typeof res.body === 'string') data = JSON.parse(res.body)
       else data = res.body
@@ -31,5 +58,6 @@ function graphql(query: string, variables?: any): Cypress.Chainable<any> {
 }
 
 Cypress.Commands.add('graphql', graphql)
+Cypress.Commands.add('graphqlVoid', graphqlVoid)
 
 export {}

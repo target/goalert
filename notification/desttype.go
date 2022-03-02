@@ -15,6 +15,23 @@ type Dest struct {
 	Value string
 }
 
+// DestFromPair will return a Dest for a notification channel/contact method pair.
+func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Channel) Dest {
+	switch {
+	case cm != nil:
+		return Dest{
+			ID: cm.ID, Value: cm.Value,
+			Type: ScannableDestType{CM: cm.Type}.DestType(),
+		}
+	case nc != nil:
+		return Dest{
+			ID: nc.ID, Value: nc.Value,
+			Type: ScannableDestType{NC: nc.Type}.DestType(),
+		}
+	}
+	return Dest{}
+}
+
 // DestType represents the type of destination, it is a combination of available contact methods and notification channels.
 type DestType int
 

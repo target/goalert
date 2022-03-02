@@ -69,6 +69,7 @@ function ToolbarAction(props) {
       {getRoute('/services/:serviceID/integration-keys')}
       {getRoute('/services/:serviceID/heartbeat-monitors')}
       {getRoute('/services/:serviceID/labels')}
+      {getRoute('/services/:serviceID/alert-metrics')}
       {getRoute('/users/:userID/on-call-assignments')}
       {getRoute('/users/:userID/sessions')}
       {getRoute('/users/:userID/schedule-calendar-subscriptions')}

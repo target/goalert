@@ -286,7 +286,7 @@ function testTemporarySchedule(screen: string): void {
     cy.dialogForm({
       userID: manualAddUser.name,
       'shift-start': shiftStart,
-      'shift-end': duration, // this value should not change
+      'shift-end': duration.toString(), // this value should not change
     })
     cy.get('button[data-cy="add-shift"]').click()
 

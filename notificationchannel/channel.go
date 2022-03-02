@@ -12,6 +12,8 @@ type Channel struct {
 	Value string
 }
 
+func (Channel) TableName() string { return "notification_channels" }
+
 func (c Channel) Normalize() (*Channel, error) {
 	if c.ID == "" {
 		c.ID = uuid.New().String()
