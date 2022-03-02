@@ -61,7 +61,7 @@ export const ScheduleCalendarContext =
   })
 
 export default function ScheduleDetails(): JSX.Element {
-  const { scheduleID } = useParams<{ scheduleID: string }>()
+  const { scheduleID = '' } = useParams()
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] =

@@ -8,9 +8,9 @@ import AlertsList from './AlertsList'
 export default function AlertRouter() {
   return (
     <Routes>
-      <Route exact path='/alerts' component={AlertsList} />
-      <Route exact path='/alerts/:alertID' component={AlertDetails} />
-      <Route component={PageNotFound} />
+      <Route path='/' element={<AlertsList />} />
+      <Route path=':alertID' element={<AlertDetails />} />
+      <Route element={<PageNotFound />} />
     </Routes>
   )
 }

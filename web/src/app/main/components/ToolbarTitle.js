@@ -120,9 +120,10 @@ function ToolbarTitle() {
     )
   }
 
-  function SubPageTitle() {
-    const { sub: _sub, type, id } = useParams()
+  function SubPageTitle({ isProfile }) {
+    const { sub: _sub, type: _type, id } = useParams()
     const sub = startCase(_sub)
+    const type = isProfile ? 'profile' : _type
 
     if (fullScreen) {
       // mobile, only render current title
@@ -164,37 +165,13 @@ function ToolbarTitle() {
 
   return (
     <Routes>
-      <Route
-        path='/:type(escalation-policies)/:id/:sub(services)'
-        component={SubPageTitle}
-      />
-      <Route
-        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels|alert-metrics)'
-        component={SubPageTitle}
-      />
-      <Route
-        path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-        component={SubPageTitle}
-      />
-      <Route
-        path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-        component={SubPageTitle}
-      />
-      <Route
-        path='/:type(schedules)/:id/:sub(assignments|on-call-notifications|escalation-policies|overrides|shifts)'
-        component={SubPageTitle}
-      />
-      <Route
-        path='/:type(alerts|rotations|schedules|escalation-policies|services|users)/:id'
-        component={DetailsPageTitle}
-      />
-      <Route
-        path='/:type(alerts|rotations|schedules|escalation-policies|services|users|profile)'
-        component={TopLevelTitle}
-      />
-      <Route path='/wizard' render={() => renderTitle('Setup Wizard')} />
-      <Route path='/admin' render={() => renderTitle('Admin Page')} />
-      <Route path='/docs' render={() => renderTitle('Documentation')} />
+      <Route path='/:type' element={<TopLevelTitle />} />
+      <Route path='/:type/:id' element={<DetailsPageTitle />} />
+      <Route path='/:type/:id/:sub' element={<SubPageTitle />} />
+      <Route path='/profile/:sub' element={<SubPageTitle isProfile />} />
+      <Route path='/wizard' element={renderTitle('Setup Wizard')} />
+      <Route path='/admin' element={renderTitle('Admin Page')} />
+      <Route path='/docs' element={renderTitle('Documentation')} />
     </Routes>
   )
 }

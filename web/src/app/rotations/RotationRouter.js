@@ -43,9 +43,9 @@ export default function RotationRouter() {
 
   return (
     <Routes>
-      <Route exact path='/rotations' render={renderList} />
-      <Route exact path='/rotations/:rotationID' component={RotationDetails} />
-      <Route component={PageNotFound} />
+      <Route path='/' element={renderList()} />
+      <Route path=':rotationID' element={<RotationDetails />} />
+      <Route element={<PageNotFound />} />
     </Routes>
   )
 }

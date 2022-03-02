@@ -117,7 +117,7 @@ export default function SideBarDrawerList(props) {
       <NavSubMenu
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
-        path={getPath(cfg)}
+        path={getPath(cfg).replace('/*', '')}
         subMenuRoutes={cfg.subRoutes}
         closeMobileSidebar={closeMobileSidebar}
       >
@@ -155,7 +155,7 @@ export default function SideBarDrawerList(props) {
                     key={idx}
                     parentIcon={navIcons[cfg.title]}
                     parentTitle={cfg.title}
-                    path={getPath(cfg)}
+                    path={getPath(cfg).replace('/*', '')}
                     subMenuRoutes={cfg.subRoutes}
                   >
                     {renderSidebarItem(navIcons[cfg.title], cfg.title)}
@@ -164,7 +164,7 @@ export default function SideBarDrawerList(props) {
               }
               return renderSidebarNavLink(
                 navIcons[cfg.title],
-                getPath(cfg),
+                getPath(cfg).replace('/*', ''),
                 cfg.title,
                 idx,
               )

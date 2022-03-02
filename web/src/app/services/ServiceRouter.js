@@ -64,34 +64,20 @@ export default function ServiceRouter() {
 
   return (
     <Routes>
-      <Route exact path='/services' render={renderList} />
+      <Route path='/' element={renderList()} />
+      <Route path=':serviceID/alerts' element={<ServiceAlerts />} />
+      <Route path=':serviceID' element={<ServiceDetails />} />
       <Route
-        exact
-        path='/services/:serviceID/alerts'
-        component={ServiceAlerts}
-      />
-      <Route exact path='/services/:serviceID' component={ServiceDetails} />
-      <Route
-        exact
-        path='/services/:serviceID/integration-keys'
-        component={IntegrationKeyList}
+        path=':serviceID/integration-keys'
+        element={<IntegrationKeyList />}
       />
       <Route
-        exact
-        path='/services/:serviceID/heartbeat-monitors'
-        component={HeartbeatMonitorList}
+        path=':serviceID/heartbeat-monitors'
+        element={<HeartbeatMonitorList />}
       />
-      <Route
-        exact
-        path='/services/:serviceID/labels'
-        component={ServiceLabelList}
-      />
-      <Route
-        exact
-        path='/services/:serviceID/alert-metrics'
-        component={AlertMetrics}
-      />
-      <Route component={PageNotFound} />
+      <Route path=':serviceID/labels' element={<ServiceLabelList />} />
+      <Route path=':serviceID/alert-metrics' element={<AlertMetrics />} />
+      <Route element={<PageNotFound />} />
     </Routes>
   )
 }

@@ -44,18 +44,13 @@ export default function PolicyRouter() {
 
   return (
     <Routes>
-      <Route exact path='/escalation-policies' render={renderList} />
+      <Route path='/' element={renderList()} />
+      <Route path=':escalationPolicyID' element={<PolicyDetails />} />
       <Route
-        exact
-        path='/escalation-policies/:escalationPolicyID'
-        component={PolicyDetails}
+        path=':escalationPolicyID/services'
+        element={<PolicyServicesQuery />}
       />
-      <Route
-        exact
-        path='/escalation-policies/:escalationPolicyID/services'
-        component={PolicyServicesQuery}
-      />
-      <Route component={PageNotFound} />
+      <Route element={<PageNotFound />} />
     </Routes>
   )
 }

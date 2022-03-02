@@ -36,8 +36,25 @@ function ToolbarAction(props) {
     )
   }
 
+  function renderToolbarMenu() {
+    return (
+      <Hidden mdUp>
+        <IconButton
+          aria-label='Open Navigation Menu'
+          aria-expanded={props.showMobileSidebar}
+          color='inherit'
+          data-cy='nav-menu-icon'
+          onClick={() => props.openMobileSidebar(true)}
+          size='large'
+        >
+          <MenuIcon />
+        </IconButton>
+      </Hidden>
+    )
+  }
+
   const getRoute = (route) => (
-    <Route path={route} render={() => renderToolbarAction()} />
+    <Route path={route} element={renderToolbarAction()} />
   )
 
   return (
@@ -57,22 +74,8 @@ function ToolbarAction(props) {
       {getRoute('/users/:userID/schedule-calendar-subscriptions')}
       {getRoute('/profile/on-call-assignments')}
       {getRoute('/profile/schedule-calendar-subscriptions')}
-      <Route
-        render={() => (
-          <Hidden mdUp>
-            <IconButton
-              aria-label='Open Navigation Menu'
-              aria-expanded={props.showMobileSidebar}
-              color='inherit'
-              data-cy='nav-menu-icon'
-              onClick={() => props.openMobileSidebar(true)}
-              size='large'
-            >
-              <MenuIcon />
-            </IconButton>
-          </Hidden>
-        )}
-      />
+      <Route path='/:type' element={renderToolbarMenu()} />
+      <Route path='/:type/:id' element={renderToolbarMenu()} />
     </Routes>
   )
 }

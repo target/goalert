@@ -76,12 +76,11 @@ export default function NavSubMenu(props) {
     const subMenu = subMenuRoutes.map((route, key) => {
       return (
         <NavLink
-          exact
           key={key}
           className={({ isActive }) =>
             isActive ? classes.navSelected : classes.nav
           }
-          to={route.path}
+          to={path + route.path}
           onClick={closeMobileSidebar}
         >
           <ListItem button tabIndex={-1}>

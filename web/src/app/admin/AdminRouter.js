@@ -19,16 +19,12 @@ function AdminRouter() {
 
   return (
     <Routes>
-      <Route exact path='/admin/config' component={AdminConfig} />
-      <Route exact path='/admin/limits' component={AdminLimits} />
-      <Route exact path='/admin/toolbox' component={AdminToolbox} />
-      <Route
-        exact
-        path='/admin/message-logs'
-        component={AdminDebugMessagesLayout}
-      />
+      <Route path='/config' element={<AdminConfig />} />
+      <Route path='/limits' element={<AdminLimits />} />
+      <Route path='/toolbox' element={<AdminToolbox />} />
+      <Route path='/message-logs' element={<AdminDebugMessagesLayout />} />
 
-      <Route component={PageNotFound} />
+      <Route element={<PageNotFound />} />
     </Routes>
   )
 }
