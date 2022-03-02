@@ -11,12 +11,12 @@ import (
 
 // Subscription stores the information from user subscriptions
 type Subscription struct {
-	ID         string
+	ID         string `gorm:"<-:create"`
 	Name       string
-	UserID     string
-	ScheduleID string
+	UserID     string    `gorm:"<-:create"`
+	ScheduleID string    `gorm:"<-:create"`
 	LastUpdate time.Time `gorm:"autoUpdateTime"`
-	LastAccess time.Time
+	LastAccess time.Time `gorm:"<-:create"`
 	Disabled   bool
 
 	// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
@@ -37,12 +37,10 @@ func (cs *Subscription) BeforeUpdate(db *gorm.DB) error {
 		return err
 	}
 
-	db.Statement.
-		// if not the same user, they will get not-found
-		Where("user_id = ?", permission.UserID(db.Statement.Context)).
+	// force user ID
+	cs.UserID = permission.UserID(db.Statement.Context)
+	db.Statement.Where(cs, "UserID")
 
-		// limit updatable fields
-		Select("name", "disabled", "config", "last_update")
 	return nil
 }
 
