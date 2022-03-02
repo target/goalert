@@ -5,6 +5,7 @@ import NotFavoriteIcon from '@mui/icons-material/FavoriteBorder'
 import Tooltip from '@mui/material/Tooltip'
 import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
+import { Theme } from '@mui/material'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy' | 'user'
@@ -13,14 +14,17 @@ interface SetFavoriteButtonProps {
   loading?: boolean
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme: Theme) => ({
   favorited: {
-    color: 'rgb(205, 24, 49)',
+    color:
+      theme.palette.mode === 'dark'
+        ? theme.palette.primary.main
+        : 'rgb(205, 24, 49)',
   },
   notFavorited: {
     color: 'inherit',
   },
-})
+}))
 
 export function FavoriteIcon(): JSX.Element {
   const classes = useStyles()
