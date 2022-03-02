@@ -73,8 +73,10 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 	err := sqlutil.Transaction(ctx, func(ctx context.Context, db *gorm.DB) error {
 		var cs calsub.Subscription
 		err := db.
-			Where("id = ?", input.ID).
-			Where("user_id", permission.UserID(ctx)).
+			Where(calsub.Subscription{
+				ID:     input.ID,
+				UserID: permission.UserID(ctx),
+			}).
 			Clauses(clause.Locking{Strength: "UPDATE"}).
 			Take(&cs).Error
 		if err != nil {
