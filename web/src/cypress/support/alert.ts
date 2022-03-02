@@ -235,12 +235,15 @@ function createManyAlerts(
 
 function closeAlert(id: number): Cypress.Chainable<void> {
   const query = `
-    mutation {
-      updateAlertStatus(input: $input) { id }
+    mutation ($id: Int!) {
+      updateAlerts(input: {
+        newStatus: StatusClosed
+        alertIDs: [$id]
+      }) { id }
     }
   `
 
-  return cy.graphqlVoid(query, { input: { id } })
+  return cy.graphqlVoid(query, { id })
 }
 
 Cypress.Commands.add('createAlert', createAlert)
