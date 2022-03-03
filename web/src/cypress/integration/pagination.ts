@@ -1,5 +1,4 @@
 import { Chance } from 'chance'
-import { Schedule } from '../../schema'
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -13,11 +12,8 @@ const padZeros = (val: string): string => {
 interface CreateOpts {
   name: string
 }
-type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
-type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
-type createManyFunc = (
-  names: Array<CreateOpts>,
-) => Cypress.Chainable<dataModel | dataModel[]>
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable
+type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable
 
 function testPaginating(
   label: string,

@@ -49,7 +49,7 @@ function clearSelect(
 function findByLabel(
   sub: JQuery<HTMLElement>,
   label: string,
-): Cypress.Chainable<JQuery<HTMLElement>> {
+): Cypress.Chainable {
   return isSearchSelect(sub).then((isSearchSelect) => {
     if (isSearchSelect) {
       cy.wrap(sub)
