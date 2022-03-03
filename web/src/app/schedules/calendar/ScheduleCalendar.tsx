@@ -1,15 +1,13 @@
-import React, { useContext } from 'react'
-import { PropTypes as p } from 'prop-types'
+import React, { ComponentType, useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken, useTheme } from '@mui/material/styles'
+import { darken, useTheme, Theme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
-import { Calendar } from 'react-big-calendar'
+import { Calendar, EventWrapperProps } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
@@ -23,10 +21,17 @@ import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
+import {
+  OnCallShift,
+  TemporarySchedule,
+  User,
+  UserOverride,
+} from '../../../schema'
+import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   card: {
     padding: theme.spacing(2),
   },
@@ -47,7 +52,53 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-function ScheduleCalendar(props) {
+interface CalendarEvent {
+  start: Date
+  end: Date
+  user?: {
+    name: string
+    id: string
+  }
+  title: React.ReactNode
+}
+
+export interface OnCallShiftEvent extends CalendarEvent {
+  type: 'onCallShift'
+  userID: string
+  user?: User
+  truncated: boolean
+}
+
+export interface OverrideEvent extends CalendarEvent {
+  type: 'override'
+  override: UserOverride
+}
+
+export interface TempSchedEvent extends CalendarEvent {
+  type: 'tempSched'
+  tempSched: TemporarySchedule
+}
+
+export interface TempSchedShiftEvent extends CalendarEvent {
+  type: 'tempSchedShift'
+  tempSched: TemporarySchedule
+}
+
+export type ScheduleCalendarEvent =
+  | OnCallShiftEvent
+  | OverrideEvent
+  | TempSchedEvent
+  | TempSchedShiftEvent
+
+interface ScheduleCalendarProps {
+  scheduleID: string
+  shifts: OnCallShift[]
+  overrides: UserOverride[]
+  temporarySchedules: TemporarySchedule[]
+  loading: boolean
+}
+
+function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -55,17 +106,22 @@ function ScheduleCalendar(props) {
 
   const { weekly, start } = useCalendarNavigation()
 
-  const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
-  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
+  const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
+  const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
 
   const { shifts, temporarySchedules } = props
 
-  const eventStyleGetter = (event, start, end, isSelected) => {
+  const eventStyleGetter = (
+    calEvent: ScheduleCalendarEvent,
+    start: Date | string,
+    end: Date | string,
+    isSelected: boolean,
+  ): React.HTMLAttributes<HTMLDivElement> => {
     const green = '#0C6618'
     const lavender = '#BB7E8C'
 
-    if (event.fixed) {
+    if (calEvent.type === 'tempSched' || calEvent.type === 'tempSchedShift') {
       return {
         style: {
           backgroundColor: isSelected ? darken(green, 0.3) : green,
@@ -73,7 +129,7 @@ function ScheduleCalendar(props) {
         },
       }
     }
-    if (event.isOverride) {
+    if (calEvent.type === 'override') {
       return {
         style: {
           backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
@@ -81,9 +137,11 @@ function ScheduleCalendar(props) {
         },
       }
     }
+
+    return {}
   }
 
-  const dayStyleGetter = (date) => {
+  const dayStyleGetter = (date: Date): React.HTMLAttributes<HTMLDivElement> => {
     const outOfBounds =
       DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
     const currentDay = DateTime.local().hasSame(
@@ -98,9 +156,11 @@ function ScheduleCalendar(props) {
         },
       }
     }
+
+    return {}
   }
 
-  const getOverrideTitle = (o) => {
+  const getOverrideTitle = (o: UserOverride): JSX.Element => {
     if (o.addUser && o.removeUser) {
       // replace override
       return (
@@ -127,8 +187,8 @@ function ScheduleCalendar(props) {
         </div>
       )
     }
+    // remove override
     return (
-      // remove override
       <div>
         <AccountMinus
           fontSize='small'
@@ -140,81 +200,86 @@ function ScheduleCalendar(props) {
     )
   }
 
-  const getCalEvents = (shifts, _tempScheds, userOverrides) => {
-    const tempSchedules = _tempScheds.map((sched) => ({
-      start: sched.start,
-      end: sched.end,
-      user: { name: 'Temporary Schedule' },
+  const getCalEvents = (
+    shifts: OnCallShift[],
+    _tempScheds: TemporarySchedule[],
+    userOverrides: UserOverride[],
+  ): ScheduleCalendarEvent[] => {
+    const tempSchedules: TempSchedEvent[] = _tempScheds.map((sched) => ({
+      type: 'tempSched',
+      start: new Date(sched.start),
+      end: new Date(sched.end),
+      title: 'Temporary Schedule',
       tempSched: sched,
-      fixed: true,
     }))
 
-    const overrides = userOverrides.map((o) => ({
-      user: {
-        name: getOverrideTitle(o),
-      },
-      start: o.start,
-      end: o.end,
-      fixed: false,
-      isTempSchedShift: false,
-      tempSched: false,
-      isOverride: true,
+    const overrides: OverrideEvent[] = userOverrides.map((o) => ({
+      type: 'override',
+      start: new Date(o.start),
+      end: new Date(o.end),
+      title: getOverrideTitle(o),
       override: o,
     }))
 
-    // flat list of all fixed shifts, with `fixed` set to true
-    const fixedShifts = _.flatten(
+    const tempSchedShifts: TempSchedShiftEvent[] = _.flatten(
       _tempScheds.map((sched) => {
         return sched.shifts.map((s) => ({
           ...s,
+          type: 'tempSchedShift',
+          start: new Date(s.start),
+          end: new Date(s.end),
+          title: s.user?.name || '',
           tempSched: sched,
-          fixed: true,
-          isTempSchedShift: true,
         }))
       }),
     )
 
-    const fixedIntervals = tempSchedules.map((t) => parseInterval(t, 'local'))
-    let filteredShifts = [
-      ...tempSchedules,
-      ...fixedShifts,
-      ...overrides,
+    const fixedIntervals = tempSchedules.map((t) =>
+      parseInterval(
+        { start: t.start.toISOString(), end: t.end.toISOString() },
+        'local',
+      ),
+    )
 
-      // Remove shifts within a temporary schedule, and trim any that overlap
-      ...trimSpans(shifts, fixedIntervals, 'local'),
+    // Remove shifts within a temporary schedule, and trim any that overlap
+    const onCallShiftEvents: OnCallShiftEvent[] = trimSpans(
+      shifts,
+      fixedIntervals,
+      'local',
+    ).map((s) => ({
+      ...s,
+      start: new Date(s.start),
+      end: new Date(s.end),
+      type: 'onCallShift',
+      title: s.user?.name || '',
+    }))
+
+    let filteredShifts: ScheduleCalendarEvent[] = [
+      ...tempSchedules,
+      ...tempSchedShifts,
+      ...overrides,
+      ...onCallShiftEvents,
     ]
 
     // if any users in users array, only show the ids present
     if (userFilter.length > 0) {
       filteredShifts = filteredShifts.filter((shift) =>
-        userFilter.includes(shift.user.id),
+        shift?.user?.id ? userFilter.includes(shift.user.id) : false,
       )
     }
 
     if (activeOnly) {
       filteredShifts = filteredShifts.filter(
         (shift) =>
-          shift.TempSched ||
-          Interval.fromDateTimes(
-            DateTime.fromISO(shift.start),
-            DateTime.fromISO(shift.end),
-          ).contains(DateTime.local()),
+          shift.type === 'tempSched' ||
+          shift.type === 'tempSchedShift' ||
+          Interval.fromDateTimes(shift.start, shift.end).contains(
+            DateTime.local(),
+          ),
       )
     }
 
-    return filteredShifts.map((shift) => {
-      return {
-        title: shift.user.name,
-        userID: shift.user.id,
-        start: new Date(shift.start),
-        end: new Date(shift.end),
-        fixed: shift.fixed,
-        isTempSchedShift: shift.isTempSchedShift,
-        tempSched: shift.tempSched,
-        isOverride: shift.isOverride,
-        override: shift.override,
-      }
-    })
+    return filteredShifts
   }
 
   return (
@@ -285,7 +350,7 @@ function ScheduleCalendar(props) {
               fontFamily: theme.typography.body2.fontFamily,
               fontSize: theme.typography.body2.fontSize,
             }}
-            tooltipAccessor={() => null}
+            tooltipAccessor={() => ''}
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents
@@ -294,7 +359,9 @@ function ScheduleCalendar(props) {
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
-              eventWrapper: ScheduleCalendarEventWrapper,
+              eventWrapper: ScheduleCalendarEventWrapper as ComponentType<
+                EventWrapperProps<ScheduleCalendarEvent>
+              >,
               toolbar: () => null,
             }}
           />
@@ -302,14 +369,6 @@ function ScheduleCalendar(props) {
       </Card>
     </React.Fragment>
   )
-}
-
-ScheduleCalendar.propTypes = {
-  scheduleID: p.string.isRequired,
-  shifts: p.array.isRequired,
-  overrides: p.array.isRequired,
-  temporarySchedules: p.array,
-  loading: p.bool,
 }
 
 export default ScheduleCalendar
