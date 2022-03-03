@@ -22,6 +22,7 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
+import UserSettingsPopover from './components/UserSettingsPopover'
 
 const useStyles = makeStyles((theme) => ({
   '@global': {
@@ -96,6 +97,7 @@ export default function App() {
 
               <PageActionContainer />
               <SearchContainer />
+              <UserSettingsPopover />
             </Toolbar>
           </AppBar>
 
