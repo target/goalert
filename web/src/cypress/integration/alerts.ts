@@ -21,8 +21,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
 
     it('should handle searching by summary', () => {
@@ -32,8 +31,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
 
     it('should handle searching by service name', () => {
@@ -43,8 +41,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
 
     it('should handle toggling show by favorites filter', () => {
@@ -61,11 +58,9 @@ function testAlerts(screen: ScreenFormat): void {
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
         cy.get('[data-cy=apollo-list] li').should('contain', summary)
-        // should have length 26; list item header and 25 results
-        cy.get('[data-cy=apollo-list] li').should('have.length', 26)
+        cy.get('[data-cy=apollo-list] li').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
-        // should have length 51; list item header and 50 results
-        cy.get('[data-cy=apollo-list] li').should('have.length', 51)
+        cy.get('[data-cy=apollo-list] li').should('have.length', 50)
       })
     })
 
