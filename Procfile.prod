@@ -5,3 +5,6 @@ goalert: ./bin/goalert -l=localhost:3030 --db-url=postgres://goalert@localhost:5
 
 smtp: go run github.com/mailhog/MailHog -ui-bind-addr=localhost:8025 -api-bind-addr=localhost:8025 -smtp-bind-addr=localhost:1025 | grep -v KEEPALIVE
 prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/prometheus.yml --storage.tsdb.path=bin/prom-data/ --web.listen-address=localhost:9090
+
+@watch-file=./graphql2/explore/explore.html
+explore: yarn workspace goalert-explore run dev
