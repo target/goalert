@@ -39,9 +39,10 @@ function useAvatar(
       alt=''
       src={validImage ? imgSrc : undefined}
       data-cy={validImage ? null : 'avatar-fallback'}
+      sx={{ bgcolor: (theme) => theme.palette.primary.main }}
       {...otherProps}
     >
-      {validImage ? null : <Fallback color='primary' />}
+      {validImage ? null : <Fallback />}
     </Avatar>
   )
 }
