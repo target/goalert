@@ -39,6 +39,12 @@ import Notices from '../../details/Notices'
 const useStyles = makeStyles((theme) => {
   return {
     ...styles(theme),
+    highlightRow: {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? theme.palette.secondary.dark
+          : theme.palette.secondary.light,
+    },
     epHeader: {
       paddingBottom: 8,
     },
