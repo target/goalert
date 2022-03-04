@@ -27,8 +27,7 @@ const useStyles = makeStyles((theme) => ({
   '@global': {
     a: {
       textDecoration: 'none',
-      color:
-        theme.palette.mode === 'dark' ? theme.palette.primary.main : '#cd1831',
+      color: theme.palette.secondary.main,
     },
   },
   root: {
