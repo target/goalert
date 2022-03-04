@@ -15,14 +15,12 @@ import {
   Today as SchedulesIcon,
   VpnKey as ServicesIcon,
   Build as AdminIcon,
-  Settings as WizardIcon,
 } from '@mui/icons-material'
-
-import routeConfig, { getPath } from '../routes'
-
+import { WizardHat as WizardIcon } from 'mdi-material-ui'
 import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import { useTheme } from '@mui/material/styles'
+import routeConfig, { getPath } from '../routes'
 import RequireConfig from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 import logo from '../../public/goalert-alt-logo.png'
