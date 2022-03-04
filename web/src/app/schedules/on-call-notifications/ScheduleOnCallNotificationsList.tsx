@@ -40,7 +40,7 @@ export default function ScheduleOnCallNotificationsList(): JSX.Element {
                         <SlackBW />{' '}
                       </Avatar>
                     ) : null,
-                  title: rule.target.name,
+                  title: rule.target.name ?? undefined,
                   subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (
                     <OtherActions

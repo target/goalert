@@ -197,10 +197,7 @@ export default function ScheduleCalendarEventWrapper({
   }
 
   function renderOverrideDescription(calEvent: OverrideEvent): JSX.Element {
-    const getDesc = (
-      addUser: User | undefined,
-      removeUser: User | undefined,
-    ): JSX.Element => {
+    const getDesc = (addUser?: User, removeUser?: User): JSX.Element => {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -226,7 +223,10 @@ export default function ScheduleCalendarEventWrapper({
     return (
       <Grid item xs={12}>
         <Typography variant='body2'>
-          {getDesc(calEvent.override.addUser, calEvent.override.removeUser)}
+          {getDesc(
+            calEvent.override.addUser ?? undefined,
+            calEvent.override.removeUser ?? undefined,
+          )}
         </Typography>
       </Grid>
     )
