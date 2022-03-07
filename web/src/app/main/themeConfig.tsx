@@ -1,6 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react'
 import { PaletteOptions } from '@mui/material/styles/createPalette'
-import { grey } from '@mui/material/colors'
 import { isCypress } from '../env'
 import {
   createTheme,
@@ -47,7 +46,13 @@ function getPalette(mode: string): PaletteOptions {
   if (mode === 'dark' || (mode === 'system' && prefersDark)) {
     return {
       mode: 'dark',
-      secondary: grey,
+      primary: { main: '#62D3FF', light: '#B6EAFF', dark: '#004D62' },
+      secondary: { main: '#B4CAD6', light: '#CFE6F1', dark: '#354A53' },
+      background: {
+        default: '#191C1E',
+        paper: '#40484C',
+      },
+      error: { main: '#FFB4A9' },
     }
   }
 
@@ -55,10 +60,16 @@ function getPalette(mode: string): PaletteOptions {
     return {
       mode: 'light',
       primary: {
-        ...grey,
-        main: '#616161',
+        main: '#006684',
+        light: '#B6EAFF',
+        dark: '#001F2A',
       },
-      secondary: grey,
+      secondary: { main: '#4C616B', light: '#CFE6F1', dark: '#071E26' },
+      background: {
+        default: '#FBFCFE',
+        paper: '#DCE4E9',
+      },
+      error: { main: '#BA1B1B' },
     }
   }
 

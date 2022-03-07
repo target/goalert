@@ -1,6 +1,5 @@
 html,
 body {
-  background-color: lightgrey;
   height: 100%;
   margin: 0;
 }
@@ -19,7 +18,7 @@ a:hover {
 }
 
 .rbc-time-content .rbc-current-time-indicator::before {
-  content: "";
+  content: '';
   display: inline-block;
   width: 10px;
   height: 10px;
