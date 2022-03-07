@@ -47,7 +47,9 @@ export default function UserSettingsPopover(): JSX.Element {
           </Grid>
           <Grid item>
             <AppLink to='/profile' style={{ textDecoration: 'none' }}>
-              <Button variant='outlined'>Manage Profile</Button>
+              <Button variant='outlined' onClick={() => setAnchorEl(null)}>
+                Manage Profile
+              </Button>
             </AppLink>
           </Grid>
           <Grid item>
