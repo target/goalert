@@ -28,7 +28,7 @@ function ToolbarAction(props) {
         aria-label='Back a Page'
         color='inherit'
         data-cy='nav-back-icon'
-        onClick={() => navigate(route, { replace: true })}
+        onClick={() => navigate(route)}
         size='large'
       >
         <ChevronLeft />
