@@ -69,12 +69,6 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return nil
 	}
 
-	var state State
-	err = lockState.Load(ctx, &state)
-	if err != nil {
-		return fmt.Errorf("load state: %w", err)
-	}
-
 	// fetch min alert id from db for later
 	var minAlertID sql.NullInt64
 	err = tx.StmtContext(ctx, db.lowAlertID).QueryRowContext(ctx).Scan(&minAlertID)
@@ -85,6 +79,12 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	if !minAlertID.Valid {
 		// no alerts
 		return nil
+	}
+
+	var state State
+	err = lockState.Load(ctx, &state)
+	if err != nil {
+		return fmt.Errorf("load state: %w", err)
 	}
 
 	if state.V1.NextAlertID == 0 || state.V1.NextAlertID < int(minAlertID.Int64) {
