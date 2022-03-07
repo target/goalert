@@ -37,13 +37,11 @@ const useStyles = makeStyles(() => ({
 
 function LoadingItem(props: { dense?: boolean }): JSX.Element {
   return (
-    <React.Fragment>
-      <ListItem dense={props.dense}>
-        <Skeleton variant='rectangular' animation='wave' width='100%'>
-          <ListItemText primary='.' secondary='.' />
-        </Skeleton>
-      </ListItem>
-    </React.Fragment>
+    <ListItem dense={props.dense}>
+      <Skeleton variant='rectangular' animation='wave' width='100%'>
+        <ListItemText primary='.' secondary='.' />
+      </Skeleton>
+    </ListItem>
   )
 }
 
