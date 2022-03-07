@@ -68,7 +68,7 @@ function getPalette(mode: string): PaletteOptions {
       secondary: { main: '#b5cad6', light: '#d0e6f3', dark: '#354a54' },
       background: {
         default: '#191c1e',
-        paper: '#40484c', // m3 surface variant
+        paper: '#191c1e', // m3 surface
       },
       error: { main: '#ffb4a9', light: '#ffdad4', dark: '#930006' },
     }
