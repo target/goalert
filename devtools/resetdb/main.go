@@ -279,7 +279,7 @@ func fillDB(ctx context.Context, url string) error {
 	must(err)
 
 	// fix sequences
-	_, err = pool.Exec(ctx, "SELECT pg_catalog.setval('public.alerts_id_seq', (select count(*) from public.alerts), true);")
+	_, err = pool.Exec(ctx, "SELECT pg_catalog.setval('public.alerts_id_seq', (select max(id)+1 from public.alerts), true);")
 	must(err)
 	return nil
 }
