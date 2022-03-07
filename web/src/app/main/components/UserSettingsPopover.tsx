@@ -1,6 +1,7 @@
 import React from 'react'
 import Button from '@mui/material/Button'
 import ButtonBase from '@mui/material/ButtonBase'
+import IconButton from '@mui/material/IconButton'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
@@ -26,9 +27,12 @@ export default function UserSettingsPopover(): JSX.Element {
 
   return (
     <React.Fragment>
-      <ButtonBase onClick={(event) => setAnchorEl(event.currentTarget)}>
+      <IconButton
+        size='small'
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+      >
         <CurrentUserAvatar />
-      </ButtonBase>
+      </IconButton>
       <Popover
         open={open}
         anchorEl={anchorEl}
