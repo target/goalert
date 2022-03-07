@@ -82,6 +82,11 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return fmt.Errorf("query min alert id: %w", err)
 	}
 
+	if !minAlertID.Valid {
+		// no alerts
+		return nil
+	}
+
 	if state.V1.NextAlertID == 0 || state.V1.NextAlertID < int(minAlertID.Int64) {
 		// no state, or reset, set to the highest alert id from the db
 		err = tx.StmtContext(ctx, db.highAlertID).QueryRowContext(ctx).Scan(&state.V1.NextAlertID)
