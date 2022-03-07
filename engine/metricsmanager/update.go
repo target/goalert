@@ -2,6 +2,7 @@ package metricsmanager
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/target/goalert/permission"
@@ -11,7 +12,7 @@ import (
 
 type State struct {
 	V1 struct {
-		NextAlertID int
+		NextAlertID sql.NullInt64
 	}
 }
 
@@ -75,13 +76,13 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	// fetch min alert id from db for later
-	var minAlertID int
+	var minAlertID sql.NullInt64
 	err = tx.StmtContext(ctx, db.lowAlertID).QueryRowContext(ctx).Scan(&minAlertID)
 	if err != nil {
 		return fmt.Errorf("query min alert id: %w", err)
 	}
 
-	if state.V1.NextAlertID == 0 || state.V1.NextAlertID < minAlertID {
+	if state.V1.NextAlertID.Int64 == 0 || state.V1.NextAlertID.Int64 < minAlertID.Int64 {
 		// no state, or reset, set to the highest alert id from the db
 		err = tx.StmtContext(ctx, db.highAlertID).QueryRowContext(ctx).Scan(&state.V1.NextAlertID)
 		if err != nil {
@@ -90,8 +91,8 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	// clamp min alert ID 500 below next
-	if minAlertID < state.V1.NextAlertID-500 {
-		minAlertID = state.V1.NextAlertID - 500
+	if minAlertID.Int64 < state.V1.NextAlertID.Int64-500 {
+		minAlertID.Int64 = state.V1.NextAlertID.Int64 - 500
 	}
 
 	// fetch alerts to update
@@ -118,7 +119,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	// update and save state
-	state.V1.NextAlertID = minAlertID - 1
+	state.V1.NextAlertID.Int64 = minAlertID.Int64 - 1
 	err = lockState.Save(ctx, &state)
 	if err != nil {
 		return fmt.Errorf("save state: %w", err)
