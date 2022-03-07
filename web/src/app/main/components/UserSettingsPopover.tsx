@@ -16,31 +16,23 @@ export default function UserSettingsPopover(): JSX.Element {
   const [feedbackEnabled] = useConfigValue('Feedback.Enable')
   const { userName } = useSessionInfo()
   const firstName = userName?.split(' ')[0]
+
   const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const logout = () => dispatch(authLogout(true))
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = (): void => {
-    setAnchorEl(null)
-  }
-
   const open = Boolean(anchorEl)
 
   return (
     <React.Fragment>
-      <ButtonBase onClick={handleClick}>
+      <ButtonBase onClick={(event) => setAnchorEl(event.currentTarget)}>
         <CurrentUserAvatar />
       </ButtonBase>
       <Popover
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
+        onClose={() => setAnchorEl(null)}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',
@@ -89,13 +81,6 @@ export default function UserSettingsPopover(): JSX.Element {
           </Grid>
         </Grid>
       </Popover>
-
-      {/* {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
-        onClick: (e) => {
-          e.preventDefault()
-          logout()
-        },
-      })} */}
     </React.Fragment>
   )
 }
