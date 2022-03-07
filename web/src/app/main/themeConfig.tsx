@@ -40,36 +40,37 @@ function handleStoreThemeMode(theme: string): boolean {
   return false
 }
 
+// palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
 function getPalette(mode: string): PaletteOptions {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
-  if (mode === 'dark' || (mode === 'system' && prefersDark)) {
-    return {
-      mode: 'dark',
-      primary: { main: '#62D3FF', light: '#B6EAFF', dark: '#004D62' },
-      secondary: { main: '#B4CAD6', light: '#CFE6F1', dark: '#354A53' },
-      background: {
-        default: '#191C1E',
-        paper: '#40484C',
-      },
-      error: { main: '#FFB4A9' },
-    }
-  }
 
   if (mode === 'light' || (mode === 'system' && !prefersDark)) {
     return {
       mode: 'light',
       primary: {
         main: '#006684',
-        light: '#B6EAFF',
-        dark: '#001F2A',
+        light: '#bbe9ff',
+        dark: '#001f2a',
       },
-      secondary: { main: '#4C616B', light: '#CFE6F1', dark: '#071E26' },
+      secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
       background: {
-        default: '#FBFCFE',
-        paper: '#DCE4E9',
+        default: '#fbfcfe',
+        paper: '#dce3e8', // m3 surface variant
       },
-      error: { main: '#BA1B1B' },
+      error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
+    }
+  }
+
+  if (mode === 'dark' || (mode === 'system' && prefersDark)) {
+    return {
+      mode: 'dark',
+      primary: { main: '#64d3ff', light: '#bbe9ff', dark: '#004d65' },
+      secondary: { main: '#b5cad6', light: '#d0e6f3', dark: '#354a54' },
+      background: {
+        default: '#191c1e',
+        paper: '#40484c', // m3 surface variant
+      },
+      error: { main: '#ffb4a9', light: '#ffdad4', dark: '#930006' },
     }
   }
 
