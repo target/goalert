@@ -37,7 +37,7 @@ const query = gql`
 interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
-  defaultValue: {
+  defaultValue?: {
     addUserID?: string
     removeUserID?: string
     start: string
@@ -48,7 +48,7 @@ interface OverrideDialog {
 interface ScheduleCalendarContext {
   onNewTempSched: () => void
   onEditTempSched: (v: TempSchedValue) => void
-  onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
+  onDeleteTempSched: React.Dispatch<React.SetStateAction<TempSchedValue | null>>
   setOverrideDialog: React.Dispatch<React.SetStateAction<OverrideDialog | null>>
 }
 
@@ -66,7 +66,8 @@ export default function ScheduleDetails(): JSX.Element {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] =
     useState<Partial<TempSchedValue> | null>(null)
-  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+  const [deleteTempSchedule, setDeleteTempSchedule] =
+    useState<TempSchedValue | null>(null)
   const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
