@@ -12,7 +12,7 @@ import (
 
 type State struct {
 	V1 struct {
-		NextAlertID sql.NullInt64
+		NextAlertID int
 	}
 }
 
@@ -82,7 +82,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return fmt.Errorf("query min alert id: %w", err)
 	}
 
-	if state.V1.NextAlertID.Int64 == 0 || state.V1.NextAlertID.Int64 < minAlertID.Int64 {
+	if state.V1.NextAlertID == 0 || state.V1.NextAlertID < int(minAlertID.Int64) {
 		// no state, or reset, set to the highest alert id from the db
 		err = tx.StmtContext(ctx, db.highAlertID).QueryRowContext(ctx).Scan(&state.V1.NextAlertID)
 		if err != nil {
@@ -91,8 +91,8 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	// clamp min alert ID 500 below next
-	if minAlertID.Int64 < state.V1.NextAlertID.Int64-500 {
-		minAlertID.Int64 = state.V1.NextAlertID.Int64 - 500
+	if int(minAlertID.Int64) < state.V1.NextAlertID-500 {
+		minAlertID.Int64 = int64(state.V1.NextAlertID) - 500
 	}
 
 	// fetch alerts to update
@@ -119,7 +119,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	// update and save state
-	state.V1.NextAlertID.Int64 = minAlertID.Int64 - 1
+	state.V1.NextAlertID = int(minAlertID.Int64) - 1
 	err = lockState.Save(ctx, &state)
 	if err != nil {
 		return fmt.Errorf("save state: %w", err)
