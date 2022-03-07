@@ -77,10 +77,12 @@ func main() {
 			fmt.Fprintf(w, "export interface %s {\n", def.Name)
 			for _, e := range def.Fields {
 				mod := "?"
+				modTypeName := "null | "
 				if e.Type.NonNull {
 					mod = ""
+					modTypeName = ""
 				}
-				fmt.Fprintf(w, "  %s: %s\n", e.Name+mod, typeName(e.Type))
+				fmt.Fprintf(w, "  %s: %s\n", e.Name+mod, modTypeName+typeName(e.Type))
 			}
 			fmt.Fprintf(w, "}\n\n")
 		case ast.Scalar:

@@ -13,7 +13,7 @@ export type Shift = {
   end: string
   userID: string
 
-  user?: {
+  user?: null | {
     id: string
     name: string
   }
