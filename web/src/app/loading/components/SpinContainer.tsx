@@ -14,7 +14,7 @@ let uniqID = 0
 
 type SpinContainerProps = {
   loading: boolean
-  children: React.ReactChildren
+  children: React.ReactNode
 }
 
 export default function SpinContainer(props: SpinContainerProps): JSX.Element {

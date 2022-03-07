@@ -1,11 +1,12 @@
-import React, { ReactElement, useState } from 'react'
-import { Checkbox, Grid, IconButton, Tooltip } from '@mui/material'
+import React, { ReactElement, ReactNode, useState } from 'react'
+import { Card, Checkbox, Grid, IconButton, Tooltip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
+import { ListHeaderProps } from './ListHeader'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@mui/icons-material'
@@ -41,7 +42,11 @@ const useStyles = makeStyles({
   },
 })
 
-export interface ControlledPaginatedListProps extends PaginatedListProps {
+export interface ControlledPaginatedListProps
+  extends PaginatedListProps,
+    ListHeaderProps {
+  listHeader?: ReactNode
+
   checkboxActions?: ControlledPaginatedListAction[]
   secondaryActions?: ReactElement
 
@@ -89,6 +94,7 @@ export default function ControlledPaginatedList(
     noSearch,
     searchAdornment,
     items,
+    listHeader,
     ...listProps
   } = props
 
@@ -258,7 +264,10 @@ export default function ControlledPaginatedList(
       </Grid>
 
       <Grid item xs={12}>
-        <PaginatedList key={urlKey} {...listProps} items={getItems()} />
+        <Card>
+          {listHeader}
+          <PaginatedList key={urlKey} {...listProps} items={getItems()} />
+        </Card>
       </Grid>
     </React.Fragment>
   )

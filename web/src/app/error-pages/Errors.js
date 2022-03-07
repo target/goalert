@@ -39,12 +39,13 @@ ObjectNotFound.propTypes = {
 }
 
 export function GenericError(props) {
+  const theme = useTheme()
   let errorText
   if (props.error) {
     errorText = <Typography variant='caption'>{props.error}</Typography>
   }
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
       <SentimentVeryDissatisfied style={{ height: '33vh', width: '33vw' }} />
       <Typography variant='h5'>Sorry, an error occurred.</Typography>
       {errorText}

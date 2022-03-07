@@ -280,7 +280,17 @@ function testServices(screen: ScreenFormat): void {
       })
     })
 
-    it('should navigate to and from alerts', () => {
+    it('should navigate to and from metrics', () => {
+      cy.navigateToAndFrom(
+        screen,
+        'Service Details',
+        svc.name,
+        'Metrics',
+        `${svc.id}/alert-metrics`,
+      )
+    })
+
+    it('should navigate to and from metrics', () => {
       cy.navigateToAndFrom(
         screen,
         'Service Details',
@@ -622,6 +632,36 @@ function testServices(screen: ScreenFormat): void {
       cy.pageFab()
       cy.get('input[name=key]').type(`Create "${randomWord}"`)
       cy.get('[data-cy="select-dropdown"]').should('contain', 'No options')
+    })
+  })
+
+  describe('Metrics', () => {
+    let closedAlert: Alert
+    let openAlert: Alert
+    beforeEach(() =>
+      cy
+        .createAlert()
+        .then((a: Alert) => {
+          closedAlert = a
+          cy.closeAlert(a.id)
+          // non-closed alert
+          return cy.createAlert({ serviceID: a.serviceID })
+        })
+        .then((a: Alert) => {
+          openAlert = a
+          return cy.visit(`/services/${a.serviceID}/alert-metrics`)
+        }),
+    )
+
+    it('should display alert metrics', () => {
+      cy.get('[data-cy=metrics-table]')
+        .should('contain', closedAlert.summary)
+        .should('not.contain', openAlert.summary)
+
+      cy.get('path[name="Alert Count"]')
+        .should('have.length', 1)
+        .trigger('mouseover')
+      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count : 1')
     })
   })
 }
