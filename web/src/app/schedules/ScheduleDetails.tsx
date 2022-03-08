@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Redirect, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -37,7 +37,7 @@ const query = gql`
 interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
-  defaultValue: {
+  defaultValue?: {
     addUserID?: string
     removeUserID?: string
     start: string
@@ -48,7 +48,7 @@ interface OverrideDialog {
 interface ScheduleCalendarContext {
   onNewTempSched: () => void
   onEditTempSched: (v: TempSchedValue) => void
-  onDeleteTempSched: React.Dispatch<React.SetStateAction<null>>
+  onDeleteTempSched: React.Dispatch<React.SetStateAction<TempSchedValue | null>>
   setOverrideDialog: React.Dispatch<React.SetStateAction<OverrideDialog | null>>
 }
 
@@ -61,12 +61,13 @@ export const ScheduleCalendarContext =
   })
 
 export default function ScheduleDetails(): JSX.Element {
-  const { scheduleID } = useParams<{ scheduleID: string }>()
+  const { scheduleID = '' } = useParams()
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] =
     useState<Partial<TempSchedValue> | null>(null)
-  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+  const [deleteTempSchedule, setDeleteTempSchedule] =
+    useState<TempSchedValue | null>(null)
   const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
@@ -96,7 +97,7 @@ export default function ScheduleDetails(): JSX.Element {
   if (error) return <GenericError error={error.message} />
 
   if (!data) {
-    return showDelete ? <Redirect to='/schedules' push /> : <ObjectNotFound />
+    return showDelete ? <Navigate to='/schedules' /> : <ObjectNotFound />
   }
 
   return (

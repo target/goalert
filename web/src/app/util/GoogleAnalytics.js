@@ -40,7 +40,7 @@ GoogleAnalytics.propTypes = {
   options: p.object,
 }
 
-const RouteTracker = () => <Route component={GoogleAnalytics} />
+const RouteTracker = () => <Route element={<GoogleAnalytics />} />
 
 const init = (trackingID, options = {}) => {
   initialize(trackingID, {

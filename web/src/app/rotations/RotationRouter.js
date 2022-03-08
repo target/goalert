@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { PageNotFound } from '../error-pages/Errors'
 import RotationDetails from './RotationDetails'
 import RotationCreateDialog from './RotationCreateDialog'
@@ -42,10 +42,10 @@ export default function RotationRouter() {
   }
 
   return (
-    <Switch>
-      <Route exact path='/rotations' render={renderList} />
-      <Route exact path='/rotations/:rotationID' component={RotationDetails} />
-      <Route component={PageNotFound} />
-    </Switch>
+    <Routes>
+      <Route path='/' element={renderList()} />
+      <Route path=':rotationID' element={<RotationDetails />} />
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }
