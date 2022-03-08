@@ -16,7 +16,6 @@ function testSidebar(): void {
   testLink('Escalation Policies', '/escalation-policies')
   testLink('Services', '/services')
   testLink('Users', '/users')
-  testLink('Profile', '/profile')
 
   describe('Feedback', () => {
     it('should not display by default', () => {
