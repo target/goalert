@@ -230,6 +230,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
           end: new Date(s.end),
           title: s.user?.name || '',
           tempSched: sched,
+          user: s.user ?? undefined,
         }))
       }),
     )
@@ -252,6 +253,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
       end: new Date(s.end),
       type: 'onCallShift',
       title: s.user?.name || '',
+      user: s.user ?? undefined,
     }))
 
     let filteredShifts: ScheduleCalendarEvent[] = [

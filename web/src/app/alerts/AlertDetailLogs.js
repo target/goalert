@@ -10,7 +10,6 @@ import { DateTime } from 'luxon'
 import _ from 'lodash'
 import { formatTimeSince } from '../util/timeFormat'
 import { POLL_INTERVAL } from '../config'
-import { textColors } from '../styles/statusStyles'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -37,9 +36,6 @@ const query = gql`
 `
 
 const useStyles = makeStyles({
-  // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
-  // so that all three passed contrast requirements (WCAG 2 AA)
-  ...textColors,
   logTimeContainer: {
     width: 'max-content',
   },
@@ -104,11 +100,11 @@ export default function AlertDetailLogs(props) {
   const getLogStatusClass = (status) => {
     switch (status) {
       case 'OK':
-        return classes.statusOk
+        return 'success'
       case 'WARN':
-        return classes.statusWarn
+        return 'warning'
       case 'ERROR':
-        return classes.statusError
+        return 'error'
       default:
         return null
     }
@@ -117,11 +113,6 @@ export default function AlertDetailLogs(props) {
   const renderItem = (event, idx) => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
-    const detailsProps = {
-      classes: {
-        root: getLogStatusClass(status),
-      },
-    }
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
@@ -135,7 +126,7 @@ export default function AlertDetailLogs(props) {
         <ListItemText
           primary={event.message}
           secondary={details}
-          secondaryTypographyProps={detailsProps}
+          secondaryTypographyProps={{ color: getLogStatusClass(status) }}
         />
         <div>
           <ListItemText
