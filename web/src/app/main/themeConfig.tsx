@@ -100,7 +100,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         .matchMedia('(prefers-color-scheme: dark)')
         .addEventListener('change', setTheme)
 
-      return window
+      return () => window
         .matchMedia('(prefers-color-scheme: dark)')
         .removeEventListener('change', setTheme)
     }
