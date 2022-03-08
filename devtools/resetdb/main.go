@@ -20,9 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	adminID string
-)
+var adminID string
 
 func main() {
 	log.SetFlags(log.Lshortfile)
@@ -75,7 +73,6 @@ func main() {
 	if err != nil {
 		log.Fatal("insert random data:", err)
 	}
-
 }
 
 func fillDB(ctx context.Context, url string) error {
@@ -276,6 +273,10 @@ func fillDB(ctx context.Context, url string) error {
 
 	dt.Wait()
 	_, err = pool.Exec(ctx, "alter table alerts enable trigger all")
+	must(err)
+
+	// fix sequences
+	_, err = pool.Exec(ctx, "SELECT pg_catalog.setval('public.alerts_id_seq', (select max(id)+1 from public.alerts), true)")
 	must(err)
 	return nil
 }
