@@ -87,8 +87,9 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   )
 
   useEffect(() => {
-    const listener = (e: { matches: boolean }) =>
+    const listener = (e: { matches: boolean }): void => {
       setSystemTheme(e.matches ? 'dark' : 'light')
+    }
     window
       .matchMedia('(prefers-color-scheme: dark)')
       .addEventListener('change', listener)
