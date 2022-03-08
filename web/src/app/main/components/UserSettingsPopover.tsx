@@ -13,7 +13,10 @@ import AppLink from '../../util/AppLink'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 
 export default function UserSettingsPopover(): JSX.Element {
-  const [feedbackEnabled] = useConfigValue('Feedback.Enable')
+  const [feedbackEnabled, feedbackOverrideURL] = useConfigValue(
+    'Feedback.Enable',
+    'Feedback.OverrideURL',
+  )
   const { userName } = useSessionInfo()
   const firstName = userName?.split(' ')[0]
 
@@ -64,8 +67,12 @@ export default function UserSettingsPopover(): JSX.Element {
             {feedbackEnabled && (
               <AppLink
                 newTab
-                to='https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback'
+                to={
+                  (feedbackOverrideURL as string) ||
+                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback'
+                }
                 style={{ textDecoration: 'none' }}
+                data-cy='feedback'
               >
                 <Button variant='outlined' endIcon={<OpenInNew />}>
                   Feedback

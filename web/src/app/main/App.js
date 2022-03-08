@@ -78,7 +78,7 @@ export default function App() {
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'
   return (
-    <div className={classes.root}>
+    <div className={classes.root} id='app-root'>
       <PageActionProvider>
         <SearchProvider>
           <AppBar

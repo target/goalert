@@ -73,6 +73,71 @@ function testProfile(): void {
       })
   })
 
+  describe('Settings', () => {
+    it('should visit profile', () => {
+      cy.visit('/')
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="manage-profile"]')
+        .find('button')
+        .contains('Manage Profile')
+        .click()
+      cy.url().should('eq', Cypress.config().baseUrl + '/profile')
+    })
+
+    it('should change the theme mode', () => {
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="manage-profile"]')
+        .find('button')
+        .contains('Light')
+        .click()
+      cy.get('div[id="app-root"]').should(
+        'have.css',
+        'background-color',
+        'rgb(211, 211, 211)',
+      )
+
+      cy.get('[data-cy="manage-profile"]')
+        .find('button')
+        .contains('Dark')
+        .click()
+      cy.get('div[id="app-root"]').should(
+        'have.css',
+        'background-color',
+        'rgb(18, 18, 18)',
+      )
+    })
+
+    it('should not display feedback by default', () => {
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy=feedback]').should('not.exist')
+    })
+
+    it('should display feedback with default href when enabled', () => {
+      cy.updateConfig({ Feedback: { Enable: true } })
+      cy.reload()
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="manage-profile"]')
+        .find('[data-cy=feedback]')
+        .should('have.attr', 'href')
+        .and(
+          'match',
+          /https:\/\/www\.surveygizmo\.com\/s3\/4106900\/GoAlert-Feedback/,
+        )
+    })
+
+    it('should display feedback with correct href when overridden', () => {
+      cy.updateConfig({
+        Feedback: { Enable: true, OverrideURL: 'https://www.goalert.me' },
+      }).then(() => {
+        cy.get('[aria-label="Manage Profile"]').click()
+        cy.get('[data-cy="manage-profile"]')
+          .find('[data-cy=feedback]')
+          .should('have.attr', 'href')
+          .and('match', /https:\/\/www\.goalert\.me/)
+      })
+    })
+  })
+
   describe('Contact Methods', () => {
     function check(name: string, type: string, value: string): void {
       cy.pageFab('Contact')
