@@ -7,14 +7,10 @@
       content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui"
     />
     <title>{{ .ApplicationName }} - GraphQL API</title>
-    <style type="text/css">
-       {{ .PlayCSS }}
-    </style>
+    <link rel="stylesheet" href="explore/build/explore.css" />
   </head>
   <body>
     <div id="root" />
-    <script type="text/javascript">
-      {{ .PlayJS }}
-    </script>
+    <script src="explore/build/explore.js" type="text/javascript"></script>
   </body>
 </html>
