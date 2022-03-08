@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Redirect, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -81,7 +81,7 @@ export default function ServiceDetails() {
   if (error) return <GenericError error={error.message} />
 
   if (!_.get(data, 'service.id')) {
-    return showDelete ? <Redirect to='/services' push /> : <ObjectNotFound />
+    return showDelete ? <Navigate to='/services' /> : <ObjectNotFound />
   }
 
   return (

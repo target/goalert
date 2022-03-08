@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import _ from 'lodash'
-import { Redirect, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { Edit, Delete } from '@mui/icons-material'
 
 import CreateFAB from '../lists/CreateFAB'
@@ -59,7 +59,7 @@ export default function RotationDetails() {
 
   if (!data)
     return showDelete ? (
-      <Redirect to='/rotations' push />
+      <Navigate to='/rotations' />
     ) : (
       <ObjectNotFound type='rotation' />
     )

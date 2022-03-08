@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -44,7 +44,7 @@ const RotationCreateDialog = (props) => {
   )
 
   if (data?.createRotation) {
-    return <Redirect push to={`/rotations/${data.createRotation.id}`} />
+    return <Navigate to={`/rotations/${data.createRotation.id}`} />
   }
 
   return (

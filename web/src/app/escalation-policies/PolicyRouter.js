@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import PolicyCreateDialog from './PolicyCreateDialog'
 import PolicyDetails from './PolicyDetails'
 import PolicyServicesQuery from './PolicyServicesQuery'
@@ -43,19 +43,14 @@ export default function PolicyRouter() {
   }
 
   return (
-    <Switch>
-      <Route exact path='/escalation-policies' render={renderList} />
+    <Routes>
+      <Route path='/' element={renderList()} />
+      <Route path=':escalationPolicyID' element={<PolicyDetails />} />
       <Route
-        exact
-        path='/escalation-policies/:escalationPolicyID'
-        component={PolicyDetails}
+        path=':escalationPolicyID/services'
+        element={<PolicyServicesQuery />}
       />
-      <Route
-        exact
-        path='/escalation-policies/:escalationPolicyID/services'
-        component={PolicyServicesQuery}
-      />
-      <Route component={PageNotFound} />
-    </Switch>
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }

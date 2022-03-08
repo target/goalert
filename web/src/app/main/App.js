@@ -6,7 +6,7 @@ import ToolbarTitle from './components/ToolbarTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import { useSelector } from 'react-redux'
 import { authSelector } from '../selectors'
@@ -61,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function App() {
   const classes = useStyles()
+  const location = useLocation()
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')
   const marginLeft = fullScreen ? 0 : drawerWidth
@@ -128,10 +129,20 @@ export default function App() {
                 className={classes.mainContainer}
               >
                 <Grid className={classes.containerClass} item>
-                  <Switch>
+                  {/* redirect to remove trailing slashes */}
+                  {location.pathname.match('/.*/$') && (
+                    <Navigate
+                      replace
+                      to={{
+                        pathname: location.pathname.replace(/\/+$/, ''),
+                        search: location.search,
+                      }}
+                    />
+                  )}
+                  <Routes>
                     {renderRoutes(routeConfig)}
-                    <Route component={() => <LazyPageNotFound />} />
-                  </Switch>
+                    <Route element={<LazyPageNotFound />} />
+                  </Routes>
                 </Grid>
               </Grid>
             </ErrorBoundary>

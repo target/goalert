@@ -3,7 +3,7 @@ import { gql, useMutation } from '@apollo/client'
 
 import p from 'prop-types'
 
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
@@ -60,7 +60,7 @@ export default function ServiceCreateDialog(props) {
 
   const { loading, data, error } = createKeyStatus
   if (data && data.createService) {
-    return <Redirect push to={`/services/${data.createService.id}`} />
+    return <Navigate to={`/services/${data.createService.id}`} />
   }
 
   const fieldErrs = fieldErrors(error).filter(
