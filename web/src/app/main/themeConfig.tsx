@@ -41,9 +41,7 @@ function handleStoreThemeMode(theme: string): boolean {
   return false
 }
 
-function getPalette(mode: string): PaletteOptions {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
+function getPalette(mode: string, prefersDark: boolean): PaletteOptions {
   if (mode === 'dark' || (mode === 'system' && prefersDark)) {
     return {
       mode: 'dark',
@@ -65,7 +63,7 @@ function getPalette(mode: string): PaletteOptions {
   return {}
 }
 
-function makeTheme(mode: string): Theme {
+function makeTheme(mode: string, prefersDark: boolean): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -77,19 +75,36 @@ function makeTheme(mode: string): Theme {
   }
 
   return createTheme({
-    palette: getPalette(mode),
+    palette: getPalette(mode, prefersDark),
     ...testOverrides,
   })
 }
 
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const storedTheme = localStorage.getItem('theme')
+  const [themeMode, setThemeMode] = useState(storedTheme ?? 'system')
+  const [prefersDark, setPrefersDark] = useState(
+    window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
+
   useEffect(() => {
     if (!storedTheme) {
       localStorage.setItem('theme', 'system')
     }
+
+    if (themeMode === 'system') {
+      const setTheme = (e: { matches: boolean }): void => {
+        setPrefersDark(e.matches)
+      }
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', setTheme)
+
+      return window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .removeEventListener('change', setTheme)
+    }
   }, [])
-  const [themeMode, setThemeMode] = useState(storedTheme ?? 'system')
 
   return (
     <ThemeContext.Provider
@@ -102,7 +117,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         },
       }}
     >
-      <MUIThemeProvider theme={makeTheme(themeMode)}>
+      <MUIThemeProvider theme={makeTheme(themeMode, prefersDark)}>
         {props.children}
       </MUIThemeProvider>
     </ThemeContext.Provider>
