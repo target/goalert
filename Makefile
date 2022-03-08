@@ -116,8 +116,7 @@ check: force-yarn generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-EXPLORE_BUILD = $(shell find graphql2/explore/build)
-$(EXPLORE_BUILD): web/explore/explore.tsx
+graphql2/explore/build/explore.js graphql2/explore/build/explore.css: web/explore/explore.tsx
 	yarn workspace goalert-explore run build
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*

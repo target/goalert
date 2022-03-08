@@ -5,11 +5,12 @@
 
 BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
-GO_DEPS += migrate/migrations/ migrate/migrations/*.sql graphql2/explore/explore.html web/index.html graphql2/graphqlapp/slack.manifest.yaml
+GO_DEPS += migrate/migrations/ migrate/migrations/*.sql web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
+GO_DEPS += graphql2/explore/explore.html graphql2/explore/build/*
 
 ifdef BUNDLE
-	GO_DEPS += web/src/build/static/app.js
+	GO_DEPS += web/src/build/static/app.js graphql2/explore/build/explore.js graphql2/explore/build/explore.css
 endif
 
 GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')
