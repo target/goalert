@@ -29,6 +29,7 @@ export default function UserSettingsPopover(): JSX.Element {
       <IconButton
         size='small'
         onClick={(event) => setAnchorEl(event.currentTarget)}
+        aria-label='Manage Profile'
       >
         <CurrentUserAvatar />
       </IconButton>
@@ -41,6 +42,7 @@ export default function UserSettingsPopover(): JSX.Element {
           horizontal: 'right',
         }}
         PaperProps={{ sx: { p: 2 } }}
+        data-cy='manage-profile'
       >
         <Grid container direction='column' spacing={2}>
           <Grid item>
