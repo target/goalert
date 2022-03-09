@@ -13,8 +13,8 @@ import { ITEMS_PER_PAGE } from '../config'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
-import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
+import useStatusColors from '../theme/useStatusColors'
 
 // gray boxes on load
 // disable overflow
@@ -37,7 +37,6 @@ const useStyles = makeStyles(() => ({
   favoriteIcon: {
     backgroundColor: 'transparent',
   },
-  ...statusStyles,
 }))
 
 const loadingStyle = {
@@ -125,7 +124,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   } = props
 
   const classes = useStyles()
-
+  const statusColors = useStatusColors()
   const fullScreen = useIsWidthDown('md')
 
   function renderNoResults(): ReactElement {
@@ -151,18 +150,16 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       )
     }
 
-    // get status style for left-most border color
-    let itemClass = classes.noStatus
-    switch (item.status) {
-      case 'ok':
-        itemClass = classes.statusOK
-        break
-      case 'warn':
-        itemClass = classes.statusWarning
-        break
-      case 'err':
-        itemClass = classes.statusError
-        break
+    const borderColor = (s?: string): string => {
+      switch (s) {
+        case 'ok':
+        case 'warn':
+        case 'err':
+          return statusColors[s]
+
+        default:
+          return 'transparent'
+      }
     }
 
     const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
@@ -186,7 +183,9 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     return (
       <ListItem
-        className={itemClass}
+        sx={{
+          borderLeft: `3px solid ${borderColor(item.status)}`,
+        }}
         dense={!fullScreen}
         key={'list_' + idx}
         {...urlProps}
