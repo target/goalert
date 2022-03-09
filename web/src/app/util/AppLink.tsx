@@ -31,10 +31,10 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
       other.rel = 'noopener noreferrer'
     }
 
-    console.log(to)
+    const external = /^(tel:|mailto:|https?:\/\/)/.test(to)
 
     // handle relative URLs
-    if (!/^(mailto:|https?:\/\/|\/)/.test(to)) {
+    if (!external && !to.startsWith('/')) {
       to = joinURL(pathname, to)
     }
 
@@ -43,7 +43,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
         ref={ref}
         to={to}
         href={to}
-        component={RRLink}
+        component={external ? 'a' : RRLink}
         underline='none'
         color={color}
         {...other}
