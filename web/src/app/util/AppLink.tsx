@@ -44,7 +44,6 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
         to={to}
         href={to}
         component={external ? 'a' : RRLink}
-        underline='none'
         color={color}
         {...other}
       />
