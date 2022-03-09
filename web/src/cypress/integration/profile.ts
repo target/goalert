@@ -84,7 +84,7 @@ function testProfile(): void {
       cy.url().should('eq', Cypress.config().baseUrl + '/profile')
     })
 
-    it.only('should change the theme mode', () => {
+    it('should change the theme mode', () => {
       cy.get('[aria-label="Manage Profile"]').click()
       cy.get('[data-cy="manage-profile"]')
         .find('button')
