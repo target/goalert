@@ -16,7 +16,7 @@ function UpdateAlertsSnackbar(props: UpdateAlertsSnackbarProps): JSX.Element {
 
   return (
     <Snackbar
-      autoHideDuration={err ? null : 3000}
+      autoHideDuration={err ? null : 6000}
       TransitionProps={{
         onExited,
       }}
