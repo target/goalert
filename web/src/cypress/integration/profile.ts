@@ -84,27 +84,27 @@ function testProfile(): void {
       cy.url().should('eq', Cypress.config().baseUrl + '/profile')
     })
 
-    it('should change the theme mode', () => {
+    it.only('should change the theme mode', () => {
       cy.get('[aria-label="Manage Profile"]').click()
       cy.get('[data-cy="manage-profile"]')
         .find('button')
         .contains('Light')
         .click()
-      cy.get('div[id="app-root"]').should(
-        'have.css',
-        'background-color',
-        'rgb(211, 211, 211)',
+
+      let lightModeColor: string, darkModeColor: string
+      cy.get('div[id="app-root"]').then(
+        (el) => (lightModeColor = el.css('background-color')),
       )
 
       cy.get('[data-cy="manage-profile"]')
         .find('button')
         .contains('Dark')
         .click()
-      cy.get('div[id="app-root"]').should(
-        'have.css',
-        'background-color',
-        'rgb(18, 18, 18)',
-      )
+      cy.get('div[id="app-root"]')
+        .then((el) => (darkModeColor = el.css('background-color')))
+        .then(() => {
+          expect(lightModeColor).not.to.equal(darkModeColor)
+        })
     })
 
     it('should not display feedback by default', () => {
