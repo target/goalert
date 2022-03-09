@@ -67,7 +67,7 @@ export default function Markdown(props) {
       components={{
         td: TableCell,
         a: ({ node, inline, className, children, ...props }) => (
-          <AppLink to={props.href} {...props}>
+          <AppLink to={props.href} newTab {...props}>
             {children}
           </AppLink>
         ),
