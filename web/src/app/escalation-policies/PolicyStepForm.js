@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     top: -1,
     right: -1,
     // TODO if practical, use themed color for light mode
-    backgroundColor: theme.palette.mode === 'dark' ? 'primary' : '#cd1831',
+    backgroundColor: theme.palette.mode === 'dark' ? 'secondary' : '#cd1831',
   },
   optional: {
     float: 'left',
