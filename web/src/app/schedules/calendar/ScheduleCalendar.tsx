@@ -326,7 +326,6 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
           endAdornment={
             <Button
               variant='contained'
-              color='primary'
               data-cy='new-override'
               onClick={() =>
                 setOverrideDialog({

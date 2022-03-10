@@ -26,7 +26,6 @@ function ToolbarAction(props) {
     return (
       <IconButton
         aria-label='Back a Page'
-        color='inherit'
         data-cy='nav-back-icon'
         onClick={() => navigate(route)}
         size='large'
@@ -42,7 +41,6 @@ function ToolbarAction(props) {
         <IconButton
           aria-label='Open Navigation Menu'
           aria-expanded={props.showMobileSidebar}
-          color='inherit'
           data-cy='nav-menu-icon'
           onClick={() => props.openMobileSidebar(true)}
           size='large'
