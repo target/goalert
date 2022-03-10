@@ -57,6 +57,13 @@ function makeTheme(mode: ThemeName): Theme {
 
   return createTheme({
     palette: getPalette(mode),
+    components: {
+      MuiIconButton: {
+        defaultProps: {
+          color: 'primary',
+        },
+      },
+    },
     ...testOverrides,
   })
 }
