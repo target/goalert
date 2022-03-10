@@ -11,11 +11,8 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { textColors } from '../styles/statusStyles'
-
 import { DateTime } from 'luxon'
 import { ContactMethodType } from '../../schema'
 
@@ -41,15 +38,9 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  ...textColors,
-})
-
 export default function SendTestDialog(
   props: SendTestDialogProps,
 ): JSX.Element {
-  const classes = useStyles()
-
   const { title = 'Test Delivery Status', onClose, messageID } = props
 
   const [now] = useState(DateTime.local())
@@ -93,14 +84,14 @@ export default function SendTestDialog(
     details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   }
 
-  const getTestStatusClass = (status: string): string => {
+  const getTestStatusColor = (status: string): string => {
     switch (status) {
       case 'OK':
-        return classes.statusOk
+        return 'success'
       case 'ERROR':
-        return classes.statusError
+        return 'error'
       default:
-        return classes.statusWarn
+        return 'warning'
     }
   }
 
@@ -134,12 +125,12 @@ export default function SendTestDialog(
           </DialogContentText>
         )}
         {details && (
-          <DialogContentText className={getTestStatusClass(status)}>
+          <DialogContentText color={getTestStatusColor(status)}>
             {toTitleCase(details)}
           </DialogContentText>
         )}
         {!details && (
-          <DialogContentText className={classes.statusError}>
+          <DialogContentText color='error'>
             Couldn't send a message yet, please try again after about a minute.
           </DialogContentText>
         )}

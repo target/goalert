@@ -13,32 +13,17 @@ interface ThemeProviderProps {
 
 interface ThemeContextParams {
   themeMode: string
-  setThemeMode: (newMode: string) => void
+  setThemeMode: (newMode: ThemeName) => void
 }
+
+type SystemTheme = 'dark' | 'light'
+type ThemeName = 'dark' | 'light' | 'system'
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
   setThemeMode: (): void => {},
 })
 ThemeContext.displayName = 'ThemeContext'
-
-function handleStoreThemeMode(theme: string): boolean {
-  if (theme === 'dark') {
-    localStorage.setItem('theme', 'dark')
-    return true
-  }
-  if (theme === 'light') {
-    localStorage.setItem('theme', 'light')
-    return true
-  }
-  if (theme === 'system') {
-    localStorage.setItem('theme', 'system')
-    return true
-  }
-
-  console.warn('unknown theme, aborting')
-  return false
-}
 
 // palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
 function getPalette(mode: string): PaletteOptions {
@@ -77,7 +62,7 @@ function getPalette(mode: string): PaletteOptions {
   return {}
 }
 
-function makeTheme(mode: string): Theme {
+function makeTheme(mode: ThemeName): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -94,27 +79,58 @@ function makeTheme(mode: string): Theme {
   })
 }
 
+function saveTheme(theme: ThemeName): void {
+  if (!window.localStorage) return
+  window.localStorage.setItem('theme', theme)
+}
+function loadTheme(): ThemeName {
+  if (!window.localStorage) return 'system'
+
+  const theme = window.localStorage.getItem('theme')
+  switch (theme) {
+    case 'dark':
+    case 'light':
+      return theme
+  }
+
+  return 'system'
+}
+
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
-  const storedTheme = localStorage.getItem('theme')
+  const [savedTheme, setSavedTheme] = useState(loadTheme())
+  const [systemTheme, setSystemTheme] = useState<SystemTheme>(
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light',
+  )
+
   useEffect(() => {
-    if (!storedTheme) {
-      localStorage.setItem('theme', 'system')
+    const listener = (e: { matches: boolean }): void => {
+      setSystemTheme(e.matches ? 'dark' : 'light')
     }
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', listener)
+
+    return () =>
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .removeEventListener('change', listener)
   }, [])
-  const [themeMode, setThemeMode] = useState(storedTheme ?? 'system')
 
   return (
     <ThemeContext.Provider
       value={{
-        themeMode,
-        setThemeMode: (newMode: string) => {
-          if (handleStoreThemeMode(newMode)) {
-            setThemeMode(newMode)
-          }
+        themeMode: savedTheme,
+        setThemeMode: (newMode: ThemeName) => {
+          setSavedTheme(newMode)
+          saveTheme(newMode)
         },
       }}
     >
-      <MUIThemeProvider theme={makeTheme(themeMode)}>
+      <MUIThemeProvider
+        theme={makeTheme(savedTheme === 'system' ? systemTheme : savedTheme)}
+      >
         {props.children}
       </MUIThemeProvider>
     </ThemeContext.Provider>

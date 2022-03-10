@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import UserDetails from './UserDetails'
 import { PageNotFound } from '../error-pages/Errors'
 import { useSessionInfo } from '../util/RequireConfig'
@@ -28,49 +28,41 @@ function UserCalendarSubscriptions() {
   return <UserCalendarSubscriptionList userID={userID} />
 }
 
+export function ProfileRouter() {
+  return (
+    <Routes>
+      <Route path='/' element={<UserProfile />} />
+      <Route path='/on-call-assignments' element={<UserOnCallAssignments />} />
+      <Route path='/sessions' element={<UserSessionList />} />
+      <Route
+        path='/schedule-calendar-subscriptions'
+        element={<UserCalendarSubscriptions />}
+      />
+
+      <Route element={<PageNotFound />} />
+    </Routes>
+  )
+}
+
 export default function UserRouter() {
   const { userID } = useSessionInfo()
 
   return (
-    <Switch>
-      <Route exact path='/users' component={UserList} />
+    <Routes>
+      <Route path='/' element={<UserList />} />
+      <Route path={`/${userID}`} element={<UserProfile />} />
+      <Route path=':userID' element={<UserDetails readOnly />} />
       <Route
-        exact
-        path={[`/users/${userID}`, '/profile']}
-        component={UserProfile}
+        path=':userID/on-call-assignments'
+        element={<UserOnCallAssignmentList />}
       />
+      <Route path=':userID/sessions' element={<UserSessionList />} />
       <Route
-        exact
-        path='/users/:userID'
-        render={() => <UserDetails readOnly />}
-      />
-
-      <Route
-        exact
-        path='/profile/on-call-assignments'
-        component={UserOnCallAssignments}
-      />
-      <Route
-        exact
-        path='/users/:userID/on-call-assignments'
-        component={UserOnCallAssignmentList}
+        path=':userID/schedule-calendar-subscriptions'
+        element={<UserCalendarSubscriptionList />}
       />
 
-      <Route exact path='/profile/sessions' component={UserSessionList} />
-      <Route exact path='/users/:userID/sessions' component={UserSessionList} />
-
-      <Route
-        exact
-        path='/profile/schedule-calendar-subscriptions'
-        component={UserCalendarSubscriptions}
-      />
-      <Route
-        exact
-        path='/users/:userID/schedule-calendar-subscriptions'
-        component={UserCalendarSubscriptionList}
-      />
-
-      <Route component={PageNotFound} />
-    </Switch>
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }

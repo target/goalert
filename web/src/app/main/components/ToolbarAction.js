@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route, useHistory } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
@@ -15,7 +15,7 @@ function removeLastPartOfPath(path) {
 function ToolbarAction(props) {
   const fullScreen = useIsWidthDown('md')
 
-  const history = useHistory()
+  const navigate = useNavigate()
 
   function renderToolbarAction() {
     const route = removeLastPartOfPath(window.location.pathname)
@@ -28,7 +28,7 @@ function ToolbarAction(props) {
         aria-label='Back a Page'
         color='inherit'
         data-cy='nav-back-icon'
-        onClick={() => history.replace(route)}
+        onClick={() => navigate(route)}
         size='large'
       >
         <ChevronLeft />
@@ -36,12 +36,29 @@ function ToolbarAction(props) {
     )
   }
 
+  function renderToolbarMenu() {
+    return (
+      <Hidden mdUp>
+        <IconButton
+          aria-label='Open Navigation Menu'
+          aria-expanded={props.showMobileSidebar}
+          color='inherit'
+          data-cy='nav-menu-icon'
+          onClick={() => props.openMobileSidebar(true)}
+          size='large'
+        >
+          <MenuIcon />
+        </IconButton>
+      </Hidden>
+    )
+  }
+
   const getRoute = (route) => (
-    <Route path={route} render={() => renderToolbarAction()} />
+    <Route path={route} element={renderToolbarAction()} />
   )
 
   return (
-    <Switch>
+    <Routes>
       {getRoute('/schedules/:scheduleID/assignments')}
       {getRoute('/schedules/:scheduleID/escalation-policies')}
       {getRoute('/schedules/:scheduleID/overrides')}
@@ -58,23 +75,9 @@ function ToolbarAction(props) {
       {getRoute('/users/:userID/schedule-calendar-subscriptions')}
       {getRoute('/profile/on-call-assignments')}
       {getRoute('/profile/schedule-calendar-subscriptions')}
-      <Route
-        render={() => (
-          <Hidden mdUp>
-            <IconButton
-              aria-label='Open Navigation Menu'
-              aria-expanded={props.showMobileSidebar}
-              color='inherit'
-              data-cy='nav-menu-icon'
-              onClick={() => props.openMobileSidebar(true)}
-              size='large'
-            >
-              <MenuIcon />
-            </IconButton>
-          </Hidden>
-        )}
-      />
-    </Switch>
+      <Route path='/:type' element={renderToolbarMenu()} />
+      <Route path='/:type/:id' element={renderToolbarMenu()} />
+    </Routes>
   )
 }
 

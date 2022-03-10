@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Redirect, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -58,7 +58,7 @@ export default function PolicyDetails() {
 
   if (!data) {
     return showDeleteDialog ? (
-      <Redirect to='/escalation-policies' push />
+      <Navigate to='/escalation-policies' />
     ) : (
       <ObjectNotFound />
     )

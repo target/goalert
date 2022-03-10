@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 import ScheduleDetails from './ScheduleDetails'
 import ScheduleOverrideList from './ScheduleOverrideList'
@@ -46,30 +46,21 @@ function ScheduleList() {
 
 export default function ScheduleRouter() {
   return (
-    <Switch>
-      <Route exact path='/schedules' component={ScheduleList} />
-      <Route exact path='/schedules/:scheduleID' component={ScheduleDetails} />
+    <Routes>
+      <Route path='/' element={<ScheduleList />} />
+      <Route path=':scheduleID' element={<ScheduleDetails />} />
+      <Route path=':scheduleID/assignments' element={<ScheduleRuleList />} />
       <Route
-        path='/schedules/:scheduleID/assignments'
-        component={ScheduleRuleList}
+        path=':scheduleID/on-call-notifications'
+        element={<ScheduleOnCallNotificationsList />}
       />
       <Route
-        path='/schedules/:scheduleID/on-call-notifications'
-        component={ScheduleOnCallNotificationsList}
+        path=':scheduleID/escalation-policies'
+        element={<ScheduleAssignedToList />}
       />
-      <Route
-        path='/schedules/:scheduleID/escalation-policies'
-        component={ScheduleAssignedToList}
-      />
-      <Route
-        path='/schedules/:scheduleID/overrides'
-        component={ScheduleOverrideList}
-      />
-      <Route
-        path='/schedules/:scheduleID/shifts'
-        component={ScheduleShiftList}
-      />
-      <Route component={PageNotFound} />
-    </Switch>
+      <Route path=':scheduleID/overrides' element={<ScheduleOverrideList />} />
+      <Route path=':scheduleID/shifts' element={<ScheduleShiftList />} />
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }

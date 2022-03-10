@@ -1,5 +1,5 @@
-import { History, Location } from 'history'
-import { useHistory, useLocation } from 'react-router-dom'
+import { Location } from 'history'
+import { useNavigate, useLocation, NavigateFunction } from 'react-router-dom'
 
 export type Value = string | boolean | number | string[]
 
@@ -54,7 +54,7 @@ export function getParamValues<T extends Record<string, Value>>(
 
 // setURLParams will replace the latest browser history entry with the provided params.
 function setURLParams(
-  history: History,
+  navigate: NavigateFunction,
   location: Location,
   params: URLSearchParams,
 ): void {
@@ -66,7 +66,7 @@ function setURLParams(
     // no action for no param change
     return
   }
-  history.replace(location.pathname + newSearch + location.hash)
+  navigate(location.pathname + newSearch + location.hash, { replace: true })
 }
 
 // useURLParams returns the values for the given URL params if present, else the given defaults.
@@ -77,7 +77,7 @@ export function useURLParams<T extends Record<string, Value>>(
   params: T, // <name, default> pairs
 ): [T, (newValues: Partial<T>) => void] {
   const location = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
   const q = new URLSearchParams(location.search)
   let called = false
 
@@ -102,7 +102,7 @@ export function useURLParams<T extends Record<string, Value>>(
       }
     }
 
-    setURLParams(history, location, q)
+    setURLParams(navigate, location, q)
   }
 
   const values = getParamValues<T>(location, params)
@@ -130,7 +130,7 @@ export function useURLParam<T extends Value>(
 // latest entry will be replaced.
 export function useResetURLParams(...names: string[]): () => void {
   const location = useLocation()
-  const history = useHistory()
+  const navigate = useNavigate()
   let called = false
 
   return function resetURLParams(): void {
@@ -150,6 +150,6 @@ export function useResetURLParams(...names: string[]): () => void {
     const params = new URLSearchParams(location.search)
     names.forEach((name) => params.delete(name))
 
-    setURLParams(history, location, params)
+    setURLParams(navigate, location, params)
   }
 }

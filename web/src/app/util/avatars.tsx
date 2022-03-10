@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Layers, RotateRight, Today, VpnKey, Person } from '@mui/icons-material'
 import { useSessionInfo } from './RequireConfig'
-import { Avatar, SvgIconProps, AvatarProps } from '@mui/material'
+import { Avatar, SvgIconProps, AvatarProps, Skeleton } from '@mui/material'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
@@ -31,10 +31,12 @@ function useValidImage(srcURL?: string): boolean {
 function useAvatar(
   Fallback: IconProps,
   otherProps: AvatarProps,
+  loading = false,
   imgSrc?: string,
 ): JSX.Element {
   const validImage = useValidImage(imgSrc)
-  return (
+
+  const av = (
     <Avatar
       alt=''
       src={validImage ? imgSrc : undefined}
@@ -44,6 +46,12 @@ function useAvatar(
       {validImage ? null : <Fallback color='primary' />}
     </Avatar>
   )
+
+  if (loading) {
+    return <Skeleton variant='circular'>{av}</Skeleton>
+  }
+
+  return av
 }
 
 export function UserAvatar(props: UserAvatarProps): JSX.Element {
@@ -51,18 +59,18 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
   return useAvatar(
     Person,
     otherProps as AvatarProps,
+    false,
     pathPrefix + `/api/v2/user-avatar/${userID}`,
   )
 }
 
 export function CurrentUserAvatar(props: AvatarProps): JSX.Element {
-  // TODO remove "any" when useSessionInfo is converted to ts
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { ready, userID }: any = useSessionInfo()
+  const { ready, userID } = useSessionInfo()
   return useAvatar(
     Person,
     props,
-    ready && pathPrefix + `/api/v2/user-avatar/${userID}`,
+    !ready,
+    ready ? pathPrefix + `/api/v2/user-avatar/${userID}` : undefined,
   )
 }
 
