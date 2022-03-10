@@ -46,7 +46,7 @@ export default function CreateFAB(props: CreateFabProps): JSX.Element {
       <Fab
         aria-label={title}
         data-cy='page-fab'
-        color='primary'
+        color='secondary'
         className={classnames(classes.fab, transitionClass)}
         {...fabProps}
       >
