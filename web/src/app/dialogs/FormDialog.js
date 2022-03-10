@@ -26,7 +26,6 @@ const useStyles = makeStyles((theme) => {
     },
     dialogContent: {
       height: '100%', // parents of form need height set to properly function in Safari
-      padding: 0,
     },
     formContainer: {
       width: '100%',
@@ -48,7 +47,6 @@ function FormDialog(props) {
   const {
     alert,
     confirm,
-    disableGutters,
     errors,
     fullScreen,
     loading,
@@ -92,10 +90,7 @@ function FormDialog(props) {
       return null
     }
 
-    let Component = DialogContent
-    if (disableGutters) Component = 'div'
-
-    return <Component className={classes.form}>{form}</Component>
+    return <div className={classes.form}>{form}</div>
   }
 
   function renderCaption() {
@@ -222,9 +217,6 @@ FormDialog.propTypes = {
   alert: p.bool,
   confirm: p.bool,
   maxWidth: p.string,
-
-  // disables form content padding
-  disableGutters: p.bool,
 
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,
