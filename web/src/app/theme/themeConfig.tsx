@@ -13,11 +13,11 @@ interface ThemeProviderProps {
 
 interface ThemeContextParams {
   themeMode: string
-  setThemeMode: (newMode: ThemeMode) => void
+  setThemeMode: (newMode: ThemeModeOption) => void
 }
 
-type SystemThemeMode = 'dark' | 'light'
-type ThemeMode = 'dark' | 'light' | 'system'
+type MUIThemeMode = 'dark' | 'light'
+type ThemeModeOption = 'dark' | 'light' | 'system'
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
@@ -26,7 +26,7 @@ export const ThemeContext = React.createContext<ThemeContextParams>({
 ThemeContext.displayName = 'ThemeContext'
 
 // palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
-function getPalette(mode: SystemThemeMode): PaletteOptions {
+function getPalette(mode: MUIThemeMode): PaletteOptions {
   if (mode === 'dark') {
     return {
       mode: 'dark',
@@ -56,7 +56,7 @@ function getPalette(mode: SystemThemeMode): PaletteOptions {
   }
 }
 
-function makeTheme(mode: SystemThemeMode): Theme {
+function makeTheme(mode: MUIThemeMode): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -73,12 +73,12 @@ function makeTheme(mode: SystemThemeMode): Theme {
   })
 }
 
-function saveTheme(theme: ThemeMode): void {
+function saveTheme(theme: ThemeModeOption): void {
   if (!window.localStorage) return
   window.localStorage.setItem('theme', theme)
 }
 
-function loadTheme(): ThemeMode {
+function loadTheme(): ThemeModeOption {
   if (!window.localStorage) return 'system'
 
   const theme = window.localStorage.getItem('theme')
@@ -93,7 +93,7 @@ function loadTheme(): ThemeMode {
 
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
-  const [systemThemeMode, setSystemThemeMode] = useState<SystemThemeMode>(
+  const [systemThemeMode, setSystemThemeMode] = useState<MUIThemeMode>(
     window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light',
@@ -117,7 +117,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
     <ThemeContext.Provider
       value={{
         themeMode: savedThemeMode,
-        setThemeMode: (newMode: ThemeMode) => {
+        setThemeMode: (newMode: ThemeModeOption) => {
           setSavedThemeMode(newMode)
           saveTheme(newMode)
         },
