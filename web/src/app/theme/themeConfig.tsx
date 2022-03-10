@@ -26,25 +26,8 @@ export const ThemeContext = React.createContext<ThemeContextParams>({
 ThemeContext.displayName = 'ThemeContext'
 
 // palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
-function getPalette(mode: string): PaletteOptions {
+function getPalette(mode: ThemeName): PaletteOptions {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
-  if (mode === 'light' || (mode === 'system' && !prefersDark)) {
-    return {
-      mode: 'light',
-      primary: {
-        main: '#006684',
-        light: '#bbe9ff',
-        dark: '#001f2a',
-      },
-      secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
-      background: {
-        default: '#fbfcfe',
-        paper: '#dce3e8', // m3 surface variant
-      },
-      error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
-    }
-  }
 
   if (mode === 'dark' || (mode === 'system' && prefersDark)) {
     return {
@@ -59,7 +42,20 @@ function getPalette(mode: string): PaletteOptions {
     }
   }
 
-  return {}
+  return {
+    mode: 'light',
+    primary: {
+      main: '#006684',
+      light: '#bbe9ff',
+      dark: '#001f2a',
+    },
+    secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
+    background: {
+      default: '#fbfcfe',
+      paper: '#dce3e8', // m3 surface variant
+    },
+    error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
+  }
 }
 
 function makeTheme(mode: ThemeName): Theme {
@@ -83,6 +79,7 @@ function saveTheme(theme: ThemeName): void {
   if (!window.localStorage) return
   window.localStorage.setItem('theme', theme)
 }
+
 function loadTheme(): ThemeName {
   if (!window.localStorage) return 'system'
 
