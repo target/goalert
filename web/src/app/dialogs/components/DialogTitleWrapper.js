@@ -96,7 +96,7 @@ function DialogTitleWrapper(props) {
 
     return (
       <React.Fragment>
-        <AppBar position='sticky'>
+        <AppBar position='sticky' sx={{ mb: 2 }}>
           <Toolbar>
             {closeButton}
             {titleElem}
