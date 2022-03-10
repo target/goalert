@@ -13,11 +13,11 @@ interface ThemeProviderProps {
 
 interface ThemeContextParams {
   themeMode: string
-  setThemeMode: (newMode: ThemeName) => void
+  setThemeMode: (newMode: ThemeMode) => void
 }
 
-type SystemTheme = 'dark' | 'light'
-type ThemeName = 'dark' | 'light' | 'system'
+type SystemThemeMode = 'dark' | 'light'
+type ThemeMode = 'dark' | 'light' | 'system'
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
@@ -26,10 +26,8 @@ export const ThemeContext = React.createContext<ThemeContextParams>({
 ThemeContext.displayName = 'ThemeContext'
 
 // palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
-function getPalette(mode: ThemeName): PaletteOptions {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-
-  if (mode === 'dark' || (mode === 'system' && prefersDark)) {
+function getPalette(mode: SystemThemeMode): PaletteOptions {
+  if (mode === 'dark') {
     return {
       mode: 'dark',
       primary: { main: '#64d3ff', light: '#bbe9ff', dark: '#004d65' },
@@ -58,7 +56,7 @@ function getPalette(mode: ThemeName): PaletteOptions {
   }
 }
 
-function makeTheme(mode: ThemeName): Theme {
+function makeTheme(mode: SystemThemeMode): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -75,12 +73,12 @@ function makeTheme(mode: ThemeName): Theme {
   })
 }
 
-function saveTheme(theme: ThemeName): void {
+function saveTheme(theme: ThemeMode): void {
   if (!window.localStorage) return
   window.localStorage.setItem('theme', theme)
 }
 
-function loadTheme(): ThemeName {
+function loadTheme(): ThemeMode {
   if (!window.localStorage) return 'system'
 
   const theme = window.localStorage.getItem('theme')
@@ -94,8 +92,8 @@ function loadTheme(): ThemeName {
 }
 
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
-  const [savedTheme, setSavedTheme] = useState(loadTheme())
-  const [systemTheme, setSystemTheme] = useState<SystemTheme>(
+  const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
+  const [systemThemeMode, setSystemThemeMode] = useState<SystemThemeMode>(
     window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light',
@@ -103,7 +101,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
 
   useEffect(() => {
     const listener = (e: { matches: boolean }): void => {
-      setSystemTheme(e.matches ? 'dark' : 'light')
+      setSystemThemeMode(e.matches ? 'dark' : 'light')
     }
     window
       .matchMedia('(prefers-color-scheme: dark)')
@@ -118,15 +116,17 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   return (
     <ThemeContext.Provider
       value={{
-        themeMode: savedTheme,
-        setThemeMode: (newMode: ThemeName) => {
-          setSavedTheme(newMode)
+        themeMode: savedThemeMode,
+        setThemeMode: (newMode: ThemeMode) => {
+          setSavedThemeMode(newMode)
           saveTheme(newMode)
         },
       }}
     >
       <MUIThemeProvider
-        theme={makeTheme(savedTheme === 'system' ? systemTheme : savedTheme)}
+        theme={makeTheme(
+          savedThemeMode === 'system' ? systemThemeMode : savedThemeMode,
+        )}
       >
         {props.children}
       </MUIThemeProvider>
