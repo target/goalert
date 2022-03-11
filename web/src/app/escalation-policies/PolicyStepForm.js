@@ -25,11 +25,12 @@ import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   badge: {
     top: -1,
     right: -1,
-    backgroundColor: '#cd1831',
+    // TODO if practical, use themed color for light mode
+    backgroundColor: theme.palette.mode === 'dark' ? 'secondary' : '#cd1831',
   },
   optional: {
     float: 'left',
