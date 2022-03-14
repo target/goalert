@@ -1,5 +1,5 @@
 import React, { forwardRef, ForwardRefRenderFunction } from 'react'
-import { LinkProps, useTheme } from '@mui/material'
+import { LinkProps } from '@mui/material'
 import Link from '@mui/material/Link'
 import {
   Link as RRLink,
@@ -20,11 +20,6 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   function AppLink(props, ref): JSX.Element {
     let { to, newTab, ...other } = props
     const { pathname } = useLocation()
-    const theme = useTheme()
-
-    // TODO if practical, use themed color for light mode
-    const color =
-      theme.palette.mode === 'dark' ? theme.palette.primary.main : '#cd1831'
 
     if (newTab) {
       other.target = '_blank'
@@ -44,7 +39,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
         to={to}
         href={to}
         component={external ? 'a' : RRLink}
-        color={color}
+        color='secondary'
         {...other}
       />
     )
