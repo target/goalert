@@ -6,6 +6,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import makeStyles from '@mui/styles/makeStyles'
+import { Skeleton } from '@mui/material'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useIsWidthDown } from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
@@ -13,14 +14,8 @@ import { ITEMS_PER_PAGE } from '../config'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import AppLink, { AppLinkProps } from '../util/AppLink'
-import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
-
-// gray boxes on load
-// disable overflow
-// can go to last page + one if loading & hasNextPage
-// delete on details -> update list (cache, refetch?)
-// - on details, don't have accesses to search param
+import useStatusColors from '../theme/useStatusColors'
 
 const useStyles = makeStyles(() => ({
   infiniteScrollFooter: {
@@ -37,44 +32,14 @@ const useStyles = makeStyles(() => ({
   favoriteIcon: {
     backgroundColor: 'transparent',
   },
-  ...statusStyles,
 }))
 
-const loadingStyle = {
-  color: 'lightgrey',
-  background: 'lightgrey',
-  height: '10.3333px',
-}
-
-const useLoadingStyles = makeStyles({
-  item: {
-    display: 'block',
-    minHeight: (dense) => (dense ? 57 : 71),
-  },
-  lineOne: {
-    ...loadingStyle,
-    width: '50%',
-  },
-  lineTwo: {
-    ...loadingStyle,
-    width: '35%',
-    margin: '5px 0 5px 0',
-  },
-  lineThree: {
-    ...loadingStyle,
-    width: '65%',
-  },
-})
-
-// LoadingItem is used as a placeholder for loading content
 function LoadingItem(props: { dense?: boolean }): JSX.Element {
-  const classes = useLoadingStyles(props.dense)
-
   return (
-    <ListItem className={classes.item} dense={props.dense}>
-      <ListItemText className={classes.lineOne} />
-      <ListItemText className={classes.lineTwo} />
-      <ListItemText className={classes.lineThree} />
+    <ListItem dense={props.dense}>
+      <Skeleton variant='rectangular' animation='wave' width='100%'>
+        <ListItemText primary='.' secondary='.' />
+      </Skeleton>
     </ListItem>
   )
 }
@@ -125,7 +90,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   } = props
 
   const classes = useStyles()
-
+  const statusColors = useStatusColors()
   const fullScreen = useIsWidthDown('md')
 
   function renderNoResults(): ReactElement {
@@ -151,18 +116,16 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       )
     }
 
-    // get status style for left-most border color
-    let itemClass = classes.noStatus
-    switch (item.status) {
-      case 'ok':
-        itemClass = classes.statusOK
-        break
-      case 'warn':
-        itemClass = classes.statusWarning
-        break
-      case 'err':
-        itemClass = classes.statusError
-        break
+    const borderColor = (s?: string): string => {
+      switch (s) {
+        case 'ok':
+        case 'warn':
+        case 'err':
+          return statusColors[s]
+
+        default:
+          return 'transparent'
+      }
     }
 
     const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
@@ -186,7 +149,9 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     return (
       <ListItem
-        className={itemClass}
+        sx={{
+          borderLeft: `3px solid ${borderColor(item.status)}`,
+        }}
         dense={!fullScreen}
         key={'list_' + idx}
         {...urlProps}

@@ -30,8 +30,8 @@ import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-import logo from '../../public/goalert-alt-logo.png'
-import darkModeLogo from '../../public/goalert-alt-logo-white.png'
+import logo from '../../public/logos/black/goalert-alt-logo.png'
+import darkModeLogo from '../../public/logos/white/goalert-alt-logo-white.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {

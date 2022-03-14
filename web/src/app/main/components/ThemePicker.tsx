@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SystemIcon from '@mui/icons-material/SettingsBrightness'
 import LightModeIcon from '@mui/icons-material/LightMode'
-import { ThemeContext } from '../themeConfig'
+import { ThemeContext } from '../../theme/themeConfig'
 
 const useStyles = makeStyles(() => ({
   container: {

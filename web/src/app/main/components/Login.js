@@ -7,12 +7,19 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import makeStyles from '@mui/styles/makeStyles'
+import { useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
-import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
-import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
-import logoSrcSet3 from '../../public/goalert-logo-scaled@2.webp'
-import logoImgSrc from '../../public/goalert-logo-scaled@2.png'
 import { pathPrefix } from '../../env'
+
+import logoSrcSet1 from '../../public/logos/black/goalert-logo-scaled.webp'
+import logoSrcSet2 from '../../public/logos/black/goalert-logo-scaled@1.5.webp'
+import logoSrcSet3 from '../../public/logos/black/goalert-logo-scaled@2.webp'
+import logoImgSrc from '../../public/logos/black/goalert-logo-scaled@2.png'
+
+import darkModeLogoSrcSet1 from '../../public/logos/white/goalert-logo-white-scaled.webp'
+import darkModeLogoSrcSet2 from '../../public/logos/white/goalert-logo-white-scaled@1.5.webp'
+import darkModeLogoSrcSet3 from '../../public/logos/white/goalert-logo-white-scaled@2.webp'
+import darkModeLogoImgSrc from '../../public/logos/white/goalert-logo-white-scaled@2.png'
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
 
@@ -59,6 +66,7 @@ const useStyles = makeStyles({
 
 export default function Login() {
   const classes = useStyles()
+  const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -182,19 +190,32 @@ export default function Login() {
     )
   }
 
-  const logo = (
-    <picture>
-      <source
-        srcSet={`
+  const logo =
+    theme.palette.mode === 'dark' ? (
+      <picture>
+        <source
+          srcSet={`
+            ${darkModeLogoSrcSet1},
+            ${darkModeLogoSrcSet2} 1.5x,
+            ${darkModeLogoSrcSet3} 2x
+          `}
+          type='image/webp'
+        />
+        <img src={darkModeLogoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    ) : (
+      <picture>
+        <source
+          srcSet={`
             ${logoSrcSet1},
             ${logoSrcSet2} 1.5x,
             ${logoSrcSet3} 2x
           `}
-        type='image/webp'
-      />
-      <img src={logoImgSrc} height={61} alt='GoAlert' />
-    </picture>
-  )
+          type='image/webp'
+        />
+        <img src={logoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    )
 
   return (
     <div className={classes.center}>
