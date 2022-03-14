@@ -60,15 +60,27 @@ module.exports = () => ({
   plugins: [
     new CopyPlugin({
       patterns: [
-        'favicon-16.png',
-        'favicon-32.png',
-        'favicon-64.png',
-        'favicon-192.png',
-        'goalert-alt-logo.png',
-      ].map((filename) => ({
-        from: path.resolve(APP, `./public/${filename}`),
-        to: path.resolve(BUILD, `./static/${filename}`),
-      })),
+        {
+          from: path.resolve(APP, './public/icons/favicon-16.png'),
+          to: path.resolve(BUILD, './static/favicon-16.png'),
+        },
+        {
+          from: path.resolve(APP, './public/icons/favicon-32.png'),
+          to: path.resolve(BUILD, './static/favicon-32.png'),
+        },
+        {
+          from: path.resolve(APP, './public/icons/favicon-64.png'),
+          to: path.resolve(BUILD, './static/favicon-64.png'),
+        },
+        {
+          from: path.resolve(APP, './public/icons/favicon-192.png'),
+          to: path.resolve(BUILD, './static/favicon-192.png'),
+        },
+        {
+          from: path.resolve(APP, './public/logos/black/goalert-alt-logo.png'),
+          to: path.resolve(BUILD, './static/goalert-alt-logo.png'),
+        },
+      ],
     }),
     new webpack.BannerPlugin({
       banner: `var GOALERT_VERSION=${JSON.stringify(

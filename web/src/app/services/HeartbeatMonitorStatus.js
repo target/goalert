@@ -9,20 +9,12 @@ import UnhealthyIcon from '@mui/icons-material/Clear'
 import InactiveIcon from '@mui/icons-material/Remove'
 import makeStyles from '@mui/styles/makeStyles'
 import { formatTimeSince } from '../util/timeFormat'
-import { colors } from '../util/statusStyles'
+import useStatusColors from '../theme/useStatusColors'
 
 const useStyles = makeStyles({
   gridContainer: {
     width: 'min-content',
     marginRight: '1em',
-  },
-  unhealthy: {
-    color: '#fff',
-    backgroundColor: colors.statusError,
-  },
-  healthy: {
-    color: '#fff',
-    backgroundColor: colors.statusOK,
   },
   avatarContainer: {
     display: 'flex',
@@ -39,8 +31,15 @@ const icons = {
   inactive: <InactiveIcon />,
 }
 
+const statusMap = {
+  healthy: 'ok',
+  unhealthy: 'err',
+  inactive: '',
+}
+
 export default function HeartbeatMonitorStatus(props) {
   const classes = useStyles()
+  const statusColors = useStatusColors()
 
   const icon = icons[props.lastState]
   if (!icon) throw new TypeError('invalid state: ' + props.lastState)
@@ -51,7 +50,7 @@ export default function HeartbeatMonitorStatus(props) {
         <ListItemAvatar className={classes.avatarContainer}>
           <Avatar
             aria-label={props.lastState}
-            className={classes[props.lastState]}
+            sx={{ bgcolor: statusColors[statusMap[props.lastState]] }}
           >
             {icon}
           </Avatar>
