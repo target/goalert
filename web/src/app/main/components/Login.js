@@ -6,10 +6,8 @@ import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
-import Hidden from '@mui/material/Hidden'
 import makeStyles from '@mui/styles/makeStyles'
 import { useTheme } from '@mui/material'
-import { useIsWidthDown } from '../../util/useWidth'
 import { getParameterByName } from '../../util/query_param'
 import { pathPrefix } from '../../env'
 
@@ -24,8 +22,6 @@ import darkModeLogoSrcSet3 from '../../public/logos/white/goalert-logo-white-sca
 import darkModeLogoImgSrc from '../../public/logos/white/goalert-logo-white-scaled@2.png'
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
-const BACKGROUND_URL =
-  'https://www.toptal.com/designers/subtlepatterns/patterns/dust_scratches.png'
 
 const useStyles = makeStyles({
   card: {
@@ -71,7 +67,6 @@ const useStyles = makeStyles({
 export default function Login() {
   const classes = useStyles()
   const theme = useTheme()
-  const fullScreen = useIsWidthDown('md')
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -82,19 +77,6 @@ export default function Login() {
       .then((data) => setProviders(data))
       .catch((err) => setError(err))
   }, [])
-
-  /*
-   * Sets the background image for the login page
-   *
-   * Background pattern from Toptal Subtle Patterns
-   */
-  useEffect(() => {
-    if (fullScreen) {
-      document.body.style.backgroundColor = `white` // overrides light grey background
-    } else {
-      document.body.style.backgroundImage = `url('${BACKGROUND_URL}')` // overrides light grey background
-    }
-  }, [fullScreen])
 
   /*
    * Renders a field from a provider
@@ -236,26 +218,9 @@ export default function Login() {
     )
 
   return (
-    <React.Fragment>
-      <Hidden mdDown>
-        <div className={classes.center}>
-          <Card className={classes.card}>
-            <CardContent>
-              <Grid container spacing={2} className={classes.gridContainer}>
-                <Grid item xs={12}>
-                  {logo}
-                </Grid>
-                {providers.map((provider, idx) =>
-                  renderProvider(provider, idx, providers.length),
-                )}
-                {errorJSX}
-              </Grid>
-            </CardContent>
-          </Card>
-        </div>
-      </Hidden>
-      <Hidden mdUp>
-        <div className={classes.center}>
+    <div className={classes.center}>
+      <Card className={classes.card}>
+        <CardContent>
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={12}>
               {logo}
@@ -265,8 +230,8 @@ export default function Login() {
             )}
             {errorJSX}
           </Grid>
-        </div>
-      </Hidden>
-    </React.Fragment>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
