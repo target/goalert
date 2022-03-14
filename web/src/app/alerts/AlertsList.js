@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, ListItemText } from '@mui/material'
+import { Alert, Hidden, ListItemText } from '@mui/material'
+import Snackbar from '@mui/material/Snackbar'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -12,8 +13,6 @@ import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
-
 import { formatTimeSince } from '../util/timeFormat'
 import QueryList from '../lists/QueryList'
 import { useIsWidthDown } from '../util/useWidth'
@@ -300,12 +299,19 @@ export default function AlertsList(props) {
       )}
 
       {/* Update message after using checkbox actions */}
-      <UpdateAlertsSnackbar
-        errorMessage={errorMessage}
+      <Snackbar
+        autoHideDuration={errorMessage ? null : 6000}
         onClose={() => setActionCompleteDismissed(true)}
         open={showAlertActionSnackbar}
-        updateMessage={updateMessage}
-      />
+      >
+        <Alert
+          severity={errorMessage ? 'error' : 'info'}
+          onClose={() => setActionCompleteDismissed(true)}
+          variant='filled'
+        >
+          {errorMessage || updateMessage}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   )
 }
