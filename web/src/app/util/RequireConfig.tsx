@@ -9,6 +9,7 @@ const ConfigContext = React.createContext({
   config: [] as ConfigValue[],
   isAdmin: false as boolean,
   userID: null as string | null,
+  userName: null as string | null,
 })
 ConfigContext.displayName = 'ConfigContext'
 
@@ -16,6 +17,7 @@ const query = gql`
   query {
     user {
       id
+      name
       role
     }
     config {
@@ -39,6 +41,7 @@ export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
         config: data?.config || [],
         isAdmin: data?.user?.role === 'admin',
         userID: data?.user?.id || null,
+        userName: data?.user?.name || null,
       }}
     >
       {props.children}
@@ -79,6 +82,7 @@ const mapConfig = (value: ConfigValue[]): ConfigData => {
 export type SessionInfo = {
   isAdmin: boolean
   userID: string | null
+  userName: string | null
   ready: boolean
 }
 
@@ -92,6 +96,7 @@ export function useSessionInfo(): SessionInfo {
   return {
     isAdmin: ctx.isAdmin,
     userID: ctx.userID,
+    userName: ctx.userName,
     ready: Boolean(ctx.userID),
   }
 }

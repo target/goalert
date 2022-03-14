@@ -20,7 +20,11 @@ function testAuth(): void {
       cy.reload()
       cy.get('form#auth-basic').should('not.exist')
 
-      cy.pageNav('Logout')
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="manage-profile"]')
+        .find('button')
+        .contains('Logout')
+        .click()
 
       cy.get('form#auth-basic').should('exist')
       cy.reload()
