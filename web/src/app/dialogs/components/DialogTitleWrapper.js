@@ -69,37 +69,32 @@ function DialogTitleWrapper(props) {
   }
 
   if (fullScreen) {
-    const closeButton = onClose ? (
-      <IconButton
-        color='inherit'
-        onClick={onClose}
-        aria-label='Close'
-        sx={{ mr: 2 }}
-      >
-        {closeIcon}
-      </IconButton>
-    ) : null
-
-    const titleElem =
-      typeof title === 'string' ? (
-        <Typography
-          data-cy='dialog-title'
-          color='inherit'
-          variant='h6'
-          component='h1'
-        >
-          {title}
-        </Typography>
-      ) : (
-        <div data-cy='dialog-title'>{title}</div>
-      )
-
     return (
       <React.Fragment>
         <AppBar position='sticky' sx={{ mb: 2 }}>
           <Toolbar>
-            {closeButton}
-            {titleElem}
+            {onClose && (
+              <IconButton
+                color='inherit'
+                onClick={onClose}
+                aria-label='Close'
+                sx={{ mr: 2 }}
+              >
+                {closeIcon}
+              </IconButton>
+            )}
+            {typeof title === 'string' ? (
+              <Typography
+                data-cy='dialog-title'
+                color='inherit'
+                variant='h6'
+                component='h1'
+              >
+                {title}
+              </Typography>
+            ) : (
+              <div data-cy='dialog-title'>{title}</div>
+            )}
             {toolbarItems}
             {menu}
           </Toolbar>
