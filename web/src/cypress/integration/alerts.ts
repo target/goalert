@@ -189,10 +189,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
 
       cy.get('button[aria-label=Acknowledge]').click()
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '2 of 3 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
         'UNACKNOWLEDGED',
@@ -235,10 +232,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get('button[aria-label=Acknowledge]').click()
 
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '0 of 2 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '0 of 2 alerts updated')
 
       // ack all three
       cy.reload()
@@ -248,10 +242,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('button[aria-label=Acknowledge]').click()
 
       // first two already acked, third now acked
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '1 of 3 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '1 of 3 alerts updated')
     })
   })
 

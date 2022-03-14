@@ -36,10 +36,7 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 1,
     position: 'relative',
     display: 'flex',
-    backgroundColor:
-      theme.palette.mode === 'dark'
-        ? theme.palette.background.default
-        : 'lightgrey',
+    backgroundColor: theme.palette.background.default,
     height: '100%',
   },
   main: {
