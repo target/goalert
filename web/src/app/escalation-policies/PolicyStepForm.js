@@ -48,7 +48,7 @@ function PolicyStepForm(props) {
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
-      setStep(null) // close
+      setStep(-1) // close
     } else {
       setStep(stepChange) // open
     }
