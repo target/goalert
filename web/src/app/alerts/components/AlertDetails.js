@@ -228,14 +228,11 @@ export default function AlertDetails(props) {
       const schedules = targets.filter((t) => t.type === 'schedule')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
-
-      let className
-      if (status !== 'closed' && currentLevel % steps.length === index) {
-        className = classes.highlightRow
-      }
+      const selected =
+        status !== 'closed' && currentLevel % steps.length === index
 
       return (
-        <TableRow key={index} className={className}>
+        <TableRow key={index} selected={selected}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
             {!targets.length && <Typography>&mdash;</Typography>}
