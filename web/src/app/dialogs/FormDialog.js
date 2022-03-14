@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => {
     },
     dialogContent: {
       height: '100%', // parents of form need height set to properly function in Safari
+      paddingTop: '8px !important', // workaround for https://github.com/mui/material-ui/issues/31185
     },
     formContainer: {
       width: '100%',
