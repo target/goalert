@@ -1,6 +1,6 @@
 import React from 'react'
 import Chip, { ChipProps } from '@mui/material/Chip'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, gql } from '@apollo/client'
 import {
   RotateRight as RotationIcon,
@@ -25,7 +25,7 @@ type WithID<T> = { id: string } & T
 
 export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   const { id, label, ...rest } = props
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const { data, loading, error } = useQuery(serviceQuery, {
     variables: {
@@ -47,7 +47,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
     <Chip
       data-cy='service-chip'
       avatar={<ServiceAvatar />}
-      onClick={() => history.push(`/services/${id}`)}
+      onClick={() => navigate(`/services/${id}`)}
       label={getLabel()}
       {...rest}
     />
@@ -56,13 +56,13 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
 
 export function UserChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const history = useHistory()
+  const navigate = useNavigate()
 
   return (
     <Chip
       data-cy='user-chip'
       avatar={<UserAvatar userID={id} />}
-      onClick={() => history.push(`/users/${id}`)}
+      onClick={() => navigate(`/users/${id}`)}
       {...rest}
     />
   )
@@ -70,7 +70,7 @@ export function UserChip(props: WithID<ChipProps>): JSX.Element {
 
 export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const history = useHistory()
+  const navigate = useNavigate()
 
   return (
     <Chip
@@ -80,7 +80,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
           <RotationIcon />
         </Avatar>
       }
-      onClick={() => history.push(`/rotations/${id}`)}
+      onClick={() => navigate(`/rotations/${id}`)}
       {...rest}
     />
   )
@@ -88,7 +88,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
 
 export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const history = useHistory()
+  const navigate = useNavigate()
 
   return (
     <Chip
@@ -98,7 +98,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
           <ScheduleIcon />
         </Avatar>
       }
-      onClick={() => history.push(`/schedules/${id}`)}
+      onClick={() => navigate(`/schedules/${id}`)}
       {...rest}
     />
   )

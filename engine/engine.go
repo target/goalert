@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
 	"github.com/target/goalert/engine/message"
+	"github.com/target/goalert/engine/metricsmanager"
 	"github.com/target/goalert/engine/npcyclemanager"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
@@ -123,6 +124,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
+	metricsMgr, err := metricsmanager.NewDB(ctx, db)
+	if err != nil {
+		return nil, errors.Wrap(err, "metrics management backend")
+	}
 
 	p.modules = []updater{
 		rotMgr,
@@ -133,6 +138,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		verifyMgr,
 		hbMgr,
 		cleanMgr,
+		metricsMgr,
 	}
 
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)

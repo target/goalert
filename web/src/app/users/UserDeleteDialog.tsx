@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
@@ -27,7 +27,7 @@ interface RotationDeleteDialogProps {
 
 function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
   const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const {
     data,
@@ -49,7 +49,7 @@ function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
         ],
       },
       onCompleted: ({ deleteAll }) => {
-        if (deleteAll) return history.push('/users')
+        if (deleteAll) return navigate('/users')
       },
     },
   )

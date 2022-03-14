@@ -23,8 +23,9 @@ import { useTheme } from '@mui/material/styles'
 import routeConfig, { getPath } from '../routes'
 import RequireConfig from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-import logo from '../../public/goalert-alt-logo.png'
-import darkModeLogo from '../../public/goalert-alt-logo-white.png'
+import logo from '../../public/logos/black/goalert-alt-logo.png'
+import darkModeLogo from '../../public/logos/white/goalert-alt-logo-white.png'
+import AppLink from '../../util/AppLink'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -82,8 +83,9 @@ export default function SideBarDrawerList(props) {
       <NavLink
         key={key}
         to={path}
-        className={classes.nav}
-        activeClassName={classes.navSelected}
+        className={({ isActive }) =>
+          isActive ? classes.navSelected : classes.nav
+        }
         onClick={closeMobileSidebar}
       >
         {renderSidebarItem(icon, label)}
@@ -98,7 +100,7 @@ export default function SideBarDrawerList(props) {
       <NavSubMenu
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
-        path={getPath(cfg)}
+        path={getPath(cfg).replace('/*', '')}
         subMenuRoutes={cfg.subRoutes}
         closeMobileSidebar={closeMobileSidebar}
       >
@@ -128,7 +130,7 @@ export default function SideBarDrawerList(props) {
                     key={idx}
                     parentIcon={navIcons[cfg.title]}
                     parentTitle={cfg.title}
-                    path={getPath(cfg)}
+                    path={getPath(cfg).replace('/*', '')}
                     subMenuRoutes={cfg.subRoutes}
                   >
                     {renderSidebarItem(navIcons[cfg.title], cfg.title)}
@@ -137,7 +139,7 @@ export default function SideBarDrawerList(props) {
               }
               return renderSidebarNavLink(
                 navIcons[cfg.title],
-                getPath(cfg),
+                getPath(cfg).replace('/*', ''),
                 cfg.title,
                 idx,
               )
