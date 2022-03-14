@@ -22,6 +22,7 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
+import UserSettingsPopover from './components/UserSettingsPopover'
 
 const useStyles = makeStyles((theme) => ({
   '@global': {
@@ -75,7 +76,7 @@ export default function App() {
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'
   return (
-    <div className={classes.root}>
+    <div className={classes.root} id='app-root'>
       <PageActionProvider>
         <SearchProvider>
           <AppBar
@@ -94,6 +95,7 @@ export default function App() {
 
               <PageActionContainer />
               <SearchContainer />
+              <UserSettingsPopover />
             </Toolbar>
           </AppBar>
 

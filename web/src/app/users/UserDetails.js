@@ -22,7 +22,6 @@ import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import ThemePicker from '../main/components/ThemePicker'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -228,7 +227,6 @@ export default function UserDetails(props) {
                   key='primary-action-status-updates'
                   userID={userID}
                 />,
-                <ThemePicker key='primary-action-theme-picker' />,
               ]
         }
         secondaryActions={
