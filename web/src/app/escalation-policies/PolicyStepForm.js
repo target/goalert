@@ -77,7 +77,7 @@ function PolicyStepForm(props) {
       classes={{
         badge: classes.badge,
       }}
-      tabIndex='0'
+      tabIndex={0}
       aria-label={`Toggle ${txt}`}
     >
       <Typography className={classes.label}>{txt}</Typography>
@@ -108,7 +108,7 @@ function PolicyStepForm(props) {
                     icon={<SchedulesIcon />}
                     optional={optionalText}
                     onClick={() => handleStepChange(0)}
-                    tabIndex='-1'
+                    tabIndex={-1}
                   >
                     {badgeMeUpScotty(
                       getTargetsByType('schedule')(value.targets).length,
@@ -137,7 +137,7 @@ function PolicyStepForm(props) {
                       icon={<SlackIcon />}
                       optional={optionalText}
                       onClick={() => handleStepChange(1)}
-                      tabIndex='-1'
+                      tabIndex={-1}
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('slackChannel')(value.targets).length,
@@ -170,7 +170,7 @@ function PolicyStepForm(props) {
                     onClick={() =>
                       handleStepChange(cfg['Slack.Enable'] ? 2 : 1)
                     }
-                    tabIndex='-1'
+                    tabIndex={-1}
                   >
                     {badgeMeUpScotty(
                       getTargetsByType('user')(value.targets).length,
@@ -202,7 +202,7 @@ function PolicyStepForm(props) {
                     onClick={() =>
                       handleStepChange(cfg['Slack.Enable'] ? 3 : 2)
                     }
-                    tabIndex='-1'
+                    tabIndex={-1}
                   >
                     {badgeMeUpScotty(
                       getTargetsByType('rotation')(value.targets).length,
