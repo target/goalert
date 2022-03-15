@@ -143,9 +143,10 @@ export default function SideBarDrawerList(props) {
                 idx,
               )
             })}
-          <RequireConfig isAdmin>{renderAdmin()}</RequireConfig>
 
           {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+
+          <RequireConfig isAdmin>{renderAdmin()}</RequireConfig>
         </List>
       </nav>
     </React.Fragment>
