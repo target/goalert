@@ -43,8 +43,10 @@
       applicationName = {{.ApplicationName}};
     </script>
     <script src="{{.Prefix}}/static/app.js"></script>
+    {{- if .ExtraJS}}
     <script defer>
       {{.ExtraJS}}
     </script>
+    {{- end}}
   </body>
 </html>
