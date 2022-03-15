@@ -138,44 +138,13 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
-  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
-
+  const { shifts, temporarySchedules } = props
   const { weekly, start } = useCalendarNavigation()
+  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
-
-  const { shifts, temporarySchedules } = props
-
-  const eventStyleGetter = (
-    calEvent: ScheduleCalendarEvent,
-    start: Date | string,
-    end: Date | string,
-    isSelected: boolean,
-  ): React.HTMLAttributes<HTMLDivElement> => {
-    const green = '#0C6618'
-    const lavender = '#BB7E8C'
-
-    if (calEvent.type === 'tempSched' || calEvent.type === 'tempSchedShift') {
-      return {
-        style: {
-          backgroundColor: isSelected ? darken(green, 0.3) : green,
-          borderColor: darken(green, 0.3),
-        },
-      }
-    }
-    if (calEvent.type === 'override') {
-      return {
-        style: {
-          backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
-          borderColor: darken(lavender, 0.3),
-        },
-      }
-    }
-
-    return {}
-  }
 
   const dayStyleGetter = (date: Date): React.HTMLAttributes<HTMLDivElement> => {
     const outOfBounds =
@@ -401,7 +370,6 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents
-            eventPropGetter={eventStyleGetter}
             dayPropGetter={dayStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
