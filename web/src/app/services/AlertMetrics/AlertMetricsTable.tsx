@@ -139,8 +139,8 @@ export default function AlertMetricsTable(
           onPageChange={(newPage: number) => setPage(newPage)}
           page={page}
           paginationMode='server'
-          pageSize={10}
-          rowsPerPageOptions={[10]}
+          pageSize={PAGE_SIZE}
+          rowsPerPageOptions={[PAGE_SIZE]}
           rowCount={alerts.length}
         />
       </Grid>
