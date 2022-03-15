@@ -44,13 +44,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: '45rem',
     fontFamily: theme.typography.body2.fontFamily,
     fontSize: theme.typography.body2.fontSize,
-    '& .rbc-month-view': {
+    '& .rbc-month-view, .rbc-header, .rbc-time-view, .rbc-timeslot-group': {
       border: getBorder(theme),
     },
-    '& .rbc-month-row': { 'border-top': 'none' },
-    '& .rbc-header': {
-      border: getBorder(theme),
-    },
+    '& .rbc-month-row, .rbc-time-header, .rbc-time-header-content, .rbc-time-slot, .rbc-time-content, .rbc-events-container':
+      {
+        border: 'none',
+      },
     // weekly current time divider line
     '& .rbc-time-content .rbc-current-time-indicator': {
       backgroundColor: theme.palette.primary.main,
