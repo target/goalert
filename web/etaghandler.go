@@ -1,14 +1,11 @@
 package web
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
 	"net/http"
 	"sync"
-
-	"github.com/target/goalert/util/log"
 )
 
 type etagHandler struct {
@@ -38,7 +35,6 @@ func (e *etagHandler) etag(name string) string {
 
 	f, err := e.fs.Open(name)
 	if err != nil {
-		log.Log(context.Background(), err)
 		e.tags[name] = ""
 		return ""
 	}
@@ -48,7 +44,6 @@ func (e *etagHandler) etag(name string) string {
 
 	_, err = io.Copy(h, f)
 	if err != nil {
-		log.Log(context.Background(), err)
 		e.tags[name] = ""
 		return ""
 	}
