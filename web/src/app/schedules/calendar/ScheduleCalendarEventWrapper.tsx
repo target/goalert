@@ -111,7 +111,6 @@ export default function ScheduleCalendarEventWrapper({
             size='small'
             onClick={() => onEditTempSched(calEvent.tempSched)}
             variant='contained'
-            color='primary'
             title='Edit this temporary schedule'
           >
             Edit
@@ -125,7 +124,6 @@ export default function ScheduleCalendarEventWrapper({
               size='small'
               onClick={() => onDeleteTempSched(calEvent.tempSched)}
               variant='contained'
-              color='primary'
               title='Delete this temporary schedule'
             >
               Delete
@@ -173,7 +171,6 @@ export default function ScheduleCalendarEventWrapper({
             size='small'
             onClick={() => handleShowOverrideForm(calEvent)}
             variant='contained'
-            color='primary'
             title={`Temporarily remove ${calEvent.title} from this schedule`}
           >
             Override Shift

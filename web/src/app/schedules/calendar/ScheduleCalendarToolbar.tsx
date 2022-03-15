@@ -166,10 +166,7 @@ function ScheduleCalendarToolbar(
       <Grid item>
         <Grid container alignItems='center' justifyContent='flex-end'>
           {props.filter}
-          <ButtonGroup
-            color='primary'
-            aria-label='Toggle between Monthly and Weekly views'
-          >
+          <ButtonGroup aria-label='Toggle between Monthly and Weekly views'>
             <Button
               data-cy='show-month'
               disabled={!weekly}

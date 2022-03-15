@@ -91,7 +91,6 @@ function Action(p: ActionProps): JSX.Element {
       onClick={action.handleOnClick}
       startIcon={action.icon}
       variant='contained'
-      color='primary'
     >
       {action.label}
     </Button>

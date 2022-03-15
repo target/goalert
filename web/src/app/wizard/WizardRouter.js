@@ -210,7 +210,6 @@ export default function WizardRouter() {
                   <LoadingButton
                     attemptCount={fieldErrors(error).length ? 1 : 0}
                     buttonText='Submit'
-                    color='primary'
                     loading={loading}
                     type='submit'
                   />

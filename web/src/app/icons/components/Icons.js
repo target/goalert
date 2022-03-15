@@ -12,7 +12,6 @@ import { useTheme } from '@mui/material'
 
 const useStyles = makeStyles({
   trashIcon: {
-    color: '#666',
     cursor: 'pointer',
     float: 'right',
   },

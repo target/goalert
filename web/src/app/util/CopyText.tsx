@@ -70,7 +70,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
         }}
       >
         <ContentCopy
-          color='secondary'
+          color='primary'
           className={props.title ? classes.icon : undefined}
           fontSize='small'
         />
