@@ -1,7 +1,7 @@
 import React, { ComponentType, useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken, useTheme, Theme, lighten } from '@mui/material/styles'
+import { darken, lighten, useTheme, Theme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -31,19 +31,31 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
+function getBorder(theme: Theme): string {
+  if (theme.palette.mode === 'dark') {
+    return '0.5px solid ' + lighten(theme.palette.background.paper, 0.2)
+  }
+
+  return '0.5px solid ' + darken(theme.palette.background.paper, 0.2)
+}
+
 const useStyles = makeStyles((theme: Theme) => ({
   calendar: {
     height: '45rem',
     fontFamily: theme.typography.body2.fontFamily,
     fontSize: theme.typography.body2.fontSize,
-    '& .rbc-month-row': {
-      'border-top': '1px solid ' + theme.palette.background.default,
+    '& .rbc-month-view': {
+      border: getBorder(theme),
     },
-    // weekly current time divider
+    '& .rbc-month-row': { 'border-top': 'none' },
+    '& .rbc-header': {
+      border: getBorder(theme),
+    },
+    // weekly current time divider line
     '& .rbc-time-content .rbc-current-time-indicator': {
       backgroundColor: theme.palette.primary.main,
     },
-    // weekly current time circle by divider
+    // weekly current time circle by divider line
     '& .rbc-time-content .rbc-current-time-indicator::before': {
       content: '',
       display: 'inline-block',
@@ -176,15 +188,24 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     if (theme.palette.mode === 'dark' && (outOfBounds || currentDay)) {
       return {
         style: {
-          backgroundColor: lighten(theme.palette.background.default, 0.1),
-          border: '1px solid ' + theme.palette.background.default,
+          backgroundColor: lighten(theme.palette.background.paper, 0.1),
+          border: getBorder(theme),
+        },
+      }
+    }
+
+    if (outOfBounds || currentDay) {
+      return {
+        style: {
+          backgroundColor: darken(theme.palette.background.paper, 0.1),
+          border: getBorder(theme),
         },
       }
     }
 
     return {
       style: {
-        border: '1px solid ' + theme.palette.background.default,
+        border: getBorder(theme),
       },
     }
   }
