@@ -61,27 +61,6 @@ module.exports = () => ({
 
   // Source maps used for debugging information
   devtool: 'eval-source-map',
-  // webpack-dev-server configuration
-  devServer: {
-    port: 3035,
-    allowedHosts: 'all',
-    watchFiles: [APP, CYPRESS],
-
-    devMiddleware: {
-      stats: 'errors-only',
-    },
-  },
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
-          chunks: 'all',
-        },
-      },
-    },
-  },
 
   // Webpack plugins
   plugins: [
