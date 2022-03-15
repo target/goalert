@@ -79,7 +79,10 @@ export default function NavSubMenu(props) {
 
   return (
     <React.Fragment>
-      {renderParentLink(parentIcon, parentTitle)}
+      <span className={classes.nav}>
+        {renderParentLink(parentIcon, parentTitle)}
+      </span>
+
       <Collapse in={open} timeout='auto' mountOnEnter unmountOnExit>
         <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>
       </Collapse>
