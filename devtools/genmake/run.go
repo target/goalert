@@ -52,10 +52,13 @@ func newTool(path string) Tool {
 
 func main() {
 	var data struct {
-		Tools   []Tool
-		Builds  []Build
-		Bundles []Bundle
+		Tools         []Tool
+		Builds        []Build
+		Bundles       []Bundle
+		ContainerArch []string
 	}
+
+	data.ContainerArch = []string{"amd64", "arm", "arm64"}
 
 	data.Builds = []Build{
 		{Name: "linux-amd64", Env: "GOOS=linux GOARCH=amd64"},

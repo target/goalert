@@ -149,11 +149,7 @@ export default function AdminSMSSend(): JSX.Element {
         <DialogTitle>An error occurred</DialogTitle>
         <DialogContentError error={smsError?.message ?? ''} />
         <DialogActions>
-          <Button
-            color='primary'
-            variant='contained'
-            onClick={() => setShowErrorDialog(false)}
-          >
+          <Button variant='contained' onClick={() => setShowErrorDialog(false)}>
             Okay
           </Button>
         </DialogActions>

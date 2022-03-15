@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
 	"github.com/target/goalert/engine/message"
+	"github.com/target/goalert/engine/metricsmanager"
 	"github.com/target/goalert/engine/npcyclemanager"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
@@ -51,7 +52,7 @@ type Engine struct {
 	modules []updater
 	msg     *message.DB
 
-	am  alert.Manager
+	a   *alert.Store
 	cfg *Config
 
 	triggerPauseCh chan *pauseReq
@@ -79,7 +80,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		runLoopExit:    make(chan struct{}),
 		nextCycle:      make(chan chan struct{}),
 
-		am: c.AlertStore,
+		a: c.AlertStore,
 	}
 
 	p.mgr = lifecycle.NewManager(p._run, p._shutdown)
@@ -123,6 +124,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
+	metricsMgr, err := metricsmanager.NewDB(ctx, db)
+	if err != nil {
+		return nil, errors.Wrap(err, "metrics management backend")
+	}
 
 	p.modules = []updater{
 		rotMgr,
@@ -133,6 +138,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		verifyMgr,
 		hbMgr,
 		cleanMgr,
+		metricsMgr,
 	}
 
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)
@@ -349,10 +355,10 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 	}
 
 	if cb.AlertID != 0 {
-		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
 	return errors.New("unknown callback type")
@@ -404,10 +410,10 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	}
 
 	if cb.AlertID != 0 {
-		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
 	return errors.New("unknown callback type")
@@ -456,6 +462,39 @@ func (p *Engine) processAll(ctx context.Context) bool {
 	}
 	return false
 }
+
+func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
+	ctx, cancel = context.WithCancel(ctx)
+
+	go func() {
+		watch := time.NewTicker(5 * time.Second)
+		defer watch.Stop()
+		watchErr := time.NewTicker(time.Minute)
+		defer watchErr.Stop()
+
+	loop:
+		for {
+			select {
+			case <-watchErr.C:
+				log.Log(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), fmt.Errorf("engine possibly stuck"))
+			case <-watch.C:
+				log.Logf(log.WithField(ctx, "elapsedSec", time.Since(start).Seconds()), "long engine cycle")
+			case <-ctx.Done():
+				break loop
+			}
+		}
+
+		dur := time.Since(start)
+		if dur < 5*time.Second {
+			return
+		}
+
+		log.Log(log.WithField(ctx, "elapsedSec", dur.Seconds()), fmt.Errorf("slow cycle finished"))
+	}()
+
+	return cancel
+}
+
 func (p *Engine) cycle(ctx context.Context) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.Cycle")
 	defer sp.End()
@@ -479,10 +518,14 @@ passSignals:
 		return
 	}
 
-	log.Logf(ctx, "Engine cycle start.")
-	defer log.Logf(ctx, "Engine cycle end.")
+	if p.cfg.LogCycles {
+		log.Logf(ctx, "Engine cycle start.")
+		defer log.Logf(ctx, "Engine cycle end.")
+	}
 
 	startAll := time.Now()
+	defer monitorCycle(ctx, startAll)()
+
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
 		sp.Annotate([]trace.Attribute{trace.BoolAttribute("cycle.abort", true)}, "Cycle aborted.")

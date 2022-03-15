@@ -18,9 +18,8 @@ import Notices from '../details/Notices'
 import { useIsWidthUp } from '../util/useWidth'
 
 const useStyles = makeStyles((theme) => {
-  const { cancelButton, dialogWidth } = globalStyles(theme)
+  const { dialogWidth } = globalStyles(theme)
   return {
-    cancelButton,
     dialogWidth,
     form: {
       height: '100%', // pushes caption to bottom if room is available
@@ -124,7 +123,7 @@ function FormDialog(props) {
     if (alert) {
       return (
         <DialogActions>
-          <Button color='primary' onClick={handleOnClose} variant='contained'>
+          <Button onClick={handleOnClose} variant='contained'>
             {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
@@ -135,11 +134,7 @@ function FormDialog(props) {
 
     return (
       <DialogActions>
-        <Button
-          className={classes.cancelButton}
-          disabled={loading}
-          onClick={onBack || handleOnClose}
-        >
+        <Button disabled={loading} onClick={onBack || handleOnClose}>
           {onBack ? 'Back' : 'Cancel'}
         </Button>
         <LoadingButton
@@ -151,7 +146,6 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
-          color='primary'
           loading={loading}
           type='submit'
         />

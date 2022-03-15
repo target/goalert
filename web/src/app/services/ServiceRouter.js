@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 
 import SimpleListPage from '../lists/SimpleListPage'
 import ServiceDetails from './ServiceDetails'
@@ -62,52 +62,22 @@ export default function ServiceRouter() {
     )
   }
 
-  function renderDetails({ match }) {
-    return <ServiceDetails serviceID={match.params.serviceID} />
-  }
-
-  function renderAlerts({ match }) {
-    return <ServiceAlerts serviceID={match.params.serviceID} />
-  }
-
-  function renderKeys({ match }) {
-    return <IntegrationKeyList serviceID={match.params.serviceID} />
-  }
-
-  function renderHeartbeatMonitors({ match }) {
-    return <HeartbeatMonitorList serviceID={match.params.serviceID} />
-  }
-
-  function renderLabels({ match }) {
-    return <ServiceLabelList serviceID={match.params.serviceID} />
-  }
-
-  function renderAlertMetrics({ match }) {
-    return <AlertMetrics serviceID={match.params.serviceID} />
-  }
-
   return (
-    <Switch>
-      <Route exact path='/services' render={renderList} />
-      <Route exact path='/services/:serviceID/alerts' render={renderAlerts} />
-      <Route exact path='/services/:serviceID' render={renderDetails} />
+    <Routes>
+      <Route path='/' element={renderList()} />
+      <Route path=':serviceID/alerts' element={<ServiceAlerts />} />
+      <Route path=':serviceID' element={<ServiceDetails />} />
       <Route
-        exact
-        path='/services/:serviceID/integration-keys'
-        render={renderKeys}
+        path=':serviceID/integration-keys'
+        element={<IntegrationKeyList />}
       />
       <Route
-        exact
-        path='/services/:serviceID/heartbeat-monitors'
-        render={renderHeartbeatMonitors}
+        path=':serviceID/heartbeat-monitors'
+        element={<HeartbeatMonitorList />}
       />
-      <Route exact path='/services/:serviceID/labels' render={renderLabels} />
-      <Route
-        exact
-        path='/services/:serviceID/alert-metrics'
-        render={renderAlertMetrics}
-      />
-      <Route component={PageNotFound} />
-    </Switch>
+      <Route path=':serviceID/labels' element={<ServiceLabelList />} />
+      <Route path=':serviceID/alert-metrics' element={<AlertMetrics />} />
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
-import { Redirect } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -69,7 +68,8 @@ const alertStatus = (a) => {
   return 'warn'
 }
 
-export default function ServiceDetails({ serviceID }) {
+export default function ServiceDetails() {
+  const { serviceID } = useParams()
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const { data, loading, error } = useQuery(query, {
@@ -81,7 +81,7 @@ export default function ServiceDetails({ serviceID }) {
   if (error) return <GenericError error={error.message} />
 
   if (!_.get(data, 'service.id')) {
-    return showDelete ? <Redirect to='/services' push /> : <ObjectNotFound />
+    return showDelete ? <Navigate to='/services' /> : <ObjectNotFound />
   }
 
   return (
@@ -164,8 +164,4 @@ export default function ServiceDetails({ serviceID }) {
       )}
     </React.Fragment>
   )
-}
-
-ServiceDetails.propTypes = {
-  serviceID: p.string.isRequired,
 }

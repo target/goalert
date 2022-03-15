@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/pkg/errors"
+	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserCalendarSubscription App
@@ -18,13 +23,15 @@ func (a *App) UserCalendarSubscription() graphql2.UserCalendarSubscriptionResolv
 	return (*UserCalendarSubscription)(a)
 }
 
-func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
+func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calsub.Subscription) ([]int, error) {
 	return obj.Config.ReminderMinutes, nil
 }
-func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
+
+func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calsub.Subscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
-func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
+
+func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calsub.Subscription) (*string, error) {
 	tok := obj.Token()
 	if tok == "" {
 		return nil, nil
@@ -38,13 +45,13 @@ func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscri
 	return &callback, nil
 }
 
-func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
+func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calsub.Subscription, error) {
 	return q.CalSubStore.FindOne(ctx, id)
 }
 
 // todo: return UserCalendarSubscription with generated url once endpoint has been created
-func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
-	cs = &calendarsubscription.CalendarSubscription{
+func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calsub.Subscription, err error) {
+	cs = &calsub.Subscription{
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		UserID:     permission.UserID(ctx),
@@ -63,11 +70,19 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 }
 
 func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
-	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cs, err := m.CalSubStore.FindOneForUpdateTx(ctx, tx, permission.UserID(ctx), input.ID)
+	err := sqlutil.Transaction(ctx, func(ctx context.Context, db *gorm.DB) error {
+		var cs calsub.Subscription
+		err := db.
+			Where(calsub.Subscription{
+				ID:     input.ID,
+				UserID: permission.UserID(ctx),
+			}).
+			Clauses(clause.Locking{Strength: "UPDATE"}).
+			Take(&cs).Error
 		if err != nil {
 			return err
 		}
+
 		if input.Name != nil {
 			cs.Name = *input.Name
 		}
@@ -77,7 +92,12 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 		if input.ReminderMinutes != nil {
 			cs.Config.ReminderMinutes = input.ReminderMinutes
 		}
-		return m.CalSubStore.UpdateTx(ctx, tx, cs)
+
+		return db.Save(&cs).Error
 	})
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, validation.NewGenericError("unknown calendar subscription id")
+	}
+
 	return err == nil, err
 }

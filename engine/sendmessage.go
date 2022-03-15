@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -42,7 +42,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	var isFirstAlertMessage bool
 	switch msg.Type {
 	case notification.MessageTypeAlertBundle:
-		name, count, err := p.am.ServiceInfo(ctx, msg.ServiceID)
+		name, count, err := p.a.ServiceInfo(ctx, msg.ServiceID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup service info")
 		}
@@ -64,7 +64,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Count:       count,
 		}
 	case notification.MessageTypeAlert:
-		a, err := p.am.FindOne(ctx, msg.AlertID)
+		a, err := p.a.FindOne(ctx, msg.AlertID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
 		}

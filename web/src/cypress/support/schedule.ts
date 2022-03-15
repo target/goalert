@@ -7,11 +7,37 @@ import {
   ScheduleTargetInput,
   SetScheduleShiftInput,
   SetTemporaryScheduleInput,
+  TemporarySchedule,
   User,
+  WeekdayFilter,
 } from '../../schema'
 import { randDT, randSubInterval } from './util'
 
 const c = new Chance()
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Creates a new schedule. */
+      createSchedule: typeof createSchedule
+
+      /** Deletes a schedule with its specified ID */
+      deleteSchedule: typeof deleteSchedule
+
+      /** Configures a schedule target and rules. */
+      setScheduleTarget: typeof setScheduleTarget
+
+      /** Creates a new temporary schedule. */
+      createTemporarySchedule: typeof createTemporarySchedule
+
+      setScheduleNotificationRules: typeof setScheduleNotificationRules
+    }
+  }
+
+  type TemporaryScheduleOptions = Partial<TemporarySchedule> & {
+    shiftUserIDs?: string[]
+  }
+}
 
 const fmtTime = (num: number): string => {
   const s = num.toString()
@@ -24,11 +50,11 @@ const fmtTime = (num: number): string => {
 const randClock = (): string =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
-const randWeekdayFilter = (): boolean[] =>
-  new Array(7).fill(0).map(() => c.bool())
+const randWeekdayFilter = (): WeekdayFilter =>
+  new Array(7).fill(0).map(() => c.bool()) as WeekdayFilter
 
 function setScheduleNotificationRules(
-  _rules: [Partial<OnCallNotificationRuleInput>],
+  _rules: Array<Partial<OnCallNotificationRuleInput>>,
   schedule?: string | Partial<Schedule>,
 ): Cypress.Chainable<Schedule> {
   if (typeof schedule !== 'string') {
@@ -61,12 +87,12 @@ function setScheduleNotificationRules(
     .getSlackChannels()
     .then((channels: SlackChannel[]) => {
       const rules = _rules.map((r) => {
-        let time: string | null | undefined = r.time
+        let time = r.time
         if (time === undefined) {
           time = c.bool() ? randClock() : null
         }
 
-        let weekdayFilter: boolean[] | null | undefined = r.weekdayFilter
+        let weekdayFilter = r.weekdayFilter
         if (weekdayFilter === undefined) {
           weekdayFilter = time && c.bool() ? randWeekdayFilter() : null
         }
@@ -87,8 +113,8 @@ function setScheduleNotificationRules(
         },
       })
     })
-    .then(() => cy.graphql(query, { id: schedule }) as { schedule: Schedule })
-    .then((sched: { schedule: Schedule }) => sched.schedule)
+    .then(() => cy.graphql(query, { id: schedule }))
+    .then((res: GraphQLResponse) => res.schedule)
 }
 
 function setScheduleTarget(
@@ -205,7 +231,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphql(mutation, {
+  return cy.graphqlVoid(mutation, {
     input: [
       {
         type: 'schedule',
@@ -325,7 +351,7 @@ function createTemporarySchedule(
       shifts,
     }
 
-    return cy.graphql(mutation, { input }) as void
+    return cy.graphqlVoid(mutation, { input })
   })
 }
 

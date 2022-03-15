@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { safeURL } from './safeURL'
 import remarkGfm from 'remark-gfm'
 import makeStyles from '@mui/styles/makeStyles'
+import AppLink from './AppLink'
 
 const useStyles = makeStyles({
   markdown: {
@@ -41,6 +42,18 @@ const useStyles = makeStyles({
   },
 })
 
+function TableCell({ children, isHeader, align, ...rest }) {
+  const content = React.Children.map(children, (c) =>
+    ['<br>', '<br/>', '<br />'].includes(c) ? <br /> : c,
+  )
+
+  return (
+    <td style={{ textAlign: align }} {...rest}>
+      {content}
+    </td>
+  )
+}
+
 // Markdown accepts plain text to transform into styled html
 // Typically it is wrapped in a <Typography component='div' /> component
 export default function Markdown(props) {
@@ -51,6 +64,14 @@ export default function Markdown(props) {
   return (
     <ReactMarkdown
       className={classes.markdown}
+      components={{
+        td: TableCell,
+        a: ({ node, inline, className, children, ...props }) => (
+          <AppLink to={props.href} newTab {...props}>
+            {children}
+          </AppLink>
+        ),
+      }}
       remarkPlugins={[remarkGfm]}
       allowElement={(element) => {
         if (

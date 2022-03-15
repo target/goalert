@@ -51,7 +51,6 @@ export default function CalendarSubscribeButton(props) {
         <Button
           data-cy='subscribe-btn'
           aria-label='Subscribe to this schedule'
-          color='primary'
           disabled={creationDisabled}
           onClick={() => setShowDialog(true)}
           variant='contained'

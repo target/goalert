@@ -1,5 +1,4 @@
 import { Chance } from 'chance'
-import { Schedule } from '../../schema'
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -13,11 +12,8 @@ const padZeros = (val: string): string => {
 interface CreateOpts {
   name: string
 }
-type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
-type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
-type createManyFunc = (
-  names: Array<CreateOpts>,
-) => Cypress.Chainable<dataModel | dataModel[]>
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable
+type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable
 
 function testPaginating(
   label: string,
@@ -39,7 +35,7 @@ function testPaginating(
       return create(names.map((name) => ({ name })))
     })
 
-    beforeEach(() => cy.visit(`/${url}?search=${nameSubstr}`))
+    beforeEach(() => cy.visit(`/${url}?search=Test+${nameSubstr}`))
 
     it(`should navigate forward and back`, () => {
       cy.get('button[data-cy="back-button"]').should('be.disabled')
@@ -69,7 +65,7 @@ function testPaginating(
         cy.get('body').should('contain', names[i])
     })
 
-    it(`should go to page 0 on search`, () => {
+    it(`should reset to page 0 on search change`, () => {
       cy.get('button[data-cy="back-button"]').should('be.disabled')
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
@@ -79,7 +75,7 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
 
-      cy.pageSearch(nameSubstr.slice(0, -1))
+      cy.pageSearch(nameSubstr) // trigger search onChange
 
       cy.get('button[data-cy="back-button"]').should('be.disabled')
       for (let i = 0; i < itemsPerPage; i++)

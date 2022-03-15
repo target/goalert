@@ -1,17 +1,11 @@
 html,
 body {
-  background-color: lightgrey;
   height: 100%;
   margin: 0;
 }
 
 #app {
   height: 100%;
-}
-
-a {
-  text-decoration: none;
-  color: #cd1831;
 }
 
 a:hover {

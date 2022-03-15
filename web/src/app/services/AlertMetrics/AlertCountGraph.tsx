@@ -1,6 +1,7 @@
 import React from 'react'
 import { Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import {
   XAxis,
   YAxis,
@@ -11,15 +12,13 @@ import {
   Bar,
   Legend,
 } from 'recharts'
-import { theme } from '../../mui'
 import Spinner from '../../loading/components/Spinner'
-
 interface AlertCountGraphProps {
   data: typeof BarChart.defaultProps['data']
   loading: boolean
 }
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   graphContent: {
     height: '500px',
     fontFamily: theme.typography.body2.fontFamily,
@@ -37,7 +36,7 @@ export default function AlertCountGraph(
   const classes = useStyles()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12}>
+      <Grid item xs={12} data-cy='metrics-graph'>
         {props.loading && <Spinner />}
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
@@ -54,8 +53,9 @@ export default function AlertCountGraph(
             <XAxis dataKey='date' type='category' />
             <YAxis allowDecimals={false} dataKey='count' />
             <Tooltip
+              data-cy='metrics-tooltip'
               labelFormatter={(label, props) => {
-                return props?.length ? props[0]?.payload?.label : label
+                return props?.length ? props[0].payload.label : label
               }}
             />
             <Legend />

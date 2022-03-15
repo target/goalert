@@ -8,29 +8,23 @@ import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import {
-  Build as WizardIcon,
-  Feedback as FeedbackIcon,
   Group as UsersIcon,
   Layers as EscalationPoliciesIcon,
   Notifications as AlertsIcon,
-  PowerSettingsNew as LogoutIcon,
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   VpnKey as ServicesIcon,
-  Settings as AdminIcon,
+  Build as AdminIcon,
 } from '@mui/icons-material'
-
-import routeConfig, { getPath } from '../routes'
-
+import { WizardHat as WizardIcon } from 'mdi-material-ui'
 import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@mui/material/ListItemIcon'
-import { CurrentUserAvatar } from '../../util/avatars'
-import { authLogout } from '../../actions'
-import { useDispatch } from 'react-redux'
-import RequireConfig, { Config } from '../../util/RequireConfig'
+import { useTheme } from '@mui/material/styles'
+import routeConfig, { getPath } from '../routes'
+import RequireConfig from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-import logo from '../../public/goalert-alt-logo.png'
-import AppLink from '../../util/AppLink'
+import logo from '../../public/logos/black/goalert-alt-logo.png'
+import darkModeLogo from '../../public/logos/white/goalert-alt-logo-white.png'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -63,8 +57,7 @@ const useStyles = makeStyles((theme) => ({
 export default function SideBarDrawerList(props) {
   const { closeMobileSidebar } = props
   const classes = useStyles()
-  const dispatch = useDispatch()
-  const logout = () => dispatch(authLogout(true))
+  const theme = useTheme()
 
   function renderSidebarItem(IconComponent, label) {
     return (
@@ -84,21 +77,14 @@ export default function SideBarDrawerList(props) {
     )
   }
 
-  function renderSidebarLink(icon, path, label, props = {}) {
-    return (
-      <AppLink to={path} className={classes.nav} {...props}>
-        {renderSidebarItem(icon, label)}
-      </AppLink>
-    )
-  }
-
   function renderSidebarNavLink(icon, path, label, key) {
     return (
       <NavLink
         key={key}
         to={path}
-        className={classes.nav}
-        activeClassName={classes.navSelected}
+        className={({ isActive }) =>
+          isActive ? classes.navSelected : classes.nav
+        }
         onClick={closeMobileSidebar}
       >
         {renderSidebarItem(icon, label)}
@@ -113,7 +99,7 @@ export default function SideBarDrawerList(props) {
       <NavSubMenu
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
-        path={getPath(cfg)}
+        path={getPath(cfg).replace('/*', '')}
         subMenuRoutes={cfg.subRoutes}
         closeMobileSidebar={closeMobileSidebar}
       >
@@ -122,18 +108,14 @@ export default function SideBarDrawerList(props) {
     )
   }
 
-  function renderFeedback(url) {
-    return (
-      <AppLink to={url} className={classes.nav} newTab data-cy='feedback-link'>
-        {renderSidebarItem(FeedbackIcon, 'Feedback')}
-      </AppLink>
-    )
-  }
-
   return (
     <React.Fragment>
       <div aria-hidden className={classes.logoDiv}>
-        <img height={38} src={logo} alt='GoAlert Logo' />
+        <img
+          height={38}
+          src={theme.palette.mode === 'dark' ? darkModeLogo : logo}
+          alt='GoAlert Logo'
+        />
       </div>
       <Divider />
       <nav>
@@ -147,7 +129,7 @@ export default function SideBarDrawerList(props) {
                     key={idx}
                     parentIcon={navIcons[cfg.title]}
                     parentTitle={cfg.title}
-                    path={getPath(cfg)}
+                    path={getPath(cfg).replace('/*', '')}
                     subMenuRoutes={cfg.subRoutes}
                   >
                     {renderSidebarItem(navIcons[cfg.title], cfg.title)}
@@ -156,34 +138,14 @@ export default function SideBarDrawerList(props) {
               }
               return renderSidebarNavLink(
                 navIcons[cfg.title],
-                getPath(cfg),
+                getPath(cfg).replace('/*', ''),
                 cfg.title,
                 idx,
               )
             })}
-          <RequireConfig isAdmin>
-            <Divider aria-hidden />
-            {renderAdmin()}
-          </RequireConfig>
+          <RequireConfig isAdmin>{renderAdmin()}</RequireConfig>
 
-          <Divider aria-hidden />
           {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
-          <Config>
-            {(cfg) =>
-              cfg['Feedback.Enable'] &&
-              renderFeedback(
-                cfg['Feedback.OverrideURL'] ||
-                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
-              )
-            }
-          </Config>
-          {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
-            onClick: (e) => {
-              e.preventDefault()
-              logout()
-            },
-          })}
-          {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
         </List>
       </nav>
     </React.Fragment>

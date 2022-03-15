@@ -9,10 +9,10 @@ import (
 
 type NotificationMessageStatusLoader struct {
 	*loader
-	store notification.Store
+	store *notification.Store
 }
 
-func NewNotificationMessageStatusLoader(ctx context.Context, store notification.Store) *NotificationMessageStatusLoader {
+func NewNotificationMessageStatusLoader(ctx context.Context, store *notification.Store) *NotificationMessageStatusLoader {
 	p := &NotificationMessageStatusLoader{
 		store: store,
 	}

@@ -1,5 +1,14 @@
 import { DateTime } from 'luxon'
 
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Update form fields with the given values. */
+      form: typeof form
+    }
+  }
+}
+
 const clickArc = (pct: number) => (el: JQuery) => {
   const height = el.height() || 0
   const radius = height / 2

@@ -3,9 +3,9 @@ import classnames from 'classnames'
 import AddIcon from '@mui/icons-material/Add'
 import { Fab, Tooltip, FabProps } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { theme } from '../mui'
+import { Theme } from '@mui/material/styles'
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   fab: {
     position: 'fixed',
     bottom: '16px',
@@ -46,7 +46,7 @@ export default function CreateFAB(props: CreateFabProps): JSX.Element {
       <Fab
         aria-label={title}
         data-cy='page-fab'
-        color='primary'
+        color='secondary'
         className={classnames(classes.fab, transitionClass)}
         {...fabProps}
       >

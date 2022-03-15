@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { Switch, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 import ScheduleDetails from './ScheduleDetails'
 import ScheduleOverrideList from './ScheduleOverrideList'
@@ -46,48 +46,21 @@ function ScheduleList() {
 
 export default function ScheduleRouter() {
   return (
-    <Switch>
-      <Route exact path='/schedules' component={ScheduleList} />
+    <Routes>
+      <Route path='/' element={<ScheduleList />} />
+      <Route path=':scheduleID' element={<ScheduleDetails />} />
+      <Route path=':scheduleID/assignments' element={<ScheduleRuleList />} />
       <Route
-        exact
-        path='/schedules/:scheduleID'
-        render={({ match }) => (
-          <ScheduleDetails scheduleID={match.params.scheduleID} />
-        )}
+        path=':scheduleID/on-call-notifications'
+        element={<ScheduleOnCallNotificationsList />}
       />
       <Route
-        path='/schedules/:scheduleID/assignments'
-        render={({ match }) => (
-          <ScheduleRuleList scheduleID={match.params.scheduleID} />
-        )}
+        path=':scheduleID/escalation-policies'
+        element={<ScheduleAssignedToList />}
       />
-      <Route
-        path='/schedules/:scheduleID/on-call-notifications'
-        render={({ match }) => (
-          <ScheduleOnCallNotificationsList
-            scheduleID={match.params.scheduleID}
-          />
-        )}
-      />
-      <Route
-        path='/schedules/:scheduleID/escalation-policies'
-        render={({ match }) => (
-          <ScheduleAssignedToList scheduleID={match.params.scheduleID} />
-        )}
-      />
-      <Route
-        path='/schedules/:scheduleID/overrides'
-        render={({ match }) => (
-          <ScheduleOverrideList scheduleID={match.params.scheduleID} />
-        )}
-      />
-      <Route
-        path='/schedules/:scheduleID/shifts'
-        render={({ match }) => (
-          <ScheduleShiftList scheduleID={match.params.scheduleID} />
-        )}
-      />
-      <Route component={PageNotFound} />
-    </Switch>
+      <Route path=':scheduleID/overrides' element={<ScheduleOverrideList />} />
+      <Route path=':scheduleID/shifts' element={<ScheduleShiftList />} />
+      <Route element={<PageNotFound />} />
+    </Routes>
   )
 }

@@ -65,7 +65,6 @@ export default function FilterContainer(props) {
   return (
     <React.Fragment>
       <IconButton
-        color='inherit'
         onClick={(e) => setAnchorEl(anchorRef ? anchorRef.current : e.target)}
         title={props.title}
         aria-expanded={Boolean(anchorEl)}

@@ -26,9 +26,6 @@ export const styles = (theme) => ({
   block: {
     display: 'inline-block',
   },
-  cancelButton: {
-    color: 'rgba(0,0,0, 0.54)',
-  },
   defaultFlex: {
     flex: '0 1 auto',
   },
@@ -60,11 +57,8 @@ export const styles = (theme) => ({
   tableCardContent: {
     padding: 0,
   },
-  highlightRow: {
-    backgroundColor: theme.palette.primary['100'],
-  },
   error: {
-    color: theme.palette.error['700'],
+    color: theme.palette.error.main,
   },
   selectedOption: {
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
@@ -100,6 +94,21 @@ export const styles = (theme) => ({
     },
   },
   navSelected: {
+    textDecoration: 'none',
+    display: 'block',
+    '& p, span': {
+      lineHeight: '1.375rem',
+      color: theme.palette.text.secondary, // todo: use text.primary with baseline mui palette
+    },
+    '&:focus': {
+      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+    },
+    '&:hover': {
+      borderRadius: 4,
+      margin: 8,
+      textDecoration: 'none',
+      overflow: 'hidden',
+    },
     backgroundColor: theme.palette.primary.main + '1f', // 12% opacity
     borderRadius: 4,
     margin: 8,

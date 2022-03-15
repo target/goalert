@@ -16,7 +16,7 @@ import { useURLParam } from '../actions'
 const useStyles = makeStyles((theme) => {
   return {
     textField: {
-      backgroundColor: 'white',
+      backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
       borderRadius: '4px',
       [theme.breakpoints.down('sm')]: {
         flex: 1,
@@ -104,7 +104,6 @@ export default function Search(props) {
       <AppBarSearchContainer>
         <IconButton
           key='search-icon'
-          color='inherit'
           aria-label='Search'
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
@@ -125,7 +124,6 @@ export default function Search(props) {
           <AppBar>
             <Toolbar>
               <IconButton
-                color='inherit'
                 onClick={() => {
                   // cancel search and close the bar
                   setSearch('')

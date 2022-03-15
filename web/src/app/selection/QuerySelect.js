@@ -126,7 +126,7 @@ export const querySelectPropTypes = {
   error: p.bool,
   onChange: p.func,
   value: valueCheck,
-
+  label: p.string,
   multiple: p.bool,
   name: p.string,
   placeholder: p.string,

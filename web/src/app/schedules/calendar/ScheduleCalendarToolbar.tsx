@@ -7,14 +7,14 @@ import {
   Typography,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
 import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@mui/icons-material/ChevronLeft'
 import RightIcon from '@mui/icons-material/ChevronRight'
-import { theme } from '../../mui'
 
-const useStyles = makeStyles<typeof theme>((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   arrowBtns: {
     marginLeft: theme.spacing(1.75),
     marginRight: theme.spacing(1.75),
@@ -166,10 +166,7 @@ function ScheduleCalendarToolbar(
       <Grid item>
         <Grid container alignItems='center' justifyContent='flex-end'>
           {props.filter}
-          <ButtonGroup
-            color='primary'
-            aria-label='Toggle between Monthly and Weekly views'
-          >
+          <ButtonGroup aria-label='Toggle between Monthly and Weekly views'>
             <Button
               data-cy='show-month'
               disabled={!weekly}

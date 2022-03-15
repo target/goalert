@@ -228,14 +228,11 @@ export default function AlertDetails(props) {
       const schedules = targets.filter((t) => t.type === 'schedule')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
-
-      let className
-      if (status !== 'closed' && currentLevel % steps.length === index) {
-        className = classes.highlightRow
-      }
+      const selected =
+        status !== 'closed' && currentLevel % steps.length === index
 
       return (
-        <TableRow key={index} className={className}>
+        <TableRow key={index} selected={selected}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
             {!targets.length && <Typography>&mdash;</Typography>}
@@ -263,7 +260,6 @@ export default function AlertDetails(props) {
     if (!fullDescription && details.length > 1000) {
       details = details.slice(0, 1000).trim() + ' ...'
     }
-    if (details.split('```').length % 2 === 0) details += '\n```'
 
     let expandTextAction = null
     if (details.length > 1000) {
@@ -303,12 +299,8 @@ export default function AlertDetails(props) {
             <Typography component='h3' variant='h5'>
               Details
             </Typography>
-            <Typography
-              variant='body1'
-              component='div'
-              style={{ whiteSpace: 'pre-wrap' }}
-            >
-              <Markdown value={details} />
+            <Typography variant='body1' component='div'>
+              <Markdown value={details + '\n'} />
             </Typography>
             {expandTextAction}
           </CardContent>

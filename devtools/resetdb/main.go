@@ -20,9 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	adminID string
-)
+var adminID string
 
 func main() {
 	log.SetFlags(log.Lshortfile)
@@ -75,7 +73,6 @@ func main() {
 	if err != nil {
 		log.Fatal("insert random data:", err)
 	}
-
 }
 
 func fillDB(ctx context.Context, url string) error {
@@ -260,17 +257,26 @@ func fillDB(ctx context.Context, url string) error {
 
 	_, err = pool.Exec(ctx, "alter table alerts disable trigger trg_enforce_alert_limit")
 	must(err)
-	copyFrom("alerts", []string{"status", "summary", "details", "dedup_key", "service_id", "source"}, len(data.Alerts), func(n int) []interface{} {
+	copyFrom("alerts", []string{"id", "created_at", "status", "summary", "details", "dedup_key", "service_id", "source"}, len(data.Alerts), func(n int) []interface{} {
 		a := data.Alerts[n]
 		var dedup *alert.DedupID
 		if a.Status != alert.StatusClosed {
 			dedup = a.DedupKey()
 		}
-		return []interface{}{a.Status, a.Summary, a.Details, dedup, asUUID(a.ServiceID), a.Source}
+		return []interface{}{a.ID, a.CreatedAt, a.Status, a.Summary, a.Details, dedup, asUUID(a.ServiceID), a.Source}
 	}, "services")
+
+	copyFrom("alert_logs", []string{"alert_id", "timestamp", "event", "message"}, len(data.AlertLogs), func(n int) []interface{} {
+		a := data.AlertLogs[n]
+		return []interface{}{a.AlertID, a.Timestamp, a.Event, a.Message}
+	}, "alerts")
 
 	dt.Wait()
 	_, err = pool.Exec(ctx, "alter table alerts enable trigger all")
+	must(err)
+
+	// fix sequences
+	_, err = pool.Exec(ctx, "SELECT pg_catalog.setval('public.alerts_id_seq', (select max(id)+1 from public.alerts), true)")
 	must(err)
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
@@ -19,16 +19,16 @@ import (
 )
 
 type Config struct {
-	NCStore         notificationchannel.Store
-	LogStore        alertlog.Store
+	NCStore         *notificationchannel.Store
+	LogStore        *alertlog.Store
 	SlackLookupFunc func(ctx context.Context, channelID string) (*slack.Channel, error)
 }
 
 type Store struct {
 	db *sql.DB
 
-	log     alertlog.Store
-	ncStore notificationchannel.Store
+	log     *alertlog.Store
+	ncStore *notificationchannel.Store
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
 	findSlackChan *sql.Stmt

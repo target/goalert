@@ -1,26 +1,38 @@
 package graphqlapp
 
 import (
-	context "context"
+	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/user"
+	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
+	"gorm.io/gorm"
 )
 
-type Alert App
-type AlertLogEntry App
-type AlertLogEntryState App
+type (
+	Alert              App
+	AlertLogEntry      App
+	AlertLogEntryState App
+)
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -177,6 +189,83 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
+// splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alerts.
+// The given alerts are required to be sorted by their CreatedAt field.
+func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.Alert) (result []graphql2.AlertDataPoint) {
+	if r.Period.IsZero() {
+		// should be handled by ISORInterval parsing/validation, but just in case
+		// prefer panic to infinite loop
+		panic("duration must not be zero")
+	}
+
+	countAlertsUntil := func(ts time.Time) int {
+		var count int
+		for len(alerts) > 0 {
+			if !alerts[0].CreatedAt.Before(ts) {
+				break
+			}
+
+			count++
+			alerts = alerts[1:]
+		}
+		return count
+	}
+
+	// trim alerts
+	countAlertsUntil(r.Start)
+
+	ts := r.Start
+	end := r.End()
+	for ts.Before(end) {
+		next := r.Period.AddTo(ts)
+		if next.After(end) {
+			next = end
+		}
+		result = append(result, graphql2.AlertDataPoint{
+			Timestamp:  ts,
+			AlertCount: countAlertsUntil(next),
+		})
+		ts = next
+	}
+
+	return result
+}
+
+func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
+	err = validate.Many(
+		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// only daily supported for now
+	if opts.RInterval.Period != (timeutil.ISODuration{Days: 1}) {
+		return nil, validation.NewFieldError("rInterval", "only daily currently supported")
+	}
+
+	if opts.RInterval.Repeat > 30 {
+		return nil, validation.NewFieldError("rInterval", "repeat count must be <= 30")
+	}
+
+	alerts, err := q.AlertStore.Search(ctx, &alert.SearchOptions{
+		Status:    []alert.Status{alert.StatusClosed},
+		NotBefore: opts.RInterval.Start,
+		Before:    opts.RInterval.End(),
+		ServiceFilter: alert.IDFilter{
+			IDs:   opts.FilterByServiceID,
+			Valid: true,
+		},
+		Limit: 100,
+		Sort:  alert.SortModeDateIDReverse,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return splitRangeByDuration(opts.RInterval, alerts), nil
+}
+
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
 	if opts == nil {
 		opts = new(graphql2.AlertSearchOptions)
@@ -287,6 +376,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 func (a *Alert) ID(ctx context.Context, raw *alert.Alert) (string, error) {
 	return strconv.Itoa(raw.ID), nil
 }
+
 func (a *Alert) Status(ctx context.Context, raw *alert.Alert) (graphql2.AlertStatus, error) {
 	switch raw.Status {
 	case alert.StatusTriggered:
@@ -298,6 +388,7 @@ func (a *Alert) Status(ctx context.Context, raw *alert.Alert) (graphql2.AlertSta
 	}
 	return "", errors.New("unknown alert status " + string(raw.Status))
 }
+
 func (a *Alert) AlertID(ctx context.Context, raw *alert.Alert) (int, error) {
 	return raw.ID, nil
 }
@@ -379,21 +470,57 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 
 // PendingNotifications returns a list of notifications that are waiting to be sent
 func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]graphql2.AlertPendingNotification, error) {
-	var result []graphql2.AlertPendingNotification
-
-	if obj.Status != alert.StatusTriggered {
-		return result, nil
-	}
-
-	p, err := a.NotificationStore.FindPendingNotifications(ctx, obj.ID)
+	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, val := range p {
-		result = append(result, graphql2.AlertPendingNotification{
-			Destination: val.DestName + " (" + val.DestType + ")",
-		})
+	db := sqlutil.FromContext(ctx)
+
+	var rows []struct {
+		UserID          uuid.UUID
+		ChannelID       uuid.UUID
+		ContactMethodID uuid.UUID
+
+		User          *user.User                   `gorm:"references:UserID"`
+		Channel       *notificationchannel.Channel `gorm:"references:ChannelID"`
+		ContactMethod *contactmethod.ContactMethod `gorm:"references:ContactMethodID"`
+	}
+
+	err = db.Table("outgoing_messages").
+		Select("UserID", "ChannelID", "ContactMethodID").Distinct().
+		Where("last_status = 'pending'").
+		Where("(now() - created_at) > interval '15 seconds'").
+		Where(
+			db.Where("alert_id = ?", obj.ID).Or(
+				"message_type = 'alert_notification_bundle' and service_id = ?", obj.ServiceID,
+			),
+		).
+		Preload("Channel", sqlutil.Columns("ID", "Type", "Name")).
+		Preload("ContactMethod", sqlutil.Columns("ID", "Type")).
+		Preload("User", sqlutil.Columns("ID", "Name")).
+		Find(&rows).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var result []graphql2.AlertPendingNotification
+	for _, r := range rows {
+		switch {
+		case r.ContactMethod != nil && r.User != nil:
+			result = append(result, graphql2.AlertPendingNotification{
+				Destination: fmt.Sprintf("%s (%s)", r.User.Name, r.ContactMethod.Type),
+			})
+		case r.Channel != nil:
+			result = append(result, graphql2.AlertPendingNotification{
+				Destination: fmt.Sprintf("%s (%s)", r.Channel.Name, r.Channel.Type),
+			})
+		default:
+			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)
+		}
 	}
 
 	return result, nil

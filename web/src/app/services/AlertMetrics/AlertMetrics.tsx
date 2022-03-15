@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
-import { DateTime, Interval } from 'luxon'
-import _ from 'lodash'
+import { DateTime } from 'luxon'
+import { useParams } from 'react-router-dom'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
   DATE_FORMAT,
@@ -15,11 +15,15 @@ import { POLL_INTERVAL } from '../../config'
 import { Alert } from '../../../schema'
 
 const query = gql`
-  query alertmetrics($serviceID: ID!, $input: AlertSearchOptions!) {
+  query alertmetrics(
+    $serviceID: ID!
+    $alertSearchInput: AlertSearchOptions!
+    $alertMetricsInput: AlertMetricsOptions!
+  ) {
     service(id: $serviceID) {
       id
     }
-    alerts(input: $input) {
+    alerts(input: $alertSearchInput) {
       nodes {
         id
         alertID
@@ -37,19 +41,18 @@ const query = gql`
         hasNextPage
       }
     }
+    alertMetrics(input: $alertMetricsInput) {
+      alertCount
+      timestamp
+    }
   }
 `
 
-interface AlertMetricsProps {
-  serviceID: string
-}
-
 const QUERY_LIMIT = 100
 
-export default function AlertMetrics({
-  serviceID,
-}: AlertMetricsProps): JSX.Element {
+export default function AlertMetrics(): JSX.Element {
   const [poll, setPoll] = useState(POLL_INTERVAL)
+  const { serviceID } = useParams<{ serviceID: string }>()
   const now = useMemo(() => DateTime.now(), [])
   const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
   const maxDate = now.endOf('day')
@@ -73,11 +76,18 @@ export default function AlertMetrics({
     pollInterval: poll,
     variables: {
       serviceID,
-      input: {
+      alertSearchInput: {
         filterByServiceID: [serviceID],
         first: QUERY_LIMIT,
         notCreatedBefore: since.toISO(),
         createdBefore: until.toISO(),
+        filterByStatus: ['StatusClosed'],
+      },
+      alertMetricsInput: {
+        rInterval: `R${Math.floor(
+          until.diff(since, 'days').days,
+        )}/${since.toISO()}/P1D`,
+        filterByServiceID: [serviceID],
       },
     },
     skip: !isValidRange,
@@ -124,35 +134,27 @@ export default function AlertMetrics({
 
   const hasNextPage = q.data?.alerts?.pageInfo?.hasNextPage ?? false
   const alerts = q.data?.alerts?.nodes ?? []
+  const alertMetrics = q.data?.alertMetrics ?? []
 
-  const dateToAlerts = _.groupBy(alerts, (node) =>
-    DateTime.fromISO(node.createdAt).toLocaleString({
-      month: 'short',
-      day: 'numeric',
-    }),
-  )
-
-  const data = Interval.fromDateTimes(since, until)
-    .splitBy({ days: 1 })
-    .map((day) => {
-      let alertCount = 0
-      const date = day.start.toLocaleString({ month: 'short', day: 'numeric' })
-      const label = day.start.toLocaleString({
+  const data = alertMetrics.map(
+    (day: { timestamp: string; alertCount: number }) => {
+      const timestamp = DateTime.fromISO(day.timestamp)
+      const date = timestamp.toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
+      const label = timestamp.toLocaleString({
         month: 'short',
         day: 'numeric',
         year: 'numeric',
       })
-
-      if (dateToAlerts[date]) {
-        alertCount = dateToAlerts[date].length
-      }
-
       return {
         date: date,
-        count: alertCount,
+        count: day.alertCount,
         label: label,
       }
-    })
+    },
+  )
 
   const daycount = Math.floor(now.diff(since, 'days').plus({ day: 1 }).days)
 

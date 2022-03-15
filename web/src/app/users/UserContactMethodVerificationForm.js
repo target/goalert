@@ -58,7 +58,6 @@ export default function UserContactMethodVerificationForm(props) {
       <Grid container spacing={2}>
         <Grid item className={classes.sendGridItem}>
           <LoadingButton
-            color='primary'
             loading={sendCodeStatus.loading}
             disabled={props.disabled}
             buttonText='Resend Code'

@@ -15,25 +15,31 @@ const cancelable = (_fn) => {
   return cFn
 }
 
-export default function OtherActions({ color, icon, actions, placement }) {
+export default function OtherActions({
+  color,
+  IconComponent,
+  actions,
+  placement,
+}) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
   const ref = useRef(null)
 
   return (
     <React.Fragment>
-      <span ref={ref}>
-        {React.cloneElement(icon, {
-          'aria-label': 'Other Actions',
-          'data-cy': 'other-actions',
-          color: color || 'inherit',
-          'aria-expanded': Boolean(anchorEl),
-          onClick: (e) => {
-            onClose.cancel()
-            setAnchorEl(e.currentTarget)
-          },
-        })}
-      </span>
+      <IconButton
+        aria-label='Other Actions'
+        data-cy='other-actions'
+        aria-expanded={Boolean(anchorEl)}
+        size='large'
+        onClick={(e) => {
+          onClose.cancel()
+          setAnchorEl(e.currentTarget)
+        }}
+        ref={ref}
+      >
+        <IconComponent style={{ color }} />
+      </IconButton>
       <Hidden mdDown>
         <OtherActionsDesktop
           isOpen={Boolean(anchorEl)}
@@ -62,15 +68,11 @@ OtherActions.propTypes = {
     }),
   ).isRequired,
   color: p.string,
-  icon: p.element,
+  IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
 }
 
 OtherActions.defaultProps = {
-  icon: (
-    <IconButton size='large'>
-      <OptionsIcon />
-    </IconButton>
-  ),
+  IconComponent: OptionsIcon,
   placement: 'left',
 }

@@ -4,13 +4,14 @@ import Tooltip from '@mui/material/Tooltip'
 import AddIcon from '@mui/icons-material/Add'
 import TrashIcon from '@mui/icons-material/Delete'
 import WarningIcon from '@mui/icons-material/Warning'
-import slackIcon from '../../public/slack.svg'
-import slackIconBW from '../../public/slack_monochrome_black.svg'
+import slackIcon from '../../public/icons/slack.svg'
+import slackIconBlack from '../../public/icons/slack_monochrome_black.svg'
+import slackIconWhite from '../../public/icons/slack_monochrome_white.svg'
 import makeStyles from '@mui/styles/makeStyles'
+import { useTheme } from '@mui/material'
 
 const useStyles = makeStyles({
   trashIcon: {
-    color: '#666',
     cursor: 'pointer',
     float: 'right',
   },
@@ -48,11 +49,27 @@ export function Add() {
 }
 
 export function Slack() {
-  return <img src={slackIcon} width={20} height={20} alt='Slack' />
+  const theme = useTheme()
+  return (
+    <img
+      src={theme.palette.mode === 'light' ? slackIcon : slackIconWhite}
+      width={20}
+      height={20}
+      alt='Slack'
+    />
+  )
 }
 
 export function SlackBW() {
-  return <img src={slackIconBW} width={20} height={20} alt='Slack' />
+  const theme = useTheme()
+  return (
+    <img
+      src={theme.palette.mode === 'light' ? slackIconBlack : slackIconWhite}
+      width={20}
+      height={20}
+      alt='Slack'
+    />
+  )
 }
 
 Warning.propTypes = {

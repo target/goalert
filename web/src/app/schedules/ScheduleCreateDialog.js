@@ -4,7 +4,7 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
 import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 const mutation = gql`
   mutation ($input: CreateScheduleInput!) {
@@ -27,9 +27,7 @@ export default function ScheduleCreateDialog(props) {
 
   function renderForm(commit, status) {
     if (status.data && status.data.createSchedule) {
-      return (
-        <Redirect push to={`/schedules/${status.data.createSchedule.id}`} />
-      )
+      return <Navigate to={`/schedules/${status.data.createSchedule.id}`} />
     }
 
     return (

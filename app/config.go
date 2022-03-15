@@ -17,6 +17,7 @@ type Config struct {
 	JSON        bool
 	LogRequests bool
 	APIOnly     bool
+	LogEngine   bool
 
 	TLSListenAddr string
 	TLSConfig     *tls.Config
