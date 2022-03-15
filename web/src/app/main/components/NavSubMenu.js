@@ -1,5 +1,5 @@
-import React from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import React, { useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import List from '@mui/material/List'
 import makeStyles from '@mui/styles/makeStyles'
 import ListItem from '@mui/material/ListItem'
@@ -7,7 +7,8 @@ import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Typography from '@mui/material/Typography'
 import { styles } from '../../styles/materialStyles'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLess from '@mui/icons-material/ExpandLess'
+import ExpandMore from '@mui/icons-material/ExpandMore'
 import { Collapse } from '@mui/material'
 import { PropTypes as p } from 'prop-types'
 
@@ -25,17 +26,6 @@ const useStyles = makeStyles((theme) => {
         fontSize: '.9rem',
       },
     },
-    dropdown: {
-      transition: theme.transitions.create(['transform'], {
-        duration: theme.transitions.duration.short,
-      }),
-    },
-    dropdownOpen: {
-      transform: 'rotate(0)',
-    },
-    dropdownClosed: {
-      transform: 'rotate(-90deg)',
-    },
   }
 })
 
@@ -43,12 +33,11 @@ export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes, closeMobileSidebar } =
     props
   const classes = useStyles()
-  const { pathname } = useLocation()
-  const isRoute = pathname.startsWith(path)
+  const [open, setOpen] = useState(false)
 
   function renderParentLink(IconComponent, label) {
     return (
-      <ListItem button tabIndex={-1}>
+      <ListItem button tabIndex={-1} onClick={() => setOpen(!open)}>
         <ListItemIcon>
           <IconComponent />
         </ListItemIcon>
@@ -60,14 +49,7 @@ export default function NavSubMenu(props) {
             </Typography>
           }
         />
-        <ExpandMoreIcon
-          color='action'
-          className={
-            classes.dropdown +
-            ' ' +
-            (isRoute ? classes.dropdownOpen : classes.dropdownClosed)
-          }
-        />
+        {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
     )
   }
@@ -97,10 +79,8 @@ export default function NavSubMenu(props) {
 
   return (
     <React.Fragment>
-      <NavLink to={path} className={classes.nav}>
-        {renderParentLink(parentIcon, parentTitle)}
-      </NavLink>
-      <Collapse in={isRoute} mountOnEnter>
+      {renderParentLink(parentIcon, parentTitle)}
+      <Collapse in={open} timeout='auto' mountOnEnter unmountOnExit>
         <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>
       </Collapse>
     </React.Fragment>
