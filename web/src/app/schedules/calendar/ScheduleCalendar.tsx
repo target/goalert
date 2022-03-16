@@ -146,7 +146,27 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
 
-  const dayStyleGetter = (date: Date): React.HTMLAttributes<HTMLDivElement> => {
+  function eventStyleGetter(
+    event: ScheduleCalendarEvent,
+  ): React.HTMLAttributes<HTMLDivElement> {
+    if (event.type === 'tempSched' || event.type === 'override') {
+      return {
+        style: {
+          backgroundColor: theme.palette.secondary.main,
+          color: theme.palette.getContrastText(theme.palette.secondary.main),
+        },
+      }
+    }
+
+    return {
+      style: {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.getContrastText(theme.palette.primary.main),
+      },
+    }
+  }
+
+  function dayStyleGetter(date: Date): React.HTMLAttributes<HTMLDivElement> {
     const outOfBounds =
       DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
     const currentDay = DateTime.local().hasSame(
@@ -370,6 +390,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}
             showAllEvents
+            eventPropGetter={eventStyleGetter}
             dayPropGetter={dayStyleGetter}
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err

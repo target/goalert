@@ -9,7 +9,6 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import { darken, useTheme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { ScheduleCalendarContext } from '../ScheduleDetails'
@@ -40,17 +39,17 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  event: ScheduleCalendarEvent
   children: JSX.Element
+  event: ScheduleCalendarEvent
+  style: React.CSSProperties
 }
 
 export default function ScheduleCalendarEventWrapper(
   props: ScheduleCalendarEventWrapperProps,
 ): ReactNode {
-  const classes = useStyles()
-  const theme = useTheme()
   const { event, children } = props
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const classes = useStyles()
 
   const [showEditDialog, setShowEditDialog] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState('')
@@ -60,39 +59,6 @@ export default function ScheduleCalendarEventWrapper(
   )
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
-
-  function getEventStyle(): React.CSSProperties {
-    if (
-      anchorEl &&
-      (props.event.type === 'tempSched' || props.event.type === 'override')
-    ) {
-      const bg = darken(theme.palette.secondary.main, 0.2)
-      return {
-        backgroundColor: bg,
-        color: theme.palette.getContrastText(bg),
-      }
-    }
-
-    if (props.event.type === 'tempSched' || props.event.type === 'override') {
-      return {
-        backgroundColor: theme.palette.secondary.main,
-        color: theme.palette.getContrastText(theme.palette.secondary.main),
-      }
-    }
-
-    if (anchorEl) {
-      const bg = darken(theme.palette.primary.main, 0.2)
-      return {
-        backgroundColor: bg,
-        color: theme.palette.getContrastText(bg),
-      }
-    }
-
-    return {
-      backgroundColor: theme.palette.primary.main,
-      color: theme.palette.getContrastText(theme.palette.primary.main),
-    }
-  }
 
   function handleClick(e: MouseEvent<HTMLButtonElement>): void {
     setAnchorEl(e.currentTarget)
@@ -312,7 +278,6 @@ export default function ScheduleCalendarEventWrapper(
         role: 'button',
         'aria-pressed': open,
         'aria-describedby': id,
-        style: getEventStyle(),
       })}
       {showEditDialog && (
         <ScheduleOverrideEditDialog
