@@ -41,13 +41,12 @@ const useStyles = makeStyles({
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
-  style: React.CSSProperties
 }
 
-export default function ScheduleCalendarEventWrapper(
-  props: ScheduleCalendarEventWrapperProps,
-): ReactNode {
-  const { event, children } = props
+export default function ScheduleCalendarEventWrapper({
+  event,
+  children,
+}: ScheduleCalendarEventWrapperProps): ReactNode {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
