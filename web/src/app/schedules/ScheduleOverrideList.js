@@ -80,6 +80,7 @@ export default function ScheduleOverrideList() {
     <React.Fragment>
       <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
       <QueryList
+        infiniteScroll
         headerNote={note}
         noSearch
         noPlaceholder
