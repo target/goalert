@@ -48,8 +48,8 @@ export default function ScheduleCalendarEventWrapper(
   props: ScheduleCalendarEventWrapperProps,
 ): ReactNode {
   const { event, children } = props
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const classes = useStyles()
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const [showEditDialog, setShowEditDialog] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState('')
