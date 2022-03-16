@@ -55,18 +55,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     '& .rbc-time-content .rbc-current-time-indicator': {
       backgroundColor: theme.palette.primary.main,
     },
-    // weekly current time circle by divider line
-    '& .rbc-time-content .rbc-current-time-indicator::before': {
-      content: '',
-      display: 'inline-block',
-      width: 10,
-      height: 10,
-      left: -6,
-      top: -4.5,
-      borderRadius: 5,
-      backgroundColor: theme.palette.primary.main,
-      position: 'absolute',
-    },
   },
   card: {
     padding: theme.spacing(2),
