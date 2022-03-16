@@ -51,7 +51,7 @@ type renderData struct {
 	// Prefix is the URL prefix for the GoAlert application.
 	Prefix string
 
-	// ExtraScripts can be used to load additional javascript.
+	// ExtraJS can be used to load additional javascript.
 	ExtraJS template.JS
 }
 
