@@ -23,6 +23,9 @@ module.exports = () => ({
   resolve: {
     extensions: ['.mjs', '.ts', '.tsx', '.js', '.jsx', '.css'],
   },
+  watchOptions: {
+    ignored: '**/node_modules',
+  },
   // Loaders for processing different file types
   module: {
     rules: [
