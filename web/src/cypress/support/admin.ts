@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { DebugMessage } from '../../schema'
 import toTitleCase from '../../app/util/toTitleCase'
 const c = new Chance()
 
@@ -62,7 +61,7 @@ const statuses = ['delivered', 'failed']
 // or the 'verification_message' and 'alert_status_update_bundle' message types.
 function createOutgoingMessage(
   msg: OutgoingMessageOptions = {},
-): Cypress.Chainable<DebugMessage> {
+): Cypress.Chainable {
   // create all unused optional params before attempting db insert
 
   // user and contact method

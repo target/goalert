@@ -6,19 +6,22 @@ import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
-import Hidden from '@mui/material/Hidden'
 import makeStyles from '@mui/styles/makeStyles'
-import { useIsWidthDown } from '../../util/useWidth'
+import { useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
-import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
-import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
-import logoSrcSet3 from '../../public/goalert-logo-scaled@2.webp'
-import logoImgSrc from '../../public/goalert-logo-scaled@2.png'
 import { pathPrefix } from '../../env'
 
+import logoSrcSet1 from '../../public/logos/black/goalert-logo-scaled.webp'
+import logoSrcSet2 from '../../public/logos/black/goalert-logo-scaled@1.5.webp'
+import logoSrcSet3 from '../../public/logos/black/goalert-logo-scaled@2.webp'
+import logoImgSrc from '../../public/logos/black/goalert-logo-scaled@2.png'
+
+import darkModeLogoSrcSet1 from '../../public/logos/white/goalert-logo-white-scaled.webp'
+import darkModeLogoSrcSet2 from '../../public/logos/white/goalert-logo-white-scaled@1.5.webp'
+import darkModeLogoSrcSet3 from '../../public/logos/white/goalert-logo-white-scaled@2.webp'
+import darkModeLogoImgSrc from '../../public/logos/white/goalert-logo-white-scaled@2.png'
+
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
-const BACKGROUND_URL =
-  'https://www.toptal.com/designers/subtlepatterns/patterns/dust_scratches.png'
 
 const useStyles = makeStyles({
   card: {
@@ -63,7 +66,7 @@ const useStyles = makeStyles({
 
 export default function Login() {
   const classes = useStyles()
-  const fullScreen = useIsWidthDown('md')
+  const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
 
@@ -74,19 +77,6 @@ export default function Login() {
       .then((data) => setProviders(data))
       .catch((err) => setError(err))
   }, [])
-
-  /*
-   * Sets the background image for the login page
-   *
-   * Background pattern from Toptal Subtle Patterns
-   */
-  useEffect(() => {
-    if (fullScreen) {
-      document.body.style.backgroundColor = `white` // overrides light grey background
-    } else {
-      document.body.style.backgroundImage = `url('${BACKGROUND_URL}')` // overrides light grey background
-    }
-  }, [fullScreen])
 
   /*
    * Renders a field from a provider
@@ -149,13 +139,13 @@ export default function Login() {
     ) : null
     if (fields) {
       loginButton = (
-        <Button type='submit' variant='contained' color='primary'>
+        <Button type='submit' variant='contained'>
           Login
         </Button>
       )
     } else {
       loginButton = (
-        <Button type='submit' variant='contained' color='primary'>
+        <Button type='submit' variant='contained'>
           {loginIcon}
           Login with {title}
         </Button>
@@ -200,41 +190,37 @@ export default function Login() {
     )
   }
 
-  const logo = (
-    <picture>
-      <source
-        srcSet={`
+  const logo =
+    theme.palette.mode === 'dark' ? (
+      <picture>
+        <source
+          srcSet={`
+            ${darkModeLogoSrcSet1},
+            ${darkModeLogoSrcSet2} 1.5x,
+            ${darkModeLogoSrcSet3} 2x
+          `}
+          type='image/webp'
+        />
+        <img src={darkModeLogoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    ) : (
+      <picture>
+        <source
+          srcSet={`
             ${logoSrcSet1},
             ${logoSrcSet2} 1.5x,
             ${logoSrcSet3} 2x
           `}
-        type='image/webp'
-      />
-      <img src={logoImgSrc} height={61} alt='GoAlert' />
-    </picture>
-  )
+          type='image/webp'
+        />
+        <img src={logoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    )
 
   return (
-    <React.Fragment>
-      <Hidden mdDown>
-        <div className={classes.center}>
-          <Card className={classes.card}>
-            <CardContent>
-              <Grid container spacing={2} className={classes.gridContainer}>
-                <Grid item xs={12}>
-                  {logo}
-                </Grid>
-                {providers.map((provider, idx) =>
-                  renderProvider(provider, idx, providers.length),
-                )}
-                {errorJSX}
-              </Grid>
-            </CardContent>
-          </Card>
-        </div>
-      </Hidden>
-      <Hidden mdUp>
-        <div className={classes.center}>
+    <div className={classes.center}>
+      <Card className={classes.card}>
+        <CardContent>
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={12}>
               {logo}
@@ -244,8 +230,8 @@ export default function Login() {
             )}
             {errorJSX}
           </Grid>
-        </div>
-      </Hidden>
-    </React.Fragment>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

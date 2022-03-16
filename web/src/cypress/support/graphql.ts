@@ -22,7 +22,7 @@ declare global {
 function graphqlVoid(
   query: string,
   variables?: { [key: string]: any },
-): Cypress.Chainable<void> {
+): Cypress.Chainable {
   cy.graphql(query, variables)
 
   return cy.then(() => {})

@@ -127,6 +127,30 @@ type App struct {
 
 // NewApp constructs a new App and binds the listening socket.
 func NewApp(c Config, db *sql.DB) (*App, error) {
+	var err error
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
+		//
+		// In switchover mode, the connector wrapper will check this and provide the app with
+		// a connection to the next DB instead, if this was set.
+		//
+		// This is a sanity check to ensure that the app is not accidentally using the previous DB
+		// after a switchover.
+		err = db.QueryRowContext(ctx, `select true from switchover_state where current_state = 'use_next_db'`).Scan(new(bool))
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil
+			return
+		}
+		if err != nil {
+			return
+		}
+
+		err = fmt.Errorf("refusing to connect to stale database (switchover_state table has use_next_db set)")
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	l, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)

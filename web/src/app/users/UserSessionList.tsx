@@ -117,7 +117,6 @@ export default function UserSessionList(): JSX.Element {
         {!userID && (
           <Grid item xs={12} container justifyContent='flex-end'>
             <Button
-              color='primary'
               variant='outlined'
               data-cy='reset'
               onClick={() => setEndSession('all')}
@@ -135,7 +134,6 @@ export default function UserSessionList(): JSX.Element {
                 highlight: s.current,
                 secondaryAction: s.current ? null : (
                   <IconButton
-                    color='primary'
                     onClick={() =>
                       setEndSession({
                         id: s.id,

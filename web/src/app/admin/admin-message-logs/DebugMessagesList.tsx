@@ -42,7 +42,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
             justifyContent: 'center',
           }}
         >
-          <Button variant='contained' color='primary' onClick={onLoadMore}>
+          <Button variant='contained' onClick={onLoadMore}>
             Load more
           </Button>
         </div>

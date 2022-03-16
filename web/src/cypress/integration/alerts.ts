@@ -21,8 +21,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
     })
 
     it('should handle searching by summary', () => {
@@ -32,8 +31,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
     })
 
     it('should handle searching by service name', () => {
@@ -43,8 +41,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      // should have length 2; list item header and 1 result
-      cy.get('ul[data-cy=apollo-list] li').should('have.length', 2)
+      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
     })
 
     it('should handle toggling show by favorites filter', () => {
@@ -61,17 +58,16 @@ function testAlerts(screen: ScreenFormat): void {
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
         cy.get('[data-cy=apollo-list] li').should('contain', summary)
-        // should have length 26; list item header and 25 results
-        cy.get('[data-cy=apollo-list] li').should('have.length', 26)
+        cy.get('[data-cy=apollo-list] li a').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
-        // should have length 51; list item header and 50 results
-        cy.get('[data-cy=apollo-list] li').should('have.length', 51)
+        cy.get('[data-cy=apollo-list] li a').should('have.length', 50)
       })
     })
 
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
+        cy.get('ul[data-cy=apollo-list] li a').should('have.lengthOf', 1)
         cy.get('ul[data-cy=apollo-list]').contains(alert.id.toString()).click()
 
         cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
@@ -150,12 +146,17 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('button[aria-label=Acknowledge]').click()
 
-      cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list] li a').should('have.length.at.least', 1)
+      cy.get('ul[data-cy=apollo-list] li a').should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[aria-label=Escalate]').click()
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list] li a').should('have.length.at.least', 1)
+      cy.get('ul[data-cy=apollo-list] li a').should('contain', 'UNACKNOWLEDGED')
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
@@ -188,10 +189,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
 
       cy.get('button[aria-label=Acknowledge]').click()
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '2 of 3 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
         'UNACKNOWLEDGED',
@@ -234,10 +232,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get('button[aria-label=Acknowledge]').click()
 
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '0 of 2 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '0 of 2 alerts updated')
 
       // ack all three
       cy.reload()
@@ -247,10 +242,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('button[aria-label=Acknowledge]').click()
 
       // first two already acked, third now acked
-      cy.get('span[data-cy=update-message]').should(
-        'contain',
-        '1 of 3 alerts updated',
-      )
+      cy.get('[role="alert"]').should('contain', '1 of 3 alerts updated')
     })
   })
 

@@ -57,9 +57,6 @@ export const styles = (theme) => ({
   tableCardContent: {
     padding: 0,
   },
-  highlightRow: {
-    backgroundColor: theme.palette.secondary.main,
-  },
   error: {
     color: theme.palette.error.main,
   },
@@ -97,6 +94,21 @@ export const styles = (theme) => ({
     },
   },
   navSelected: {
+    textDecoration: 'none',
+    display: 'block',
+    '& p, span': {
+      lineHeight: '1.375rem',
+      color: theme.palette.text.secondary, // todo: use text.primary with baseline mui palette
+    },
+    '&:focus': {
+      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+    },
+    '&:hover': {
+      borderRadius: 4,
+      margin: 8,
+      textDecoration: 'none',
+      overflow: 'hidden',
+    },
     backgroundColor: theme.palette.primary.main + '1f', // 12% opacity
     borderRadius: 4,
     margin: 8,

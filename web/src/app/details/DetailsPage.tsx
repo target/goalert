@@ -15,7 +15,7 @@ import Markdown from '../util/Markdown'
 import CardActions, { Action } from './CardActions'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
-import statusStyles from '../util/statusStyles'
+import useStatusColors from '../theme/useStatusColors'
 
 interface DetailsPageProps {
   title: string
@@ -40,7 +40,6 @@ type Link = {
 }
 
 const useStyles = makeStyles({
-  ...statusStyles,
   flexHeight: {
     flexGrow: 1,
   },
@@ -71,13 +70,7 @@ const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
-
-  const linkClassName = (status?: LinkStatus): string => {
-    if (status === 'ok') return classes.statusOK
-    if (status === 'warn') return classes.statusWarning
-    if (status === 'err') return classes.statusError
-    return classes.noStatus
-  }
+  const statusColors = useStatusColors()
 
   const avatar = (): ReactNode => {
     if (!p.avatar) return null
@@ -87,6 +80,18 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   }
 
   const links = (p.links || []).filter((l) => l)
+
+  const borderColor = (s?: string): string => {
+    switch (s) {
+      case 'ok':
+      case 'warn':
+      case 'err':
+        return statusColors[s]
+
+      default:
+        return 'transparent'
+    }
+  }
 
   return (
     <Grid container spacing={2}>
@@ -167,7 +172,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               {links.map((li, idx) => (
                 <ListItem
                   key={idx}
-                  className={linkClassName(li.status)}
+                  sx={{
+                    borderLeft: `3px solid ${borderColor(li.status)}`,
+                  }}
                   component={LIApplink}
                   to={li.url}
                   button

@@ -35,7 +35,7 @@ export default function AlertCountGraph(
   const classes = useStyles()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12}>
+      <Grid item xs={12} data-cy='metrics-graph'>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
             width={730}
@@ -51,6 +51,7 @@ export default function AlertCountGraph(
             <XAxis dataKey='date' type='category' />
             <YAxis allowDecimals={false} dataKey='count' />
             <Tooltip
+              data-cy='metrics-tooltip'
               labelFormatter={(label, props) => {
                 return props?.length ? props[0].payload.label : label
               }}

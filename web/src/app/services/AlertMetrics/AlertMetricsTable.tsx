@@ -121,7 +121,7 @@ export default function AlertMetricsTable(
 
   return (
     <Grid container className={classes.tableContent}>
-      <Grid item xs={12}>
+      <Grid item xs={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}
           loading={props.loading}

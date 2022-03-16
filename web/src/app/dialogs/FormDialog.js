@@ -123,7 +123,7 @@ function FormDialog(props) {
     if (alert) {
       return (
         <DialogActions>
-          <Button color='primary' onClick={handleOnClose} variant='contained'>
+          <Button onClick={handleOnClose} variant='contained'>
             {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
@@ -146,7 +146,6 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
-          color='primary'
           loading={loading}
           type='submit'
         />

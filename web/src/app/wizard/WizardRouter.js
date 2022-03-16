@@ -7,7 +7,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
-import { Redirect } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -188,7 +188,7 @@ export default function WizardRouter() {
     <Mutation mutation={mutation}>
       {(commit, { data, error, loading }) => {
         if (redirect && data && data.createService) {
-          return <Redirect push to={`/services/${data.createService.id}`} />
+          return <Navigate to={`/services/${data.createService.id}`} />
         }
 
         return (
@@ -210,7 +210,6 @@ export default function WizardRouter() {
                   <LoadingButton
                     attemptCount={fieldErrors(error).length ? 1 : 0}
                     buttonText='Submit'
-                    color='primary'
                     loading={loading}
                     type='submit'
                   />

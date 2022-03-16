@@ -25,7 +25,6 @@ export default function CalenderSuccessForm(props) {
     <Grid container spacing={2}>
       <Grid item xs={12} className={classes.subscribeButtonContainer}>
         <Button
-          color='primary'
           variant='contained'
           href={url}
           target='_blank'

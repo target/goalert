@@ -14,7 +14,7 @@ import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
 export default function ScheduleOnCallNotificationsList(): JSX.Element {
-  const { scheduleID } = useParams<{ scheduleID: string }>()
+  const { scheduleID = '' } = useParams()
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
@@ -40,7 +40,7 @@ export default function ScheduleOnCallNotificationsList(): JSX.Element {
                         <SlackBW />{' '}
                       </Avatar>
                     ) : null,
-                  title: rule.target.name,
+                  title: rule.target.name ?? undefined,
                   subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (
                     <OtherActions

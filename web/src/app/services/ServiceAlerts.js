@@ -61,7 +61,7 @@ export default function ServiceAlerts() {
   const secondaryActions = (
     <Grid className={classes.filter} container spacing={2} alignItems='center'>
       <Grid item>
-        <ButtonGroup color='secondary' variant='outlined'>
+        <ButtonGroup variant='outlined'>
           <Button onClick={handleClickAckAll}>Acknowledge All</Button>
           <Button onClick={handleClickCloseAll}>Close All</Button>
         </ButtonGroup>

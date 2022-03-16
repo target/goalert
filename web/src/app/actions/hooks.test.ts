@@ -11,6 +11,7 @@ describe('getParamValues', () => {
   function check(x: GetParamTest): void {
     const defaultSearch = 'a=str&b=3&c=1&d=0&e=e&e=e&e=ee&f=ok%2Cgo%21'
     const mockLocationObject = {
+      key: '',
       search: x.search ? x.search : defaultSearch,
       pathname: '',
       state: '',

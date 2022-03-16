@@ -9,6 +9,7 @@ import {
   SetTemporaryScheduleInput,
   TemporarySchedule,
   User,
+  WeekdayFilter,
 } from '../../schema'
 import { randDT, randSubInterval } from './util'
 
@@ -49,8 +50,8 @@ const fmtTime = (num: number): string => {
 const randClock = (): string =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
-const randWeekdayFilter = (): boolean[] =>
-  new Array(7).fill(0).map(() => c.bool())
+const randWeekdayFilter = (): WeekdayFilter =>
+  new Array(7).fill(0).map(() => c.bool()) as WeekdayFilter
 
 function setScheduleNotificationRules(
   _rules: Array<Partial<OnCallNotificationRuleInput>>,
@@ -86,12 +87,12 @@ function setScheduleNotificationRules(
     .getSlackChannels()
     .then((channels: SlackChannel[]) => {
       const rules = _rules.map((r) => {
-        let time: string | null | undefined = r.time
+        let time = r.time
         if (time === undefined) {
           time = c.bool() ? randClock() : null
         }
 
-        let weekdayFilter: boolean[] | null | undefined = r.weekdayFilter
+        let weekdayFilter = r.weekdayFilter
         if (weekdayFilter === undefined) {
           weekdayFilter = time && c.bool() ? randWeekdayFilter() : null
         }
