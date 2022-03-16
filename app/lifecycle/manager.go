@@ -54,8 +54,10 @@ type Manager struct {
 	isPausing   bool
 }
 
-var _ Pausable = &Manager{}
-var _ PauseResumer = &Manager{}
+var (
+	_ Pausable     = &Manager{}
+	_ PauseResumer = &Manager{}
+)
 
 // NewManager will construct a new manager wrapping the provided
 // run and shutdown funcs.

@@ -172,9 +172,10 @@ var RootCmd = &cobra.Command{
 			if err != nil {
 				return errors.Wrap(err, "connect to postres (next)")
 			}
-			mgr, err := swo.NewManager(dbc, dbcNext, !cfg.APIOnly)
+
+			mgr, err := swo.NewManager(swo.Config{OldDBC: dbc, NewDBC: dbcNext, CanExec: !cfg.APIOnly})
 			if err != nil {
-				return errors.Wrap(err, "init changeover handler")
+				return errors.Wrap(err, "init switchover handler")
 			}
 			db = mgr.DB()
 			cfg.SWO = mgr
