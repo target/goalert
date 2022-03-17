@@ -38,6 +38,12 @@ function testA11y(): void {
       cy.checkA11y()
     })
 
+    it('has no detectable a11y violations on profile', () => {
+      cy.visit('/admin/profile')
+      cy.injectAxe()
+      cy.checkA11y()
+    })
+
     // todo: failing, fix a11y issue
     it.skip('has no detectable a11y violations on wizard', () => {
       cy.visit('/wizard')
@@ -68,6 +74,13 @@ function testA11y(): void {
 
     it('has no detectable a11y violations on admin message logs', () => {
       cy.visit('/admin/message-logs')
+      cy.injectAxe()
+      cy.checkA11y()
+    })
+
+    // todo: failing, fix a11y issue
+    it.skip('has no detectable a11y violations on api docs', () => {
+      cy.visit('/docs')
       cy.injectAxe()
       cy.checkA11y()
     })
