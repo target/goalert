@@ -38,6 +38,7 @@ import './sql'
 import './form'
 import './dialog'
 import './limits'
+import 'cypress-axe'
 
 Cypress.Cookies.defaults({
   preserve: 'goalert_session.2',
