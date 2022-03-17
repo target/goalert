@@ -113,11 +113,10 @@ function makeTheme(mode: MUIThemeMode, sourceColor: string): Theme {
   })
 }
 
-function saveTheme(theme: ThemeModeOption): void {
+function saveThemeMode(theme: ThemeModeOption): void {
   if (!window.localStorage) return
   window.localStorage.setItem('theme', theme)
 }
-
 function loadTheme(): ThemeModeOption {
   if (!window.localStorage) return 'system'
 
@@ -131,14 +130,24 @@ function loadTheme(): ThemeModeOption {
   return 'system'
 }
 
+function saveThemeColor(hex: string): void {
+  if (!window.localStorage) return
+  window.localStorage.setItem('themeColor', hex)
+}
+function loadThemeColor(): string {
+  return window?.localStorage?.getItem('themeColor') ?? sourceColors[0]
+}
+
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
+  const [sourceColor, setSourceColor] = useState(loadThemeColor())
+
+  // used for watching if system theme mode changes
   const [systemThemeMode, setSystemThemeMode] = useState<MUIThemeMode>(
     window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light',
   )
-  const [sourceColor, setSourceColor] = useState(sourceColors[0])
 
   useEffect(() => {
     const listener = (e: { matches: boolean }): void => {
@@ -160,10 +169,13 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         themeMode: savedThemeMode,
         setThemeMode: (newMode: ThemeModeOption) => {
           setSavedThemeMode(newMode)
-          saveTheme(newMode)
+          saveThemeMode(newMode)
         },
         sourceColor,
-        setSourceColor: (newColor: string) => setSourceColor(newColor),
+        setSourceColor: (newColor: string) => {
+          setSourceColor(newColor)
+          saveThemeColor(newColor)
+        },
       }}
     >
       <MUIThemeProvider
