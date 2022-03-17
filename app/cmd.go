@@ -217,7 +217,6 @@ var (
 		Use:   "version",
 		Short: "Output the current version.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			migrations := migrate.Names()
 
 			fmt.Printf(`Version:   %s
@@ -472,7 +471,6 @@ Migration: %s (#%d)
 			up := viper.GetString("up")
 			if down != "" {
 				n, err := migrate.Down(ctx, c.DBURL, down)
-
 				if err != nil {
 					return errors.Wrap(err, "apply DOWN migrations")
 				}
@@ -483,7 +481,6 @@ Migration: %s (#%d)
 
 			if up != "" || down == "" {
 				n, err := migrate.Up(ctx, c.DBURL, up)
-
 				if err != nil {
 					return errors.Wrap(err, "apply UP migrations")
 				}
@@ -500,7 +497,6 @@ Migration: %s (#%d)
 		Use:   "set-config",
 		Short: "Sets current config values in the DB from stdin.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if viper.GetString("data-encryption-key") == "" && !viper.GetBool("allow-empty-data-encryption-key") {
 				return validation.NewFieldError("data-encryption-key", "Must not be empty, or set --allow-empty-data-encryption-key")
 			}
@@ -689,7 +685,7 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		StubNotifiers: viper.GetBool("stub-notifiers"),
 
-		UIURL: viper.GetString("ui-url"),
+		UIDir: viper.GetString("ui-dir"),
 	}
 
 	if cfg.DBURL == "" {
@@ -773,7 +769,8 @@ func init() {
 	RootCmd.PersistentFlags().Bool("json", def.JSON, "Log in JSON format.")
 	RootCmd.PersistentFlags().Bool("log-errors-only", false, "Only log errors (superseeds other flags).")
 
-	RootCmd.Flags().String("ui-url", def.UIURL, "Proxy UI requests to an alternate host. Default is to serve bundled assets from memory.")
+	RootCmd.Flags().String("ui-dir", "", "Serve UI assets from a local directory instead of from memory.")
+
 	RootCmd.Flags().Bool("disable-https-redirect", def.DisableHTTPSRedirect, "Disable automatic HTTPS redirects.")
 
 	migrateCmd.Flags().String("up", "", "Target UP migration to apply.")

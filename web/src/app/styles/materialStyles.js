@@ -57,9 +57,6 @@ export const styles = (theme) => ({
   tableCardContent: {
     padding: 0,
   },
-  highlightRow: {
-    backgroundColor: theme.palette.secondary.main,
-  },
   error: {
     color: theme.palette.error.main,
   },

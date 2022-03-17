@@ -92,7 +92,6 @@ export function QuerySetFavoriteButton({
         <DialogContentError error={toggleFavStatus?.error?.message ?? ''} />
         <DialogActions>
           <Button
-            color='primary'
             variant='contained'
             onClick={() => setShowMutationErrorDialog(false)}
           >

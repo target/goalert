@@ -140,7 +140,7 @@ export default function AdminConfig(): JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} container justifyContent='flex-end'>
-        <ButtonGroup color='primary' variant='outlined'>
+        <ButtonGroup variant='outlined'>
           <Button
             data-cy='reset'
             disabled={isEmpty(values)}

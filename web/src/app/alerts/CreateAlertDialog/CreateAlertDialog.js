@@ -98,7 +98,6 @@ export default function CreateAlertDialog(props) {
         <Grid item>
           <Button
             variant='contained'
-            color='primary'
             size='small'
             component={AppLink}
             endIcon={<OpenInNewIcon />}
