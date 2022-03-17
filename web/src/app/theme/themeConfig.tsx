@@ -26,7 +26,16 @@ interface ThemeContextParams {
 
 type MUIThemeMode = 'dark' | 'light'
 type ThemeModeOption = 'dark' | 'light' | 'system'
-export const sourceColors = ['#006684', '#33691e', '#994061']
+// blue, blue-green, green, purple, pink, red, orange
+export const sourceColors = [
+  '#006684',
+  '#216859',
+  '#3A691F',
+  '#7D347D',
+  '#C63875',
+  '#BD332F',
+  '#F0831F',
+]
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
@@ -64,19 +73,8 @@ function getPalette(
   mode: MUIThemeMode,
   sourceColorHex: string,
 ): PaletteOptions {
-  // todo: generate pallet here from source color
-  console.log(
-    `%c    sourceColor: ${sourceColorHex}`,
-    `background: ${sourceColorHex}`,
-  )
   const sourceColor = argbFromHex(sourceColorHex)
   const theme = themeFromSourceColor(sourceColor)
-
-  const primary = hexFromArgb(theme.schemes.light.primary)
-  const secondary = hexFromArgb(theme.schemes.light.secondary)
-  console.log(`%c    primary: ${primary}`, `background: ${primary}`)
-  console.log(`%c    secondary: ${secondary}`, `background: ${secondary}`)
-  console.log('full theme: ', theme.schemes.light)
 
   if (mode === 'dark') {
     return {
