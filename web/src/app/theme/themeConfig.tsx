@@ -38,12 +38,12 @@ type ThemeModeOption = 'dark' | 'light' | 'system'
 
 export const sourceColors = [
   blueGrey[700],
-  teal[700],
-  green[700],
   deepPurple[700],
   pink[700],
   red[700],
   amber[700],
+  green[700],
+  teal[700],
 ]
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
