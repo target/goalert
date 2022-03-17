@@ -6,6 +6,12 @@ import {
   Theme,
   ThemeProvider as MUIThemeProvider,
 } from '@mui/material/styles'
+import {
+  argbFromHex,
+  hexFromArgb,
+  themeFromSourceColor,
+  Scheme,
+} from '@material/material-color-utilities'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -14,49 +20,78 @@ interface ThemeProviderProps {
 interface ThemeContextParams {
   themeMode: string
   setThemeMode: (newMode: ThemeModeOption) => void
+  sourceColor: string
+  setSourceColor: (newColor: string) => void
 }
 
 type MUIThemeMode = 'dark' | 'light'
 type ThemeModeOption = 'dark' | 'light' | 'system'
+export const sourceColors = ['#006684', '#33691e', '#994061']
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
   setThemeMode: (): void => {},
+  sourceColor: '',
+  setSourceColor: (): void => {},
 })
 ThemeContext.displayName = 'ThemeContext'
 
+function makePalette(
+  scheme: Scheme,
+  useSurfaceVariant?: boolean,
+): PaletteOptions {
+  return {
+    primary: {
+      main: hexFromArgb(scheme.primary),
+    },
+    secondary: {
+      main: hexFromArgb(scheme.secondary),
+    },
+    background: {
+      default: hexFromArgb(scheme.background),
+      paper: useSurfaceVariant
+        ? hexFromArgb(scheme.surfaceVariant)
+        : hexFromArgb(scheme.surface),
+    },
+    error: {
+      main: hexFromArgb(scheme.error),
+    },
+  }
+}
+
 // palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
-function getPalette(mode: MUIThemeMode): PaletteOptions {
+function getPalette(
+  mode: MUIThemeMode,
+  sourceColorHex: string,
+): PaletteOptions {
+  // todo: generate pallet here from source color
+  console.log(
+    `%c    sourceColor: ${sourceColorHex}`,
+    `background: ${sourceColorHex}`,
+  )
+  const sourceColor = argbFromHex(sourceColorHex)
+  const theme = themeFromSourceColor(sourceColor)
+
+  const primary = hexFromArgb(theme.schemes.light.primary)
+  const secondary = hexFromArgb(theme.schemes.light.secondary)
+  console.log(`%c    primary: ${primary}`, `background: ${primary}`)
+  console.log(`%c    secondary: ${secondary}`, `background: ${secondary}`)
+  console.log('full theme: ', theme.schemes.light)
+
   if (mode === 'dark') {
     return {
       mode: 'dark',
-      primary: { main: '#64d3ff', light: '#bbe9ff', dark: '#004d65' },
-      secondary: { main: '#b5cad6', light: '#d0e6f3', dark: '#354a54' },
-      background: {
-        default: '#191c1e',
-        paper: '#191c1e', // m3 surface
-      },
-      error: { main: '#ffb4a9', light: '#ffdad4', dark: '#930006' },
+      ...makePalette(theme.schemes.dark),
     }
   }
 
   return {
     mode: 'light',
-    primary: {
-      main: '#006684',
-      light: '#bbe9ff',
-      dark: '#001f2a',
-    },
-    secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
-    background: {
-      default: '#fbfcfe',
-      paper: '#dce3e8', // m3 surface variant
-    },
-    error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
+    ...makePalette(theme.schemes.light, true),
   }
 }
 
-function makeTheme(mode: MUIThemeMode): Theme {
+function makeTheme(mode: MUIThemeMode, sourceColor: string): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -68,7 +103,7 @@ function makeTheme(mode: MUIThemeMode): Theme {
   }
 
   return createTheme({
-    palette: getPalette(mode),
+    palette: getPalette(mode, sourceColor),
     components: {
       MuiIconButton: {
         defaultProps: {
@@ -105,6 +140,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
       ? 'dark'
       : 'light',
   )
+  const [sourceColor, setSourceColor] = useState('#006684')
 
   useEffect(() => {
     const listener = (e: { matches: boolean }): void => {
@@ -128,11 +164,14 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
           setSavedThemeMode(newMode)
           saveTheme(newMode)
         },
+        sourceColor,
+        setSourceColor: (newColor: string) => setSourceColor(newColor),
       }}
     >
       <MUIThemeProvider
         theme={makeTheme(
           savedThemeMode === 'system' ? systemThemeMode : savedThemeMode,
+          sourceColor,
         )}
       >
         {props.children}
