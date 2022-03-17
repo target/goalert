@@ -26,15 +26,15 @@ interface ThemeContextParams {
 
 type MUIThemeMode = 'dark' | 'light'
 type ThemeModeOption = 'dark' | 'light' | 'system'
-// blue, blue-green, green, purple, pink, red, orange
+
 export const sourceColors = [
-  '#006684',
-  '#216859',
-  '#3A691F',
-  '#7D347D',
-  '#C63875',
-  '#BD332F',
-  '#F0831F',
+  '#006684', // grey blue
+  '#216859', // cyan
+  '#3A691F', // green
+  '#7D347D', // purple
+  '#C63875', // pink
+  '#BD332F', // red
+  '#F0831F', // orange
 ]
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
@@ -138,7 +138,7 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
       ? 'dark'
       : 'light',
   )
-  const [sourceColor, setSourceColor] = useState('#006684')
+  const [sourceColor, setSourceColor] = useState(sourceColors[0])
 
   useEffect(() => {
     const listener = (e: { matches: boolean }): void => {
