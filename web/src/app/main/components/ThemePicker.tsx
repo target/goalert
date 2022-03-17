@@ -39,6 +39,15 @@ export default function ThemePicker(): JSX.Element {
           color={sourceColor}
           colors={sourceColors}
           onChange={(color: ColorResult) => setSourceColor(color.hex)}
+          circleSpacing={0}
+          styles={{
+            default: {
+              card: {
+                width: '100%',
+                justifyContent: 'space-between',
+              },
+            },
+          }}
         />
       </Grid>
     </Grid>
