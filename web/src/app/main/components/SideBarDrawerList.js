@@ -79,16 +79,17 @@ export default function SideBarDrawerList(props) {
 
   function renderSidebarNavLink(icon, path, label, key) {
     return (
-      <NavLink
-        key={key}
-        to={path}
-        className={({ isActive }) =>
-          isActive ? classes.navSelected : classes.nav
-        }
-        onClick={closeMobileSidebar}
-      >
-        {renderSidebarItem(icon, label)}
-      </NavLink>
+      <li key={key}>
+        <NavLink
+          to={path}
+          className={({ isActive }) =>
+            isActive ? classes.navSelected : classes.nav
+          }
+          onClick={closeMobileSidebar}
+        >
+          {renderSidebarItem(icon, label)}
+        </NavLink>
+      </li>
     )
   }
 
@@ -96,15 +97,17 @@ export default function SideBarDrawerList(props) {
     const cfg = routeConfig.find((c) => c.title === 'Admin')
 
     return (
-      <NavSubMenu
-        parentIcon={navIcons[cfg.title]}
-        parentTitle={cfg.title}
-        path={getPath(cfg).replace('/*', '')}
-        subMenuRoutes={cfg.subRoutes}
-        closeMobileSidebar={closeMobileSidebar}
-      >
-        {renderSidebarItem(navIcons[cfg.title], cfg.title)}
-      </NavSubMenu>
+      <li>
+        <NavSubMenu
+          parentIcon={navIcons[cfg.title]}
+          parentTitle={cfg.title}
+          path={getPath(cfg).replace('/*', '')}
+          subMenuRoutes={cfg.subRoutes}
+          closeMobileSidebar={closeMobileSidebar}
+        >
+          {renderSidebarItem(navIcons[cfg.title], cfg.title)}
+        </NavSubMenu>
+      </li>
     )
   }
 
@@ -126,7 +129,6 @@ export default function SideBarDrawerList(props) {
               if (cfg.subRoutes) {
                 return (
                   <NavSubMenu
-                    key={idx}
                     parentIcon={navIcons[cfg.title]}
                     parentTitle={cfg.title}
                     path={getPath(cfg).replace('/*', '')}

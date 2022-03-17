@@ -75,20 +75,21 @@ export default function NavSubMenu(props) {
   function renderSubMenu(subMenuRoutes) {
     const subMenu = subMenuRoutes.map((route, key) => {
       return (
-        <NavLink
-          key={key}
-          className={({ isActive }) =>
-            isActive ? classes.navSelected : classes.nav
-          }
-          to={path + route.path}
-          onClick={closeMobileSidebar}
-        >
-          <ListItem button tabIndex={-1}>
-            <ListItemText className={classes.subMenuLinkText}>
-              {route.title}
-            </ListItemText>
-          </ListItem>
-        </NavLink>
+        <li key={key}>
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? classes.navSelected : classes.nav
+            }
+            to={path + route.path}
+            onClick={closeMobileSidebar}
+          >
+            <ListItem button tabIndex={-1}>
+              <ListItemText className={classes.subMenuLinkText}>
+                {route.title}
+              </ListItemText>
+            </ListItem>
+          </NavLink>
+        </li>
       )
     })
 
