@@ -155,11 +155,18 @@ export default function ControlledPaginatedList(
         spacing={2}
       >
         <Grid item>
+          <label
+            htmlFor='select-all'
+            style={{ position: 'absolute', clip: 'rect(0 0 0 0)' }}
+          >
+            Select All Toggle
+          </label>
           <Checkbox
             className={classes.checkbox}
             checked={
               itemIDs.length === checkedItems.length && itemIDs.length > 0
             }
+            id='select-all'
             data-cy='select-all'
             indeterminate={
               checkedItems.length > 0 && itemIDs.length !== checkedItems.length
