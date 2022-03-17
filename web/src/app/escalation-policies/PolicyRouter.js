@@ -28,6 +28,7 @@ export default function PolicyRouter() {
   function renderList() {
     return (
       <SimpleListPage
+        infiniteScroll
         query={query}
         variables={{ input: { favoritesFirst: true } }}
         mapDataNode={(n) => ({

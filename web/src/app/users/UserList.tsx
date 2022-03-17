@@ -32,6 +32,7 @@ function UserList(): JSX.Element {
   return (
     <React.Fragment>
       <QueryList
+        infiniteScroll
         query={query}
         variables={{ input: { favoritesFirst: true } }}
         mapDataNode={(n) => ({

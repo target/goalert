@@ -39,6 +39,7 @@ export default function ServiceRouter() {
   function renderList() {
     return (
       <SimpleListPage
+        infiniteScroll
         query={query}
         variables={{ input: { favoritesFirst: true } }}
         mapDataNode={(n) => ({

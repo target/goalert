@@ -30,6 +30,7 @@ const query = gql`
 function ScheduleList() {
   return (
     <SimpleListPage
+      infiniteScroll
       query={query}
       variables={{ input: { favoritesFirst: true } }}
       mapDataNode={(n) => ({

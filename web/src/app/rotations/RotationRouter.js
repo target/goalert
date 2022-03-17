@@ -27,6 +27,7 @@ export default function RotationRouter() {
   function renderList() {
     return (
       <SimpleListPage
+        infiniteScroll
         query={query}
         variables={{ input: { favoritesFirst: true } }}
         mapDataNode={(n) => ({
