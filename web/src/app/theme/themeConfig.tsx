@@ -17,8 +17,8 @@ import {
   teal,
   green,
   deepPurple,
+  pink,
   red,
-  brown,
   amber,
 } from '@mui/material/colors'
 
@@ -41,8 +41,8 @@ export const sourceColors = [
   teal[700],
   green[700],
   deepPurple[700],
+  pink[700],
   red[700],
-  brown[700],
   amber[700],
 ]
 
