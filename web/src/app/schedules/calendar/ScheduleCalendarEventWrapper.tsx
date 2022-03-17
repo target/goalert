@@ -29,15 +29,6 @@ const useStyles = makeStyles({
   cardActionContainer: {
     width: '100%',
   },
-  button: {
-    padding: '4px',
-    minHeight: 0,
-    fontSize: 12,
-  },
-  buttonContainer: {
-    display: 'flex',
-    alignItems: 'center',
-  },
   flexGrow: {
     flexGrow: 1,
   },
@@ -48,8 +39,8 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  event: ScheduleCalendarEvent
   children: JSX.Element
+  event: ScheduleCalendarEvent
 }
 
 export default function ScheduleCalendarEventWrapper({
