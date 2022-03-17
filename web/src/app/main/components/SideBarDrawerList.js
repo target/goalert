@@ -119,7 +119,7 @@ export default function SideBarDrawerList(props) {
       </div>
       <Divider />
       <nav>
-        <List role='navigation' className={classes.list} data-cy='nav-list'>
+        <List className={classes.list} data-cy='nav-list'>
           {routeConfig
             .filter((cfg) => cfg.nav !== false)
             .map((cfg, idx) => {
