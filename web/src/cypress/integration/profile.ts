@@ -84,22 +84,33 @@ function testProfile(): void {
       cy.url().should('eq', Cypress.config().baseUrl + '/profile')
     })
 
-    it('should change the theme mode', () => {
+    it('should change the theme mode and color', () => {
       cy.get('[aria-label="Manage Profile"]').click()
-      cy.get('[data-cy="manage-profile"]')
-        .find('button')
-        .contains('Light')
-        .click()
 
+      // test changing theme color
+      let lightBtnColor: string, lightBtnNewColor: string
+
+      cy.get('[data-cy="manage-profile"] button')
+        .contains('Light')
+        .as('lightBtn')
+      cy.get('@lightBtn').click()
+      cy.get('@lightBtn').then(
+        (el) => (lightBtnColor = el.css('background-color')),
+      )
+      cy.get('div[class="circle-picker "]').children().eq(1).click()
+      cy.get('@lightBtn')
+        .then((el) => (lightBtnNewColor = el.css('background-color')))
+        .then(() => {
+          expect(lightBtnColor).not.to.equal(lightBtnNewColor)
+        })
+
+      // test changing theme mode
       let lightModeColor: string, darkModeColor: string
+
       cy.get('div[id="app-root"]').then(
         (el) => (lightModeColor = el.css('background-color')),
       )
-
-      cy.get('[data-cy="manage-profile"]')
-        .find('button')
-        .contains('Dark')
-        .click()
+      cy.get('[data-cy="manage-profile"] button').contains('Dark').click()
       cy.get('div[id="app-root"]')
         .then((el) => (darkModeColor = el.css('background-color')))
         .then(() => {
