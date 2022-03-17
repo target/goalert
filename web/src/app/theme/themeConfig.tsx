@@ -12,6 +12,15 @@ import {
   themeFromSourceColor,
   Scheme,
 } from '@material/material-color-utilities'
+import {
+  blueGrey,
+  teal,
+  green,
+  deepPurple,
+  red,
+  brown,
+  amber,
+} from '@mui/material/colors'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -28,13 +37,13 @@ type MUIThemeMode = 'dark' | 'light'
 type ThemeModeOption = 'dark' | 'light' | 'system'
 
 export const sourceColors = [
-  '#006684', // grey blue
-  '#216859', // cyan
-  '#3A691F', // green
-  '#7D347D', // purple
-  '#C63875', // pink
-  '#BD332F', // red
-  '#F0831F', // orange
+  blueGrey[700],
+  teal[700],
+  green[700],
+  deepPurple[700],
+  red[700],
+  brown[700],
+  amber[700],
 ]
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
