@@ -39,7 +39,7 @@ function testA11y(): void {
     testRoute('admin config', '/admin/config')
     testRoute('admin system limits', '/admin/limits')
     testRoute('admin toolbox', '/admin/toolbox')
-    // testRoute('admin message logs', '/admin/message-logs') // TODO: fix critical failures
+    testRoute('admin message logs', '/admin/message-logs')
     testRoute('api docs', '/docs')
   })
 }

@@ -82,6 +82,7 @@ export default function DebugMessagesControls({
       </Grid>
       <Grid item xs={1} sx={{ display: 'flex' }}>
         <IconButton
+          aria-label='Reset Time Range'
           className={classes.resetButton}
           type='button'
           onClick={resetFilters}
