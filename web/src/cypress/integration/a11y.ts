@@ -52,7 +52,11 @@ function testA11y(): void {
     testRoute('users list', '/users', () => {
       cy.get('ul[data-cy="apollo-list"]')
     })
-    testRoute('profile', '/profile')
+    testRoute('profile', '/profile', () => {
+      cy.get('ul[data-cy="contact-methods"]')
+      cy.get('ul[data-cy="notification-rules"]')
+      cy.get('div[data-cy="alert-status-updates"]')
+    })
     testRoute('wizard', '/wizard')
     testRoute('admin config', '/admin/config')
     testRoute('admin system limits', '/admin/limits')

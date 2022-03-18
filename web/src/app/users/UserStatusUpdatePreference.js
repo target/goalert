@@ -27,6 +27,7 @@ export default function UserStatusUpdatePreference({ userID }) {
       <UserContactMethodSelect
         userID={userID}
         label='Alert Status Updates'
+        data-cy='alert-status-updates'
         helperText='Update me when my alerts are acknowledged or closed'
         name='alert-status-contact-method'
         value={cmID || disableVal}
