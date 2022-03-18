@@ -49,6 +49,7 @@ interface SelectOption {
 }
 
 interface CommonSelectProps {
+  id?: string
   disabled?: boolean
   error?: boolean
   isLoading?: boolean
@@ -79,6 +80,7 @@ export default function MaterialSelect(
 ): JSX.Element {
   const classes = useStyles()
   const {
+    id,
     disabled,
     error,
     isLoading,
@@ -139,6 +141,7 @@ export default function MaterialSelect(
 
   return (
     <Autocomplete
+      id={id}
       data-cy='material-select'
       data-cy-ready={!isLoading}
       classes={customCSS}

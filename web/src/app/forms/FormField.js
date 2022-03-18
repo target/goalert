@@ -142,10 +142,16 @@ export function FormField(props) {
       error={Boolean(fieldProps.error)}
     >
       {formLabel && (
-        <FormLabel style={{ paddingBottom: '0.5em' }}>{_label}</FormLabel>
+        <FormLabel
+          htmlFor={name + '-form-field'}
+          style={{ paddingBottom: '0.5em' }}
+        >
+          {_label}
+        </FormLabel>
       )}
       <Component
         {...fieldProps}
+        id={name + '-form-field'}
         error={checkbox ? undefined : Boolean(fieldProps.error)}
         // NOTE: empty string label leaves gap in outlined field; fallback to undefined instead
         label={(!formLabel && fieldProps.label) || undefined}

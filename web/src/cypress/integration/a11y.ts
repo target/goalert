@@ -20,9 +20,8 @@ function testA11y(): void {
       it(testName, () => {
         cy.visit(route)
         cy.injectAxe()
-        // todo: workaround for https://github.com/component-driven/cypress-axe/issues/64
         // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(1000)
+        cy.wait(1000) // todo: get an element on the page, use a callback fn param
         cy.checkA11y(undefined, {
           includedImpacts: ['critical'], // only report and assert for critical impact items
         })
@@ -36,8 +35,8 @@ function testA11y(): void {
     testRoute('services list', '/services')
     testRoute('users list', '/users')
     testRoute('profile', '/profile')
-    // testRoute('wizard', '/wizard') TODO: fix critical failure
-    // testRoute('admin config', '/admin/config')
+    testRoute('wizard', '/wizard')
+    // testRoute('admin config', '/admin/config') // TODO: fix critical failures
     // testRoute('admin system limits', '/admin/limits')
     testRoute('admin toolbox', '/admin/toolbox')
     // testRoute('admin message logs', '/admin/message-logs')
