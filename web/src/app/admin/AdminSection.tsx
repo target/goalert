@@ -88,6 +88,10 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
                 className={classes.listItemText}
                 primary={f.label}
                 secondary={f.description}
+                primaryTypographyProps={{
+                  component: 'label',
+                  htmlFor: f.id,
+                }}
               />
               <div className={classes.listItemAction}>
                 <Field

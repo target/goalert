@@ -19,7 +19,7 @@ interface InputProps {
 
 export function StringInput(props: InputProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
-  const { onChange, password, type = 'text', ...rest } = props
+  const { onChange, password, type = 'text', name, ...rest } = props
 
   const renderPasswordAdornment = (): JSX.Element | null => {
     if (!props.password) return null
@@ -38,10 +38,19 @@ export function StringInput(props: InputProps): JSX.Element {
   }
 
   if (props.name === 'Twilio.FromNumber') {
-    return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
+    return (
+      <TelTextField
+        onChange={(e) => onChange(e.target.value)}
+        id={name}
+        name={name}
+        {...rest}
+      />
+    )
   }
   return (
     <Input
+      id={name}
+      name={name}
       fullWidth
       autoComplete='new-password' // chrome keeps autofilling them, this stops it
       type={password && !showPassword ? 'password' : type}
@@ -82,6 +91,7 @@ export const StringListInput = (props: InputProps): JSX.Element => {
 
 export const IntegerInput = (props: InputProps): JSX.Element => (
   <Input
+    id={props.name}
     name={props.name}
     value={props.value}
     autoComplete={props.autoComplete}
@@ -97,6 +107,7 @@ export const IntegerInput = (props: InputProps): JSX.Element => (
 
 export const BoolInput = (props: InputProps): JSX.Element => (
   <Switch
+    id={props.name}
     name={props.name}
     value={props.value}
     checked={props.value === 'true'}

@@ -36,10 +36,10 @@ function testA11y(): void {
     testRoute('users list', '/users')
     testRoute('profile', '/profile')
     testRoute('wizard', '/wizard')
-    // testRoute('admin system limits', '/admin/limits')
     testRoute('admin config', '/admin/config')
+    testRoute('admin system limits', '/admin/limits')
     testRoute('admin toolbox', '/admin/toolbox')
-    // testRoute('admin message logs', '/admin/message-logs')
+    // testRoute('admin message logs', '/admin/message-logs') // TODO: fix critical failures
     testRoute('api docs', '/docs')
   })
 }
