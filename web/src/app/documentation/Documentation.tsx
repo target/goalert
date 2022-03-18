@@ -38,7 +38,7 @@ export default function IntegrationKeyAPI(): JSX.Element {
   return (
     <React.Fragment>
       {markdownDocs.map((doc, i) => (
-        <Card key={i} className={classes.mBottom}>
+        <Card key={i} className={classes.mBottom} data-cy='api-docs'>
           <CardContent>
             <Typography variant='body1' component='div'>
               <Markdown value={doc} />

@@ -24,7 +24,12 @@ export default function AdminToolbox(): JSX.Element {
   const classes = useStyles()
 
   return (
-    <Grid container spacing={2} className={classes.gridContainer}>
+    <Grid
+      container
+      spacing={2}
+      className={classes.gridContainer}
+      data-cy='admin-toolbox'
+    >
       <Grid container item xs={12}>
         <Grid item xs={12}>
           <Typography

@@ -134,6 +134,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         className={
           selectedLog ? classes.containerSelected : classes.containerDefault
         }
+        data-cy='admin-message-logs'
       >
         <Grid container item xs={12}>
           <Grid item xs={12}>

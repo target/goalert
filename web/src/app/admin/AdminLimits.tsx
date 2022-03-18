@@ -79,7 +79,7 @@ export default function AdminLimits(): JSX.Element {
   }
 
   return (
-    <div className={classes.pageContainer}>
+    <div className={classes.pageContainer} data-cy='admin-limits'>
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={12} className={classes.actionsContainer}>
           <ButtonGroup variant='outlined'>

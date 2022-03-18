@@ -138,7 +138,7 @@ export default function AdminConfig(): JSX.Element {
     _.keys(values).filter((key) => key.startsWith(id + '.')).length
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} data-cy='admin-config'>
       <Grid item xs={12} container justifyContent='flex-end'>
         <ButtonGroup variant='outlined'>
           <Button

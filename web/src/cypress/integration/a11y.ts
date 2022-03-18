@@ -19,10 +19,7 @@ function testA11y(): void {
     function testRoute(
       testName: string,
       route: string,
-      waitForPageLoad: () => void = () => {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(2000)
-      },
+      waitForPageLoad: () => void,
     ): void {
       it(testName, () => {
         cy.visit(route)
@@ -34,35 +31,46 @@ function testA11y(): void {
       })
     }
 
-    testRoute('alerts list', '/alerts?allServices=1&filter=all', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
-    testRoute('rotations list', '/rotations', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
-    testRoute('schedules list', '/schedules', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
-    testRoute('escalation policies list', '/escalation-policies', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
-    testRoute('services list', '/services', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
-    testRoute('users list', '/users', () => {
-      cy.get('ul[data-cy="apollo-list"]')
-    })
+    function waitForList(): Cypress.Chainable {
+      return cy.get('ul[data-cy="apollo-list"]')
+    }
+
+    testRoute('alerts list', '/alerts?allServices=1&filter=all', waitForList)
+    testRoute('rotations list', '/rotations', waitForList)
+    testRoute('schedules list', '/schedules', waitForList)
+    testRoute('escalation policies list', '/escalation-policies', waitForList)
+    testRoute('services list', '/services', waitForList)
+    testRoute('users list', '/users', waitForList)
+
     testRoute('profile', '/profile', () => {
       cy.get('ul[data-cy="contact-methods"]')
       cy.get('ul[data-cy="notification-rules"]')
       cy.get('div[data-cy="alert-status-updates"]')
     })
-    testRoute('wizard', '/wizard')
-    testRoute('admin config', '/admin/config')
-    testRoute('admin system limits', '/admin/limits')
-    testRoute('admin toolbox', '/admin/toolbox')
-    testRoute('admin message logs', '/admin/message-logs')
-    testRoute('api docs', '/docs')
+
+    testRoute('wizard', '/wizard', () => {
+      cy.get('input[name="primarySchedule.timeZone"]')
+    })
+
+    testRoute('admin config', '/admin/config', () => {
+      cy.get('div[data-cy="admin-config"]')
+    })
+
+    testRoute('admin system limits', '/admin/limits', () => {
+      cy.get('div[data-cy="admin-limits"]')
+    })
+
+    testRoute('admin toolbox', '/admin/toolbox', () => {
+      cy.get('div[data-cy="admin-toolbox"]')
+    })
+
+    testRoute('admin message logs', '/admin/message-logs', () => {
+      cy.get('div[data-cy="admin-message-logs"]')
+    })
+
+    testRoute('api docs', '/docs', () => {
+      cy.get('div[data-cy="api-docs"]')
+    })
   })
 }
 
