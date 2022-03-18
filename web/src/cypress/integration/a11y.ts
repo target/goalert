@@ -17,7 +17,7 @@ function testA11y(): void {
     })
 
     // todo: a11y error label needed on alert checkboxes
-    it.skip('alerts list', () => {
+    it('alerts list', () => {
       cy.visit('/alerts?allServices=1&filter=all')
       cy.injectAxe()
       cy.checkA11y()

@@ -226,21 +226,30 @@ export default function ControlledPaginatedList(
     const checked = checkedItems.includes(item.id)
 
     return (
-      <Checkbox
-        checked={checked}
-        data-cy={'item-' + item.id}
-        disabled={item.selectable === false}
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
+      <React.Fragment>
+        <label
+          htmlFor={'item-' + item.id}
+          style={{ position: 'absolute', clip: 'rect(0 0 0 0)' }}
+        >
+          {item.title} Toggle
+        </label>
+        <Checkbox
+          checked={checked}
+          id={'item-' + item.id}
+          data-cy={'item-' + item.id}
+          disabled={item.selectable === false}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
 
-          if (checked) {
-            setCheckedItems(checkedItems.filter((id) => id !== item.id))
-          } else {
-            setCheckedItems([...checkedItems, item.id])
-          }
-        }}
-      />
+            if (checked) {
+              setCheckedItems(checkedItems.filter((id) => id !== item.id))
+            } else {
+              setCheckedItems([...checkedItems, item.id])
+            }
+          }}
+        />
+      </React.Fragment>
     )
   }
 
