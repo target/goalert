@@ -21,7 +21,7 @@ function testA11y(): void {
         cy.visit(route)
         cy.injectAxe()
         // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(1000) // todo: get an element on the page, use a callback fn param
+        cy.wait(2000) // todo: get an element on the page, use a callback fn param
         cy.checkA11y(undefined, {
           includedImpacts: ['critical'], // only report and assert for critical impact items
         })
