@@ -16,24 +16,42 @@ function testA11y(): void {
       })
     })
 
-    function testRoute(testName: string, route: string): void {
+    function testRoute(
+      testName: string,
+      route: string,
+      waitForPageLoad: () => void = () => {
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(2000)
+      },
+    ): void {
       it(testName, () => {
         cy.visit(route)
         cy.injectAxe()
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(2000) // todo: get an element on the page, use a callback fn param
+        waitForPageLoad()
         cy.checkA11y(undefined, {
           includedImpacts: ['critical'], // only report and assert for critical impact items
         })
       })
     }
 
-    testRoute('alerts list', '/alerts?allServices=1&filter=all')
-    testRoute('rotations list', '/rotations')
-    testRoute('schedules list', '/schedules')
-    testRoute('escalation policies list', '/escalation-policies')
-    testRoute('services list', '/services')
-    testRoute('users list', '/users')
+    testRoute('alerts list', '/alerts?allServices=1&filter=all', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
+    testRoute('rotations list', '/rotations', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
+    testRoute('schedules list', '/schedules', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
+    testRoute('escalation policies list', '/escalation-policies', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
+    testRoute('services list', '/services', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
+    testRoute('users list', '/users', () => {
+      cy.get('ul[data-cy="apollo-list"]')
+    })
     testRoute('profile', '/profile')
     testRoute('wizard', '/wizard')
     testRoute('admin config', '/admin/config')
