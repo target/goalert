@@ -80,7 +80,12 @@ function AlertsListFilter({ serviceID }) {
     }
 
     const content = (
-      <Grid container spacing={2} className={gridClasses}>
+      <Grid
+        container
+        spacing={2}
+        className={gridClasses}
+        data-cy='alerts-list-filter'
+      >
         <Grid item xs={12} className={classes.gridItem}>
           <FormControl>
             {favoritesFilter}

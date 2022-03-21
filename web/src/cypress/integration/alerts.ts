@@ -22,6 +22,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.id)
         .should('contain', alert.service.name)
       cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
+      cy.validateA11y()
     })
 
     it('should handle searching by summary', () => {
@@ -48,6 +49,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.visit('/alerts')
       cy.get('body').should('contain', 'No results') // mock data has no favorited services-- 0 alerts should show
       cy.get('button[aria-label="Filter Alerts"]').click()
+      cy.validateA11y('div[data-cy="alerts-list-filter"]')
       cy.get('span[data-cy=toggle-favorites]').click() // set to false (see all alerts)
       cy.get('body').should('not.contain', 'No results') // mock alerts should show again
     })
@@ -61,6 +63,7 @@ function testAlerts(screen: ScreenFormat): void {
         cy.get('[data-cy=apollo-list] li a').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
         cy.get('[data-cy=apollo-list] li a').should('have.length', 50)
+        cy.validateA11y()
       })
     })
 
@@ -143,6 +146,7 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should acknowledge, escalate, and close multiple alerts', () => {
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
+      cy.validateA11y()
 
       cy.get('button[aria-label=Acknowledge]').click()
 
@@ -151,6 +155,7 @@ function testAlerts(screen: ScreenFormat): void {
         'not.contain',
         'UNACKNOWLEDGED',
       )
+      cy.validateA11y('ul[data-cy=apollo-list]', false)
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
@@ -162,6 +167,7 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('button[aria-label=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
+      cy.validateA11y('ul[data-cy=apollo-list]', false)
     })
 
     it('should update some alerts', () => {
@@ -183,13 +189,18 @@ function testAlerts(screen: ScreenFormat): void {
         'UNACKNOWLEDGED',
       )
 
+      cy.validateA11y('ul[data-cy=apollo-list]')
+
       cy.reload()
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
 
       cy.get('button[aria-label=Acknowledge]').click()
+
       cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
+      cy.validateA11y('[role="alert"]', false)
+
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
         'UNACKNOWLEDGED',
