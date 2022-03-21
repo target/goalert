@@ -16,6 +16,7 @@
 /// <reference types="cypress" />
 
 import './slack'
+import './a11y'
 import './admin'
 import './alert'
 import './calendar-subscription'

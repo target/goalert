@@ -36,11 +36,6 @@ function testA11y(): void {
     }
 
     testRoute('alerts list', '/alerts?allServices=1&filter=all', waitForList)
-    testRoute('rotations list', '/rotations', waitForList)
-    testRoute('schedules list', '/schedules', waitForList)
-    testRoute('escalation policies list', '/escalation-policies', waitForList)
-    testRoute('services list', '/services', waitForList)
-    testRoute('users list', '/users', waitForList)
 
     testRoute('profile', '/profile', () => {
       cy.get('ul[data-cy="contact-methods"]')

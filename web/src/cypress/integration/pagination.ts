@@ -42,6 +42,7 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
+      cy.validateA11y()
       cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
