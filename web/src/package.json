@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
-    "esbuild-explore": "esbuild ./explore/explore.tsx --outdir=build/static/ --minify --bundle --sourcemap --target=chrome58,safari11,firefox58,edge58"
+    "esbuild-explore": "esbuild  --outdir=build/static/ --minify --bundle --sourcemap --target=chrome58,safari11,firefox58,edge58 --define:global=window --define:process.env.NODE_ENV=\\\"production\\\" ./explore/explore.tsx"
   },
   "jest": {
     "transform": {

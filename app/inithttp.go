@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
-	"github.com/target/goalert/graphql2/explore"
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
 	prometheus "github.com/target/goalert/prometheusalertmanager"
@@ -187,9 +186,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())
-
-	mux.HandleFunc("/api/graphql/explore", explore.Handler)
-	mux.Handle("/api/graphql/explore/", http.StripPrefix("/api/graphql/explore/", http.FileServer(http.FS(explore.FS))))
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 

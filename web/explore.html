@@ -7,10 +7,10 @@
       content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui"
     />
     <title>{{ .ApplicationName }} - GraphQL API</title>
-    <link rel="stylesheet" href="explore/build/explore.css" />
+    <link rel="stylesheet" href="{{.Prefix}}/static/explore.css" />
   </head>
   <body>
     <div id="root" />
-    <script src="explore/build/explore.js" type="text/javascript"></script>
+    <script src="{{.Prefix}}/static/explore.js"></script>
   </body>
 </html>

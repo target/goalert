@@ -7,7 +7,7 @@ BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 GO_DEPS += migrate/migrations/ migrate/migrations/*.sql web/index.html graphql2/graphqlapp/slack.manifest.yaml
 GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
-GO_DEPS += graphql2/explore/explore.html graphql2/explore/build/*
+GO_DEPS += web/explore.html
 
 ifdef BUNDLE
 	GO_DEPS += web/src/build/static/app.js web/src/build/static/explore.js
