@@ -19,7 +19,7 @@ import (
 var bundleFS embed.FS
 
 //go:embed live.js
-var liveJS string
+var liveJS []byte
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or locally if uiDir if set.
@@ -28,8 +28,11 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 
 	var extraJS string
 	if uiDir != "" {
-		extraJS = liveJS
+		extraJS = "/static/live.js"
 		mux.Handle("/static/", NoCache(NewEtagFileServer(http.Dir(uiDir), false)))
+		mux.HandleFunc("/static/live.js", func(w http.ResponseWriter, req *http.Request) {
+			http.ServeContent(w, req, "/static/live.js", time.Time{}, bytes.NewReader(liveJS))
+		})
 	} else {
 		sub, err := fs.Sub(bundleFS, "src/build")
 		if err != nil {
@@ -44,6 +47,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		serveTemplate(uiDir, w, req, exploreTmpl, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
+			ExtraJS:         template.JS(extraJS),
 		})
 	})
 

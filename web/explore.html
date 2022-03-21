@@ -11,6 +11,13 @@
   </head>
   <body>
     <div id="root" />
-    <script src="{{.Prefix}}/static/explore.js"></script>
+    <script>
+      pathPrefix = {{.PathPrefix}};
+      applicationName = {{.ApplicationName}};
+    </script>
+    <script src="{{.Prefix}}/static/explore.js" defer></script>
+    {{- if .ExtraJS}}
+    <script src="{{.Prefix}}{{.ExtraJS}}"></script>
+    {{- end}}
   </body>
 </html>
