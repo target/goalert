@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const path = require('path')
 
+const isProdBuild = !process.argv.includes('--watch')
+
 const dynamicPublicPathPlugin = {
   name: 'prefix-path',
   setup(build) {
@@ -34,11 +36,11 @@ require('esbuild')
     logLevel: 'info',
     bundle: true,
     define: {
-      // 'process.env.NODE_ENV': '"production"',
+      'process.env.NODE_ENV': isProdBuild ? '"production"' : '"dev"',
       global: 'window',
     },
-    minify: true,
-    sourcemap: true,
+    minify: isProdBuild,
+    sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
     loader: {
       '.png': 'file',
