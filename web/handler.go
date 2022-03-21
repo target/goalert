@@ -47,7 +47,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		serveTemplate(uiDir, w, req, exploreTmpl, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
-			ExtraJS:         template.JS(extraJS),
+			ExtraJS:         extraJS,
 		})
 	})
 
@@ -57,7 +57,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		serveTemplate(uiDir, w, req, indexTmpl, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
-			ExtraJS:         template.JS(extraJS),
+			ExtraJS:         extraJS,
 		})
 	})
 
