@@ -122,6 +122,16 @@ export default [
         element: AdminRouter,
       },
       {
+        title: 'Message Logs',
+        path: '/message-logs',
+        element: AdminRouter,
+      },
+      {
+        title: 'Switchover',
+        path: '/switchover',
+        element: AdminRouter,
+      },
+      {
         title: 'System Limits',
         path: '/limits',
         element: AdminRouter,
@@ -129,11 +139,6 @@ export default [
       {
         title: 'Toolbox',
         path: '/toolbox',
-        element: AdminRouter,
-      },
-      {
-        title: 'Message Logs',
-        path: '/message-logs',
         element: AdminRouter,
       },
     ],

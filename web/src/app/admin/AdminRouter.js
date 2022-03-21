@@ -7,6 +7,7 @@ import AdminToolbox from './AdminToolbox'
 import AdminDebugMessagesLayout from './admin-message-logs/AdminDebugMessagesLayout'
 import { useSessionInfo } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
+import AdminSwitchover from './switchover/AdminSwitchover'
 
 function AdminRouter() {
   const { isAdmin, ready } = useSessionInfo()
@@ -20,9 +21,10 @@ function AdminRouter() {
   return (
     <Routes>
       <Route path='/config' element={<AdminConfig />} />
+      <Route path='/message-logs' element={<AdminDebugMessagesLayout />} />
+      <Route path='/switchover' element={<AdminSwitchover />} />
       <Route path='/limits' element={<AdminLimits />} />
       <Route path='/toolbox' element={<AdminToolbox />} />
-      <Route path='/message-logs' element={<AdminDebugMessagesLayout />} />
 
       <Route element={<PageNotFound />} />
     </Routes>
