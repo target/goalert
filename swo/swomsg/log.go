@@ -24,8 +24,9 @@ type Log struct {
 var ErrStaleLog = fmt.Errorf("cannot append until log is read")
 
 type logEvent struct {
-	ID   int64
-	Data []byte
+	ID        int64
+	Timestamp time.Time
+	Data      []byte
 }
 
 func NewLog(db *gorm.DB, id uuid.UUID) (*Log, error) {
@@ -72,6 +73,7 @@ func (l *Log) Next(ctx context.Context) (*Message, error) {
 		l.events <- events
 		return nil, err
 	}
+	w.TS = events[0].Timestamp
 
 	l.readID = events[0].ID
 	l.events <- events[1:]
@@ -105,29 +107,34 @@ func (l *Log) Append(ctx context.Context, v interface{}) error {
 	switch m := v.(type) {
 	case Ping:
 		msg.Ping = &m
-	case Pong:
-		msg.Pong = &m
+	case Ack:
+		msg.Ack = &m
 	case Reset:
 		msg.Reset = &m
 	case Error:
 		msg.Error = &m
 	case Execute:
 		msg.Execute = &m
-	case Claim:
-		msg.Claim = &m
+	case Plan:
+		msg.Plan = &m
+	case Progress:
+		msg.Progress = &m
+	case Done:
+		msg.Done = &m
+	case Hello:
+		msg.Hello = &m
 	default:
 		return fmt.Errorf("unknown message type %T", m)
 	}
 
 	msg.ID = uuid.New()
 	msg.NodeID = l.id
-	msg.TS = time.Now()
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 	e := <-l.events
-	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, data) values ((select max(id)+1 from switchover_log), ?)", data).Error
+	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, timestamp, data) values ((select max(id)+1 from switchover_log), now(), ?)", data).Error
 	l.events <- e
 
 	if dbErr := sqlutil.MapError(err); dbErr != nil && dbErr.Code == "23505" {

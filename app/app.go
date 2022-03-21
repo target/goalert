@@ -182,11 +182,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	if c.SWO != nil {
 		c.SWO.SetPauseResumer(app)
 		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
-		go func() {
-			for range time.NewTicker(3 * time.Second).C {
-				log.Logf(app.LogBackgroundContext(), "SWO: %v", c.SWO.Stats())
-			}
-		}()
 	}
 
 	gCfg := &gorm.Config{

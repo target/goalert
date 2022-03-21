@@ -10,7 +10,8 @@ import (
 type Connector struct {
 	dbcOld, dbcNew driver.Connector
 
-	n *Notifier
+	n  *Notifier
+	sm *StatsManager
 }
 
 type Notifier struct {
@@ -35,11 +36,12 @@ func (n *Notifier) IsDone() bool {
 
 var _ driver.Connector = (*Connector)(nil)
 
-func NewConnector(dbcOld, dbcNew driver.Connector) *Connector {
+func NewConnector(dbcOld, dbcNew driver.Connector, sm *StatsManager) *Connector {
 	return &Connector{
 		dbcOld: dbcOld,
 		dbcNew: dbcNew,
 		n:      NewNotifier(),
+		sm:     sm,
 	}
 }
 
@@ -55,20 +57,15 @@ func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 		return nil, err
 	}
 
-	drvConn := &Conn{
-		DBConn: conn.(DBConn),
-		n:      drv.n,
+	err = sessionLock(ctx, conn)
+	if errors.Is(err, errDone) {
+		drv.n.Done()
+		return drv.dbcNew.Connect(ctx)
 	}
-
-	err = drvConn.lock(ctx)
 	if err != nil {
 		conn.Close()
-
-		if errors.Is(err, driver.ErrBadConn) {
-			return drv.dbcNew.Connect(ctx)
-		}
 		return nil, err
 	}
 
-	return drvConn, nil
+	return conn, nil
 }

@@ -9,45 +9,65 @@ import (
 type Message struct {
 	Header
 
-	Ping    *Ping    `json:",omitempty"`
-	Pong    *Pong    `json:",omitempty"`
-	Reset   *Reset   `json:",omitempty"`
-	Error   *Error   `json:",omitempty"`
-	Claim   *Claim   `json:",omitempty"`
-	Execute *Execute `json:",omitempty"`
+	Ping     *Ping     `json:",omitempty"`
+	Ack      *Ack      `json:",omitempty"`
+	Reset    *Reset    `json:",omitempty"`
+	Execute  *Execute  `json:",omitempty"`
+	Error    *Error    `json:",omitempty"`
+	Plan     *Plan     `json:",omitempty"`
+	Progress *Progress `json:",omitempty"`
+	Done     *Done     `json:",omitempty"`
+	Hello    *Hello    `json:",omitempty"`
 }
 
 type Header struct {
 	ID     uuid.UUID
 	NodeID uuid.UUID
-	TS     time.Time
+	TS     time.Time `json:"-"`
 }
 
 type (
-	Ping struct{}
-	Pong struct{ IsNextDB bool }
+	// user commands
+	Ping    struct{}
+	Reset   struct{}
+	Execute struct{}
 
-	Reset   struct{ ClaimDeadline time.Time }
-	Execute struct{ ClaimDeadline time.Time }
-
-	Claim struct {
-		MsgID uuid.UUID
+	Hello struct {
+		IsOldDB bool
+		Status  string
 	}
 
-	Error struct{ Details string }
-
-	Plan struct {
-		BeginAt           time.Time
-		ConsensusDeadline time.Time
-		GlobalPauseAt     time.Time
-		AbsoluteDeadline  time.Time
+	Ack struct {
+		MsgID  uuid.UUID
+		Exec   bool `json:",omitempty"`
+		Status string
 	}
-	ConfirmPlan struct{ MsgID uuid.UUID }
-	Progress    struct {
+
+	// task updates
+	Progress struct {
+		MsgID   uuid.UUID
 		Details string
 	}
+	Error struct {
+		MsgID   uuid.UUID
+		Details string
+	}
+	Done struct{ MsgID uuid.UUID }
 
-	Done struct{}
+	Plan struct {
+		// Must receive Ack from all nodes before this time.
+		ConsensusDeadline time.Time
+
+		// Must receive PlanStart or Error before this time, otherwise all
+		// nodes will Error.
+		StartAt time.Time
+
+		// All nodes should disable idle connections after this time.
+		DisableIdleAt time.Time
+
+		// All nodes should re-enable idle connections after this time.
+		Deadline time.Time
+	}
 )
 
 /*

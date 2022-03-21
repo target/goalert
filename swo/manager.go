@@ -7,8 +7,10 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/swo/swomsg"
-	"github.com/target/goalert/util/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,10 +18,15 @@ import (
 type Manager struct {
 	id uuid.UUID
 
-	dbOld, dbNew *gorm.DB
-	protectedDB  *sql.DB
+	dbOld, dbNew *sql.DB
+
+	protectedDB *sql.DB
 
 	s Syncer
+
+	app lifecycle.PauseResumer
+
+	stats *StatsManager
 
 	msgLog     *swomsg.Log
 	nextMsgLog *swomsg.Log
@@ -28,8 +35,7 @@ type Manager struct {
 	nextMsgCh chan *swomsg.Message
 	errCh     chan error
 
-	nodes map[uuid.UUID]*Node
-	exec  map[uuid.UUID]*swomsg.Message
+	msgState *state
 
 	cancel func()
 
@@ -41,47 +47,61 @@ type Node struct {
 
 	OldValid bool
 	NewValid bool
+	CanExec  bool
+
+	Status string
 }
 
-func NewManager(dbcOld, dbcNew driver.Connector, canExec bool) (*Manager, error) {
+type Config struct {
+	OldDBC, NewDBC driver.Connector
+	CanExec        bool
+}
+
+func NewManager(cfg Config) (*Manager, error) {
 	gCfg := &gorm.Config{PrepareStmt: true}
-	gormOld, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(dbcOld)}), gCfg)
+	gormOld, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(cfg.OldDBC)}), gCfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open old database: %w", err)
 	}
-	gormNew, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(dbcNew)}), gCfg)
+	gormNew, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(cfg.NewDBC)}), gCfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open new database: %w", err)
 	}
 
 	id := uuid.New()
 	msgLog, err := swomsg.NewLog(gormOld, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create old message log: %w", err)
 	}
 
 	msgLogNext, err := swomsg.NewLog(gormNew, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create new message log: %w", err)
 	}
 
+	sm := NewStatsManager()
 	ctx, cancel := context.WithCancel(context.Background())
 	m := &Manager{
-		dbOld: gormOld,
-		dbNew: gormNew,
+		dbOld: sql.OpenDB(cfg.OldDBC),
+		dbNew: sql.OpenDB(cfg.NewDBC),
 
-		protectedDB: sql.OpenDB(NewConnector(dbcOld, dbcNew)),
+		protectedDB: sql.OpenDB(NewConnector(cfg.OldDBC, cfg.NewDBC, sm)),
 
 		id:         id,
 		msgLog:     msgLog,
 		nextMsgLog: msgLogNext,
-		canExec:    canExec,
+		canExec:    cfg.CanExec,
 		msgCh:      make(chan *swomsg.Message),
 		nextMsgCh:  make(chan *swomsg.Message),
 		errCh:      make(chan error, 10),
 		cancel:     cancel,
-		nodes:      make(map[uuid.UUID]*Node),
-		exec:       make(map[uuid.UUID]*swomsg.Message),
+
+		stats: sm,
+	}
+
+	m.msgState, err = newState(ctx, m)
+	if err != nil {
+		return nil, fmt.Errorf("create state: %w", err)
 	}
 
 	go func() {
@@ -91,7 +111,11 @@ func NewManager(dbcOld, dbcNew driver.Connector, canExec bool) (*Manager, error)
 				m.errCh <- fmt.Errorf("read from log: %w", err)
 				return
 			}
-			m.msgCh <- msg
+			err = m.msgState.processFromOld(ctx, msg)
+			if err != nil {
+				m.errCh <- fmt.Errorf("process from old db log: %w", err)
+				return
+			}
 		}
 	}()
 	go func() {
@@ -100,81 +124,66 @@ func NewManager(dbcOld, dbcNew driver.Connector, canExec bool) (*Manager, error)
 			m.errCh <- fmt.Errorf("read from next log: %w", err)
 			return
 		}
-		m.nextMsgCh <- msg
+		err = m.msgState.processFromNew(ctx, msg)
+		if err != nil {
+			m.errCh <- fmt.Errorf("process from new db log: %w", err)
+			return
+		}
 	}()
-
-	go m.loop(ctx)
 
 	return m, nil
 }
 
-func (m *Manager) DB() *sql.DB { return m.protectedDB }
+func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) { m.app = app }
 
-func (m *Manager) processMessage(ctx context.Context, msg *swomsg.Message) {
-	appendLog := func(msg interface{}) {
-		err := m.msgLog.Append(ctx, msg)
-		if err != nil {
-			log.Log(ctx, err)
-		}
-	}
-
-	switch {
-	case msg.Ping != nil:
-		appendLog(swomsg.Pong{IsNextDB: false})
-		err := m.nextMsgLog.Append(ctx, swomsg.Pong{IsNextDB: true})
-		if err != nil {
-			log.Log(ctx, err)
-		}
-	case msg.Reset != nil:
-		m.nodes = make(map[uuid.UUID]*Node)
-		m.exec = make(map[uuid.UUID]*swomsg.Message)
-		m.id = uuid.New()
-	}
-
-	if !m.canExec {
-		// api-only node, don't process execute commands
-		return
-	}
-
-	// any execute command needs to be claimed
-	switch {
-	case msg.Execute != nil:
-		m.exec[msg.ID] = msg
-		appendLog(swomsg.Claim{MsgID: msg.ID})
-	case msg.Reset != nil:
-		m.exec[msg.ID] = msg
-		appendLog(swomsg.Claim{MsgID: msg.ID})
-	case msg.Claim != nil:
-		execMsg := m.exec[msg.Claim.MsgID]
-		delete(m.exec, msg.Claim.MsgID)
-		if msg.NodeID != m.id {
-			// claimed by another node
-			return
-		}
-
-		m.execute(execMsg)
-	}
+// withConnFromOld allows performing operations with a raw connection to the old database.
+func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
+	return WithLockedConn(ctx, m.dbOld, f)
 }
 
-func (m *Manager) execute(msg *swomsg.Message) {
-	switch {
-	}
+// withConnFromNew allows performing operations with a raw connection to the new database.
+func (m *Manager) withConnFromNew(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
+	return WithLockedConn(ctx, m.dbNew, f)
 }
 
-func (m *Manager) loop(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case msg := <-m.msgCh:
-			m.processMessage(ctx, msg)
-		case msg := <-m.nextMsgCh:
-			if msg.Pong != nil && msg.Pong.IsNextDB {
-				m.nodes[msg.NodeID].NewValid = true
-			}
-		case err := <-m.errCh:
-			log.Log(ctx, err)
-			m.msgLog.Append(ctx, swomsg.Error{Details: err.Error()})
-		}
+// withConnFromBoth allows performing operations with a raw connection to both databases database.
+func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Context, oldConn, newConn *pgx.Conn) error) error {
+	// grab lock with old DB first
+	return WithLockedConn(ctx, m.dbOld, func(ctx context.Context, oldConn *pgx.Conn) error {
+		return WithLockedConn(ctx, m.dbNew, func(ctx context.Context, newConn *pgx.Conn) error {
+			return f(ctx, oldConn, newConn)
+		})
+	})
+}
+
+func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return err
 	}
+	defer conn.Close()
+
+	return conn.Raw(func(driverConn interface{}) error {
+		conn := driverConn.(*stdlib.Conn).Conn()
+		err := SwitchOverExecLock(ctx, conn)
+		if err != nil {
+			return err
+		}
+
+		return runFunc(ctx, conn)
+	})
+}
+
+func (m *Manager) Status() *Status { return m.msgState.Status() }
+func (m *Manager) DB() *sql.DB     { return m.protectedDB }
+
+type Status struct {
+	Details string
+	Nodes   []Node
+
+	// IsDone is true if the switch has already been completed.
+	IsDone bool
+
+	// IsIdle must be true before executing a switch-over.
+	IsIdle bool
 }
