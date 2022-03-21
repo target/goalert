@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/util"
 )
 
-const engineVersion = 1
+const engineVersion = 2
 
 // DB handles updating metrics
 type DB struct {
@@ -61,13 +61,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		insertMetrics: p.P(`
-			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated)
+			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated, closed_at)
 			select
 				a.id,
 				a.service_id,
 				(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'acknowledged' order by timestamp limit 1),
 				(select timestamp - a.created_at from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1),
-				(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated')
+				(select count(*) > 1             from alert_logs where alert_id = a.id and event = 'escalated'),
+				(select timestamp                from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1)
 			from alerts a
 			where a.id = any($1) and a.service_id is not null
 		`),
