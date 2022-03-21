@@ -11,4 +11,5 @@ cypress: go run ./devtools/waitfor http://localhost:3042 && CYPRESS_DB_URL=postg
 
 db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
 
-explore: yarn workspace goalert-explore run build
+@watch-file=./web/src/package.json
+explore: yarn workspace goalert-web esbuild-explore --watch

@@ -116,9 +116,6 @@ check: force-yarn generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-graphql2/explore/build/explore.js graphql2/explore/build/explore.css: web/explore/explore.tsx
-	yarn workspace goalert-explore run build
-
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
@@ -153,7 +150,7 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json web/explore/package.json Makefile
+yarn.lock: package.json web/src/package.json Makefile
 	yarn --no-progress --silent --check-files && touch $@
 
 node_modules/.yarn-integrity: yarn.lock Makefile
@@ -162,6 +159,9 @@ node_modules/.yarn-integrity: yarn.lock Makefile
 
 node_modules: yarn.lock node_modules/.yarn-integrity
 	touch -c $@
+
+web/src/build/static/explore.js: node_modules $(shell find ./web/src/explore -type f) web/src/package.json
+	yarn workspace goalert-web esbuild-explore
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
@@ -194,7 +194,7 @@ resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	rm -rf bin node_modules web/src/node_modules web/explore/node_modules web/src/build/static graphql2/explore/build/explore.js graphql2/explore/build/explore.css
+	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 lint: $(GOALERT_DEPS)
 	go run github.com/golang/lint/golint $(shell go list ./...)

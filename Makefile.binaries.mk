@@ -10,7 +10,7 @@ GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go grap
 GO_DEPS += graphql2/explore/explore.html graphql2/explore/build/*
 
 ifdef BUNDLE
-	GO_DEPS += web/src/build/static/app.js graphql2/explore/build/explore.js graphql2/explore/build/explore.css
+	GO_DEPS += web/src/build/static/app.js web/src/build/static/explore.js
 endif
 
 GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')

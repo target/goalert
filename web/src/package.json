@@ -4,7 +4,8 @@
   "description": "user interface for the goalert project",
   "main": "index.js",
   "scripts": {
-    "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json"
+    "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
+    "esbuild-explore": "esbuild ./explore/explore.tsx --outdir=build/static/ --minify --bundle --sourcemap --target=chrome58,safari11,firefox58,edge58"
   },
   "jest": {
     "transform": {
@@ -33,7 +34,9 @@
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
+    "esbuild": "0.14.27",
     "fuse.js": "6.5.3",
+    "graphiql": "1.7.1",
     "graphql": "16.3.0",
     "lodash": "4.17.21",
     "luxon": "2.3.0",
