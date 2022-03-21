@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 const path = require('path')
 
-const isProdBuild = !process.argv.includes('--watch')
+const isProdBuild =
+  process.argv.includes('--prod') || !process.argv.includes('--watch')
 
 const dynamicPublicPathPlugin = {
   name: 'prefix-path',
