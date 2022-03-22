@@ -75,6 +75,9 @@ function makeTheme(mode: MUIThemeMode): Theme {
           color: 'primary',
         },
       },
+      MuiAlert: {
+        styleOverrides: {},
+      },
     },
     ...testOverrides,
   })

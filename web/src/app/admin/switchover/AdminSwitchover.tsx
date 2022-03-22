@@ -15,6 +15,7 @@ import IdlingIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import Notices, { Notice } from '../../details/Notices'
+import { DateTime } from 'luxon'
 
 const query = gql`
   query {
@@ -96,7 +97,7 @@ export default function AdminSwitchover(): JSX.Element {
     <Grid container spacing={4}>
       {statusNotices.length > 0 && (
         <Grid item xs={12}>
-          <Notices notices={statusNotices} />
+          <Notices notices={statusNotices.reverse()} />
         </Grid>
       )}
 
@@ -122,6 +123,7 @@ export default function AdminSwitchover(): JSX.Element {
                   {
                     type: 'OK',
                     message: 'Successfully pinged',
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },
@@ -132,6 +134,7 @@ export default function AdminSwitchover(): JSX.Element {
                     type: 'ERROR',
                     message: 'Failed to ping',
                     details: cptlz(error.message),
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },
@@ -156,6 +159,7 @@ export default function AdminSwitchover(): JSX.Element {
                   {
                     type: 'OK',
                     message: 'Successfully reset',
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },
@@ -166,6 +170,7 @@ export default function AdminSwitchover(): JSX.Element {
                     type: 'ERROR',
                     message: 'Failed to reset',
                     details: cptlz(error.message),
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },
@@ -195,6 +200,7 @@ export default function AdminSwitchover(): JSX.Element {
                   {
                     type: 'OK',
                     message: 'Successfully executed',
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },
@@ -205,6 +211,7 @@ export default function AdminSwitchover(): JSX.Element {
                     type: 'ERROR',
                     message: 'Failed to execute',
                     details: cptlz(error.message),
+                    endNote: DateTime.local().toFormat('fff'),
                   },
                 ])
               },

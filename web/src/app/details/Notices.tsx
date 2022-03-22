@@ -6,11 +6,11 @@ import {
   IconButton,
   Alert,
   AlertTitle,
+  AlertProps,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
 import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
-import { AlertProps } from '@mui/lab'
 import toTitleCase from '../util/toTitleCase'
 
 const useStyles = makeStyles({
@@ -35,6 +35,7 @@ export interface Notice {
   type: NoticeType
   message: string | JSX.Element
   details?: string | JSX.Element
+  endNote?: string | JSX.Element
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
@@ -97,13 +98,15 @@ export default function Notices({
             message: classes.alertMessage,
             action: classes.alertAction,
           }}
-          elevation={1}
           action={index === 0 ? renderShowAllToggle() : null}
         >
           <AlertTitle>
             {toTitleCase(notice.type)}: {notice.message}
           </AlertTitle>
           {notice.details}
+          {notice.endNote && (
+            <div style={{ float: 'right' }}>{notice.endNote}</div>
+          )}
         </Alert>
       </Grid>
     )
