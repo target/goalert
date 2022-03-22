@@ -332,7 +332,7 @@ type RotationSearchOptions struct {
 }
 
 type SWONode struct {
-	ID       string `json:"ID"`
+	ID       string `json:"id"`
 	OldValid bool   `json:"oldValid"`
 	NewValid bool   `json:"newValid"`
 	CanExec  bool   `json:"canExec"`

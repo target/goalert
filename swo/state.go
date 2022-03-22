@@ -146,7 +146,6 @@ func (s *state) processFromOld(ctx context.Context, msg *swomsg.Message) error {
 		s.taskID = msg.ID
 		s.stateName = "reset-wait"
 		s.stateFn = StateResetWait
-		s.status = "performing reset"
 		err := s.hello(ctx)
 		if err != nil {
 			return err
@@ -177,10 +176,65 @@ func StateIdle(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 
 	switch {
 	case msg.Execute != nil:
+		s.taskID = msg.ID
+		s.stateName = "exec-wait"
+		s.ackMessage(ctx, msg.ID)
+		return StateExecWait
 	case msg.Plan != nil:
 	}
 
 	return StateIdle
+}
+
+// StateExecWait is the state when the node is waiting for execution to be performed.
+func StateExecWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
+	s.stateName = "exec-wait"
+
+	switch {
+	case msg.Error != nil:
+		s.ackMessage(ctx, msg.ID)
+		return StateError
+	case msg.Done != nil:
+		s.ackMessage(ctx, msg.ID)
+		return StateIdle
+	case msg.Ack != nil && s.m.canExec:
+		if msg.Ack.MsgID != s.taskID {
+			// ack for a different message
+			break
+		}
+		if msg.NodeID != s.m.id {
+			// claimed by another node
+			s.taskID = uuid.Nil
+			break
+		}
+		s.StartTask(s.m.DoExecute)
+		s.stateName = "exec-run"
+		s.ackMessage(ctx, msg.ID)
+		return StateResetRun
+	}
+
+	return StateExecWait
+}
+
+// StateExecRun is the state when the current node is executing the switch-over.
+func StateExecRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
+	s.stateName = "exec-run"
+
+	switch {
+	case msg.Error != nil:
+		s.cancel()
+		s.stateName = "error"
+		s.ackMessage(ctx, msg.ID)
+		return StateError
+	case msg.Done != nil:
+		// already done, make sure we still cancel the context though
+		s.cancel()
+		s.stateName = "idle"
+		s.ackMessage(ctx, msg.ID)
+		return StateIdle
+	}
+
+	return StateExecRun
 }
 
 // StateError is the state after a task failed.
@@ -212,17 +266,17 @@ func StateResetWait(ctx context.Context, s *state, msg *swomsg.Message) StateFun
 			break
 		}
 		s.StartTask(s.m.DoReset)
-		s.stateName = "reset-exec"
+		s.stateName = "reset-run"
 		s.ackMessage(ctx, msg.ID)
-		return StateResetExec
+		return StateResetRun
 	}
 
 	return StateResetWait
 }
 
-// StateResetExec is the state when the current node is performing a reset.
-func StateResetExec(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
-	s.stateName = "reset-exec"
+// StateResetRun is the state when the current node is performing a reset.
+func StateResetRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
+	s.stateName = "reset-run"
 
 	switch {
 	case msg.Error != nil:
@@ -238,5 +292,5 @@ func StateResetExec(ctx context.Context, s *state, msg *swomsg.Message) StateFun
 		return StateIdle
 	}
 
-	return StateResetExec
+	return StateResetRun
 }

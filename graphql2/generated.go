@@ -2613,7 +2613,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.CanExec(childComplexity), true
 
-	case "SWONode.ID":
+	case "SWONode.id":
 		if e.complexity.SWONode.ID == nil {
 			break
 		}
@@ -3613,7 +3613,7 @@ type SWOStatus {
 }
 
 type SWONode {
-  ID: ID!
+  id: ID!
   oldValid: Boolean!
   newValid: Boolean!
   canExec: Boolean!
@@ -13686,7 +13686,7 @@ func (ec *executionContext) _RotationConnection_pageInfo(ctx context.Context, fi
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SWONode_ID(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+func (ec *executionContext) _SWONode_id(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -25234,9 +25234,9 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SWONode")
-		case "ID":
+		case "id":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._SWONode_ID(ctx, field, obj)
+				return ec._SWONode_id(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
 import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
@@ -24,7 +23,7 @@ const query = gql`
       isIdle
       details
       nodes {
-        ID
+        id
         status
         canExec
         oldValid
@@ -49,8 +48,6 @@ export default function AdminSwitchover(): JSX.Element {
       setMutationResults([...mutationResults, error.message])
     },
   })
-
-  const executeDisabled = !data?.isIdle || (!data?.isIdle && data?.isDone)
 
   function getIcon(): React.ReactNode {
     if (error) {
@@ -133,12 +130,12 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'execute' } })}
-          disabled={executeDisabled}
+          disabled={data?.isIdle}
           size='large'
           variant='outlined'
           sx={buttonSx}
         >
-          {executeDisabled ? (
+          {data?.isIdle ? (
             <NoExecuteIcon sx={iconSx} />
           ) : (
             <ExecuteIcon sx={iconSx} />

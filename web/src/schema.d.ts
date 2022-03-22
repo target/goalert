@@ -46,7 +46,7 @@ export interface SWOStatus {
 }
 
 export interface SWONode {
-  ID: string
+  id: string
   oldValid: boolean
   newValid: boolean
   canExec: boolean
