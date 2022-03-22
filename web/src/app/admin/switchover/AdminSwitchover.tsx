@@ -80,10 +80,7 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'execute' } })}
-          disabled={
-            !queryRes?.data?.isIdle ||
-            (!queryRes?.data?.isIdle && queryRes?.data?.isDone)
-          }
+          disabled={queryRes?.data?.isIdle === true}
           size='large'
           variant='outlined'
           startIcon={<ExecuteIcon />}
