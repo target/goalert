@@ -37,6 +37,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -84,6 +85,8 @@ type App struct {
 
 	TimeZoneStore *timezone.Store
 
+	SWO *swo.Manager
+
 	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
@@ -130,6 +133,7 @@ func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver)
 
 	return a.Tracer.InterceptField(ctx, next)
 }
+
 func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	if !a.shouldTrace(ctx) {
 		return next(ctx)

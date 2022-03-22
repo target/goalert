@@ -112,6 +112,25 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+
+  swoStatus: SWOStatus!
+}
+
+type SWOStatus {
+  isIdle: Boolean!
+  isDone: Boolean!
+
+  details: String!
+
+  nodes: [SWONode!]!
+}
+
+type SWONode {
+  ID: ID!
+  oldValid: Boolean!
+  newValid: Boolean!
+  canExec: Boolean!
+  status: String!
 }
 
 input AlertMetricsOptions {

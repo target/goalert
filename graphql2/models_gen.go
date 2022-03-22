@@ -331,6 +331,21 @@ type RotationSearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
+type SWONode struct {
+	ID       string `json:"ID"`
+	OldValid bool   `json:"oldValid"`
+	NewValid bool   `json:"newValid"`
+	CanExec  bool   `json:"canExec"`
+	Status   string `json:"status"`
+}
+
+type SWOStatus struct {
+	IsIdle  bool      `json:"isIdle"`
+	IsDone  bool      `json:"isDone"`
+	Details string    `json:"details"`
+	Nodes   []SWONode `json:"nodes"`
+}
+
 type ScheduleConnection struct {
 	Nodes    []schedule.Schedule `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`

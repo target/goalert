@@ -134,7 +134,7 @@ func (l *Log) Append(ctx context.Context, v interface{}) error {
 		return err
 	}
 	e := <-l.events
-	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, timestamp, data) values ((select max(id)+1 from switchover_log), now(), ?)", data).Error
+	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, timestamp, data) values (coalesce((select max(id)+1 from switchover_log), 1), now(), ?)", data).Error
 	l.events <- e
 
 	if dbErr := sqlutil.MapError(err); dbErr != nil && dbErr.Code == "23505" {

@@ -7,7 +7,6 @@ import (
 )
 
 func (app *App) initGraphQL(ctx context.Context) error {
-
 	app.graphql2 = &graphqlapp.App{
 		DB:                  app.db,
 		AuthBasicStore:      app.AuthBasicStore,
@@ -39,6 +38,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		AuthHandler:         app.AuthHandler,
 		FormatDestFunc:      app.notificationManager.FormatDestValue,
 		NotificationManager: *app.notificationManager,
+		SWO:                 app.cfg.SWO,
 	}
 
 	return nil

@@ -35,6 +35,22 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
+  swoStatus: SWOStatus
+}
+
+export interface SWOStatus {
+  isIdle: boolean
+  isDone: boolean
+  details: string
+  nodes: SWONode[]
+}
+
+export interface SWONode {
+  ID: string
+  oldValid: boolean
+  newValid: boolean
+  canExec: boolean
+  status: string
 }
 
 export interface AlertMetricsOptions {
