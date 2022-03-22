@@ -118,16 +118,6 @@ export default function AdminSwitchover(): JSX.Element {
           onClick={() =>
             commit({
               variables: { action: 'ping' },
-              onCompleted: () => {
-                setStatusNotices([
-                  ...statusNotices,
-                  {
-                    type: 'success',
-                    message: 'Successfully pinged',
-                    endNote: DateTime.local().toFormat('fff'),
-                  },
-                ])
-              },
               onError: (error) => {
                 setStatusNotices([
                   ...statusNotices,
@@ -154,16 +144,6 @@ export default function AdminSwitchover(): JSX.Element {
           onClick={() =>
             commit({
               variables: { action: 'reset' },
-              onCompleted: () => {
-                setStatusNotices([
-                  ...statusNotices,
-                  {
-                    type: 'success',
-                    message: 'Successfully reset',
-                    endNote: DateTime.local().toFormat('fff'),
-                  },
-                ])
-              },
               onError: (error) => {
                 setStatusNotices([
                   ...statusNotices,
@@ -195,16 +175,6 @@ export default function AdminSwitchover(): JSX.Element {
           onClick={() =>
             commit({
               variables: { action: 'execute' },
-              onCompleted: () => {
-                setStatusNotices([
-                  ...statusNotices,
-                  {
-                    type: 'success',
-                    message: 'Successfully executed',
-                    endNote: DateTime.local().toFormat('fff'),
-                  },
-                ])
-              },
               onError: (error) => {
                 setStatusNotices([
                   ...statusNotices,
