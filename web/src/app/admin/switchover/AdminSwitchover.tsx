@@ -1,14 +1,21 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
+import CardActions from '@mui/material/CardActions'
+import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import PingIcon from 'mdi-material-ui/SourceCommitStartNextLocal'
-import RestartIcon from '@mui/icons-material/Refresh'
-import ExecuteIcon from '@mui/icons-material/Start'
+import PingIcon from 'mdi-material-ui/DatabaseMarker'
+import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
+import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
+import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
+import ExecuteIcon from 'mdi-material-ui/DatabaseExport'
+import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
+import IdlingIcon from 'mdi-material-ui/DatabaseSettings'
+import NotIdlingIcon from 'mdi-material-ui/DatabaseEdit'
+import DoneIcon from 'mdi-material-ui/DatabaseCheck'
+import NotDoneIcon from 'mdi-material-ui/DatabaseRemove'
 import { gql, useMutation, useQuery } from '@apollo/client'
-import ErrorIcon from '@mui/icons-material/Report'
 
 const query = gql`
   query {
@@ -35,49 +42,64 @@ const mutation = gql`
 
 export default function AdminSwitchover(): JSX.Element {
   const { loading, error, data } = useQuery(query)
-  const [commit, mutationRes] = useMutation(mutation)
 
-  // todo: loading skeletons
-  // todo: error message on query error
+  const [mutationResults, setMutationResults] = useState<string[]>([])
+  const [commit, mutationStatus] = useMutation(mutation, {
+    onError: (error) => {
+      setMutationResults([...mutationResults, error.message])
+    },
+  })
 
+  const executeDisabled = !data?.isIdle || (!data?.isIdle && data?.isDone)
+
+  function getIcon(): React.ReactNode {
+    if (error) {
+      return <ErrorIcon color='error' sx={{ fontSize: '3.5rem' }} />
+    }
+
+    if (loading) {
+      return null // todo: use skeleton
+    }
+
+    // todo: in progress state icon
+
+    if (data.isIdle) {
+      return <IdlingIcon color='primary' sx={{ fontSize: '3.5rem' }} />
+    }
+  }
+
+  function getDetails(): React.ReactNode {
+    const cptlz = (s: string): string =>
+      s.charAt(0).toUpperCase() + s.substring(1)
+
+    if (error) {
+      return <Typography color='error'>{cptlz(error.message)}</Typography>
+    }
+
+    if (loading) {
+      return <Typography>Loading...</Typography>
+    }
+
+    if (data?.details) {
+      return <Typography>{cptlz(data.details)}</Typography>
+    }
+
+    return null
+  }
+
+  const minHeight = 90
+  const buttonSx = { display: 'grid', minHeight, minWidth: minHeight }
+  const iconSx = { justifySelf: 'center', height: '1.25em', width: '1.25em' }
   return (
-    <Grid container spacing={4} justifyContent='center'>
-      {error && (
-        <Grid item>
-          <Card>
-            <CardContent>
-              <Grid
-                container
-                spacing={2}
-                direction='column'
-                alignItems='center'
-              >
-                <Grid item>
-                  <ErrorIcon color='error' sx={{ fontSize: '3.5rem' }} />
-                </Grid>
-                <Grid item>
-                  <Typography>{error.message}</Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      )}
-
+    <Grid container spacing={4}>
       <Grid item>
-        <Card sx={{ minWidth: 300 }}>
-          <CardContent>
-            <Grid container spacing={2} direction='column'>
-              <Grid item>
-                <Typography sx={{ fontSize: '1.25rem' }}>
-                  Switchover Status
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Typography>{data?.status ?? 'Some Status'}</Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
+        <Card sx={{ minWidth: 300, minHeight }}>
+          <CardHeader
+            title='Switchover Status'
+            titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
+            avatar={getIcon()}
+            subheader={getDetails()}
+          />
         </Card>
       </Grid>
 
@@ -86,8 +108,9 @@ export default function AdminSwitchover(): JSX.Element {
           onClick={() => commit({ variables: { action: 'ping' } })}
           size='large'
           variant='outlined'
-          startIcon={<PingIcon />}
+          sx={buttonSx}
         >
+          <PingIcon sx={iconSx} />
           Ping
         </Button>
       </Grid>
@@ -97,19 +120,29 @@ export default function AdminSwitchover(): JSX.Element {
           disabled={data?.isDone}
           size='large'
           variant='outlined'
-          startIcon={<RestartIcon />}
+          sx={buttonSx}
         >
+          {data?.isDone ? (
+            <NoResetIcon sx={iconSx} />
+          ) : (
+            <ResetIcon sx={iconSx} />
+          )}
           Reset
         </Button>
       </Grid>
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'execute' } })}
-          disabled={!data?.isIdle || (!data?.isIdle && data?.isDone)}
+          disabled={executeDisabled}
           size='large'
           variant='outlined'
-          startIcon={<ExecuteIcon />}
+          sx={buttonSx}
         >
+          {executeDisabled ? (
+            <NoExecuteIcon sx={iconSx} />
+          ) : (
+            <ExecuteIcon sx={iconSx} />
+          )}
           Execute
         </Button>
       </Grid>
