@@ -7,10 +7,7 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.10
 	github.com/99designs/gqlgen v0.16.0
-	github.com/abiosoft/ishell v2.0.0+incompatible
-	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/alexeyco/simpletable v1.0.0
 	github.com/aws/aws-sdk-go v1.42.25 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
@@ -18,7 +15,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.13.0
 	github.com/felixge/httpsnoop v1.0.2
-	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -62,7 +58,6 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/urfave/cli/v2 v2.3.0 // indirect
-	github.com/vbauerster/mpb/v4 v4.12.2
 	github.com/vektah/gqlparser/v2 v2.3.1
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20220213190939-1e6e3497d506
@@ -100,8 +95,6 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/PuerkitoBio/goquery v1.5.0 // indirect
-	github.com/VividCortex/ewma v1.1.1 // indirect
-	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/andybalholm/cascadia v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect

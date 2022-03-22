@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
 )
@@ -147,7 +147,7 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 				return ctx.Err()
 			default:
 			}
-			n, err := c.(*pgx.Conn).WaitForNotification(ctx)
+			n, err := c.(*stdlib.Conn).Conn().WaitForNotification(ctx)
 			if err != nil && ctx.Err() == nil {
 				return errors.Wrap(err, "wait for notifications")
 			}
