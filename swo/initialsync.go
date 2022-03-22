@@ -28,8 +28,9 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 	}
 
 	srcTx, err := oldConn.BeginTx(ctx, pgx.TxOptions{
-		AccessMode: pgx.ReadOnly,
-		IsoLevel:   pgx.Serializable,
+		AccessMode:     pgx.ReadOnly,
+		IsoLevel:       pgx.Serializable,
+		DeferrableMode: pgx.Deferrable,
 	})
 	if err != nil {
 		return fmt.Errorf("begin src tx: %w", err)

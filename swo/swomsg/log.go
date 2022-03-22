@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/target/goalert/util/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -134,11 +133,14 @@ func (l *Log) Append(ctx context.Context, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, timestamp, data) values (coalesce((select max(id)+1 from switchover_log), 1), now(), ?)", data).Error
+	l.db.WithContext(ctx).Transaction(func(db *gorm.DB) error {
+		err := db.Exec("lock switchover_log in exclusive mode").Error
+		if err != nil {
+			return err
+		}
 
-	if dbErr := sqlutil.MapError(err); dbErr != nil && dbErr.Code == "23505" {
-		return ErrStaleLog
-	}
+		return db.Exec("insert into switchover_log (id, timestamp, data) values (coalesce((select max(id)+1 from switchover_log), 1), now(), ?)", data).Error
+	})
 
 	return err
 }

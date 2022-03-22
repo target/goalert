@@ -35,7 +35,7 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 		[]interface{}{&cRow.TableName, &cRow.Column.Name, &cRow.Column.Type, &cRow.Column.Ord},
 		func(pgx.QueryFuncRow) error {
 			if tables[cRow.TableName] == nil {
-				tables[cRow.TableName] = &Table{Name: cRow.TableName, deps: make(map[string]*Table)}
+				tables[cRow.TableName] = &Table{Name: cRow.TableName, deps: make(map[string]struct{})}
 			}
 			tables[cRow.TableName].Columns = append(tables[cRow.TableName].Columns, cRow.Column)
 			if cRow.Column.Name == "id" {
@@ -53,7 +53,7 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 	}
 	_, err = conn.QueryFunc(ctx, fkeyRefsQuery, nil, []interface{}{&fRow.SrcName, &fRow.DstName},
 		func(pgx.QueryFuncRow) error {
-			tables[fRow.SrcName].deps[fRow.DstName] = tables[fRow.DstName]
+			tables[fRow.SrcName].deps[fRow.DstName] = struct{}{}
 
 			return nil
 		})
@@ -61,37 +61,50 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 		return nil, err
 	}
 
-	// resolve/flatten dependencies
-	var tableList []Table
+	var tableList []*Table
 	for _, t := range tables {
-		tableList = append(tableList, *t)
-		for t.flattenDeps() > 0 {
-		}
-
-		if _, ok := t.deps[t.Name]; ok {
-			return nil, fmt.Errorf("circular non-deferrable dependency detected: %s", t.Name)
-		}
-	}
-
-	// sort columns by ordinal
-	for _, t := range tableList {
 		sort.Slice(t.Columns, func(i, j int) bool {
 			return t.Columns[i].Ord < t.Columns[j].Ord
 		})
+		tableList = append(tableList, t)
 	}
 
+	// sort tables by name
 	sort.Slice(tableList, func(i, j int) bool {
-		if tableList[i].DependsOn(tableList[j].Name) {
-			return false
-		}
-		if tableList[j].DependsOn(tableList[i].Name) {
-			return true
-		}
-
 		return tableList[i].Name < tableList[j].Name
 	})
 
-	return tableList, nil
+	remove := func(i int) *Table {
+		t := tableList[i]
+		tableList = append(tableList[:i], tableList[i+1:]...)
+
+		// delete table name from all deps
+		for _, t2 := range tableList {
+			delete(t2.deps, t.Name)
+		}
+
+		return t
+	}
+	next := func() *Table {
+		for i, t := range tableList {
+			if len(t.deps) == 0 {
+				return remove(i)
+			}
+		}
+
+		return nil
+	}
+
+	var result []Table
+	for {
+		t := next()
+		if t == nil {
+			break
+		}
+		result = append(result, *t)
+	}
+
+	return result, nil
 }
 
 func (c Column) IsInteger() bool {

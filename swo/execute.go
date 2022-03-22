@@ -27,11 +27,19 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 	*/
 
 	return m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		m.Progressf(ctx, "enabling change log")
 		err := EnableChangeLog(ctx, oldConn)
 		if err != nil {
 			return fmt.Errorf("enable change log: %w", err)
 		}
 
+		m.Progressf(ctx, "disabling triggers")
+		err = DisableTriggers(ctx, newConn)
+		if err != nil {
+			return fmt.Errorf("disable triggers: %w", err)
+		}
+
+		m.Progressf(ctx, "performing initial sync")
 		err = m.InitialSync(ctx, oldConn, newConn)
 		if err != nil {
 			return fmt.Errorf("initial sync: %w", err)
@@ -42,6 +50,23 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 
 		return nil
 	})
+}
+
+// DisableTriggers will disable all triggers in the new DB.
+func DisableTriggers(ctx context.Context, conn *pgx.Conn) error {
+	tables, err := ScanTables(ctx, conn)
+	if err != nil {
+		return fmt.Errorf("scan tables: %w", err)
+	}
+
+	for _, table := range tables {
+		_, err := conn.Exec(ctx, fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER USER", table.QuotedName()))
+		if err != nil {
+			return fmt.Errorf("%s: %w", table.Name, err)
+		}
+	}
+
+	return nil
 }
 
 func LoopSync(ctx context.Context, oldConn, newConn *pgx.Conn) error {

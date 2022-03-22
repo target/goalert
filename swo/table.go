@@ -13,26 +13,7 @@ type Table struct {
 	Columns []Column
 	IDCol   Column
 
-	deps map[string]*Table
-}
-
-func (t *Table) DependsOn(name string) bool {
-	return t.deps[name] != nil
-}
-
-func (t *Table) flattenDeps() int {
-	var n int
-	for _, tbl := range t.deps {
-		for name, dep := range tbl.deps {
-			if _, ok := t.deps[name]; ok {
-				continue
-			}
-			t.deps[name] = dep
-			n++
-		}
-	}
-
-	return n
+	deps map[string]struct{}
 }
 
 // SkipSync returns true if the table should not be synced or instrumented with triggers.
