@@ -35,12 +35,13 @@ type (
 	Hello struct {
 		IsOldDB bool
 		Status  string
+		CanExec bool `json:",omitempty"`
 	}
 
 	Ack struct {
 		MsgID  uuid.UUID
-		Exec   bool `json:",omitempty"`
 		Status string
+		Exec   bool `json:",omitempty"`
 	}
 
 	// task updates

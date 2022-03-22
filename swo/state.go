@@ -60,7 +60,7 @@ func (s *state) Status() *Status {
 }
 
 func (s *state) ackMessage(ctx context.Context, msgID uuid.UUID) {
-	err := s.m.msgLog.Append(ctx, swomsg.Ack{MsgID: msgID, Status: s.stateName})
+	err := s.m.msgLog.Append(ctx, swomsg.Ack{MsgID: msgID, Status: s.stateName, Exec: s.m.canExec})
 	if err != nil {
 		log.Log(ctx, err)
 	}
@@ -82,8 +82,10 @@ func (s *state) update(msg *swomsg.Message) {
 	case msg.Hello != nil:
 		n.OldValid = msg.Hello.IsOldDB
 		n.Status = msg.Hello.Status
+		n.CanExec = msg.Hello.CanExec
 	case msg.Ack != nil:
 		n.Status = msg.Ack.Status
+		n.CanExec = msg.Ack.Exec
 	case msg.Progress != nil:
 		s.status = msg.Progress.Details
 	case msg.Error != nil:
@@ -105,11 +107,11 @@ func (s *state) taskDone(ctx context.Context, err error) {
 }
 
 func (s *state) hello(ctx context.Context) error {
-	err := s.m.msgLog.Append(ctx, swomsg.Hello{IsOldDB: true, Status: s.stateName})
+	err := s.m.msgLog.Append(ctx, swomsg.Hello{IsOldDB: true, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
 	}
-	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsOldDB: false, Status: s.stateName})
+	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsOldDB: false, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
 	}
@@ -121,6 +123,8 @@ func (s *state) processFromNew(ctx context.Context, msg *swomsg.Message) error {
 		return fmt.Errorf("unexpected message to NEW DB: %v", msg)
 	}
 
+	s.mx.Lock()
+	defer s.mx.Unlock()
 	n, ok := s.nodes[msg.NodeID]
 	if !ok {
 		n = &Node{
@@ -143,7 +147,14 @@ func (s *state) processFromOld(ctx context.Context, msg *swomsg.Message) error {
 		s.stateName = "reset-wait"
 		s.stateFn = StateResetWait
 		s.status = "performing reset"
-		return s.hello(ctx)
+		err := s.hello(ctx)
+		if err != nil {
+			return err
+		}
+		if s.m.canExec {
+			s.ackMessage(ctx, msg.ID)
+		}
+		return nil
 	}
 
 	s.stateFn = s.stateFn(ctx, s, msg)

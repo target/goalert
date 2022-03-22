@@ -35,7 +35,10 @@ func NewLog(db *gorm.DB, id uuid.UUID) (*Log, error) {
 		db: db.Table("switchover_log"),
 	}
 
-	return l, nil
+	// only ever load new events
+	err := db.Table("switchover_log").Select("max(id)").Take(&l.readID).Error
+
+	return l, err
 }
 
 func ctxSleep(ctx context.Context, d time.Duration) error {
@@ -85,6 +88,7 @@ func (l *Log) loadEvents(ctx context.Context) error {
 
 	var events []logEvent
 	err = l.db.
+		WithContext(ctx).
 		Where("timestamp > now() - interval '1 minute'").
 		Where("id > ?", l.readID).
 		Order("id asc").
