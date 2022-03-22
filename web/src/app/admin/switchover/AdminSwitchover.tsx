@@ -120,7 +120,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'OK',
+                    type: 'success',
                     message: 'Successfully pinged',
                     endNote: DateTime.local().toFormat('fff'),
                   },
@@ -130,7 +130,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'ERROR',
+                    type: 'error',
                     message: 'Failed to ping',
                     details: cptlz(error.message),
                     endNote: DateTime.local().toFormat('fff'),
@@ -156,7 +156,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'OK',
+                    type: 'success',
                     message: 'Successfully reset',
                     endNote: DateTime.local().toFormat('fff'),
                   },
@@ -166,7 +166,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'ERROR',
+                    type: 'error',
                     message: 'Failed to reset',
                     details: cptlz(error.message),
                     endNote: DateTime.local().toFormat('fff'),
@@ -197,7 +197,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'OK',
+                    type: 'success',
                     message: 'Successfully executed',
                     endNote: DateTime.local().toFormat('fff'),
                   },
@@ -207,7 +207,7 @@ export default function AdminSwitchover(): JSX.Element {
                 setStatusNotices([
                   ...statusNotices,
                   {
-                    type: 'ERROR',
+                    type: 'error',
                     message: 'Failed to execute',
                     details: cptlz(error.message),
                     endNote: DateTime.local().toFormat('fff'),

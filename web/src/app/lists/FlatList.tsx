@@ -21,9 +21,8 @@ import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
-import { AlertColor } from '@mui/material/Alert'
 import classnames from 'classnames'
-import { Notice, NoticeType } from '../details/Notices'
+import { Notice } from '../details/Notices'
 
 const lime = '#93ed94'
 const lightLime = '#defadf'
@@ -141,13 +140,6 @@ export interface FlatListProps extends ListProps {
   transition?: boolean
 }
 
-const severityMap: { [K in NoticeType]: AlertColor } = {
-  INFO: 'info',
-  WARNING: 'warning',
-  ERROR: 'error',
-  OK: 'success',
-}
-
 interface ScrollIntoViewListItemProps extends ListItemProps {
   scrollIntoView?: boolean
 }
@@ -202,7 +194,7 @@ export default function FlatList({
           <Alert
             className={classes.alertAsButton}
             key={idx}
-            severity={severityMap[item.type]}
+            severity={item.type}
             icon={item.icon}
           >
             {item.message && <AlertTitle>{item.message}</AlertTitle>}
@@ -216,7 +208,7 @@ export default function FlatList({
       <Alert
         key={idx}
         className={classes.alert}
-        severity={severityMap[item.type]}
+        severity={item.type}
         icon={item.icon}
       >
         {item.message && <AlertTitle>{item.message}</AlertTitle>}

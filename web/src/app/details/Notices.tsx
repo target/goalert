@@ -6,7 +6,7 @@ import {
   IconButton,
   Alert,
   AlertTitle,
-  AlertProps,
+  AlertColor,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
@@ -32,14 +32,11 @@ const useStyles = makeStyles({
 })
 
 export interface Notice {
-  type: NoticeType
+  type: AlertColor
   message: string | JSX.Element
   details?: string | JSX.Element
   endNote?: string | JSX.Element
 }
-
-export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
-
 interface NoticesProps {
   notices?: Notice[]
 }
@@ -93,7 +90,7 @@ export default function Notices({
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
-          severity={notice.type.toLowerCase() as AlertProps['severity']}
+          severity={notice.type}
           classes={{
             message: classes.alertMessage,
             action: classes.alertAction,
