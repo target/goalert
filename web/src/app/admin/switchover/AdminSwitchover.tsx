@@ -8,6 +8,7 @@ import PingIcon from 'mdi-material-ui/SourceCommitStartNextLocal'
 import RestartIcon from '@mui/icons-material/Refresh'
 import ExecuteIcon from '@mui/icons-material/Start'
 import { gql, useMutation, useQuery } from '@apollo/client'
+import ErrorIcon from '@mui/icons-material/Report'
 
 const query = gql`
   query {
@@ -45,8 +46,15 @@ export default function AdminSwitchover(): JSX.Element {
         <Grid item>
           <Card>
             <CardContent>
-              <Grid container spacing={2} direction='column'>
-                <Grid item>{/* error icon */}</Grid>
+              <Grid
+                container
+                spacing={2}
+                direction='column'
+                alignItems='center'
+              >
+                <Grid item>
+                  <ErrorIcon color='error' sx={{ fontSize: '3.5rem' }} />
+                </Grid>
                 <Grid item>
                   <Typography>{error.message}</Typography>
                 </Grid>
