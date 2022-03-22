@@ -3,6 +3,7 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
+import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
@@ -11,10 +12,9 @@ import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
 import ExecuteIcon from 'mdi-material-ui/DatabaseExport'
 import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
 import IdlingIcon from 'mdi-material-ui/DatabaseSettings'
-import NotIdlingIcon from 'mdi-material-ui/DatabaseEdit'
-import DoneIcon from 'mdi-material-ui/DatabaseCheck'
-import NotDoneIcon from 'mdi-material-ui/DatabaseRemove'
+import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
+import Notices, { Notice } from '../../details/Notices'
 
 const query = gql`
   query {
@@ -39,15 +39,15 @@ const mutation = gql`
   }
 `
 
+function cptlz(s: string): string {
+  return s.charAt(0).toUpperCase() + s.substring(1)
+}
+
 export default function AdminSwitchover(): JSX.Element {
   const { loading, error, data } = useQuery(query)
 
-  const [mutationResults, setMutationResults] = useState<string[]>([])
-  const [commit, mutationStatus] = useMutation(mutation, {
-    onError: (error) => {
-      setMutationResults([...mutationResults, error.message])
-    },
-  })
+  const [statusNotices, setStatusNotices] = useState<Notice[]>([])
+  const [commit] = useMutation(mutation)
 
   function getIcon(): React.ReactNode {
     if (error) {
@@ -55,10 +55,17 @@ export default function AdminSwitchover(): JSX.Element {
     }
 
     if (loading) {
-      return null // todo: use skeleton
+      return (
+        <Skeleton variant='circular'>
+          <InProgressIcon color='primary' sx={{ fontSize: '3.5rem' }} />
+        </Skeleton>
+      )
     }
 
     // todo: in progress state icon
+    if (!data.isIdle && !data.isDone) {
+      return <InProgressIcon color='primary' sx={{ fontSize: '3.5rem' }} />
+    }
 
     if (data.isIdle) {
       return <IdlingIcon color='primary' sx={{ fontSize: '3.5rem' }} />
@@ -66,9 +73,6 @@ export default function AdminSwitchover(): JSX.Element {
   }
 
   function getDetails(): React.ReactNode {
-    const cptlz = (s: string): string =>
-      s.charAt(0).toUpperCase() + s.substring(1)
-
     if (error) {
       return <Typography color='error'>{cptlz(error.message)}</Typography>
     }
@@ -89,6 +93,12 @@ export default function AdminSwitchover(): JSX.Element {
   const iconSx = { justifySelf: 'center', height: '1.25em', width: '1.25em' }
   return (
     <Grid container spacing={4}>
+      {statusNotices.length > 0 && (
+        <Grid item xs={12}>
+          <Notices notices={statusNotices} />
+        </Grid>
+      )}
+
       <Grid item>
         <Card sx={{ minWidth: 300, minHeight }}>
           <CardHeader
@@ -102,7 +112,30 @@ export default function AdminSwitchover(): JSX.Element {
 
       <Grid item>
         <Button
-          onClick={() => commit({ variables: { action: 'ping' } })}
+          onClick={() =>
+            commit({
+              variables: { action: 'ping' },
+              onCompleted: () => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'OK',
+                    message: 'Successfully pinged',
+                  },
+                ])
+              },
+              onError: (error) => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'ERROR',
+                    message: 'Failed to ping',
+                    details: cptlz(error.message),
+                  },
+                ])
+              },
+            })
+          }
           size='large'
           variant='outlined'
           sx={buttonSx}
@@ -113,7 +146,30 @@ export default function AdminSwitchover(): JSX.Element {
       </Grid>
       <Grid item>
         <Button
-          onClick={() => commit({ variables: { action: 'reset' } })}
+          onClick={() =>
+            commit({
+              variables: { action: 'reset' },
+              onCompleted: () => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'OK',
+                    message: 'Successfully reset',
+                  },
+                ])
+              },
+              onError: (error) => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'ERROR',
+                    message: 'Failed to reset',
+                    details: cptlz(error.message),
+                  },
+                ])
+              },
+            })
+          }
           disabled={data?.isDone}
           size='large'
           variant='outlined'
@@ -129,13 +185,36 @@ export default function AdminSwitchover(): JSX.Element {
       </Grid>
       <Grid item>
         <Button
-          onClick={() => commit({ variables: { action: 'execute' } })}
-          disabled={data?.isIdle}
+          onClick={() =>
+            commit({
+              variables: { action: 'execute' },
+              onCompleted: () => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'OK',
+                    message: 'Successfully executed',
+                  },
+                ])
+              },
+              onError: (error) => {
+                setStatusNotices([
+                  ...statusNotices,
+                  {
+                    type: 'ERROR',
+                    message: 'Failed to execute',
+                    details: cptlz(error.message),
+                  },
+                ])
+              },
+            })
+          }
+          disabled={!data?.isIdle}
           size='large'
           variant='outlined'
           sx={buttonSx}
         >
-          {data?.isIdle ? (
+          {!data?.isIdle ? (
             <NoExecuteIcon sx={iconSx} />
           ) : (
             <ExecuteIcon sx={iconSx} />
