@@ -82,8 +82,10 @@ func (s *state) update(msg *swomsg.Message) {
 	case msg.Hello != nil:
 		n.OldValid = msg.Hello.IsOldDB
 		n.Status = msg.Hello.Status
+		n.CanExec = msg.Hello.CanExec
 	case msg.Ack != nil:
 		n.Status = msg.Ack.Status
+		n.CanExec = msg.Ack.Exec
 	case msg.Progress != nil:
 		s.status = msg.Progress.Details
 	case msg.Error != nil:
@@ -105,11 +107,11 @@ func (s *state) taskDone(ctx context.Context, err error) {
 }
 
 func (s *state) hello(ctx context.Context) error {
-	err := s.m.msgLog.Append(ctx, swomsg.Hello{IsOldDB: true, Status: s.stateName})
+	err := s.m.msgLog.Append(ctx, swomsg.Hello{IsOldDB: true, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
 	}
-	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsOldDB: false, Status: s.stateName})
+	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsOldDB: false, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
 	}
