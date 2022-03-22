@@ -9,9 +9,15 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/swo/swomsg"
+	"github.com/target/goalert/util/log"
 )
 
 func (m *Manager) Progressf(ctx context.Context, format string, a ...interface{}) {
+	err := m.msgLog.Append(ctx, swomsg.Progress{MsgID: m.msgState.taskID, Details: fmt.Sprintf(format, a...)})
+	if err != nil {
+		log.Log(ctx, err)
+	}
 }
 
 func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) error {
@@ -35,6 +41,12 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 		return fmt.Errorf("begin dst tx: %w", err)
 	}
 	defer dstTx.Rollback(ctx)
+
+	// defer all constraints
+	_, err = dstTx.Exec(ctx, "SET CONSTRAINTS ALL DEFERRED")
+	if err != nil {
+		return fmt.Errorf("defer constraints: %w", err)
+	}
 
 	for _, table := range tables {
 		if table.SkipSync() {
@@ -93,54 +105,48 @@ func (m *Manager) SyncTableInit(ctx context.Context, t Table, srcTx, dstTx pgx.T
 		return fmt.Errorf("count rows: %w", err)
 	}
 
+	var wg sync.WaitGroup
+	wg.Add(3)
+
 	pr, pw := io.Pipe()
 	var lc lineCount
-	errCh := make(chan error, 3)
 	go func() {
+		defer wg.Done()
 		prog := time.NewTimer(2 * time.Second)
 		defer prog.Stop()
 		for {
+			m.Progressf(ctx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
 			select {
 			case <-ctx.Done():
-				errCh <- ctx.Err()
 				pw.CloseWithError(ctx.Err())
 				pr.CloseWithError(ctx.Err())
 				return
 			case <-prog.C:
 			}
-
-			m.Progressf(ctx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
-		}
-	}()
-	go func() {
-		defer cancel()
-		_, err := srcTx.Conn().PgConn().CopyTo(ctx, pw, fmt.Sprintf(`copy %s to stdout`, t.QuotedName()))
-		if err != nil {
-			errCh <- fmt.Errorf("read from src: %w", err)
-			pw.CloseWithError(err)
-			pr.CloseWithError(err)
-		} else {
-			errCh <- nil
-		}
-	}()
-	go func() {
-		defer cancel()
-		_, err := dstTx.Conn().PgConn().CopyFrom(ctx, io.TeeReader(pr, &lc), fmt.Sprintf(`copy %s from stdin`, t.QuotedName()))
-		if err != nil {
-			errCh <- fmt.Errorf("write to dst: %w", err)
-			pw.CloseWithError(err)
-			pr.CloseWithError(err)
-		} else {
-			errCh <- nil
 		}
 	}()
 
-	// check first error, but wait for all to finish
-	err = <-errCh
-	<-errCh
-	<-errCh
-	if err != nil {
-		return err
+	var srcErr, dstErr error
+
+	go func() {
+		defer wg.Done()
+		_, srcErr = srcTx.Conn().PgConn().CopyTo(ctx, pw, fmt.Sprintf(`copy %s to stdout`, t.QuotedName()))
+		pw.Close()
+	}()
+	go func() {
+		defer wg.Done()
+		defer cancel()
+		_, dstErr = dstTx.Conn().PgConn().CopyFrom(ctx, io.TeeReader(pr, &lc), fmt.Sprintf(`copy %s from stdin`, t.QuotedName()))
+		pr.Close()
+	}()
+
+	wg.Wait()
+
+	if dstErr != nil {
+		return fmt.Errorf("copy to dst: %w", dstErr)
+	}
+	if srcErr != nil {
+		return fmt.Errorf("copy from src: %w", srcErr)
 	}
 
 	return nil
