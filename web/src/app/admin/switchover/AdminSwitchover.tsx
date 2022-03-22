@@ -12,11 +12,14 @@ import { gql, useMutation, useQuery } from '@apollo/client'
 const query = gql`
   query {
     SwitchOverState {
-      actions
-      status
+      isDone
+      isIdle
       nodes {
         id
         status
+        canExecute
+        oldValid
+        newValid
       }
     }
   }
@@ -27,6 +30,22 @@ const mutation = gql`
     switchoverAction(action: $action)
   }
 `
+
+function getActions(isDone: boolean, isIdle: boolean): Array<string> {
+  if (isDone && isIdle) {
+    return ['ping']
+  }
+
+  if (isDone && !isIdle) {
+    return ['ping']
+  }
+
+  if (!isDone && isIdle) {
+    return ['ping', 'reset', 'execute']
+  }
+
+  return []
+}
 
 export default function AdminSwitchover(): JSX.Element {
   const queryRes = useQuery(query)
