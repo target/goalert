@@ -1,7 +1,7 @@
 import React, { ComponentType, useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { darken, useTheme, Theme } from '@mui/material/styles'
+import { darken, lighten, useTheme, Theme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -31,7 +31,31 @@ import ScheduleCalendarEventWrapper from './ScheduleCalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
+function getBorder(theme: Theme): string {
+  if (theme.palette.mode === 'dark') {
+    return '0.5px solid ' + lighten(theme.palette.background.paper, 0.2)
+  }
+
+  return '0.5px solid ' + darken(theme.palette.background.paper, 0.2)
+}
+
 const useStyles = makeStyles((theme: Theme) => ({
+  calendar: {
+    height: '45rem',
+    fontFamily: theme.typography.body2.fontFamily,
+    fontSize: theme.typography.body2.fontSize,
+    '& .rbc-month-view, .rbc-header, .rbc-time-view, .rbc-timeslot-group': {
+      border: getBorder(theme),
+    },
+    '& .rbc-month-row, .rbc-time-header, .rbc-time-header-content, .rbc-time-slot, .rbc-time-content, .rbc-events-container':
+      {
+        border: 'none',
+      },
+    // weekly current time divider line
+    '& .rbc-time-content .rbc-current-time-indicator': {
+      backgroundColor: theme.palette.primary.main,
+    },
+  },
   card: {
     padding: theme.spacing(2),
   },
@@ -102,46 +126,35 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
-  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
-
+  const { shifts, temporarySchedules } = props
   const { weekly, start } = useCalendarNavigation()
+  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
 
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const resetFilter = useResetURLParams('userFilter', 'activeOnly')
 
-  const { shifts, temporarySchedules } = props
-
-  const eventStyleGetter = (
-    calEvent: ScheduleCalendarEvent,
-    start: Date | string,
-    end: Date | string,
-    isSelected: boolean,
-  ): React.HTMLAttributes<HTMLDivElement> => {
-    const green = '#0C6618'
-    const lavender = '#BB7E8C'
-
-    if (calEvent.type === 'tempSched' || calEvent.type === 'tempSchedShift') {
+  function eventStyleGetter(
+    event: ScheduleCalendarEvent,
+  ): React.HTMLAttributes<HTMLDivElement> {
+    if (event.type === 'tempSched' || event.type === 'override') {
       return {
         style: {
-          backgroundColor: isSelected ? darken(green, 0.3) : green,
-          borderColor: darken(green, 0.3),
-        },
-      }
-    }
-    if (calEvent.type === 'override') {
-      return {
-        style: {
-          backgroundColor: isSelected ? darken(lavender, 0.3) : lavender,
-          borderColor: darken(lavender, 0.3),
+          backgroundColor: theme.palette.secondary.main,
+          color: theme.palette.getContrastText(theme.palette.secondary.main),
         },
       }
     }
 
-    return {}
+    return {
+      style: {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.getContrastText(theme.palette.primary.main),
+      },
+    }
   }
 
-  const dayStyleGetter = (date: Date): React.HTMLAttributes<HTMLDivElement> => {
+  function dayStyleGetter(date: Date): React.HTMLAttributes<HTMLDivElement> {
     const outOfBounds =
       DateTime.fromISO(start).month !== DateTime.fromJSDate(date).month
     const currentDay = DateTime.local().hasSame(
@@ -152,12 +165,26 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     if (theme.palette.mode === 'dark' && (outOfBounds || currentDay)) {
       return {
         style: {
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: lighten(theme.palette.background.paper, 0.1),
+          border: getBorder(theme),
         },
       }
     }
 
-    return {}
+    if (outOfBounds || currentDay) {
+      return {
+        style: {
+          backgroundColor: darken(theme.palette.background.paper, 0.1),
+          border: getBorder(theme),
+        },
+      }
+    }
+
+    return {
+      style: {
+        border: getBorder(theme),
+      },
+    }
   }
 
   const getOverrideTitle = (o: UserOverride): JSX.Element => {
@@ -346,11 +373,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             date={DateTime.fromISO(start).toJSDate()}
             localizer={localizer}
             events={getCalEvents(shifts, temporarySchedules, props.overrides)}
-            style={{
-              height: weekly ? '100%' : '45rem',
-              fontFamily: theme.typography.body2.fontFamily,
-              fontSize: theme.typography.body2.fontSize,
-            }}
+            className={classes.calendar}
             tooltipAccessor={() => ''}
             views={['month', 'week']}
             view={weekly ? 'week' : 'month'}

@@ -13,8 +13,7 @@ import './styles'
 import App from './main/App'
 import MuiPickersUtilsProvider from './mui-pickers'
 import store from './reduxStore'
-import GoogleAnalytics from './util/GoogleAnalytics'
-import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
+import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
 
@@ -34,24 +33,6 @@ if (
   )
 }
 
-const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
-  if (!props.trackingID) {
-    return null
-  }
-
-  const GAOptions = {
-    titleCase: true,
-    debug: false,
-  }
-
-  if (!GoogleAnalytics.init(props.trackingID, GAOptions)) {
-    return null
-  }
-
-  return <GoogleAnalytics.RouteTracker />
-})
-LazyGARouteTracker.displayName = 'LazyGARouteTracker'
-
 ReactDOM.render(
   <StyledEngineProvider injectFirst>
     <ThemeProvider>
@@ -61,13 +42,6 @@ ReactDOM.render(
             <MuiPickersUtilsProvider>
               <ConfigProvider>
                 <NewVersionCheck />
-                <Config>
-                  {(config: ConfigData) => (
-                    <LazyGARouteTracker
-                      trackingID={config['General.GoogleAnalyticsID'] as string}
-                    />
-                  )}
-                </Config>
                 <App />
               </ConfigProvider>
             </MuiPickersUtilsProvider>

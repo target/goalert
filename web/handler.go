@@ -6,67 +6,36 @@ import (
 	"embed"
 	"encoding/hex"
 	"fmt"
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/util/errutil"
+	"html/template"
 	"io/fs"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"path"
-	"sync"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/errutil"
 )
 
 //go:embed src/build
 var bundleFS embed.FS
 
+//go:embed live.js
+var liveJS string
+
 // NewHandler creates a new http.Handler that will serve UI files
-// using bundled assets or by proxying to urlStr if set.
-func NewHandler(urlStr, prefix string) (http.Handler, error) {
+// using bundled assets or locally if uiDir if set.
+func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	etags := make(map[string]string)
-	var mx sync.Mutex
-	calcTag := func(name string, data []byte) string {
-		mx.Lock()
-		defer mx.Unlock()
-		tag, ok := etags[name]
-		if ok {
-			return tag
-		}
-		sum := sha256.Sum256(data)
-		tag = `W/"` + hex.EncodeToString(sum[:]) + `"`
-		etags[name] = tag
-		return tag
-	}
-
-	var extraScripts []string
-	if urlStr == "" {
-		mux.HandleFunc("/static/", func(w http.ResponseWriter, req *http.Request) {
-			data, err := bundleFS.ReadFile(path.Join("src/build", req.URL.Path))
-			if errors.Is(err, fs.ErrNotExist) {
-				http.NotFound(w, req)
-				return
-			}
-
-			w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
-			w.Header().Set("ETag", calcTag(req.URL.Path, data))
-
-			http.ServeContent(w, req, req.URL.Path, time.Time{}, bytes.NewReader(data))
-		})
+	var extraJS string
+	if uiDir != "" {
+		extraJS = liveJS
+		mux.Handle("/static/", NoCache(NewEtagFileServer(http.Dir(uiDir), false)))
 	} else {
-		u, err := url.Parse(urlStr)
+		sub, err := fs.Sub(bundleFS, "src/build")
 		if err != nil {
-			return nil, errors.Wrap(err, "parse url")
+			return nil, err
 		}
-		proxy := httputil.NewSingleHostReverseProxy(u)
-		mux.Handle("/static/", proxy)
-		mux.Handle("/build/", proxy)
-
-		// dev mode
-		extraScripts = []string{"vendor.js"}
+		mux.Handle("/static/", NewEtagFileServer(http.FS(sub), true))
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -76,17 +45,23 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		err := indexTmpl.Execute(&buf, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
-			ExtraScripts:    extraScripts,
+			ExtraJS:         template.JS(extraJS),
 		})
 		if errutil.HTTPError(req.Context(), w, err) {
 			return
 		}
+
 		h := sha256.New()
 		h.Write(buf.Bytes())
-		indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
-
-		w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		indexETag := fmt.Sprintf(`W/"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 		w.Header().Set("ETag", indexETag)
+
+		if uiDir == "" {
+			w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		} else {
+			w.Header().Set("Cache-Control", "no-store")
+		}
+
 		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
 	})
 

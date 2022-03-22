@@ -67,7 +67,7 @@ type Config struct {
 
 	StubNotifiers bool
 
-	UIURL string
+	UIDir string
 
 	// InitialConfig will be pushed into the config store
 	// if specified before the engine is started.
