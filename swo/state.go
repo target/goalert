@@ -32,7 +32,7 @@ func newState(ctx context.Context, m *Manager) (*state, error) {
 		m:         m,
 		nodes:     make(map[uuid.UUID]*Node),
 		stateFn:   StateIdle,
-		stateName: "idle",
+		stateName: "unknown",
 		cancel:    func() {},
 	}
 
@@ -45,17 +45,21 @@ func (s *state) Status() *Status {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 
+	isIdle := true
+	isDone := true
 	var nodes []Node
 	for _, n := range s.nodes {
 		nodes = append(nodes, *n)
+		isIdle = isIdle && n.Status == "idle"
+		isDone = isDone && n.Status == "complete"
 	}
 
 	return &Status{
 		Details: s.status,
 		Nodes:   nodes,
 
-		IsDone: s.stateName == "complete",
-		IsIdle: s.stateName == "idle",
+		IsDone: isDone,
+		IsIdle: isIdle,
 	}
 }
 
