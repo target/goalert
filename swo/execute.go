@@ -2,6 +2,7 @@ package swo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -48,7 +49,7 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 		// sync in a loop until DB is up-to-date
 		// err = m.LoopSync(ctx, oldConn, newConn)
 
-		return nil
+		return errors.New("not implemented")
 	})
 }
 

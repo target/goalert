@@ -60,6 +60,13 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 		}
 	}
 
+	var changeIDs []int
+	var id int
+	srcTx.QueryFunc(ctx, "select id from change_log", nil, []interface{}{&id}, func(r pgx.QueryFuncRow) error {
+		changeIDs = append(changeIDs, id)
+		return nil
+	})
+
 	m.Progressf(ctx, "commit initial sync")
 	// Important to validate src commit, even though it's read-only.
 	//
@@ -75,7 +82,9 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 		return fmt.Errorf("commit dst tx: %w", err)
 	}
 
-	return nil
+	// delete synced changes after tx has been committed
+	_, err = oldConn.Exec(ctx, "delete from change_log where id = any($1)", changeIDs)
+	return err
 }
 
 type lineCount struct {
