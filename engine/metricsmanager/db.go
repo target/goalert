@@ -15,12 +15,10 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	highAlertID *sql.Stmt
-	lowAlertID  *sql.Stmt
+	scanLogs           *sql.Stmt
+	scanLogsFromCursor *sql.Stmt
 
-	recentlyClosed *sql.Stmt
-	scanAlerts     *sql.Stmt
-	insertMetrics  *sql.Stmt
+	insertMetrics *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -42,23 +40,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		highAlertID: p.P(`select max(id) from alerts where status = 'closed'`),
-		lowAlertID:  p.P(`select min(id) from alerts where status = 'closed'`),
-
-		recentlyClosed: p.P(`
-			select distinct log.alert_id
-			from alert_logs log
-			left join alert_metrics m on m.alert_id = log.alert_id
-			where m isnull and log.event = 'closed' and log.timestamp >= now() - '1 hour'::interval
-			limit 500
-		`),
-
-		scanAlerts: p.P(`
-			select a.id
-			from alerts a
-			left join alert_metrics m on m.alert_id = a.id
-			where m isnull and a.status = 'closed' and a.id between $1 and $2
-		`),
+		scanLogs:           p.P(`select distinct alert_id, timestamp, id from alert_logs where event='closed' order by timestamp, id limit 500`),
+		scanLogsFromCursor: p.P(`select distinct alert_id, timestamp, id from alert_logs where event='closed' and timestamp > $1 and id > $2 order by timestamp, id limit 500`),
 
 		insertMetrics: p.P(`
 			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated, closed_at)
