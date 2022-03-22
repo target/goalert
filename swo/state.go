@@ -60,7 +60,7 @@ func (s *state) Status() *Status {
 }
 
 func (s *state) ackMessage(ctx context.Context, msgID uuid.UUID) {
-	err := s.m.msgLog.Append(ctx, swomsg.Ack{MsgID: msgID, Status: s.stateName})
+	err := s.m.msgLog.Append(ctx, swomsg.Ack{MsgID: msgID, Status: s.stateName, Exec: s.m.canExec})
 	if err != nil {
 		log.Log(ctx, err)
 	}
@@ -145,7 +145,14 @@ func (s *state) processFromOld(ctx context.Context, msg *swomsg.Message) error {
 		s.stateName = "reset-wait"
 		s.stateFn = StateResetWait
 		s.status = "performing reset"
-		return s.hello(ctx)
+		err := s.hello(ctx)
+		if err != nil {
+			return err
+		}
+		if s.m.canExec {
+			s.ackMessage(ctx, msg.ID)
+		}
+		return nil
 	}
 
 	s.stateFn = s.stateFn(ctx, s, msg)
