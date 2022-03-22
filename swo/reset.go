@@ -3,6 +3,7 @@ package swo
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 )
@@ -39,16 +40,18 @@ func ResetNewDB(ctx context.Context, conn *pgx.Conn) error {
 		return fmt.Errorf("scan tables: %w", err)
 	}
 
+	var names []string
 	// truncate sync tables
 	for _, table := range tables {
 		if table.SkipSync() {
 			continue
 		}
+		names = append(names, table.QuotedName())
+	}
 
-		_, err = conn.Exec(ctx, fmt.Sprintf("truncate %s", table.QuotedName()))
-		if err != nil {
-			return fmt.Errorf("truncate %s: %w", table.QuotedName(), err)
-		}
+	_, err = conn.Exec(ctx, fmt.Sprintf("truncate %s", strings.Join(names, ",")))
+	if err != nil {
+		return fmt.Errorf("truncate tables: %w", err)
 	}
 
 	// drop the change_log table
