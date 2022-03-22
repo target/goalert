@@ -32,31 +32,15 @@ const mutation = gql`
   }
 `
 
-function getActions(isDone: boolean, isIdle: boolean): Array<string> {
-  if (isDone && isIdle) {
-    return ['ping']
-  }
-
-  if (isDone && !isIdle) {
-    return ['ping']
-  }
-
-  if (!isDone && isIdle) {
-    return ['ping', 'reset', 'execute']
-  }
-
-  return []
-}
-
 export default function AdminSwitchover(): JSX.Element {
   const queryRes = useQuery(query)
   const [commit, mutationRes] = useMutation(mutation)
   const s = queryRes.data
 
   return (
-    <Grid container spacing={2} justifyContent='space-between'>
+    <Grid container spacing={4} justifyContent='center'>
       <Grid item>
-        <Card>
+        <Card sx={{ minWidth: 300 }}>
           <CardContent>
             <Grid container spacing={2} direction='column'>
               <Grid item>
@@ -71,6 +55,7 @@ export default function AdminSwitchover(): JSX.Element {
           </CardContent>
         </Card>
       </Grid>
+
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'refresh' } })}
@@ -84,6 +69,7 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'reset' } })}
+          disabled={queryRes?.data?.isDone}
           size='large'
           variant='outlined'
           startIcon={<RestartIcon />}
@@ -94,6 +80,10 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'execute' } })}
+          disabled={
+            !queryRes?.data?.isIdle ||
+            (!queryRes?.data?.isIdle && queryRes?.data?.isDone)
+          }
           size='large'
           variant='outlined'
           startIcon={<ExecuteIcon />}
