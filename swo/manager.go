@@ -174,8 +174,31 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 	})
 }
 
+// Status will return the current switch-over status.
 func (m *Manager) Status() *Status { return m.msgState.Status() }
-func (m *Manager) DB() *sql.DB     { return m.protectedDB }
+
+// SendPing will ping all nodes in the cluster.
+func (m *Manager) SendPing(ctx context.Context) error {
+	return m.msgLog.Append(ctx, &swomsg.Message{Ping: &swomsg.Ping{}})
+}
+
+// SendReset will trigger a reset of the switch-over.
+func (m *Manager) SendReset(ctx context.Context) error {
+	if m.Status().IsDone {
+		return fmt.Errorf("cannot reset switch-over: switch-over is done")
+	}
+	return m.msgLog.Append(ctx, &swomsg.Message{Reset: &swomsg.Reset{}})
+}
+
+// SendExecute will trigger the switch-over to begin.
+func (m *Manager) SendExecute(ctx context.Context) error {
+	if !m.Status().IsIdle {
+		return fmt.Errorf("cannot execute switch-over: switch-over is not idle")
+	}
+	return m.msgLog.Append(ctx, &swomsg.Message{Execute: &swomsg.Execute{}})
+}
+
+func (m *Manager) DB() *sql.DB { return m.protectedDB }
 
 type Status struct {
 	Details string
