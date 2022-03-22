@@ -126,7 +126,7 @@ type SWOStatus {
 }
 
 type SWONode {
-  ID: ID!
+  id: ID!
   oldValid: Boolean!
   newValid: Boolean!
   canExec: Boolean!

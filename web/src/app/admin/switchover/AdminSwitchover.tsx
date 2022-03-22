@@ -11,14 +11,14 @@ import { gql, useMutation, useQuery } from '@apollo/client'
 
 const query = gql`
   query {
-    SwitchOverState {
+    data: swoStatus {
       isDone
       isIdle
       details
       nodes {
         id
         status
-        canExecute
+        canExec
         oldValid
         newValid
       }
@@ -27,8 +27,8 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation ($action: SwitchoverAction!) {
-    switchoverAction(action: $action)
+  mutation ($action: SWOAction!) {
+    swoAction(action: $action)
   }
 `
 
@@ -58,7 +58,7 @@ export default function AdminSwitchover(): JSX.Element {
 
       <Grid item>
         <Button
-          onClick={() => commit({ variables: { action: 'refresh' } })}
+          onClick={() => commit({ variables: { action: 'ping' } })}
           size='large'
           variant='outlined'
           startIcon={<PingIcon />}
