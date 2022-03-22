@@ -11,14 +11,14 @@ import { gql, useMutation, useQuery } from '@apollo/client'
 
 const query = gql`
   query {
-    SwitchOverState {
+    swoStatus {
       isDone
       isIdle
       details
       nodes {
-        id
+        ID
         status
-        canExecute
+        canExec
         oldValid
         newValid
       }
@@ -27,18 +27,35 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation ($action: SwitchoverAction!) {
-    switchoverAction(action: $action)
+  mutation ($action: SWOAction!) {
+    swoAction(action: $action)
   }
 `
 
 export default function AdminSwitchover(): JSX.Element {
-  const queryRes = useQuery(query)
+  const { loading, error, data } = useQuery(query)
   const [commit, mutationRes] = useMutation(mutation)
-  const s = queryRes.data
+
+  // todo: loading skeletons
+  // todo: error message on query error
 
   return (
     <Grid container spacing={4} justifyContent='center'>
+      {error && (
+        <Grid item>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2} direction='column'>
+                <Grid item>{/* error icon */}</Grid>
+                <Grid item>
+                  <Typography>{error.message}</Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
+
       <Grid item>
         <Card sx={{ minWidth: 300 }}>
           <CardContent>
@@ -49,7 +66,7 @@ export default function AdminSwitchover(): JSX.Element {
                 </Typography>
               </Grid>
               <Grid item>
-                <Typography>{s?.status ?? 'Some Status'}</Typography>
+                <Typography>{data?.status ?? 'Some Status'}</Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -58,7 +75,7 @@ export default function AdminSwitchover(): JSX.Element {
 
       <Grid item>
         <Button
-          onClick={() => commit({ variables: { action: 'refresh' } })}
+          onClick={() => commit({ variables: { action: 'ping' } })}
           size='large'
           variant='outlined'
           startIcon={<PingIcon />}
@@ -69,7 +86,7 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'reset' } })}
-          disabled={queryRes?.data?.isDone}
+          disabled={data?.isDone}
           size='large'
           variant='outlined'
           startIcon={<RestartIcon />}
@@ -80,10 +97,7 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Button
           onClick={() => commit({ variables: { action: 'execute' } })}
-          disabled={
-            !queryRes?.data?.isIdle ||
-            (!queryRes?.data?.isIdle && queryRes?.data?.isDone)
-          }
+          disabled={!data?.isIdle || (!data?.isIdle && data?.isDone)}
           size='large'
           variant='outlined'
           startIcon={<ExecuteIcon />}
