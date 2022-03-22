@@ -16,7 +16,7 @@ func (m *Manager) ProposalIsValid() (bool, error) {
 	return false, nil
 }
 
-func (m *Manager) Execute(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+func (m *Manager) DoExecute(ctx context.Context) error {
 	/*
 		- initial sync
 		- loop until few changes

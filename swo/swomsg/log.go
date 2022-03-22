@@ -36,7 +36,7 @@ func NewLog(db *gorm.DB, id uuid.UUID) (*Log, error) {
 	}
 
 	// only ever load new events
-	err := db.Table("switchover_log").Select("max(id)").Take(&l.readID).Error
+	err := db.Table("switchover_log").Select("coalesce(max(id), 0)").Take(&l.readID).Error
 
 	return l, err
 }
