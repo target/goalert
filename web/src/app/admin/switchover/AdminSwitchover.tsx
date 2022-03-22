@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
@@ -16,6 +17,7 @@ import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import Notices, { Notice } from '../../details/Notices'
 import { DateTime } from 'luxon'
+import { SWONode } from '../../../schema'
 
 const query = gql`
   query {
@@ -64,7 +66,6 @@ export default function AdminSwitchover(): JSX.Element {
       )
     }
 
-    // todo: in progress state icon
     if (!data.isIdle && !data.isDone) {
       return <InProgressIcon color='primary' sx={{ fontSize: '3.5rem' }} />
     }
@@ -230,6 +231,26 @@ export default function AdminSwitchover(): JSX.Element {
           Execute
         </Button>
       </Grid>
+
+      {data?.nodes.length > 0 &&
+        data.nodes.map((node: SWONode, idx: number) => (
+          <Grid item key={idx}>
+            <Card>
+              <CardHeader title={node.id} details={node.status} />
+              <CardContent>
+                <Typography>
+                  {node.canExec ? 'Executable' : 'Not Executable'}
+                </Typography>
+                <Typography>
+                  {node.oldValid ? 'Old is valid' : 'Old is invalid'}
+                </Typography>
+                <Typography>
+                  {node.newValid ? 'New is valid' : 'New is invalid'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
     </Grid>
   )
 }
