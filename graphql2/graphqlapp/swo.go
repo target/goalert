@@ -7,6 +7,26 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bool, error) {
+	if m.SWO == nil {
+		return false, validation.NewGenericError("not in SWO mode")
+	}
+
+	var err error
+	switch action {
+	case graphql2.SWOActionPing:
+		err = m.SWO.SendPing(ctx)
+	case graphql2.SWOActionReset:
+		err = m.SWO.SendReset(ctx)
+	case graphql2.SWOActionExecute:
+		err = m.SWO.SendExecute(ctx)
+	default:
+		return false, validation.NewGenericError("invalid SWO action")
+	}
+
+	return err == nil, err
+}
+
 func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	if a.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")

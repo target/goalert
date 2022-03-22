@@ -811,6 +811,49 @@ func (e NotificationStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type SWOAction string
+
+const (
+	SWOActionPing    SWOAction = "ping"
+	SWOActionReset   SWOAction = "reset"
+	SWOActionExecute SWOAction = "execute"
+)
+
+var AllSWOAction = []SWOAction{
+	SWOActionPing,
+	SWOActionReset,
+	SWOActionExecute,
+}
+
+func (e SWOAction) IsValid() bool {
+	switch e {
+	case SWOActionPing, SWOActionReset, SWOActionExecute:
+		return true
+	}
+	return false
+}
+
+func (e SWOAction) String() string {
+	return string(e)
+}
+
+func (e *SWOAction) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOAction", str)
+	}
+	return nil
+}
+
+func (e SWOAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type UserRole string
 
 const (

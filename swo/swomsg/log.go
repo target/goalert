@@ -17,7 +17,7 @@ type Log struct {
 
 	readID int64
 
-	events   chan []logEvent
+	events   []logEvent
 	lastLoad time.Time
 }
 
@@ -31,11 +31,9 @@ type logEvent struct {
 
 func NewLog(db *gorm.DB, id uuid.UUID) (*Log, error) {
 	l := &Log{
-		id:     id,
-		db:     db.Table("switchover_log"),
-		events: make(chan []logEvent, 1),
+		id: id,
+		db: db.Table("switchover_log"),
 	}
-	l.events <- nil
 
 	return l, nil
 }
@@ -57,34 +55,31 @@ func ctxSleep(ctx context.Context, d time.Duration) error {
 }
 
 func (l *Log) Next(ctx context.Context) (*Message, error) {
-	events := <-l.events
 	var err error
-	for len(events) == 0 {
-		events, err = l.loadEvents(ctx)
+	for len(l.events) == 0 {
+		err = l.loadEvents(ctx)
 		if err != nil {
-			l.events <- nil
 			return nil, err
 		}
 	}
 
 	var w Message
-	err = json.Unmarshal(events[0].Data, &w)
+	err = json.Unmarshal(l.events[0].Data, &w)
 	if err != nil {
-		l.events <- events
 		return nil, err
 	}
-	w.TS = events[0].Timestamp
+	w.TS = l.events[0].Timestamp
 
-	l.readID = events[0].ID
-	l.events <- events[1:]
+	l.readID = l.events[0].ID
+	l.events = l.events[1:]
 
 	return &w, nil
 }
 
-func (l *Log) loadEvents(ctx context.Context) ([]logEvent, error) {
+func (l *Log) loadEvents(ctx context.Context) error {
 	err := ctxSleep(ctx, time.Second-time.Since(l.lastLoad))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	l.lastLoad = time.Now()
 
@@ -96,10 +91,12 @@ func (l *Log) loadEvents(ctx context.Context) ([]logEvent, error) {
 		Limit(100).
 		Find(&events).Error
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return events, nil
+	l.events = append(l.events, events...)
+
+	return nil
 }
 
 func (l *Log) Append(ctx context.Context, v interface{}) error {
@@ -133,9 +130,7 @@ func (l *Log) Append(ctx context.Context, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	e := <-l.events
 	err = l.db.WithContext(ctx).Exec("insert into switchover_log (id, timestamp, data) values (coalesce((select max(id)+1 from switchover_log), 1), now(), ?)", data).Error
-	l.events <- e
 
 	if dbErr := sqlutil.MapError(err); dbErr != nil && dbErr.Code == "23505" {
 		return ErrStaleLog

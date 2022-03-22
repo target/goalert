@@ -361,7 +361,15 @@ input SetScheduleShiftInput {
   end: ISOTimestamp!
 }
 
+enum SWOAction {
+  ping
+  reset
+  execute
+}
+
 type Mutation {
+  swoAction(action: SWOAction!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
