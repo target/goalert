@@ -121,6 +121,8 @@ func (s *state) processFromNew(ctx context.Context, msg *swomsg.Message) error {
 		return fmt.Errorf("unexpected message to NEW DB: %v", msg)
 	}
 
+	s.mx.Lock()
+	defer s.mx.Unlock()
 	n, ok := s.nodes[msg.NodeID]
 	if !ok {
 		n = &Node{

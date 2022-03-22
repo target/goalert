@@ -271,7 +271,10 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
+export type SWOAction = 'ping' | 'reset' | 'execute'
+
 export interface Mutation {
+  swoAction: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
   setScheduleOnCallNotificationRules: boolean

@@ -35,6 +35,8 @@ type Manager struct {
 	nextMsgCh chan *swomsg.Message
 	errCh     chan error
 
+	ready chan struct{}
+
 	msgState *state
 
 	cancel func()
@@ -95,6 +97,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		nextMsgCh:  make(chan *swomsg.Message),
 		errCh:      make(chan error, 10),
 		cancel:     cancel,
+		ready:      make(chan struct{}),
 
 		stats: sm,
 	}
@@ -105,6 +108,7 @@ func NewManager(cfg Config) (*Manager, error) {
 	}
 
 	go func() {
+		<-m.ready
 		for {
 			msg, err := m.msgLog.Next(ctx)
 			if err != nil {
@@ -119,6 +123,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		}
 	}()
 	go func() {
+		<-m.ready
 		msg, err := m.nextMsgLog.Next(ctx)
 		if err != nil {
 			m.errCh <- fmt.Errorf("read from next log: %w", err)
@@ -134,7 +139,13 @@ func NewManager(cfg Config) (*Manager, error) {
 	return m, nil
 }
 
-func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) { m.app = app }
+func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) {
+	if m.app != nil {
+		panic("already set")
+	}
+	m.app = app
+	close(m.ready)
+}
 
 // withConnFromOld allows performing operations with a raw connection to the old database.
 func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
