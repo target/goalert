@@ -14,6 +14,7 @@ const query = gql`
     SwitchOverState {
       isDone
       isIdle
+      details
       nodes {
         id
         status
@@ -57,7 +58,16 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item>
         <Card>
           <CardContent>
-            <Typography>{s?.status ?? 'Some Status'}</Typography>
+            <Grid container spacing={2} direction='column'>
+              <Grid item>
+                <Typography sx={{ fontSize: '1.25rem' }}>
+                  Switchover Status
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Typography>{s?.status ?? 'Some Status'}</Typography>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Grid>
