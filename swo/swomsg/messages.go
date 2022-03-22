@@ -33,7 +33,8 @@ type (
 	Execute struct{}
 
 	Hello struct {
-		IsOldDB bool
+		IsOldDB bool `json:",omitempty"`
+		IsNewDB bool `json:",omitempty"`
 		Status  string
 		CanExec bool `json:",omitempty"`
 	}

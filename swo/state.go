@@ -111,7 +111,7 @@ func (s *state) hello(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsOldDB: false, Status: s.stateName, CanExec: s.m.canExec})
+	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsNewDB: true, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (s *state) processFromNew(ctx context.Context, msg *swomsg.Message) error {
 		}
 		s.nodes[msg.NodeID] = n
 	}
-	n.NewValid = msg.Hello.IsOldDB == false
+	n.NewValid = msg.Hello.IsNewDB
 	return nil
 }
 

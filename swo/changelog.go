@@ -17,12 +17,6 @@ var (
 )
 
 func EnableChangeLog(ctx context.Context, conn *pgx.Conn) error {
-	err := SwitchOverExecLock(ctx, conn)
-	if err != nil {
-		return fmt.Errorf("acquire lock: %w", err)
-	}
-	defer UnlockConn(ctx, conn)
-
 	tables, err := ScanTables(ctx, conn)
 	if err != nil {
 		return fmt.Errorf("scan tables: %w", err)
