@@ -24,7 +24,6 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
-	"github.com/target/goalert/switchover/dbsync"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
@@ -378,23 +377,6 @@ Migration: %s (#%d)
 				return errors.New("one or more checks failed.")
 			}
 			return nil
-		},
-	}
-
-	switchCmd = &cobra.Command{
-		Use:   "switchover-shell",
-		Short: "Start a the switchover shell, used to initiate, control, and monitor a DB switchover operation.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := getConfig(cmd.Context())
-			if err != nil {
-				return err
-			}
-
-			if cfg.DBURLNext == "" {
-				return validation.NewFieldError("DBURLNext", "must not be empty for switchover")
-			}
-
-			return dbsync.RunShell(log.FromContext(cmd.Context()), cfg.DBURL, cfg.DBURLNext)
 		},
 	}
 
@@ -800,7 +782,7 @@ func init() {
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
