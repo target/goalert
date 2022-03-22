@@ -45,7 +45,8 @@ function cptlz(s: string): string {
 }
 
 export default function AdminSwitchover(): JSX.Element {
-  const { loading, error, data } = useQuery(query)
+  const { loading, error, data: _data } = useQuery(query)
+  const data = _data?.swoStatus
 
   const [statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [commit] = useMutation(mutation)
