@@ -6,6 +6,7 @@ package devtools
 import (
 	_ "github.com/gordonklaus/ineffassign"
 	_ "github.com/mailhog/MailHog"
+	_ "go.k6.io/k6"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/cmd/stringer"
 	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
