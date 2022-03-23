@@ -84,7 +84,18 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 
 	// delete synced changes after tx has been committed
 	_, err = oldConn.Exec(ctx, "delete from change_log where id = any($1)", changeIDs)
-	return err
+	if err != nil {
+		return fmt.Errorf("delete change log: %w", err)
+	}
+
+	// vacuum analyze new DB
+	m.Progressf(ctx, "vacuum analyze")
+	_, err = newConn.Exec(ctx, "vacuum analyze")
+	if err != nil {
+		return fmt.Errorf("vacuum analyze: %w", err)
+	}
+
+	return nil
 }
 
 type lineCount struct {
@@ -105,8 +116,8 @@ func (lc *lineCount) Lines() int {
 	return lc.n
 }
 
-func (m *Manager) SyncTableInit(ctx context.Context, t Table, srcTx, dstTx pgx.Tx) error {
-	ctx, cancel := context.WithCancel(ctx)
+func (m *Manager) SyncTableInit(origCtx context.Context, t Table, srcTx, dstTx pgx.Tx) error {
+	ctx, cancel := context.WithCancel(origCtx)
 	defer cancel()
 
 	var rowCount int
@@ -125,7 +136,7 @@ func (m *Manager) SyncTableInit(ctx context.Context, t Table, srcTx, dstTx pgx.T
 		prog := time.NewTimer(2 * time.Second)
 		defer prog.Stop()
 		for {
-			m.Progressf(ctx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
+			m.Progressf(origCtx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
 			select {
 			case <-ctx.Done():
 				pw.CloseWithError(ctx.Err())
