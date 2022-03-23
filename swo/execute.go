@@ -69,7 +69,9 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 				return fmt.Errorf("loop sync: %w", err)
 			}
 			m.Progressf(ctx, "sync: %d changes", n)
-			time.Sleep(5 * time.Second)
+			if n == 0 {
+				time.Sleep(time.Second)
+			}
 		}
 
 		return errors.New("not implemented")
@@ -137,12 +139,27 @@ func syncTx(ctx context.Context, oldConn, newConn *pgx.Conn) (old, new pgx.Tx, e
 	return srcTx, dstTx, nil
 }
 
+const fetchQuery = `
+with tx_max_id as (
+	select max(id), tx_id
+	from change_log
+	group by tx_id
+)
+select id, op, table_name, row_id, row_data
+from change_log c
+join tx_max_id max_id on max_id.tx_id = c.tx_id
+order by
+	max_id.max,
+	cmd_id::text::int
+`
+
 func syncChangeLog(ctx context.Context, getTable func(string) *Table, oldConn, newConn pgx.Tx) (int, error) {
 	var b pgx.Batch
 	var rowID, table, op string
 	var data []byte
-	var n int
-	_, err := oldConn.QueryFunc(ctx, "delete from change_log returning table_name, op, row_id, row_data", nil, []interface{}{&table, &op, &rowID, &data}, func(pgx.QueryFuncRow) error {
+	var toDelete []int
+	var id int
+	_, err := oldConn.QueryFunc(ctx, fetchQuery, nil, []interface{}{&id, &op, &table, &rowID, &data}, func(pgx.QueryFuncRow) error {
 		t := getTable(table)
 		if t == nil {
 			return fmt.Errorf("unknown table: %s", table)
@@ -158,7 +175,7 @@ func syncChangeLog(ctx context.Context, getTable func(string) *Table, oldConn, n
 		default:
 			return fmt.Errorf("unknown op: %s", op)
 		}
-		n++
+		toDelete = append(toDelete, id)
 
 		return nil
 	})
@@ -166,5 +183,12 @@ func syncChangeLog(ctx context.Context, getTable func(string) *Table, oldConn, n
 		return 0, fmt.Errorf("query changes: %w", err)
 	}
 
-	return n, newConn.SendBatch(ctx, &b).Close()
+	err = newConn.SendBatch(ctx, &b).Close()
+	if err != nil {
+		return 0, fmt.Errorf("send batch: %w", err)
+	}
+
+	_, err = oldConn.Exec(ctx, "delete from change_log where id = any($1)", toDelete)
+
+	return len(toDelete), err
 }
