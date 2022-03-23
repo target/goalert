@@ -16,13 +16,8 @@ var (
 	changelogTrigger string
 )
 
-func EnableChangeLog(ctx context.Context, conn *pgx.Conn) error {
-	tables, err := ScanTables(ctx, conn)
-	if err != nil {
-		return fmt.Errorf("scan tables: %w", err)
-	}
-
-	_, err = conn.Exec(ctx, changelogTable)
+func EnableChangeLog(ctx context.Context, tables []Table, conn *pgx.Conn) error {
+	_, err := conn.Exec(ctx, changelogTable)
 	if err != nil {
 		return fmt.Errorf("create change_log table: %w", err)
 	}
