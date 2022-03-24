@@ -2,7 +2,6 @@ package swo
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -49,43 +48,29 @@ func (t Table) ColumnNames() []string {
 	return colNames
 }
 
-func (t Table) SelectOneRowQuery() string {
-	return fmt.Sprintf(`select * from %s where id = cast($1 as %s)`, t.QuotedName(), t.IDCol.Type)
+func (t Table) SelectRowsQuery() string {
+	if t.IDCol.Type == "USER-DEFINED" {
+		return fmt.Sprintf(`select id::text, to_jsonb(row) from %s row where id::text = any($1)`, t.QuotedName())
+	}
+	return fmt.Sprintf(`select id::text, to_jsonb(row) from %s row where id = any($1)`, t.QuotedName())
 }
 
-func (t Table) DeleteOneRowQuery() string {
-	return fmt.Sprintf(`delete from %s where id = cast($1 as %s)`, t.QuotedName(), t.IDCol.Type)
+func (t Table) DeleteRowsQuery() string {
+	return fmt.Sprintf(`delete from %s where id = any($1)`, t.QuotedName())
 }
 
-func (t Table) InsertOneRowQuery() string {
+func (t Table) InsertRowsQuery() string {
 	return fmt.Sprintf(`
 		insert into %s
 		select * from
-		json_populate_record(null::%s, $1)
-		as data
-	`,
-		t.QuotedName(),
-		t.QuotedName(),
-	)
+		json_populate_recordset(null::%s, $1)
+	`, t.QuotedName(), t.QuotedName())
 }
 
-func (t Table) UpdateOneRowQuery() string {
-	cols := make([]string, 0, len(t.Columns))
-	for _, col := range t.Columns {
-		if col.Name == "id" {
-			continue
-		}
-		cols = append(cols, fmt.Sprintf(`%s = data.%s`, sqlutil.QuoteID(col.Name), sqlutil.QuoteID(col.Name)))
-	}
-
+func (t Table) UpdateRowsQuery() string {
 	return fmt.Sprintf(`
 		update %s dst
-		set %s
-		from (select * from json_populate_record(null::%s, $2)) as data
-		where dst.id = $1
-	`,
-		t.QuotedName(),
-		strings.Join(cols, ", "),
-		t.QuotedName(),
-	)
+		from json_populate_recordset(null::%s, $1) as data
+		where dst.id = data.id
+	`, t.QuotedName(), t.QuotedName())
 }

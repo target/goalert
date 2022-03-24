@@ -25,10 +25,6 @@ func EnableChangeLog(ctx context.Context, tables []Table, conn *pgx.Conn) error 
 	if err != nil {
 		return fmt.Errorf("create change_log AFTER trigger: %w", err)
 	}
-	_, err = conn.Exec(ctx, `insert into change_log(id,table_name,op,row_id) values(0,'','INIT',0)`)
-	if err != nil {
-		return fmt.Errorf("create change_log INIT row: %w", err)
-	}
 
 	// create triggers
 	for _, table := range tables {
