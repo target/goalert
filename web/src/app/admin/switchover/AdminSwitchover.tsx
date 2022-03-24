@@ -6,13 +6,14 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
+import { SvgIconProps, TypographyProps } from '@mui/material'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
 import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
 import ExecuteIcon from 'mdi-material-ui/DatabaseExport'
 import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
-import IdlingIcon from 'mdi-material-ui/DatabaseSettings'
+import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import Notices, { Notice } from '../../details/Notices'
@@ -54,34 +55,55 @@ export default function AdminSwitchover(): JSX.Element {
   const [commit] = useMutation(mutation)
 
   function getIcon(): React.ReactNode {
+    const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
+    const t: TypographyProps = {
+      variant: 'caption',
+      sx: { display: 'flex' },
+      flexDirection: 'column',
+    }
+
     if (error) {
-      return <ErrorIcon color='error' sx={{ fontSize: '3.5rem' }} />
+      return (
+        <Typography {...t}>
+          <ErrorIcon {...i} color='error' />
+          Error
+        </Typography>
+      )
     }
 
     if (loading) {
       return (
-        <Skeleton variant='circular'>
-          <InProgressIcon color='primary' sx={{ fontSize: '3.5rem' }} />
-        </Skeleton>
+        <Typography {...t}>
+          <Skeleton variant='circular'>
+            <InProgressIcon {...i} />
+          </Skeleton>
+          Loading...
+        </Typography>
       )
     }
 
     if (!data.isIdle && !data.isDone) {
-      return <InProgressIcon color='primary' sx={{ fontSize: '3.5rem' }} />
+      return (
+        <Typography {...t}>
+          <InProgressIcon {...i} />
+          In Progress
+        </Typography>
+      )
     }
 
     if (data.isIdle) {
-      return <IdlingIcon color='primary' sx={{ fontSize: '3.5rem' }} />
+      return (
+        <Typography {...t}>
+          <IdleIcon {...i} />
+          Idle
+        </Typography>
+      )
     }
   }
 
   function getDetails(): React.ReactNode {
     if (error) {
       return <Typography color='error'>{cptlz(error.message)}</Typography>
-    }
-
-    if (loading) {
-      return <Typography>Loading...</Typography>
     }
 
     if (data?.details) {
@@ -202,25 +224,27 @@ export default function AdminSwitchover(): JSX.Element {
         </Button>
       </Grid>
 
-      {data?.nodes.length > 0 &&
-        data.nodes.map((node: SWONode, idx: number) => (
-          <Grid item key={idx}>
-            <Card>
-              <CardHeader title={node.id} details={node.status} />
-              <CardContent>
-                <Typography>
-                  {node.canExec ? 'Executable' : 'Not Executable'}
-                </Typography>
-                <Typography>
-                  {node.oldValid ? 'Old is valid' : 'Old is invalid'}
-                </Typography>
-                <Typography>
-                  {node.newValid ? 'New is valid' : 'New is invalid'}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+      <Grid item xs={12} container>
+        {data?.nodes.length > 0 &&
+          data.nodes.map((node: SWONode, idx: number) => (
+            <Grid item key={idx}>
+              <Card>
+                <CardHeader details={node.status} />
+                <CardContent>
+                  <Typography>
+                    {node.canExec ? 'Executable' : 'Not Executable'}
+                  </Typography>
+                  <Typography>
+                    {node.oldValid ? 'Old is valid' : 'Old is invalid'}
+                  </Typography>
+                  <Typography>
+                    {node.newValid ? 'New is valid' : 'New is invalid'}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+      </Grid>
     </Grid>
   )
 }
