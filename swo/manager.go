@@ -125,15 +125,17 @@ func NewManager(cfg Config) (*Manager, error) {
 	}()
 	go func() {
 		<-m.ready
-		msg, err := m.nextMsgLog.Next(ctx)
-		if err != nil {
-			m.errCh <- fmt.Errorf("read from next log: %w", err)
-			return
-		}
-		err = m.msgState.processFromNew(ctx, msg)
-		if err != nil {
-			m.errCh <- fmt.Errorf("process from new db log: %w", err)
-			return
+		for {
+			msg, err := m.nextMsgLog.Next(ctx)
+			if err != nil {
+				m.errCh <- fmt.Errorf("read from next log: %w", err)
+				return
+			}
+			err = m.msgState.processFromNew(ctx, msg)
+			if err != nil {
+				m.errCh <- fmt.Errorf("process from new db log: %w", err)
+				return
+			}
 		}
 	}()
 

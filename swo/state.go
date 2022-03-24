@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/swo/swomsg"
@@ -115,6 +116,10 @@ func (s *state) hello(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// wait for poll interval before sending to new DB,
+	// giving all nodes a chance to process
+	time.Sleep(swomsg.PollInterval)
 	err = s.m.nextMsgLog.Append(ctx, swomsg.Hello{IsNewDB: true, Status: s.stateName, CanExec: s.m.canExec})
 	if err != nil {
 		return err
@@ -129,14 +134,19 @@ func (s *state) processFromNew(ctx context.Context, msg *swomsg.Message) error {
 
 	s.mx.Lock()
 	defer s.mx.Unlock()
+
 	n, ok := s.nodes[msg.NodeID]
-	if !ok {
-		n = &Node{
-			ID: msg.NodeID,
-		}
-		s.nodes[msg.NodeID] = n
+	if ok {
+		n.NewValid = msg.Hello.IsNewDB
+		return nil
 	}
-	n.NewValid = msg.Hello.IsNewDB
+
+	s.nodes[msg.NodeID] = &Node{
+		ID:       msg.NodeID,
+		CanExec:  msg.Hello.CanExec,
+		NewValid: msg.Hello.IsNewDB,
+		Status:   msg.Hello.Status,
+	}
 	return nil
 }
 
