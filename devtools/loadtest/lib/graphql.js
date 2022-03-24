@@ -230,6 +230,23 @@ export class Client {
     return new EP(this, id)
   }
 
+  newUser() {
+    const q = this.query(
+      `mutation($input: CreateUserInput!){createUser(input:$input){id}}`,
+      {
+        input: {
+          name: 'K6 ' + gen.name(),
+          email: gen.email(),
+          role: gen.pickone(['user', 'admin']),
+          username: gen.string({ alpha: true, length: 20, casing: 'lower' }),
+          password: gen.string({ alpha: true, length: 20 }),
+        },
+      },
+    )
+    const id = q.data.createUser.id
+    return new User(this, id)
+  }
+
   newService(epID) {
     if (!epID) {
       epID = this.randEP().id
@@ -284,7 +301,17 @@ export class Client {
   }
 
   randUser() {
-    return gen.pickone(this.users())
+    // don't return current user
+    const users = this.users()
+    const thisUser = this.user()
+    while (true) {
+      const u = gen.pickone(users)
+      if (u.id === thisUser.id) {
+        continue
+      }
+
+      return new User(this, u.id)
+    }
   }
   users() {
     return this.query(`query{users{nodes{id}}}`).data.users.nodes.map((u) =>

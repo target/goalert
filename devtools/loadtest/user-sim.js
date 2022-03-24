@@ -37,6 +37,12 @@ function createEP(c) {
 function deleteService(c) {
   c.randService().delete()
 }
+function createUser(c) {
+  c.newUser()
+}
+function deleteUser(c) {
+  c.randUser().delete()
+}
 
 export default function LoginLogout() {
   const c = new Client('http://localhost:3030')
@@ -51,6 +57,8 @@ export default function LoginLogout() {
       createService,
       createEP,
       deleteService,
+      createUser,
+      deleteUser,
     ])
     action(c)
   }
