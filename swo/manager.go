@@ -189,7 +189,7 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 	})
 }
 
-// Status will return the current switch-over status.
+// Status will return the current switchover status.
 func (m *Manager) Status() *Status { return m.msgState.Status() }
 
 // SendPing will ping all nodes in the cluster.
@@ -198,19 +198,19 @@ func (m *Manager) SendPing(ctx context.Context) error {
 	return m.msgLog.Append(ctx, swomsg.Ping{})
 }
 
-// SendReset will trigger a reset of the switch-over.
+// SendReset will trigger a reset of the switchover.
 func (m *Manager) SendReset(ctx context.Context) error {
 	if m.Status().IsDone {
-		return fmt.Errorf("cannot reset switch-over: switch-over is done")
+		return fmt.Errorf("cannot reset switchover: switchover is done")
 	}
 	defer time.Sleep(swomsg.PollInterval * 2) // wait for send & ack
 	return m.msgLog.Append(ctx, swomsg.Reset{})
 }
 
-// SendExecute will trigger the switch-over to begin.
+// SendExecute will trigger the switchover to begin.
 func (m *Manager) SendExecute(ctx context.Context) error {
 	if !m.Status().IsIdle {
-		return fmt.Errorf("cannot execute switch-over: switch-over is not idle")
+		return fmt.Errorf("cannot execute switchover: switchover is not idle")
 	}
 	defer time.Sleep(swomsg.PollInterval * 3) // wait for send, ack, and start
 	return m.msgLog.Append(ctx, swomsg.Execute{})
@@ -225,6 +225,6 @@ type Status struct {
 	// IsDone is true if the switch has already been completed.
 	IsDone bool
 
-	// IsIdle must be true before executing a switch-over.
+	// IsIdle must be true before executing a switchover.
 	IsIdle bool
 }

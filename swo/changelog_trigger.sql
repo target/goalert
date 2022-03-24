@@ -11,29 +11,51 @@ IF cur_state != 'in_progress' THEN RETURN NEW;
 END IF;
 
 IF (TG_OP = 'DELETE') THEN
-INSERT INTO change_log (op, table_name, row_id, tx_id, cmd_id)
+INSERT INTO change_log (op, table_name, row_id, old_hash)
 VALUES (
         TG_OP,
         TG_TABLE_NAME,
         cast(OLD .id AS TEXT),
-        txid_current(),
-        OLD .cmax
+        sha256(OLD::TEXT::BYTEA)
     );
 
 RETURN OLD;
 
-ELSE
-INSERT INTO change_log (op, table_name, row_id, tx_id, cmd_id, row_data)
+ELSIF (TG_OP = 'UPDATE') THEN
+INSERT INTO change_log (
+        op,
+        table_name,
+        row_id,
+        row_data,
+        new_hash,
+        old_hash
+    )
 VALUES (
         TG_OP,
         TG_TABLE_NAME,
         cast(NEW .id AS TEXT),
-        txid_current(),
-        NEW .cmin,
-        to_jsonb(NEW)
+        to_jsonb(NEW),
+        sha256(NEW::TEXT::BYTEA),
+        sha256(OLD::TEXT::BYTEA)
     );
 
 RETURN NEW;
+
+ELSIF (TG_OP = 'INSERT') THEN
+INSERT INTO change_log (op, table_name, row_id, row_data, new_hash)
+VALUES (
+        TG_OP,
+        TG_TABLE_NAME,
+        cast(NEW .id AS TEXT),
+        to_jsonb(NEW),
+        sha256(NEW::TEXT::BYTEA)
+    );
+
+RETURN NEW;
+
+ELSE RAISE
+EXCEPTION 'Unexpected operation in switchover mode: %',
+    TG_OP;
 
 END IF;
 

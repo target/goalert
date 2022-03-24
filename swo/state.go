@@ -230,7 +230,7 @@ func StateExecWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc
 	return StateExecWait
 }
 
-// StateExecRun is the state when the current node is executing the switch-over.
+// StateExecRun is the state when the current node is executing the switchover.
 func StateExecRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	s.stateName = "exec-run"
 

@@ -735,7 +735,7 @@ func init() {
 	RootCmd.Flags().String("region-name", def.RegionName, "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
 
 	RootCmd.PersistentFlags().String("db-url", def.DBURL, "Connection string for Postgres.")
-	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switch-over mode).")
+	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switchover mode).")
 
 	RootCmd.Flags().String("jaeger-endpoint", def.JaegerEndpoint, "Jaeger HTTP Thrift endpoint")
 	RootCmd.Flags().String("jaeger-agent-endpoint", def.JaegerAgentEndpoint, "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")

@@ -3,9 +3,9 @@ CREATE UNLOGGED TABLE change_log (
     op TEXT NOT NULL,
     table_name TEXT NOT NULL,
     row_id TEXT NOT NULL,
-    tx_id BIGINT,
-    cmd_id cid,
-    row_data JSONB DEFAULT '{}'
+    row_data JSONB DEFAULT '{}',
+    old_hash bytea,
+    new_hash bytea
 );
 
 ALTER TABLE change_log
