@@ -27,6 +27,8 @@ const query = gql`
     swoStatus {
       isDone
       isIdle
+      isResetting
+      isExecuting
       details
       nodes {
         id
@@ -52,9 +54,37 @@ function cptlz(s: string): string {
 export default function AdminSwitchover(): JSX.Element {
   const { loading, error, data: _data } = useQuery(query)
   const data = _data?.swoStatus
-
+  const [lastAction, setLastAction] = useState('')
   const [statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [commit, mutationStatus] = useMutation(mutation)
+
+  function actionHandler(action: 'ping' | 'reset' | 'execute'): () => void {
+    return () => {
+      setLastAction(action)
+      commit({
+        variables: {
+          action,
+        },
+        onError: (error) => {
+          setStatusNotices([
+            ...statusNotices,
+            {
+              type: 'error',
+              message: 'Failed to ' + action,
+              details: cptlz(error.message),
+              endNote: DateTime.local().toFormat('fff'),
+            },
+          ])
+        },
+      })
+    }
+  }
+
+  const pingLoad = lastAction === 'ping' && mutationStatus.loading
+  const resetLoad =
+    data?.isResetting || (lastAction === 'reset' && mutationStatus.loading)
+  const executeLoad =
+    data?.isExecuting || (lastAction === 'execute' && mutationStatus.loading)
 
   function getIcon(): React.ReactNode {
     const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -123,78 +153,40 @@ export default function AdminSwitchover(): JSX.Element {
                 startIcon={<PingIcon />}
                 variant='outlined'
                 size='large'
-                loading={mutationStatus.loading}
+                disabled={mutationStatus.loading}
+                loading={pingLoad}
                 loadingPosition='start'
-                onClick={() =>
-                  commit({
-                    variables: { action: 'ping' },
-                    onError: (error) => {
-                      setStatusNotices([
-                        ...statusNotices,
-                        {
-                          type: 'error',
-                          message: 'Failed to ping',
-                          details: cptlz(error.message),
-                          endNote: DateTime.local().toFormat('fff'),
-                        },
-                      ])
-                    },
-                  })
-                }
+                onClick={actionHandler('ping')}
               >
-                Ping
+                {pingLoad ? 'Sending ping...' : 'Ping'}
               </LoadingButton>
               <LoadingButton
                 startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
-                disabled={data?.isDone}
+                disabled={data?.isDone || mutationStatus.loading}
                 variant='outlined'
                 size='large'
-                loading={mutationStatus.loading}
-                loadingPosition='start'
-                onClick={() =>
-                  commit({
-                    variables: { action: 'reset' },
-                    onError: (error) => {
-                      setStatusNotices([
-                        ...statusNotices,
-                        {
-                          type: 'error',
-                          message: 'Failed to reset',
-                          details: cptlz(error.message),
-                          endNote: DateTime.local().toFormat('fff'),
-                        },
-                      ])
-                    },
-                  })
+                loading={
+                  data?.isResetting ||
+                  (lastAction === 'reset' && mutationStatus.loading)
                 }
+                loadingPosition='start'
+                onClick={actionHandler('reset')}
               >
-                Reset
+                {resetLoad ? 'Resetting...' : 'Reset'}
               </LoadingButton>
               <LoadingButton
                 startIcon={!data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />}
-                disabled={!data?.isIdle}
+                disabled={!data?.isIdle || mutationStatus.loading}
                 variant='outlined'
                 size='large'
-                loading={mutationStatus.loading}
-                loadingPosition='start'
-                onClick={() =>
-                  commit({
-                    variables: { action: 'execute' },
-                    onError: (error) => {
-                      setStatusNotices([
-                        ...statusNotices,
-                        {
-                          type: 'error',
-                          message: 'Failed to execute',
-                          details: cptlz(error.message),
-                          endNote: DateTime.local().toFormat('fff'),
-                        },
-                      ])
-                    },
-                  })
+                loading={
+                  data?.isExecuting ||
+                  (lastAction === 'execute' && mutationStatus.loading)
                 }
+                loadingPosition='start'
+                onClick={actionHandler('execute')}
               >
-                Execute
+                {executeLoad ? 'Executing...' : 'Execute'}
               </LoadingButton>
             </ButtonGroup>
           </CardContent>
