@@ -109,10 +109,11 @@ export default function AdminSwitchover(): JSX.Element {
 
   function getSubheader(): React.ReactNode {
     if (error) return 'Error'
-    if (loading && !data) return 'Loading...'
-    if (!data.isIdle && !data.isDone) return 'In progress'
-    if (data.isIdle) return 'Idle'
-    return null
+    if (!data) return 'Loading...'
+    if (data.isDone) return 'Complete'
+    if (data.isIdle) return 'Ready'
+    if (!data.isExecuting && !data.isResetting) return 'Needs Reset'
+    return 'Busy'
   }
 
   function getDetails(): React.ReactNode {
