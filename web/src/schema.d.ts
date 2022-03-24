@@ -41,6 +41,8 @@ export interface Query {
 export interface SWOStatus {
   isIdle: boolean
   isDone: boolean
+  isResetting: boolean
+  isExecuting: boolean
   details: string
   nodes: SWONode[]
 }

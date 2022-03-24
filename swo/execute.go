@@ -66,7 +66,8 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 			// sync in a loop until DB is up-to-date
 			n, err := LoopSync(ctx, rt, oldConn, newConn)
 			if err != nil {
-				return fmt.Errorf("loop sync: %w", err)
+				m.Progressf(ctx, "sync error: %s", err.Error())
+				continue
 			}
 			m.Progressf(ctx, "sync: %d changes", n)
 			if n == 0 {
@@ -160,6 +161,15 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 	if err != nil {
 		return 0, fmt.Errorf("fetch changes: %w", err)
 	}
+	if len(changes) == 0 {
+		return 0, nil
+	}
+
+	// defer all constraints
+	_, err = newConn.Exec(ctx, "SET CONSTRAINTS ALL DEFERRED")
+	if err != nil {
+		return 0, fmt.Errorf("defer constraints: %w", err)
+	}
 
 	type pendingDelete struct {
 		query string
@@ -211,7 +221,6 @@ func (rt *rowTracker) apply(ctx context.Context, newConn pgx.Tx, q string, rows 
 	var rowsData []json.RawMessage
 	for _, row := range rows {
 		rowsData = append(rowsData, row.data)
-		rt.Insert(row.table, row.id)
 	}
 
 	data, err := json.Marshal(rowsData)
@@ -272,6 +281,7 @@ func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []s
 		if rt.Exists(table.Name, id) {
 			sd.toUpdate = append(sd.toUpdate, syncRow{table.Name, id, data})
 		} else {
+			rt.Insert(table.Name, id)
 			sd.toInsert = append(sd.toInsert, syncRow{table.Name, id, data})
 		}
 	}
@@ -280,7 +290,7 @@ func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []s
 		if _, ok := exists[id]; ok {
 			continue
 		}
-
+		rt.Delete(table.Name, id)
 		sd.toDelete = append(sd.toDelete, id)
 	}
 
