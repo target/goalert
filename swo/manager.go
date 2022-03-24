@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -191,6 +192,7 @@ func (m *Manager) Status() *Status { return m.msgState.Status() }
 
 // SendPing will ping all nodes in the cluster.
 func (m *Manager) SendPing(ctx context.Context) error {
+	defer time.Sleep(swomsg.PollInterval * 2) // wait for send & ack
 	return m.msgLog.Append(ctx, swomsg.Ping{})
 }
 
@@ -199,6 +201,7 @@ func (m *Manager) SendReset(ctx context.Context) error {
 	if m.Status().IsDone {
 		return fmt.Errorf("cannot reset switch-over: switch-over is done")
 	}
+	defer time.Sleep(swomsg.PollInterval * 2) // wait for send & ack
 	return m.msgLog.Append(ctx, swomsg.Reset{})
 }
 
@@ -207,6 +210,7 @@ func (m *Manager) SendExecute(ctx context.Context) error {
 	if !m.Status().IsIdle {
 		return fmt.Errorf("cannot execute switch-over: switch-over is not idle")
 	}
+	defer time.Sleep(swomsg.PollInterval * 3) // wait for send, ack, and start
 	return m.msgLog.Append(ctx, swomsg.Execute{})
 }
 

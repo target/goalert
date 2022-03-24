@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const PollInterval = time.Second
+
 type Log struct {
 	db *gorm.DB
 	id uuid.UUID
@@ -79,7 +81,7 @@ func (l *Log) Next(ctx context.Context) (*Message, error) {
 }
 
 func (l *Log) loadEvents(ctx context.Context) error {
-	err := ctxSleep(ctx, time.Second-time.Since(l.lastLoad))
+	err := ctxSleep(ctx, PollInterval-time.Since(l.lastLoad))
 	if err != nil {
 		return err
 	}
