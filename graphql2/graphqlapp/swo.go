@@ -45,9 +45,11 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	}
 
 	return &graphql2.SWOStatus{
-		IsIdle:  s.IsIdle,
-		IsDone:  s.IsDone,
-		Details: s.Details,
-		Nodes:   nodes,
+		IsIdle:      s.IsIdle,
+		IsDone:      s.IsDone,
+		Details:     s.Details,
+		IsExecuting: s.IsExecuting,
+		IsResetting: s.IsResetting,
+		Nodes:       nodes,
 	}, nil
 }

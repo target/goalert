@@ -340,10 +340,12 @@ type SWONode struct {
 }
 
 type SWOStatus struct {
-	IsIdle  bool      `json:"isIdle"`
-	IsDone  bool      `json:"isDone"`
-	Details string    `json:"details"`
-	Nodes   []SWONode `json:"nodes"`
+	IsIdle      bool      `json:"isIdle"`
+	IsDone      bool      `json:"isDone"`
+	IsResetting bool      `json:"isResetting"`
+	IsExecuting bool      `json:"isExecuting"`
+	Details     string    `json:"details"`
+	Nodes       []SWONode `json:"nodes"`
 }
 
 type ScheduleConnection struct {

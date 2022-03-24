@@ -227,4 +227,10 @@ type Status struct {
 
 	// IsIdle must be true before executing a switchover.
 	IsIdle bool
+
+	// IsExecuting must be true while the switchover is executing.
+	IsExecuting bool
+
+	// IsResetting must be true while the switchover is resetting.
+	IsResetting bool
 }

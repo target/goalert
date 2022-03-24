@@ -396,10 +396,12 @@ type ComplexityRoot struct {
 	}
 
 	SWOStatus struct {
-		Details func(childComplexity int) int
-		IsDone  func(childComplexity int) int
-		IsIdle  func(childComplexity int) int
-		Nodes   func(childComplexity int) int
+		Details     func(childComplexity int) int
+		IsDone      func(childComplexity int) int
+		IsExecuting func(childComplexity int) int
+		IsIdle      func(childComplexity int) int
+		IsResetting func(childComplexity int) int
+		Nodes       func(childComplexity int) int
 	}
 
 	Schedule struct {
@@ -2655,12 +2657,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWOStatus.IsDone(childComplexity), true
 
+	case "SWOStatus.isExecuting":
+		if e.complexity.SWOStatus.IsExecuting == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.IsExecuting(childComplexity), true
+
 	case "SWOStatus.isIdle":
 		if e.complexity.SWOStatus.IsIdle == nil {
 			break
 		}
 
 		return e.complexity.SWOStatus.IsIdle(childComplexity), true
+
+	case "SWOStatus.isResetting":
+		if e.complexity.SWOStatus.IsResetting == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.IsResetting(childComplexity), true
 
 	case "SWOStatus.nodes":
 		if e.complexity.SWOStatus.Nodes == nil {
@@ -3606,6 +3622,9 @@ var sources = []*ast.Source{
 type SWOStatus {
   isIdle: Boolean!
   isDone: Boolean!
+
+  isResetting: Boolean!
+  isExecuting: Boolean!
 
   details: String!
 
@@ -13915,6 +13934,76 @@ func (ec *executionContext) _SWOStatus_isDone(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IsDone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWOStatus_isResetting(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsResetting, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWOStatus_isExecuting(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExecuting, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25318,6 +25407,26 @@ func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet
 		case "isDone":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._SWOStatus_isDone(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isResetting":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOStatus_isResetting(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isExecuting":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOStatus_isExecuting(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

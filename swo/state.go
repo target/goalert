@@ -3,6 +3,7 @@ package swo
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -49,18 +50,28 @@ func (s *state) Status() *Status {
 	isIdle := true
 	isDone := true
 	var nodes []Node
+	var isResetting bool
+	var isExecuting bool
 	for _, n := range s.nodes {
 		nodes = append(nodes, *n)
 		isIdle = isIdle && n.Status == "idle"
 		isDone = isDone && n.Status == "complete"
+		if strings.HasPrefix(n.Status, "reset-") {
+			isResetting = true
+		}
+		if strings.HasPrefix(n.Status, "exec-") {
+			isExecuting = true
+		}
 	}
 
 	return &Status{
 		Details: s.status,
 		Nodes:   nodes,
 
-		IsDone: isDone,
-		IsIdle: isIdle,
+		IsDone:      isDone,
+		IsIdle:      isIdle,
+		IsResetting: isResetting,
+		IsExecuting: isExecuting,
 	}
 }
 
