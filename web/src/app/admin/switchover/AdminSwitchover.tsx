@@ -4,15 +4,10 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { useTheme, SvgIconProps } from '@mui/material'
+import { SvgIconProps } from '@mui/material'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
@@ -22,11 +17,10 @@ import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
 import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
-import TrueIcon from 'mdi-material-ui/CheckboxMarkedCircleOutline'
-import FalseIcon from 'mdi-material-ui/CloseCircleOutline'
-import Notices, { Notice } from '../../details/Notices'
 import { DateTime } from 'luxon'
-import { SWONode } from '../../../schema'
+import { SWONode as SWONodeType } from '../../../schema'
+import Notices, { Notice } from '../../details/Notices'
+import SWONode from './SWONode'
 
 const query = gql`
   query {
@@ -56,7 +50,6 @@ function cptlz(s: string): string {
 }
 
 export default function AdminSwitchover(): JSX.Element {
-  const theme = useTheme()
   const { loading, error, data: _data } = useQuery(query)
   const data = _data?.swoStatus
 
@@ -69,7 +62,7 @@ export default function AdminSwitchover(): JSX.Element {
     if (error) {
       return <ErrorIcon {...i} color='error' />
     }
-    if (loading) {
+    if (loading && !data) {
       return (
         <Skeleton variant='circular'>
           <InProgressIcon {...i} />
@@ -86,7 +79,7 @@ export default function AdminSwitchover(): JSX.Element {
 
   function getSubheader(): React.ReactNode {
     if (error) return 'Error'
-    if (loading) return 'Loading...'
+    if (loading && !data) return 'Loading...'
     if (!data.isIdle && !data.isDone) return 'In progress'
     if (data.isIdle) return 'Idle'
     return null
@@ -94,12 +87,16 @@ export default function AdminSwitchover(): JSX.Element {
 
   function getDetails(): React.ReactNode {
     if (error) {
-      return <Typography color='error'>{cptlz(error.message)}</Typography>
+      return (
+        <Typography color='error' sx={{ pb: 2 }}>
+          {cptlz(error.message)}
+        </Typography>
+      )
     }
     if (data?.details) {
-      return cptlz(data.details)
+      return <Typography sx={{ pb: 2 }}>cptlz(data.details)</Typography>
     }
-    return 'Testing some details yeehaw'
+    return null
   }
 
   return (
@@ -120,7 +117,7 @@ export default function AdminSwitchover(): JSX.Element {
             sx={{ pb: 0 }}
           />
           <CardContent>
-            <Typography sx={{ pb: 2 }}>{getDetails()}</Typography>
+            {getDetails()}
             <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
               <Button
                 startIcon={<PingIcon />}
@@ -201,64 +198,13 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item xs={8} container>
         {data?.nodes.length > 0 &&
           data.nodes
-            .sort((a: SWONode, b: SWONode) => {
+            .sort((a: SWONodeType, b: SWONodeType) => {
               if (a.id < b.id) return 1
               if (a.id > b.id) return -1
               return 0
             })
-            .map((node: SWONode, idx: number) => (
-              <Grid item key={idx} sx={{ minWidth: 300 }}>
-                <Card>
-                  <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
-                    Node {idx + 1}
-                  </Typography>
-                  <List
-                    subheader={
-                      <React.Fragment>
-                        <Divider />
-                        <Typography
-                          color={theme.palette.secondary.main}
-                          sx={{ p: 2 }}
-                        >
-                          Status: {node.status}
-                        </Typography>
-                        <Divider />
-                      </React.Fragment>
-                    }
-                  >
-                    <ListItem>
-                      <ListItemText primary='Executable?' />
-                      <ListItemSecondaryAction>
-                        {node.canExec ? (
-                          <TrueIcon color='success' />
-                        ) : (
-                          <FalseIcon color='error' />
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText primary='Is the old node valid?' />
-                      <ListItemSecondaryAction>
-                        {node.oldValid ? (
-                          <TrueIcon color='success' />
-                        ) : (
-                          <FalseIcon color='error' />
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText primary='Is the new node valid?' />
-                      <ListItemSecondaryAction>
-                        {node.newValid ? (
-                          <TrueIcon color='success' />
-                        ) : (
-                          <FalseIcon color='error' />
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  </List>
-                </Card>
-              </Grid>
+            .map((node: SWONodeType, idx: number) => (
+              <SWONode key={idx} node={node} index={idx} />
             ))}
       </Grid>
     </Grid>
