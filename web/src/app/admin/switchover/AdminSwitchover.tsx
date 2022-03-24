@@ -94,7 +94,7 @@ export default function AdminSwitchover(): JSX.Element {
       )
     }
     if (data?.details) {
-      return <Typography sx={{ pb: 2 }}>cptlz(data.details)</Typography>
+      return <Typography sx={{ pb: 2 }}>{cptlz(data.details)}</Typography>
     }
     return null
   }
