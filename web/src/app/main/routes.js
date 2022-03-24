@@ -127,7 +127,7 @@ export default [
         element: AdminRouter,
       },
       {
-        title: 'Switchover',
+        title: 'DB Switchover',
         path: '/switchover',
         element: AdminRouter,
       },
