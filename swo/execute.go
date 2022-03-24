@@ -148,7 +148,7 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 	var r rowID
 	changes := make(map[rowID]struct{})
 	rowIDs := make(map[string][]string)
-	_, err := oldConn.QueryFunc(ctx, "delete from change_log returning table_name, row_id", nil, []interface{}{&r.id, &r.table}, func(pgx.QueryFuncRow) error {
+	_, err := oldConn.QueryFunc(ctx, "delete from change_log returning table_name, row_id", nil, []interface{}{&r.table, &r.id}, func(pgx.QueryFuncRow) error {
 		if _, ok := changes[r]; ok {
 			return nil
 		}
@@ -168,7 +168,6 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 	var deletes []pendingDelete
 
 	// go in insert order for fetching updates/inserts, note deleted rows
-	// then process deletes in reverse table order
 	for _, table := range rt.tables {
 		if len(rowIDs[table.Name]) == 0 {
 			continue
@@ -201,7 +200,7 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 		}
 	}
 
-	return 0, nil
+	return len(changes), nil
 }
 
 func (rt *rowTracker) apply(ctx context.Context, newConn pgx.Tx, q string, rows []syncRow) error {
@@ -215,11 +214,10 @@ func (rt *rowTracker) apply(ctx context.Context, newConn pgx.Tx, q string, rows 
 		rt.Insert(row.table, row.id)
 	}
 
-	data, err := json.Marshal(rows)
+	data, err := json.Marshal(rowsData)
 	if err != nil {
 		return fmt.Errorf("marshal rows: %w", err)
 	}
-
 	_, err = newConn.Exec(ctx, q, data)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)

@@ -2,6 +2,7 @@ package swo
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -68,9 +69,18 @@ func (t Table) InsertRowsQuery() string {
 }
 
 func (t Table) UpdateRowsQuery() string {
+	var set strings.Builder
+	for i, col := range t.Columns {
+		if i > 0 {
+			set.WriteString(", ")
+		}
+		set.WriteString(fmt.Sprintf("%s = data.%s", col.Name, col.Name))
+	}
+
 	return fmt.Sprintf(`
 		update %s dst
+		set %s
 		from json_populate_recordset(null::%s, $1) as data
 		where dst.id = data.id
-	`, t.QuotedName(), t.QuotedName())
+	`, t.QuotedName(), set.String(), t.QuotedName())
 }
