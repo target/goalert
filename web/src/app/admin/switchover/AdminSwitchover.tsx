@@ -194,9 +194,10 @@ export default function AdminSwitchover(): JSX.Element {
         </Card>
       </Grid>
 
-      <Grid item xs='auto' container>
+      <Grid item container>
         {data?.nodes.length > 0 &&
           data.nodes
+            .slice()
             .sort((a: SWONodeType, b: SWONodeType) => {
               if (a.id < b.id) return 1
               if (a.id > b.id) return -1
