@@ -107,8 +107,8 @@ export default function AdminSwitchover(): JSX.Element {
         </Grid>
       )}
 
-      <Grid item xs={4}>
-        <Card sx={{ width: '100%' }}>
+      <Grid item>
+        <Card sx={{ width: '350px' }}>
           <CardHeader
             title='Switchover Status'
             titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
@@ -195,7 +195,7 @@ export default function AdminSwitchover(): JSX.Element {
         </Card>
       </Grid>
 
-      <Grid item xs={8} container>
+      <Grid item xs='auto' container>
         {data?.nodes.length > 0 &&
           data.nodes
             .sort((a: SWONodeType, b: SWONodeType) => {
