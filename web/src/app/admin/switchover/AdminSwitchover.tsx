@@ -117,10 +117,10 @@ export default function AdminSwitchover(): JSX.Element {
             titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
             avatar={getIcon()}
             subheader={getSubheader()}
-            sx={{ '& .MuiCardHeader-content': { alignSelf: 'start' } }}
+            sx={{ pb: 0 }}
           />
           <CardContent>
-            <Typography sx={{ pb: 4 }}>{getDetails()}</Typography>
+            <Typography sx={{ pb: 2 }}>{getDetails()}</Typography>
             <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
               <Button
                 startIcon={<PingIcon />}
