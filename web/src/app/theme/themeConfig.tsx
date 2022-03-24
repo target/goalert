@@ -34,7 +34,7 @@ function getPalette(mode: MUIThemeMode): PaletteOptions {
       secondary: { main: '#b5cad6', light: '#d0e6f3', dark: '#354a54' },
       background: {
         default: '#191c1e',
-        paper: '#191c1e',
+        paper: '#191c1e', // m3 surface
       },
       error: { main: '#ffb4a9', light: '#ffdad4', dark: '#930006' },
     }
@@ -49,7 +49,7 @@ function getPalette(mode: MUIThemeMode): PaletteOptions {
     },
     secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
     background: {
-      default: '#dce3e8',
+      default: '#dce3e8', // m3 surface variant
       paper: '#fbfcfe',
     },
     error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
