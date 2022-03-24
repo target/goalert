@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -21,6 +20,7 @@ import { DateTime } from 'luxon'
 import { SWONode as SWONodeType } from '../../../schema'
 import Notices, { Notice } from '../../details/Notices'
 import SWONode from './SWONode'
+import LoadingButton from '@mui/lab/LoadingButton'
 
 const query = gql`
   query {
@@ -54,7 +54,7 @@ export default function AdminSwitchover(): JSX.Element {
   const data = _data?.swoStatus
 
   const [statusNotices, setStatusNotices] = useState<Notice[]>([])
-  const [commit] = useMutation(mutation)
+  const [commit, mutationStatus] = useMutation(mutation)
 
   function getIcon(): React.ReactNode {
     const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -119,10 +119,12 @@ export default function AdminSwitchover(): JSX.Element {
           <CardContent>
             {getDetails()}
             <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
-              <Button
+              <LoadingButton
                 startIcon={<PingIcon />}
                 variant='outlined'
                 size='large'
+                loading={mutationStatus.loading}
+                loadingPosition='start'
                 onClick={() =>
                   commit({
                     variables: { action: 'ping' },
@@ -141,12 +143,14 @@ export default function AdminSwitchover(): JSX.Element {
                 }
               >
                 Ping
-              </Button>
-              <Button
+              </LoadingButton>
+              <LoadingButton
                 startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
                 disabled={data?.isDone}
                 variant='outlined'
                 size='large'
+                loading={mutationStatus.loading}
+                loadingPosition='start'
                 onClick={() =>
                   commit({
                     variables: { action: 'reset' },
@@ -165,12 +169,14 @@ export default function AdminSwitchover(): JSX.Element {
                 }
               >
                 Reset
-              </Button>
-              <Button
+              </LoadingButton>
+              <LoadingButton
                 startIcon={!data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />}
                 disabled={!data?.isIdle}
                 variant='outlined'
                 size='large'
+                loading={mutationStatus.loading}
+                loadingPosition='start'
                 onClick={() =>
                   commit({
                     variables: { action: 'execute' },
@@ -189,7 +195,7 @@ export default function AdminSwitchover(): JSX.Element {
                 }
               >
                 Execute
-              </Button>
+              </LoadingButton>
             </ButtonGroup>
           </CardContent>
         </Card>
