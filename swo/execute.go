@@ -62,7 +62,7 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 			return fmt.Errorf("read row IDs: %w", err)
 		}
 
-		for {
+		for ctx.Err() == nil {
 			// sync in a loop until DB is up-to-date
 			n, err := LoopSync(ctx, rt, oldConn, newConn)
 			if err != nil {

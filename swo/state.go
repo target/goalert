@@ -21,6 +21,8 @@ type state struct {
 
 	nodes map[uuid.UUID]*Node
 
+	taskClaimed bool
+
 	taskID uuid.UUID
 	cancel func()
 
@@ -190,6 +192,7 @@ func (s *state) processFromOld(ctx context.Context, msg *swomsg.Message) error {
 		s.nodes = make(map[uuid.UUID]*Node)
 		s.m.app.Resume(ctx)
 		s.taskID = msg.ID
+		s.taskClaimed = false
 		s.stateName = "reset-wait"
 		s.stateFn = StateResetWait
 		err := s.hello(ctx)
@@ -224,6 +227,7 @@ func StateIdle(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	case msg.Execute != nil:
 		s.taskID = msg.ID
 		s.stateName = "exec-wait"
+		s.taskClaimed = false
 		s.ackMessage(ctx, msg.ID)
 		return StateExecWait
 	}
@@ -241,9 +245,12 @@ func (s *state) isExecAck(msg *swomsg.Message) bool {
 	if msg.Ack.MsgID != s.taskID {
 		return false
 	}
+	if s.taskClaimed {
+		return false
+	}
 
 	if msg.NodeID != s.m.id {
-		s.taskID = uuid.Nil
+		s.taskClaimed = true
 		return false
 	}
 
@@ -255,11 +262,11 @@ func StateExecWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc
 	s.stateName = "exec-wait"
 
 	switch {
-	case msg.Error != nil:
+	case msg.Error != nil && msg.Error.MsgID == s.taskID:
 		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
-	case msg.Done != nil:
+	case msg.Done != nil && msg.Done.MsgID == s.taskID:
 		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
@@ -280,12 +287,12 @@ func StateExecRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc 
 	s.stateName = "exec-run"
 
 	switch {
-	case msg.Error != nil:
+	case msg.Error != nil && msg.Error.MsgID == s.taskID:
 		s.cancel()
 		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
-	case msg.Done != nil:
+	case msg.Done != nil && msg.Done.MsgID == s.taskID:
 		// already done, make sure we still cancel the context though
 		s.cancel()
 		s.stateName = "idle"
@@ -317,11 +324,11 @@ func StateResetWait(ctx context.Context, s *state, msg *swomsg.Message) StateFun
 	s.stateName = "reset-wait"
 
 	switch {
-	case msg.Error != nil:
+	case msg.Error != nil && msg.Error.MsgID == s.taskID:
 		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
-	case msg.Done != nil:
+	case msg.Done != nil && msg.Done.MsgID == s.taskID:
 		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
@@ -342,12 +349,12 @@ func StateResetRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc
 	s.stateName = "reset-run"
 
 	switch {
-	case msg.Error != nil:
+	case msg.Error != nil && msg.Error.MsgID == s.taskID:
 		s.cancel()
 		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
-	case msg.Done != nil:
+	case msg.Done != nil && msg.Done.MsgID == s.taskID:
 		// already done, make sure we still cancel the context though
 		s.cancel()
 		s.stateName = "idle"

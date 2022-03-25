@@ -179,7 +179,6 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
-		// TODO: still fails to release sometimes
 		err := SwitchOverExecLock(ctx, conn)
 		if err != nil {
 			return err
