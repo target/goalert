@@ -10,21 +10,22 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material'
 import TrueIcon from 'mdi-material-ui/CheckboxMarkedCircleOutline'
 import FalseIcon from 'mdi-material-ui/CloseCircleOutline'
+import FalseOkIcon from 'mdi-material-ui/MinusCircleOutline'
 import { SWONode as SWONodeType } from '../../../schema'
 
 interface SWONodeProps {
   node: SWONodeType
-  index: number
+  name: string
 }
 
-export default function SWONode({ node, index }: SWONodeProps): JSX.Element {
+export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
   const theme = useTheme()
 
   return (
-    <Grid item key={index} sx={{ minWidth: 300 }}>
-      <Card>
+    <Grid item sx={{ minWidth: 300 }} padding={1}>
+      <Card raised={node.status.endsWith('-run')}>
         <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
-          Node {index + 1}
+          {name}
         </Typography>
         <List
           subheader={
@@ -43,7 +44,7 @@ export default function SWONode({ node, index }: SWONodeProps): JSX.Element {
               {node.canExec ? (
                 <TrueIcon color='success' />
               ) : (
-                <FalseIcon color='error' />
+                <FalseOkIcon color='disabled' />
               )}
             </ListItemSecondaryAction>
           </ListItem>

@@ -41,6 +41,16 @@ const query = gql`
   }
 `
 
+let n = 1
+const names: { [key: string]: string } = {}
+
+function friendlyName(id: string): string {
+  if (!names[id]) {
+    names[id] = `Node ${n++}`
+  }
+  return names[id]
+}
+
 const mutation = gql`
   mutation ($action: SWOAction!) {
     swoAction(action: $action)
@@ -199,12 +209,14 @@ export default function AdminSwitchover(): JSX.Element {
           data.nodes
             .slice()
             .sort((a: SWONodeType, b: SWONodeType) => {
-              if (a.id < b.id) return 1
-              if (a.id > b.id) return -1
+              const aName = friendlyName(a.id)
+              const bName = friendlyName(b.id)
+              if (aName < bName) return -1
+              if (aName > bName) return 1
               return 0
             })
-            .map((node: SWONodeType, idx: number) => (
-              <SWONode key={idx} node={node} index={idx} />
+            .map((node: SWONodeType) => (
+              <SWONode key={node.id} node={node} name={friendlyName(node.id)} />
             ))}
       </Grid>
     </Grid>

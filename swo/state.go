@@ -33,7 +33,7 @@ func newState(ctx context.Context, m *Manager) (*state, error) {
 	s := &state{
 		m:         m,
 		nodes:     make(map[uuid.UUID]*Node),
-		stateFn:   StateIdle,
+		stateFn:   StateUnknown,
 		stateName: "unknown",
 		cancel:    func() {},
 	}
@@ -50,17 +50,18 @@ func (s *state) Status() *Status {
 	isIdle := true
 	isDone := true
 	var nodes []Node
-	var isResetting bool
-	var isExecuting bool
+	isResetting := true
+	isExecuting := true
+
 	for _, n := range s.nodes {
 		nodes = append(nodes, *n)
 		isIdle = isIdle && n.Status == "idle"
 		isDone = isDone && n.Status == "complete"
-		if strings.HasPrefix(n.Status, "reset-") {
-			isResetting = true
+		if !strings.HasPrefix(n.Status, "reset-") {
+			isResetting = false
 		}
-		if strings.HasPrefix(n.Status, "exec-") {
-			isExecuting = true
+		if !strings.HasPrefix(n.Status, "exec-") {
+			isExecuting = false
 		}
 	}
 
@@ -102,8 +103,6 @@ func (s *state) update(msg *swomsg.Message) {
 	case msg.Ack != nil:
 		n.Status = msg.Ack.Status
 		n.CanExec = msg.Ack.Exec
-	case msg.Progress != nil:
-		s.status = msg.Progress.Details
 	case msg.Error != nil:
 		s.status = "error: " + msg.Error.Details
 	case msg.Done != nil:
@@ -205,7 +204,6 @@ func StateIdle(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 		s.stateName = "exec-wait"
 		s.ackMessage(ctx, msg.ID)
 		return StateExecWait
-	case msg.Plan != nil:
 	}
 
 	return StateIdle
@@ -222,13 +220,15 @@ func StateExecWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc
 	case msg.Done != nil:
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
+	case msg.Progress != nil:
+		s.status = msg.Progress.Details
 	case msg.Ack != nil && s.m.canExec:
 		if msg.Ack.MsgID != s.taskID {
 			// ack for a different message
 			break
 		}
-		if msg.NodeID != s.m.id {
-			// claimed by another node
+		if msg.NodeID != s.m.id && msg.Ack.Exec {
+			// claimed by another exec node
 			s.taskID = uuid.Nil
 			break
 		}
@@ -257,6 +257,8 @@ func StateExecRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc 
 		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
+	case msg.Progress != nil:
+		s.status = msg.Progress.Details
 	}
 
 	return StateExecRun
@@ -269,23 +271,34 @@ func StateError(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	return StateError
 }
 
+// StateUnknown is the state after startup.
+func StateUnknown(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
+	s.stateName = "unknown"
+
+	return StateError
+}
+
 // StateResetWait is the state when the node is waiting for a reset to be performed.
 func StateResetWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	s.stateName = "reset-wait"
 
 	switch {
 	case msg.Error != nil:
+		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
 	case msg.Done != nil:
+		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
+	case msg.Progress != nil:
+		s.status = msg.Progress.Details
 	case msg.Ack != nil && s.m.canExec:
 		if msg.Ack.MsgID != s.taskID {
 			// ack for a different message
 			break
 		}
-		if msg.NodeID != s.m.id {
+		if msg.NodeID != s.m.id && msg.Ack.Exec {
 			// claimed by another node
 			s.taskID = uuid.Nil
 			break
@@ -315,6 +328,8 @@ func StateResetRun(ctx context.Context, s *state, msg *swomsg.Message) StateFunc
 		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
+	case msg.Progress != nil:
+		s.status = msg.Progress.Details
 	}
 
 	return StateResetRun
