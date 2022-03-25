@@ -47,33 +47,55 @@ func (s *state) Status() *Status {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 
-	isIdle := true
-	isDone := true
 	var nodes []Node
-	isResetting := true
-	isExecuting := true
-
 	for _, n := range s.nodes {
 		nodes = append(nodes, *n)
-		isIdle = isIdle && n.Status == "idle"
-		isDone = isDone && n.Status == "complete"
-		if !strings.HasPrefix(n.Status, "reset-") {
-			isResetting = false
-		}
-		if !strings.HasPrefix(n.Status, "exec-") {
-			isExecuting = false
-		}
 	}
 
 	return &Status{
 		Details: s.status,
 		Nodes:   nodes,
-
-		IsDone:      isDone,
-		IsIdle:      isIdle,
-		IsResetting: isResetting,
-		IsExecuting: isExecuting,
 	}
+}
+
+// IsIdle returns true before executing a switchover.
+func (s Status) IsIdle() bool {
+	for _, n := range s.Nodes {
+		if n.Status != "idle" {
+			return false
+		}
+	}
+	return true
+}
+
+// IsDone returns true if the switchover has already been completed.
+func (s Status) IsDone() bool {
+	for _, n := range s.Nodes {
+		if n.Status != "complete" {
+			return false
+		}
+	}
+	return true
+}
+
+// IsResetting returns true while the switchover is resetting.
+func (s Status) IsResetting() bool {
+	for _, n := range s.Nodes {
+		if strings.HasPrefix(n.Status, "reset-") {
+			return true
+		}
+	}
+	return false
+}
+
+// IsExecuting returns true while the switchover is executing.
+func (s Status) IsExecuting() bool {
+	for _, n := range s.Nodes {
+		if strings.HasPrefix(n.Status, "exec-") {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *state) ackMessage(ctx context.Context, msgID uuid.UUID) {

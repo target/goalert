@@ -179,6 +179,7 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
+		// TODO: still fails to release sometimes
 		err := SwitchOverExecLock(ctx, conn)
 		if err != nil {
 			return err
@@ -201,7 +202,7 @@ func (m *Manager) SendPing(ctx context.Context) error {
 
 // SendReset will trigger a reset of the switchover.
 func (m *Manager) SendReset(ctx context.Context) error {
-	if m.Status().IsDone {
+	if m.Status().IsDone() {
 		return fmt.Errorf("cannot reset switchover: switchover is done")
 	}
 	defer time.Sleep(swomsg.PollInterval * 2) // wait for send & ack
@@ -210,7 +211,7 @@ func (m *Manager) SendReset(ctx context.Context) error {
 
 // SendExecute will trigger the switchover to begin.
 func (m *Manager) SendExecute(ctx context.Context) error {
-	if !m.Status().IsIdle {
+	if !m.Status().IsIdle() {
 		return fmt.Errorf("cannot execute switchover: switchover is not idle")
 	}
 	defer time.Sleep(swomsg.PollInterval * 3) // wait for send, ack, and start
@@ -222,16 +223,4 @@ func (m *Manager) DB() *sql.DB { return m.protectedDB }
 type Status struct {
 	Details string
 	Nodes   []Node
-
-	// IsDone is true if the switch has already been completed.
-	IsDone bool
-
-	// IsIdle must be true before executing a switchover.
-	IsIdle bool
-
-	// IsExecuting must be true while the switchover is executing.
-	IsExecuting bool
-
-	// IsResetting must be true while the switchover is resetting.
-	IsResetting bool
 }
