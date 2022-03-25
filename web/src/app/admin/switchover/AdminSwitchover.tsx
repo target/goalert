@@ -44,6 +44,13 @@ const query = gql`
 let n = 1
 const names: { [key: string]: string } = {}
 
+// friendlyName will assign a persistant "friendly" name to the node.
+//
+// This ensures a specific ID will always refer to the same node. This
+// is so that it is clear if a node dissapears or a new one appears.
+//
+// Note: `Node 1` on one browser tab may not be the same node as `Node 1`
+// on another browser tab.
 function friendlyName(id: string): string {
   if (!names[id]) {
     names[id] = `Node ${n++}`
