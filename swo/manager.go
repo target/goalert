@@ -183,7 +183,8 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 		if err != nil {
 			return err
 		}
-		defer UnlockConn(ctx, conn)
+		defer conn.Close(context.Background())
+		defer UnlockConn(context.Background(), conn)
 
 		return runFunc(ctx, conn)
 	})

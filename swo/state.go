@@ -209,29 +209,41 @@ func StateIdle(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	return StateIdle
 }
 
+func (s *state) isExecAck(msg *swomsg.Message) bool {
+	if !s.m.canExec {
+		return false
+	}
+	if msg.Ack == nil || !msg.Ack.Exec {
+		return false
+	}
+	if msg.Ack.MsgID != s.taskID {
+		return false
+	}
+
+	if msg.NodeID != s.m.id {
+		s.taskID = uuid.Nil
+		return false
+	}
+
+	return true
+}
+
 // StateExecWait is the state when the node is waiting for execution to be performed.
 func StateExecWait(ctx context.Context, s *state, msg *swomsg.Message) StateFunc {
 	s.stateName = "exec-wait"
 
 	switch {
 	case msg.Error != nil:
+		s.stateName = "error"
 		s.ackMessage(ctx, msg.ID)
 		return StateError
 	case msg.Done != nil:
+		s.stateName = "idle"
 		s.ackMessage(ctx, msg.ID)
 		return StateIdle
 	case msg.Progress != nil:
 		s.status = msg.Progress.Details
-	case msg.Ack != nil && s.m.canExec:
-		if msg.Ack.MsgID != s.taskID {
-			// ack for a different message
-			break
-		}
-		if msg.NodeID != s.m.id && msg.Ack.Exec {
-			// claimed by another exec node
-			s.taskID = uuid.Nil
-			break
-		}
+	case s.isExecAck(msg):
 		s.StartTask(s.m.DoExecute)
 		s.stateName = "exec-run"
 		s.ackMessage(ctx, msg.ID)
@@ -293,16 +305,7 @@ func StateResetWait(ctx context.Context, s *state, msg *swomsg.Message) StateFun
 		return StateIdle
 	case msg.Progress != nil:
 		s.status = msg.Progress.Details
-	case msg.Ack != nil && s.m.canExec:
-		if msg.Ack.MsgID != s.taskID {
-			// ack for a different message
-			break
-		}
-		if msg.NodeID != s.m.id && msg.Ack.Exec {
-			// claimed by another node
-			s.taskID = uuid.Nil
-			break
-		}
+	case s.isExecAck(msg):
 		s.StartTask(s.m.DoReset)
 		s.stateName = "reset-run"
 		s.ackMessage(ctx, msg.ID)
