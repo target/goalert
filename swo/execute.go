@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -62,16 +63,32 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 			return fmt.Errorf("read row IDs: %w", err)
 		}
 
+		var lastNone bool
 		for ctx.Err() == nil {
 			// sync in a loop until DB is up-to-date
-			n, err := LoopSync(ctx, rt, oldConn, newConn)
+			n, pend, err := LoopSync(ctx, rt, oldConn, newConn)
+			if pend > 0 {
+				lastNone = false
+				m.Progressf(ctx, "sync: %d rows pending", pend)
+			}
 			if err != nil {
-				m.Progressf(ctx, "sync error: %s", err.Error())
+				log.Log(ctx, err)
+				rt.Rollback()
+				if n > 0 {
+					return fmt.Errorf("sync failure (commit without record): %w", err)
+				}
 				continue
 			}
-			m.Progressf(ctx, "sync: %d changes", n)
+			rt.Commit()
 			if n == 0 {
+				if !lastNone {
+					lastNone = true
+					m.Progressf(ctx, "sync: waiting for changes")
+				}
 				time.Sleep(time.Second)
+			} else {
+				lastNone = false
+				m.Progressf(ctx, "sync: %d rows replicated", n)
 			}
 		}
 
@@ -91,38 +108,38 @@ func DisableTriggers(ctx context.Context, tables []Table, conn *pgx.Conn) error 
 	return nil
 }
 
-func LoopSync(ctx context.Context, rt *rowTracker, oldConn, newConn *pgx.Conn) (int, error) {
-	oldTx, newTx, err := syncTx(ctx, oldConn, newConn)
+func LoopSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) (ok, pend int, err error) {
+	srcTx, dstTx, err := syncTx(ctx, srcConn, dstConn)
 	if err != nil {
-		return 0, fmt.Errorf("sync tx: %w", err)
+		return 0, 0, fmt.Errorf("sync tx: %w", err)
 	}
-	defer oldTx.Rollback(ctx)
-	defer newTx.Rollback(ctx)
+	defer srcTx.Rollback(ctx)
+	defer dstTx.Rollback(ctx)
 
-	n, err := syncChangeLog(ctx, rt, oldTx, newTx)
+	n, err := syncChangeLog(ctx, rt, srcTx, dstTx)
 	if err != nil {
-		return 0, fmt.Errorf("sync change log: %w", err)
-	}
-
-	err = newTx.Commit(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("commit dst: %w", err)
+		return 0, n, fmt.Errorf("sync change log: %w", err)
 	}
 
-	err = oldTx.Commit(ctx)
+	err = dstTx.Commit(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("commit src: %w", err)
+		return 0, n, fmt.Errorf("commit dst: %w", err)
 	}
 
-	return n, nil
+	err = srcTx.Commit(ctx)
+	if err != nil {
+		return n, 0, fmt.Errorf("commit src: %w", err)
+	}
+
+	return n, 0, nil
 }
 
 func FinalSync(ctx context.Context, oldConn, newConn *pgx.Conn) error {
 	return nil
 }
 
-func syncTx(ctx context.Context, oldConn, newConn *pgx.Conn) (old, new pgx.Tx, err error) {
-	srcTx, err := oldConn.BeginTx(ctx, pgx.TxOptions{
+func syncTx(ctx context.Context, srcConn, dstConn *pgx.Conn) (src, dst pgx.Tx, err error) {
+	srcTx, err := srcConn.BeginTx(ctx, pgx.TxOptions{
 		AccessMode:     pgx.ReadWrite,
 		IsoLevel:       pgx.Serializable,
 		DeferrableMode: pgx.Deferrable,
@@ -131,7 +148,7 @@ func syncTx(ctx context.Context, oldConn, newConn *pgx.Conn) (old, new pgx.Tx, e
 		return nil, nil, fmt.Errorf("begin src: %w", err)
 	}
 
-	dstTx, err := newConn.BeginTx(ctx, pgx.TxOptions{})
+	dstTx, err := dstConn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		srcTx.Rollback(ctx)
 		return nil, nil, fmt.Errorf("begin dst: %w", err)
@@ -140,7 +157,7 @@ func syncTx(ctx context.Context, oldConn, newConn *pgx.Conn) (old, new pgx.Tx, e
 	return srcTx, dstTx, nil
 }
 
-func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx) (int, error) {
+func syncChangeLog(ctx context.Context, rt *rowTracker, srcTx, dstTx pgx.Tx) (int, error) {
 	type rowID struct {
 		table string
 		id    string
@@ -149,7 +166,7 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 	var r rowID
 	changes := make(map[rowID]struct{})
 	rowIDs := make(map[string][]string)
-	_, err := oldConn.QueryFunc(ctx, "delete from change_log returning table_name, row_id", nil, []interface{}{&r.table, &r.id}, func(pgx.QueryFuncRow) error {
+	_, err := srcTx.QueryFunc(ctx, "delete from change_log returning table_name, row_id", nil, []interface{}{&r.table, &r.id}, func(pgx.QueryFuncRow) error {
 		if _, ok := changes[r]; ok {
 			return nil
 		}
@@ -166,9 +183,9 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 	}
 
 	// defer all constraints
-	_, err = newConn.Exec(ctx, "SET CONSTRAINTS ALL DEFERRED")
+	_, err = dstTx.Exec(ctx, "SET CONSTRAINTS ALL DEFERRED")
 	if err != nil {
-		return 0, fmt.Errorf("defer constraints: %w", err)
+		return len(changes), fmt.Errorf("defer constraints: %w", err)
 	}
 
 	type pendingDelete struct {
@@ -183,37 +200,37 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, oldConn, newConn pgx.Tx)
 			continue
 		}
 
-		sd, err := rt.fetch(ctx, table, oldConn, rowIDs[table.Name])
+		sd, err := rt.fetch(ctx, table, srcTx, rowIDs[table.Name])
 		if err != nil {
-			return 0, fmt.Errorf("fetch changed rows: %w", err)
+			return len(changes), fmt.Errorf("fetch changed rows: %w", err)
 		}
 		if len(sd.toDelete) > 0 {
 			deletes = append(deletes, pendingDelete{table.DeleteRowsQuery(), table.IDs(sd.toDelete)})
 		}
 
-		err = rt.apply(ctx, newConn, table.UpdateRowsQuery(), sd.toUpdate)
+		err = rt.apply(ctx, dstTx, table.UpdateRowsQuery(), sd.toUpdate)
 		if err != nil {
-			return 0, fmt.Errorf("apply updates: %w", err)
+			return len(changes), fmt.Errorf("apply updates: %w", err)
 		}
 
-		err = rt.apply(ctx, newConn, table.InsertRowsQuery(), sd.toInsert)
+		err = rt.apply(ctx, dstTx, table.InsertRowsQuery(), sd.toInsert)
 		if err != nil {
-			return 0, fmt.Errorf("apply inserts: %w", err)
+			return len(changes), fmt.Errorf("apply inserts: %w", err)
 		}
 	}
 
 	// handle pendingDeletes in reverse table order
 	for i := len(deletes) - 1; i >= 0; i-- {
-		_, err = newConn.Exec(ctx, deletes[i].query, deletes[i].idArg)
+		_, err = dstTx.Exec(ctx, deletes[i].query, deletes[i].idArg)
 		if err != nil {
-			return 0, fmt.Errorf("delete rows: %w", err)
+			return len(changes), fmt.Errorf("delete rows: %w", err)
 		}
 	}
 
 	return len(changes), nil
 }
 
-func (rt *rowTracker) apply(ctx context.Context, newConn pgx.Tx, q string, rows []syncRow) error {
+func (rt *rowTracker) apply(ctx context.Context, dstTx pgx.Tx, q string, rows []syncRow) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -227,7 +244,7 @@ func (rt *rowTracker) apply(ctx context.Context, newConn pgx.Tx, q string, rows 
 	if err != nil {
 		return fmt.Errorf("marshal rows: %w", err)
 	}
-	_, err = newConn.Exec(ctx, q, data)
+	_, err = dstTx.Exec(ctx, q, data)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}
@@ -258,8 +275,8 @@ type syncRow struct {
 	data  json.RawMessage
 }
 
-func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []string) (*syncData, error) {
-	rows, err := tx.Query(ctx, table.SelectRowsQuery(), table.IDs(ids))
+func (rt *rowTracker) fetch(ctx context.Context, table Table, srcTx pgx.Tx, ids []string) (*syncData, error) {
+	rows, err := srcTx.Query(ctx, table.SelectRowsQuery(), table.IDs(ids))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &syncData{toDelete: ids}, nil
 	}
@@ -269,7 +286,7 @@ func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []s
 	}
 
 	sd := syncData{t: table}
-	exists := make(map[string]struct{})
+	existsInOld := make(map[string]struct{})
 	for rows.Next() {
 		var id string
 		var data []byte
@@ -277,7 +294,7 @@ func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []s
 		if err != nil {
 			return nil, fmt.Errorf("scan row: %w", err)
 		}
-		exists[id] = struct{}{}
+		existsInOld[id] = struct{}{}
 		if rt.Exists(table.Name, id) {
 			sd.toUpdate = append(sd.toUpdate, syncRow{table.Name, id, data})
 		} else {
@@ -287,7 +304,10 @@ func (rt *rowTracker) fetch(ctx context.Context, table Table, tx pgx.Tx, ids []s
 	}
 
 	for _, id := range ids {
-		if _, ok := exists[id]; ok {
+		if _, ok := existsInOld[id]; ok {
+			continue
+		}
+		if !rt.Exists(table.Name, id) {
 			continue
 		}
 		rt.Delete(table.Name, id)

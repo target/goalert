@@ -10,6 +10,13 @@ import (
 type rowTracker struct {
 	tables []Table
 	rowIDs map[string]map[string]struct{}
+
+	stagedInserts []stagedID
+	stagedDeletes []stagedID
+}
+type stagedID struct {
+	table string
+	id    string
 }
 
 func newRowTracker(ctx context.Context, tables []Table, newConn *pgx.Conn) (*rowTracker, error) {
@@ -35,13 +42,37 @@ func newRowTracker(ctx context.Context, tables []Table, newConn *pgx.Conn) (*row
 				return nil, err
 			}
 
-			rt.Insert(table.Name, id)
+			rt._Insert(table.Name, id)
 		}
 	}
 
 	return rt, nil
 }
 
-func (rt *rowTracker) Insert(table, id string)      { rt.rowIDs[table][id] = struct{}{} }
-func (rt *rowTracker) Delete(table, id string)      { delete(rt.rowIDs[table], id) }
+func (rt *rowTracker) Insert(table, id string) {
+	rt.stagedInserts = append(rt.stagedInserts, stagedID{table, id})
+}
+
+func (rt *rowTracker) Delete(table, id string) {
+	rt.stagedDeletes = append(rt.stagedDeletes, stagedID{table, id})
+}
+func (rt *rowTracker) _Insert(table, id string) { rt.rowIDs[table][id] = struct{}{} }
+func (rt *rowTracker) _Delete(table, id string) { delete(rt.rowIDs[table], id) }
+func (rt *rowTracker) Rollback() {
+	rt.stagedDeletes = nil
+	rt.stagedInserts = nil
+}
+
+func (rt *rowTracker) Commit() {
+	for _, staged := range rt.stagedInserts {
+		rt._Insert(staged.table, staged.id)
+	}
+	rt.stagedInserts = nil
+
+	for _, staged := range rt.stagedDeletes {
+		rt._Delete(staged.table, staged.id)
+	}
+	rt.stagedDeletes = nil
+}
+
 func (rt *rowTracker) Exists(table, id string) bool { _, ok := rt.rowIDs[table][id]; return ok }
