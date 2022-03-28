@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 )
@@ -23,13 +24,13 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	log.Debugf(ctx, "Processing status updates.")
 
 	_, err = db.lock.Exec(ctx, db.cmUnsub)
-	if err != nil {
+	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
 		// okay to proceed
 		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
 	}
 
 	_, err = db.lock.Exec(ctx, db.usrUnsub)
-	if err != nil {
+	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
 		// okay to proceed
 		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled users: %w", err))
 	}
