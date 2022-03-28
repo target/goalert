@@ -29,15 +29,6 @@ const useStyles = makeStyles({
   cardActionContainer: {
     width: '100%',
   },
-  button: {
-    padding: '4px',
-    minHeight: 0,
-    fontSize: 12,
-  },
-  buttonContainer: {
-    display: 'flex',
-    alignItems: 'center',
-  },
   flexGrow: {
     flexGrow: 1,
   },
@@ -48,8 +39,8 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  event: ScheduleCalendarEvent
   children: JSX.Element
+  event: ScheduleCalendarEvent
 }
 
 export default function ScheduleCalendarEventWrapper({
@@ -111,7 +102,6 @@ export default function ScheduleCalendarEventWrapper({
             size='small'
             onClick={() => onEditTempSched(calEvent.tempSched)}
             variant='contained'
-            color='primary'
             title='Edit this temporary schedule'
           >
             Edit
@@ -125,7 +115,6 @@ export default function ScheduleCalendarEventWrapper({
               size='small'
               onClick={() => onDeleteTempSched(calEvent.tempSched)}
               variant='contained'
-              color='primary'
               title='Delete this temporary schedule'
             >
               Delete
@@ -173,7 +162,6 @@ export default function ScheduleCalendarEventWrapper({
             size='small'
             onClick={() => handleShowOverrideForm(calEvent)}
             variant='contained'
-            color='primary'
             title={`Temporarily remove ${calEvent.title} from this schedule`}
           >
             Override Shift

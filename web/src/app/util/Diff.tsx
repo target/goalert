@@ -1,31 +1,8 @@
 import React from 'react'
 import { diffChars, diffWords, Change } from 'diff'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
-
-const useStyles = makeStyles({
-  // bg color for the whole first line
-  oldLine: {
-    backgroundColor: '#FFEEF0',
-  },
-  // removed chars darker red
-  removed: {
-    backgroundColor: '#FCB8C0',
-  },
-  // bg color for the whole second line
-  newLine: {
-    backgroundColor: '#E6FFED',
-  },
-  // added chars darker green
-  added: {
-    backgroundColor: '#AEF1BE',
-  },
-  // spacing on +/- symbols in diff
-  symbol: {
-    minWidth: '2em',
-    display: 'inline-block',
-  },
-})
+import { green, red, lightGreen } from '@mui/material/colors'
+import { useTheme } from '@mui/material'
 
 interface DiffProps {
   oldValue: string
@@ -39,9 +16,14 @@ interface DiffProps {
  */
 export default function Diff(props: DiffProps): JSX.Element {
   const { oldValue, newValue, type } = props
+  const theme = useTheme()
 
-  const classes = useStyles()
-  const { oldLine, removed, newLine, added } = classes
+  const [oldLine, newLine, removed, added] =
+    theme.palette.mode === 'dark'
+      ? [red[900] + '50', green[900] + '50', red[600] + '90', green[600] + '90']
+      : [red[100], lightGreen[100], red.A100, lightGreen.A400]
+
+  const symbol = { minWidth: '2em', display: 'inline-block' }
 
   let diff: Change[] = []
   if (type === 'chars') diff = diffChars(oldValue, newValue)
@@ -51,9 +33,13 @@ export default function Diff(props: DiffProps): JSX.Element {
     if (part.added) return
 
     return (
-      <span key={idx} className={part.removed ? removed : undefined}>
+      <Typography
+        key={idx}
+        sx={{ bgcolor: part.removed ? removed : undefined }}
+        component='span'
+      >
         {part.value}
-      </span>
+      </Typography>
     )
   })
 
@@ -61,9 +47,13 @@ export default function Diff(props: DiffProps): JSX.Element {
     if (part.removed) return
 
     return (
-      <span key={idx} className={part.added ? added : undefined}>
+      <Typography
+        key={idx}
+        sx={{ bgcolor: part.added ? added : undefined }}
+        component='span'
+      >
         {part.value}
-      </span>
+      </Typography>
     )
   })
 
@@ -73,14 +63,18 @@ export default function Diff(props: DiffProps): JSX.Element {
   return (
     <React.Fragment>
       {!hideRemoved && (
-        <Typography className={oldLine} data-cy='old'>
-          <span className={classes.symbol}>&nbsp;-</span>
+        <Typography sx={{ bgcolor: oldLine }} data-cy='old'>
+          <Typography sx={symbol} component='span'>
+            &nbsp;-
+          </Typography>
           {oldWithRemoved}
         </Typography>
       )}
       {!hideAdded && (
-        <Typography className={newLine} data-cy='new'>
-          <span className={classes.symbol}>&nbsp;+</span>
+        <Typography sx={{ bgcolor: newLine }} data-cy='new'>
+          <Typography sx={symbol} component='span'>
+            &nbsp;+
+          </Typography>
           {newWithAdded}
         </Typography>
       )}

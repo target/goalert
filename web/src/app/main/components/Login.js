@@ -139,13 +139,13 @@ export default function Login() {
     ) : null
     if (fields) {
       loginButton = (
-        <Button type='submit' variant='contained' color='primary'>
+        <Button type='submit' variant='contained'>
           Login
         </Button>
       )
     } else {
       loginButton = (
-        <Button type='submit' variant='contained' color='primary'>
+        <Button type='submit' variant='contained'>
           {loginIcon}
           Login with {title}
         </Button>

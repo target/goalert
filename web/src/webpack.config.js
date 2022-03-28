@@ -6,7 +6,6 @@ const CopyPlugin = require('copy-webpack-plugin')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
-const CYPRESS = path.join(__dirname, 'cypress')
 
 module.exports = () => ({
   mode: 'development',
@@ -23,6 +22,9 @@ module.exports = () => ({
   },
   resolve: {
     extensions: ['.mjs', '.ts', '.tsx', '.js', '.jsx', '.css'],
+  },
+  watchOptions: {
+    ignored: '**/node_modules',
   },
   // Loaders for processing different file types
   module: {
@@ -61,27 +63,6 @@ module.exports = () => ({
 
   // Source maps used for debugging information
   devtool: 'eval-source-map',
-  // webpack-dev-server configuration
-  devServer: {
-    port: 3035,
-    allowedHosts: 'all',
-    watchFiles: [APP, CYPRESS],
-
-    devMiddleware: {
-      stats: 'errors-only',
-    },
-  },
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
-          chunks: 'all',
-        },
-      },
-    },
-  },
 
   // Webpack plugins
   plugins: [

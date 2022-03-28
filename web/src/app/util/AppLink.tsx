@@ -1,15 +1,24 @@
 import React, { forwardRef, ForwardRefRenderFunction } from 'react'
-import { Link, LinkProps, useLocation } from 'react-router-dom'
+import { LinkProps } from '@mui/material'
+import Link from '@mui/material/Link'
+import {
+  Link as RRLink,
+  LinkProps as RRLinkProps,
+  useLocation,
+} from 'react-router-dom'
 import joinURL from './joinURL'
 
-export interface AppLinkProps extends LinkProps {
+type MergedLinkProps = Omit<LinkProps & RRLinkProps, 'to' | 'href'>
+
+export interface AppLinkProps extends MergedLinkProps {
   to: string
   newTab?: boolean
+  onClick?: React.MouseEventHandler<HTMLAnchorElement> // use explicit anchor elem
 }
 
 const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   function AppLink(props, ref): JSX.Element {
-    const { to: _to, newTab, ...other } = props
+    let { to, newTab, ...other } = props
     const { pathname } = useLocation()
 
     if (newTab) {
@@ -17,16 +26,22 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
       other.rel = 'noopener noreferrer'
     }
 
-    if (/^(mailto:|https?:\/\/)/.test(_to)) {
-      return (
-        <a href={_to} ref={ref} {...other}>
-          {other.children}
-        </a>
-      )
+    const external = /^(tel:|mailto:|https?:\/\/)/.test(to)
+
+    // handle relative URLs
+    if (!external && !to.startsWith('/')) {
+      to = joinURL(pathname, to)
     }
 
-    const to = _to.startsWith('/') ? _to : joinURL(pathname, _to)
-    return <Link to={to} ref={ref} {...other} />
+    return (
+      <Link
+        ref={ref}
+        to={to}
+        href={to}
+        component={external ? 'a' : RRLink}
+        {...other}
+      />
+    )
   }
 
 export default forwardRef(AppLink)

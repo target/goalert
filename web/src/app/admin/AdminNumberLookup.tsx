@@ -149,11 +149,7 @@ export default function AdminNumberLookup(): JSX.Element {
         <DialogTitle>An error occurred</DialogTitle>
         <DialogContentError error={lastError?.message ?? ''} />
         <DialogActions>
-          <Button
-            color='primary'
-            variant='contained'
-            onClick={() => setLastError(null)}
-          >
+          <Button variant='contained' onClick={() => setLastError(null)}>
             Okay
           </Button>
         </DialogActions>
