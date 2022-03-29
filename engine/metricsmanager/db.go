@@ -39,7 +39,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		scanLogs: p.P(`select alert_id, timestamp, id from alert_logs where event='closed' and ((timestamp = $1 and id > $2) or timestamp > $1) order by timestamp, id limit 500`),
+		scanLogs: p.P(`
+			select alert_id, timestamp, id 
+			from alert_logs 
+			where event='closed' and (timestamp > $1 and timestamp < now() - '2 minutes'::interval or (timestamp = $1 and id > $2)) 
+			order by timestamp, id 
+			limit 500`),
 
 		insertMetrics: p.P(`
 			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated, closed_at)
@@ -52,6 +57,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				(select timestamp                from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1)
 			from alerts a
 			where a.id = any($1) and a.service_id is not null
+			on conflict do nothing
 		`),
 	}, p.Err
 }
