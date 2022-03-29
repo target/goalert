@@ -22,6 +22,26 @@ type State struct {
 	}
 }
 
+func (db *DB) UpdateAll(ctx context.Context) error {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return err
+	}
+
+	err = db.UpdateAlertMetrics(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = db.UpdateDailyAlertMetrics(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateAlertMetrics will update the alert metrics table
 /*
 	Theory of Operation:
 
@@ -31,14 +51,8 @@ type State struct {
 	4. Set cursor to last inserted
 
 */
-
-// UpdateAll will update the alert metrics table
-func (db *DB) UpdateAll(ctx context.Context) error {
-	err := permission.LimitCheckAny(ctx, permission.System)
-	if err != nil {
-		return err
-	}
-	log.Debugf(ctx, "Running metrics operations.")
+func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
+	log.Debugf(ctx, "Running alert_metrics operations.")
 
 	tx, lockState, err := db.lock.BeginTxWithState(ctx, nil)
 	if err != nil {
@@ -93,4 +107,12 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// UpdateDailyAlertMetrics will update the daily alert metrics table
+func (db *DB) UpdateDailyAlertMetrics(ctx context.Context) error {
+	log.Debugf(ctx, "Running daily_alert_metrics operations.")
+
+	return nil
+
 }
