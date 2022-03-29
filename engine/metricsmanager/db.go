@@ -15,8 +15,7 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	scanLogs           *sql.Stmt
-	scanLogsFromCursor *sql.Stmt
+	scanLogs *sql.Stmt
 
 	insertMetrics *sql.Stmt
 }
@@ -40,8 +39,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		scanLogs:           p.P(`select alert_id, timestamp, id from alert_logs where event='closed' order by timestamp, id limit 500`),
-		scanLogsFromCursor: p.P(`select alert_id, timestamp, id from alert_logs where event='closed' and ((timestamp = $1 and id > $2) or timestamp > $1) order by timestamp, id limit 500`),
+		scanLogs: p.P(`select alert_id, timestamp, id from alert_logs where event='closed' and ((timestamp = $1 and id > $2) or timestamp > $1) order by timestamp, id limit 500`),
 
 		insertMetrics: p.P(`
 			insert into alert_metrics (alert_id, service_id, time_to_ack, time_to_close, escalated, closed_at)

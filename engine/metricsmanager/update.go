@@ -43,7 +43,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	defer tx.Rollback()
 
 	var alertIDs []int
-	var zeroTime, lastLogTime time.Time
+	var lastLogTime time.Time
 	var lastLogID int
 	var state State
 	err = lockState.Load(ctx, &state)
@@ -52,17 +52,9 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	var rows *sql.Rows
-	if state.V2.LastLogTime == zeroTime {
-		// no state
-		rows, err = tx.StmtContext(ctx, db.scanLogs).QueryContext(ctx)
-		if err != nil {
-			return fmt.Errorf("scan logs: %w", err)
-		}
-	} else {
-		rows, err = tx.StmtContext(ctx, db.scanLogsFromCursor).QueryContext(ctx, state.V2.LastLogTime, state.V2.LastLogID)
-		if err != nil {
-			return fmt.Errorf("scan logs from cursor: %w", err)
-		}
+	rows, err = tx.StmtContext(ctx, db.scanLogs).QueryContext(ctx, state.V2.LastLogTime, state.V2.LastLogID)
+	if err != nil {
+		return fmt.Errorf("scan logs: %w", err)
 	}
 
 	defer rows.Close()
