@@ -13,8 +13,12 @@ import (
 
 type State struct {
 	V2 struct {
+
+		// LastLogTime is a cursor for processed alert_logs
 		LastLogTime time.Time
-		LastLogID   int
+
+		// LastLogID breaks ties for the LastLogTime cursor
+		LastLogID int
 	}
 }
 
@@ -22,7 +26,7 @@ type State struct {
 	Theory of Operation:
 
 	1. Aquire processing lock
-	2. Get batch of oldest alert IDs (if cursor not blank, must be > cursor)
+	2. Get batch of oldest alert IDs after cursor (use LastLogID as a tie breaker)
 	3. Insert metrics for these alerts
 	4. Set cursor to last inserted
 
