@@ -3,6 +3,7 @@ package metricsmanager
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,6 +20,9 @@ type State struct {
 
 		// LastLogID breaks ties for the LastLogTime cursor
 		LastLogID int
+
+		// LastMetricsDate is a cursor for processed alert_metrics
+		LastMetricsDate time.Time
 	}
 }
 
@@ -110,8 +114,58 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 }
 
 // UpdateDailyAlertMetrics will update the daily alert metrics table
+/*
+	Theory of Operation:
+
+	1. Acquire processing lock
+	2. Get next date to process (min date after LastMetricsDate, before LastLogTime's date)
+	3. Insert daily metrics for this date
+	4. Set cursor to this date
+
+*/
 func (db *DB) UpdateDailyAlertMetrics(ctx context.Context) error {
 	log.Debugf(ctx, "Running daily_alert_metrics operations.")
+
+	tx, lockState, err := db.lock.BeginTxWithState(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	var nextDate sql.NullTime
+	var state State
+	err = lockState.Load(ctx, &state)
+	if err != nil {
+		return fmt.Errorf("load state: %w", err)
+	}
+
+	err = tx.StmtContext(ctx, db.nextDailyMetricsDate).QueryRowContext(ctx, state.V2.LastMetricsDate, state.V2.LastLogTime).Scan(&nextDate)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("select next daily metrics date: %w", err)
+	}
+
+	if nextDate.Valid {
+
+		_, err = tx.StmtContext(ctx, db.insertDailyMetrics).ExecContext(ctx, nextDate)
+		if err != nil {
+			return fmt.Errorf("insert daily metrics: %w", err)
+		}
+
+		state.V2.LastMetricsDate = nextDate.Time
+		err = lockState.Save(ctx, &state)
+		if err != nil {
+			return fmt.Errorf("save state: %w", err)
+		}
+
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
 
 	return nil
 
