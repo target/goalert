@@ -43,7 +43,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		// NOTE: uses a buffer to allow for in-flight requests to settle
+		// NOTE: this buffer provides time for in-flight requests to settle
 		boundNow: p.P(`select now() - '2 minutes'::interval`),
 
 		scanLogs: p.P(`
