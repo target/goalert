@@ -15,8 +15,9 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	scanLogs *sql.Stmt
+	boundNow *sql.Stmt
 
+	scanLogs      *sql.Stmt
 	insertMetrics *sql.Stmt
 
 	nextDailyMetricsDate *sql.Stmt
@@ -42,10 +43,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
+		// NOTE: uses a buffer to allow for in-flight requests to settle
+		boundNow: p.P(`select now() - '2 minutes'::interval`),
+
 		scanLogs: p.P(`
 			select alert_id, timestamp, id 
 			from alert_logs 
-			where event='closed' and (timestamp > $1 and timestamp < now() - '2 minutes'::interval or (timestamp = $1 and id > $2)) 
+			where event='closed' and (timestamp > $1 and timestamp < $3 or (timestamp = $1 and id > $2)) 
 			order by timestamp, id 
 			limit 500`),
 

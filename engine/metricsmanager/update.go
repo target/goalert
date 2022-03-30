@@ -53,6 +53,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	2. Get batch of oldest alert IDs after cursor (use LastLogID as a tie breaker)
 	3. Insert metrics for these alerts
 	4. Set cursor to last inserted
+	5. If none inserted, set cursor to upper time bound
 
 */
 func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
@@ -65,7 +66,7 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 	defer tx.Rollback()
 
 	var alertIDs []int
-	var lastLogTime time.Time
+	var lastLogTime, boundNow time.Time
 	var lastLogID int
 	var state State
 	err = lockState.Load(ctx, &state)
@@ -73,8 +74,13 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 		return fmt.Errorf("load state: %w", err)
 	}
 
+	err = tx.StmtContext(ctx, db.boundNow).QueryRowContext(ctx).Scan(&boundNow)
+	if err != nil {
+		return fmt.Errorf("select bound now: %w", err)
+	}
+
 	var rows *sql.Rows
-	rows, err = tx.StmtContext(ctx, db.scanLogs).QueryContext(ctx, state.V2.LastLogTime, state.V2.LastLogID)
+	rows, err = tx.StmtContext(ctx, db.scanLogs).QueryContext(ctx, state.V2.LastLogTime, state.V2.LastLogID, boundNow)
 	if err != nil {
 		return fmt.Errorf("scan logs: %w", err)
 	}
@@ -96,13 +102,20 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 			return fmt.Errorf("insert metrics: %w", err)
 		}
 
-		// update and save state
+		// update state
 		state.V2.LastLogTime = lastLogTime
 		state.V2.LastLogID = lastLogID
-		err = lockState.Save(ctx, &state)
-		if err != nil {
-			return fmt.Errorf("save state: %w", err)
-		}
+
+	} else {
+		// update state
+		state.V2.LastLogTime = boundNow
+		state.V2.LastLogID = 0
+	}
+
+	// save state
+	err = lockState.Save(ctx, &state)
+	if err != nil {
+		return fmt.Errorf("save state: %w", err)
 	}
 
 	err = tx.Commit()
