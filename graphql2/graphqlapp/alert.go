@@ -252,7 +252,7 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 	data, err := q.AlertMetricsStore.Search(ctx, &alertmetrics.SearchOptions{
 		ServiceIDs: opts.FilterByServiceID,
 		LowerBound: opts.RInterval.Start,
-		UpperBound:    opts.RInterval.End(),
+		UpperBound: opts.RInterval.End(),
 	})
 	if err != nil {
 		return nil, err

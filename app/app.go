@@ -93,8 +93,8 @@ type App struct {
 
 	ConfigStore *config.Store
 
-	AlertStore    *alert.Store
-	AlertLogStore *alertlog.Store
+	AlertStore        *alert.Store
+	AlertLogStore     *alertlog.Store
 	AlertMetricsStore *alertmetrics.Store
 
 	AuthBasicStore        *basic.Store
