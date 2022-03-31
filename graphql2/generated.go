@@ -106,11 +106,8 @@ type ComplexityRoot struct {
 	}
 
 	AlertDataPoint struct {
-		AlertCount     func(childComplexity int) int
-		AvgTimeToAck   func(childComplexity int) int
-		AvgTimetoClose func(childComplexity int) int
-		EscalatedCount func(childComplexity int) int
-		Timestamp      func(childComplexity int) int
+		AlertCount func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
 	}
 
 	AlertLogEntry struct {
@@ -877,27 +874,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertDataPoint.AlertCount(childComplexity), true
-
-	case "AlertDataPoint.avgTimeToAck":
-		if e.complexity.AlertDataPoint.AvgTimeToAck == nil {
-			break
-		}
-
-		return e.complexity.AlertDataPoint.AvgTimeToAck(childComplexity), true
-
-	case "AlertDataPoint.avgTimetoClose":
-		if e.complexity.AlertDataPoint.AvgTimetoClose == nil {
-			break
-		}
-
-		return e.complexity.AlertDataPoint.AvgTimetoClose(childComplexity), true
-
-	case "AlertDataPoint.escalatedCount":
-		if e.complexity.AlertDataPoint.EscalatedCount == nil {
-			break
-		}
-
-		return e.complexity.AlertDataPoint.EscalatedCount(childComplexity), true
 
 	case "AlertDataPoint.timestamp":
 		if e.complexity.AlertDataPoint.Timestamp == nil {
@@ -3533,9 +3509,6 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
-  avgTimeToAck: ISODuration # only null if all values in interval are null
-  avgTimetoClose: ISODuration # only null if all values in interval are null
-  escalatedCount: Int!
 }
 
 input DebugMessagesInput {
@@ -6437,105 +6410,6 @@ func (ec *executionContext) _AlertDataPoint_alertCount(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AlertCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertDataPoint_avgTimeToAck(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AlertDataPoint",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimeToAck, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOISODuration2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertDataPoint_avgTimetoClose(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AlertDataPoint",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimetoClose, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOISODuration2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertDataPoint_escalatedCount(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AlertDataPoint",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EscalatedCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21737,30 +21611,6 @@ func (ec *executionContext) _AlertDataPoint(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "avgTimeToAck":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._AlertDataPoint_avgTimeToAck(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "avgTimetoClose":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._AlertDataPoint_avgTimetoClose(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "escalatedCount":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._AlertDataPoint_escalatedCount(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30305,22 +30155,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	res := graphql.MarshalID(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOISODuration2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOISODuration2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalString(*v)
 	return res
 }
 

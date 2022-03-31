@@ -123,9 +123,6 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
-  avgTimeToAck: ISODuration # only null if all values in interval are null
-  avgTimetoClose: ISODuration # only null if all values in interval are null
-  escalatedCount: Int!
 }
 
 input DebugMessagesInput {
