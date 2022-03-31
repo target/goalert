@@ -42,7 +42,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		scanLogs: p.P(`
 			select alert_id, timestamp, id 
 			from alert_logs 
-			where event='closed' and (timestamp > $1 and timestamp < now() - '2 minutes'::interval or (timestamp = $1 and id > $2)) 
+			where event='closed' and timestamp < now() - '2 minutes'::interval and (timestamp > $1 or (timestamp = $1 and id > $2)) 
 			order by timestamp, id 
 			limit 500`),
 
