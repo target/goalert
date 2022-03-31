@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
@@ -94,6 +95,7 @@ type App struct {
 
 	AlertStore    *alert.Store
 	AlertLogStore *alertlog.Store
+	AlertMetricsStore *alertmetrics.Store
 
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store

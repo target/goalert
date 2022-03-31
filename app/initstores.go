@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -98,6 +99,10 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init API keyring")
+	}
+
+	if app.AlertMetricsStore == nil {
+		app.AlertMetricsStore, err = alertmetrics.NewStore(ctx, app.db)
 	}
 
 	if app.AlertLogStore == nil {
