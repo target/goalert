@@ -31,8 +31,11 @@ type AlertConnection struct {
 }
 
 type AlertDataPoint struct {
-	Timestamp  time.Time `json:"timestamp"`
-	AlertCount int       `json:"alertCount"`
+	Timestamp      time.Time `json:"timestamp"`
+	AlertCount     int       `json:"alertCount"`
+	AvgTimeToAck   *string   `json:"avgTimeToAck"`
+	AvgTimetoClose *string   `json:"avgTimetoClose"`
+	EscalatedCount int       `json:"escalatedCount"`
 }
 
 type AlertLogEntryConnection struct {
