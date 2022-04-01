@@ -19,11 +19,11 @@ type SearchOptions struct {
 	// ServiceIDs, if specified, will restrict alert metrics to those with a matching ServiceID on IDs, if valid.
 	ServiceIDs []string `json:"v,omitempty"`
 
-	// LowerBound will omit any alert metrics created any time before the provided time.
-	LowerBound time.Time `json:"n,omitempty"`
+	// Since will omit any alert metrics created any time before the provided time.
+	Since time.Time `json:"n,omitempty"`
 
-	// UpperBound will only include alert metrics that were created before the provided time.
-	UpperBound time.Time `json:"b,omitempty"`
+	// Until will only include alert metrics that were created before the provided time.
+	Until time.Time `json:"b,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(search.Helpers()).Parse(`
@@ -38,11 +38,11 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 	{{if .ServiceIDs}}
 		AND am.service_id = any(:services)
 	{{end}}
-	{{ if not .UpperBound.IsZero }}
-		AND a.created_at < :upperBound
+	{{ if not .Until.IsZero }}
+		AND a.created_at < :until
 	{{ end }}
-	{{ if not .LowerBound.IsZero }}
-		AND a.created_at >= :lowerBound
+	{{ if not .Since.IsZero }}
+		AND a.created_at >= :since
 	{{ end }}
 	AND a.status = 'closed'
 `))
@@ -60,8 +60,8 @@ func (opts renderData) Normalize() (*renderData, error) {
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("services", sqlutil.UUIDArray(opts.ServiceIDs)),
-		sql.Named("upperBound", opts.UpperBound),
-		sql.Named("lowerBound", opts.LowerBound),
+		sql.Named("until", opts.Until),
+		sql.Named("since", opts.Since),
 	}
 }
 
