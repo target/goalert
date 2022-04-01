@@ -28,23 +28,20 @@ type SearchOptions struct {
 
 var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(search.Helpers()).Parse(`
 	SELECT
-		am.alert_id,
-		am.service_id,
-		a.created_at
-	FROM alert_metrics am
-	JOIN alerts a
-	ON a.id = am.alert_id
+		alert_id,
+		service_id,
+		closed_at
+	FROM alert_metrics
 	WHERE true
 	{{if .ServiceIDs}}
-		AND am.service_id = any(:services)
+		AND service_id = any(:services)
 	{{end}}
 	{{ if not .Until.IsZero }}
-		AND a.created_at < :until
+		AND closed_at < :until
 	{{ end }}
 	{{ if not .Since.IsZero }}
-		AND a.created_at >= :since
+		AND closed_at >= :since
 	{{ end }}
-	AND a.status = 'closed'
 `))
 
 type renderData SearchOptions
