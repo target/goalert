@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -48,7 +49,7 @@ func (e *etagHandler) etag(name string) string {
 		return ""
 	}
 
-	tag := `W/"` + hex.EncodeToString(h.Sum(nil)) + `"`
+	tag := fmt.Sprintf(`W/"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 	e.tags[name] = tag
 	return tag
 }
