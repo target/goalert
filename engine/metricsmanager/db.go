@@ -67,11 +67,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			on conflict do nothing
 		`),
 
-		// NOTE: we avoid having to order by closed_at::date via the ordered index on closed_at::date
 		nextDailyMetricsDate: p.P(`
 			select (date(timezone('UTC'::text, closed_at))) from alert_metrics 
 			where  (date(timezone('UTC'::text, closed_at))) > $1::date 
 			and    (date(timezone('UTC'::text, closed_at))) < $2::date
+			order by closed_at
 			limit 1;
 		`),
 
