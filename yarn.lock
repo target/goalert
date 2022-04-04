@@ -3455,13 +3455,13 @@ co@^4.6.0:
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha1-bqa989hTrlTMuOR7+gvz+QMfsYQ=
 
-codemirror-graphql@^1.2.13:
-  version "1.2.13"
-  resolved "https://registry.yarnpkg.com/codemirror-graphql/-/codemirror-graphql-1.2.13.tgz#2525141b2ea8e54b78aea91cc8b85693bbcb17d9"
-  integrity sha512-7I2qPHxoTndvDNBkaoYYbL2S6A6JAMXBA17ZFcIWAj7A0V/NEg0aPSxhwNRK1yLmC+3XI9OR4BjZTiPxrA2gBA==
+codemirror-graphql@^1.2.15:
+  version "1.2.15"
+  resolved "https://registry.yarnpkg.com/codemirror-graphql/-/codemirror-graphql-1.2.15.tgz#0a7ba091ee429763aa31075e1c06ce1ed29a655f"
+  integrity sha512-srON9VHCaVt6VoZm2m7Qgy0EUNCUgD50Lc3HRtHpyoi1HRjN9dAens6KlQPjv5uJrpuYLGkhwiYjh92zLfSyiA==
   dependencies:
     "@codemirror/stream-parser" "^0.19.2"
-    graphql-language-service "^5.0.0"
+    graphql-language-service "^5.0.1"
 
 codemirror@^5.58.2:
   version "5.65.2"
@@ -5169,20 +5169,20 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, 
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.9.tgz#041b05df45755e587a24942279b9d113146e1c96"
   integrity sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==
 
-graphiql@1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-1.7.1.tgz#426afa0379c8d5424493fce69b678ee5c94e0e33"
-  integrity sha512-diEftHKsFtONUy90v1bZYgjCsJmRRVlnS72kYdv2lTETr1jgWN8V1nLepGl47xoQg8j0Bw9Er3v0wHnOdB5JxA==
+graphiql@1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-1.8.3.tgz#4696755cbba851c93aea9deacbcf4229044a705d"
+  integrity sha512-3qb3jdlzg8nqQCRMnch6lG11royrE6etP2eoDKLxdrSpdaxI0PgNNttbMAJJYfsqEJ0XHcXtUDt1jH6jkKOK4Q==
   dependencies:
     "@graphiql/toolkit" "^0.4.2"
     codemirror "^5.58.2"
-    codemirror-graphql "^1.2.13"
+    codemirror-graphql "^1.2.15"
     copy-to-clipboard "^3.2.0"
-    dset "^3.1.0"
     entities "^2.0.0"
     escape-html "^1.0.3"
-    graphql-language-service "^5.0.0"
+    graphql-language-service "^5.0.1"
     markdown-it "^12.2.0"
+    set-value "^4.1.0"
 
 graphql-config@^4.1.0:
   version "4.1.0"
@@ -5206,10 +5206,10 @@ graphql-executor@0.0.19:
   resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.19.tgz#cab902c91444181944a6bbb3e6cab7107b933f33"
   integrity sha512-AFOcsk/yMtl9jcO/f/0Our7unWxJ5m3FS5HjWfsXRHCyjjaubXpSHiOZO/hSYv6brayIrupDoVAzCuJpBc3elg==
 
-graphql-language-service@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/graphql-language-service/-/graphql-language-service-5.0.0.tgz#52dad53135f06551eee4c4dc57057c61eb10c460"
-  integrity sha512-3tbJOApOJk8FQFVV+hKSs3gEWqqt3gQ5l3iEOUl7ofhyTmpRlbkYp+/dVLMF/p29iwZ5a8wqSXl+DDnHI6RMXQ==
+graphql-language-service@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/graphql-language-service/-/graphql-language-service-5.0.1.tgz#de72d12051fa48deec3883f4980f6ff3475ab8d6"
+  integrity sha512-DGaGtCyU5ugCJIkTWqFxNESFCqjNEHJGWDhcu2jXY28GcPnTSqfKAk4ryCK4E514AKNFrvX9WwZEB6Csi+xbdQ==
   dependencies:
     graphql-config "^4.1.0"
     nullthrows "^1.0.0"
@@ -5625,6 +5625,11 @@ is-potential-custom-element-name@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/is-potential-custom-element-name/-/is-potential-custom-element-name-1.0.1.tgz#171ed6f19e3ac554394edf78caa05784a45bebb5"
   integrity sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==
+
+is-primitive@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/is-primitive/-/is-primitive-3.0.1.tgz#98c4db1abff185485a657fc2905052b940524d05"
+  integrity sha512-GljRxhWvlCNRfZyORiH77FwdFwGcMO620o37EOYC0ORWdq+WYNVqW0w2Juzew4M+L81l6/QS3t5gkkihyRqv9w==
 
 is-regex@^1.1.4:
   version "1.1.4"
@@ -8554,6 +8559,14 @@ serialize-javascript@^6.0.0:
   integrity sha512-Qr3TosvguFt8ePWqsvRfrKyQXIiW+nGbYpy8XK24NQHE83caxWt+mIymTT19DGFbNWNLfEwsrkSmN64lVWB9ag==
   dependencies:
     randombytes "^2.1.0"
+
+set-value@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/set-value/-/set-value-4.1.0.tgz#aa433662d87081b75ad88a4743bd450f044e7d09"
+  integrity sha512-zTEg4HL0RwVrqcWs3ztF+x1vkxfm0lP+MQQFPiMJTKVceBwEV0A569Ou8l9IYQG8jOZdMVI1hGsc0tmeD2o/Lw==
+  dependencies:
+    is-plain-object "^2.0.4"
+    is-primitive "^3.0.1"
 
 shallow-clone@^3.0.0:
   version "3.0.1"
