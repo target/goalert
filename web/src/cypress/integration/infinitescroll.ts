@@ -41,7 +41,7 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
       cy.get('[id="content"]').scrollTo('bottom')
-        cy.get('[data-cy=apollo-list] li a').should('have.length', 30)
+      cy.get('[data-cy=apollo-list] li a').should('have.length', 30)
     })
   })
 }
