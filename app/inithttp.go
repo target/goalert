@@ -186,7 +186,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())
-	mux.HandleFunc("/api/graphql/explore", app.graphql2.PlayHandler)
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 
@@ -256,7 +255,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 				*app.twilioConfig,
 			)
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
 				if strings.HasPrefix(req.URL.Path, "/api/v2/twilio/") {
 					twilioHandler.ServeHTTP(w, req)
 					return
@@ -270,7 +268,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/health", app.healthCheck)
 	mux.HandleFunc("/health/engine", app.engineStatus)
 
-	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix)
+	webH, err := web.NewHandler(app.cfg.UIDir, app.cfg.HTTPPrefix)
 	if err != nil {
 		return err
 	}
