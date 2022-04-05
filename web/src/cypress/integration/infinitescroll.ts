@@ -40,7 +40,7 @@ function testPaginating(
     it(`should load more list items when scrolling to the bottom`, () => {
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
-        cy.get('[id="content"]').scrollTo('bottom')
+      cy.get('[id="content"]').scrollTo('bottom')
         cy.get('[data-cy=apollo-list] li a').should('have.length', 30)
     })
   })
