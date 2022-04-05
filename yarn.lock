@@ -1884,10 +1884,10 @@
     prop-types "^15.7.2"
     react-is "^17.0.2"
 
-"@mui/x-data-grid@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-5.7.0.tgz#fbb87989c201628f75dab419d6df44e9bb289bf1"
-  integrity sha512-mWk3IzClmGGsFfz3EzdifkQRhjNYkkyfCNMfQu1C6iJDPtkt5xmi71M+jMRv+lsupMEnrTv17j+6oM6YCqoM3Q==
+"@mui/x-data-grid@5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-5.8.0.tgz#85a663ca9f700124bf260110f661a739135b8015"
+  integrity sha512-8U2Ltdi/Iy4zKfdBMwN62V20S2KSnRIuyyy7t8xK4QLSPsa9IIIM+6G6EnqL6z5ZWr4rnB/+EIjzjy+qcUlC4A==
   dependencies:
     "@mui/utils" "^5.4.4"
     clsx "^1.1.1"
