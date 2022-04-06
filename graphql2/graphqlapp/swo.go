@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"strings"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/validation"
@@ -34,22 +35,37 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 
 	s := a.SWO.Status()
 	var nodes []graphql2.SWONode
+	var prog string
 	for _, n := range s.Nodes {
+		var tasks []string
+		for _, t := range n.Tasks {
+			tasks = append(tasks, t.Name)
+			if t.Name == "reset-db" || t.Name == "exec" {
+				prog = t.Status
+			}
+		}
+
 		nodes = append(nodes, graphql2.SWONode{
 			ID:       n.ID.String(),
-			OldValid: n.OldValid,
-			NewValid: n.NewValid,
+			OldValid: n.OldDBValid,
+			NewValid: n.NewDBValid,
+			IsLeader: n.IsLeader,
 			CanExec:  n.CanExec,
-			Status:   n.Status,
+			Status:   strings.Join(tasks, ","),
 		})
 	}
 
+	status := string(s.State)
+	if prog != "" {
+		status += ": " + prog
+	}
+
 	return &graphql2.SWOStatus{
-		IsIdle:      s.IsIdle(),
-		IsDone:      s.IsDone(),
-		Details:     s.Details,
-		IsExecuting: s.IsExecuting(),
-		IsResetting: s.IsResetting(),
+		IsIdle:      s.State == "idle",
+		IsDone:      s.State == "done",
+		Details:     status,
+		IsExecuting: strings.HasPrefix(string(s.State), "exec"),
+		IsResetting: strings.HasPrefix(string(s.State), "reset"),
 		Nodes:       nodes,
 	}, nil
 }
