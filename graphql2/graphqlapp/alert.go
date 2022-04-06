@@ -251,8 +251,8 @@ func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOpti
 
 	data, err := q.AlertMetricsStore.Search(ctx, &alertmetrics.SearchOptions{
 		ServiceIDs: opts.FilterByServiceID,
-		Since: opts.RInterval.Start,
-		Until: opts.RInterval.End(),
+		Since:      opts.RInterval.Start,
+		Until:      opts.RInterval.End(),
 	})
 	if err != nil {
 		return nil, err
