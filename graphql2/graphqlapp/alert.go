@@ -190,9 +190,9 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
-// splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alerts.
-// The given alerts are required to be sorted by their CreatedAt field.
-func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.DataPoint) (result []graphql2.AlertDataPoint) {
+// splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alert metrics.
+// The given metrics are required to be sorted by their ClosedAt field.
+func splitRangeByDuration(r timeutil.ISORInterval, metrics []alert.MetricRecord) (result []graphql2.AlertDataPoint) {
 	if r.Period.IsZero() {
 		// should be handled by ISORInterval parsing/validation, but just in case
 		// prefer panic to infinite loop
@@ -201,13 +201,13 @@ func splitRangeByDuration(r timeutil.ISORInterval, alerts []alert.DataPoint) (re
 
 	countAlertsUntil := func(ts time.Time) int {
 		var count int
-		for len(alerts) > 0 {
-			if !alerts[0].Timestamp.Before(ts) {
+		for len(metrics) > 0 {
+			if !metrics[0].ClosedAt.Before(ts) {
 				break
 			}
 
 			count++
-			alerts = alerts[1:]
+			metrics = metrics[1:]
 		}
 		return count
 	}

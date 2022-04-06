@@ -63,7 +63,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]alert.DataPoint, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]alert.MetricRecord, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -88,10 +88,10 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]alert.DataPo
 	}
 	defer rows.Close()
 
-	metrics := make([]alert.DataPoint, 0)
+	metrics := make([]alert.MetricRecord, 0)
 	for rows.Next() {
-		var dp alert.DataPoint
-		err := rows.Scan(&dp.AlertID, &dp.ServiceID, &dp.Timestamp)
+		var dp alert.MetricRecord
+		err := rows.Scan(&dp.AlertID, &dp.ServiceID, &dp.ClosedAt)
 		if err != nil {
 			return nil, err
 		}
