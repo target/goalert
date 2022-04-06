@@ -88,9 +88,10 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 		var lastNone bool
 		for ctx.Err() == nil {
 			// sync in a loop until DB is up-to-date
+			s := time.Now()
 			n, pend, err := LoopSync(ctx, rt, oldConn, newConn)
+			dur := time.Since(s)
 
-			fmt.Println("sync", n, "pending", pend)
 			if pend > 0 {
 				lastNone = false
 				swogrp.Progressf(ctx, "sync: %d rows pending", pend)
@@ -109,10 +110,10 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 					lastNone = true
 					swogrp.Progressf(ctx, "sync: waiting for changes")
 				}
-				time.Sleep(10 * time.Second)
+				time.Sleep(100 * time.Millisecond)
 			} else {
 				lastNone = false
-				swogrp.Progressf(ctx, "sync: %d rows replicated", n)
+				swogrp.Progressf(ctx, "sync: %d rows replicated in %s", n, dur.Truncate(time.Millisecond))
 			}
 		}
 

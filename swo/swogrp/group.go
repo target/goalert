@@ -87,6 +87,11 @@ func NewGroup(cfg Config) *Group {
 	}
 	g.ackMsgs <- make(map[uuid.UUID]*ackWait)
 
+	err := g.sendMessage(cfg.Logger.BackgroundContext(), "hello", nil, false)
+	if err != nil {
+		cfg.Logger.Error(context.Background(), err)
+	}
+
 	go g.loopNextLog()
 	go g.loopMainLog()
 
