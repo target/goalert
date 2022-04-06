@@ -23,7 +23,7 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
 
   return (
     <Grid item sx={{ minWidth: 300 }} padding={1}>
-      <Card raised={node.status.endsWith('-run')}>
+      <Card raised={node.isLeader}>
         <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
           {name}
         </Typography>

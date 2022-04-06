@@ -1,76 +1,132 @@
 package swomsg
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+/*
+
+	Idle
+	Reset -> Elect(Reset)
+	Elect(Reset) -> ResetRun,ResetWait -> Idle
+	Execute -> Elect(Execute)
+	Elect(Execute) -> ExecuteRun,ExecuteWait ->
+
+
+
+*/
+
 type Message struct {
-	Header
+	ID   uuid.UUID
+	Node uuid.UUID
+	TS   time.Time `json:"-"`
 
-	Ping     *Ping     `json:",omitempty"`
-	Ack      *Ack      `json:",omitempty"`
-	Reset    *Reset    `json:",omitempty"`
-	Execute  *Execute  `json:",omitempty"`
-	Error    *Error    `json:",omitempty"`
-	Plan     *Plan     `json:",omitempty"`
-	Progress *Progress `json:",omitempty"`
-	Done     *Done     `json:",omitempty"`
-	Hello    *Hello    `json:",omitempty"`
+	Type  string
+	Ack   bool            `json:",omitempty"`
+	AckID uuid.UUID       `json:",omitempty"`
+	Data  json.RawMessage `json:",omitempty"`
 }
 
-type Header struct {
-	ID     uuid.UUID
-	NodeID uuid.UUID
-	TS     time.Time `json:"-"`
-}
+// type Plan struct {
+// 	// Must receive Ack from all nodes before this time.
+// 	ConsensusDeadline time.Time
 
-type (
-	// user commands
-	Ping    struct{}
-	Reset   struct{}
-	Execute struct{}
+// 	// Must receive PlanStart or Error before this time, otherwise all
+// 	// nodes will Error.
+// 	StartAt time.Time
 
-	Hello struct {
-		IsOldDB bool `json:",omitempty"`
-		IsNewDB bool `json:",omitempty"`
-		Status  string
-		CanExec bool `json:",omitempty"`
-	}
+// 	// All nodes should disable idle connections after this time.
+// 	DisableIdleAt time.Time
 
-	Ack struct {
-		MsgID  uuid.UUID
-		Status string
-		Exec   bool `json:",omitempty"`
-	}
+// 	// All nodes should re-enable idle connections after this time.
+// 	Deadline time.Time
+// }
 
-	// task updates
-	Progress struct {
-		MsgID   uuid.UUID
-		Details string
-	}
-	Error struct {
-		MsgID   uuid.UUID
-		Details string
-	}
-	Done struct{ MsgID uuid.UUID }
+// type Type int
 
-	Plan struct {
-		// Must receive Ack from all nodes before this time.
-		ConsensusDeadline time.Time
+// const (
+// 	Unknown Type = iota
+// 	Execute
+// 	Ping
+// )
 
-		// Must receive PlanStart or Error before this time, otherwise all
-		// nodes will Error.
-		StartAt time.Time
+// type msg struct {
+// 	Header
 
-		// All nodes should disable idle connections after this time.
-		DisableIdleAt time.Time
+// 	Ping     *Ping     `json:",omitempty"`
+// 	Reset    *Reset    `json:",omitempty"`
+// 	Execute  *Execute  `json:",omitempty"`
+// 	WaitTx   *WaitTx   `json:",omitempty"`
+// 	Ack      *Ack      `json:",omitempty"`
+// 	Error    *Error    `json:",omitempty"`
+// 	Plan     *Plan     `json:",omitempty"`
+// 	Progress *Progress `json:",omitempty"`
+// 	Done     *Done     `json:",omitempty"`
+// 	Hello    *Hello    `json:",omitempty"`
+// }
 
-		// All nodes should re-enable idle connections after this time.
-		Deadline time.Time
-	}
-)
+// type Header struct {
+// 	ID     uuid.UUID
+// 	NodeID uuid.UUID
+// 	TS     time.Time `json:"-"`
+// }
+
+// type (
+// 	Start struct {
+// 		Header `json:"-"`
+
+// 		TaskName string
+// 		TaskID   uuid.UUID
+// 		NodeID   uuid.UUID `json:",omitempty"`
+// 	}
+
+// 	// user commands
+// 	Ping struct {
+// 		Header `json:"-"`
+// 	}
+
+// 	Hello struct {
+// 		Header  `json:"-"`
+// 		IsOldDB bool `json:",omitempty"`
+// 		IsNewDB bool `json:",omitempty"`
+// 		Status  string
+// 		CanExec bool `json:",omitempty"`
+// 	}
+
+// 	Ack struct {
+// 		Header `json:"-"`
+// 		MsgID  uuid.UUID
+// 	}
+
+// 	TaskStatus struct {
+// 		Header  `json:"-"`
+// 		TaskID  uuid.UUID
+// 		Details string
+// 	}
+// 	TaskDone struct {
+// 		Header `json:"-"`
+// 		TaskID uuid.UUID
+// 		Error  string `json:",omitempty"`
+// 	}
+
+// 	Plan struct {
+// 		// Must receive Ack from all nodes before this time.
+// 		ConsensusDeadline time.Time
+
+// 		// Must receive PlanStart or Error before this time, otherwise all
+// 		// nodes will Error.
+// 		StartAt time.Time
+
+// 		// All nodes should disable idle connections after this time.
+// 		DisableIdleAt time.Time
+
+// 		// All nodes should re-enable idle connections after this time.
+// 		Deadline time.Time
+// 	}
+// )
 
 /*
 UI

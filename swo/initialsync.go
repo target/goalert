@@ -9,24 +9,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4"
-	"github.com/target/goalert/swo/swomsg"
-	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/swo/swogrp"
 )
 
-func (m *Manager) Progressf(ctx context.Context, format string, a ...interface{}) {
-	err := m.msgLog.Append(ctx, swomsg.Progress{MsgID: m.msgState.taskID, Details: fmt.Sprintf(format, a...)})
-	if err != nil {
-		log.Log(ctx, err)
-	}
-}
-
-func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) error {
-	m.Progressf(ctx, "scanning tables")
-	tables, err := ScanTables(ctx, oldConn)
-	if err != nil {
-		return fmt.Errorf("scan tables: %w", err)
-	}
-
+func (m *Manager) InitialSync(ctx context.Context, tables []Table, oldConn, newConn *pgx.Conn) error {
 	srcTx, err := oldConn.BeginTx(ctx, pgx.TxOptions{
 		AccessMode:     pgx.ReadOnly,
 		IsoLevel:       pgx.Serializable,
@@ -60,7 +46,7 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 		}
 	}
 
-	m.Progressf(ctx, "commit initial sync")
+	swogrp.Progressf(ctx, "commit initial sync")
 	// Important to validate src commit, even though it's read-only.
 	//
 	// A failure here indicates the isolation level has been violated
@@ -76,7 +62,7 @@ func (m *Manager) InitialSync(ctx context.Context, oldConn, newConn *pgx.Conn) e
 	}
 
 	// vacuum analyze new DB
-	m.Progressf(ctx, "vacuum analyze")
+	swogrp.Progressf(ctx, "vacuum analyze")
 	_, err = newConn.Exec(ctx, "vacuum analyze")
 	if err != nil {
 		return fmt.Errorf("vacuum analyze: %w", err)
@@ -123,7 +109,7 @@ func (m *Manager) SyncTableInit(origCtx context.Context, t Table, srcTx, dstTx p
 		prog := time.NewTimer(2 * time.Second)
 		defer prog.Stop()
 		for {
-			m.Progressf(origCtx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
+			swogrp.Progressf(origCtx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
 			select {
 			case <-ctx.Done():
 				pw.CloseWithError(ctx.Err())

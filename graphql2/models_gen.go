@@ -336,6 +336,7 @@ type SWONode struct {
 	OldValid bool   `json:"oldValid"`
 	NewValid bool   `json:"newValid"`
 	CanExec  bool   `json:"canExec"`
+	IsLeader bool   `json:"isLeader"`
 	Status   string `json:"status"`
 }
 

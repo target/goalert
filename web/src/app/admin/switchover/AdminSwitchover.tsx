@@ -36,6 +36,7 @@ const query = gql`
         canExec
         oldValid
         newValid
+        isLeader
       }
     }
   }
@@ -69,7 +70,7 @@ function cptlz(s: string): string {
 }
 
 export default function AdminSwitchover(): JSX.Element {
-  const { loading, error, data: _data } = useQuery(query)
+  const { loading, error, data: _data } = useQuery(query, { pollInterval: 250 })
   const data = _data?.swoStatus
   const [lastAction, setLastAction] = useState('')
   const [statusNotices, setStatusNotices] = useState<Notice[]>([])
@@ -154,7 +155,6 @@ export default function AdminSwitchover(): JSX.Element {
           <Notices notices={statusNotices.reverse()} />
         </Grid>
       )}
-
       <Grid item>
         <Card sx={{ width: '350px' }}>
           <CardHeader
@@ -210,7 +210,6 @@ export default function AdminSwitchover(): JSX.Element {
           </CardContent>
         </Card>
       </Grid>
-
       <Grid item container>
         {data?.nodes.length > 0 &&
           data.nodes

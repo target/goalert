@@ -52,6 +52,7 @@ export interface SWONode {
   oldValid: boolean
   newValid: boolean
   canExec: boolean
+  isLeader: boolean
   status: string
 }
 

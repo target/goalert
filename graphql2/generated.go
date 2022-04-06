@@ -390,6 +390,7 @@ type ComplexityRoot struct {
 	SWONode struct {
 		CanExec  func(childComplexity int) int
 		ID       func(childComplexity int) int
+		IsLeader func(childComplexity int) int
 		NewValid func(childComplexity int) int
 		OldValid func(childComplexity int) int
 		Status   func(childComplexity int) int
@@ -2622,6 +2623,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.ID(childComplexity), true
 
+	case "SWONode.isLeader":
+		if e.complexity.SWONode.IsLeader == nil {
+			break
+		}
+
+		return e.complexity.SWONode.IsLeader(childComplexity), true
+
 	case "SWONode.newValid":
 		if e.complexity.SWONode.NewValid == nil {
 			break
@@ -3636,6 +3644,7 @@ type SWONode {
   oldValid: Boolean!
   newValid: Boolean!
   canExec: Boolean!
+  isLeader: Boolean!
   status: String!
 }
 
@@ -13829,6 +13838,41 @@ func (ec *executionContext) _SWONode_canExec(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.CanExec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWONode_isLeader(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsLeader, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25356,6 +25400,16 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 		case "canExec":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._SWONode_canExec(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isLeader":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWONode_isLeader(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

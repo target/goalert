@@ -180,7 +180,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	}
 
 	if c.SWO != nil {
-		c.SWO.SetPauseResumer(app)
+		c.SWO.Init(app)
 		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
 	}
 

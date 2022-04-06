@@ -133,6 +133,7 @@ type SWONode {
   oldValid: Boolean!
   newValid: Boolean!
   canExec: Boolean!
+  isLeader: Boolean!
   status: String!
 }
 

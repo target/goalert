@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/target/goalert/lock"
 )
 
@@ -48,14 +49,7 @@ func UnlockConn(ctx context.Context, conn *pgx.Conn) {
 var errDone = errors.New("done")
 
 // sessionLock will get a shared advisory lock for the connection.
-func sessionLock(ctx context.Context, conn driver.Conn) error {
-	type execQuery interface {
-		driver.ExecerContext
-		driver.QueryerContext
-	}
-
-	c := conn.(execQuery)
-
+func sessionLock(ctx context.Context, c *stdlib.Conn) error {
 	// Using literal here so we can avoid a prepared statement round trip.
 	//
 	// This will run for every new connection in SWO mode and for every
