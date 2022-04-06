@@ -392,7 +392,7 @@ func (g *Group) sendMessageWith(ctx context.Context, log *swomsg.Log, msgType st
 }
 
 func (g *Group) Reset(ctx context.Context) error {
-	defer time.Sleep(time.Second * 2)
+	defer time.Sleep(time.Second)
 	return g.sendMessage(ctx, "reset", nil, false)
 }
 
