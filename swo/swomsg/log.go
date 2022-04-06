@@ -13,7 +13,7 @@ import (
 	"github.com/target/goalert/util/log"
 )
 
-const PollInterval = time.Second
+const PollInterval = time.Second / 3
 
 type Log struct {
 	db *sql.DB

@@ -106,7 +106,7 @@ func (m *Manager) SyncTableInit(origCtx context.Context, t Table, srcTx, dstTx p
 	var lc lineCount
 	go func() {
 		defer wg.Done()
-		prog := time.NewTimer(2 * time.Second)
+		prog := time.NewTimer(500 * time.Millisecond)
 		defer prog.Stop()
 		for {
 			swogrp.Progressf(origCtx, "syncing table %s (%d/%d)", t.Name, lc.Lines(), rowCount)
