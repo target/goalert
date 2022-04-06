@@ -42,6 +42,7 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 	{{ if not .Since.IsZero }}
 		AND closed_at >= :since
 	{{ end }}
+	ORDER BY closed_at
 `))
 
 type renderData SearchOptions
