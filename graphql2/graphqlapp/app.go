@@ -90,32 +90,6 @@ type App struct {
 	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
-func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
-	var data struct {
-		ApplicationName string
-		Version         string
-		PackageName     string
-	}
-
-	ctx := req.Context()
-
-	err := permission.LimitCheckAny(ctx)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-
-	cfg := config.FromContext(ctx)
-
-	data.ApplicationName = cfg.ApplicationName()
-	data.Version = playVersion
-	data.PackageName = playPackageName
-
-	err = playTmpl.Execute(w, data)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-}
-
 type fieldErr struct {
 	FieldName string `json:"fieldName"`
 	Message   string `json:"message"`

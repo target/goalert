@@ -8,3 +8,6 @@ prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/pr
 
 @watch-file=./web/src/webpack.config.js
 ui: yarn workspace goalert-web webpack --config ./webpack.config.js --watch
+
+@watch-file=./web/src/esbuild.config.js
+explore: yarn workspace goalert-web run esbuild --watch
