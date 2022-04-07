@@ -6,7 +6,7 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { SvgIconProps } from '@mui/material'
+import { SvgIconProps, Tooltip } from '@mui/material'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
@@ -17,10 +17,13 @@ import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
-import { SWONode as SWONodeType } from '../../../schema'
+import { SWONode as SWONodeType, SWOStatus } from '../../../schema'
 import Notices, { Notice } from '../../details/Notices'
 import SWONode from './SWONode'
 import LoadingButton from '@mui/lab/LoadingButton'
+import DatabaseOff from 'mdi-material-ui/DatabaseOff'
+import DatabaseCheck from 'mdi-material-ui/DatabaseCheck'
+import { Info } from '@mui/icons-material'
 
 const query = gql`
   query {
@@ -72,10 +75,42 @@ function cptlz(s: string): string {
 
 export default function AdminSwitchover(): JSX.Element {
   const { loading, error, data: _data } = useQuery(query, { pollInterval: 250 })
-  const data = _data?.swoStatus
+  const data = _data?.swoStatus as SWOStatus
   const [lastAction, setLastAction] = useState('')
   const [_statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [commit, mutationStatus] = useMutation(mutation)
+
+  if (error && error.message == 'not in SWO mode') {
+    return (
+      <Grid item container alignItems='center' justifyContent='center'>
+        <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
+        <Grid item>
+          <Typography color='secondary' variant='h6' style={{ marginTop: 16 }}>
+            Unavailable: Application is not in switchover mode.{' '}
+            <Tooltip
+              title='--db-url-next or GOALERT_DB_URL must be set. See SWO documentation.'
+              placement='top'
+            >
+              <Info />
+            </Tooltip>
+          </Typography>
+        </Grid>
+      </Grid>
+    )
+  }
+
+  if (data?.isDone) {
+    return (
+      <Grid item container alignItems='center' justifyContent='center'>
+        <DatabaseCheck color='primary' style={{ width: '100%', height: 256 }} />
+        <Grid item>
+          <Typography color='primary' variant='h6' style={{ marginTop: 16 }}>
+            DB switchover is complete.
+          </Typography>
+        </Grid>
+      </Grid>
+    )
+  }
 
   function actionHandler(action: 'ping' | 'reset' | 'execute'): () => void {
     return () => {
