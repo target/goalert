@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/swo/swogrp"
 )
 
 type Column struct {
@@ -25,6 +26,8 @@ var (
 
 // ScanTables scans the database for tables, their columns, and dependencies.
 func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
+	swogrp.Progressf(ctx, "scanning tables...")
+
 	var cRow struct {
 		TableName string
 		Column

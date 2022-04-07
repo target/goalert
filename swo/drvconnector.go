@@ -46,7 +46,7 @@ func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	drv.id++
 	conn := c.(*stdlib.Conn)
 
-	err = sessionLock(ctx, conn)
+	err = SessionLock(ctx, conn)
 	if errors.Is(err, swogrp.ErrDone) {
 		drv.mx.Lock()
 		drv.isDone = true

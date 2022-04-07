@@ -50,8 +50,8 @@ func UnlockConn(ctx context.Context, conn *pgx.Conn) {
 	}
 }
 
-// sessionLock will get a shared advisory lock for the connection.
-func sessionLock(ctx context.Context, c *stdlib.Conn) error {
+// SessionLock will get a shared advisory lock for the connection.
+func SessionLock(ctx context.Context, c *stdlib.Conn) error {
 	// Using literal here so we can avoid a prepared statement round trip.
 	//
 	// This will run for every new connection in SWO mode and for every

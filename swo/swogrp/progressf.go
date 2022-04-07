@@ -21,11 +21,21 @@ func withTask(ctx context.Context, grp *Group, info TaskInfo) context.Context {
 }
 
 func task(ctx context.Context) *taskCtx {
-	return ctx.Value(ctxKeyTask).(*taskCtx)
+	v := ctx.Value(ctxKeyTask)
+	if v == nil {
+		return nil
+	}
+
+	return v.(*taskCtx)
 }
 
 func Progressf(ctx context.Context, format string, args ...interface{}) {
 	t := task(ctx)
+	if t == nil {
+		// not a running task
+		return
+	}
+
 	t.TaskInfo.Status = fmt.Sprintf(format, args...)
 	err := t.sendMessage(ctx, "task-progress", t.TaskInfo, false)
 	if err != nil {
