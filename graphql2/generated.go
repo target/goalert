@@ -387,6 +387,11 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	SWOConnection struct {
+		Count func(childComplexity int) int
+		Name  func(childComplexity int) int
+	}
+
 	SWONode struct {
 		CanExec  func(childComplexity int) int
 		ID       func(childComplexity int) int
@@ -397,6 +402,7 @@ type ComplexityRoot struct {
 	}
 
 	SWOStatus struct {
+		Connections func(childComplexity int) int
 		Details     func(childComplexity int) int
 		Errors      func(childComplexity int) int
 		IsDone      func(childComplexity int) int
@@ -2610,6 +2616,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RotationConnection.PageInfo(childComplexity), true
 
+	case "SWOConnection.count":
+		if e.complexity.SWOConnection.Count == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Count(childComplexity), true
+
+	case "SWOConnection.name":
+		if e.complexity.SWOConnection.Name == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Name(childComplexity), true
+
 	case "SWONode.canExec":
 		if e.complexity.SWONode.CanExec == nil {
 			break
@@ -2651,6 +2671,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SWONode.Status(childComplexity), true
+
+	case "SWOStatus.connections":
+		if e.complexity.SWOStatus.Connections == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.Connections(childComplexity), true
 
 	case "SWOStatus.details":
 		if e.complexity.SWOStatus.Details == nil {
@@ -3646,6 +3673,13 @@ type SWOStatus {
   errors: [String!]!
 
   nodes: [SWONode!]!
+
+  connections: [SWOConnection!]!
+}
+
+type SWOConnection {
+  name: String!
+  count: Int!
 }
 
 type SWONode {
@@ -13723,6 +13757,76 @@ func (ec *executionContext) _RotationConnection_pageInfo(ctx context.Context, fi
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SWOConnection_name(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWOConnection_count(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SWONode_id(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14176,6 +14280,41 @@ func (ec *executionContext) _SWOStatus_nodes(ctx context.Context, field graphql.
 	res := resTmp.([]SWONode)
 	fc.Result = res
 	return ec.marshalNSWONode2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONodeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWOStatus_connections(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Connections, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]SWOConnection)
+	fc.Result = res
+	return ec.marshalNSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Schedule_id(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
@@ -25401,6 +25540,47 @@ func (ec *executionContext) _RotationConnection(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var sWOConnectionImplementors = []string{"SWOConnection"}
+
+func (ec *executionContext) _SWOConnection(ctx context.Context, sel ast.SelectionSet, obj *SWOConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sWOConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SWOConnection")
+		case "name":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOConnection_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOConnection_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var sWONodeImplementors = []string{"SWONode"}
 
 func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, obj *SWONode) graphql.Marshaler {
@@ -25555,6 +25735,16 @@ func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet
 		case "nodes":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._SWOStatus_nodes(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "connections":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOStatus_connections(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -29204,6 +29394,54 @@ func (ec *executionContext) unmarshalNSWOAction2githubᚗcomᚋtargetᚋgoalert�
 
 func (ec *executionContext) marshalNSWOAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOAction(ctx context.Context, sel ast.SelectionSet, v SWOAction) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx context.Context, sel ast.SelectionSet, v SWOConnection) graphql.Marshaler {
+	return ec._SWOConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx context.Context, sel ast.SelectionSet, v []SWOConnection) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNSWONode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONode(ctx context.Context, sel ast.SelectionSet, v SWONode) graphql.Marshaler {

@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 )
 
@@ -13,7 +15,11 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 		return false, validation.NewGenericError("not in SWO mode")
 	}
 
-	var err error
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return false, err
+	}
+
 	switch action {
 	case graphql2.SWOActionPing:
 		err = m.SWO.SendPing(ctx)
@@ -31,6 +37,22 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	if a.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")
+	}
+
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	var conns []graphql2.SWOConnection
+	err = sqlutil.FromContext(ctx).
+		Table("pg_stat_activity").
+		Select("application_name as name, count(*)").
+		Where("datname = current_database()").
+		Group("name").
+		Find(&conns).Error
+	if err != nil {
+		return nil, err
 	}
 
 	s := a.SWO.Status()
@@ -73,5 +95,6 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		IsResetting: strings.HasPrefix(string(s.State), "reset"),
 		Nodes:       nodes,
 		Errors:      errs,
+		Connections: conns,
 	}, nil
 }

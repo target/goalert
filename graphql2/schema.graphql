@@ -127,6 +127,13 @@ type SWOStatus {
   errors: [String!]!
 
   nodes: [SWONode!]!
+
+  connections: [SWOConnection!]!
+}
+
+type SWOConnection {
+  name: String!
+  count: Int!
 }
 
 type SWONode {
