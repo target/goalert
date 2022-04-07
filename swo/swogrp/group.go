@@ -3,6 +3,7 @@ package swogrp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -49,6 +50,8 @@ type Group struct {
 	nextDBNodes map[uuid.UUID]struct{}
 
 	ackMsgs chan map[uuid.UUID]*ackWait
+
+	resumeNow chan struct{}
 }
 
 type ackWait struct {
@@ -180,13 +183,16 @@ func (g *Group) startTask(ctx context.Context, name string, fn func(context.Cont
 	g.tasks[info.ID] = info
 	go func() {
 		err := fn(withTask(ctx, g, info))
+		if errors.Is(err, ErrDone) {
+			g.sendMessage(g.Logger.BackgroundContext(), "done", nil, false)
+			err = nil
+		}
 		if err != nil {
 			info.Error = err.Error()
 		}
 
 		err = g.sendMessage(ctx, "task-end", info, false)
 		if err != nil {
-			fmt.Print("TASK ERROR ", info.Name, "\n\n\n", err, "\n\n\n")
 			log.Log(ctx, fmt.Errorf("send task-end: %w", err))
 		}
 
@@ -203,6 +209,11 @@ func (g *Group) resetState() {
 	for id := range g.nodes {
 		delete(g.nodes, id)
 	}
+	if g.resumeNow != nil {
+		close(g.resumeNow)
+		g.resumeNow = nil
+	}
+	g.ResumeFunc(g.Logger.BackgroundContext())
 	g.failed = nil
 	g.reset = true
 	g.leader = false
@@ -293,14 +304,41 @@ func (g *Group) updateTask(msg swomsg.Message, upsert bool) error {
 	n.Tasks = filtered
 	if upsert {
 		n.Tasks = append(n.Tasks, info)
-	} else if info.Name == "reset-db" {
-		g.State = stateIdle
+	} else {
+		switch info.Name {
+		case "exec":
+			if g.resumeNow != nil {
+				close(g.resumeNow)
+				g.resumeNow = nil
+			}
+			if g.State == stateDone {
+				break
+			}
+			if info.Error == "" {
+				g.State = stateDone
+			} else {
+				g.State = stateError
+			}
+		case "reset-db":
+			if g.State == stateDone {
+				break
+			}
+			if info.Error == "" {
+				g.State = stateIdle
+			} else {
+				g.State = stateError
+			}
+		}
 	}
+
 	if info.Error != "" {
 		g.failed = append(g.failed, info)
 	}
+
 	return nil
 }
+
+var ErrDone = errors.New("already done")
 
 func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 	g.mx.Lock()
@@ -325,7 +363,12 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 	case "hello":
 		g.addNode(msg.Node, true, false, false)
 	case "ping":
+	case "done":
+		g.State = stateDone
 	case "reset":
+		if g.State == stateDone {
+			break
+		}
 		g.resetState()
 
 		if err := g.startTask(ctx, "resume", g.ResumeFunc); err != nil {
@@ -349,6 +392,10 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 			return g.startTask(ctx, "exec", g.ExecuteFunc)
 		}
 	case "pause":
+		if g.resumeNow != nil {
+			close(g.resumeNow)
+		}
+		g.resumeNow = make(chan struct{})
 		err := g.startTask(ctx, "resume-after", func(ctx context.Context) error {
 			t := time.NewTimer(15 * time.Second)
 			defer t.Stop()
@@ -356,6 +403,7 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-t.C:
+			case <-g.resumeNow:
 			}
 
 			return g.ResumeFunc(ctx)
@@ -422,6 +470,9 @@ func (g *Group) sendMessageWith(ctx context.Context, log *swomsg.Log, msgType st
 }
 
 func (g *Group) Reset(ctx context.Context) error {
+	if g.Status().State == stateDone {
+		return errors.New("cannot reset, already done")
+	}
 	defer time.Sleep(time.Second)
 	return g.sendMessage(ctx, "reset", nil, false)
 }

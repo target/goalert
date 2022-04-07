@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/target/goalert/swo/swogrp"
 )
 
 type Connector struct {
@@ -46,7 +47,7 @@ func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	conn := c.(*stdlib.Conn)
 
 	err = sessionLock(ctx, conn)
-	if errors.Is(err, errDone) {
+	if errors.Is(err, swogrp.ErrDone) {
 		drv.mx.Lock()
 		drv.isDone = true
 		drv.mx.Unlock()

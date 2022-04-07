@@ -24,17 +24,6 @@ func (m *Manager) DoReset(ctx context.Context) error {
 
 // ResetNewDB will reset the new database to a clean state.
 func ResetNewDB(ctx context.Context, conn *pgx.Conn) error {
-	err := SwitchOverExecLock(ctx, conn)
-	if err != nil {
-		return fmt.Errorf("failed to acquire lock: %w", err)
-	}
-	defer UnlockConn(ctx, conn)
-
-	_, err = conn.Exec(ctx, "update switchover_state set current_state = 'idle' where current_state = 'in_progress'")
-	if err != nil {
-		return fmt.Errorf("set state to idle: %w", err)
-	}
-
 	tables, err := ScanTables(ctx, conn)
 	if err != nil {
 		return fmt.Errorf("scan tables: %w", err)
@@ -67,13 +56,7 @@ func ResetNewDB(ctx context.Context, conn *pgx.Conn) error {
 //
 // It will remove all change triggers and cleanup switchover data.
 func ResetOldDB(ctx context.Context, conn *pgx.Conn) error {
-	err := SwitchOverExecLock(ctx, conn)
-	if err != nil {
-		return fmt.Errorf("acquire lock: %w", err)
-	}
-	defer UnlockConn(ctx, conn)
-
-	_, err = conn.Exec(ctx, "update switchover_state set current_state = 'idle' where current_state = 'in_progress'")
+	_, err := conn.Exec(ctx, "update switchover_state set current_state = 'idle' where current_state = 'in_progress'")
 	if err != nil {
 		return fmt.Errorf("set state to idle: %w", err)
 	}

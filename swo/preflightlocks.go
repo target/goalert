@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/target/goalert/lock"
+	"github.com/target/goalert/swo/swogrp"
 )
 
 var ErrNoLock = errors.New("no lock")
@@ -27,6 +28,9 @@ func SwitchOverExecLock(ctx context.Context, conn *pgx.Conn) error {
 		from switchover_state
 		where current_state != 'use_next_db'
 	`, lock.GlobalSwitchOverExec).Scan(&gotLock)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return swogrp.ErrDone
+	}
 	if err != nil {
 		return err
 	}
@@ -45,8 +49,6 @@ func UnlockConn(ctx context.Context, conn *pgx.Conn) {
 		conn.Close(ctx)
 	}
 }
-
-var errDone = errors.New("done")
 
 // sessionLock will get a shared advisory lock for the connection.
 func sessionLock(ctx context.Context, c *stdlib.Conn) error {
@@ -85,7 +87,7 @@ func sessionLock(ctx context.Context, c *stdlib.Conn) error {
 	}
 
 	if state == "use_next_db" {
-		return errDone
+		return swogrp.ErrDone
 	}
 
 	return nil

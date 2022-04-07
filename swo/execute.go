@@ -128,7 +128,6 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 			log.Log(ctx, err)
 			return fmt.Errorf("final sync: %w", err)
 		}
-		fmt.Println("DONE")
 
 		return nil
 	})
@@ -194,7 +193,6 @@ func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) 
 		}
 		seqRead.Queue("select last_value, is_called from " + sqlutil.QuoteID(name))
 		seqNames = append(seqNames, name)
-		fmt.Println(name)
 		return nil
 	})
 	if err != nil {
@@ -237,7 +235,7 @@ func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) 
 		return fmt.Errorf("get switchover state: %w", err)
 	}
 	if stat == "use_next_db" {
-		return errDone
+		return swogrp.ErrDone
 	}
 	if stat == "idle" {
 		return errors.New("not running")
