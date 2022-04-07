@@ -46,6 +46,12 @@ export interface SWOStatus {
   details: string
   errors: string[]
   nodes: SWONode[]
+  connections: SWOConnection[]
+}
+
+export interface SWOConnection {
+  name: string
+  count: number
 }
 
 export interface SWONode {

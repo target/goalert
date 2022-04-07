@@ -24,6 +24,13 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import DatabaseOff from 'mdi-material-ui/DatabaseOff'
 import DatabaseCheck from 'mdi-material-ui/DatabaseCheck'
 import { Info } from '@mui/icons-material'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Paper from '@mui/material/Paper'
 
 const query = gql`
   query {
@@ -34,6 +41,10 @@ const query = gql`
       isExecuting
       details
       errors
+      connections {
+        name
+        count
+      }
       nodes {
         id
         status
@@ -198,60 +209,92 @@ export default function AdminSwitchover(): JSX.Element {
           <Notices notices={statusNotices.reverse()} />
         </Grid>
       )}
-      <Grid item>
-        <Card sx={{ width: '350px' }}>
-          <CardHeader
-            title='Switchover Status'
-            titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
-            avatar={getIcon()}
-            subheader={getSubheader()}
-            sx={{ pb: 0 }}
-          />
-          <CardContent>
-            {getDetails()}
-            <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
-              <LoadingButton
-                startIcon={<PingIcon />}
-                variant='outlined'
-                size='large'
-                disabled={mutationStatus.loading}
-                loading={pingLoad}
-                loadingPosition='start'
-                onClick={actionHandler('ping')}
-              >
-                {pingLoad ? 'Sending ping...' : 'Ping'}
-              </LoadingButton>
-              <LoadingButton
-                startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
-                disabled={data?.isDone || mutationStatus.loading}
-                variant='outlined'
-                size='large'
-                loading={
-                  data?.isResetting ||
-                  (lastAction === 'reset' && mutationStatus.loading)
-                }
-                loadingPosition='start'
-                onClick={actionHandler('reset')}
-              >
-                {resetLoad ? 'Resetting...' : 'Reset'}
-              </LoadingButton>
-              <LoadingButton
-                startIcon={!data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />}
-                disabled={!data?.isIdle || mutationStatus.loading}
-                variant='outlined'
-                size='large'
-                loading={
-                  data?.isExecuting ||
-                  (lastAction === 'execute' && mutationStatus.loading)
-                }
-                loadingPosition='start'
-                onClick={actionHandler('execute')}
-              >
-                {executeLoad ? 'Executing...' : 'Execute'}
-              </LoadingButton>
-            </ButtonGroup>
-          </CardContent>
-        </Card>
+      <Grid item container>
+        <Grid item>
+          <Card sx={{ width: '350px' }}>
+            <CardHeader
+              title='Switchover Status'
+              titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
+              avatar={getIcon()}
+              subheader={getSubheader()}
+              sx={{ pb: 0 }}
+            />
+            <CardContent>
+              {getDetails()}
+              <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
+                <LoadingButton
+                  startIcon={<PingIcon />}
+                  variant='outlined'
+                  size='large'
+                  disabled={mutationStatus.loading}
+                  loading={pingLoad}
+                  loadingPosition='start'
+                  onClick={actionHandler('ping')}
+                >
+                  {pingLoad ? 'Sending ping...' : 'Ping'}
+                </LoadingButton>
+                <LoadingButton
+                  startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
+                  disabled={data?.isDone || mutationStatus.loading}
+                  variant='outlined'
+                  size='large'
+                  loading={
+                    data?.isResetting ||
+                    (lastAction === 'reset' && mutationStatus.loading)
+                  }
+                  loadingPosition='start'
+                  onClick={actionHandler('reset')}
+                >
+                  {resetLoad ? 'Resetting...' : 'Reset'}
+                </LoadingButton>
+                <LoadingButton
+                  startIcon={
+                    !data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />
+                  }
+                  disabled={!data?.isIdle || mutationStatus.loading}
+                  variant='outlined'
+                  size='large'
+                  loading={
+                    data?.isExecuting ||
+                    (lastAction === 'execute' && mutationStatus.loading)
+                  }
+                  loadingPosition='start'
+                  onClick={actionHandler('execute')}
+                >
+                  {executeLoad ? 'Executing...' : 'Execute'}
+                </LoadingButton>
+              </ButtonGroup>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item paddingLeft={1}>
+          <Card>
+            <CardHeader title='Database Connections' />
+            <TableContainer component={Paper}>
+              <Table size='small'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Application Name</TableCell>
+                    <TableCell align='right'>Count</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data?.connections?.map((row) => (
+                    <TableRow
+                      key={row.name || '(no name)'}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell component='th' scope='row'>
+                        {row.name || '(no name)'}
+                      </TableCell>
+                      <TableCell align='right'>{row.count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+        </Grid>
       </Grid>
       <Grid item container>
         {data?.nodes.length > 0 &&
