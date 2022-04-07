@@ -36,11 +36,8 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 		return nil, nil
 	}
 
-	// defer all constraints
-	_, err = dstTx.Exec(ctx, "SET CONSTRAINTS ALL DEFERRED")
-	if err != nil {
-		return changeIDs, fmt.Errorf("defer constraints: %w", err)
-	}
+	var b pgx.Batch
+	b.Queue("SET CONSTRAINTS ALL DEFERRED")
 
 	type pendingDelete struct {
 		query string
@@ -67,12 +64,12 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 			deletes = append(deletes, pendingDelete{table.DeleteRowsQuery(), table.IDs(sd.toDelete), len(sd.toDelete)})
 		}
 
-		err = e.applyChanges(ctx, dstTx, table.UpdateRowsQuery(), sd.toUpdate)
+		err = e.queueChanges(&b, table.UpdateRowsQuery(), sd.toUpdate)
 		if err != nil {
 			return changeIDs, fmt.Errorf("apply updates: %w", err)
 		}
 
-		err = e.applyChanges(ctx, dstTx, table.InsertRowsQuery(), sd.toInsert)
+		err = e.queueChanges(&b, table.InsertRowsQuery(), sd.toInsert)
 		if err != nil {
 			return changeIDs, fmt.Errorf("apply inserts: %w", err)
 		}
@@ -80,13 +77,17 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 
 	// handle pendingDeletes in reverse table order
 	for i := len(deletes) - 1; i >= 0; i-- {
-		t, err := dstTx.Exec(ctx, deletes[i].query, deletes[i].idArg)
-		if err != nil {
-			return changeIDs, fmt.Errorf("delete rows: %w", err)
-		}
-		if t.RowsAffected() != int64(deletes[i].count) {
-			return changeIDs, fmt.Errorf("delete rows: got %d != expected %d", t.RowsAffected(), deletes[i].count)
-		}
+		b.Queue(deletes[i].query, deletes[i].idArg)
+	}
+
+	if b.Len() == 1 {
+		// no changes (just defer constraints)
+		return nil, nil
+	}
+
+	err = dstTx.SendBatch(ctx, &b).Close()
+	if err != nil {
+		return changeIDs, fmt.Errorf("apply changes: %w", err)
 	}
 
 	return changeIDs, nil

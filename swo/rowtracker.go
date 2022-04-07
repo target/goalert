@@ -83,7 +83,7 @@ func (e *Execute) Commit() {
 
 func (e *Execute) Exists(table, id string) bool { _, ok := e.rowIDs[table][id]; return ok }
 
-func (e *Execute) applyChanges(ctx context.Context, dstTx pgxQueryer, q string, rows []syncRow) error {
+func (e *Execute) queueChanges(b *pgx.Batch, q string, rows []syncRow) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -97,18 +97,17 @@ func (e *Execute) applyChanges(ctx context.Context, dstTx pgxQueryer, q string, 
 	if err != nil {
 		return fmt.Errorf("marshal rows: %w", err)
 	}
-	t, err := dstTx.Exec(ctx, q, data)
-	if err != nil {
-		return fmt.Errorf("exec: %w", err)
-	}
-	if t.RowsAffected() != int64(len(rows)) {
-		return fmt.Errorf("mismatch: got %d rows affected; expected %d", t.RowsAffected(), len(rows))
-	}
+
+	b.Queue(q, data)
 
 	return nil
 }
 
 func (e *Execute) fetchChanges(ctx context.Context, table Table, srcTx pgxQueryer, ids []string) (*syncData, error) {
+	if len(ids) == 0 {
+		return &syncData{}, nil
+	}
+
 	rows, err := srcTx.Query(ctx, table.SelectRowsQuery(), table.IDs(ids))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &syncData{toDelete: ids}, nil

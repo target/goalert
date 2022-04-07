@@ -302,6 +302,7 @@ type syncRow struct {
 	data  json.RawMessage
 }
 type pgxQueryer interface {
+	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
 	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
