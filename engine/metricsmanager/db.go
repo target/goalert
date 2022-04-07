@@ -71,7 +71,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select (date(timezone('UTC'::text, closed_at))) from alert_metrics 
 			where  (date(timezone('UTC'::text, closed_at))) > $1::date 
 			and    (date(timezone('UTC'::text, closed_at))) < $2::date
-			order by closed_at
+			order by (date(timezone('UTC'::text, closed_at)))
 			limit 1;
 		`),
 
