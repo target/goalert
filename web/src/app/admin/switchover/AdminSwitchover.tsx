@@ -6,7 +6,7 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { SvgIconProps, Tooltip } from '@mui/material'
+import { Fade, SvgIconProps, Tooltip, Zoom } from '@mui/material'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
@@ -31,6 +31,8 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
+import { TransitionGroup } from 'react-transition-group'
+import Spinner from '../../loading/components/Spinner'
 
 const query = gql`
   query {
@@ -91,6 +93,10 @@ export default function AdminSwitchover(): JSX.Element {
   const [_statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [commit, mutationStatus] = useMutation(mutation)
 
+  if (loading) {
+    return <Spinner />
+  }
+
   if (error && error.message == 'not in SWO mode') {
     return (
       <Grid item container alignItems='center' justifyContent='center'>
@@ -112,14 +118,25 @@ export default function AdminSwitchover(): JSX.Element {
 
   if (data?.isDone) {
     return (
-      <Grid item container alignItems='center' justifyContent='center'>
-        <DatabaseCheck color='primary' style={{ width: '100%', height: 256 }} />
-        <Grid item>
-          <Typography color='primary' variant='h6' style={{ marginTop: 16 }}>
-            DB switchover is complete.
-          </Typography>
-        </Grid>
-      </Grid>
+      <TransitionGroup appear={false}>
+        <Zoom in={true} timeout={500}>
+          <Grid item container alignItems='center' justifyContent='center'>
+            <DatabaseCheck
+              color='primary'
+              style={{ width: '100%', height: 256 }}
+            />
+            <Grid item>
+              <Typography
+                color='primary'
+                variant='h6'
+                style={{ marginTop: 16 }}
+              >
+                DB switchover is complete.
+              </Typography>
+            </Grid>
+          </Grid>
+        </Zoom>
+      </TransitionGroup>
     )
   }
 
@@ -203,114 +220,124 @@ export default function AdminSwitchover(): JSX.Element {
   }
 
   return (
-    <Grid container spacing={4}>
-      {statusNotices.length > 0 && (
-        <Grid item xs={12}>
-          <Notices notices={statusNotices.reverse()} />
-        </Grid>
-      )}
-      <Grid item container>
-        <Grid item>
-          <Card sx={{ width: '350px' }}>
-            <CardHeader
-              title='Switchover Status'
-              titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
-              avatar={getIcon()}
-              subheader={getSubheader()}
-              sx={{ pb: 0 }}
-            />
-            <CardContent>
-              {getDetails()}
-              <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
-                <LoadingButton
-                  startIcon={<PingIcon />}
-                  variant='outlined'
-                  size='large'
-                  disabled={mutationStatus.loading}
-                  loading={pingLoad}
-                  loadingPosition='start'
-                  onClick={actionHandler('ping')}
-                >
-                  {pingLoad ? 'Sending ping...' : 'Ping'}
-                </LoadingButton>
-                <LoadingButton
-                  startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
-                  disabled={data?.isDone || mutationStatus.loading}
-                  variant='outlined'
-                  size='large'
-                  loading={
-                    data?.isResetting ||
-                    (lastAction === 'reset' && mutationStatus.loading)
-                  }
-                  loadingPosition='start'
-                  onClick={actionHandler('reset')}
-                >
-                  {resetLoad ? 'Resetting...' : 'Reset'}
-                </LoadingButton>
-                <LoadingButton
-                  startIcon={
-                    !data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />
-                  }
-                  disabled={!data?.isIdle || mutationStatus.loading}
-                  variant='outlined'
-                  size='large'
-                  loading={
-                    data?.isExecuting ||
-                    (lastAction === 'execute' && mutationStatus.loading)
-                  }
-                  loadingPosition='start'
-                  onClick={actionHandler('execute')}
-                >
-                  {executeLoad ? 'Executing...' : 'Execute'}
-                </LoadingButton>
-              </ButtonGroup>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item paddingLeft={1}>
-          <Card>
-            <CardHeader title='Database Connections' />
-            <TableContainer component={Paper}>
-              <Table size='small'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Application Name</TableCell>
-                    <TableCell align='right'>Count</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data?.connections?.map((row) => (
-                    <TableRow
-                      key={row.name || '(no name)'}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+    <TransitionGroup appear={false}>
+      <Fade out>
+        <Grid container spacing={4}>
+          {statusNotices.length > 0 && (
+            <Grid item xs={12}>
+              <Notices notices={statusNotices.reverse()} />
+            </Grid>
+          )}
+          <Grid item container>
+            <Grid item>
+              <Card sx={{ width: '350px' }}>
+                <CardHeader
+                  title='Switchover Status'
+                  titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
+                  avatar={getIcon()}
+                  subheader={getSubheader()}
+                  sx={{ pb: 0 }}
+                />
+                <CardContent>
+                  {getDetails()}
+                  <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
+                    <LoadingButton
+                      startIcon={<PingIcon />}
+                      variant='outlined'
+                      size='large'
+                      disabled={mutationStatus.loading}
+                      loading={pingLoad}
+                      loadingPosition='start'
+                      onClick={actionHandler('ping')}
                     >
-                      <TableCell component='th' scope='row'>
-                        {row.name || '(no name)'}
-                      </TableCell>
-                      <TableCell align='right'>{row.count}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+                      {pingLoad ? 'Sending ping...' : 'Ping'}
+                    </LoadingButton>
+                    <LoadingButton
+                      startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
+                      disabled={data?.isDone || mutationStatus.loading}
+                      variant='outlined'
+                      size='large'
+                      loading={
+                        data?.isResetting ||
+                        (lastAction === 'reset' && mutationStatus.loading)
+                      }
+                      loadingPosition='start'
+                      onClick={actionHandler('reset')}
+                    >
+                      {resetLoad ? 'Resetting...' : 'Reset'}
+                    </LoadingButton>
+                    <LoadingButton
+                      startIcon={
+                        !data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />
+                      }
+                      disabled={!data?.isIdle || mutationStatus.loading}
+                      variant='outlined'
+                      size='large'
+                      loading={
+                        data?.isExecuting ||
+                        (lastAction === 'execute' && mutationStatus.loading)
+                      }
+                      loadingPosition='start'
+                      onClick={actionHandler('execute')}
+                    >
+                      {executeLoad ? 'Executing...' : 'Execute'}
+                    </LoadingButton>
+                  </ButtonGroup>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item paddingLeft={1}>
+              <Card>
+                <CardHeader title='Database Connections' />
+                <TableContainer component={Paper}>
+                  <Table size='small'>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Application Name</TableCell>
+                        <TableCell align='right'>Count</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {data?.connections?.map((row) => (
+                        <TableRow
+                          key={row.name || '(no name)'}
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                          }}
+                        >
+                          <TableCell component='th' scope='row'>
+                            {row.name || '(no name)'}
+                          </TableCell>
+                          <TableCell align='right'>{row.count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            </Grid>
+          </Grid>
+          <Grid item container>
+            {data?.nodes.length > 0 &&
+              data.nodes
+                .slice()
+                .sort((a: SWONodeType, b: SWONodeType) => {
+                  const aName = friendlyName(a.id)
+                  const bName = friendlyName(b.id)
+                  if (aName < bName) return -1
+                  if (aName > bName) return 1
+                  return 0
+                })
+                .map((node: SWONodeType) => (
+                  <SWONode
+                    key={node.id}
+                    node={node}
+                    name={friendlyName(node.id)}
+                  />
+                ))}
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid item container>
-        {data?.nodes.length > 0 &&
-          data.nodes
-            .slice()
-            .sort((a: SWONodeType, b: SWONodeType) => {
-              const aName = friendlyName(a.id)
-              const bName = friendlyName(b.id)
-              if (aName < bName) return -1
-              if (aName > bName) return 1
-              return 0
-            })
-            .map((node: SWONodeType) => (
-              <SWONode key={node.id} node={node} name={friendlyName(node.id)} />
-            ))}
-      </Grid>
-    </Grid>
+      </Fade>
+    </TransitionGroup>
   )
 }
