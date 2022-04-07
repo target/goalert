@@ -398,6 +398,7 @@ type ComplexityRoot struct {
 
 	SWOStatus struct {
 		Details     func(childComplexity int) int
+		Errors      func(childComplexity int) int
 		IsDone      func(childComplexity int) int
 		IsExecuting func(childComplexity int) int
 		IsIdle      func(childComplexity int) int
@@ -2658,6 +2659,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWOStatus.Details(childComplexity), true
 
+	case "SWOStatus.errors":
+		if e.complexity.SWOStatus.Errors == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.Errors(childComplexity), true
+
 	case "SWOStatus.isDone":
 		if e.complexity.SWOStatus.IsDone == nil {
 			break
@@ -3635,6 +3643,7 @@ type SWOStatus {
   isExecuting: Boolean!
 
   details: String!
+  errors: [String!]!
 
   nodes: [SWONode!]!
 }
@@ -14097,6 +14106,41 @@ func (ec *executionContext) _SWOStatus_details(ctx context.Context, field graphq
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SWOStatus_errors(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Errors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SWOStatus_nodes(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
@@ -25491,6 +25535,16 @@ func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet
 		case "details":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._SWOStatus_details(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "errors":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._SWOStatus_errors(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

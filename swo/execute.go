@@ -8,7 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/lock"
 	"github.com/target/goalert/swo/swogrp"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -85,40 +87,82 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 			return fmt.Errorf("read row IDs: %w", err)
 		}
 
-		var lastNone bool
-		for ctx.Err() == nil {
-			// sync in a loop until DB is up-to-date
-			s := time.Now()
-			n, pend, err := LoopSync(ctx, rt, oldConn, newConn)
-			dur := time.Since(s)
+		err = SyncChanges(ctx, rt, oldConn, newConn)
+		if err != nil {
+			return fmt.Errorf("sync changes: %w", err)
+		}
 
-			if pend > 0 {
-				lastNone = false
-				swogrp.Progressf(ctx, "sync: %d rows pending", pend)
-			}
-			if err != nil {
-				log.Log(ctx, err)
-				rt.Rollback()
-				if n > 0 {
-					return fmt.Errorf("sync failure (commit without record): %w", err)
+		swogrp.Progressf(ctx, "pausing")
+		err = m.grp.Pause(ctx)
+		if err != nil {
+			return fmt.Errorf("pause: %w", err)
+		}
+
+		t := time.NewTicker(10 * time.Millisecond)
+		defer t.Stop()
+		for range t.C {
+			s := m.grp.Status()
+			var pausing, waiting int
+			for _, node := range s.Nodes {
+				for _, task := range node.Tasks {
+					if task.Name == "pause" {
+						pausing++
+					}
+					if task.Name == "resume-after" {
+						waiting++
+					}
 				}
-				continue
 			}
-			rt.Commit()
-			if n == 0 {
-				if !lastNone {
-					lastNone = true
-					swogrp.Progressf(ctx, "sync: waiting for changes")
-				}
-				time.Sleep(100 * time.Millisecond)
-			} else {
-				lastNone = false
-				swogrp.Progressf(ctx, "sync: %d rows replicated in %s", n, dur.Truncate(time.Millisecond))
+
+			if pausing == 0 && waiting == len(s.Nodes) {
+				break
+			}
+			if waiting == 0 {
+				return fmt.Errorf("pause failed")
 			}
 		}
 
-		return errors.New("not implemented")
+		swogrp.Progressf(ctx, "begin final sync")
+		err = FinalSync(ctx, rt, oldConn, newConn)
+		if err != nil {
+			log.Log(ctx, err)
+			return fmt.Errorf("final sync: %w", err)
+		}
+		fmt.Println("DONE")
+
+		return nil
 	})
+}
+
+func SyncChanges(ctx context.Context, rt *rowTracker, oldConn, newConn *pgx.Conn) error {
+	for ctx.Err() == nil {
+		// sync in a loop until DB is up-to-date
+		s := time.Now()
+		n, pend, err := LoopSync(ctx, rt, oldConn, newConn)
+		dur := time.Since(s)
+
+		if pend > 0 {
+			swogrp.Progressf(ctx, "sync: %d rows pending", pend)
+		}
+		if err != nil {
+			log.Log(ctx, err)
+			rt.Rollback()
+			if n > 0 {
+				return fmt.Errorf("sync failure (commit without record): %w", err)
+			}
+			continue
+		}
+		rt.Commit()
+
+		if n != 0 {
+			swogrp.Progressf(ctx, "sync: %d rows replicated in %s", n, dur.Truncate(time.Millisecond))
+			continue
+		}
+
+		return nil
+	}
+
+	return ctx.Err()
 }
 
 // DisableTriggers will disable all triggers in the new DB.
@@ -130,6 +174,120 @@ func DisableTriggers(ctx context.Context, tables []Table, conn *pgx.Conn) error 
 		}
 	}
 
+	return nil
+}
+
+func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) error {
+	var seqNames []string
+	var seqRead pgx.Batch
+	var name string
+	_, err := srcConn.QueryFunc(ctx, `
+		select sequence_name
+		from information_schema.sequences
+		where
+			sequence_catalog = current_database() and
+			sequence_schema = 'public'
+	`, nil, []interface{}{&name}, func(r pgx.QueryFuncRow) error {
+		if name == "change_log_id_seq" {
+			// skip, as it does not exist in next db
+			return nil
+		}
+		seqRead.Queue("select last_value, is_called from " + sqlutil.QuoteID(name))
+		seqNames = append(seqNames, name)
+		fmt.Println(name)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("get sequence names: %w", err)
+	}
+
+	if _, err = srcConn.Exec(ctx, "set idle_in_transaction_session_timeout = 1000"); err != nil {
+		return fmt.Errorf("set idle_in_transaction_session_timeout: %w", err)
+	}
+	if _, err = srcConn.Exec(ctx, "set lock_timeout = 3000"); err != nil {
+		return fmt.Errorf("set idle_in_transaction_session_timeout: %w", err)
+	}
+
+	// catch up
+	if err = SyncChanges(ctx, rt, srcConn, dstConn); err != nil {
+		return fmt.Errorf("sync changes: %w", err)
+	}
+
+	srcTx, err := srcConn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin src: %w", err)
+	}
+	defer srcTx.Rollback(ctx)
+
+	dstTx, err := dstConn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin dst: %w", err)
+	}
+	defer dstTx.Rollback(ctx)
+
+	swogrp.Progressf(ctx, "stop-the-world")
+	_, err = srcTx.Exec(ctx, fmt.Sprintf("select pg_advisory_xact_lock(%d)", lock.GlobalSwitchOver))
+	if err != nil {
+		return fmt.Errorf("lock global switchover: %w", err)
+	}
+
+	var stat string
+	err = srcConn.QueryRow(ctx, `select current_state from switchover_state nowait`).Scan(&stat)
+	if err != nil {
+		return fmt.Errorf("get switchover state: %w", err)
+	}
+	if stat == "use_next_db" {
+		return errDone
+	}
+	if stat == "idle" {
+		return errors.New("not running")
+	}
+
+	go swogrp.Progressf(ctx, "last sync")
+	_, err = syncChangeLog(ctx, rt, srcTx, dstTx)
+	if err != nil {
+		return fmt.Errorf("sync change log: %w", err)
+	}
+
+	res := srcTx.SendBatch(ctx, &seqRead)
+	var setSeq pgx.Batch
+	for _, name := range seqNames {
+		var last int64
+		var called bool
+		err = res.QueryRow().Scan(&last, &called)
+		if err != nil {
+			return fmt.Errorf("get sequence %s: %w", name, err)
+		}
+		setSeq.Queue("select pg_catalog.setval($1, $2, $3)", name, last, called)
+	}
+	if err = res.Close(); err != nil {
+		return fmt.Errorf("close seq batch: %w", err)
+	}
+
+	for _, t := range rt.tables {
+		setSeq.Queue("alter table " + t.QuotedName() + " enable trigger user")
+	}
+
+	err = dstTx.SendBatch(ctx, &setSeq).Close()
+	if err != nil {
+		return fmt.Errorf("set sequences: %w", err)
+	}
+
+	if err = dstTx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit dst: %w", err)
+	}
+
+	_, err = srcTx.Exec(ctx, "update switchover_state set current_state = 'use_next_db' where current_state = 'in_progress'")
+	if err != nil {
+		return fmt.Errorf("update switchover state: %w", err)
+	}
+
+	err = srcTx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("commit src: %w", err)
+	}
+
+	swogrp.Progressf(ctx, "done")
 	return nil
 }
 
@@ -164,10 +322,6 @@ func LoopSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) (
 	return len(ids), 0, nil
 }
 
-func FinalSync(ctx context.Context, oldConn, newConn *pgx.Conn) error {
-	return nil
-}
-
 func syncTx(ctx context.Context, srcConn, dstConn *pgx.Conn) (src, dst pgx.Tx, err error) {
 	srcTx, err := srcConn.BeginTx(ctx, pgx.TxOptions{
 		AccessMode:     pgx.ReadOnly,
@@ -187,7 +341,7 @@ func syncTx(ctx context.Context, srcConn, dstConn *pgx.Conn) (src, dst pgx.Tx, e
 	return srcTx, dstTx, nil
 }
 
-func syncChangeLog(ctx context.Context, rt *rowTracker, srcTx, dstTx pgx.Tx) ([]int, error) {
+func syncChangeLog(ctx context.Context, rt *rowTracker, srcTx, dstTx pgxQueryer) ([]int, error) {
 	type rowID struct {
 		table string
 		id    string
@@ -271,7 +425,7 @@ func syncChangeLog(ctx context.Context, rt *rowTracker, srcTx, dstTx pgx.Tx) ([]
 	return changeIDs, nil
 }
 
-func (rt *rowTracker) apply(ctx context.Context, dstTx pgx.Tx, q string, rows []syncRow) error {
+func (rt *rowTracker) apply(ctx context.Context, dstTx pgxQueryer, q string, rows []syncRow) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -318,8 +472,13 @@ type syncRow struct {
 	id    string
 	data  json.RawMessage
 }
+type pgxQueryer interface {
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryFunc(context.Context, string, []interface{}, []interface{}, func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error)
+}
 
-func (rt *rowTracker) fetch(ctx context.Context, table Table, srcTx pgx.Tx, ids []string) (*syncData, error) {
+func (rt *rowTracker) fetch(ctx context.Context, table Table, srcTx pgxQueryer, ids []string) (*syncData, error) {
 	rows, err := srcTx.Query(ctx, table.SelectRowsQuery(), table.IDs(ids))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &syncData{toDelete: ids}, nil

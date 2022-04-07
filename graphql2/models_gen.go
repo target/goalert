@@ -346,6 +346,7 @@ type SWOStatus struct {
 	IsResetting bool      `json:"isResetting"`
 	IsExecuting bool      `json:"isExecuting"`
 	Details     string    `json:"details"`
+	Errors      []string  `json:"errors"`
 	Nodes       []SWONode `json:"nodes"`
 }
 

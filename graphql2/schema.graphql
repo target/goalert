@@ -124,6 +124,7 @@ type SWOStatus {
   isExecuting: Boolean!
 
   details: String!
+  errors: [String!]!
 
   nodes: [SWONode!]!
 }

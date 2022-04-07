@@ -44,6 +44,7 @@ export interface SWOStatus {
   isResetting: boolean
   isExecuting: boolean
   details: string
+  errors: string[]
   nodes: SWONode[]
 }
 

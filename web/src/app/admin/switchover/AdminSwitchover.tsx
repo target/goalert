@@ -30,6 +30,7 @@ const query = gql`
       isResetting
       isExecuting
       details
+      errors
       nodes {
         id
         status
@@ -73,7 +74,7 @@ export default function AdminSwitchover(): JSX.Element {
   const { loading, error, data: _data } = useQuery(query, { pollInterval: 250 })
   const data = _data?.swoStatus
   const [lastAction, setLastAction] = useState('')
-  const [statusNotices, setStatusNotices] = useState<Notice[]>([])
+  const [_statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [commit, mutationStatus] = useMutation(mutation)
 
   function actionHandler(action: 'ping' | 'reset' | 'execute'): () => void {
@@ -85,7 +86,7 @@ export default function AdminSwitchover(): JSX.Element {
         },
         onError: (error) => {
           setStatusNotices([
-            ...statusNotices,
+            ..._statusNotices,
             {
               type: 'error',
               message: 'Failed to ' + action,
@@ -97,6 +98,13 @@ export default function AdminSwitchover(): JSX.Element {
       })
     }
   }
+
+  const statusNotices = _statusNotices.concat(
+    (data?.errors ?? []).map((message: string) => ({
+      type: 'error',
+      message,
+    })),
+  )
 
   const pingLoad = lastAction === 'ping' && mutationStatus.loading
   const resetLoad =

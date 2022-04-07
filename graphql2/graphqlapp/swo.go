@@ -60,6 +60,11 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		status += ": " + prog
 	}
 
+	var errs []string
+	for _, t := range s.Errors {
+		errs = append(errs, t.Name+": "+t.Error)
+	}
+
 	return &graphql2.SWOStatus{
 		IsIdle:      s.State == "idle",
 		IsDone:      s.State == "done",
@@ -67,5 +72,6 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		IsExecuting: strings.HasPrefix(string(s.State), "exec"),
 		IsResetting: strings.HasPrefix(string(s.State), "reset"),
 		Nodes:       nodes,
+		Errors:      errs,
 	}, nil
 }

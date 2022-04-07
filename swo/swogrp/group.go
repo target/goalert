@@ -37,6 +37,8 @@ type Group struct {
 	Config
 	State
 
+	failed []TaskInfo
+
 	nodeID uuid.UUID
 	reset  bool
 	nodes  map[uuid.UUID]*Node
@@ -99,8 +101,9 @@ func NewGroup(cfg Config) *Group {
 }
 
 type Status struct {
-	Nodes []Node
-	State State
+	Nodes  []Node
+	State  State
+	Errors []TaskInfo
 }
 
 func cloneTasks(in []TaskInfo) []TaskInfo {
@@ -121,9 +124,13 @@ func (g *Group) Status() Status {
 		nodes = append(nodes, cpy)
 	}
 
+	failed := make([]TaskInfo, len(g.failed))
+	copy(failed, g.failed)
+
 	return Status{
-		Nodes: nodes,
-		State: g.State,
+		Nodes:  nodes,
+		State:  g.State,
+		Errors: failed,
 	}
 }
 
@@ -179,6 +186,7 @@ func (g *Group) startTask(ctx context.Context, name string, fn func(context.Cont
 
 		err = g.sendMessage(ctx, "task-end", info, false)
 		if err != nil {
+			fmt.Print("TASK ERROR ", info.Name, "\n\n\n", err, "\n\n\n")
 			log.Log(ctx, fmt.Errorf("send task-end: %w", err))
 		}
 
@@ -195,6 +203,7 @@ func (g *Group) resetState() {
 	for id := range g.nodes {
 		delete(g.nodes, id)
 	}
+	g.failed = nil
 	g.reset = true
 	g.leader = false
 	g.State = stateReset
@@ -287,6 +296,9 @@ func (g *Group) updateTask(msg swomsg.Message, upsert bool) error {
 	} else if info.Name == "reset-db" {
 		g.State = stateIdle
 	}
+	if info.Error != "" {
+		g.failed = append(g.failed, info)
+	}
 	return nil
 }
 
@@ -337,7 +349,25 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 			return g.startTask(ctx, "exec", g.ExecuteFunc)
 		}
 	case "pause":
-		return g.startTask(ctx, "pause", g.PauseFunc)
+		err := g.startTask(ctx, "resume-after", func(ctx context.Context) error {
+			t := time.NewTimer(15 * time.Second)
+			defer t.Stop()
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-t.C:
+			}
+
+			return g.ResumeFunc(ctx)
+		})
+		if err != nil {
+			return err
+		}
+
+		err = g.startTask(ctx, "pause", g.PauseFunc)
+		if err != nil {
+			return err
+		}
 	default:
 	}
 
@@ -406,4 +436,8 @@ func (g *Group) Execute(ctx context.Context) error {
 	}
 
 	return g.sendMessage(ctx, "exec", nil, true)
+}
+
+func (g *Group) Pause(ctx context.Context) error {
+	return g.sendMessage(ctx, "pause", nil, true)
 }
