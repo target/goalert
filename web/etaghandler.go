@@ -56,7 +56,7 @@ func (e *etagHandler) etag(name string) string {
 
 func (e *etagHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if tag := e.etag(req.URL.Path); tag != "" {
-		w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", tag)
 	}
 

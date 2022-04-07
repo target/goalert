@@ -77,7 +77,7 @@ func serveTemplate(uiDir string, w http.ResponseWriter, req *http.Request, tmpl 
 	w.Header().Set("ETag", etagValue)
 
 	if uiDir == "" {
-		w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		w.Header().Set("Cache-Control", "private, max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 	} else {
 		w.Header().Set("Cache-Control", "no-store")
 	}
