@@ -166,14 +166,24 @@ func SyncChanges(ctx context.Context, rt *rowTracker, oldConn, newConn *pgx.Conn
 
 // DisableTriggers will disable all triggers in the new DB.
 func DisableTriggers(ctx context.Context, tables []Table, conn *pgx.Conn) error {
+	var send pgx.Batch
+
 	for _, table := range tables {
-		_, err := conn.Exec(ctx, fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER USER", table.QuotedName()))
-		if err != nil {
-			return fmt.Errorf("%s: %w", table.Name, err)
-		}
+		send.Queue(fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER USER", table.QuotedName()))
 	}
 
-	return nil
+	return conn.SendBatch(ctx, &send).Close()
+}
+
+// EnableTriggers will re-enable triggers in the new DB.
+func EnableTriggers(ctx context.Context, tables []Table, conn *pgx.Conn) error {
+	var send pgx.Batch
+
+	for _, table := range tables {
+		send.Queue(fmt.Sprintf("ALTER TABLE %s ENABLE TRIGGER USER", table.QuotedName()))
+	}
+
+	return conn.SendBatch(ctx, &send).Close()
 }
 
 func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) error {
@@ -262,10 +272,6 @@ func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) 
 		return fmt.Errorf("close seq batch: %w", err)
 	}
 
-	for _, t := range rt.tables {
-		setSeq.Queue("alter table " + t.QuotedName() + " enable trigger user")
-	}
-
 	err = dstTx.SendBatch(ctx, &setSeq).Close()
 	if err != nil {
 		return fmt.Errorf("set sequences: %w", err)
@@ -273,6 +279,10 @@ func FinalSync(ctx context.Context, rt *rowTracker, srcConn, dstConn *pgx.Conn) 
 
 	if err = dstTx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit dst: %w", err)
+	}
+
+	if err = EnableTriggers(ctx, rt.tables, dstConn); err != nil {
+		return fmt.Errorf("enable triggers: %w", err)
 	}
 
 	_, err = srcTx.Exec(ctx, "update switchover_state set current_state = 'use_next_db' where current_state = 'in_progress'")
