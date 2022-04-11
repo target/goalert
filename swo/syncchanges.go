@@ -36,8 +36,8 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 		return nil, nil
 	}
 
-	var b pgx.Batch
-	b.Queue("SET CONSTRAINTS ALL DEFERRED")
+	var applyChanges pgx.Batch
+	applyChanges.Queue("SET CONSTRAINTS ALL DEFERRED")
 
 	type pendingDelete struct {
 		query string
@@ -46,17 +46,27 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 	}
 	var deletes []pendingDelete
 
-	// go in insert order for fetching updates/inserts, note deleted rows
+	var queryChanges pgx.Batch
+	var changedTables []Table
 	for _, table := range e.tables {
 		if table.SkipSync() {
 			continue
 		}
-
-		if len(rowIDs[table.Name]) == 0 {
+		ids := rowIDs[table.Name]
+		if len(ids) == 0 {
 			continue
 		}
 
-		sd, err := e.fetchChanges(ctx, table, srcTx, rowIDs[table.Name])
+		queryChanges.Queue(table.SelectRowsQuery(), table.IDs(ids))
+		changedTables = append(changedTables, table)
+	}
+
+	res := srcTx.SendBatch(ctx, &queryChanges)
+	defer res.Close()
+
+	// go in insert order for fetching updates/inserts, note deleted rows
+	for _, table := range changedTables {
+		sd, err := e.readChanges(ctx, table, res, rowIDs[table.Name])
 		if err != nil {
 			return changeIDs, fmt.Errorf("fetch changed rows: %w", err)
 		}
@@ -64,12 +74,12 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 			deletes = append(deletes, pendingDelete{table.DeleteRowsQuery(), table.IDs(sd.toDelete), len(sd.toDelete)})
 		}
 
-		err = e.queueChanges(&b, table.UpdateRowsQuery(), sd.toUpdate)
+		err = e.queueChanges(&applyChanges, table.UpdateRowsQuery(), sd.toUpdate)
 		if err != nil {
 			return changeIDs, fmt.Errorf("apply updates: %w", err)
 		}
 
-		err = e.queueChanges(&b, table.InsertRowsQuery(), sd.toInsert)
+		err = e.queueChanges(&applyChanges, table.InsertRowsQuery(), sd.toInsert)
 		if err != nil {
 			return changeIDs, fmt.Errorf("apply inserts: %w", err)
 		}
@@ -77,15 +87,15 @@ func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]i
 
 	// handle pendingDeletes in reverse table order
 	for i := len(deletes) - 1; i >= 0; i-- {
-		b.Queue(deletes[i].query, deletes[i].idArg)
+		applyChanges.Queue(deletes[i].query, deletes[i].idArg)
 	}
 
-	if b.Len() == 1 {
+	if applyChanges.Len() == 1 {
 		// no changes (just defer constraints)
 		return nil, nil
 	}
 
-	err = dstTx.SendBatch(ctx, &b).Close()
+	err = dstTx.SendBatch(ctx, &applyChanges).Close()
 	if err != nil {
 		return changeIDs, fmt.Errorf("apply changes: %w", err)
 	}

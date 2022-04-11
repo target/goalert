@@ -103,12 +103,8 @@ func (e *Execute) queueChanges(b *pgx.Batch, q string, rows []syncRow) error {
 	return nil
 }
 
-func (e *Execute) fetchChanges(ctx context.Context, table Table, srcTx pgxQueryer, ids []string) (*syncData, error) {
-	if len(ids) == 0 {
-		return &syncData{}, nil
-	}
-
-	rows, err := srcTx.Query(ctx, table.SelectRowsQuery(), table.IDs(ids))
+func (e *Execute) readChanges(ctx context.Context, table Table, res pgx.BatchResults, ids []string) (*syncData, error) {
+	rows, err := res.Query()
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &syncData{toDelete: ids}, nil
 	}

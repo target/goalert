@@ -159,9 +159,10 @@ func (g *Group) loopMainLog() {
 	buf := newMsgBuf()
 	go func() {
 		for msg := range buf.Next() {
-			err := g.processMessage(g.Logger.BackgroundContext(), msg)
+			ctx := g.Logger.BackgroundContext()
+			err := g.processMessage(ctx, msg)
 			if err != nil {
-				g.Logger.Error(context.Background(), fmt.Errorf("process message: %w", err))
+				g.Logger.Error(ctx, fmt.Errorf("process message: %w", err))
 			}
 		}
 	}()
