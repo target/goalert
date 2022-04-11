@@ -130,7 +130,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
       (props, ref) => (
-        <li>
+        <li role={infiniteScroll ? 'article' : undefined} aria-setsize={-1}>
           <AppLink ref={ref} {...props} />
         </li>
       ),
@@ -193,7 +193,15 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderList(): ReactElement {
-    return <List data-cy='apollo-list'>{renderListItems()}</List>
+    return (
+      <List
+        role={infiniteScroll ? 'feed' : undefined}
+        aria-busy={isLoading}
+        data-cy='apollo-list'
+      >
+        {renderListItems()}
+      </List>
+    )
   }
 
   function renderAsInfiniteScroll(): ReactElement {
