@@ -29,9 +29,7 @@ func newRateLimiter(bps int, latency, jitter time.Duration) *rateLimiter {
 	}
 }
 
-func (r *rateLimiter) WaitFor(count int) {
-	delay := r.latency - (r.jitter / 2) + time.Duration(rand.Float64()*float64(r.jitter))
-	s := time.Now()
+func (r *rateLimiter) WaitFor(count int) time.Duration {
 	var n int
 	for n < count {
 		select {
@@ -44,7 +42,7 @@ func (r *rateLimiter) WaitFor(count int) {
 	if n > count {
 		r.overflow <- n - count
 	}
-	time.Sleep(delay - time.Since(s))
+	return (r.latency - (r.jitter / 2) + time.Duration(rand.Float64()*float64(r.jitter))) / 2
 }
 
 func (r *rateLimiter) NewWriter(w io.Writer) io.Writer {
@@ -60,6 +58,8 @@ type rateLimitWriter struct {
 }
 
 func (w *rateLimitWriter) Write(p []byte) (int, error) {
-	w.l.WaitFor(len(p))
+	dur := w.l.WaitFor(len(p))
+	time.Sleep(dur)
+	defer time.Sleep(dur)
 	return w.w.Write(p)
 }
