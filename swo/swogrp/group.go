@@ -42,6 +42,7 @@ type Group struct {
 
 	nodeID uuid.UUID
 	reset  bool
+	resetS time.Time
 	nodes  map[uuid.UUID]*Node
 	tasks  map[uuid.UUID]TaskInfo
 	leader bool
@@ -130,6 +131,10 @@ func (g *Group) Status() Status {
 	failed := make([]TaskInfo, len(g.failed))
 	copy(failed, g.failed)
 
+	if g.State == stateReset && time.Since(g.resetS) > time.Minute {
+		g.State = stateNeedsReset
+	}
+
 	return Status{
 		Nodes:  nodes,
 		State:  g.State,
@@ -216,6 +221,7 @@ func (g *Group) resetState() {
 	g.ResumeFunc(g.Logger.BackgroundContext())
 	g.failed = nil
 	g.reset = true
+	g.resetS = time.Now()
 	g.leader = false
 	g.State = stateReset
 	for _, t := range g.tasks {
