@@ -201,6 +201,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     return (
       <InfiniteScroll
+        initialScrollY={0}
         hasMore={Boolean(loadMore)}
         next={
           loadMore ||
