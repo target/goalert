@@ -16,10 +16,9 @@ type rateLimiter struct {
 func newRateLimiter(bps int, latency, jitter time.Duration) *rateLimiter {
 	ch := make(chan int)
 	go func() {
-		bpt := bps / 100
-		t := time.NewTicker(10 * time.Millisecond)
+		t := time.NewTicker(time.Second)
 		for range t.C {
-			ch <- bpt
+			ch <- bps
 		}
 	}()
 	return &rateLimiter{
