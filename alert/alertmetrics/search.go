@@ -37,12 +37,12 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 		AND service_id = any(:services)
 	{{end}}
 	{{ if not .Until.IsZero }}
-		AND closed_at < :until
+		AND (date(timezone('UTC'::text, closed_at))) < :until
 	{{ end }}
 	{{ if not .Since.IsZero }}
-		AND closed_at >= :since
+		AND (date(timezone('UTC'::text, closed_at))) >= :since
 	{{ end }}
-	ORDER BY closed_at
+	ORDER BY (date(timezone('UTC'::text, closed_at)))
 `))
 
 type renderData SearchOptions
