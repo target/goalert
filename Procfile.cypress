@@ -13,3 +13,6 @@ proxy: go run ./devtools/simpleproxy -addr=localhost:3040 /slack/=http://localho
 cypress: go run ./devtools/waitfor http://localhost:3042 && CYPRESS_DB_URL=postgres://postgres@localhost:5433 yarn workspace goalert-web cypress open --config baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX
 
 db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
+
+@watch-file=./web/src/esbuild.config.js
+explore: yarn workspace goalert-web run esbuild --watch
