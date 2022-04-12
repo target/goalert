@@ -15,9 +15,13 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	scanLogs *sql.Stmt
+	boundNow *sql.Stmt
 
+	scanLogs      *sql.Stmt
 	insertMetrics *sql.Stmt
+
+	nextDailyMetricsDate *sql.Stmt
+	insertDailyMetrics   *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -39,10 +43,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
+		// NOTE: this buffer provides time for in-flight requests to settle
+		boundNow: p.P(`select now() - '2 minutes'::interval`),
+
 		scanLogs: p.P(`
 			select alert_id, timestamp, id 
 			from alert_logs 
-			where event='closed' and (timestamp > $1 and timestamp < now() - '2 minutes'::interval or (timestamp = $1 and id > $2)) 
+			where event='closed' and timestamp < $3 and (timestamp > $1 or (timestamp = $1 and id > $2)) 
 			order by timestamp, id 
 			limit 500`),
 
@@ -58,6 +65,28 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from alerts a
 			where a.id = any($1) and a.service_id is not null
 			on conflict do nothing
+		`),
+
+		nextDailyMetricsDate: p.P(`
+			select (date(timezone('UTC'::text, closed_at))) from alert_metrics 
+			where  (date(timezone('UTC'::text, closed_at))) > $1::date 
+			and    (date(timezone('UTC'::text, closed_at))) < $2::date
+			order by (date(timezone('UTC'::text, closed_at)))
+			limit 1;
+		`),
+
+		insertDailyMetrics: p.P(`
+			insert into daily_alert_metrics (date, service_id, alert_count, avg_time_to_ack, avg_time_to_close, escalated_count)
+			select 
+				$1::date, 
+				service_id, 
+				count(*), 
+				avg(time_to_ack), 
+				avg(time_to_close), 
+				count(*) filter (where escalated=true)
+			from alert_metrics
+			where (date(timezone('UTC'::text, closed_at))) = $1
+			group by service_id;
 		`),
 	}, p.Err
 }
