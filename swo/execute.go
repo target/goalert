@@ -81,7 +81,7 @@ func (m *Manager) DoExecute(ctx context.Context) error {
 		exec.PauseApps(ctx)
 		exec.FinalSync(ctx)
 
-		return nil
+		return exec.readErr()
 	})
 }
 
@@ -199,7 +199,7 @@ func (e *Execute) FinalSync(ctx context.Context) {
 	e.Progressf(ctx, "finalizing")
 
 	// set timeouts before waiting on locks
-	e.exec(ctx, e.mainDBConn, "set idle_in_transaction_session_timeout = 1000")
+	e.exec(ctx, e.mainDBConn, "set idle_in_transaction_session_timeout = 3000")
 	e.exec(ctx, e.mainDBConn, "set lock_timeout = 3000")
 	e.SyncLoop(ctx)
 	if e.err != nil {

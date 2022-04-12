@@ -66,7 +66,7 @@ func (e *Execute) SyncLoop(ctx context.Context) {
 		}
 		e.Commit()
 
-		if n != 0 {
+		if n > 10 {
 			e.Progressf(ctx, "sync: %d rows replicated in %s", n, dur.Truncate(time.Millisecond))
 			continue
 		}
