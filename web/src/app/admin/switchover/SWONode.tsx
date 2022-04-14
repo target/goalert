@@ -32,7 +32,7 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
             <React.Fragment>
               <Divider />
               <Typography color={theme.palette.secondary.main} sx={{ p: 2 }}>
-                Status: {node.status}
+                Status: {node.status || 'Unknown'}
               </Typography>
               <Divider />
             </React.Fragment>
