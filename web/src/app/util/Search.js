@@ -135,6 +135,9 @@ export default function Search(props) {
                 aria-label='Cancel'
                 data-cy='close-search'
                 size='large'
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+                })}
               >
                 <CloseIcon />
               </IconButton>
