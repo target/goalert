@@ -48,7 +48,7 @@ require('esbuild')
       '.png': 'file',
       '.webp': 'file',
       '.js': 'jsx',
-      '.svg': 'file',
+      '.svg': 'dataurl',
       '.md': 'text',
     },
     watch: process.argv.includes('--watch'),
