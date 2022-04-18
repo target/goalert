@@ -33,7 +33,7 @@ const dynamicPublicPathPlugin = {
 
 require('esbuild')
   .build({
-    entryPoints: ['explore/explore.tsx'],
+    entryPoints: { explore: 'explore/explore.tsx', app: 'app/index.tsx' },
     outdir: 'build/static/',
     logLevel: 'info',
     bundle: true,
@@ -48,6 +48,8 @@ require('esbuild')
       '.png': 'file',
       '.webp': 'file',
       '.js': 'jsx',
+      '.svg': 'file',
+      '.md': 'text',
     },
     watch: process.argv.includes('--watch'),
   })

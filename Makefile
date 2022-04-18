@@ -160,12 +160,11 @@ node_modules/.yarn-integrity: yarn.lock Makefile
 node_modules: yarn.lock node_modules/.yarn-integrity
 	touch -c $@
 
-web/src/build/static/explore.js: node_modules $(shell find ./web/src/explore -type f) web/src/package.json
-	yarn workspace goalert-web esbuild
+web/src/build/static/explore.js: web/src/build/static/app.js
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
+web/src/build/static/app.js: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts web/src/package.json
 	rm -rf web/src/build/static
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web webpack --config webpack.prod.config.js
+	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web esbuild
 
 notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
