@@ -44,6 +44,7 @@ require('esbuild')
     minify: isProdBuild,
     sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
+    target: ['chrome80', 'firefox99', 'safari12', 'edge79'],
     loader: {
       '.png': 'file',
       '.webp': 'file',
@@ -53,4 +54,7 @@ require('esbuild')
     },
     watch: process.argv.includes('--watch'),
   })
-  .catch(() => process.exit(1))
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
