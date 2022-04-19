@@ -45,6 +45,9 @@ require('esbuild')
     sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
     target: ['chrome80', 'firefox99', 'safari12', 'edge79'],
+    banner: {
+      js: `var GOALERT_VERSION=${JSON.stringify(process.env.GOALERT_VERSION)};`,
+    },
     loader: {
       '.png': 'file',
       '.webp': 'file',
