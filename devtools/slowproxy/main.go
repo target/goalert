@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	rateOut := flag.Int("o", 0, "Max data rate (in bytes/sec) to DB.")
-	rateIn := flag.Int("i", 0, "Max data rate (in bytes/sec) from DB.")
+	rateOut := flag.Int("o", 0, "Max data rate (in bytes/sec) from client to server.")
+	rateIn := flag.Int("i", 0, "Max data rate (in bytes/sec) from server to client.")
 	latency := flag.Duration("d", 0, "Min latency (one-way).")
 	jitter := flag.Duration("j", 0, "Jitter in (random +/- to latency).")
 	l := flag.String("l", "localhost:5435", "Listen address.")
-	c := flag.String("c", "localhost:5432", "Connect address.")
+	c := flag.String("c", "localhost:5432", "Server connect address.")
 	flag.Parse()
 	log.SetFlags(log.Lshortfile)
 
