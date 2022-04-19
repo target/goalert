@@ -26,7 +26,6 @@ function AdminDialog(props) {
 
   return (
     <FormDialog
-      disableGutters
       title={`Apply Configuration Change${changes.length > 1 ? 's' : ''}?`}
       onClose={props.onClose}
       onSubmit={() =>

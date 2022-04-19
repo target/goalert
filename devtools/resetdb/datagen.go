@@ -342,7 +342,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	}
 	d.Alerts = append(d.Alerts, alert.Alert{
 		ID:        len(d.Alerts) + 1,
-		CreatedAt: gofakeit.DateRange(time.Now().Add(-2*time.Hour), time.Now().Add(-1*time.Hour)),
+		CreatedAt: gofakeit.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
 		Summary:   d.ids.Gen(func() string { return gofakeit.Sentence(rand.Intn(10) + 3) }, serviceID),

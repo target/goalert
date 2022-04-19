@@ -1,27 +1,19 @@
 import { testScreen } from '../support'
 
 function testPlayground(): void {
-  describe('Creation', () => {
+  describe('Navigation', () => {
     beforeEach(() => {
       cy.visit('/api/graphql/explore')
     })
 
-    it('should show docs', () => {
-      // open docs
-      cy.get('div').contains('Docs').click()
-      cy.get('body').should('contain', 'user(...): User')
-
-      // close docs
-      cy.get('div').contains('Schema').click()
-    })
-
-    it('should show schema', () => {
-      // open schema
-      cy.get('div').contains('Schema').click()
-      cy.get('body').should('contain', 'type Alert {')
-
-      // close schema
-      cy.get('div').contains('Schema').click()
+    it('should open, click around, and close docs', () => {
+      cy.get('.docExplorerShow').click()
+      cy.get('.doc-explorer').contains('Documentation Explorer')
+      cy.get('.doc-explorer').contains('Query').click()
+      cy.get('.doc-explorer').contains('alert').click()
+      cy.get('.docExplorerHide').click()
+      cy.get('.docExplorerHide').should('not.exist')
+      cy.get('.docExplorerShow').should('exist')
     })
   })
 }
