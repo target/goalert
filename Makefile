@@ -166,7 +166,7 @@ web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web esbuild
+	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
 
 web/src/build/static/app.js: web/src/build/static
 	
