@@ -108,6 +108,9 @@ export default function Search(props) {
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
           size='large'
+          sx={(theme) => ({
+            color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+          })}
         >
           <SearchIcon />
         </IconButton>
@@ -132,6 +135,9 @@ export default function Search(props) {
                 aria-label='Cancel'
                 data-cy='close-search'
                 size='large'
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+                })}
               >
                 <CloseIcon />
               </IconButton>

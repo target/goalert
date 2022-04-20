@@ -44,6 +44,9 @@ function ToolbarAction(props) {
           data-cy='nav-menu-icon'
           onClick={() => props.openMobileSidebar(true)}
           size='large'
+          sx={(theme) => ({
+            color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+          })}
         >
           <MenuIcon />
         </IconButton>
