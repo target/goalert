@@ -17,8 +17,10 @@ const QUERY_LIMIT = 35
 const query = gql`
   query getAlert($id: Int!, $input: AlertRecentEventsOptions) {
     alert(id: $id) {
+      id
       recentEvents(input: $input) {
         nodes {
+          id
           timestamp
           message
           state {
@@ -49,7 +51,11 @@ export default function AlertDetailLogs(props) {
     variables: { id: props.alertID, input: { limit: QUERY_LIMIT } },
   })
 
-  const events = _.get(data, 'alert.recentEvents.nodes', [])
+  const events = _.orderBy(
+    data?.alert?.recentEvents?.nodes ?? [],
+    ['timestamp'],
+    ['desc'],
+  )
   const pageInfo = _.get(data, 'alert.recentEvents.pageInfo', {})
 
   const doFetchMore = () => {
