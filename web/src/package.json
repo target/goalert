@@ -80,7 +80,6 @@
     "@types/react-big-calendar": "0.38.0",
     "@types/react-csv": "1.1.2",
     "@types/react-dom": "18.0.1",
-    "@types/react-redux": "7.1.18",
     "babel-jest": "27.5.0",
     "babel-loader": "8.2.2",
     "babel-plugin-transform-class-properties": "6.24.1",
