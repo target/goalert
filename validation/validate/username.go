@@ -3,7 +3,7 @@ package validate
 import "github.com/target/goalert/validation"
 
 // Username will validate a username to ensure it is between 3 and 24 characters,
-// and only contains lower-case ASCII letters and numbers.
+// and only contains lower-case ASCII letters, numbers, and '-', '_', and '.'.
 func Username(fname, value string) error {
 	b := []byte(value)
 	l := len(b)
@@ -21,8 +21,11 @@ func Username(fname, value string) error {
 		if c >= '0' && c <= '9' {
 			continue
 		}
+		if c == '-' || c == '_' || c == '.' {
+			continue
+		}
 
-		return validation.NewFieldError(fname, "can only contain lower-case letters and digits")
+		return validation.NewFieldError(fname, "can only contain lower-case letters, digits, and the characters '-', '_', and '.'")
 	}
 
 	return nil
