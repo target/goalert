@@ -13,6 +13,16 @@ function validateA11y(selector = 'main[id="content"]', inject = true): void {
   if (inject) cy.injectAxe()
   cy.checkA11y(selector, {
     includedImpacts: ['critical'], // only report and assert for critical impact items
+    runOnly: [
+      'wcag2a',
+      'wcag2aa',
+      'wcag2aaa',
+      'wcag21a',
+      'wcag21aa',
+      'wcag21aaa',
+      'best-practice',
+      'wcag***',
+    ],
   })
 }
 
