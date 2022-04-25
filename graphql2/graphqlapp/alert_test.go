@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -15,7 +15,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	loc, err := time.LoadLocation("America/Chicago")
 	require.NoError(t, err)
 
-	check := func(desc string, r timeutil.ISORInterval, data []alert.MetricRecord, exp []int) {
+	check := func(desc string, r timeutil.ISORInterval, data []alertmetrics.Record, exp []int) {
 		t.Helper()
 		actual := []int{}
 		for _, val := range splitRangeByDuration(r, data) {
@@ -29,10 +29,10 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	// Jan 2 has 2 alerts at 12am and 1am
 	// Jan 3 has 3 alerts at 12, 1, and 2 am
 	// ...
-	jan := []alert.MetricRecord{}
+	jan := []alertmetrics.Record{}
 	for day := 0; day < 20; day++ {
 		for hour := 0; hour <= day; hour++ {
-			jan = append(jan, alert.MetricRecord{
+			jan = append(jan, alertmetrics.Record{
 				ClosedAt: time.Date(2000, time.January, day, hour, 0, 0, 0, loc),
 			})
 		}
@@ -45,7 +45,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 			Start:  time.Date(2000, time.January, 0, 0, 0, 0, 0, loc),
 			Period: timeutil.ISODuration{Days: 7},
 		},
-		[]alert.MetricRecord{},
+		[]alertmetrics.Record{},
 		[]int{0, 0, 0, 0, 0},
 	)
 

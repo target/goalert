@@ -192,7 +192,7 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 
 // splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alert metrics.
 // The given metrics are required to be sorted by their ClosedAt field.
-func splitRangeByDuration(r timeutil.ISORInterval, metrics []alert.MetricRecord) (result []graphql2.AlertDataPoint) {
+func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record) (result []graphql2.AlertDataPoint) {
 	if r.Period.IsZero() {
 		// should be handled by ISORInterval parsing/validation, but just in case
 		// prefer panic to infinite loop

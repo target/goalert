@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
@@ -63,7 +62,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]alert.MetricRecord, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Record, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -88,9 +87,9 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]alert.Metric
 	}
 	defer rows.Close()
 
-	metrics := make([]alert.MetricRecord, 0)
+	metrics := make([]Record, 0)
 	for rows.Next() {
-		var dp alert.MetricRecord
+		var dp Record
 		err := rows.Scan(&dp.AlertID, &dp.ServiceID, &dp.ClosedAt)
 		if err != nil {
 			return nil, err
