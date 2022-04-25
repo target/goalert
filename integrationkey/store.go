@@ -15,19 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Store interface {
-	Authorize(ctx context.Context, tok authtoken.Token, integrationType Type) (context.Context, error)
-	GetServiceID(ctx context.Context, id string, integrationType Type) (string, error)
-	Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error)
-	CreateKeyTx(context.Context, *sql.Tx, *IntegrationKey) (*IntegrationKey, error)
-	FindOne(ctx context.Context, id string) (*IntegrationKey, error)
-	FindAllByService(ctx context.Context, id string) ([]IntegrationKey, error)
-	Delete(ctx context.Context, id string) error
-	DeleteTx(ctx context.Context, tx *sql.Tx, id string) error
-	DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error
-}
-
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	getServiceID     *sql.Stmt
@@ -37,10 +25,10 @@ type DB struct {
 	delete           *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db: db,
 
 		getServiceID:     p.P("SELECT service_id FROM integration_keys WHERE id = $1 AND type = $2"),
@@ -51,11 +39,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
+func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
 	var serviceID string
 	var err error
 	permission.SudoContext(ctx, func(c context.Context) {
-		serviceID, err = db.GetServiceID(c, tok.ID.String(), t)
+		serviceID, err = s.GetServiceID(c, tok.ID.String(), t)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return ctx, validation.NewFieldError("IntegrationKeyID", "not found")
@@ -70,7 +58,7 @@ func (db *DB) Authorize(ctx context.Context, tok authtoken.Token, t Type) (conte
 	return ctx, nil
 }
 
-func (db *DB) GetServiceID(ctx context.Context, id string, t Type) (string, error) {
+func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, error) {
 	err := validate.Many(
 		validate.UUID("IntegrationKeyID", id),
 		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail),
@@ -83,7 +71,7 @@ func (db *DB) GetServiceID(ctx context.Context, id string, t Type) (string, erro
 		return "", err
 	}
 
-	row := db.getServiceID.QueryRowContext(ctx, id, t)
+	row := s.getServiceID.QueryRowContext(ctx, id, t)
 
 	var serviceID string
 	err = row.Scan(&serviceID)
@@ -97,11 +85,11 @@ func (db *DB) GetServiceID(ctx context.Context, id string, t Type) (string, erro
 	return serviceID, nil
 }
 
-func (db *DB) Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error) {
-	return db.CreateKeyTx(ctx, nil, i)
+func (s *Store) Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error) {
+	return s.CreateKeyTx(ctx, nil, i)
 }
 
-func (db *DB) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*IntegrationKey, error) {
+func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*IntegrationKey, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
@@ -112,7 +100,7 @@ func (db *DB) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*
 		return nil, err
 	}
 
-	stmt := db.create
+	stmt := s.create
 	if tx != nil {
 		stmt = tx.Stmt(stmt)
 	}
@@ -125,13 +113,13 @@ func (db *DB) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*
 	return n, nil
 }
 
-func (db *DB) Delete(ctx context.Context, id string) error {
-	return db.DeleteTx(ctx, nil, id)
+func (s *Store) Delete(ctx context.Context, id string) error {
+	return s.DeleteTx(ctx, nil, id)
 }
-func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return db.DeleteManyTx(ctx, tx, []string{id})
+func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
+	return s.DeleteManyTx(ctx, tx, []string{id})
 }
-func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -141,15 +129,15 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 		return err
 	}
 
-	s := db.delete
+	stmt := s.delete
 	if tx != nil {
-		s = tx.Stmt(s)
+		stmt = tx.Stmt(stmt)
 	}
-	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
-func (db *DB) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
+func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
 	err := validate.UUID("IntegrationKeyID", id)
 	if err != nil {
 		return nil, err
@@ -160,7 +148,7 @@ func (db *DB) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
 		return nil, err
 	}
 
-	row := db.findOne.QueryRowContext(ctx, id)
+	row := s.findOne.QueryRowContext(ctx, id)
 	var i IntegrationKey
 	err = scanFrom(&i, row.Scan)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -174,7 +162,7 @@ func (db *DB) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
 
 }
 
-func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]IntegrationKey, error) {
+func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]IntegrationKey, error) {
 	err := validate.UUID("ServiceID", serviceID)
 	if err != nil {
 		return nil, err
@@ -185,7 +173,7 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Integra
 		return nil, err
 	}
 
-	rows, err := db.findAllByService.QueryContext(ctx, serviceID)
+	rows, err := s.findAllByService.QueryContext(ctx, serviceID)
 	if err != nil {
 		return nil, err
 	}

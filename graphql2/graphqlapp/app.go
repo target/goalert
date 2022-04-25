@@ -64,8 +64,8 @@ type App struct {
 	ScheduleStore  *schedule.Store
 	CalSubStore    *calsub.Store
 	RotationStore  rotation.Store
-	OnCallStore    *oncall.Store
-	IntKeyStore    integrationkey.Store
+	OnCallStore    oncall.Store
+	IntKeyStore    *integrationkey.Store
 	LabelStore     label.Store
 	RuleStore      rule.Store
 	OverrideStore  override.Store
