@@ -1,7 +1,6 @@
 import { testScreen } from '../support'
 import { Chance } from 'chance'
 import prof from '../fixtures/profile.json'
-import users from '../fixtures/users.json'
 
 const c = new Chance()
 
