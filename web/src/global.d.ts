@@ -7,7 +7,6 @@ declare namespace NodeJS {
   declare module '*.png'
 }
 
-var __webpack_public_path__: string
 var pathPrefix: string
 var applicationName: string
 var GOALERT_VERSION: string
