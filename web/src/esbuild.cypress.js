@@ -3,9 +3,6 @@
 const path = require('path')
 const glob = require('glob')
 
-const isProdBuild =
-  process.argv.includes('--prod') || !process.argv.includes('--watch')
-
 const dynamicPublicPathPlugin = {
   name: 'prefix-path',
   setup(build) {
@@ -48,10 +45,9 @@ require('esbuild')
     logLevel: 'info',
     bundle: true,
     define: {
-      'process.env.NODE_ENV': isProdBuild ? '"production"' : '"dev"',
       global: 'window',
     },
-    minify: isProdBuild,
+    minify: true,
     sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
     target: ['chrome80', 'firefox99', 'safari12', 'edge79'],

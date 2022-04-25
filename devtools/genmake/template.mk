@@ -48,9 +48,13 @@ container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
 container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
 
 $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
-	sed 's/\.ts/\.js/' web/src/cypress.json >$@
+	cp web/src/cypress.json $@
 
-$(BIN_DIR)/build/integration/cypress: node_modules web/src/esbuild.cypress.js $(BIN_DIR)/build/integration/cypress.json $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: web/src/cypress/plugins/index.js
+	mkdir -p $(dir $@)
+	cp web/src/cypress/plugins/index.js $@
+
+$(BIN_DIR)/build/integration/cypress: node_modules web/src/esbuild.cypress.js $(BIN_DIR)/build/integration/cypress.json $(BIN_DIR)/build/integration/cypress/plugins/index.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn workspace goalert-web esbuild-cy
 	touch $@

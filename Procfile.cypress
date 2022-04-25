@@ -7,6 +7,9 @@ goalert: go run ./devtools/waitfor postgres://postgres@localhost:5433 && go run 
 ui: yarn workspace goalert-web run esbuild --watch
 
 @watch-file=./web/src/esbuild.cypress.js
+cy: yarn workspace goalert-web run esbuild --watch
+
+@watch-file=./web/src/esbuild.cypress.js
 build-cy: yarn workspace goalert-web run esbuild-cy --watch
 
 slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=localhost:3046
