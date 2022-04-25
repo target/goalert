@@ -1,4 +1,4 @@
-import React, { ComponentType, useContext } from 'react'
+import React, { useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { darken, lighten, useTheme, Theme } from '@mui/material/styles'
@@ -6,7 +6,7 @@ import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
-import { Calendar, EventWrapperProps } from 'react-big-calendar'
+import { Calendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import ScheduleCalendarToolbar from './ScheduleCalendarToolbar'
 import { useResetURLParams, useURLParam } from '../../actions'
@@ -383,9 +383,12 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
-              eventWrapper: ScheduleCalendarEventWrapper as ComponentType<
-                EventWrapperProps<ScheduleCalendarEvent>
-              >,
+              // @ts-expect-error Property 'children' does not exist on type - yes it does
+              eventWrapper: ({ children, event }) => (
+                <ScheduleCalendarEventWrapper event={event}>
+                  {children}
+                </ScheduleCalendarEventWrapper>
+              ),
               toolbar: () => null,
             }}
           />
