@@ -95,8 +95,13 @@ export default function MaterialSelect(
     value,
   } = props
 
+  // handle AutoComplete expecting current value to be present within options array
   let options = _options.slice()
-  if (value) {
+  const optVals = options.map((o) => o.value)
+  if (value && !multiple && !optVals.includes(value.value)) {
+    options = options.concat(value)
+  }
+  if (value && multiple) {
     options = options.concat(value)
   }
 
@@ -146,11 +151,11 @@ export default function MaterialSelect(
       data-cy-ready={!isLoading}
       classes={customCSS}
       multiple={multiple}
+      filterSelectedOptions={multiple}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      filterSelectedOptions
       isOptionEqualToValue={(opt, val) => opt.value === val.value}
       noOptionsText={
         noOptionsError ? (
