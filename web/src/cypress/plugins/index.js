@@ -14,10 +14,18 @@ function makeDoCall(path) {
     })
 }
 
+let failed = false
 module.exports = (on) => {
   on('task', {
     'engine:trigger': makeDoCall('/signal?sig=SIGUSR2'),
     'engine:start': makeDoCall('/start'),
     'engine:stop': makeDoCall('/stop'),
+    'check:abort': () => failed,
+  })
+
+  on('after:spec', (spec, results) => {
+    if (results.stats.failures) {
+      failed = true
+    }
   })
 }

@@ -140,7 +140,12 @@ export function testScreen(
   adminLogin = false,
 ): void {
   describe(label, () => {
-    before(() => {
+    before(function () {
+      cy.task('check:abort').then((abort) => {
+        if (abort) {
+          this.skip()
+        }
+      })
       // Ensure we cancel any in-flight requests by navigating to a blank page before setup.
       //
       // Fixes issues with stale cookies being set from the previous test.
