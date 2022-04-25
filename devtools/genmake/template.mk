@@ -50,10 +50,9 @@ container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
 $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >$@
 
-$(BIN_DIR)/build/integration/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/build/integration/cypress.json $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress: node_modules web/src/esbuild.cypress.js $(BIN_DIR)/build/integration/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn workspace goalert-web esbuild-cy
-	cp -r web/src/cypress/fixtures $@/
 	touch $@
 
 {{range $.Builds}}
