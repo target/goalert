@@ -59,7 +59,7 @@ type Store struct {
 	schedStore *schedule.Store
 }
 
-// NewDB will create a new DB, preparing required statements using the provided context.
+// NewStore will create a new DB, preparing required statements using the provided context.
 func NewStore(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *schedule.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
