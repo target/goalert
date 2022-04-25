@@ -165,7 +165,7 @@ func alertsFromV1(ctx context.Context, serviceID string, data []byte) ([]alert.A
 	return alerts, nil
 }
 
-func GrafanaToEventsAPI(aDB *alert.Store, intDB integrationkey.Store) http.HandlerFunc {
+func GrafanaToEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
