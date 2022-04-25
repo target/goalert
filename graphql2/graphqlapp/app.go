@@ -66,7 +66,7 @@ type App struct {
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
 	IntKeyStore    integrationkey.Store
-	LabelStore     label.Store
+	LabelStore     *label.Store
 	RuleStore      rule.Store
 	OverrideStore  override.Store
 	ConfigStore    *config.Store

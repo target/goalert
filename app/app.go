@@ -119,7 +119,7 @@ type App struct {
 	APIKeyring     keyring.Keyring
 
 	NonceStore    *nonce.Store
-	LabelStore    label.Store
+	LabelStore    *label.Store
 	OnCallStore   oncall.Store
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
