@@ -25,12 +25,10 @@ import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   badge: {
     top: -1,
     right: -1,
-    // TODO if practical, use themed color for light mode
-    backgroundColor: theme.palette.mode === 'dark' ? 'secondary' : '#cd1831',
   },
   optional: {
     float: 'left',
@@ -39,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
   label: {
     paddingRight: '0.4em',
   },
-}))
+})
 
 function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
@@ -72,7 +70,7 @@ function PolicyStepForm(props) {
   const badgeMeUpScotty = (len, txt) => (
     <Badge
       badgeContent={len}
-      color='primary'
+      color='secondary'
       invisible={!len}
       classes={{
         badge: classes.badge,

@@ -92,12 +92,9 @@ export default function SlackActions(): JSX.Element {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button color='primary' onClick={() => setShowManifest(false)}>
-            Cancel
-          </Button>
+          <Button onClick={() => setShowManifest(false)}>Cancel</Button>
           <Button
             variant='contained'
-            color='primary'
             endIcon={<OpenInNewIcon />}
             component={AppLink}
             to={

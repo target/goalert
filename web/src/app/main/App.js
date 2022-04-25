@@ -25,13 +25,6 @@ import { isIOS } from '../util/browsers'
 import UserSettingsPopover from './components/UserSettingsPopover'
 
 const useStyles = makeStyles((theme) => ({
-  '@global': {
-    a: {
-      textDecoration: 'none',
-      color:
-        theme.palette.mode === 'dark' ? theme.palette.primary.main : '#cd1831',
-    },
-  },
   root: {
     flexGrow: 1,
     zIndex: 1,

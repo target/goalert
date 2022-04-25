@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { safeURL } from './safeURL'
 import remarkGfm from 'remark-gfm'
 import makeStyles from '@mui/styles/makeStyles'
+import AppLink from './AppLink'
 
 const useStyles = makeStyles({
   markdown: {
@@ -63,7 +64,14 @@ export default function Markdown(props) {
   return (
     <ReactMarkdown
       className={classes.markdown}
-      components={{ td: TableCell }}
+      components={{
+        td: TableCell,
+        a: ({ node, inline, className, children, ...props }) => (
+          <AppLink to={props.href} newTab {...props}>
+            {children}
+          </AppLink>
+        ),
+      }}
       remarkPlugins={[remarkGfm]}
       allowElement={(element) => {
         if (

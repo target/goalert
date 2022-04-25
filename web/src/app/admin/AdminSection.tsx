@@ -14,7 +14,6 @@ import {
   BoolInput,
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
-import { yellow } from '@mui/material/colors'
 
 const components = {
   string: StringInput,
@@ -35,9 +34,6 @@ interface AdminSectionProps {
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
-  activeItem: {
-    backgroundColor: yellow[100],
-  },
   listItem: {
     // leaves some room around fields without descriptions
     // 71px is the height of the checkbox field without w/o a desc
@@ -84,12 +80,9 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
           return (
             <ListItem
               key={f.id}
-              className={
-                classes.listItem +
-                ' ' +
-                (_.has(value, f.id) ? classes.activeItem : '')
-              }
+              className={classes.listItem}
               divider={idx !== fields.length - 1}
+              selected={_.has(value, f.id)}
             >
               <ListItemText
                 className={classes.listItemText}

@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => {
     },
     dialogContent: {
       height: '100%', // parents of form need height set to properly function in Safari
-      padding: 0,
+      paddingTop: '8px !important', // workaround for https://github.com/mui/material-ui/issues/31185
     },
     formContainer: {
       width: '100%',
@@ -48,7 +48,6 @@ function FormDialog(props) {
   const {
     alert,
     confirm,
-    disableGutters,
     errors,
     fullScreen,
     loading,
@@ -92,10 +91,7 @@ function FormDialog(props) {
       return null
     }
 
-    let Component = DialogContent
-    if (disableGutters) Component = 'div'
-
-    return <Component className={classes.form}>{form}</Component>
+    return <div className={classes.form}>{form}</div>
   }
 
   function renderCaption() {
@@ -123,7 +119,7 @@ function FormDialog(props) {
     if (alert) {
       return (
         <DialogActions>
-          <Button color='primary' onClick={handleOnClose} variant='contained'>
+          <Button onClick={handleOnClose} variant='contained'>
             {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
@@ -134,7 +130,11 @@ function FormDialog(props) {
 
     return (
       <DialogActions>
-        <Button disabled={loading} onClick={onBack || handleOnClose}>
+        <Button
+          disabled={loading}
+          onClick={onBack || handleOnClose}
+          sx={{ mr: 1 }}
+        >
           {onBack ? 'Back' : 'Cancel'}
         </Button>
         <LoadingButton
@@ -146,7 +146,6 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
-          color='primary'
           loading={loading}
           type='submit'
         />
@@ -222,9 +221,6 @@ FormDialog.propTypes = {
   alert: p.bool,
   confirm: p.bool,
   maxWidth: p.string,
-
-  // disables form content padding
-  disableGutters: p.bool,
 
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,

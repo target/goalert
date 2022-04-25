@@ -84,11 +84,7 @@ export default function UserContactMethodCreateDialog(props) {
         <DialogTitle>No Contact Types Available</DialogTitle>
         <DialogContentError error='There are no contact types currently enabled by the administrator.' />
         <DialogActions>
-          <Button
-            color='primary'
-            variant='contained'
-            onClick={() => props.onClose()}
-          >
+          <Button variant='contained' onClick={() => props.onClose()}>
             Okay
           </Button>
         </DialogActions>

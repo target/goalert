@@ -104,11 +104,13 @@ export default function Search(props) {
       <AppBarSearchContainer>
         <IconButton
           key='search-icon'
-          color='inherit'
           aria-label='Search'
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
           size='large'
+          sx={(theme) => ({
+            color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+          })}
         >
           <SearchIcon />
         </IconButton>
@@ -125,7 +127,6 @@ export default function Search(props) {
           <AppBar>
             <Toolbar>
               <IconButton
-                color='inherit'
                 onClick={() => {
                   // cancel search and close the bar
                   setSearch('')
@@ -134,6 +135,9 @@ export default function Search(props) {
                 aria-label='Cancel'
                 data-cy='close-search'
                 size='large'
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+                })}
               >
                 <CloseIcon />
               </IconButton>

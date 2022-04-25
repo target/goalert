@@ -42,7 +42,6 @@ func AppVersion() string {
 	}
 
 	return versionStr
-
 }
 
 type renderData struct {
@@ -52,9 +51,8 @@ type renderData struct {
 	// Prefix is the URL prefix for the GoAlert application.
 	Prefix string
 
-	// ExtraScripts can be used to load additional javascript files
-	// before `app.js`.
-	ExtraScripts []string
+	// ExtraJS can be used to load additional javascript.
+	ExtraJS string
 }
 
 func (r renderData) PathPrefix() string   { return strings.TrimSuffix(r.Prefix, "/") }
