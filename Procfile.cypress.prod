@@ -16,4 +16,4 @@ db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --
 ui: yarn workspace goalert-web run esbuild --watch --prod
 
 @watch-file=./web/src/esbuild.cypress.js
-ui: yarn workspace goalert-web run esbuild --watch
+build-cy: yarn workspace goalert-web run esbuild-cy --watch
