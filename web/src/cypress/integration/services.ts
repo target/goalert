@@ -649,7 +649,9 @@ function testServices(screen: ScreenFormat): void {
         })
         .then((a: Alert) => {
           openAlert = a
-          return cy.visit(`/services/${a.serviceID}/alert-metrics`)
+          cy.createAlertMetrics([closedAlert, openAlert]).then(() => {
+            return cy.visit(`/services/${a.serviceID}/alert-metrics`)
+          })
         }),
     )
 
