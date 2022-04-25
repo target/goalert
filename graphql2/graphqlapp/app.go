@@ -65,7 +65,7 @@ type App struct {
 	CalSubStore    *calsub.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
-	IntKeyStore    integrationkey.Store
+	IntKeyStore    *integrationkey.Store
 	LabelStore     label.Store
 	RuleStore      rule.Store
 	OverrideStore  override.Store
