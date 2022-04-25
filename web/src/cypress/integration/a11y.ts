@@ -31,12 +31,6 @@ function testA11y(): void {
       })
     }
 
-    function waitForList(): Cypress.Chainable {
-      return cy.get('ul[data-cy="apollo-list"]')
-    }
-
-    testRoute('alerts list', '/alerts?allServices=1&filter=all', waitForList)
-
     testRoute('profile', '/profile', () => {
       cy.get('ul[data-cy="contact-methods"]')
       cy.get('ul[data-cy="notification-rules"]')
