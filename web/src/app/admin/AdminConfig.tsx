@@ -179,9 +179,9 @@ export default function AdminConfig(): JSX.Element {
             onChange={handleExpandChange(groupID)}
           >
             <AccordionSummary
-              aria-expanded={section === groupID}
-              aria-controls={`accordion-section-summary-${groupID}`}
               id={`accordion-${groupID}`}
+              aria-expanded={section === groupID}
+              aria-controls={`accordion-details-${groupID}`}
               expandIcon={<ExpandMoreIcon />}
             >
               <Typography
@@ -208,7 +208,6 @@ export default function AdminConfig(): JSX.Element {
             </AccordionSummary>
             <Divider />
             <AccordionDetails
-              id={`accordion-section-details-${groupID}`}
               aria-labelledby={`accordion-${groupID}`}
               className={classes.accordionDetails}
               role='region'
