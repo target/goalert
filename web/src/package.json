@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
-    "esbuild": "./esbuild.config.js"
+    "esbuild": "./esbuild.config.js",
+    "esbuild-cy": "./esbuild.cypress.js"
   },
   "jest": {
     "transform": {

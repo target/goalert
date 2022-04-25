@@ -1,6 +1,5 @@
 {
   "baseUrl": "http://localhost:3030",
-  "supportFile": "cypress/support/index.ts",
   "videoUploadOnPasses": false,
   "waitForAnimations": false,
   "viewportWidth": 1440,
