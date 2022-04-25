@@ -10,7 +10,6 @@ declare global {
       createManyAlerts: typeof createManyAlerts
       closeAlert: typeof closeAlert
       createAlertLogs: typeof createAlertLogs
-      createAlertMetrics: typeof createAlertMetrics
     }
   }
 
@@ -247,28 +246,7 @@ function closeAlert(id: number): Cypress.Chainable<void> {
   return cy.graphqlVoid(query, { id })
 }
 
-function createAlertMetrics(alerts: Alert[]): Cypress.Chainable<void> {
-  const alertIDs: Array<number> = []
-  // build query
-  const query = `
-    insert into alert_metrics (alert_id, service_id, escalated, closed_at) 
-    select
-      a.id,
-      a.service_id,
-      (select count(*) > 1 from alert_logs where alert_id = a.id and event = 'escalated'),
-      (select timestamp from alert_logs where alert_id = a.id and event = 'closed' order by timestamp limit 1)
-    from alerts a
-    where a.id = any('{${alertIDs}}') and a.status='closed' and a.service_id is not null on conflict do nothing`
-
-  for (let i = 0; i < alerts.length; i++) {
-    alertIDs.push(Number(alerts[i].id))
-  }
-
-  return cy.sql(query)
-}
-
 Cypress.Commands.add('createAlert', createAlert)
 Cypress.Commands.add('createManyAlerts', createManyAlerts)
 Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)
-Cypress.Commands.add('createAlertMetrics', createAlertMetrics)
