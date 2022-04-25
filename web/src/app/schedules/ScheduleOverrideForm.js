@@ -78,7 +78,9 @@ export default function ScheduleOverrideForm(props) {
               fullWidth
               component={UserSelect}
               name='removeUserID'
-              label={add && remove ? 'User to be Replaced' : 'User to Remove'}
+              label={
+                add && remove ? 'User Currently Scheduled' : 'User to Remove'
+              }
               required
               disabled={removeUserReadOnly}
             />

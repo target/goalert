@@ -33,7 +33,7 @@ const dynamicPublicPathPlugin = {
 
 require('esbuild')
   .build({
-    entryPoints: ['explore/explore.tsx'],
+    entryPoints: { explore: 'explore/explore.tsx', app: 'app/index.tsx' },
     outdir: 'build/static/',
     logLevel: 'info',
     bundle: true,
@@ -44,11 +44,20 @@ require('esbuild')
     minify: isProdBuild,
     sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
+    target: ['chrome80', 'firefox99', 'safari12', 'edge79'],
+    banner: {
+      js: `var GOALERT_VERSION=${JSON.stringify(process.env.GOALERT_VERSION)};`,
+    },
     loader: {
       '.png': 'file',
       '.webp': 'file',
       '.js': 'jsx',
+      '.svg': 'dataurl',
+      '.md': 'text',
     },
     watch: process.argv.includes('--watch'),
   })
-  .catch(() => process.exit(1))
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
