@@ -6,5 +6,5 @@ goalert: ./bin/goalert -l=localhost:3030 --ui-dir=web/src/build --db-url=postgre
 smtp: go run github.com/mailhog/MailHog -ui-bind-addr=localhost:8025 -api-bind-addr=localhost:8025 -smtp-bind-addr=localhost:1025 | grep -v KEEPALIVE
 prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/prometheus.yml --storage.tsdb.path=bin/prom-data/ --web.listen-address=localhost:9090
 
-@watch-file=./web/src/webpack.config.js
-ui: yarn workspace goalert-web webpack --config ./webpack.config.js --watch
+@watch-file=./web/src/esbuild.config.js
+ui: yarn workspace goalert-web run esbuild --watch

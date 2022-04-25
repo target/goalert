@@ -52,7 +52,7 @@ type renderData struct {
 	Prefix string
 
 	// ExtraJS can be used to load additional javascript.
-	ExtraJS template.JS
+	ExtraJS string
 }
 
 func (r renderData) PathPrefix() string   { return strings.TrimSuffix(r.Prefix, "/") }

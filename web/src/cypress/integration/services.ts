@@ -661,7 +661,7 @@ function testServices(screen: ScreenFormat): void {
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
-      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count : 1')
+      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count: 1')
     })
   })
 }

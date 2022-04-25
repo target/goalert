@@ -186,7 +186,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())
-	mux.HandleFunc("/api/graphql/explore", app.graphql2.PlayHandler)
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 
