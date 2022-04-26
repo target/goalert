@@ -35,6 +35,8 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("ServiceID", "service does not exist")
 		case "schedule_rules_tgt_user_id_fkey":
 			return validation.NewFieldError("TargetID", "user does not exist")
+		case "rotation_participants_user_id_fkey":
+			return validation.NewFieldError("UserID", "user does not exist")
 		}
 	case "23505": // unique constraint
 		if dbErr.ConstraintName == "auth_basic_users_username_key" {

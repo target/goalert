@@ -64,11 +64,11 @@ type App struct {
 	ScheduleStore  *schedule.Store
 	CalSubStore    *calsub.Store
 	RotationStore  rotation.Store
-	OnCallStore    oncall.Store
+	OnCallStore    *oncall.Store
 	IntKeyStore    *integrationkey.Store
-	LabelStore     label.Store
+	LabelStore     *label.Store
 	RuleStore      rule.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender

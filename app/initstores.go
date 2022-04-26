@@ -212,7 +212,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.OverrideStore == nil {
-		app.OverrideStore, err = override.NewDB(ctx, app.db)
+		app.OverrideStore, err = override.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init override store")
@@ -231,14 +231,14 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init heartbeat store")
 	}
 	if app.LabelStore == nil {
-		app.LabelStore, err = label.NewDB(ctx, app.db)
+		app.LabelStore, err = label.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init label store")
 	}
 
 	if app.OnCallStore == nil {
-		app.OnCallStore, err = oncall.NewDB(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
+		app.OnCallStore, err = oncall.NewStore(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init on-call store")
