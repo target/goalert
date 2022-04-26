@@ -103,7 +103,7 @@ type App struct {
 
 	ServiceStore        service.Store
 	EscalationStore     *escalation.Store
-	IntegrationKeyStore integrationkey.Store
+	IntegrationKeyStore *integrationkey.Store
 	ScheduleRuleStore   rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
