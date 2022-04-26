@@ -18,35 +18,6 @@ import (
 // ErrNoState is returned when there is no state information available for a rotation.
 var ErrNoState = errors.New("no state available")
 
-type StateStore interface {
-	ReadStore
-	StateReader
-	ParticipantReader
-}
-type StateReader interface {
-	State(context.Context, string) (*State, error)
-	StateTx(context.Context, *sql.Tx, string) (*State, error)
-	FindAllStateByScheduleID(context.Context, string) ([]State, error)
-}
-
-type ReadStateStore interface {
-	StateReader
-	ParticipantReader
-}
-type ParticipantReader interface {
-	FindParticipant(ctx context.Context, id string) (*Participant, error)
-	FindAllParticipants(ctx context.Context, rotationID string) ([]Participant, error)
-	FindAllParticipantsTx(ctx context.Context, tx *sql.Tx, rotationID string) ([]Participant, error)
-	FindAllParticipantsByScheduleID(ctx context.Context, scheduleID string) ([]Participant, error)
-}
-type ReadStore interface {
-	FindRotation(context.Context, string) (*Rotation, error)
-	FindRotationForUpdateTx(context.Context, *sql.Tx, string) (*Rotation, error)
-	FindAllRotations(context.Context) ([]Rotation, error)
-	FindAllRotationsByScheduleID(context.Context, string) ([]Rotation, error)
-	FindParticipantCount(context.Context, string) (int, error)
-}
-
 type Store struct {
 	db *sql.DB
 
