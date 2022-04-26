@@ -136,7 +136,7 @@ function PolicyStep(props) {
 
   return (
     <React.Fragment key={step.id}>
-      <ListItem id={index}>
+      <ListItem id={index} selected={props.selected}>
         <Grid container spacing={2}>
           <Grid item className={classes.centerFlex}>
             <Typography component='h4' variant='subtitle1'>
@@ -190,6 +190,7 @@ PolicyStep.propTypes = {
   step: shapeStep.isRequired,
   steps: p.arrayOf(shapeStep).isRequired,
   index: p.number,
+  selected: p.boolean,
 }
 
 export default PolicyStep

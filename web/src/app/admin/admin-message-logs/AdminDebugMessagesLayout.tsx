@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Grid, Typography } from '@mui/material'
+import { Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { GenericError } from '../../error-pages'
@@ -135,37 +135,25 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           selectedLog ? classes.containerSelected : classes.containerDefault
         }
       >
-        <Grid container item xs={12}>
-          <Grid item xs={12}>
-            <Typography
-              component='h2'
-              variant='subtitle1'
-              color='textSecondary'
-              classes={{ subtitle1: classes.groupTitle }}
-            >
-              Outgoing Message Logs
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <DebugMessagesControls
-              value={params}
-              onChange={(newParams) => {
-                setParams(newParams)
-                setNumRendered(LOAD_AMOUNT)
-              }}
-              displayedCount={displayedResults.length}
-              resultsCount={filteredResults.length}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <DebugMessagesList
-              debugMessages={displayedResults}
-              selectedLog={selectedLog}
-              onSelect={setSelectedLog}
-              hasMore={numRendered < results.length}
-              onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
-            />
-          </Grid>
+        <Grid item xs={12}>
+          <DebugMessagesControls
+            value={params}
+            onChange={(newParams) => {
+              setParams(newParams)
+              setNumRendered(LOAD_AMOUNT)
+            }}
+            displayedCount={displayedResults.length}
+            resultsCount={filteredResults.length}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <DebugMessagesList
+            debugMessages={displayedResults}
+            selectedLog={selectedLog}
+            onSelect={setSelectedLog}
+            hasMore={numRendered < results.length}
+            onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
+          />
         </Grid>
       </Grid>
     </React.Fragment>

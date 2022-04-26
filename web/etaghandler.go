@@ -3,6 +3,7 @@ package web
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -48,14 +49,16 @@ func (e *etagHandler) etag(name string) string {
 		return ""
 	}
 
-	tag := `W/"` + hex.EncodeToString(h.Sum(nil)) + `"`
+	tag := fmt.Sprintf(`W/"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 	e.tags[name] = tag
 	return tag
 }
 
 func (e *etagHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if tag := e.etag(req.URL.Path); tag != "" {
-		w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		if w.Header().Get("Cache-Control") == "" {
+			w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+		}
 		w.Header().Set("ETag", tag)
 	}
 

@@ -1,10 +1,4 @@
-import React, {
-  ReactNode,
-  useContext,
-  useState,
-  MouseEvent,
-  KeyboardEvent,
-} from 'react'
+import React, { useContext, useState, MouseEvent, KeyboardEvent } from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -46,7 +40,7 @@ interface ScheduleCalendarEventWrapperProps {
 export default function ScheduleCalendarEventWrapper({
   event,
   children,
-}: ScheduleCalendarEventWrapperProps): ReactNode {
+}: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -244,7 +238,6 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  if (!children) return null
   return (
     <React.Fragment>
       <Popover
