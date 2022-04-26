@@ -14,17 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type ReadStore interface {
-	FindScheduleID(context.Context, string) (string, error)
-	FindOne(context.Context, string) (*Rule, error)
-	FindAll(ctx context.Context, scheduleID string) ([]Rule, error)
-	FindAllTx(ctx context.Context, tx *sql.Tx, scheduleID string) ([]Rule, error)
-
-	// FindAllWithUsers works like FindAll but resolves rotations to the active user.
-	// This is reflected in the Target attribute.
-	// Rules pointing to inactive rotations (no participants) are omitted.
-	FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, error)
-}
 type ScheduleTriggerFunc func(string)
 type Store struct {
 	db *sql.DB
@@ -402,6 +391,9 @@ func (s *Store) FindOne(ctx context.Context, ruleID string) (*Rule, error) {
 	return &r, nil
 }
 
+// FindAllWithUsers works like FindAll but resolves rotations to the active user.
+// This is reflected in the Target attribute.
+// Rules pointing to inactive rotations (no participants) are omitted.
 func (s *Store) FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, error) {
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
