@@ -66,10 +66,10 @@ function makePalette(
       main: hexFromArgb(scheme.secondary),
     },
     background: {
-      default: hexFromArgb(scheme.background),
-      paper: useSurfaceVariant
+      default: useSurfaceVariant
         ? hexFromArgb(scheme.surfaceVariant)
-        : hexFromArgb(scheme.surface),
+        : hexFromArgb(scheme.background),
+      paper: hexFromArgb(scheme.surface),
     },
     error: {
       main: hexFromArgb(scheme.error),
