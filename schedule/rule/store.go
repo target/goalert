@@ -14,18 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Store interface {
-	ReadStore
-	Add(context.Context, *Rule) (*Rule, error)
-	CreateRuleTx(context.Context, *sql.Tx, *Rule) (*Rule, error)
-	Update(context.Context, *Rule) error
-	UpdateTx(context.Context, *sql.Tx, *Rule) error
-	Delete(context.Context, string) error
-	DeleteTx(context.Context, *sql.Tx, string) error
-	DeleteManyTx(context.Context, *sql.Tx, []string) error
-	DeleteByTarget(ctx context.Context, scheduleID string, target assignment.Target) error
-	FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string, target assignment.Target) ([]Rule, error)
-}
 type ReadStore interface {
 	FindScheduleID(context.Context, string) (string, error)
 	FindOne(context.Context, string) (*Rule, error)
@@ -38,7 +26,7 @@ type ReadStore interface {
 	FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, error)
 }
 type ScheduleTriggerFunc func(string)
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	add     *sql.Stmt
@@ -55,9 +43,9 @@ type DB struct {
 	findScheduleID *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
-	return &DB{
+	return &Store{
 		db: db,
 
 		findScheduleID: p.P(`
@@ -206,7 +194,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) FindScheduleID(ctx context.Context, ruleID string) (string, error) {
+func (s *Store) FindScheduleID(ctx context.Context, ruleID string) (string, error) {
 	err := validate.UUID("RuleID", ruleID)
 	if err != nil {
 		return "", err
@@ -215,7 +203,7 @@ func (db *DB) FindScheduleID(ctx context.Context, ruleID string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	row := db.findScheduleID.QueryRowContext(ctx, ruleID)
+	row := s.findScheduleID.QueryRowContext(ctx, ruleID)
 	var schedID string
 	err = row.Scan(&schedID)
 	if err != nil {
@@ -224,7 +212,7 @@ func (db *DB) FindScheduleID(ctx context.Context, ruleID string) (string, error)
 	return schedID, nil
 }
 
-func (db *DB) _Add(ctx context.Context, s *sql.Stmt, r *Rule) (*Rule, error) {
+func (s *Store) _Add(ctx context.Context, stmt *sql.Stmt, r *Rule) (*Rule, error) {
 	n, err := r.Normalize()
 	if err != nil {
 		return nil, err
@@ -236,7 +224,7 @@ func (db *DB) _Add(ctx context.Context, s *sql.Stmt, r *Rule) (*Rule, error) {
 	}
 
 	n.ID = uuid.New().String()
-	_, err = s.ExecContext(ctx, n.readFields()...)
+	_, err = stmt.ExecContext(ctx, n.readFields()...)
 	if err != nil {
 		return nil, err
 	}
@@ -244,22 +232,22 @@ func (db *DB) _Add(ctx context.Context, s *sql.Stmt, r *Rule) (*Rule, error) {
 	return n, nil
 }
 
-func (db *DB) Add(ctx context.Context, r *Rule) (*Rule, error) {
-	r, err := db._Add(ctx, db.add, r)
+func (s *Store) Add(ctx context.Context, r *Rule) (*Rule, error) {
+	r, err := s._Add(ctx, s.add, r)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func (db *DB) CreateRuleTx(ctx context.Context, tx *sql.Tx, r *Rule) (*Rule, error) {
+func (s *Store) CreateRuleTx(ctx context.Context, tx *sql.Tx, r *Rule) (*Rule, error) {
 	if tx == nil {
-		return db._Add(ctx, db.add, r)
+		return s._Add(ctx, s.add, r)
 	}
-	return db._Add(ctx, tx.Stmt(db.add), r)
+	return s._Add(ctx, tx.Stmt(s.add), r)
 }
 
-func (db *DB) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string, target assignment.Target) ([]Rule, error) {
+func (s *Store) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string, target assignment.Target) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -273,7 +261,7 @@ func (db *DB) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string,
 		return nil, err
 	}
 
-	stmt := db.findTgt
+	stmt := s.findTgt
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -311,7 +299,7 @@ func (db *DB) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string,
 }
 
 // DeleteByTarget removes all rules for a schedule pointing to the specified target.
-func (db *DB) DeleteByTarget(ctx context.Context, scheduleID string, target assignment.Target) error {
+func (s *Store) DeleteByTarget(ctx context.Context, scheduleID string, target assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
@@ -336,20 +324,20 @@ func (db *DB) DeleteByTarget(ctx context.Context, scheduleID string, target assi
 		tgtRot.Valid = true
 		tgtRot.String = target.TargetID()
 	}
-	_, err = db.deleteAssignmentByTarget.ExecContext(ctx, scheduleID, tgtUser, tgtRot)
+	_, err = s.deleteAssignmentByTarget.ExecContext(ctx, scheduleID, tgtUser, tgtRot)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (db *DB) Delete(ctx context.Context, ruleID string) error {
-	return db.DeleteTx(ctx, nil, ruleID)
+func (s *Store) Delete(ctx context.Context, ruleID string) error {
+	return s.DeleteTx(ctx, nil, ruleID)
 }
-func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ruleID string) error {
-	return db.DeleteManyTx(ctx, tx, []string{ruleID})
+func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ruleID string) error {
+	return s.DeleteManyTx(ctx, tx, []string{ruleID})
 }
-func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) error {
+func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
@@ -361,17 +349,17 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) er
 	if err != nil {
 		return err
 	}
-	s := db.delete
+	stmt := s.delete
 	if tx != nil {
-		s = tx.StmtContext(ctx, s)
+		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ruleIDs))
+	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(ruleIDs))
 	return err
 
 }
 
-func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, r *Rule) error {
+func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, r *Rule) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
@@ -383,7 +371,7 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, r *Rule) error {
 
 	f := n.readFields()
 
-	stmt := db.update
+	stmt := s.update
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -393,11 +381,11 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, r *Rule) error {
 	}
 	return nil
 }
-func (db *DB) Update(ctx context.Context, r *Rule) error {
-	return db.UpdateTx(ctx, nil, r)
+func (s *Store) Update(ctx context.Context, r *Rule) error {
+	return s.UpdateTx(ctx, nil, r)
 }
 
-func (db *DB) FindOne(ctx context.Context, ruleID string) (*Rule, error) {
+func (s *Store) FindOne(ctx context.Context, ruleID string) (*Rule, error) {
 	err := validate.UUID("RuleID", ruleID)
 	if err != nil {
 		return nil, err
@@ -407,14 +395,14 @@ func (db *DB) FindOne(ctx context.Context, ruleID string) (*Rule, error) {
 		return nil, err
 	}
 	var r Rule
-	err = r.scanFrom(db.findOne.QueryRowContext(ctx, ruleID))
+	err = r.scanFrom(s.findOne.QueryRowContext(ctx, ruleID))
 	if err != nil {
 		return nil, err
 	}
 	return &r, nil
 }
 
-func (db *DB) FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, error) {
+func (s *Store) FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, error) {
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
@@ -423,7 +411,7 @@ func (db *DB) FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, 
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findAllUsers.QueryContext(ctx, scheduleID)
+	rows, err := s.findAllUsers.QueryContext(ctx, scheduleID)
 	if err != nil {
 		return nil, err
 	}
@@ -447,11 +435,11 @@ func (db *DB) FindAllWithUsers(ctx context.Context, scheduleID string) ([]Rule, 
 
 	return result, nil
 }
-func (db *DB) FindAll(ctx context.Context, scheduleID string) ([]Rule, error) {
-	return db.FindAllTx(ctx, nil, scheduleID)
+func (s *Store) FindAll(ctx context.Context, scheduleID string) ([]Rule, error) {
+	return s.FindAllTx(ctx, nil, scheduleID)
 }
 
-func (db *DB) FindAllTx(ctx context.Context, tx *sql.Tx, scheduleID string) ([]Rule, error) {
+func (s *Store) FindAllTx(ctx context.Context, tx *sql.Tx, scheduleID string) ([]Rule, error) {
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
@@ -460,7 +448,7 @@ func (db *DB) FindAllTx(ctx context.Context, tx *sql.Tx, scheduleID string) ([]R
 	if err != nil {
 		return nil, err
 	}
-	stmt := db.findAll
+	stmt := s.findAll
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}

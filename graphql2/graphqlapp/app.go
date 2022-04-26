@@ -67,7 +67,7 @@ type App struct {
 	OnCallStore    *oncall.Store
 	IntKeyStore    *integrationkey.Store
 	LabelStore     label.Store
-	RuleStore      rule.Store
+	RuleStore      *rule.Store
 	OverrideStore  *override.Store
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
