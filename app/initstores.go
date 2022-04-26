@@ -212,7 +212,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.OverrideStore == nil {
-		app.OverrideStore, err = override.NewDB(ctx, app.db)
+		app.OverrideStore, err = override.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init override store")

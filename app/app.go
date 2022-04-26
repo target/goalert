@@ -110,7 +110,7 @@ type App struct {
 	RotationStore       rotation.Store
 
 	CalSubStore    *calsub.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 

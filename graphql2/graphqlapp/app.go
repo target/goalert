@@ -68,7 +68,7 @@ type App struct {
 	IntKeyStore    *integrationkey.Store
 	LabelStore     label.Store
 	RuleStore      rule.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	ConfigStore    *config.Store
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
