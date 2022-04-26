@@ -75,16 +75,12 @@ endif
 container-demo:  container-demo-amd64 container-demo-arm container-demo-arm64
 container-goalert:  container-goalert-amd64 container-goalert-arm container-goalert-arm64
 
-$(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
-	cp web/src/cypress.json $@
-
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: web/src/cypress/plugins/index.js
-	mkdir -p $(dir $@)
-	cp web/src/cypress/plugins/index.js $@
-
-$(BIN_DIR)/build/integration/cypress: node_modules web/src/esbuild.cypress.js $(BIN_DIR)/build/integration/cypress.json $(BIN_DIR)/build/integration/cypress/plugins/index.js $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress: node_modules web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn workspace goalert-web esbuild-cy
+	mkdir -p $@/plugins
+	cp web/src/cypress/plugins/index.js $@/plugins/index.js
+	cp web/src/cypress.json $@/
 	touch $@
 
 
