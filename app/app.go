@@ -110,7 +110,7 @@ type App struct {
 	RotationStore       rotation.Store
 
 	CalSubStore    *calsub.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
@@ -120,7 +120,7 @@ type App struct {
 
 	NonceStore    *nonce.Store
 	LabelStore    *label.Store
-	OnCallStore   oncall.Store
+	OnCallStore   *oncall.Store
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
