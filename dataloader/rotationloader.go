@@ -8,10 +8,10 @@ import (
 
 type RotationLoader struct {
 	*loader
-	store rotation.Store
+	store *rotation.Store
 }
 
-func NewRotationLoader(ctx context.Context, store rotation.Store) *RotationLoader {
+func NewRotationLoader(ctx context.Context, store *rotation.Store) *RotationLoader {
 	p := &RotationLoader{
 		store: store,
 	}

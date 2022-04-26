@@ -63,7 +63,7 @@ type App struct {
 	PolicyStore    *escalation.Store
 	ScheduleStore  *schedule.Store
 	CalSubStore    *calsub.Store
-	RotationStore  rotation.Store
+	RotationStore  *rotation.Store
 	OnCallStore    *oncall.Store
 	IntKeyStore    *integrationkey.Store
 	LabelStore     label.Store

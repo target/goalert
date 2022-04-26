@@ -107,7 +107,7 @@ type App struct {
 	ScheduleRuleStore   rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
-	RotationStore       rotation.Store
+	RotationStore       *rotation.Store
 
 	CalSubStore    *calsub.Store
 	OverrideStore  *override.Store
