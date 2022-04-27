@@ -122,7 +122,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NotificationRuleStore == nil {
-		app.NotificationRuleStore, err = notificationrule.NewDB(ctx, app.db)
+		app.NotificationRuleStore, err = notificationrule.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification rule store")

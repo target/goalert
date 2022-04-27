@@ -54,7 +54,7 @@ type App struct {
 	AuthBasicStore *basic.Store
 	UserStore      *user.Store
 	CMStore        *contactmethod.Store
-	NRStore        notificationrule.Store
+	NRStore        *notificationrule.Store
 	NCStore        *notificationchannel.Store
 	AlertStore     *alert.Store
 	AlertLogStore  *alertlog.Store
