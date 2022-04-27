@@ -172,7 +172,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 }
 
 // Search will return a list of matching services and the total number of matches available.
-func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Service, error) {
 	if opts == nil {
 		opts = &SearchOptions{}
 	}
@@ -197,7 +197,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
