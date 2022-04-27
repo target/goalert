@@ -101,7 +101,7 @@ type App struct {
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
 
-	ServiceStore        service.Store
+	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore *integrationkey.Store
 	ScheduleRuleStore   rule.Store
