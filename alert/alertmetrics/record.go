@@ -6,7 +6,7 @@ import (
 
 // A Record is a recording of an Alert metric.
 type Record struct {
-	AlertID   int       
-	ServiceID string    
-	ClosedAt  time.Time 
+	AlertID   int
+	ServiceID string
+	ClosedAt  time.Time
 }
