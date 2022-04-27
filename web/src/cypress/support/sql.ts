@@ -27,5 +27,6 @@ function sql(query: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('sql', sql)
+Cypress.Commands.add('fastForward', fastForward)
 
 export {}
