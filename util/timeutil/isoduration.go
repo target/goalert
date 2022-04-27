@@ -2,10 +2,14 @@ package timeutil
 
 import (
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/target/goalert/validation"
 )
 
 // ISODuration represents an ISO duration string.
@@ -152,4 +156,29 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 	}
 
 	return d, err
+}
+
+func (dur ISODuration) MarshalGQL(w io.Writer) {
+	if dur == (ISODuration{}) {
+		io.WriteString(w, "null")
+		return
+	}
+
+	io.WriteString(w, `"`+dur.String()+`"`)
+}
+
+func (dur *ISODuration) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return errors.New("ISORIntervals must be strings")
+	}
+	str = strings.Trim(str, `"`)
+
+	t, err := ParseISODuration(str)
+	if err != nil {
+		return validation.WrapError(err)
+	}
+
+	*dur = t
+	return nil
 }
