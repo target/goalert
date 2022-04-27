@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 import { useParams } from 'react-router-dom'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
@@ -10,6 +10,7 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
+import AlertAveragesGraph from './AlertAveragesGraph'
 import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 
@@ -42,6 +43,8 @@ const query = gql`
     alertMetrics(input: $alertMetricsInput) {
       alertCount
       timestamp
+      avgTimeToAck
+      avgTimeToClose
     }
   }
 `
@@ -104,7 +107,7 @@ export default function AlertMetrics(): JSX.Element {
   const alerts = q.data?.alerts?.nodes ?? []
   const alertMetrics = q.data?.alertMetrics ?? []
 
-  const data = alertMetrics.map(
+  const alertCounts = alertMetrics.map(
     (day: { timestamp: string; alertCount: number }) => {
       const timestamp = DateTime.fromISO(day.timestamp)
       const date = timestamp.toLocaleString({
@@ -124,6 +127,35 @@ export default function AlertMetrics(): JSX.Element {
     },
   )
 
+  const alertAverages = alertMetrics.map(
+    (day: {
+      timestamp: string
+      avgTimeToAck: string
+      avgTimeToClose: string
+    }) => {
+      const timestamp = DateTime.fromISO(day.timestamp)
+      const date = timestamp.toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
+      const label = timestamp.toLocaleString({
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+      const ackAvg = Duration.fromISO(day.avgTimeToAck)
+      const closeAvg = Duration.fromISO(day.avgTimeToClose)
+
+      return {
+        date: date,
+        avgTimeToAck: ackAvg.isValid ? Number(ackAvg.toFormat('mm.ss')) : 0,
+        avgTimeToClose: closeAvg.isValid
+          ? Number(closeAvg.toFormat('mm.ss'))
+          : 0,
+        label: label,
+      }
+    },
+  )
   const daycount = Math.floor(now.diff(since, 'days').plus({ day: 1 }).days)
 
   return (
@@ -149,7 +181,8 @@ export default function AlertMetrics(): JSX.Element {
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-            <AlertCountGraph data={data} />
+            <AlertCountGraph data={alertCounts} />
+            <AlertAveragesGraph data={alertAverages} />
             <AlertMetricsTable
               alerts={alerts}
               loading={q.loading || !q?.data?.alerts}
