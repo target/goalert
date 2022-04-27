@@ -128,7 +128,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]UserOverride, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]UserOverride, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]UserOverride, 
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

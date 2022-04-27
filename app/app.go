@@ -112,7 +112,7 @@ type App struct {
 	RotationStore       rotation.Store
 
 	CalSubStore    *calsub.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
@@ -121,8 +121,8 @@ type App struct {
 	APIKeyring     keyring.Keyring
 
 	NonceStore    *nonce.Store
-	LabelStore    label.Store
-	OnCallStore   oncall.Store
+	LabelStore    *label.Store
+	OnCallStore   *oncall.Store
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
