@@ -205,7 +205,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.FavoriteStore == nil {
-		app.FavoriteStore, err = favorite.NewDB(ctx, app.db)
+		app.FavoriteStore, err = favorite.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init favorite store")
