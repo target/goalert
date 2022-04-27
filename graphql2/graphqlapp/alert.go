@@ -199,21 +199,34 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 		panic("duration must not be zero")
 	}
 
-	countAlertsUntil := func(ts time.Time) int {
+	alertMetricsUntil := func(ts time.Time) graphql2.AlertDataPoint {
 		var count int
+		var avgTimeToAck time.Duration
+		var avgTimeToClose time.Duration
 		for len(metrics) > 0 {
 			if !metrics[0].ClosedAt.Before(ts) {
 				break
 			}
 
 			count++
+			avgTimeToAck += metrics[0].TimeToAck
+			avgTimeToClose += metrics[0].TimeToClose
 			metrics = metrics[1:]
 		}
-		return count
+		if count > 0 {
+			avgTimeToAck = time.Duration(int64(avgTimeToAck) / int64(count))
+			avgTimeToClose = time.Duration(int64(avgTimeToClose) / int64(count))
+		}
+		return graphql2.AlertDataPoint{
+			Timestamp:  ts,
+			AlertCount: count,
+			AvgTimeToAck: &timeutil.ISODuration{TimePart: avgTimeToAck},
+			AvgTimeToClose: &timeutil.ISODuration{TimePart: avgTimeToClose},
+		}
 	}
 
 	// trim alerts
-	countAlertsUntil(r.Start)
+	alertMetricsUntil(r.Start)
 
 	ts := r.Start
 	end := r.End()
@@ -222,10 +235,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 		if next.After(end) {
 			next = end
 		}
-		result = append(result, graphql2.AlertDataPoint{
-			Timestamp:  ts,
-			AlertCount: countAlertsUntil(next),
-		})
+		result = append(result, alertMetricsUntil(next))
 		ts = next
 	}
 
