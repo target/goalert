@@ -3,8 +3,15 @@ declare global {
     interface Chainable {
       /** Executes a query directly against the test DB (no results). */
       sql: typeof sql
+
+      /** Fast-forwards the test DB clock by the specified duration. */
+      fastForward: typeof fastForward
     }
   }
+}
+
+function fastForward(duration: string): Cypress.Chainable {
+  return cy.task('db:fastforward', duration).task('engine:trigger')
 }
 
 function sql(query: string): Cypress.Chainable {

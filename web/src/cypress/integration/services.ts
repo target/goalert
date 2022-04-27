@@ -658,8 +658,9 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
 
-      // timeout to wait for alerts to populate in alert metrics table
-      cy.get('path[name="Alert Count"]', { timeout: 120000 })
+      cy.fastForward('5 minutes')
+
+      cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
       cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count: 1')
