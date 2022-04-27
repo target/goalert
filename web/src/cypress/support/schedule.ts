@@ -8,7 +8,6 @@ import {
   SetScheduleShiftInput,
   SetTemporaryScheduleInput,
   TemporarySchedule,
-  User,
   WeekdayFilter,
 } from '../../schema'
 import { randDT, randSubInterval } from './util'
