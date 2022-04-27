@@ -8788,10 +8788,10 @@ stylelint-config-standard@25.0.0:
   dependencies:
     stylelint-config-recommended "^7.0.0"
 
-stylelint@14.7.1:
-  version "14.7.1"
-  resolved "https://registry.yarnpkg.com/stylelint/-/stylelint-14.7.1.tgz#f1b3236cbf9e1b25a04d03f76250943a58d3f37f"
-  integrity sha512-rUOWm67hrzGXXyO/cInENEejF4urh1dLgOb9cr/3XLDb/t/A+rXQp3p6+no8o8QCKTgBUdhVUq/bXMgE988PJw==
+stylelint@14.8.0:
+  version "14.8.0"
+  resolved "https://registry.yarnpkg.com/stylelint/-/stylelint-14.8.0.tgz#506959bc1424610cdac9eaefca8fb2420292cf73"
+  integrity sha512-uIyIWMSBSVcj73Gn3nTvPyNsYdwTpxo1W6dWTIa1nm8JKgUi3FIobSXLgrRE6joLidoA0FdgAhCaqxwTF2ikrQ==
   dependencies:
     balanced-match "^2.0.0"
     colord "^2.9.2"
