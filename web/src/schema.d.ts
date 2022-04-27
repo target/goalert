@@ -45,6 +45,8 @@ export interface AlertMetricsOptions {
 export interface AlertDataPoint {
   timestamp: ISOTimestamp
   alertCount: number
+  avgTimeToAck?: null | ISODuration
+  avgTimeToClose?: null | ISODuration
 }
 
 export interface DebugMessagesInput {

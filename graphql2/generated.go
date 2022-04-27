@@ -106,8 +106,10 @@ type ComplexityRoot struct {
 	}
 
 	AlertDataPoint struct {
-		AlertCount func(childComplexity int) int
-		Timestamp  func(childComplexity int) int
+		AlertCount     func(childComplexity int) int
+		AvgTimeToAck   func(childComplexity int) int
+		AvgTimeToClose func(childComplexity int) int
+		Timestamp      func(childComplexity int) int
 	}
 
 	AlertLogEntry struct {
@@ -874,6 +876,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertDataPoint.AlertCount(childComplexity), true
+
+	case "AlertDataPoint.avgTimeToAck":
+		if e.complexity.AlertDataPoint.AvgTimeToAck == nil {
+			break
+		}
+
+		return e.complexity.AlertDataPoint.AvgTimeToAck(childComplexity), true
+
+	case "AlertDataPoint.avgTimeToClose":
+		if e.complexity.AlertDataPoint.AvgTimeToClose == nil {
+			break
+		}
+
+		return e.complexity.AlertDataPoint.AvgTimeToClose(childComplexity), true
 
 	case "AlertDataPoint.timestamp":
 		if e.complexity.AlertDataPoint.Timestamp == nil {
@@ -3509,6 +3525,8 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
+  avgTimeToAck: ISODuration # only null if alertCount is 0
+  avgTimeToClose: ISODuration # only null if alertCount is 0
 }
 
 input DebugMessagesInput {
@@ -6424,6 +6442,70 @@ func (ec *executionContext) _AlertDataPoint_alertCount(ctx context.Context, fiel
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertDataPoint_avgTimeToAck(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertDataPoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvgTimeToAck, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.ISODuration)
+	fc.Result = res
+	return ec.marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertDataPoint_avgTimeToClose(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertDataPoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvgTimeToClose, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.ISODuration)
+	fc.Result = res
+	return ec.marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntry_id(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
@@ -21611,6 +21693,20 @@ func (ec *executionContext) _AlertDataPoint(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "avgTimeToAck":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AlertDataPoint_avgTimeToAck(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "avgTimeToClose":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AlertDataPoint_avgTimeToClose(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30156,6 +30252,22 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	}
 	res := graphql.MarshalID(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v interface{}) (*timeutil.ISODuration, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(timeutil.ISODuration)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, sel ast.SelectionSet, v *timeutil.ISODuration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
