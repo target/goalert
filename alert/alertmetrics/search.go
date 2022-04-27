@@ -29,7 +29,9 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 	SELECT
 		alert_id,
 		service_id,
-		closed_at
+		closed_at,
+		EXTRACT(EPOCH FROM time_to_ack),
+		EXTRACT(EPOCH FROM time_to_close)
 	FROM alert_metrics
 	WHERE true
 	{{if .ServiceIDs}}
@@ -88,13 +90,23 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Record, erro
 	defer rows.Close()
 
 	metrics := make([]Record, 0)
+	var timeToAck sql.NullFloat64
+	var timeToClose sql.NullFloat64
 	for rows.Next() {
-		var dp Record
-		err := rows.Scan(&dp.AlertID, &dp.ServiceID, &dp.ClosedAt)
+		var rec Record
+		err := rows.Scan(&rec.AlertID, &rec.ServiceID, &rec.ClosedAt, &timeToAck, &timeToClose)
 		if err != nil {
 			return nil, err
 		}
-		metrics = append(metrics, dp)
+
+		rec.TimeToClose = time.Duration(timeToClose.Float64 * float64(time.Second))
+
+		if timeToAck.Valid {
+			rec.TimeToAck = time.Duration(timeToAck.Float64 * float64(time.Second))
+		} else {
+			rec.TimeToAck = rec.TimeToClose
+		}
+		metrics = append(metrics, rec)
 	}
 
 	return metrics, nil
