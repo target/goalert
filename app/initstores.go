@@ -134,7 +134,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ServiceStore == nil {
-		app.ServiceStore, err = service.NewDB(ctx, app.db)
+		app.ServiceStore, err = service.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init service store")

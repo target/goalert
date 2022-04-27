@@ -60,7 +60,7 @@ type App struct {
 	AlertStore        *alert.Store
 	AlertMetricsStore *alertmetrics.Store
 	AlertLogStore     *alertlog.Store
-	ServiceStore      service.Store
+	ServiceStore      *service.Store
 	FavoriteStore     favorite.Store
 	PolicyStore       *escalation.Store
 	ScheduleStore     *schedule.Store
