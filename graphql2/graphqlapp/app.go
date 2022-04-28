@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
@@ -50,30 +51,31 @@ import (
 )
 
 type App struct {
-	DB             *sql.DB
-	AuthBasicStore *basic.Store
-	UserStore      *user.Store
-	CMStore        *contactmethod.Store
-	NRStore        notificationrule.Store
-	NCStore        *notificationchannel.Store
-	AlertStore     *alert.Store
-	AlertLogStore  *alertlog.Store
-	ServiceStore   *service.Store
-	FavoriteStore  favorite.Store
-	PolicyStore    *escalation.Store
-	ScheduleStore  *schedule.Store
-	CalSubStore    *calsub.Store
-	RotationStore  rotation.Store
-	OnCallStore    *oncall.Store
-	IntKeyStore    *integrationkey.Store
-	LabelStore     *label.Store
-	RuleStore      rule.Store
-	OverrideStore  *override.Store
-	ConfigStore    *config.Store
-	LimitStore     *limit.Store
-	SlackStore     *slack.ChannelSender
-	HeartbeatStore *heartbeat.Store
-	NoticeStore    notice.Store
+	DB                *sql.DB
+	AuthBasicStore    *basic.Store
+	UserStore         *user.Store
+	CMStore           *contactmethod.Store
+	NRStore           notificationrule.Store
+	NCStore           *notificationchannel.Store
+	AlertStore        *alert.Store
+	AlertMetricsStore *alertmetrics.Store
+	AlertLogStore     *alertlog.Store
+	ServiceStore      *service.Store
+	FavoriteStore     favorite.Store
+	PolicyStore       *escalation.Store
+	ScheduleStore     *schedule.Store
+	CalSubStore       *calsub.Store
+	RotationStore     rotation.Store
+	OnCallStore       *oncall.Store
+	IntKeyStore       *integrationkey.Store
+	LabelStore        *label.Store
+	RuleStore         rule.Store
+	OverrideStore     *override.Store
+	ConfigStore       *config.Store
+	LimitStore        *limit.Store
+	SlackStore        *slack.ChannelSender
+	HeartbeatStore    *heartbeat.Store
+	NoticeStore       notice.Store
 
 	NotificationManager notification.Manager
 
