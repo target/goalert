@@ -101,7 +101,7 @@ type App struct {
 	NotificationRuleStore notificationrule.Store
 	FavoriteStore         favorite.Store
 
-	ServiceStore        service.Store
+	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore *integrationkey.Store
 	ScheduleRuleStore   rule.Store
@@ -119,7 +119,7 @@ type App struct {
 	APIKeyring     keyring.Keyring
 
 	NonceStore    *nonce.Store
-	LabelStore    label.Store
+	LabelStore    *label.Store
 	OnCallStore   *oncall.Store
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store

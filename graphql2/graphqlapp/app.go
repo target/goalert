@@ -58,7 +58,7 @@ type App struct {
 	NCStore        *notificationchannel.Store
 	AlertStore     *alert.Store
 	AlertLogStore  *alertlog.Store
-	ServiceStore   service.Store
+	ServiceStore   *service.Store
 	FavoriteStore  favorite.Store
 	PolicyStore    *escalation.Store
 	ScheduleStore  *schedule.Store
@@ -66,7 +66,7 @@ type App struct {
 	RotationStore  *rotation.Store
 	OnCallStore    *oncall.Store
 	IntKeyStore    *integrationkey.Store
-	LabelStore     label.Store
+	LabelStore     *label.Store
 	RuleStore      rule.Store
 	OverrideStore  *override.Store
 	ConfigStore    *config.Store

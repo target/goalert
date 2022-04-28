@@ -129,7 +129,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ServiceStore == nil {
-		app.ServiceStore, err = service.NewDB(ctx, app.db)
+		app.ServiceStore, err = service.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init service store")
@@ -231,7 +231,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init heartbeat store")
 	}
 	if app.LabelStore == nil {
-		app.LabelStore, err = label.NewDB(ctx, app.db)
+		app.LabelStore, err = label.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init label store")

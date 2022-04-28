@@ -8,10 +8,10 @@ import (
 
 type ServiceLoader struct {
 	*loader
-	store service.Store
+	store *service.Store
 }
 
-func NewServiceLoader(ctx context.Context, store service.Store) *ServiceLoader {
+func NewServiceLoader(ctx context.Context, store *service.Store) *ServiceLoader {
 	p := &ServiceLoader{
 		store: store,
 	}
