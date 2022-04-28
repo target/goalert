@@ -12,29 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Store interface {
-	FindMany(context.Context, []string) ([]Service, error)
-
-	FindOne(context.Context, string) (*Service, error)
-	FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Service, error)
-	FindOneForUser(ctx context.Context, userID, serviceID string) (*Service, error)
-	FindAll(context.Context) ([]Service, error)
-	DeleteManyTx(context.Context, *sql.Tx, []string) error
-	Insert(context.Context, *Service) (*Service, error)
-	CreateServiceTx(context.Context, *sql.Tx, *Service) (*Service, error)
-
-	Update(context.Context, *Service) error
-	UpdateTx(context.Context, *sql.Tx, *Service) error
-
-	Delete(ctx context.Context, id string) error
-	DeleteTx(ctx context.Context, tx *sql.Tx, id string) error
-
-	FindAllByEP(context.Context, string) ([]Service, error)
-	LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Service, error)
-	Search(ctx context.Context, opts *SearchOptions) ([]Service, error)
-}
-
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	findOne     *sql.Stmt
@@ -47,11 +25,11 @@ type DB struct {
 	delete      *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	prep := &util.Prepare{DB: db, Ctx: ctx}
 	p := prep.P
 
-	s := &DB{db: db}
+	s := &Store{db: db}
 	s.findOne = p(`
 		SELECT
 			s.id,
@@ -129,7 +107,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return s, prep.Err
 }
 
-func (db *DB) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Service, error) {
+func (s *Store) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -138,16 +116,16 @@ func (db *DB) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Ser
 	if err != nil {
 		return nil, err
 	}
-	var s Service
-	err = tx.StmtContext(ctx, db.findOneUp).QueryRowContext(ctx, id).Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID)
+	var svc Service
+	err = tx.StmtContext(ctx, s.findOneUp).QueryRowContext(ctx, id).Scan(&svc.ID, &svc.Name, &svc.Description, &svc.EscalationPolicyID)
 	if err != nil {
 		return nil, err
 	}
-	return &s, nil
+	return &svc, nil
 }
 
 // FindMany returns slice of Service objects given a slice of serviceIDs
-func (db *DB) FindMany(ctx context.Context, ids []string) ([]Service, error) {
+func (s *Store) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -160,7 +138,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 		return nil, err
 	}
 
-	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserID(ctx))
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserID(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -168,22 +146,22 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 	return scanAllFrom(rows)
 }
 
-func (db *DB) Insert(ctx context.Context, s *Service) (*Service, error) {
-	return db.CreateServiceTx(ctx, nil, s)
+func (s *Store) Insert(ctx context.Context, svc *Service) (*Service, error) {
+	return s.CreateServiceTx(ctx, nil, svc)
 }
-func (db *DB) CreateServiceTx(ctx context.Context, tx *sql.Tx, s *Service) (*Service, error) {
+func (s *Store) CreateServiceTx(ctx context.Context, tx *sql.Tx, svc *Service) (*Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := s.Normalize()
+	n, err := svc.Normalize()
 	if err != nil {
 		return nil, err
 	}
 
 	n.ID = uuid.New().String()
-	stmt := db.insert
+	stmt := s.insert
 	if tx != nil {
 		stmt = tx.Stmt(stmt)
 	}
@@ -196,13 +174,13 @@ func (db *DB) CreateServiceTx(ctx context.Context, tx *sql.Tx, s *Service) (*Ser
 }
 
 // Delete implements the ServiceInterface interface.
-func (db *DB) Delete(ctx context.Context, id string) error {
-	return db.DeleteTx(ctx, nil, id)
+func (s *Store) Delete(ctx context.Context, id string) error {
+	return s.DeleteTx(ctx, nil, id)
 }
-func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return db.DeleteManyTx(ctx, tx, []string{id})
+func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
+	return s.DeleteManyTx(ctx, tx, []string{id})
 }
-func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -211,11 +189,11 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if err != nil {
 		return err
 	}
-	s := db.delete
+	stmt := s.delete
 	if tx != nil {
-		s = tx.StmtContext(ctx, s)
+		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
@@ -227,16 +205,16 @@ func wrap(tx *sql.Tx, s *sql.Stmt) *sql.Stmt {
 }
 
 // Update implements the ServiceStore interface.
-func (db *DB) Update(ctx context.Context, s *Service) error {
-	return db.UpdateTx(ctx, nil, s)
+func (s *Store) Update(ctx context.Context, svc *Service) error {
+	return s.UpdateTx(ctx, nil, svc)
 }
-func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, s *Service) error {
+func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
 	}
 
-	n, err := s.Normalize()
+	n, err := svc.Normalize()
 	if err != nil {
 		return err
 	}
@@ -246,11 +224,11 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, s *Service) error {
 		return err
 	}
 
-	_, err = wrap(tx, db.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID)
+	_, err = wrap(tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID)
 	return err
 }
 
-func (db *DB) FindOneForUser(ctx context.Context, userID, serviceID string) (*Service, error) {
+func (s *Store) FindOneForUser(ctx context.Context, userID, serviceID string) (*Service, error) {
 	err := validate.UUID("ServiceID", serviceID)
 	if err != nil {
 		return nil, err
@@ -274,19 +252,19 @@ func (db *DB) FindOneForUser(ctx context.Context, userID, serviceID string) (*Se
 		return nil, err
 	}
 
-	row := db.findOne.QueryRowContext(ctx, serviceID, uid)
-	var s Service
-	err = scanFrom(&s, row.Scan)
+	row := s.findOne.QueryRowContext(ctx, serviceID, uid)
+	var svc Service
+	err = scanFrom(&svc, row.Scan)
 	if err != nil {
 		return nil, err
 	}
 
-	return &s, nil
+	return &svc, nil
 }
 
-func (db *DB) FindOne(ctx context.Context, id string) (*Service, error) {
+func (s *Store) FindOne(ctx context.Context, id string) (*Service, error) {
 	// old method just calls new method
-	return db.FindOneForUser(ctx, "", id)
+	return s.FindOneForUser(ctx, "", id)
 }
 
 func scanFrom(s *Service, f func(args ...interface{}) error) error {
@@ -305,26 +283,26 @@ func scanAllFrom(rows *sql.Rows) (services []Service, err error) {
 	return services, nil
 }
 
-func (db *DB) FindAll(ctx context.Context) ([]Service, error) {
+func (s *Store) FindAll(ctx context.Context) ([]Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findAll.QueryContext(ctx)
+	rows, err := s.findAll.QueryContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	return scanAllFrom(rows)
 }
-func (db *DB) FindAllByEP(ctx context.Context, epID string) ([]Service, error) {
+func (s *Store) FindAllByEP(ctx context.Context, epID string) ([]Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findAllByEP.QueryContext(ctx, epID)
+	rows, err := s.findAllByEP.QueryContext(ctx, epID)
 	if err != nil {
 		return nil, err
 	}
