@@ -214,8 +214,8 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 			metrics = metrics[1:]
 		}
 		if count > 0 {
-			avgTimeToAck = time.Duration(int64(avgTimeToAck) / int64(count))
-			avgTimeToClose = time.Duration(int64(avgTimeToClose) / int64(count))
+			avgTimeToAck = time.Duration(int(avgTimeToAck) / count)
+			avgTimeToClose = time.Duration(int(avgTimeToClose) / count)
 		}
 		return graphql2.AlertDataPoint{
 			Timestamp:      ts,

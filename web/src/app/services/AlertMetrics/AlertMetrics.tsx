@@ -109,18 +109,18 @@ export default function AlertMetrics(): JSX.Element {
   const alertMetrics = q.data?.alertMetrics ?? []
 
   const data = alertMetrics.map((day: AlertDataPoint) => {
+    const formatDuration = (dur: Duration): string => {
+      if (!dur.isValid) return '0'
+      const durStr = dur.toHuman({ unitDisplay: 'short' })
+      // strip milliseconds from duration string
+      return durStr.substring(0, durStr.lastIndexOf(','))
+    }
     const ackDuration = Duration.fromISO(day.avgTimeToAck || '')
     const closeDuration = Duration.fromISO(day.avgTimeToClose || '')
 
-    const ackAvgMinutes = Number(ackDuration.toFormat('s')) / 60
-    const closeAvgMinutes = Number(closeDuration.toFormat('s')) / 60
+    const ackAvgMinutes = ackDuration.shiftTo('minutes').minutes
+    const closeAvgMinutes = closeDuration.shiftTo('minutes').minutes
 
-    const formattedAckDuration = ackDuration.isValid
-      ? ackDuration.toFormat('mm:ss')
-      : '00:00'
-    const formattedCloseDuration = closeDuration.isValid
-      ? closeDuration.toFormat('mm:ss')
-      : '00:00'
     const timestamp = DateTime.fromISO(day.timestamp)
     const date = timestamp.toLocaleString({
       month: 'short',
@@ -135,10 +135,10 @@ export default function AlertMetrics(): JSX.Element {
       date: date,
       label: label,
       count: day.alertCount,
-      avgTimeToAck: ackAvgMinutes ? Number(ackAvgMinutes.toFixed(2)) : 0,
-      avgTimeToClose: closeAvgMinutes ? Number(closeAvgMinutes.toFixed(2)) : 0,
-      formattedAckLabel: formattedAckDuration,
-      formattedCloseLabel: formattedCloseDuration,
+      avgTimeToAck: ackDuration.isValid ? ackAvgMinutes : 0,
+      avgTimeToClose: closeDuration.isValid ? closeAvgMinutes : 0,
+      formattedAckLabel: formatDuration(ackDuration),
+      formattedCloseLabel: formatDuration(closeDuration),
     }
   })
 
