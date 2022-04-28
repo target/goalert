@@ -87,14 +87,18 @@ export default function AlertAveragesGraph(
             <Line
               type='monotone'
               dataKey='avgTimeToAck'
+              strokeWidth={2}
               stroke={theme.palette.primary.main}
               activeDot={{ r: 8 }}
+              name='Average Time To Acknowledge'
             />
             <Line
               type='monotone'
+              strokeWidth={2}
               dataKey='avgTimeToClose'
               stroke={theme.palette.secondary.main}
               activeDot={{ r: 8 }}
+              name='Average Time To Close'
             />
           </LineChart>
         </ResponsiveContainer>
