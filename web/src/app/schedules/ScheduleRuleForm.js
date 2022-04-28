@@ -231,7 +231,7 @@ export default function ScheduleRuleForm(props) {
           </Grid>
           <Grid item xs={12}>
             <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-              Configuring in {zone || '...'}
+              Times shown in schedule timezone ({zone || '...'})
             </Typography>
           </Grid>
           <Grid item xs={12} style={{ paddingTop: 0 }}>
