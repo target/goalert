@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"

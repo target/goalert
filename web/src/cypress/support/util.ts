@@ -149,7 +149,11 @@ export function testScreen(
 
       cy.clearCookie('goalert_session.2')
       resetQuery().then((query) =>
-        cy.task('engine:stop').sql(query).task('engine:start'),
+        cy
+          .task('engine:stop')
+          .sql(query)
+          .task('db:resettime')
+          .task('engine:start'),
       )
     })
     it('reset db', () => {}) // required due to mocha skip bug
