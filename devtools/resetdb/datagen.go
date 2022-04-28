@@ -362,6 +362,14 @@ func (d *datagen) NewAlertLogs(alert alert.Alert) {
 		Message:   "",
 	})
 
+	// Add 'ack' event log
+	d.AlertLogs = append(d.AlertLogs, AlertLog{
+		AlertID:   alert.ID,
+		Timestamp: gofakeit.DateRange(alert.CreatedAt, alert.CreatedAt.Add(10*time.Minute)),
+		Event:     "acknowledged",
+		Message:   "",
+	})
+
 	// Add 'closed' event log
 	if alert.Status == "closed" {
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
