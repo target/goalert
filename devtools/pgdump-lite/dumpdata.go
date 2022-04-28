@@ -29,6 +29,7 @@ func sortColumns(columns []string) {
 		return ci < cj
 	})
 }
+
 func quoteNames(names []string) {
 	for i, n := range names {
 		names[i] = pgx.Identifier{n}.Sanitize()
@@ -66,7 +67,16 @@ func (s *scannable) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
 	return nil
 }
 
-func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string) error {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
@@ -80,6 +90,10 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 	sort.Strings(tables)
 
 	for _, table := range tables {
+		if contains(skip, table) {
+			continue
+		}
+
 		columns, err := queryStrings(ctx, tx, "select column_name from information_schema.columns where table_schema = 'public' and table_name = $1 order by ordinal_position", table)
 		if err != nil {
 			return fmt.Errorf("read columns for '%s': %w", table, err)

@@ -361,6 +361,7 @@ func (h *Harness) modifyDBOffset(d time.Duration) {
 
 	h.setDBOffset(h.delayOffset)
 }
+
 func (h *Harness) setDBOffset(d time.Duration) {
 	h.mx.Lock()
 	defer h.mx.Unlock()
@@ -579,7 +580,7 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get abs dump path: %v", err)
 	}
-	os.MkdirAll(filepath.Dir(file), 0755)
+	os.MkdirAll(filepath.Dir(file), 0o755)
 	var t time.Time
 	err = h.db.QueryRow(context.Background(), "select now()").Scan(&t)
 	if err != nil {
@@ -598,7 +599,7 @@ func (h *Harness) dumpDB() {
 	}
 	defer fd.Close()
 
-	err = pgdump.DumpData(context.Background(), conn.Conn(), fd)
+	err = pgdump.DumpData(context.Background(), conn.Conn(), fd, nil)
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}
