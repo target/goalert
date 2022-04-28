@@ -1,4 +1,3 @@
-// set webpack public path for loading additional assets
 import { GOALERT_VERSION, pathPrefix } from './env'
 
 import React from 'react'
