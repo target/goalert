@@ -69,10 +69,10 @@ export default function AlertAveragesGraph(
               cursor={{ fill: theme.palette.background.default }}
               content={(props) => {
                 const ackAvg = props.payload?.length
-                  ? `${props.payload[0].name}: ${props.payload[0].value}min`
+                  ? `${props.payload[0].name}: ${props.payload[0].payload.formattedAckLabel}`
                   : ''
                 const closeAvg = props.payload?.length
-                  ? `${props.payload[1].name}: ${props.payload[1].value}min`
+                  ? `${props.payload[1].name}: ${props.payload[1].payload.formattedCloseLabel}`
                   : ''
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>

@@ -13,6 +13,7 @@ import AlertMetricsTable from './AlertMetricsTable'
 import AlertAveragesGraph from './AlertAveragesGraph'
 import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
+import { AlertDataPoint } from '../../../schema'
 
 const query = gql`
   query alertmetrics(
@@ -107,55 +108,40 @@ export default function AlertMetrics(): JSX.Element {
   const alerts = q.data?.alerts?.nodes ?? []
   const alertMetrics = q.data?.alertMetrics ?? []
 
-  const alertCounts = alertMetrics.map(
-    (day: { timestamp: string; alertCount: number }) => {
-      const timestamp = DateTime.fromISO(day.timestamp)
-      const date = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-      })
-      const label = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-      return {
-        date: date,
-        count: day.alertCount,
-        label: label,
-      }
-    },
-  )
+  const data = alertMetrics.map((day: AlertDataPoint) => {
+    const ackDuration = Duration.fromISO(day.avgTimeToAck || '')
+    const closeDuration = Duration.fromISO(day.avgTimeToClose || '')
 
-  const alertAverages = alertMetrics.map(
-    (day: {
-      timestamp: string
-      avgTimeToAck: string
-      avgTimeToClose: string
-    }) => {
-      const timestamp = DateTime.fromISO(day.timestamp)
-      const date = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-      })
-      const label = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-      const ackAvg = Duration.fromISO(day.avgTimeToAck)
-      const closeAvg = Duration.fromISO(day.avgTimeToClose)
+    const ackAvgMinutes = Number(ackDuration.toFormat('s')) / 60
+    const closeAvgMinutes = Number(closeDuration.toFormat('s')) / 60
 
-      return {
-        date: date,
-        avgTimeToAck: ackAvg.isValid ? Number(ackAvg.toFormat('mm.ss')) : 0,
-        avgTimeToClose: closeAvg.isValid
-          ? Number(closeAvg.toFormat('mm.ss'))
-          : 0,
-        label: label,
-      }
-    },
-  )
+    const formattedAckDuration = ackDuration.isValid
+      ? ackDuration.toFormat('mm:ss')
+      : '00:00'
+    const formattedCloseDuration = closeDuration.isValid
+      ? closeDuration.toFormat('mm:ss')
+      : '00:00'
+    const timestamp = DateTime.fromISO(day.timestamp)
+    const date = timestamp.toLocaleString({
+      month: 'short',
+      day: 'numeric',
+    })
+    const label = timestamp.toLocaleString({
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    return {
+      date: date,
+      label: label,
+      count: day.alertCount,
+      avgTimeToAck: ackAvgMinutes ? Number(ackAvgMinutes.toFixed(2)) : 0,
+      avgTimeToClose: closeAvgMinutes ? Number(closeAvgMinutes.toFixed(2)) : 0,
+      formattedAckLabel: formattedAckDuration,
+      formattedCloseLabel: formattedCloseDuration,
+    }
+  })
+
   const daycount = Math.floor(now.diff(since, 'days').plus({ day: 1 }).days)
 
   return (
@@ -177,12 +163,12 @@ export default function AlertMetrics(): JSX.Element {
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert counts over the past ${daycount} days`}
+            title={`Daily alert metrics over the past ${daycount} days`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-            <AlertCountGraph data={alertCounts} />
-            <AlertAveragesGraph data={alertAverages} />
+            <AlertCountGraph data={data} />
+            <AlertAveragesGraph data={data} />
             <AlertMetricsTable
               alerts={alerts}
               loading={q.loading || !q?.data?.alerts}
