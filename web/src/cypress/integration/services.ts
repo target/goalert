@@ -653,7 +653,7 @@ function testServices(screen: ScreenFormat): void {
         }),
     )
 
-    it.only('should display alert metrics', () => {
+    it('should display alert metrics', () => {
       cy.get('[data-cy=metrics-table]')
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
