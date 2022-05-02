@@ -190,7 +190,7 @@ PolicyStep.propTypes = {
   step: shapeStep.isRequired,
   steps: p.arrayOf(shapeStep).isRequired,
   index: p.number,
-  selected: p.boolean,
+  selected: p.bool,
 }
 
 export default PolicyStep
