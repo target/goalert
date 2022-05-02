@@ -91,11 +91,21 @@ export default function MaterialSelect(
     noOptionsError,
     onChange,
     onInputChange = () => {},
-    options,
+    options: _options,
     placeholder,
     required,
     value,
   } = props
+
+  // handle AutoComplete expecting current value to be present within options array
+  let options = _options.slice()
+  const optVals = options.map((o) => o.value)
+  if (value && !multiple && !optVals.includes(value.value)) {
+    options = options.concat(value)
+  }
+  if (value && multiple) {
+    options = options.concat(value)
+  }
 
   // getInputLabel will return the label of the current value.
   //
@@ -111,8 +121,6 @@ export default function MaterialSelect(
     _setInputValue(input)
     onInputChange(input)
   }
-
-  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
 
   useEffect(() => {
     if (!focus) setInputValue(getInputLabel())
@@ -145,7 +153,8 @@ export default function MaterialSelect(
       data-cy='material-select'
       data-cy-ready={!isLoading}
       classes={customCSS}
-      {...multi}
+      multiple={multiple}
+      filterSelectedOptions={multiple}
       value={value}
       inputValue={inputValue}
       disableClearable={required}

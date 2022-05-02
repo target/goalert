@@ -99,7 +99,7 @@ export default function ScheduleOverrideForm(props) {
         )}
         <Grid item xs={12}>
           <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-            Configuring in {zone || '...'}
+            Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
         <Grid item xs={12}>

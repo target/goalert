@@ -2,6 +2,7 @@
   "extends": "../app/tsconfig",
   "include": ["**/*"],
   "compilerOptions": {
+    "resolveJsonModule": true,
     "types": ["cypress", "cypress-axe"]
   },
 }
