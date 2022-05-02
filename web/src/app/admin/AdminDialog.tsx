@@ -7,29 +7,16 @@ import { omit } from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
-import {
-  DocumentNode,
-  OperationVariables,
-  TypedDocumentNode,
-  useMutation,
-} from '@apollo/client'
-
-interface Value {
-  id: string
-  oldValue: number
-  value: number
-  type: string
-}
+import { DocumentNode, useMutation } from '@apollo/client'
+import { ConfigValue } from '../../schema'
 
 interface FieldValues {
   [id: string]: string
 }
 
 interface AdminDialogProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mutation: DocumentNode | TypedDocumentNode<any, OperationVariables>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  values: Value[] | any
+  mutation: DocumentNode
+  values: ConfigValue[]
   fieldValues: FieldValues
   onClose: () => void
   onComplete: () => void
@@ -42,7 +29,7 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
   const changeKeys = Object.keys(props.fieldValues)
   const changes = props.values
     .filter((v: { id: string }) => changeKeys.includes(v.id))
-    .map((orig: { id: string | number; value: number; type: string }) => ({
+    .map((orig) => ({
       id: orig.id,
       oldValue: orig.value,
       value: props.fieldValues[orig.id],
@@ -75,33 +62,30 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
       errors={errs}
       form={
         <List data-cy='confirmation-diff'>
-          {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            changes.map((c: any) => (
-              <ListItem divider key={c.id} data-cy={'diff-' + c.id}>
-                <ListItemText
-                  disableTypography
-                  secondary={
-                    <Diff
-                      oldValue={
-                        c.type === 'stringList'
-                          ? c.oldValue.split(/\n/).join(', ')
-                          : c.oldValue.toString()
-                      }
-                      newValue={
-                        c.type === 'stringList'
-                          ? c.value.split(/\n/).join(', ')
-                          : c.value.toString()
-                      }
-                      type={c.type === 'boolean' ? 'words' : 'chars'}
-                    />
-                  }
-                >
-                  <Typography>{c.id}</Typography>
-                </ListItemText>
-              </ListItem>
-            ))
-          }
+          {changes.map((c) => (
+            <ListItem divider key={c.id} data-cy={'diff-' + c.id}>
+              <ListItemText
+                disableTypography
+                secondary={
+                  <Diff
+                    oldValue={
+                      c.type === 'stringList'
+                        ? c.oldValue.split(/\n/).join(', ')
+                        : c.oldValue.toString()
+                    }
+                    newValue={
+                      c.type === 'stringList'
+                        ? c.value.split(/\n/).join(', ')
+                        : c.value.toString()
+                    }
+                    type={c.type === 'boolean' ? 'words' : 'chars'}
+                  />
+                }
+              >
+                <Typography>{c.id}</Typography>
+              </ListItemText>
+            </ListItem>
+          ))}
         </List>
       }
     />
