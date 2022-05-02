@@ -144,7 +144,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert3.id}]`).should('not.be.checked')
     })
 
-    it.only('should acknowledge, escalate, and close multiple alerts', () => {
+    it('should acknowledge, escalate, and close multiple alerts', () => {
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
       cy.validateA11y()
 
