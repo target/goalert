@@ -46,7 +46,7 @@
     "react": "18.0.0",
     "react-beautiful-dnd": "13.1.0",
     "react-big-calendar": "0.40.0",
-    "react-color": "2.19.3",
+    "react-colorful": "5.5.1",
     "react-countdown": "2.3.2",
     "react-csv": "2.2.1",
     "react-dom": "18.0.0",
