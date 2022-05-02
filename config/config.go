@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,10 +18,11 @@ const SchemaVersion = 1
 type Config struct {
 	data        []byte
 	fallbackURL string
+	explicitURL string
 
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
-		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
+		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead."`
 		GoogleAnalyticsID            string `public:"true" info:"No longer used."`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
@@ -150,6 +152,25 @@ func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 	}
 
 	return cfg.Twilio.FromNumber
+}
+
+// RequestURL returns the full URL for the given request.
+func RequestURL(req *http.Request) string {
+	cfg := FromContext(req.Context())
+
+	base, err := url.Parse(cfg.PublicURL())
+	if err != nil {
+		panic(errors.Wrap(err, "parse PublicURL"))
+	}
+
+	base.RawQuery = ""
+	if strings.HasSuffix(base.Path, "/") {
+		base.Path = base.Path[:len(base.Path)-1]
+	}
+	base.Path += req.URL.Path
+	base.RawQuery = req.URL.RawQuery
+
+	return base.String()
 }
 
 func (cfg Config) rawCallbackURL(path string, mergeParams ...url.Values) *url.URL {
@@ -325,11 +346,14 @@ func (cfg Config) ApplicationName() string {
 
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
-	if cfg.General.PublicURL == "" {
+	switch {
+	case cfg.explicitURL != "":
 		return strings.TrimSuffix(cfg.fallbackURL, "/")
+	case cfg.General.PublicURL != "":
+		return strings.TrimSuffix(cfg.General.PublicURL, "/")
 	}
 
-	return strings.TrimSuffix(cfg.General.PublicURL, "/")
+	return strings.TrimSuffix(cfg.fallbackURL, "/")
 }
 
 func validateEnable(prefix string, isEnabled bool, vals ...string) error {
