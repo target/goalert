@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import Query from '../util/Query'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
 import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
@@ -14,6 +13,7 @@ import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import HeartbeatMonitorStatus from './HeartbeatMonitorStatus'
 import CopyText from '../util/CopyText'
+import { GenericError } from '../error-pages'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
@@ -60,63 +60,61 @@ export default function HeartbeatMonitorList() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
+  const { data, loading, error } = useQuery(query, {
+    variables: { serviceID: serviceID },
+  })
 
-  function renderList(monitors) {
-    const items = (monitors || [])
-      .slice()
-      .sort(sortItems)
-      .map((monitor) => ({
-        icon: (
-          <HeartbeatMonitorStatus
-            lastState={monitor.lastState}
-            lastHeartbeat={monitor.lastHeartbeat}
-          />
-        ),
-        title: monitor.name,
-        subText: (
-          <React.Fragment>
-            {`Timeout: ${monitor.timeoutMinutes} minute${
-              monitor.timeoutMinutes > 1 ? 's' : ''
-            }`}
-            <br />
-            <CopyText title='Copy URL' value={monitor.href} asURL />
-          </React.Fragment>
-        ),
-        secondaryAction: (
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit',
-                onClick: () => setShowEditDialogByID(monitor.id),
-              },
-              {
-                label: 'Delete',
-                onClick: () => setShowDeleteDialogByID(monitor.id),
-              },
-            ]}
-          />
-        ),
-      }))
-
-    return (
-      <FlatList
-        data-cy='monitors'
-        emptyMessage='No heartbeat monitors exist for this service.'
-        headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
-        items={items}
-      />
-    )
+  if (error) {
+    return <GenericError error={error.message} />
   }
+
+  const items = (data?.service?.heartbeatMonitors ?? [])
+    .slice()
+    .sort(sortItems)
+    .map((monitor) => ({
+      icon: (
+        <HeartbeatMonitorStatus
+          lastState={monitor.lastState}
+          lastHeartbeat={monitor.lastHeartbeat}
+        />
+      ),
+      title: monitor.name,
+      subText: (
+        <React.Fragment>
+          {`Timeout: ${monitor.timeoutMinutes} minute${
+            monitor.timeoutMinutes > 1 ? 's' : ''
+          }`}
+          <br />
+          <CopyText title='Copy URL' value={monitor.href} asURL />
+        </React.Fragment>
+      ),
+      secondaryAction: (
+        <OtherActions
+          actions={[
+            {
+              label: 'Edit',
+              onClick: () => setShowEditDialogByID(monitor.id),
+            },
+            {
+              label: 'Delete',
+              onClick: () => setShowDeleteDialogByID(monitor.id),
+            },
+          ]}
+        />
+      ),
+    }))
 
   return (
     <React.Fragment>
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
-            <Query
-              query={query}
-              variables={{ serviceID: serviceID }}
-              render={({ data }) => renderList(data.service.heartbeatMonitors)}
+            <FlatList
+              data-cy='monitors'
+              emptyMessage='No heartbeat monitors exist for this service.'
+              headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
+              items={items}
+              isLoading={loading}
             />
           </CardContent>
         </Card>

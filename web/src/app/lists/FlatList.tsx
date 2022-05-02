@@ -1,4 +1,10 @@
-import React, { useLayoutEffect, MouseEvent } from 'react'
+import React, {
+  useEffect,
+  useState,
+  useLayoutEffect,
+  MouseEvent,
+  ReactElement,
+} from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
 import ListItem, { ListItemProps } from '@mui/material/ListItem'
@@ -20,7 +26,7 @@ import ListSubheader from '@mui/material/ListSubheader'
 import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { Alert, AlertTitle } from '@mui/material'
+import { Alert, AlertTitle, Skeleton } from '@mui/material'
 import { AlertColor } from '@mui/material/Alert'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
@@ -80,6 +86,16 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+function LoadingItem(): JSX.Element {
+  return (
+    <ListItem>
+      <Skeleton variant='rectangular' animation='wave' width='100%'>
+        <ListItemText primary='.' secondary='.' />
+      </Skeleton>
+    </ListItem>
+  )
+}
+
 export interface FlatListSub {
   id?: string
   subHeader: string
@@ -127,6 +143,9 @@ export interface FlatListProps extends ListProps {
 
   // will render transition in list
   transition?: boolean
+
+  // will render a loading indicator instead of items
+  isLoading?: boolean
 }
 
 const severityMap: { [K in NoticeType]: AlertColor } = {
@@ -162,8 +181,18 @@ export default function FlatList({
   items,
   inset,
   transition,
+  isLoading,
   ...listProps
 }: FlatListProps): JSX.Element {
+  const [displayLoading, setDisplayLoading] = useState(false)
+
+  useEffect(() => {
+    // show loading skeletons after 1 second to avoid load flickering
+    setTimeout(() => {
+      setDisplayLoading(true)
+    }, 1000)
+  }, [])
+
   const classes = useStyles()
 
   function handleDragStart(): void {
@@ -376,9 +405,27 @@ export default function FlatList({
     return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
+  function renderSkeletons(): ReactElement | ReactElement[] {
+    const renderedSkeletons: ReactElement[] = []
+    if (displayLoading) {
+      while (items.length > renderedSkeletons.length) {
+        renderedSkeletons.push(
+          <LoadingItem key={'list_' + renderedSkeletons.length} />,
+        )
+      }
+    }
+    return renderedSkeletons
+  }
+
   // renderList handles rendering the list container as well as any
   // header elements provided
   function renderList(): JSX.Element {
+    let listContent
+    if (isLoading) listContent = renderSkeletons()
+    else if (items.length <= 0) listContent = renderEmptyMessage()
+    else if (transition) listContent = renderTransitions()
+    else listContent = renderItems()
+
     return (
       <List {...listProps}>
         {(headerNote || headerAction) && (
@@ -397,8 +444,7 @@ export default function FlatList({
             )}
           </ListItem>
         )}
-        {!items.length && renderEmptyMessage()}
-        {transition ? renderTransitions() : renderItems()}
+        {listContent}
       </List>
     )
   }
