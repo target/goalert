@@ -7,10 +7,14 @@ declare global {
   }
 }
 
-// no selector provided will result in the entire page being checked
-// inject should be true once per page, after the cy.visit call
-function validateA11y(selector = 'main[id="content"]', inject = true): void {
-  if (inject) cy.injectAxe()
+// no selector provided will result in the entire page being validated
+function validateA11y(selector = 'main[id="content"]'): void {
+  cy.window().then((win: Cypress.AUTWindow & { _axeInjected?: boolean }) => {
+    if (win._axeInjected) return
+    win._axeInjected = true
+    return cy.injectAxe()
+  })
+
   cy.checkA11y(selector, {
     includedImpacts: ['critical'], // only report and assert for critical impact items
     runOnly: [
@@ -21,7 +25,6 @@ function validateA11y(selector = 'main[id="content"]', inject = true): void {
       'wcag21aa',
       'wcag21aaa',
       'best-practice',
-      'wcag***',
     ],
   })
 }

@@ -144,7 +144,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get(`span[data-cy=item-${alert3.id}]`).should('not.be.checked')
     })
 
-    it('should acknowledge, escalate, and close multiple alerts', () => {
+    it.only('should acknowledge, escalate, and close multiple alerts', () => {
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
       cy.validateA11y()
 
@@ -155,7 +155,7 @@ function testAlerts(screen: ScreenFormat): void {
         'not.contain',
         'UNACKNOWLEDGED',
       )
-      cy.validateA11y('ul[data-cy=apollo-list]', false)
+      cy.validateA11y('ul[data-cy=apollo-list]')
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
@@ -167,7 +167,7 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('button[aria-label=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
-      cy.validateA11y('ul[data-cy=apollo-list]', false)
+      cy.validateA11y('ul[data-cy=apollo-list]')
     })
 
     it('should update some alerts', () => {
@@ -199,7 +199,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('button[aria-label=Acknowledge]').click()
 
       cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
-      cy.validateA11y('[role="alert"]', false)
+      cy.validateA11y('[role="alert"]')
 
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
