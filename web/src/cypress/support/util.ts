@@ -1,36 +1,21 @@
 import { DateTime, Duration, Interval } from 'luxon'
 import { Chance } from 'chance'
+import users from '../fixtures/users.json'
+import profile from '../fixtures/profile.json'
+import profileAdmin from '../fixtures/profileAdmin.json'
+
+const allUsers = users.concat(profile, profileAdmin)
 const c = new Chance()
 
 declare global {
   type ScreenFormat = 'mobile' | 'tablet' | 'widescreen'
 }
+const ids = allUsers.map((u) => `'${u.id}'`).join(',')
+const userVals = allUsers
+  .map((u) => `('${u.id}','${u.name}','${u.email}','${u.role}')`)
+  .join(',\n')
 
-let _resetQuery = ''
-function resetQuery(): Cypress.Chainable<string> {
-  if (_resetQuery) return cy.wrap(_resetQuery)
-
-  let users: Profile[] = []
-  let profile: Profile
-  let profileAdmin: Profile
-  cy.fixture('users').then((u) => {
-    users = users.concat(u)
-  })
-  cy.fixture('profile').then((p) => {
-    profile = p
-    users = users.concat(p)
-  })
-  cy.fixture('profileAdmin').then((p) => {
-    profileAdmin = p
-    users = users.concat(p)
-  })
-  return cy.then(() => {
-    const ids = users.map((u) => `'${u.id}'`).join(',')
-    const userVals = users
-      .map((u) => `('${u.id}','${u.name}','${u.email}','${u.role}')`)
-      .join(',\n')
-
-    _resetQuery = `
+const resetQuery = `
 truncate table escalation_policies, rotations, schedules, users CASCADE;
 select setval(pg_get_serial_sequence('alerts', 'id'), coalesce(max(id), 0)+10000 , false) from alerts;
 delete from users where id in (${ids});
@@ -44,9 +29,6 @@ values
   ('${profile.id}', '${profile.username}', '${profile.passwordHash}'),
   ('${profileAdmin.id}', '${profileAdmin.username}', '${profileAdmin.passwordHash}');
 `
-    return _resetQuery
-  })
-}
 
 // randInterval creates a random interval in the future.
 export function randInterval(): Interval {
@@ -140,7 +122,12 @@ export function testScreen(
   adminLogin = false,
 ): void {
   describe(label, () => {
-    before(() => {
+    before(function () {
+      cy.task('check:abort').then((abort) => {
+        if (abort) {
+          this.skip()
+        }
+      })
       // Ensure we cancel any in-flight requests by navigating to a blank page before setup.
       //
       // Fixes issues with stale cookies being set from the previous test.
@@ -148,9 +135,10 @@ export function testScreen(
       cy.visit('/_cy_test_reset')
 
       cy.clearCookie('goalert_session.2')
-      resetQuery().then((query) =>
-        cy.task('engine:stop').sql(query).task('engine:start'),
-      )
+      cy.task('engine:stop')
+        .sql(resetQuery)
+        .task('db:resettime')
+        .task('engine:start')
     })
     it('reset db', () => {}) // required due to mocha skip bug
 

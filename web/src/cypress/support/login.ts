@@ -1,3 +1,6 @@
+import profile from '../fixtures/profile.json'
+import profileAdmin from '../fixtures/profileAdmin.json'
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -18,14 +21,10 @@ function login(
   tokenOnly = false,
 ): Cypress.Chainable<string> {
   if (!username) {
-    return cy
-      .fixture('profile')
-      .then((p) => login(p.username, p.password, tokenOnly))
+    return login(profile.username, profile.password, tokenOnly)
   }
   if (!password) {
-    return cy
-      .fixture('profile')
-      .then((p) => login(username, p.password, tokenOnly))
+    return login(username, profile.password, tokenOnly)
   }
 
   if (tokenOnly) {
@@ -75,9 +74,7 @@ function login(
 }
 
 function adminLogin(tokenOnly = false): Cypress.Chainable<string> {
-  return cy
-    .fixture('profileAdmin')
-    .then((p) => login(p.username, p.password, tokenOnly))
+  return login(profileAdmin.username, profileAdmin.password, tokenOnly)
 }
 
 Cypress.Commands.add('login', login)

@@ -658,6 +658,8 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
 
+      cy.fastForward('5 minutes')
+
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
