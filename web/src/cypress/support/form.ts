@@ -77,7 +77,7 @@ function materialCalendar(date: string | DateTime, fieldName: string): void {
     .parent()
     .siblings()
     .should((el) => {
-      expect(DateTime.fromFormat(el.text(), 'MMMMyyyy').isValid).to.be.true
+      expect(DateTime.fromFormat(el.text(), 'MMMMyyyy').isValid).to.equal(true)
     })
     .then((el) => {
       const displayedDT = DateTime.fromFormat(el.text(), 'MMMMyyyy')
