@@ -1,7 +1,7 @@
 import { GOALERT_VERSION, pathPrefix } from './env'
 
-import React from 'react'
-import ReactDOM from 'react-dom'
+import React, { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
@@ -32,22 +32,26 @@ if (
   )
 }
 
-ReactDOM.render(
-  <StyledEngineProvider injectFirst>
-    <ThemeProvider>
-      <ApolloProvider client={GraphQLClient}>
-        <ReduxProvider store={store}>
-          <BrowserRouter basename={pathPrefix}>
-            <MuiPickersUtilsProvider>
-              <ConfigProvider>
-                <NewVersionCheck />
-                <App />
-              </ConfigProvider>
-            </MuiPickersUtilsProvider>
-          </BrowserRouter>
-        </ReduxProvider>
-      </ApolloProvider>
-    </ThemeProvider>
-  </StyledEngineProvider>,
-  document.getElementById('app'),
+const rootElement = document.getElementById('app')
+const root = createRoot(rootElement as HTMLElement)
+
+root.render(
+  <StrictMode>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider>
+        <ApolloProvider client={GraphQLClient}>
+          <ReduxProvider store={store}>
+            <BrowserRouter basename={pathPrefix}>
+              <MuiPickersUtilsProvider>
+                <ConfigProvider>
+                  <NewVersionCheck />
+                  <App />
+                </ConfigProvider>
+              </MuiPickersUtilsProvider>
+            </BrowserRouter>
+          </ReduxProvider>
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
+  </StrictMode>,
 )
