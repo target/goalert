@@ -70,8 +70,9 @@ function testAlerts(screen: ScreenFormat): void {
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
-        cy.get('ul[data-cy=apollo-list] li a').should('have.lengthOf', 1)
-        cy.get('ul[data-cy=apollo-list] li a').eq(0).click()
+        cy.get('ul[data-cy=apollo-list] li a')
+          .should('have.lengthOf', 1)
+          .click()
 
         cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
       })
