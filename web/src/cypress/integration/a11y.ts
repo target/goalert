@@ -1,7 +1,7 @@
 import { testScreen } from '../support'
 
 function testA11y(): void {
-  describe('no detectable a11y violations', () => {
+  describe('should have no detectable a11y violations', () => {
     before(() => {
       // create one of everything, all associated with each other so that every list will be populated
       cy.createService().then((service) => {
