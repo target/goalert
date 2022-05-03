@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import { useMutation, useQuery, gql } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
 import { Alert, Hidden, ListItemText } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
 import makeStyles from '@mui/styles/makeStyles'
@@ -19,6 +18,12 @@ import { useIsWidthDown } from '../util/useWidth'
 import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
+import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
+
+interface AlertsListProps {
+  serviceID: string
+  secondaryActions?: ReactElement
+}
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -68,7 +73,7 @@ const useStyles = makeStyles({
   },
 })
 
-function getStatusFilter(s) {
+function getStatusFilter(s: string): string[] {
   switch (s) {
     case 'acknowledged':
       return ['StatusAcknowledged']
@@ -84,7 +89,7 @@ function getStatusFilter(s) {
   }
 }
 
-export default function AlertsList(props) {
+export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
   // transition fab above snackbar when snackbar width overlaps fab placement
   const isXs = useIsWidthDown('sm')
@@ -97,7 +102,7 @@ export default function AlertsList(props) {
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
-  const [filter] = useURLParam('filter', 'active')
+  const [filter] = useURLParam<string>('filter', 'active')
 
   // query for current service name if props.serviceID is provided
   const serviceNameQuery = useQuery(
@@ -122,30 +127,29 @@ export default function AlertsList(props) {
       first: 25,
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
-      includeNotified: !props.serviceID, // keep service list alerts specific to that service
+      includeNotified: !props.serviceID, // keep service list alerts specific to that service,
+      filterByServiceID: props.serviceID ? [props.serviceID] : null,
     },
-  }
-
-  if (props.serviceID) {
-    variables.input.filterByServiceID = [props.serviceID]
   }
 
   const [mutate, status] = useMutation(updateMutation)
 
-  const makeUpdateAlerts = (newStatus) => (alertIDs) => {
-    setCheckedCount(alertIDs.length)
-    setActionCompleteDismissed(false)
+  const makeUpdateAlerts =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (newStatus: string) => (alertIDs: number[] | any) => {
+      setCheckedCount(alertIDs.length)
+      setActionCompleteDismissed(false)
 
-    let mutation = updateMutation
-    let variables = { input: { newStatus, alertIDs } }
+      let mutation = updateMutation
+      let variables = { input: { newStatus, alertIDs } }
 
-    if (newStatus === 'StatusUnacknowledged') {
-      mutation = escalateMutation
-      variables = { input: alertIDs }
+      if (newStatus === 'StatusUnacknowledged') {
+        mutation = escalateMutation
+        variables = { input: alertIDs }
+      }
+
+      mutate({ mutation, variables })
     }
-
-    mutate({ mutation, variables })
-  }
 
   let updateMessage, errorMessage
   if (status.error && !status.loading) {
@@ -171,7 +175,7 @@ export default function AlertsList(props) {
    * Adds border of color depending on each alert's status
    * on left side of each list item
    */
-  function getListItemStatus(s) {
+  function getListItemStatus(s: string): 'ok' | 'warn' | 'err' | undefined {
     switch (s) {
       case 'StatusAcknowledged':
         return 'warn'
@@ -192,7 +196,7 @@ export default function AlertsList(props) {
    *   - Home page, showing alerts for any favorited services and notified alerts
    *   - Services page, alerts for that service
    */
-  function getHeaderNote() {
+  function getHeaderNote(): string | undefined {
     const { favoritesOnly, includeNotified } = variables.input
 
     if (includeNotified && favoritesOnly) {
@@ -206,18 +210,16 @@ export default function AlertsList(props) {
     if (props.serviceID && serviceNameQuery.data?.service?.name) {
       return `Showing ${filter} alerts for the service ${serviceNameQuery.data.service.name}.`
     }
-
-    return null
   }
 
   /*
    * Passes the proper actions to ListControls depending
    * on which tab is currently filtering the alerts list
    */
-  function getActions() {
+  function getActions(): ControlledPaginatedListAction[] {
     const actions = []
 
-    if (filter !== 'closed' && filter !== 'acknowledged') {
+    if (filter === 'unacknowledged' || filter === 'active') {
       actions.push({
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
@@ -314,9 +316,4 @@ export default function AlertsList(props) {
       </Snackbar>
     </React.Fragment>
   )
-}
-
-AlertsList.propTypes = {
-  serviceID: p.string,
-  secondaryActions: p.node,
 }
