@@ -119,7 +119,11 @@ export default function AlertAveragesGraph(
               type='monotone'
               strokeWidth={2}
               dataKey='avgTimeToClose'
-              stroke={theme.palette.secondary.main}
+              stroke={
+                theme.palette.mode === 'light'
+                  ? theme.palette.secondary.dark
+                  : theme.palette.secondary.light
+              }
               activeDot={{ r: 8 }}
               dot={CustomDot}
               name='Average Time To Close'
