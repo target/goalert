@@ -53,7 +53,7 @@ export default function Search(props) {
   const [searchParam, setSearchParam] = useURLParam('search', '')
   // track the last value so we know if it changed externally
   // or from a local event so we don't lose typed characters.
-  const [searchValue, setSearchValue] = useState(searchParam)
+  const [prevParamValue, setPrevParamValue] = useState(searchParam)
 
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
@@ -61,7 +61,7 @@ export default function Search(props) {
   const fieldRef = useRef()
 
   useEffect(() => {
-    if (searchValue !== searchParam) {
+    if (prevParamValue !== searchParam) {
       setSearch(searchParam)
     }
   }, [searchParam])
@@ -70,7 +70,7 @@ export default function Search(props) {
   useEffect(() => {
     const t = setTimeout(() => {
       setSearchParam(search)
-      setSearchValue(search)
+      setPrevParamValue(search)
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(t)
