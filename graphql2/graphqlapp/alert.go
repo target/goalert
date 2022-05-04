@@ -204,7 +204,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 		var avgTimeToAck time.Duration
 		var avgTimeToClose time.Duration
 		for len(metrics) > 0 {
-			if !metrics[0].ClosedAt.Before(ts) {
+			if !metrics[0].ClosedAt.Truncate(24*time.Hour).Before(ts) {
 				break
 			}
 
