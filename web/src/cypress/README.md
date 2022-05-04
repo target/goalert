@@ -10,8 +10,6 @@ cy.get('input[name=someInput]').selectByLabel('Label Name')
 
 A fixture can be used as such to access some mock data, for example:
 
+```js
+import users from '../fixtures/users.json'
 ```
-cy.fixture('users').then(users => { ... })
-```
-
-with users being the name of the `json` file within the fixtures folder.

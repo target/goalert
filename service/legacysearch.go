@@ -62,7 +62,7 @@ var legacySearchTemplate = template.Must(template.New("search").Parse(`
 `))
 
 // LegacySearch will return a list of matching services and the total number of matches available.
-func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Service, error) {
+func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Service, error) {
 	if opts == nil {
 		opts = &LegacySearchOptions{}
 	}
@@ -152,7 +152,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Se
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, buf.String(), queryArgs...)
+	rows, err := s.db.QueryContext(ctx, buf.String(), queryArgs...)
 	if err != nil {
 		return nil, err
 	}

@@ -85,7 +85,7 @@ export default function ScheduleOnCallNotificationsForm(
             className={classes.tzNote}
             style={{ visibility: props.value.time ? 'visible' : 'hidden' }}
           >
-            Configuring in {zone}
+            Times shown in schedule timezone ({zone})
           </Typography>
         </Grid>
         <Grid item>

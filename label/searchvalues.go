@@ -84,7 +84,7 @@ func (opts valueRenderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]string, error) {
+func (s *Store) SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]string, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (db *DB) SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]str
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

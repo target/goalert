@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import profile from '../fixtures/profile.json'
 const c = new Chance()
 
 function countryCodeCheck(
@@ -54,12 +55,9 @@ function testProfile(): void {
       .createService({ name })
       .then((svc: Service) => {
         return cy
-          .fixture('profile')
-          .then((p: Profile) => {
-            return cy.createEPStep({
-              epID: svc.epID,
-              targets: [{ type: 'user', id: p.id }],
-            })
+          .createEPStep({
+            epID: svc.epID,
+            targets: [{ type: 'user', id: profile.id }],
           })
           .task('engine:trigger')
           .then(() => svc.id)
@@ -218,29 +216,27 @@ function testProfile(): void {
     })
 
     it('should return error with link to conflicting user', () => {
-      cy.fixture('profile').then((prof) => {
-        cy.addContactMethod({ userID: prof.id }).then(
-          (contactMethod: ContactMethod) => {
-            cy.pageFab('Add Contact Method')
-            cy.dialogTitle('Create New Contact Method')
-            cy.dialogForm({
-              name: c.word({ length: 8 }),
-              type: contactMethod.type,
-              value: contactMethod.value,
-            })
-            cy.dialogClick('Submit')
-            cy.dialog()
-              .find('a[data-cy=error-help-link]')
-              .should(
-                'contain',
-                'Contact method already exists for that type and value: ' +
-                  prof.name,
-              )
-              .should('have.attr', 'href')
-              .and('include', `/users/${prof.id}`)
-          },
-        )
-      })
+      cy.addContactMethod({ userID: profile.id }).then(
+        (contactMethod: ContactMethod) => {
+          cy.pageFab('Add Contact Method')
+          cy.dialogTitle('Create New Contact Method')
+          cy.dialogForm({
+            name: c.word({ length: 8 }),
+            type: contactMethod.type,
+            value: contactMethod.value,
+          })
+          cy.dialogClick('Submit')
+          cy.dialog()
+            .find('a[data-cy=error-help-link]')
+            .should(
+              'contain',
+              'Contact method already exists for that type and value: ' +
+                profile.name,
+            )
+            .should('have.attr', 'href')
+            .and('include', `/users/${profile.id}`)
+        },
+      )
     })
 
     it('should allow editing', () => {

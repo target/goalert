@@ -22,7 +22,7 @@ type Config struct {
 	UserStore           *user.Store
 	NotificationStore   *notification.Store
 	NCStore             *notificationchannel.Store
-	OnCallStore         oncall.Store
+	OnCallStore         *oncall.Store
 	ScheduleStore       *schedule.Store
 
 	ConfigSource config.Source

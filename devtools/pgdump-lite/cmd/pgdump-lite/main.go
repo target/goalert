@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/devtools/pgdump-lite"
@@ -15,6 +16,7 @@ func main() {
 	file := flag.String("f", "", "Output file (default is stdout).")
 	db := flag.String("d", os.Getenv("DBURL"), "DB URL") // use same env var as pg_dump
 	dataOnly := flag.Bool("a", false, "dump only the data, not the schema")
+	skip := flag.String("T", "", "skip tables")
 	flag.Parse()
 
 	out := os.Stdout
@@ -40,7 +42,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	err = pgdump.DumpData(ctx, conn, out)
+	err = pgdump.DumpData(ctx, conn, out, strings.Split(*skip, ","))
 	if err != nil {
 		log.Fatalln("ERROR: dump data:", err)
 	}

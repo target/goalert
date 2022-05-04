@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -100,6 +101,10 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init API keyring")
 	}
 
+	if app.AlertMetricsStore == nil {
+		app.AlertMetricsStore, err = alertmetrics.NewStore(ctx, app.db)
+	}
+
 	if app.AlertLogStore == nil {
 		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db)
 	}
@@ -129,7 +134,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ServiceStore == nil {
-		app.ServiceStore, err = service.NewDB(ctx, app.db)
+		app.ServiceStore, err = service.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init service store")
@@ -157,7 +162,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.RotationStore == nil {
-		app.RotationStore, err = rotation.NewDB(ctx, app.db)
+		app.RotationStore, err = rotation.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init rotation store")
@@ -212,7 +217,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.OverrideStore == nil {
-		app.OverrideStore, err = override.NewDB(ctx, app.db)
+		app.OverrideStore, err = override.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init override store")
@@ -231,14 +236,14 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init heartbeat store")
 	}
 	if app.LabelStore == nil {
-		app.LabelStore, err = label.NewDB(ctx, app.db)
+		app.LabelStore, err = label.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init label store")
 	}
 
 	if app.OnCallStore == nil {
-		app.OnCallStore, err = oncall.NewDB(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
+		app.OnCallStore, err = oncall.NewStore(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init on-call store")
