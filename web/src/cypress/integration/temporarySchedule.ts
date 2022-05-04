@@ -9,7 +9,7 @@ const dialog = '[role=dialog] #dialog-form'
 function testTemporarySchedule(screen: string): void {
   if (screen !== 'widescreen') return
 
-  let monthStart: DateTime = DateTime.local()
+  const monthStart: DateTime = DateTime.local()
     .startOf('month')
     .plus({ month: 2 })
   let schedule: Schedule
