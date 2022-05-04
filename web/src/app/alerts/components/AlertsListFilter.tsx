@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
@@ -9,6 +8,7 @@ import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import Switch from '@mui/material/Switch'
 import Grid from '@mui/material/Grid'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
@@ -18,8 +18,8 @@ import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
 import { useIsWidthUp } from '../../util/useWidth'
 
-const useStyles = makeStyles((theme) => ({
-  ...globalStyles(theme),
+const useStyles = makeStyles((theme: Theme) => ({
+  filterActions: globalStyles(theme).filterActions,
   drawer: {
     width: 'fit-content', // width placed on mobile drawer
   },
@@ -38,32 +38,43 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-function AlertsListFilter({ serviceID }) {
+interface AlertsListFilterProps {
+  serviceID: string
+}
+
+function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
   const classes = useStyles()
   const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
-  const [filter, setFilter] = useURLParam('filter', 'active')
-  const [allServices, setAllServices] = useURLParam('allServices', false)
-  const [showAsFullTime, setShowAsFullTime] = useURLParam('fullTime', false)
+  const [filter, setFilter] = useURLParam<string>('filter', 'active')
+  const [allServices, setAllServices] = useURLParam<boolean>(
+    'allServices',
+    false,
+  )
+  const [showAsFullTime, setShowAsFullTime] = useURLParam<boolean>(
+    'fullTime',
+    false,
+  )
   const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
 
   // grabs class for width depending on breakpoints (md or higher uses popover width)
   const widthClass = useIsWidthUp('md') ? classes.popover : classes.drawer
   const gridClasses = classnames(classes.grid, widthClass)
 
-  function handleOpenFilters(event) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function handleOpenFilters(event: any): void {
     setAnchorEl(event.currentTarget)
     setShow(true)
   }
 
-  function handleCloseFilters() {
+  function handleCloseFilters(): void {
     setShow(false)
   }
 
-  function renderFilters() {
+  function renderFilters(): JSX.Element {
     let favoritesFilter = null
-    if (!serviceID) {
+    if (!props.serviceID) {
       favoritesFilter = (
         <FormControlLabel
           control={
@@ -137,7 +148,7 @@ function AlertsListFilter({ serviceID }) {
       <React.Fragment>
         <Hidden mdDown>
           <Popover
-            anchorEl={() => anchorEl}
+            anchorEl={anchorEl}
             open={!!anchorEl && show}
             onClose={handleCloseFilters}
             anchorOrigin={{
@@ -186,10 +197,6 @@ function AlertsListFilter({ serviceID }) {
       {renderFilters()}
     </React.Fragment>
   )
-}
-
-AlertsListFilter.propTypes = {
-  serviceID: p.string,
 }
 
 export default AlertsListFilter
