@@ -11,7 +11,29 @@ import {
   LineChart,
   Line,
   Legend,
+  DotProps,
 } from 'recharts'
+
+interface CustomDotProps extends DotProps {
+  dataKey: string
+  payload: { date: string }
+}
+
+const CustomDot = (props: CustomDotProps): JSX.Element => {
+  const { cy, cx, fill, r, stroke, strokeWidth, dataKey, payload } = props
+  return (
+    <circle
+      cy={cy}
+      cx={cx}
+      fill={fill}
+      r={r}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      key={dataKey + '-' + payload.date}
+      data-cy={dataKey + '-' + payload.date}
+    />
+  )
+}
 
 interface AlertAveragesGraphProps {
   data: typeof LineChart.defaultProps['data']
@@ -36,7 +58,7 @@ export default function AlertAveragesGraph(
   const theme = useTheme()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-graph'>
+      <Grid item xs={12} data-cy='metrics-averages-graph'>
         <ResponsiveContainer width='100%' height='100%'>
           <LineChart
             width={730}
@@ -90,6 +112,7 @@ export default function AlertAveragesGraph(
               strokeWidth={2}
               stroke={theme.palette.primary.main}
               activeDot={{ r: 8 }}
+              dot={CustomDot}
               name='Average Time To Acknowledge'
             />
             <Line
@@ -98,6 +121,7 @@ export default function AlertAveragesGraph(
               dataKey='avgTimeToClose'
               stroke={theme.palette.secondary.main}
               activeDot={{ r: 8 }}
+              dot={CustomDot}
               name='Average Time To Close'
             />
           </LineChart>

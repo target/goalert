@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -643,6 +644,7 @@ function testServices(screen: ScreenFormat): void {
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
+          cy.ackAlert(a.id)
           cy.closeAlert(a.id)
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
@@ -654,6 +656,10 @@ function testServices(screen: ScreenFormat): void {
     )
 
     it('should display alert metrics', () => {
+      const now = DateTime.local().toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
       cy.get('[data-cy=metrics-table]')
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
@@ -663,7 +669,15 @@ function testServices(screen: ScreenFormat): void {
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
-      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count: 1')
+      cy.get('[data-cy=metrics-count-graph]')
+        .should('contain', now)
+        .should('contain', 'Alert Count: 1')
+
+      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0)
+      cy.get('[data-cy=metrics-averages-graph]')
+        .should('contain', now)
+        .should('contain', 'Average Time To Acknowledge: 0 sec')
+        .should('contain', 'Average Time To Close: 0 sec')
     })
   })
 }
