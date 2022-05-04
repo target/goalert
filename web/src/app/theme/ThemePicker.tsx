@@ -1,21 +1,23 @@
 import React, { useContext, useState } from 'react'
 import Collapse from '@mui/material/Collapse'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import FormGroup from '@mui/material/FormGroup'
 import FormLabel from '@mui/material/FormLabel'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
-import Switch from '@mui/material/Switch'
+import List from '@mui/material/List'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import { blueGrey } from '@mui/material/colors'
+
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SystemIcon from '@mui/icons-material/SettingsBrightness'
 import LightModeIcon from '@mui/icons-material/LightMode'
-import ResetIcon from '@mui/icons-material/Refresh'
 import ExpandMoreIcon from '@mui/icons-material/ExpandLess'
 import ExpandLessIcon from '@mui/icons-material/ExpandMore'
-import { blueGrey } from '@mui/material/colors'
-import { HexColorPicker } from 'react-colorful'
+import DefaultColorIcon from '@mui/icons-material/Circle'
+import ContrastIcon from '@mui/icons-material/Contrast'
+import PaletteIcon from '@mui/icons-material/Palette'
 import { ThemeContext } from './themeConfig'
 
 export default function ThemePicker(): JSX.Element {
@@ -28,6 +30,9 @@ export default function ThemePicker(): JSX.Element {
     setHighContrast,
   } = useContext(ThemeContext)
   const [showMore, setShowMore] = useState(false)
+
+  const defaultSelected = sourceColor === blueGrey[500] && !highContrast
+  const customSelected = sourceColor !== blueGrey[500] && !highContrast
 
   return (
     <Grid container direction='column' spacing={2}>
@@ -62,40 +67,88 @@ export default function ThemePicker(): JSX.Element {
           </ToggleButton>
         </ToggleButtonGroup>
         <Collapse in={showMore}>
-          <FormGroup
+          <List
+            disablePadding
             sx={{
-              p: 1,
               border: (theme) => '1px solid ' + theme.palette.divider,
+              borderRadius: '0 0 8px 8px',
               borderTop: 0,
             }}
           >
-            <FormControlLabel
-              control={
-                <IconButton onClick={() => setSourceColor(blueGrey[500])}>
-                  <ResetIcon />
-                </IconButton>
-              }
-              label='Reset to Default'
-              labelPlacement='start'
-              sx={{ ml: 0, justifyContent: 'space-between' }}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={highContrast}
-                  onChange={() => setHighContrast(!highContrast)}
+            <ListItemButton
+              selected={defaultSelected}
+              onClick={() => {
+                setSourceColor(blueGrey[500])
+                setHighContrast(false)
+              }}
+            >
+              <ListItemIcon>
+                <DefaultColorIcon
+                  color={defaultSelected ? 'primary' : 'inherit'}
                 />
-              }
-              label='Use High Contrast'
-              labelPlacement='start'
-              sx={{ ml: 0, justifyContent: 'space-between' }}
-            />
-          </FormGroup>
-          <HexColorPicker
-            color={sourceColor}
-            onChange={setSourceColor}
-            style={{ width: '100%', height: 'fit-content' }}
-          />
+              </ListItemIcon>
+              <ListItemText
+                primary='Default'
+                sx={{
+                  color: (t) =>
+                    defaultSelected
+                      ? t.palette.primary.main
+                      : t.palette.text.secondary,
+                }}
+              />
+            </ListItemButton>
+            <ListItemButton
+              selected={highContrast}
+              onClick={() => setHighContrast(!highContrast)}
+            >
+              <ListItemIcon>
+                <ContrastIcon color={highContrast ? 'primary' : 'inherit'} />
+              </ListItemIcon>
+              <ListItemText
+                primary='High Contrast'
+                sx={{
+                  color: (t) =>
+                    highContrast
+                      ? t.palette.primary.main
+                      : t.palette.text.secondary,
+                }}
+              />
+            </ListItemButton>
+            <ListItemButton
+              selected={customSelected}
+              onClick={() => {
+                document.getElementById('custom-color-picker')?.click()
+              }}
+            >
+              <input
+                id='custom-color-picker'
+                onChange={(e) => {
+                  setSourceColor(e.target.value)
+                  setHighContrast(false)
+                }}
+                type='color'
+                value={sourceColor}
+                style={{
+                  width: 0,
+                  border: 'none',
+                  padding: 0,
+                  visibility: 'hidden',
+                }}
+              />
+              <ListItemIcon>
+                <PaletteIcon color={customSelected ? 'primary' : 'inherit'} />
+              </ListItemIcon>
+              <ListItemText
+                primary='Choose Color...'
+                sx={{
+                  color: (t) =>
+                    customSelected
+                      ? t.palette.primary.main
+                      : t.palette.text.secondary,
+                }}
+              />
+            </ListItemButton>
+          </List>
         </Collapse>
       </Grid>
     </Grid>
