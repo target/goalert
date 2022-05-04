@@ -45,7 +45,7 @@ interface AlertsListFilterProps {
 function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
   const classes = useStyles()
   const [show, setShow] = useState(false)
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const [filter, setFilter] = useURLParam<string>('filter', 'active')
   const [allServices, setAllServices] = useURLParam<boolean>(
