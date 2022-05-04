@@ -51,21 +51,26 @@ const useStyles = makeStyles((theme) => {
  */
 export default function Search(props) {
   const [searchParam, setSearchParam] = useURLParam('search', '')
+  // track the last value so we know if it changed externally
+  // or from a local event so we don't lose typed characters.
+  const [searchValue, setSearchValue] = useState(searchParam)
 
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()
 
-  // If the page search param changes, we update state directly.
   useEffect(() => {
-    setSearch(searchParam)
+    if (searchValue !== searchParam) {
+      setSearch(searchParam)
+    }
   }, [searchParam])
 
   // When typing, we setup a debounce before updating the URL.
   useEffect(() => {
     const t = setTimeout(() => {
       setSearchParam(search)
+      setSearchValue(search)
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(t)
