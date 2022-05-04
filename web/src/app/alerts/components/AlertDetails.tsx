@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import p from 'prop-types'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -12,6 +12,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -28,22 +29,34 @@ import {
   SlackChannelLink,
   UserLink,
 } from '../../links'
-import { styles } from '../../styles/materialStyles'
+import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
+import { Alert, Target, EscalationPolicyStep, Notice } from '../../../schema'
 
-const useStyles = makeStyles((theme) => {
-  return {
-    ...styles(theme),
-    epHeader: {
-      paddingBottom: 8,
-    },
-  }
-})
+interface AlertDetailsProps {
+  data: Alert
+}
+
+interface MenuOption {
+  icon: ReactElement
+  label: string
+  handleOnClick: () => void
+}
+
+const useStyles = makeStyles((theme: Theme) => ({
+  card: globalStyles(theme).card,
+  cardContainer: globalStyles(theme).cardContainer,
+  cardFull: globalStyles(theme).cardFull,
+  tableCardContent: globalStyles(theme).tableCardContent,
+  epHeader: {
+    paddingBottom: 8,
+  },
+}))
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
@@ -56,7 +69,7 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AlertDetails(props) {
+export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
 
@@ -105,17 +118,17 @@ export default function AlertDetails(props) {
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  function handleToggleExactTimes() {
+  function handleToggleExactTimes(): void {
     const newVal = !showExactTimes
     setShowExactTimes(newVal)
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
 
-  function getCardClassName() {
+  function getCardClassName(): string {
     return fullScreen ? classes.cardFull : classes.card
   }
 
-  function renderTargets(targets, stepID) {
+  function renderTargets(targets: Target[], stepID: string): ReactElement[] {
     return _.sortBy(targets, 'name').map((target, i) => {
       const separator = i === 0 ? '' : ', '
 
@@ -140,23 +153,24 @@ export default function AlertDetails(props) {
    * Returns properties from the escalation policy
    * for easier use in functions.
    */
-  function epsHelper() {
-    const ep = props.data.service.escalationPolicy
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function epsHelper(): any {
+    const ep = props.data.service?.escalationPolicy
     const alert = props.data
     const state = props.data.state
 
     return {
       repeatCount: state?.repeatCount,
-      repeat: ep.repeat,
-      numSteps: ep.steps.length,
-      steps: ep.steps,
+      repeat: ep?.repeat,
+      numSteps: ep?.steps.length,
+      steps: ep?.steps,
       status: alert.status,
       currentLevel: state?.stepNumber,
       lastEscalation: state?.lastEscalation,
     }
   }
 
-  function canAutoEscalate() {
+  function canAutoEscalate(): boolean {
     const { currentLevel, status, steps, repeat, repeatCount } = epsHelper()
 
     if (status !== 'StatusUnacknowledged') {
@@ -170,7 +184,7 @@ export default function AlertDetails(props) {
     return true
   }
 
-  function getNextEscalation() {
+  function getNextEscalation(): JSX.Element | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
     const prevEscalation = new Date(lastEscalation)
 
@@ -189,14 +203,14 @@ export default function AlertDetails(props) {
 
             if (completed) return 'Escalating...'
 
-            const hourTxt = parseInt(hours)
-              ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
+            const hourTxt = parseInt(`${hours}`)
+              ? `${hours} hour${parseInt(`${hours}`) === 1 ? '' : 's'} `
               : ''
-            const minTxt = parseInt(minutes)
-              ? `${minutes} minute${parseInt(minutes) === 1 ? '' : 's'} `
+            const minTxt = parseInt(`${minutes}`)
+              ? `${minutes} minute${parseInt(`${minutes}`) === 1 ? '' : 's'} `
               : ''
             const secTxt = `${seconds} second${
-              parseInt(seconds) === 1 ? '' : 's'
+              parseInt(`${seconds}`) === 1 ? '' : 's'
             }`
 
             return hourTxt + minTxt + secTxt
@@ -208,7 +222,7 @@ export default function AlertDetails(props) {
     return 'None'
   }
 
-  function renderEscalationPolicySteps() {
+  function renderEscalationPolicySteps(): JSX.Element {
     const { steps, status, currentLevel } = epsHelper()
 
     if (!steps.length) {
@@ -221,7 +235,7 @@ export default function AlertDetails(props) {
       )
     }
 
-    return steps.map((step, index) => {
+    return steps.map((step: EscalationPolicyStep, index: number) => {
       const { id, targets } = step
 
       const rotations = targets.filter((t) => t.type === 'rotation')
@@ -252,7 +266,7 @@ export default function AlertDetails(props) {
     })
   }
 
-  function renderAlertDetails() {
+  function renderAlertDetails(): JSX.Element | null {
     const alert = props.data
     let details = (alert.details || '').trim()
     if (!details) return null
@@ -312,9 +326,9 @@ export default function AlertDetails(props) {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions() {
+  function getMenuOptions(): MenuOption[] {
     const { status } = props.data
-    let options = []
+    let options: MenuOption[] = []
 
     if (status === 'StatusClosed') return options
     if (status === 'StatusUnacknowledged') {
@@ -345,7 +359,7 @@ export default function AlertDetails(props) {
 
   const { data: alert } = props
 
-  const notices = alert.pendingNotifications.map((n) => ({
+  const notices: Notice[] = alert.pendingNotifications.map((n) => ({
     type: 'WARNING',
     message: `Notification Pending for ${n.destination}`,
     details:
@@ -395,7 +409,7 @@ export default function AlertDetails(props) {
               variant='h5'
             >
               <AppLink
-                to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
+                to={`/escalation-policies/${alert.service?.escalationPolicy?.id}`}
               >
                 Escalation Policy
               </AppLink>

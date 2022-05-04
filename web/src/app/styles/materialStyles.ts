@@ -1,4 +1,7 @@
-export const styles = (theme) => ({
+import { Theme } from '@mui/material/styles'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const styles = (theme: Theme): any => ({
   // used on details pages on desktop
   card: {
     width: '75%',
