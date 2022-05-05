@@ -20,8 +20,7 @@ function testTemporarySchedule(screen: string): void {
     })
   })
 
-  const schedTZ = (t: DateTime): string =>
-    t.setZone(schedule.timeZone).toFormat(dtFmt)
+  const schedTZ = (t: DateTime): DateTime => t.setZone(schedule.timeZone)
 
   it('should toggle duration field', () => {
     const defaultDurationHrs = 8
