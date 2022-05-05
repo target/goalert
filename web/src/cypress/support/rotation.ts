@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import users from '../fixtures/users.json'
 
 const c = new Chance()
 
@@ -66,30 +67,28 @@ function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {
           }
       }`
 
-  return cy.fixture('users').then((users: Profile[]) => {
-    if (!rot) rot = {}
-    const ids = c.pickset(users, rot.numUsers).map((usr: Profile) => usr.id)
+  if (!rot) rot = {}
+  const ids = c.pickset(users, rot.numUsers).map((usr) => usr.id)
 
-    return cy
-      .graphql(query, {
-        input: {
-          name: rot.name || 'SM Rot ' + c.word({ length: 8 }),
-          description: rot.description || c.sentence(),
-          timeZone: rot.timeZone || 'America/Chicago',
-          shiftLength: rot.shiftLength || c.integer({ min: 1, max: 10 }),
-          type: rot.type || c.pickone(['hourly', 'daily', 'weekly']),
-          start: rot.start
-            ? rot.start
-            : (c.date({ year: 2017 }) as Date).toISOString(),
-          favorite: rot.favorite,
-          userIDs: ids,
-        },
-      })
-      .then((res: GraphQLResponse) => {
-        const rot = res.createRotation
-        return rot
-      })
-  })
+  return cy
+    .graphql(query, {
+      input: {
+        name: rot.name || 'SM Rot ' + c.word({ length: 8 }),
+        description: rot.description || c.sentence(),
+        timeZone: rot.timeZone || 'America/Chicago',
+        shiftLength: rot.shiftLength || c.integer({ min: 1, max: 10 }),
+        type: rot.type || c.pickone(['hourly', 'daily', 'weekly']),
+        start: rot.start
+          ? rot.start
+          : (c.date({ year: 2017 }) as Date).toISOString(),
+        favorite: rot.favorite,
+        userIDs: ids,
+      },
+    })
+    .then((res: GraphQLResponse) => {
+      const rot = res.createRotation
+      return rot
+    })
 }
 
 function deleteRotation(id: string): Cypress.Chainable<void> {
