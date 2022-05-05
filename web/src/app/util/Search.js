@@ -107,6 +107,19 @@ export default function Search(props) {
   function renderMobile() {
     return (
       <React.Fragment>
+        <AppBarSearchContainer>
+          <IconButton
+            aria-label='Search'
+            data-cy='open-search'
+            onClick={() => setShowMobile(true)}
+            size='large'
+            sx={(theme) => ({
+              color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+            })}
+          >
+            <SearchIcon />
+          </IconButton>
+        </AppBarSearchContainer>
         <Slide
           in={showMobile || Boolean(search)}
           direction='down'
@@ -137,19 +150,6 @@ export default function Search(props) {
             </Toolbar>
           </AppBar>
         </Slide>
-        <AppBarSearchContainer>
-          <IconButton
-            aria-label='Search'
-            data-cy='open-search'
-            onClick={() => setShowMobile(true)}
-            size='large'
-            sx={(theme) => ({
-              color: theme.palette.mode === 'light' ? 'inherit' : undefined,
-            })}
-          >
-            <SearchIcon />
-          </IconButton>
-        </AppBarSearchContainer>
       </React.Fragment>
     )
   }
