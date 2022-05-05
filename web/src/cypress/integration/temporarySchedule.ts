@@ -1,6 +1,7 @@
 import { randInterval, randDTWithinInterval, testScreen } from '../support'
-import { Schedule, User } from '../../schema'
+import { Schedule } from '../../schema'
 import { DateTime, Interval } from 'luxon'
+import users from '../fixtures/users.json'
 
 const dtFmt = "yyyy-MM-dd'T'HH:mm"
 const dialog = '[role=dialog] #dialog-form'
@@ -9,24 +10,17 @@ function testTemporarySchedule(screen: string): void {
   if (screen !== 'widescreen') return
 
   let schedule: Schedule
-  let manualAddUser: User
-  let graphQLAddUser: User
-  let graphQLAddSecondUser: User
+  const manualAddUser = users[0]
+  const graphQLAddUser = users[1]
+  const graphQLAddSecondUser = users[2]
   beforeEach(() => {
-    cy.fixture('users').then((u) => {
-      manualAddUser = u[0]
-      graphQLAddUser = u[1]
-      graphQLAddSecondUser = u[2]
-
-      cy.createSchedule({ timeZone: 'Europe/Berlin' }).then((s: Schedule) => {
-        schedule = s
-        cy.visit('/schedules/' + s.id)
-      })
+    cy.createSchedule({ timeZone: 'Europe/Berlin' }).then((s: Schedule) => {
+      schedule = s
+      cy.visit('/schedules/' + s.id)
     })
   })
 
-  const schedTZ = (t: DateTime): string =>
-    t.setZone(schedule.timeZone).toFormat(dtFmt)
+  const schedTZ = (t: DateTime): DateTime => t.setZone(schedule.timeZone)
 
   it('should toggle duration field', () => {
     const defaultDurationHrs = 8

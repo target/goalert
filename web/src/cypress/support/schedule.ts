@@ -8,10 +8,10 @@ import {
   SetScheduleShiftInput,
   SetTemporaryScheduleInput,
   TemporarySchedule,
-  User,
   WeekdayFilter,
 } from '../../schema'
 import { randDT, randSubInterval } from './util'
+import users from '../fixtures/users.json'
 
 const c = new Chance()
 
@@ -340,19 +340,17 @@ function createTemporarySchedule(
   if (!start.isValid) throw new Error('invalid start time')
   if (!end.isValid) throw new Error('invalid end time')
 
-  return cy.fixture('users').then((users) => {
-    const userIDs: string[] = users.map((u: User) => u.id)
-    const shifts = genShifts(userIDs, start, end, opts.shifts)
+  const userIDs: string[] = users.map((u) => u.id)
+  const shifts = genShifts(userIDs, start, end, opts.shifts)
 
-    const input: SetTemporaryScheduleInput = {
-      scheduleID: opts.scheduleID as string, // checked above
-      start: start.toISO(),
-      end: end.toISO(),
-      shifts,
-    }
+  const input: SetTemporaryScheduleInput = {
+    scheduleID: opts.scheduleID as string, // checked above
+    start: start.toISO(),
+    end: end.toISO(),
+    shifts,
+  }
 
-    return cy.graphqlVoid(mutation, { input })
-  })
+  return cy.graphqlVoid(mutation, { input })
 }
 
 Cypress.Commands.add('createSchedule', createSchedule)

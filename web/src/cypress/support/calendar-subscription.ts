@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { Schedule } from '../../schema'
+import profile from '../fixtures/profile.json'
 
 const c = new Chance()
 
@@ -99,9 +100,7 @@ function createCalendarSubscription(
 
 function resetCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {
   if (!userID) {
-    return cy.fixture('profile').then((prof) => {
-      resetCalendarSubscriptions(prof.id)
-    })
+    return resetCalendarSubscriptions(profile.id)
   }
 
   const dbQuery = `delete from user_calendar_subscriptions where user_id = '${userID}'`

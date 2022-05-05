@@ -51,21 +51,26 @@ const useStyles = makeStyles((theme) => {
  */
 export default function Search(props) {
   const [searchParam, setSearchParam] = useURLParam('search', '')
+  // track the last value so we know if it changed externally
+  // or from a local event so we don't lose typed characters.
+  const [prevParamValue, setPrevParamValue] = useState(searchParam)
 
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()
 
-  // If the page search param changes, we update state directly.
   useEffect(() => {
-    setSearch(searchParam)
+    if (prevParamValue !== searchParam) {
+      setSearch(searchParam)
+    }
   }, [searchParam])
 
   // When typing, we setup a debounce before updating the URL.
   useEffect(() => {
     const t = setTimeout(() => {
       setSearchParam(search)
+      setPrevParamValue(search)
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(t)
@@ -101,21 +106,21 @@ export default function Search(props) {
 
   function renderMobile() {
     return (
-      <AppBarSearchContainer>
-        <IconButton
-          key='search-icon'
-          aria-label='Search'
-          data-cy='open-search'
-          onClick={() => setShowMobile(true)}
-          size='large'
-          sx={(theme) => ({
-            color: theme.palette.mode === 'light' ? 'inherit' : undefined,
-          })}
-        >
-          <SearchIcon />
-        </IconButton>
+      <React.Fragment>
+        <AppBarSearchContainer>
+          <IconButton
+            aria-label='Search'
+            data-cy='open-search'
+            onClick={() => setShowMobile(true)}
+            size='large'
+            sx={(theme) => ({
+              color: theme.palette.mode === 'light' ? 'inherit' : undefined,
+            })}
+          >
+            <SearchIcon />
+          </IconButton>
+        </AppBarSearchContainer>
         <Slide
-          key='search-field'
           in={showMobile || Boolean(search)}
           direction='down'
           mountOnEnter
@@ -145,7 +150,7 @@ export default function Search(props) {
             </Toolbar>
           </AppBar>
         </Slide>
-      </AppBarSearchContainer>
+      </React.Fragment>
     )
   }
 

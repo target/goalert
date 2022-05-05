@@ -22,13 +22,18 @@ func main() {
 			parts = []string{"/", parts[0]}
 		}
 
-		u, err := url.Parse(parts[1])
-		if err != nil {
-			log.Fatalf("ERORR: parse %s: %v", parts[1], err)
-		}
+		var rr RR
+		hosts := strings.Split(parts[1], ",")
+		for _, host := range hosts {
 
-		p := httputil.NewSingleHostReverseProxy(u)
-		h := http.Handler(p)
+			u, err := url.Parse(host)
+			if err != nil {
+				log.Fatalf("ERORR: parse %s: %v", host, err)
+			}
+
+			rr.h = append(rr.h, httputil.NewSingleHostReverseProxy(u))
+		}
+		h := http.Handler(&rr)
 		if *trim {
 			h = http.StripPrefix(parts[0], h)
 		}
