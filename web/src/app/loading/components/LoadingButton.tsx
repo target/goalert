@@ -1,9 +1,29 @@
-import React from 'react'
-import p from 'prop-types'
-import Button from '@mui/material/Button'
+import React, { ReactElement } from 'react'
+import Button, { ButtonPropsColorOverrides } from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import { OverridableStringUnion } from '@mui/types'
 
-const LoadingButton = (props) => {
+interface LoadingButtonProps {
+  attemptCount?: number
+  buttonText?: string
+  color?: OverridableStringUnion<
+    | 'inherit'
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'error'
+    | 'info'
+    | 'warning',
+    ButtonPropsColorOverrides
+  >
+  disabled?: boolean
+  loading?: boolean
+  noSubmit?: boolean
+  onClick?: () => void
+  style?: React.CSSProperties
+}
+
+const LoadingButton = (props: LoadingButtonProps): ReactElement => {
   const {
     attemptCount,
     buttonText,
@@ -44,16 +64,6 @@ const LoadingButton = (props) => {
       )}
     </div>
   )
-}
-
-LoadingButton.propTypes = {
-  attemptCount: p.number,
-  buttonText: p.string,
-  color: p.string,
-  disabled: p.bool,
-  loading: p.bool,
-  noSubmit: p.bool,
-  onClick: p.func,
 }
 
 export default LoadingButton
