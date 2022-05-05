@@ -27,23 +27,24 @@ type SearchOptions struct {
 
 var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(search.Helpers()).Parse(`
 	SELECT
-		alert_id,
 		service_id,
-		closed_at,
-		EXTRACT(EPOCH FROM time_to_ack),
-		EXTRACT(EPOCH FROM time_to_close)
+		closed_at::date,
+		count(*),
+		EXTRACT(EPOCH FROM coalesce(avg(time_to_ack), avg(time_to_close))),
+		EXTRACT(EPOCH FROM avg(time_to_close))
 	FROM alert_metrics
 	WHERE true
 	{{if .ServiceIDs}}
 		AND service_id = any(:services)
 	{{end}}
 	{{ if not .Until.IsZero }}
-		AND (date(timezone('UTC'::text, closed_at))) < :until
+		AND closed_at::date < :until
 	{{ end }}
 	{{ if not .Since.IsZero }}
-		AND (date(timezone('UTC'::text, closed_at))) >= :since
+		AND closed_at::date >= :since
 	{{ end }}
-	ORDER BY (date(timezone('UTC'::text, closed_at)))
+	GROUP BY service_id, closed_at::date
+	ORDER BY closed_at
 `))
 
 type renderData SearchOptions
@@ -94,18 +95,12 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Record, erro
 	var timeToClose sql.NullFloat64
 	for rows.Next() {
 		var rec Record
-		err := rows.Scan(&rec.AlertID, &rec.ServiceID, &rec.ClosedAt, &timeToAck, &timeToClose)
+		err := rows.Scan(&rec.ServiceID, &rec.ClosedAt, &rec.AlertCount, &timeToAck, &timeToClose)
 		if err != nil {
 			return nil, err
 		}
-
 		rec.TimeToClose = time.Duration(timeToClose.Float64 * float64(time.Second))
-
-		if timeToAck.Valid {
-			rec.TimeToAck = time.Duration(timeToAck.Float64 * float64(time.Second))
-		} else {
-			rec.TimeToAck = rec.TimeToClose
-		}
+		rec.TimeToAck = time.Duration(timeToAck.Float64 * float64(time.Second))
 		metrics = append(metrics, rec)
 	}
 
