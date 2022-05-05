@@ -1,12 +1,12 @@
 {
   "baseUrl": "http://localhost:3030",
-  "supportFile": "cypress/support/index.ts",
   "videoUploadOnPasses": false,
   "waitForAnimations": false,
   "viewportWidth": 1440,
   "viewportHeight": 900,
   "requestTimeout": 15000,
   "defaultCommandTimeout": 15000,
+  "ignoreTestFiles": "*.map",
   "retries": {
     "runMode": 2,
     "openMode": 0

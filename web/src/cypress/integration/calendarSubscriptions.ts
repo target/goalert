@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { Schedule } from '../../schema'
+import users from '../fixtures/users.json'
 
 const c = new Chance()
 
@@ -203,13 +204,11 @@ function testSubs(screen: ScreenFormat): void {
     })
 
     it('should not show route link unless on personal profile', () => {
-      cy.fixture('users').then((users) => {
-        cy.visit(`/users/${users[0].id}`)
-        cy.get('[data-cy="route-links"]').should(
-          'not.contain',
-          'Schedule Calendar Subscriptions',
-        )
-      })
+      cy.visit(`/users/${users[0].id}`)
+      cy.get('[data-cy="route-links"]').should(
+        'not.contain',
+        'Schedule Calendar Subscriptions',
+      )
     })
 
     it('should show an icon if a subscription is disabled, and vice-versa', () => {

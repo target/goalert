@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import users from '../fixtures/users.json'
 const c = new Chance()
 
 function testMaterialSelect(): void {
@@ -13,31 +14,29 @@ function testMaterialSelect(): void {
         })
       })
       it('should clear fields and not reset with last values', () => {
-        cy.fixture('users').then((users) => {
-          const u1 = users[0]
-          const u2 = users[1]
+        const u1 = users[0]
+        const u2 = users[1]
 
-          cy.pageFab()
-          cy.dialogTitle('Create Step')
+        cy.pageFab()
+        cy.dialogTitle('Create Step')
 
-          // populate users
-          cy.get('button[data-cy="users-step"]').click()
-          cy.dialogForm({ users: [u1.name, u2.name] })
+        // populate users
+        cy.get('button[data-cy="users-step"]').click()
+        cy.dialogForm({ users: [u1.name, u2.name] })
 
-          // clear field
-          cy.dialogForm({ users: '' })
-          cy.get(`input[name="users"]`)
-            .should('not.contain', u1.name)
-            .should('not.contain', u2.name)
+        // clear field
+        cy.dialogForm({ users: '' })
+        cy.get(`input[name="users"]`)
+          .should('not.contain', u1.name)
+          .should('not.contain', u2.name)
 
-          // unfocus
-          cy.get(`input[name="users"]`).blur()
-          cy.get(`input[name="users"]`)
-            .should('not.contain', u1.name)
-            .should('not.contain', u2.name)
+        // unfocus
+        cy.get(`input[name="users"]`).blur()
+        cy.get(`input[name="users"]`)
+          .should('not.contain', u1.name)
+          .should('not.contain', u2.name)
 
-          cy.dialogFinish('Submit')
-        })
+        cy.dialogFinish('Submit')
       })
     })
   })
