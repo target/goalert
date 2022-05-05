@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react'
+import React from 'react'
 import Button, { ButtonPropsColorOverrides } from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import { OverridableStringUnion } from '@mui/types'
@@ -23,7 +23,7 @@ interface LoadingButtonProps {
   style?: React.CSSProperties
 }
 
-const LoadingButton = (props: LoadingButtonProps): ReactElement => {
+const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
   const {
     attemptCount,
     buttonText,
