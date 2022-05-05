@@ -115,7 +115,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
+func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
 
 	if opts == nil {
 		opts = &SearchOptions{}
@@ -140,7 +140,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
