@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import profile from '../fixtures/profile.json'
 
 const c = new Chance()
 
@@ -126,9 +127,7 @@ function addContactMethod(
 ): Cypress.Chainable<ContactMethod> {
   if (!cm) cm = {}
   if (!cm.userID) {
-    return cy
-      .fixture('profile')
-      .then((prof) => addContactMethod({ ...cm, userID: prof.id }))
+    return addContactMethod({ ...cm, userID: profile.id })
   }
 
   const mutation = `
@@ -164,9 +163,7 @@ function addNotificationRule(
 ): Cypress.Chainable<NotificationRule> {
   if (!nr) nr = {}
   if (!nr.userID) {
-    return cy
-      .fixture('profile')
-      .then((prof) => addNotificationRule({ ...nr, userID: prof.id }))
+    return addNotificationRule({ ...nr, userID: profile.id })
   }
 
   if (!nr.contactMethodID) {
@@ -247,7 +244,7 @@ function clearContactMethods(id: string): Cypress.Chainable {
 
 function resetProfile(prof?: Profile): Cypress.Chainable {
   if (!prof) {
-    return cy.fixture('profile').then(resetProfile)
+    return resetProfile(profile as unknown as Profile)
   }
 
   const mutation = `

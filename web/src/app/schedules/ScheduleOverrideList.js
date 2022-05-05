@@ -49,6 +49,7 @@ export default function ScheduleOverrideList() {
 
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [showPast, setShowPast] = useURLParam('showPast', false)
+  const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const [zone] = useURLParam('tz', 'local')
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
@@ -108,7 +109,7 @@ export default function ScheduleOverrideList() {
         variables={{
           input: {
             scheduleID: scheduleID,
-            start: showPast ? null : new Date().toISOString(),
+            start: showPast ? null : now,
             filterAnyUserID: userFilter,
           },
         }}

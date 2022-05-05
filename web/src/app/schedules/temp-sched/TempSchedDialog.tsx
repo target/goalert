@@ -291,7 +291,7 @@ export default function TempSchedDialog({
 
               <Grid item xs={12}>
                 <Typography color='textSecondary' className={classes.tzNote}>
-                  Configuring in {zone}
+                  Times shown in schedule timezone ({zone})
                 </Typography>
               </Grid>
 
