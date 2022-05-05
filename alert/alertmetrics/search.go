@@ -28,7 +28,7 @@ type SearchOptions struct {
 var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(search.Helpers()).Parse(`
 	SELECT
 		service_id,
-		closed_at::date,
+		(date(timezone('UTC'::text, closed_at))),
 		count(*),
 		EXTRACT(EPOCH FROM coalesce(avg(time_to_ack), avg(time_to_close))),
 		EXTRACT(EPOCH FROM avg(time_to_close))
@@ -38,13 +38,13 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 		AND service_id = any(:services)
 	{{end}}
 	{{ if not .Until.IsZero }}
-		AND closed_at::date < :until
+		AND (date(timezone('UTC'::text, closed_at))) < :until
 	{{ end }}
 	{{ if not .Since.IsZero }}
-		AND closed_at::date >= :since
+		AND (date(timezone('UTC'::text, closed_at))) >= :since
 	{{ end }}
-	GROUP BY service_id, closed_at::date
-	ORDER BY closed_at
+	GROUP BY service_id, (date(timezone('UTC'::text, closed_at)))
+	ORDER BY (date(timezone('UTC'::text, closed_at)))
 `))
 
 type renderData SearchOptions
