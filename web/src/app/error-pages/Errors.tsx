@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactElement } from 'react'
 import Typography from '@mui/material/Typography'
 import {
   SentimentDissatisfied,
@@ -7,7 +7,12 @@ import {
 import { useTheme } from '@mui/material'
 import p from 'prop-types'
 
-export function PageNotFound() {
+interface ErrorsProps {
+  error?: string
+  type?: string
+}
+
+export function PageNotFound(): ReactElement {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -19,7 +24,7 @@ export function PageNotFound() {
   )
 }
 
-export function ObjectNotFound(props) {
+export function ObjectNotFound(props: ErrorsProps): ReactElement {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -38,7 +43,7 @@ ObjectNotFound.propTypes = {
   type: p.string,
 }
 
-export function GenericError(props) {
+export function GenericError(props: ErrorsProps): ReactElement {
   const theme = useTheme()
   let errorText
   if (props.error) {
