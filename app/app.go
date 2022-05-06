@@ -101,12 +101,12 @@ type App struct {
 	UserStore             *user.Store
 	ContactMethodStore    *contactmethod.Store
 	NotificationRuleStore *notificationrule.Store
-	FavoriteStore         favorite.Store
+	FavoriteStore         *favorite.Store
 
 	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore *integrationkey.Store
-	ScheduleRuleStore   rule.Store
+	ScheduleRuleStore   *rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
 	RotationStore       *rotation.Store

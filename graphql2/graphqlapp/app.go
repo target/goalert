@@ -61,7 +61,7 @@ type App struct {
 	AlertMetricsStore *alertmetrics.Store
 	AlertLogStore     *alertlog.Store
 	ServiceStore      *service.Store
-	FavoriteStore     favorite.Store
+	FavoriteStore     *favorite.Store
 	PolicyStore       *escalation.Store
 	ScheduleStore     *schedule.Store
 	CalSubStore       *calsub.Store
@@ -69,7 +69,7 @@ type App struct {
 	OnCallStore       *oncall.Store
 	IntKeyStore       *integrationkey.Store
 	LabelStore        *label.Store
-	RuleStore         rule.Store
+	RuleStore         *rule.Store
 	OverrideStore     *override.Store
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
