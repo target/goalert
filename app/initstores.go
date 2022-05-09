@@ -127,7 +127,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NotificationRuleStore == nil {
-		app.NotificationRuleStore, err = notificationrule.NewDB(ctx, app.db)
+		app.NotificationRuleStore, err = notificationrule.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification rule store")
@@ -162,7 +162,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.RotationStore == nil {
-		app.RotationStore, err = rotation.NewDB(ctx, app.db)
+		app.RotationStore, err = rotation.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init rotation store")
@@ -196,7 +196,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ScheduleRuleStore == nil {
-		app.ScheduleRuleStore, err = rule.NewDB(ctx, app.db)
+		app.ScheduleRuleStore, err = rule.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule rule store")
@@ -210,7 +210,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.FavoriteStore == nil {
-		app.FavoriteStore, err = favorite.NewDB(ctx, app.db)
+		app.FavoriteStore, err = favorite.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init favorite store")
