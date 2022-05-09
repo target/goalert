@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import React, { ReactElement, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import p from 'prop-types'
 import { useParams } from 'react-router-dom'
 import { Card, Alert } from '@mui/material'
 import FlatList from '../lists/FlatList'
@@ -16,6 +16,7 @@ import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
+import { UserCalendarSubscription } from '../../schema'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -36,15 +37,21 @@ export const calendarSubscriptionsQuery = gql`
   }
 `
 
-export default function UserCalendarSubscriptionList(props) {
+export default function UserCalendarSubscriptionList(props: {
+  userID: string
+}): JSX.Element {
   const { userID: _userID } = useParams()
   const userID = props.userID || _userID
   const [creationDisabled] = useConfigValue(
     'General.DisableCalendarSubscriptions',
   )
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
-  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
+  const [showEditDialogByID, setShowEditDialogByID] = useState<string | null>(
+    null,
+  )
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState<
+    string | null
+  >(null)
 
   const { data, loading, error } = useQuery(calendarSubscriptionsQuery, {
     variables: {
@@ -56,18 +63,21 @@ export default function UserCalendarSubscriptionList(props) {
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
   // sort by schedule names, then subscription names
-  const subs = data.user.calendarSubscriptions.slice().sort((a, b) => {
-    if (a.schedule.name < b.schedule.name) return -1
-    if (a.schedule.name > b.schedule.name) return 1
+  const subs: UserCalendarSubscription[] = data.user.calendarSubscriptions
+    .slice()
+    .sort((a: UserCalendarSubscription, b: UserCalendarSubscription) => {
+      if (a.schedule!.name < b.schedule!.name) return -1
+      if (a.schedule!.name > b.schedule!.name) return 1
 
-    if (a.name > b.name) return 1
-    if (a.name < b.name) return -1
-  })
+      if (a.name > b.name) return 1
+      if (a.name < b.name) return -1
+    })
 
-  const subheaderDict = {}
-  const items = []
+  const subheaderDict: { [key: string]: boolean } = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const items: any = []
 
-  function renderOtherActions(id) {
+  function renderOtherActions(id: string): ReactElement {
     return (
       <OtherActions
         actions={[
@@ -85,13 +95,13 @@ export default function UserCalendarSubscriptionList(props) {
   }
 
   // push schedule names as subheaders now that the array is sorted
-  subs.forEach((sub) => {
-    if (!subheaderDict[sub.schedule.name]) {
-      subheaderDict[sub.schedule.name] = true
+  subs.forEach((sub: UserCalendarSubscription) => {
+    if (!subheaderDict[sub.schedule!.name]) {
+      subheaderDict[sub.schedule!.name] = true
       items.push({
         subHeader: (
           <AppLink to={`/schedules/${sub.scheduleID}`}>
-            {sub.schedule.name}
+            {sub.schedule?.name}
           </AppLink>
         ),
       })
@@ -151,8 +161,4 @@ export default function UserCalendarSubscriptionList(props) {
       )}
     </React.Fragment>
   )
-}
-
-UserCalendarSubscriptionList.propTypes = {
-  userID: p.string,
 }
