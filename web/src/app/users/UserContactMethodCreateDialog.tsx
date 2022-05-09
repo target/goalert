@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useMutation, useLazyQuery, gql } from '@apollo/client'
-import p from 'prop-types'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -8,6 +7,13 @@ import UserContactMethodForm from './UserContactMethodForm'
 import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import { ContactMethodType } from '../../schema'
+
+type Value = {
+  name: string
+  type: ContactMethodType
+  value: string
+}
 
 const createMutation = gql`
   mutation ($input: CreateUserContactMethodInput!) {
@@ -28,13 +34,19 @@ const userConflictQuery = gql`
   }
 `
 
-export default function UserContactMethodCreateDialog(props) {
+export default function UserContactMethodCreateDialog(props: {
+  userID: string
+  onClose: (contactMethodID?: string) => void
+  disclaimer: string
+  title: string
+  subtitle: string
+}): JSX.Element {
   const [allowSV, allowE, allowW] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
     'Webhook.Enable',
   )
-  let typeVal = ''
+  let typeVal: ContactMethodType = 'SMS'
   if (allowSV) {
     typeVal = 'SMS'
   } else if (allowE) {
@@ -43,7 +55,7 @@ export default function UserContactMethodCreateDialog(props) {
     typeVal = 'WEBHOOK'
   }
   // values for contact method form
-  const [CMValue, setCMValue] = useState({
+  const [CMValue, setCMValue] = useState<Value>({
     name: '',
     type: typeVal,
     value: '',
@@ -64,9 +76,9 @@ export default function UserContactMethodCreateDialog(props) {
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
     onCompleted: (result) => {
-      props.onClose({ contactMethodID: result.createUserContactMethod.id })
+      props.onClose(result.createUserContactMethod.id)
     },
-    onError: query,
+    onError: () => query(),
     variables: {
       input: {
         ...CMValue,
@@ -115,7 +127,7 @@ export default function UserContactMethodCreateDialog(props) {
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
-      onChange={(CMValue) => setCMValue(CMValue)}
+      onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
       disclaimer={props.disclaimer}
     />
@@ -134,12 +146,4 @@ export default function UserContactMethodCreateDialog(props) {
       form={form}
     />
   )
-}
-
-UserContactMethodCreateDialog.propTypes = {
-  userID: p.string.isRequired,
-  onClose: p.func,
-  disclaimer: p.string,
-  title: p.string,
-  subtitle: p.string,
 }
