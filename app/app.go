@@ -100,7 +100,7 @@ type App struct {
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
 	ContactMethodStore    *contactmethod.Store
-	NotificationRuleStore notificationrule.Store
+	NotificationRuleStore *notificationrule.Store
 	FavoriteStore         *favorite.Store
 
 	ServiceStore        *service.Store
