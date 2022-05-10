@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react'
+import React, { ReactElement, ReactNode } from 'react'
 import { gql, QueryResult } from '@apollo/client'
 import Query from '../util/Query'
 import { Mutation } from '@apollo/client/react/components'
@@ -50,7 +50,7 @@ export default function UserStatusUpdatePreference(props: {
     )
   }
 
-  function renderMutation(user: User): ReactElement {
+  function renderMutation(user: User): ReactNode {
     const setCM =
       (commit: (input: MutationInput) => void) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
