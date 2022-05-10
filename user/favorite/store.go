@@ -12,21 +12,7 @@ import (
 )
 
 // Store allows the lookup and management of Favorites.
-type Store interface {
-	// Set will set a target as a favorite for the given userID. It is safe to call multiple times.
-	Set(ctx context.Context, userID string, tgt assignment.Target) error
-
-	// SetTx will set a target as a favorite for the given userID. It is safe to call multiple times.
-	SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignment.Target) error
-
-	// Unset will unset a target as a favorite for the given userID. It is safe to call multiple times.
-	Unset(ctx context.Context, userID string, tgt assignment.Target) error
-
-	FindAll(ctx context.Context, userID string, filter []assignment.TargetType) ([]assignment.Target, error)
-}
-
-// DB implements the Store interface using a postgres database.
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	insert  *sql.Stmt
@@ -34,10 +20,10 @@ type DB struct {
 	findAll *sql.Stmt
 }
 
-// NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+// NewStore will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
-	return &DB{
+	return &Store{
 		db: db,
 		insert: p.P(`
 			INSERT INTO user_favorites (
@@ -81,12 +67,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 }
 
 // Set will store the target as a favorite of the given user. Must be authorized as System or the same user.
-func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) error {
-	return db.SetTx(ctx, nil, userID, tgt)
+// It is safe to call multiple times.
+func (s *Store) Set(ctx context.Context, userID string, tgt assignment.Target) error {
+	return s.SetTx(ctx, nil, userID, tgt)
 }
 
 // SetTx will store the target as a favorite of the given user. Must be authorized as System or the same user.
-func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignment.Target) error {
+// It is safe to call multiple times.
+func (s *Store) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
 	if err != nil {
 		return err
@@ -100,7 +88,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 	if err != nil {
 		return err
 	}
-	stmt := db.insert
+	stmt := s.insert
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -132,7 +120,8 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 }
 
 // Unset will remove the target as a favorite of the given user. Must be authorized as System or the same user.
-func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) error {
+// It is safe to call multiple times.
+func (s *Store) Unset(ctx context.Context, userID string, tgt assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
 	if err != nil {
 		return err
@@ -165,7 +154,7 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		usrID.Valid = true
 		usrID.String = tgt.TargetID()
 	}
-	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID, epID, usrID)
+	_, err = s.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID, epID, usrID)
 	if errors.Is(err, sql.ErrNoRows) {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil
@@ -177,7 +166,7 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	return nil
 }
 
-func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.TargetType) ([]assignment.Target, error) {
+func (s *Store) FindAll(ctx context.Context, userID string, filter []assignment.TargetType) ([]assignment.Target, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
 	if err != nil {
 		return nil, err
@@ -211,7 +200,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		}
 	}
 
-	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations, allowEscalationPolicies, allowUsers)
+	rows, err := s.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations, allowEscalationPolicies, allowUsers)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
