@@ -9,6 +9,9 @@ const dialog = '[role=dialog] #dialog-form'
 function testTemporarySchedule(screen: string): void {
   if (screen !== 'widescreen') return
 
+  const monthStart: DateTime = DateTime.local()
+    .startOf('month')
+    .plus({ month: 2 })
   let schedule: Schedule
   const manualAddUser = users[0]
   const graphQLAddUser = users[1]
@@ -16,12 +19,13 @@ function testTemporarySchedule(screen: string): void {
   beforeEach(() => {
     cy.createSchedule({ timeZone: 'Europe/Berlin' }).then((s: Schedule) => {
       schedule = s
-      cy.visit('/schedules/' + s.id)
+      cy.visit(
+        '/schedules/' + s.id + '?start=' + monthStart.toFormat('yyyy-MM-dd'),
+      )
     })
   })
 
-  const schedTZ = (t: DateTime): string =>
-    t.setZone(schedule.timeZone).toFormat(dtFmt)
+  const schedTZ = (t: DateTime): DateTime => t.setZone(schedule.timeZone)
 
   it('should toggle duration field', () => {
     const defaultDurationHrs = 8
@@ -94,11 +98,11 @@ function testTemporarySchedule(screen: string): void {
 
   // seems buggy when shift list has overflow
   it('should edit and remove and add to a temporary schedule', () => {
-    const now = DateTime.utc()
+    const startTime = monthStart.plus({ week: 1 })
 
     cy.createTemporarySchedule({
       scheduleID: schedule.id,
-      start: now.toISO(),
+      start: startTime.toISO(),
       shifts: [{ userID: graphQLAddUser.id }],
     }).then(() => {
       cy.reload()
@@ -119,7 +123,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="add-shift-expander"]').click()
       cy.dialogForm({
         userID: manualAddUser.name,
-        'shift-start': schedTZ(now.plus({ hour: 1 })),
+        'shift-start': schedTZ(startTime.plus({ hour: 1 })),
       })
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
@@ -137,11 +141,11 @@ function testTemporarySchedule(screen: string): void {
   })
 
   it('should edit and remove from a temporary schedule', () => {
-    const now = DateTime.utc()
+    const startTime = monthStart.plus({ week: 1 })
 
     cy.createTemporarySchedule({
       scheduleID: schedule.id,
-      start: now.toISO(),
+      start: startTime.toISO(),
       shifts: [
         { userID: graphQLAddUser.id },
         { userID: graphQLAddSecondUser.id },
@@ -172,11 +176,11 @@ function testTemporarySchedule(screen: string): void {
   })
 
   it('should edit and add to a temporary schedule', () => {
-    const now = DateTime.utc()
+    const startTime = monthStart.plus({ week: 1 })
 
     cy.createTemporarySchedule({
       scheduleID: schedule.id,
-      start: now.toISO(),
+      start: startTime.toISO(),
       shifts: [{ userID: graphQLAddUser.id }],
     }).then(() => {
       cy.reload()
@@ -188,7 +192,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="add-shift-expander"]').click()
       cy.dialogForm({
         userID: manualAddUser.name,
-        'shift-start': schedTZ(now.plus({ hour: 1 })),
+        'shift-start': schedTZ(startTime.plus({ hour: 1 })),
       })
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
@@ -206,8 +210,10 @@ function testTemporarySchedule(screen: string): void {
   })
 
   it('should delete a temporary schedule', () => {
+    const startTime = monthStart.plus({ week: 1 })
+
     cy.createTemporarySchedule({
-      start: DateTime.utc().plus({ hour: 1 }).toISO(),
+      start: startTime.toISO(),
       scheduleID: schedule.id,
     }).then(() => {
       cy.reload()
@@ -253,9 +259,9 @@ function testTemporarySchedule(screen: string): void {
   })
 
   it('should be able to click no coverage to update times', () => {
-    const start = DateTime.utc()
+    const start = monthStart
+      .plus({ week: 1 })
       .setZone(schedule.timeZone)
-      .plus({ day: 1 })
       .startOf('day')
 
     const end = start.plus({ days: 2 })

@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.17.7-alpine3.14
+FROM docker.io/library/golang:1.18.1-alpine3.14
 
 ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
 RUN apk --no-cache add git nodejs yarn make postgresql postgresql-contrib
