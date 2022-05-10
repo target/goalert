@@ -1,6 +1,6 @@
 # Development Setup
 
-This guide assumes you have the commands `podman`, `go` (>= 1.17), `node`, `yarn`, and `make` installed/available.
+This guide assumes you have the commands `podman`, `go` (>= 1.18), `node`, `yarn`, and `make` installed/available.
 
 Targets like `make start` will automatically fallback to the `docker` command if `podman` is not available. The container tool command can be overriden by setting the `CONTAINER_TOOL` variable.
 

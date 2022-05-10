@@ -33,7 +33,7 @@ function testCalendar(screen: ScreenFormat): void {
 
   let now: DateTime
   beforeEach(() => {
-    now = DateTime.local()
+    now = DateTime.local().startOf('month').plus({ months: 2 })
     cy.createSchedule().then((s: Schedule) => {
       sched = s
 
@@ -60,7 +60,9 @@ function testCalendar(screen: ScreenFormat): void {
             },
           ],
         }).then(() => {
-          cy.visit('/schedules/' + sched.id)
+          cy.visit(
+            '/schedules/' + sched.id + '?start=' + now.toFormat('yyyy-MM-dd'),
+          )
           cy.get('[data-cy=calendar]', { timeout: 30000 }).should('be.visible')
         })
       })
@@ -102,7 +104,7 @@ function testCalendar(screen: ScreenFormat): void {
     cy.get('button[data-cy="show-today"]').click()
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
-      monthHeaderFormat(now),
+      monthHeaderFormat(DateTime.local()),
     )
   })
 
@@ -159,7 +161,7 @@ function testCalendar(screen: ScreenFormat): void {
     cy.get('button[data-cy="show-today"]').click()
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
-      weekHeaderFormat(now),
+      weekHeaderFormat(DateTime.local()),
     )
   })
 
