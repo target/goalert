@@ -25,6 +25,19 @@ interface AlertsListProps {
   secondaryActions?: ReactElement
 }
 
+interface MutationVariables {
+  input: MutationVariablesInput
+}
+
+interface StatusUnacknowledgedVariables {
+  input: (string | number)[]
+}
+
+interface MutationVariablesInput {
+  newStatus: string
+  alertIDs: (string | number)[]
+}
+
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
     alerts(input: $input) {
@@ -135,13 +148,14 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   const [mutate, status] = useMutation(updateMutation)
 
   const makeUpdateAlerts =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (newStatus: string) => (alertIDs: number[] | any) => {
+    (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
       setActionCompleteDismissed(false)
 
       let mutation = updateMutation
-      let variables = { input: { newStatus, alertIDs } }
+      let variables: MutationVariables | StatusUnacknowledgedVariables = {
+        input: { newStatus, alertIDs },
+      }
 
       if (newStatus === 'StatusUnacknowledged') {
         mutation = escalateMutation
@@ -217,7 +231,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
    * on which tab is currently filtering the alerts list
    */
   function getActions(): ControlledPaginatedListAction[] {
-    const actions = []
+    const actions: ControlledPaginatedListAction[] = []
 
     if (filter === 'unacknowledged' || filter === 'active') {
       actions.push({
