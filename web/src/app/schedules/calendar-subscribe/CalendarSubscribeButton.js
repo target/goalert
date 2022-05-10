@@ -21,7 +21,7 @@ export default function CalendarSubscribeButton(props) {
     variables: {
       id: userID,
     },
-    skip: !ready,
+    skip: !userID,
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(

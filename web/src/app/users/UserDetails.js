@@ -106,7 +106,7 @@ export default function UserDetails(props) {
     error,
   } = useQuery(isAdmin || userID === currentUserID ? profileQuery : userQuery, {
     variables: { id: userID },
-    skip: !isSessionReady,
+    skip: !userID,
   })
 
   const loading = !isSessionReady || isQueryLoading
