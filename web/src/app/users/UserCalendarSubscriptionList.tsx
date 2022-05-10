@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { ReactElement, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import { Card, Alert } from '@mui/material'
-import FlatList from '../lists/FlatList'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
 import CalendarSubscribeCreateDialog from '../schedules/calendar-subscribe/CalendarSubscribeCreateDialog'
@@ -66,16 +65,15 @@ export default function UserCalendarSubscriptionList(props: {
   const subs: UserCalendarSubscription[] = data.user.calendarSubscriptions
     .slice()
     .sort((a: UserCalendarSubscription, b: UserCalendarSubscription) => {
-      if (a.schedule!.name < b.schedule!.name) return -1
-      if (a.schedule!.name > b.schedule!.name) return 1
+      if ((a?.schedule?.name ?? '') < (b?.schedule?.name ?? '')) return -1
+      if ((a?.schedule?.name ?? '') > (b?.schedule?.name ?? '')) return 1
 
       if (a.name > b.name) return 1
       if (a.name < b.name) return -1
     })
 
   const subheaderDict: { [key: string]: boolean } = {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items: any = []
+  const items: FlatListListItem[] = []
 
   function renderOtherActions(id: string): ReactElement {
     return (
@@ -96,8 +94,8 @@ export default function UserCalendarSubscriptionList(props: {
 
   // push schedule names as subheaders now that the array is sorted
   subs.forEach((sub: UserCalendarSubscription) => {
-    if (!subheaderDict[sub.schedule!.name]) {
-      subheaderDict[sub.schedule!.name] = true
+    if (!subheaderDict[sub?.schedule?.name ?? '']) {
+      subheaderDict[sub?.schedule?.name ?? ''] = true
       items.push({
         subHeader: (
           <AppLink to={`/schedules/${sub.scheduleID}`}>
