@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useState, ReactNode } from 'react'
 import p from 'prop-types'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -36,7 +36,13 @@ import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
 import CardActions from '../../details/CardActions'
 import Notices from '../../details/Notices'
-import { Alert, Target, EscalationPolicyStep, Notice } from '../../../schema'
+import {
+  Alert,
+  Target,
+  EscalationPolicyStep,
+  Notice,
+  AlertStatus,
+} from '../../../schema'
 
 interface AlertDetailsProps {
   data: Alert
@@ -46,6 +52,16 @@ interface MenuOption {
   icon: ReactElement
   label: string
   handleOnClick: () => void
+}
+
+interface EscalationPolicyProps {
+  repeatCount?: number
+  repeat?: number
+  numSteps?: number
+  steps?: EscalationPolicyStep[]
+  status: AlertStatus
+  currentLevel?: number
+  lastEscalation?: string
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -153,9 +169,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
    * Returns properties from the escalation policy
    * for easier use in functions.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function epsHelper(): any {
-    const ep = props.data.service?.escalationPolicy
+  function epsHelper(): EscalationPolicyProps {
+    const ep = props.data?.service?.escalationPolicy
     const alert = props.data
     const state = props.data.state
 
@@ -177,7 +192,10 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       return false
     }
 
-    if (currentLevel === steps.length - 1 && repeatCount >= repeat) {
+    if (
+      currentLevel === (steps?.length ?? 0) - 1 &&
+      (repeatCount ?? 0) >= (repeat ?? 0)
+    ) {
       return false
     }
 
@@ -186,7 +204,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
   function getNextEscalation(): JSX.Element | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
-    const prevEscalation = new Date(lastEscalation)
+    const prevEscalation = new Date(lastEscalation ?? '')
 
     if (canAutoEscalate()) {
       return (
@@ -194,7 +212,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           date={
             new Date(
               prevEscalation.getTime() +
-                steps[currentLevel].delayMinutes * 60000,
+                (steps ? steps[currentLevel ?? 0].delayMinutes : 0) * 60000,
             )
           }
           overtime
@@ -222,10 +240,10 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     return 'None'
   }
 
-  function renderEscalationPolicySteps(): JSX.Element {
+  function renderEscalationPolicySteps(): ReactNode {
     const { steps, status, currentLevel } = epsHelper()
 
-    if (!steps.length) {
+    if (!steps?.length) {
       return (
         <TableRow>
           <TableCell>No steps</TableCell>
@@ -235,7 +253,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       )
     }
 
-    return steps.map((step: EscalationPolicyStep, index: number) => {
+    return steps.map((step, index) => {
       const { id, targets } = step
 
       const rotations = targets.filter((t) => t.type === 'rotation')
@@ -243,7 +261,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
       const selected =
-        status !== 'closed' && currentLevel % steps.length === index
+        status !== 'StatusClosed' &&
+        (currentLevel ?? 0) % steps.length === index
 
       return (
         <TableRow key={index} selected={selected}>
