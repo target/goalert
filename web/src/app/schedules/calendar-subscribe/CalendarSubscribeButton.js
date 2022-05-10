@@ -15,7 +15,7 @@ export default function CalendarSubscribeButton(props) {
   )
 
   const [showDialog, setShowDialog] = useState(false)
-  const { userID, ready } = useSessionInfo()
+  const { userID } = useSessionInfo()
 
   const { data, error } = useQuery(calendarSubscriptionsQuery, {
     variables: {
