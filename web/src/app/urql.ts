@@ -9,9 +9,9 @@ import {
 import { pipe, tap } from 'wonka'
 import { pathPrefix } from './env'
 
-const refetch: Array<() => void> = []
-export function refetchAll() {
-  refetch.forEach((refetch) => refetch())
+const refetch: Array<(force: boolean) => void> = []
+export function refetchAll(force = false) {
+  refetch.forEach((refetch) => refetch(force))
 }
 
 // allow refetching all active queries at any time
@@ -21,7 +21,17 @@ const refetchExchange = (): Exchange => {
       const watchedOps$ = new Map<number, Operation>()
       const observedOps$ = new Map<number, number>()
 
-      refetch.push(() => {
+      refetch.push((force) => {
+        if (!force) {
+          // use existing policy (cache-first will not re-fetch)
+          watchedOps$.forEach((op) => {
+            client.reexecuteOperation(
+              client.createRequestOperation('query', op),
+            )
+          })
+          return
+        }
+
         watchedOps$.forEach((op) => {
           client.reexecuteOperation(
             client.createRequestOperation('query', op, {
@@ -33,11 +43,7 @@ const refetchExchange = (): Exchange => {
       })
 
       const handleOp = (op: Operation) => {
-        if (
-          op.kind === 'query' &&
-          !observedOps$.has(op.key) &&
-          !op.context.noPoll
-        ) {
+        if (op.kind === 'query' && !observedOps$.has(op.key)) {
           observedOps$.set(op.key, 1)
           watchedOps$.set(op.key, op)
         }
@@ -63,7 +69,7 @@ window.addEventListener('visibilitychange', () => {
   switch (document.visibilityState) {
     case 'visible':
       resetPoll()
-      refetchAll()
+      refetchAll(true)
       break
     case 'hidden':
       clearInterval(poll)

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from 'urql'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
 import { InputProps } from '@mui/material/Input'
@@ -43,7 +43,6 @@ export default function TelTextField(
   // check validation of the input phoneNumber through graphql
   const [{ data }] = useQuery({
     query: isValidNumber,
-    context: useMemo(() => ({ noPoll: true }), []),
     variables: { number: '+' + phoneNumber },
     requestPolicy: 'cache-first',
     pause: !phoneNumber || props.disabled,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useDeferredValue, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
 import _, { memoize, omit } from 'lodash'
 import MaterialSelect from './MaterialSelect'
@@ -61,7 +61,6 @@ function makeUseValues(query, mapNode) {
       pause: !value.length,
       variables,
       requestPolicy: 'cache-first',
-      context: useMemo(() => ({ noPoll: true }), []),
     })
 
     if (!value.length) {
