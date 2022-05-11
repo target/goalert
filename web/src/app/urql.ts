@@ -33,7 +33,11 @@ const refetchExchange = (): Exchange => {
       })
 
       const handleOp = (op: Operation) => {
-        if (op.kind === 'query' && !observedOps$.has(op.key)) {
+        if (
+          op.kind === 'query' &&
+          !observedOps$.has(op.key) &&
+          !op.context.noPoll
+        ) {
           observedOps$.set(op.key, 1)
           watchedOps$.set(op.key, op)
         }
