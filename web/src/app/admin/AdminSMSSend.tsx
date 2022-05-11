@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
+import { useMutation } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { Form } from '../forms'
 import {
   Button,
@@ -76,11 +77,12 @@ export default function AdminSMSSend(): JSX.Element {
       onCompleted: (data) => setMessageID(data.debugSendSMS.id),
     })
 
-  const { data } = useQuery(debugMessageStatusQuery, {
+  const [{ data }] = useQuery({
+    query: debugMessageStatusQuery,
     variables: {
       input: { providerMessageID: messageID },
     },
-    skip: !messageID,
+    pause: !messageID,
   })
 
   const isSent = data?.debugMessageStatus?.state?.status === 'OK'
