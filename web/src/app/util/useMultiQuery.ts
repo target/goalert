@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 interface MultiQueryHookOptions extends UseQueryArgs {
   query: DocumentNode
-  variables: object[]
+  variables: Record<string, unknown>[]
 }
 interface MultiQueryResult extends UseQueryResponse {
   // matching type
@@ -19,7 +19,7 @@ const queryCache: Record<string, DocumentNode> = {}
 export default function useMultiQuery(
   options: MultiQueryHookOptions,
 ): MultiQueryResult {
-  let variables: object = {}
+  let variables: Record<string, unknown> = {}
   let multiQuery: DocumentNode = null as unknown as DocumentNode
 
   // TODO: for cache-first, try cache-only query before joining
