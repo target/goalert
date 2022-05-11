@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import p from 'prop-types'
 import { useParams } from 'react-router-dom'
 import Delete from '@mui/icons-material/Delete'
@@ -100,13 +100,10 @@ export default function UserDetails(props) {
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
 
-  const {
-    data,
-    loading: isQueryLoading,
-    error,
-  } = useQuery(isAdmin || userID === currentUserID ? profileQuery : userQuery, {
+  const [{ data, fetching: isQueryLoading, error }] = useQuery({
+    query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
     variables: { id: userID },
-    skip: !isSessionReady,
+    pause: !userID,
   })
 
   const loading = !isSessionReady || isQueryLoading
@@ -116,8 +113,7 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
-  const sessCount =
-    isAdmin || userID === currentUserID ? user.sessions.length : 0
+  const sessCount = user?.sessions?.length ?? 0
 
   const disableNR = user.contactMethods.length === 0
 

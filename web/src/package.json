@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@apollo/client": "3.5.7",
+    "@apollo/client": "3.6.2",
     "@emotion/react": "11.9.0",
     "@emotion/styled": "11.8.1",
     "@mui/icons-material": "5.6.0",
@@ -31,6 +31,7 @@
     "@mui/material": "5.6.0",
     "@mui/styles": "5.6.0",
     "@mui/x-data-grid": "5.10.0",
+    "@urql/exchange-retry": "0.3.3",
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
@@ -55,7 +56,9 @@
     "react-transition-group": "4.4.2",
     "recharts": "2.1.8",
     "redux-thunk": "2.4.0",
-    "remark-gfm": "3.0.0"
+    "remark-gfm": "3.0.0",
+    "urql": "2.2.0",
+    "wonka": "4.0.15"
   },
   "devDependencies": {
     "@types/chance": "1.1.3",
