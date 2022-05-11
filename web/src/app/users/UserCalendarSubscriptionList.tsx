@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react'
+import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import { Card, Alert } from '@mui/material'
@@ -75,7 +75,7 @@ export default function UserCalendarSubscriptionList(props: {
   const subheaderDict: { [key: string]: boolean } = {}
   const items: FlatListListItem[] = []
 
-  function renderOtherActions(id: string): ReactElement {
+  function renderOtherActions(id: string): JSX.Element {
     return (
       <OtherActions
         actions={[
