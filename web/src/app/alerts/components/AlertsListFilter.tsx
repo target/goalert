@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, MouseEvent } from 'react'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
@@ -62,8 +62,7 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
   const widthClass = useIsWidthUp('md') ? classes.popover : classes.drawer
   const gridClasses = classnames(classes.grid, widthClass)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function handleOpenFilters(event: any): void {
+  function handleOpenFilters(event: MouseEvent<HTMLButtonElement>): void {
     setAnchorEl(event.currentTarget)
     setShow(true)
   }
