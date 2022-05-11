@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery } from '@apollo/client'
+import { useQuery } from 'urql'
 import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
@@ -17,11 +17,12 @@ export default function CalendarSubscribeButton(props) {
   const [showDialog, setShowDialog] = useState(false)
   const { userID } = useSessionInfo()
 
-  const { data, error } = useQuery(calendarSubscriptionsQuery, {
+  const [{ data, error }] = useQuery({
+    query: calendarSubscriptionsQuery,
     variables: {
       id: userID,
     },
-    skip: !userID,
+    pause: !userID,
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
