@@ -113,7 +113,7 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
-  const sessCount = user.sessions ? user.sessions.length : 0
+  const sessCount = user?.sessions?.length ?? 0
 
   const disableNR = user.contactMethods.length === 0
 
