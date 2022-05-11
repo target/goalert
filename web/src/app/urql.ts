@@ -10,7 +10,7 @@ import { pipe, tap } from 'wonka'
 import { pathPrefix } from './env'
 
 const refetch: Array<(force: boolean) => void> = []
-export function refetchAll(force = false) {
+export function refetchAll(force = false): void {
   refetch.forEach((refetch) => refetch(force))
 }
 
@@ -42,7 +42,7 @@ const refetchExchange = (): Exchange => {
         })
       })
 
-      const handleOp = (op: Operation) => {
+      const handleOp = (op: Operation): void => {
         if (op.kind === 'query' && !observedOps$.has(op.key)) {
           observedOps$.set(op.key, 1)
           watchedOps$.set(op.key, op)
@@ -60,7 +60,7 @@ const refetchExchange = (): Exchange => {
 
 // refetch every 15 sec or on refocus
 let poll: NodeJS.Timer
-function resetPoll() {
+function resetPoll(): void {
   if (new URLSearchParams(location.search).get('poll') === '0') return
   clearInterval(poll)
   poll = setInterval(refetchAll, 15000)
