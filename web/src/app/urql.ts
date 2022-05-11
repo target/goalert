@@ -1,3 +1,4 @@
+import { retryExchange } from '@urql/exchange-retry'
 import {
   cacheExchange,
   createClient,
@@ -80,6 +81,12 @@ resetPoll()
 
 export const client = createClient({
   url: pathPrefix + '/api/graphql',
-  exchanges: [dedupExchange, refetchExchange(), cacheExchange, fetchExchange],
+  exchanges: [
+    dedupExchange,
+    refetchExchange(),
+    cacheExchange,
+    retryExchange({}),
+    fetchExchange,
+  ],
   requestPolicy: 'cache-and-network',
 })
