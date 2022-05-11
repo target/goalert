@@ -1,29 +1,25 @@
 import { DocumentNode } from 'graphql'
-import {
-  OperationVariables,
-  QueryHookOptions,
-  QueryResult,
-  useQuery,
-} from '@apollo/client'
+import { useQuery, UseQueryArgs, UseQueryResponse } from 'urql'
 import { mergeFields, prefixQuery } from './graphql'
+import { print } from 'graphql/language/printer'
 import _ from 'lodash'
 
-interface MultiQueryHookOptions extends QueryHookOptions {
-  variables: OperationVariables[]
+interface MultiQueryHookOptions extends UseQueryArgs {
+  query: DocumentNode
+  variables: object[]
 }
-interface MultiQueryResult extends QueryResult {
-  // matching Apollo type
+interface MultiQueryResult extends UseQueryResponse {
+  // matching type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any[] | undefined
+  data?: any[]
 }
 
 const queryCache: Record<string, DocumentNode> = {}
 
 export default function useMultiQuery(
-  query: DocumentNode,
   options: MultiQueryHookOptions,
 ): MultiQueryResult {
-  let variables: OperationVariables = {}
+  let variables: object = {}
   let multiQuery: DocumentNode = null as unknown as DocumentNode
 
   // TODO: for cache-first, try cache-only query before joining
@@ -33,20 +29,26 @@ export default function useMultiQuery(
       ...variables,
       ..._.mapKeys(vars, (val, key) => `q${i}_${key}`),
     }
-    multiQuery = mergeFields(multiQuery, prefixQuery(query, `q${i}_`))
+    multiQuery = mergeFields(multiQuery, prefixQuery(options.query, `q${i}_`))
   })
 
+  let pause = options.pause || false
   if (multiQuery) {
     const queryKey = JSON.stringify(multiQuery)
     if (queryCache[queryKey]) multiQuery = queryCache[queryKey]
     else queryCache[queryKey] = multiQuery
   } else {
     // no variables passed, nothing to do
-    multiQuery = query
-    variables.skip = true
+    multiQuery = options.query
+    pause = true
   }
 
-  const { data, ...resp } = useQuery(multiQuery, { ...options, variables })
+  const [{ data, ...resp }, refetch] = useQuery({
+    ...options,
+    query: print(multiQuery),
+    variables,
+    pause,
+  })
 
   if (data) {
     const newData = options.variables.map((vars, i) => {
@@ -58,11 +60,14 @@ export default function useMultiQuery(
       )
     })
 
-    return {
-      ...resp,
-      data: newData,
-    }
+    return [
+      {
+        ...resp,
+        data: newData,
+      },
+      refetch,
+    ]
   }
 
-  return { ...resp, data: undefined }
+  return [{ ...resp, data: undefined }, refetch]
 }
