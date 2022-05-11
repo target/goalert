@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 
 interface FuseParams<T> {
   data: T[]
-  keys?: Fuse.FuseOptionKey[]
+  keys?: Fuse.FuseOptionKey<T>[]
   search: string
   options?: Fuse.IFuseOptions<T> & CustomOptions
 }

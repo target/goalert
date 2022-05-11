@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => {
     textField: {
       backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
       borderRadius: '4px',
-      [theme.breakpoints.down('sm')]: {
+      [theme.breakpoints.down('md')]: {
         flex: 1,
       },
       [theme.breakpoints.up('md')]: {
