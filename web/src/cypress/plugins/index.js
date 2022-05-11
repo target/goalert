@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-var-requires: 0 */
 const http = require('http')
 const { exec } = require('child_process')
-const axe = require('axe-core/axe.js')
 
 function makeDoCall(path) {
   return () =>
@@ -73,7 +72,6 @@ module.exports = (on) => {
     'engine:start': makeDoCall('/start'),
     'engine:stop': makeDoCall('/stop'),
     'check:abort': () => failed,
-    getAxeSource: () => axe.source,
   })
 
   on('after:spec', (spec, results) => {

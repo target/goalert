@@ -1,3 +1,5 @@
+import axe from 'axe-core/axe.js'
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -9,13 +11,11 @@ declare global {
 
 // https://github.com/component-driven/cypress-axe/issues/118
 Cypress.Commands.add('injectAxe', () => {
-  cy.task('getAxeSource').then((axeSource) =>
-    cy.window({ log: false }).then((window) => {
-      const script = window.document.createElement('script')
-      script.innerHTML = axeSource as string
-      window.document.head.appendChild(script)
-    }),
-  )
+  cy.window({ log: false }).then((window) => {
+    const script = window.document.createElement('script')
+    script.innerHTML = axe.source
+    window.document.head.appendChild(script)
+  })
 })
 
 // no selector provided will result in the entire page being validated
