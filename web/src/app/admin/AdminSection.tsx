@@ -23,20 +23,16 @@ const components = {
   boolean: BoolInput,
 }
 
+type OnChange = (id: string, value: null | string) => void
 interface FieldProps extends ConfigValue {
   label: string
 }
-
-type Value = { [id: string]: string }
-type OnChange = (id: string, value: null | string) => void
-
 interface AdminSectionProps {
   headerNote?: string
-  value: Value
+  value: { [id: string]: string }
   fields: FieldProps[]
   onChange: OnChange
 }
-
 interface AdminFieldProps extends FieldProps {
   index: number
   onChange: OnChange
