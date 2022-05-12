@@ -93,16 +93,6 @@ export default function AdminConfig(): JSX.Element {
 
   const { data, loading, error } = useQuery(query)
 
-  if (error) {
-    return <GenericError error={error.message} />
-  }
-
-  if (loading && !data) {
-    return <Spinner />
-  }
-
-  const configValues: ConfigValue[] = data.config
-
   const updateValue = (id: string, value: null | string): void => {
     const newVal: ConfigValues = { ...values }
 
@@ -114,6 +104,11 @@ export default function AdminConfig(): JSX.Element {
 
     setValues(newVal)
   }
+
+  if (error) return <GenericError error={error.message} />
+  if (loading && !data) return <Spinner />
+
+  const configValues: ConfigValue[] = data.config
 
   const groups = uniq(
     configValues.map((f: ConfigValue) => f.id.split('.')[0]),
