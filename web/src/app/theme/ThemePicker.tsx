@@ -16,23 +16,16 @@ import LightModeIcon from '@mui/icons-material/LightMode'
 import ExpandMoreIcon from '@mui/icons-material/ExpandLess'
 import ExpandLessIcon from '@mui/icons-material/ExpandMore'
 import DefaultColorIcon from '@mui/icons-material/Circle'
-import ContrastIcon from '@mui/icons-material/Contrast'
 import PaletteIcon from '@mui/icons-material/Palette'
 import { ThemeContext } from './themeConfig'
 
 export default function ThemePicker(): JSX.Element {
-  const {
-    themeMode,
-    setThemeMode,
-    sourceColor,
-    setSourceColor,
-    highContrast,
-    setHighContrast,
-  } = useContext(ThemeContext)
+  const { themeMode, setThemeMode, sourceColor, setSourceColor } =
+    useContext(ThemeContext)
   const [showMore, setShowMore] = useState(false)
 
-  const defaultSelected = sourceColor === blueGrey[500] && !highContrast
-  const customSelected = sourceColor !== blueGrey[500] && !highContrast
+  const defaultSelected = sourceColor === blueGrey[500]
+  const customSelected = sourceColor !== blueGrey[500]
 
   return (
     <Grid container direction='column' spacing={2}>
@@ -79,7 +72,6 @@ export default function ThemePicker(): JSX.Element {
               selected={defaultSelected}
               onClick={() => {
                 setSourceColor(blueGrey[500])
-                setHighContrast(false)
               }}
             >
               <ListItemIcon>
@@ -98,23 +90,6 @@ export default function ThemePicker(): JSX.Element {
               />
             </ListItemButton>
             <ListItemButton
-              selected={highContrast}
-              onClick={() => setHighContrast(!highContrast)}
-            >
-              <ListItemIcon>
-                <ContrastIcon color={highContrast ? 'primary' : 'inherit'} />
-              </ListItemIcon>
-              <ListItemText
-                primary='High Contrast'
-                sx={{
-                  color: (t) =>
-                    highContrast
-                      ? t.palette.primary.main
-                      : t.palette.text.secondary,
-                }}
-              />
-            </ListItemButton>
-            <ListItemButton
               selected={customSelected}
               onClick={() => {
                 document.getElementById('custom-color-picker')?.click()
@@ -124,7 +99,6 @@ export default function ThemePicker(): JSX.Element {
                 id='custom-color-picker'
                 onChange={(e) => {
                   setSourceColor(e.target.value)
-                  setHighContrast(false)
                 }}
                 type='color'
                 value={sourceColor}
