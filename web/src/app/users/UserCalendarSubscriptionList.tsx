@@ -37,7 +37,7 @@ export const calendarSubscriptionsQuery = gql`
 `
 
 export default function UserCalendarSubscriptionList(props: {
-  userID: string
+  userID?: string | null
 }): JSX.Element {
   const { userID: _userID } = useParams()
   const userID = props.userID || _userID
