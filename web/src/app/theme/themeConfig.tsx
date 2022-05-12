@@ -59,7 +59,6 @@ function makePalette(
   }
 }
 
-// palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
 function getPalette(
   mode: MUIThemeMode,
   sourceColorHex: string,
