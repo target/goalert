@@ -1,10 +1,9 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import ScheduleCalendar from './ScheduleCalendar'
 import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import { useIsWidthDown } from '../../util/useWidth'
-import { Query } from '../../../schema'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { useCalendarNavigation } from './hooks'
 
@@ -89,23 +88,25 @@ function ScheduleCalendarQuery({
         getEndOfWeek(DateTime.fromISO(start).endOf('month')).toISO(),
       ]
 
-  const { data, error, loading } = useQuery<Query>(query, {
+  const [{ data, error, fetching }] = useQuery({
+    query,
     variables: {
       id: scheduleID,
       start: queryStart,
       end: queryEnd,
     },
-    skip: isMobile,
+    pause: isMobile,
   })
 
   if (isMobile) return null
   if (error) return <GenericError error={error.message} />
-  if (!loading && !data?.schedule?.id) return <ObjectNotFound type='schedule' />
+  if (!fetching && !data?.schedule?.id)
+    return <ObjectNotFound type='schedule' />
 
   return (
     <ScheduleCalendar
       scheduleID={scheduleID}
-      loading={loading && !data}
+      loading={fetching}
       shifts={data?.schedule?.shifts ?? []}
       temporarySchedules={data?.schedule?.temporarySchedules ?? []}
       overrides={data?.userOverrides?.nodes ?? []}
