@@ -240,7 +240,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     return 'None'
   }
 
-  function renderEscalationPolicySteps(): ReactNode {
+  function renderEscalationPolicySteps(): JSX.Element[] | JSX.Element {
     const { steps, status, currentLevel } = epsHelper()
 
     if (!steps?.length) {
@@ -285,7 +285,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     })
   }
 
-  function renderAlertDetails(): JSX.Element | null {
+  function renderAlertDetails(): ReactNode {
     const alert = props.data
     let details = (alert.details || '').trim()
     if (!details) return null
