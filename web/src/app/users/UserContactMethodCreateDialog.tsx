@@ -46,7 +46,7 @@ export default function UserContactMethodCreateDialog(props: {
     'SMTP.Enable',
     'Webhook.Enable',
   )
-  let typeVal: ContactMethodType = 'SMS'
+  let typeVal: ContactMethodType = 'VOICE'
   if (allowSV) {
     typeVal = 'SMS'
   } else if (allowE) {
