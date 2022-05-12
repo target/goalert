@@ -5,9 +5,13 @@ import {
   SentimentVeryDissatisfied,
 } from '@mui/icons-material'
 import { useTheme } from '@mui/material'
-import p from 'prop-types'
 
-export function PageNotFound() {
+interface ErrorsProps {
+  error?: string
+  type?: string
+}
+
+export function PageNotFound(): JSX.Element {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -19,7 +23,7 @@ export function PageNotFound() {
   )
 }
 
-export function ObjectNotFound(props) {
+export function ObjectNotFound(props: ErrorsProps): JSX.Element {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -34,11 +38,8 @@ export function ObjectNotFound(props) {
     </div>
   )
 }
-ObjectNotFound.propTypes = {
-  type: p.string,
-}
 
-export function GenericError(props) {
+export function GenericError(props: ErrorsProps): JSX.Element {
   const theme = useTheme()
   let errorText
   if (props.error) {
@@ -51,8 +52,4 @@ export function GenericError(props) {
       {errorText}
     </div>
   )
-}
-
-GenericError.propTypes = {
-  error: p.string,
 }

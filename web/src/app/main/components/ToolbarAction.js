@@ -29,6 +29,9 @@ function ToolbarAction(props) {
         data-cy='nav-back-icon'
         onClick={() => navigate(route)}
         size='large'
+        sx={(theme) => ({
+          color: theme.palette.mode === 'light' ? 'white' : undefined,
+        })}
       >
         <ChevronLeft />
       </IconButton>

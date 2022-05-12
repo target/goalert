@@ -4,8 +4,9 @@ import _, { memoize, omit } from 'lodash'
 import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import { DEBOUNCE_DELAY } from '../config'
-import { useQuery } from '@apollo/client'
+import { useQuery } from 'urql'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import { print } from 'graphql/language/printer'
 
 // valueCheck ensures the type is `arrayOf(p.string)` if `multiple` is set
 // and `p.string` otherwise.
@@ -55,13 +56,11 @@ function makeUseValues(query, mapNode) {
     value.forEach((v, i) => {
       variables['id' + i] = v
     })
-
-    const { data, error } = useQuery(getQueryBySize(value.length), {
-      skip: !value.length,
+    const [{ data, error }] = useQuery({
+      query: print(getQueryBySize(value.length)),
+      pause: !value.length,
       variables,
-      returnPartialData: true,
-      fetchPolicy: 'cache-first',
-      pollInterval: 0,
+      requestPolicy: 'cache-first',
     })
 
     if (!value.length) {
@@ -93,10 +92,12 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       ? { ...vars, ...extraVars, ...params, search }
       : { ...defaultVars, ...extraVars, ...params }
 
-    const { data, loading, error } = useQuery(q, {
-      skip: !search && !defaultVars,
+    const [{ data, fetching: loading, error }] = useQuery({
+      query: print(q),
+      pause: !search && !defaultVars,
       variables: { input },
-      fetchPolicy: 'network-only',
+      requestPolicy: 'network-only',
+
       pollInterval: 0,
       errorPolicy: 'all', // needs to be set explicitly for some reason
     })
