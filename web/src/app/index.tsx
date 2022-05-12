@@ -15,6 +15,8 @@ import store from './reduxStore'
 import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
+import { Provider as URQLProvider } from 'urql'
+import { client as urqlClient } from './urql'
 
 // version check
 if (
@@ -43,10 +45,12 @@ root.render(
           <ReduxProvider store={store}>
             <BrowserRouter basename={pathPrefix}>
               <MuiPickersUtilsProvider>
-                <ConfigProvider>
-                  <NewVersionCheck />
-                  <App />
-                </ConfigProvider>
+                <URQLProvider value={urqlClient}>
+                  <ConfigProvider>
+                    <NewVersionCheck />
+                    <App />
+                  </ConfigProvider>
+                </URQLProvider>
               </MuiPickersUtilsProvider>
             </BrowserRouter>
           </ReduxProvider>
