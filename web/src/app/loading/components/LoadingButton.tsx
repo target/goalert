@@ -1,25 +1,12 @@
 import React from 'react'
-import Button, { ButtonPropsColorOverrides } from '@mui/material/Button'
+import Button, { ButtonProps } from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import { OverridableStringUnion } from '@mui/types'
 
-interface LoadingButtonProps {
+interface LoadingButtonProps extends ButtonProps {
   attemptCount?: number
   buttonText?: string
-  color?: OverridableStringUnion<
-    | 'inherit'
-    | 'primary'
-    | 'secondary'
-    | 'success'
-    | 'error'
-    | 'info'
-    | 'warning',
-    ButtonPropsColorOverrides
-  >
-  disabled?: boolean
   loading?: boolean
   noSubmit?: boolean
-  onClick?: () => void
   style?: React.CSSProperties
 }
 
