@@ -82,7 +82,7 @@ function services(onCallSteps: OnCallStep[] = []): Service[] {
 }
 
 export default function UserOnCallAssignmentList(props: {
-  userID?: string
+  userID?: string | null
   currentUser?: boolean
 }): JSX.Element {
   const { userID: _userID } = useParams<{ userID: string }>()
