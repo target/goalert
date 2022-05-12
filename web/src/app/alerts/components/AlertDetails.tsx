@@ -34,7 +34,7 @@ import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
-import CardActions from '../../details/CardActions'
+import CardActions, { Action } from '../../details/CardActions'
 import Notices from '../../details/Notices'
 import {
   Alert,
@@ -48,13 +48,7 @@ interface AlertDetailsProps {
   data: Alert
 }
 
-interface MenuOption {
-  icon: ReactElement
-  label: string
-  handleOnClick: () => void
-}
-
-interface EscalationPolicyProps {
+interface EscalationPolicyInfo {
   repeatCount?: number
   repeat?: number
   numSteps?: number
@@ -169,7 +163,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
    * Returns properties from the escalation policy
    * for easier use in functions.
    */
-  function epsHelper(): EscalationPolicyProps {
+  function epsHelper(): EscalationPolicyInfo {
     const ep = props.data?.service?.escalationPolicy
     const alert = props.data
     const state = props.data.state
@@ -221,15 +215,13 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
             if (completed) return 'Escalating...'
 
-            const hourTxt = parseInt(`${hours}`)
-              ? `${hours} hour${parseInt(`${hours}`) === 1 ? '' : 's'} `
+            const hourTxt = hours
+              ? `${hours} hour${hours === 1 ? '' : 's'} `
               : ''
-            const minTxt = parseInt(`${minutes}`)
-              ? `${minutes} minute${parseInt(`${minutes}`) === 1 ? '' : 's'} `
+            const minTxt = minutes
+              ? `${minutes} minute${minutes === 1 ? '' : 's'} `
               : ''
-            const secTxt = `${seconds} second${
-              parseInt(`${seconds}`) === 1 ? '' : 's'
-            }`
+            const secTxt = `${seconds} second${seconds === 1 ? '' : 's'}`
 
             return hourTxt + minTxt + secTxt
           }}
@@ -345,9 +337,9 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions(): MenuOption[] {
+  function getMenuOptions(): Action[] {
     const { status } = props.data
-    let options: MenuOption[] = []
+    let options: Action[] = []
 
     if (status === 'StatusClosed') return options
     if (status === 'StatusUnacknowledged') {
