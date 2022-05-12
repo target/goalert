@@ -37,6 +37,12 @@ interface AdminSectionProps {
   onChange: OnChange
 }
 
+interface AdminFieldProps extends FieldProps {
+  index: number
+  onChange: OnChange
+  fieldsLength: number
+}
+
 const useStyles = makeStyles((theme: Theme) => ({
   listItem: {
     // leaves some room around fields without descriptions
@@ -59,12 +65,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     justifyContent: 'flex-end',
   },
 }))
-
-interface AdminFieldProps extends FieldProps {
-  index: number
-  onChange: OnChange
-  fieldsLength: number
-}
 
 function AdminField(props: AdminFieldProps): JSX.Element {
   const classes = useStyles()
