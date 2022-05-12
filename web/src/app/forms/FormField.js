@@ -232,4 +232,6 @@ FormField.propTypes = {
   type: p.string,
   select: p.bool,
   timeZone: p.string,
+
+  userID: p.string,
 }

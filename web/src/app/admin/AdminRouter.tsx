@@ -8,7 +8,7 @@ import AdminDebugMessagesLayout from './admin-message-logs/AdminDebugMessagesLay
 import { useSessionInfo } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 
-function AdminRouter() {
+function AdminRouter(): JSX.Element {
   const { isAdmin, ready } = useSessionInfo()
   if (!ready) {
     return <Spinner />
