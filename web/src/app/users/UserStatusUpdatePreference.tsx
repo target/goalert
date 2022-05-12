@@ -1,18 +1,9 @@
-import React, { ReactElement, ReactNode } from 'react'
-import { gql, QueryResult } from '@apollo/client'
-import Query from '../util/Query'
-import { Mutation } from '@apollo/client/react/components'
+import React from 'react'
+import { useMutation } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import UserContactMethodSelect from './UserContactMethodSelect'
-import { User } from '../../schema'
-
-interface MutationInput {
-  variables: MutationVariables
-}
-
-interface MutationVariables {
-  id: string
-  cmID: string
-}
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const query = gql`
   query statusUpdate($id: ID!) {
@@ -33,49 +24,37 @@ const disableVal = 'disable'
 export default function UserStatusUpdatePreference(props: {
   userID: string
 }): JSX.Element {
-  function renderControl(
-    cmID: string,
-    updateCM: (e: React.ChangeEvent<HTMLInputElement>) => void,
-  ): ReactElement {
-    return (
-      <UserContactMethodSelect
-        userID={props.userID}
-        label='Alert Status Updates'
-        helperText='Update me when my alerts are acknowledged or closed'
-        name='alert-status-contact-method'
-        value={cmID || disableVal}
-        onChange={updateCM}
-        extraItems={[{ label: 'Disabled', value: disableVal }]}
-      />
-    )
+  const [{ data, error, fetching }] = useQuery({
+    query,
+    variables: { id: props.userID },
+  })
+  const [updateCMPreference] = useMutation(mutation)
+
+  if (error) {
+    return <GenericError error={error.message} />
   }
 
-  function renderMutation(user: User): ReactNode {
-    const setCM =
-      (commit: (input: MutationInput) => void) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        const cmID = e.target.value === disableVal ? '' : e.target.value
-        commit({
-          variables: {
-            id: props.userID,
-            cmID,
-          },
-        })
-      }
-    return (
-      <Mutation mutation={mutation}>
-        {(commit: (input: MutationInput) => void) =>
-          renderControl(user.statusUpdateContactMethodID, setCM(commit))
-        }
-      </Mutation>
-    )
+  if (fetching && !data) {
+    return <Spinner />
   }
+
+  const cmID = data.user.statusUpdateContactMethodID
 
   return (
-    <Query
-      query={query}
-      variables={{ id: props.userID }}
-      render={({ data }: QueryResult) => renderMutation(data.user)}
+    <UserContactMethodSelect
+      userID={props.userID}
+      label='Alert Status Updates'
+      helperText='Update me when my alerts are acknowledged or closed'
+      name='alert-status-contact-method'
+      value={cmID || disableVal}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        const contactMethodID =
+          e.target.value === disableVal ? '' : e.target.value
+        updateCMPreference({
+          variables: { id: props.userID, cmID: contactMethodID },
+        })
+      }}
+      extraItems={[{ label: 'Disabled', value: disableVal }]}
     />
   )
 }
