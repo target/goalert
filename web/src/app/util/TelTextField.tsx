@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
 import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
@@ -41,11 +41,11 @@ export default function TelTextField(
   }, [props.value])
 
   // check validation of the input phoneNumber through graphql
-  const { data } = useQuery(isValidNumber, {
-    pollInterval: 0,
+  const [{ data }] = useQuery({
+    query: isValidNumber,
     variables: { number: '+' + phoneNumber },
-    fetchPolicy: 'cache-first',
-    skip: !phoneNumber || props.disabled,
+    requestPolicy: 'cache-first',
+    pause: !phoneNumber || props.disabled,
   })
 
   // fetch validation
