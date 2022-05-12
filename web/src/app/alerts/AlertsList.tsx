@@ -1,5 +1,6 @@
 import React, { ReactElement, useState } from 'react'
-import { useMutation, useQuery, gql } from '@apollo/client'
+import { useMutation } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import { Alert, Hidden, ListItemText } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
 import makeStyles from '@mui/styles/makeStyles'
@@ -118,8 +119,8 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   const [filter] = useURLParam<string>('filter', 'active')
 
   // query for current service name if props.serviceID is provided
-  const serviceNameQuery = useQuery(
-    gql`
+  const [serviceNameQuery] = useQuery({
+    query: gql`
       query ($id: ID!) {
         service(id: $id) {
           id
@@ -127,11 +128,9 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         }
       }
     `,
-    {
-      variables: { id: props.serviceID || '' },
-      skip: !props.serviceID,
-    },
-  )
+    variables: { id: props.serviceID || '' },
+    pause: !props.serviceID,
+  })
 
   // alerts list query variables
   const variables = {

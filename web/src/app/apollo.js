@@ -11,6 +11,7 @@ import reduxStore from './reduxStore'
 import { POLL_INTERVAL } from './config'
 import promiseBatch from './util/promiseBatch'
 import { pathPrefix } from './env'
+import { refetchAll } from './urql'
 
 let pendingMutations = 0
 window.onbeforeunload = function (e) {
@@ -214,6 +215,7 @@ export const GraphQLClientWithErrors = new ApolloClient({
 const mutate = GraphQLClient.mutate
 GraphQLClient.mutate = (...args) => {
   return mutate.call(GraphQLClient, ...args).then((result) => {
+    refetchAll()
     return Promise.all([
       GraphQLClient.reFetchObservableQueries(true),
       GraphQLClientWithErrors.reFetchObservableQueries(true),
@@ -226,6 +228,7 @@ GraphQLClientWithErrors.mutate = (...args) => {
   return mutateWithErrors
     .call(GraphQLClientWithErrors, ...args)
     .then((result) => {
+      refetchAll()
       return Promise.all([
         GraphQLClient.reFetchObservableQueries(true),
         GraphQLClientWithErrors.reFetchObservableQueries(true),
