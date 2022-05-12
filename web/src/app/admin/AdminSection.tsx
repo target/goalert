@@ -69,7 +69,7 @@ interface AdminFieldProps extends FieldProps {
 function AdminField(props: AdminFieldProps): JSX.Element {
   const classes = useStyles()
   const Field = components[props.type]
-  const [fieldValue, setFieldValue] = useState<string | null>(props.value)
+  const [fieldValue, setFieldValue] = useState<string>(props.value)
 
   // debounce to set the value
   useEffect(() => {
@@ -94,9 +94,11 @@ function AdminField(props: AdminFieldProps): JSX.Element {
       <div className={classes.listItemAction}>
         <Field
           name={props.id}
-          value={fieldValue ?? ''}
+          value={fieldValue}
           password={props.password}
-          onChange={(val) => setFieldValue(val === props.value ? null : val)}
+          onChange={(val) =>
+            setFieldValue(val === props.value || val === null ? '' : val)
+          }
         />
       </div>
     </ListItem>
