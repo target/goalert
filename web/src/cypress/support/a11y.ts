@@ -9,21 +9,19 @@ declare global {
   }
 }
 
-// https://github.com/component-driven/cypress-axe/issues/118
-Cypress.Commands.add('injectAxe', () => {
-  cy.window({ log: false }).then((window) => {
-    const script = window.document.createElement('script')
-    script.innerHTML = axe.source
-    window.document.head.appendChild(script)
-  })
-})
-
 // no selector provided will result in the entire page being validated
 function validateA11y(selector = 'main[id="content"]'): void {
   cy.window().then((win: Cypress.AUTWindow & { _axeInjected?: boolean }) => {
     if (win._axeInjected) return
     win._axeInjected = true
-    return cy.injectAxe()
+
+    // cy.injectAxe() exists, but injecting source manually for CI
+    // https://github.com/component-driven/cypress-axe/issues/118
+    return cy.window({ log: false }).then((window) => {
+      const script = window.document.createElement('script')
+      script.innerHTML = axe.source
+      window.document.head.appendChild(script)
+    })
   })
 
   cy.checkA11y(selector, {
