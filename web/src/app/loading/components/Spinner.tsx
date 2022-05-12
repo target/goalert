@@ -26,16 +26,18 @@ interface SpinnerProps {
  */
 export default function Spinner(props: SpinnerProps): JSX.Element | null {
   const [spin, setSpin] = useState(false)
+  const { delayMs = DEFAULT_SPIN_DELAY_MS, waitMs = DEFAULT_SPIN_WAIT_MS } =
+    props
 
   useEffect(() => {
     let _spin = setTimeout(() => {
       setSpin(true)
       if (props.onSpin) props.onSpin()
 
-      if (props.waitMs && props.onReady) {
-        _spin = setTimeout(props.onReady, props.waitMs)
+      if (waitMs && props.onReady) {
+        _spin = setTimeout(props.onReady, waitMs)
       }
-    }, props.delayMs)
+    }, delayMs)
 
     return () => {
       clearTimeout(_spin)
@@ -64,9 +66,4 @@ export default function Spinner(props: SpinnerProps): JSX.Element | null {
       &nbsp;<Typography variant='body2'>{props.text}</Typography>
     </div>
   )
-}
-
-Spinner.defaultProps = {
-  delayMs: DEFAULT_SPIN_DELAY_MS,
-  waitMs: DEFAULT_SPIN_WAIT_MS,
 }
