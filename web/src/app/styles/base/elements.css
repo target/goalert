@@ -11,7 +11,3 @@ body {
 a:hover {
   text-decoration: underline;
 }
-
-.react-colorful__saturation {
-  display: none;
-}
