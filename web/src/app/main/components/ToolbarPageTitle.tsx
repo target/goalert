@@ -2,9 +2,11 @@ import * as React from 'react'
 import Link, { LinkProps } from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
+import { ChevronRight } from '@mui/icons-material'
 import { useQuery } from 'urql'
 import { Link as RouterLink, Route, Routes, useParams } from 'react-router-dom'
 import { applicationName as appName } from '../../env'
+import { Theme } from '@mui/material'
 
 const detailsMap: { [key: string]: string } = {
   alerts: 'alert',
@@ -23,21 +25,38 @@ const LinkRouter = (props: LinkRouterProps): JSX.Element => (
   <Link {...props} component={RouterLink as any} />
 )
 
-const renderText = (title: string): JSX.Element => {
+const getContrastColor = (theme: Theme): string => {
+  return theme.palette.getContrastText(
+    theme.palette.mode === 'dark'
+      ? theme.palette.background.paper
+      : theme.palette.primary.main,
+  )
+}
+
+const renderText = (title: string, asLink?: boolean): JSX.Element => {
+  let linkSx = {}
+  if (asLink) {
+    linkSx = {
+      '&:hover': {
+        cursor: 'pointer',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: '6px',
+        padding: '4px',
+        textDecoration: 'none',
+      },
+    }
+  }
+
   return (
     <Typography
       noWrap
       component='h1'
       sx={{
+        ...linkSx,
         padding: '0 4px 0 4px',
         fontSize: '1.25rem',
         textTransform: 'capitalize',
-        color: (theme) =>
-          theme.palette.getContrastText(
-            theme.palette.mode === 'dark'
-              ? theme.palette.background.paper
-              : theme.palette.primary.main,
-          ),
+        color: getContrastColor,
       }}
     >
       {title.replace('-', ' ').replace('On Call', 'On-Call')}
@@ -45,6 +64,10 @@ const renderText = (title: string): JSX.Element => {
   )
 }
 
+// todo: handle profile
+// todo: handle admin pages
+// todo: fix lowercase + hyphens in tab title
+// todo: fix escalation policies
 function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
   const { sub, type = '', id } = useParams()
   const details = detailsMap[type ?? '']
@@ -70,16 +93,28 @@ function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
   console.log(result)
 
   return (
-    <Breadcrumbs aria-label='breadcrumb'>
+    <Breadcrumbs
+      aria-label='breadcrumb'
+      separator={
+        <ChevronRight
+          sx={{
+            color: getContrastColor,
+          }}
+        />
+      }
+    >
       <LinkRouter
         underline='hover'
         color='inherit'
         to={'/' + type}
         key={'/' + type}
-        sx={{ textTransform: 'capitalize' }}
+        sx={{
+          textTransform: 'capitalize',
+          '&:hover': { textDecoration: 'none' },
+        }}
       >
         {/* todo: remove hyphen for EPs */}
-        {renderText(type)}
+        {renderText(type, true)}
       </LinkRouter>
       {/* fix plural for Xs Details pages */}
       {id && type && !sub && renderText(detailsTitle)}
@@ -89,9 +124,12 @@ function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
           to={'/' + type + '/' + id}
           underline='hover'
           color='inherit'
-          sx={{ textTransform: 'capitalize' }}
+          sx={{
+            textTransform: 'capitalize',
+            '&:hover': { textDecoration: 'none' },
+          }}
         >
-          {renderText(result?.data?.data?.name ?? detailsTitle)}
+          {renderText(result?.data?.data?.name ?? detailsTitle, true)}
         </LinkRouter>
       )}
       {id && sub && renderText(sub)}
