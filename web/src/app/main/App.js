@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import Toolbar from '@mui/material/Toolbar'
-import ToolbarTitle from './components/ToolbarTitle'
+// import ToolbarTitle from './components/ToolbarTitle'
+import ToolbarPageTitle from './components/ToolbarPageTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import routeConfig, { renderRoutes } from './routes'
@@ -84,7 +85,8 @@ export default function App() {
                 showMobileSidebar={showMobile}
                 openMobileSidebar={() => setShowMobile(true)}
               />
-              <ToolbarTitle />
+              {/* <ToolbarTitle /> */}
+              <ToolbarPageTitle />
 
               <PageActionContainer />
               <SearchContainer />
