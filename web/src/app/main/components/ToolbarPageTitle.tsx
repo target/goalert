@@ -5,16 +5,17 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 import { ChevronRight } from '@mui/icons-material'
 import { useQuery } from 'urql'
 import { Link as RouterLink, Route, Routes, useParams } from 'react-router-dom'
-import { applicationName as appName } from '../../env'
 import { Theme } from '@mui/material'
+import { startCase } from 'lodash'
+import { applicationName as appName } from '../../env'
 
 const detailsMap: { [key: string]: string } = {
-  alerts: 'alert',
-  schedules: 'schedule',
-  'escalation-policies': 'escalation Policy',
-  rotations: 'rotation',
-  users: 'user',
-  services: 'service',
+  alerts: 'Alert',
+  schedules: 'Schedule',
+  'escalation-policies': 'Escalation-Policy',
+  rotations: 'Rotation',
+  users: 'User',
+  services: 'Service',
 }
 
 interface LinkRouterProps extends LinkProps {
@@ -55,7 +56,6 @@ const renderText = (title: string, asLink?: boolean): JSX.Element => {
         ...linkSx,
         padding: '0 4px 0 4px',
         fontSize: '1.25rem',
-        textTransform: 'capitalize',
         color: getContrastColor,
       }}
     >
@@ -64,33 +64,29 @@ const renderText = (title: string, asLink?: boolean): JSX.Element => {
   )
 }
 
-// todo: handle profile
-// todo: handle admin pages
 // todo: fix lowercase + hyphens in tab title
-// todo: fix escalation policies
 function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
-  const { sub, type = '', id } = useParams()
-  const details = detailsMap[type ?? '']
+  const { sub: _sub, type: _type, id } = useParams()
+  const sub = startCase(_sub)
+  const type = p.isProfile ? 'profile' : _type ?? '' // no type if on profile
+
+  const details = detailsMap[type ?? ''] ?? startCase(type)
   const detailsTitle = details + ' Details'
 
   document.title = `${applicationName || appName} - ${
     sub || (type ? detailsTitle : type)
   }`
 
-  console.log('detailsTitle: ', detailsTitle)
-
   const [result] = useQuery({
+    pause: !id || !details,
     query: `query ($id: ID!) {
-        data: ${details}(id: $id) {
+        data: ${details.replace('-', '')}(id: $id) {
           id
           name
         }
       }`,
     variables: { id },
-    pause: !id,
   })
-
-  console.log(result)
 
   return (
     <Breadcrumbs
@@ -113,10 +109,8 @@ function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
           '&:hover': { textDecoration: 'none' },
         }}
       >
-        {/* todo: remove hyphen for EPs */}
         {renderText(type, true)}
       </LinkRouter>
-      {/* fix plural for Xs Details pages */}
       {id && type && !sub && renderText(detailsTitle)}
       {id && type && sub && (
         <LinkRouter
@@ -132,7 +126,7 @@ function ToolbarBreadcrumbs(p: { isProfile?: boolean }): JSX.Element {
           {renderText(result?.data?.data?.name ?? detailsTitle, true)}
         </LinkRouter>
       )}
-      {id && sub && renderText(sub)}
+      {sub && renderText(sub)}
     </Breadcrumbs>
   )
 }
