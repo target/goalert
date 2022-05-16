@@ -30,7 +30,6 @@ const renderText = (title: string): JSX.Element => {
       component='h1'
       sx={{
         padding: '0 4px 0 4px',
-        flex: 1, // pushes toolbar actions to the right
         fontSize: '1.25rem',
         textTransform: 'capitalize',
         color: (theme) =>

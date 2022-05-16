@@ -87,7 +87,7 @@ export default function App() {
               />
               {/* <ToolbarTitle /> */}
               <ToolbarPageTitle />
-
+              <div style={{ flex: 1 }} />
               <PageActionContainer />
               <SearchContainer />
               <UserSettingsPopover />
