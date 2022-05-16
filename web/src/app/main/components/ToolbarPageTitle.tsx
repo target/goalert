@@ -26,7 +26,6 @@ const LinkRouter = (props: LinkRouterProps): JSX.Element => (
 const renderText = (title: string): JSX.Element => {
   return (
     <Typography
-      color='inherit'
       noWrap
       component='h1'
       sx={{
@@ -34,6 +33,12 @@ const renderText = (title: string): JSX.Element => {
         flex: 1, // pushes toolbar actions to the right
         fontSize: '1.25rem',
         textTransform: 'capitalize',
+        color: (theme) =>
+          theme.palette.getContrastText(
+            theme.palette.mode === 'dark'
+              ? theme.palette.background.paper
+              : theme.palette.primary.main,
+          ),
       }}
     >
       {title.replace('-', ' ').replace('On Call', 'On-Call')}
