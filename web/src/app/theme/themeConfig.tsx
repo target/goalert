@@ -1,4 +1,10 @@
-import React, { ReactNode, useEffect, useState } from 'react'
+import React, {
+  ReactNode,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { PaletteOptions } from '@mui/material/styles/createPalette'
 import { isCypress } from '../env'
 import {
@@ -154,7 +160,10 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   }, [])
 
   const mode = savedThemeMode === 'system' ? systemThemeMode : savedThemeMode
-  const theme = makeTheme(mode, sourceColor)
+  // Use deferred and memoized values so we don't regenerate the entire theme on every render/change event
+  const defMode = useDeferredValue(mode)
+  const defSrc = useDeferredValue(sourceColor)
+  const theme = useMemo(() => makeTheme(defMode, defSrc), [defMode, defSrc])
 
   return (
     <ThemeContext.Provider
