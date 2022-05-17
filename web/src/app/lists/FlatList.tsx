@@ -82,7 +82,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export interface FlatListSub {
   id?: string
-  subHeader: string
+  subHeader: JSX.Element | string
 }
 
 export interface FlatListNotice extends Notice {

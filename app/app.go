@@ -100,16 +100,16 @@ type App struct {
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
 	ContactMethodStore    *contactmethod.Store
-	NotificationRuleStore notificationrule.Store
-	FavoriteStore         favorite.Store
+	NotificationRuleStore *notificationrule.Store
+	FavoriteStore         *favorite.Store
 
 	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore *integrationkey.Store
-	ScheduleRuleStore   rule.Store
+	ScheduleRuleStore   *rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
-	RotationStore       rotation.Store
+	RotationStore       *rotation.Store
 
 	CalSubStore    *calsub.Store
 	OverrideStore  *override.Store

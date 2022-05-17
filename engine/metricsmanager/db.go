@@ -86,7 +86,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				count(*) filter (where escalated=true)
 			from alert_metrics
 			where (date(timezone('UTC'::text, closed_at))) = $1
-			group by service_id;
+			group by service_id
+			on conflict do nothing
 		`),
 	}, p.Err
 }
