@@ -24,7 +24,7 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Postgres
-ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
+ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@?client_encoding=UTF8
 RUN mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
     chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
     su postgres -c "/usr/lib/postgresql/13/bin/initdb $PGDATA" &&\
