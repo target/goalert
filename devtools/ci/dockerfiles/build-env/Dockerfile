@@ -24,7 +24,7 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Postgres
-ENV PGDATA=/var/lib/postgresql/data PGUSER=goalert DB_URL=postgresql://goalert@
+ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
 RUN mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
     chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
     su postgres -c "/usr/lib/postgresql/13/bin/initdb $PGDATA" &&\
@@ -39,3 +39,4 @@ COPY stop_postgres.sh /usr/bin/stop_postgres
 ENV QT_X11_NO_MITSHM=1 _X11_NO_MITSHM=1 _MITSHM=0 CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
 ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
 
+ENV CI=1
