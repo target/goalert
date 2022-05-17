@@ -1,4 +1,4 @@
-FROM docker.io/goalert/build-env:go1.18.1-postgres13 AS build
+FROM docker.io/goalert/build-env:test-all.1 AS build
 COPY / /build/
 WORKDIR /build
 RUN make bin/build/goalert-linux-amd64
