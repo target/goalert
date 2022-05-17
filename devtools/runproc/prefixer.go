@@ -49,6 +49,11 @@ func (w *prefixer) Write(p []byte) (int, error) {
 		}
 		w.buf = w.buf[:0]
 
+		_, err = w.out.Write([]byte("\x1b[0m"))
+		if err != nil {
+			return n, err
+		}
+
 		p = p[l+1:]
 	}
 }
