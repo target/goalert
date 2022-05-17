@@ -6,8 +6,6 @@ make check test bin/goalert BUNDLE=1
 VERSION=$(./bin/goalert version | head -n 1 |awk '{print $2}')
 BVERSION=$(date +%s)-$(git rev-parse --short HEAD)
 
-make smoketest cy-wide-prod-run cy-mobile-prod-run CI=1 DB_URL=$DB_URL
-
 for PLATFORM in darwin-amd64 linux-amd64 linux-arm linux-arm64
 do
     SRC=bin/goalert-${PLATFORM}.tgz
