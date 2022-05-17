@@ -65,11 +65,22 @@ function makePalette(
   }
 }
 
+function validHexColor(hex: string | null): boolean {
+  if (!hex) return false
+  return /^#[0-9A-F]{6}$/i.test(hex)
+}
+
+function safeArgbFromHex(hex: string): number {
+  if (!validHexColor(hex)) return argbFromHex(blueGrey[500])
+
+  return argbFromHex(hex)
+}
+
 function getPalette(
   mode: MUIThemeMode,
   sourceColorHex: string,
 ): PaletteOptions {
-  const sourceColor = argbFromHex(sourceColorHex)
+  const sourceColor = safeArgbFromHex(sourceColorHex)
   const theme = themeFromSourceColor(sourceColor)
 
   if (mode === 'dark') {
@@ -131,7 +142,8 @@ function saveThemeColor(hex: string): void {
   window.localStorage.setItem('themeColor', hex)
 }
 function loadThemeColor(): string {
-  return window?.localStorage?.getItem('themeColor') ?? blueGrey[500]
+  const savedColor = window?.localStorage?.getItem('themeColor')
+  return validHexColor(savedColor) ? (savedColor as string) : blueGrey[500]
 }
 
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
