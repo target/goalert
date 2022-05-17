@@ -74,7 +74,7 @@ function ToolbarBreadcrumbs(p: { type?: string }): JSX.Element {
   const typeFallback = p.type ?? ''
   const { sub, type = typeFallback, id } = useParams()
 
-  const query = typeMap[type] ?? 'skipping'
+  const queryName = camelCase(typeMap[type]) ?? 'skipping'
   const detailsTitle = typeMap[type] + ' Details'
 
   document.title = `${applicationName || appName} - ${
@@ -83,9 +83,9 @@ function ToolbarBreadcrumbs(p: { type?: string }): JSX.Element {
 
   // query for details page name if on a subpage
   const [result] = useQuery({
-    pause: !query,
+    pause: !sub,
     query: `query ($id: ID!) {
-        data: ${camelCase(query)}(id: $id) {
+        data: ${queryName}(id: $id) {
           id
           name
         }
