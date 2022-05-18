@@ -28,8 +28,10 @@ const getContrastColor = (theme: Theme): string => {
 }
 
 const renderText = (title: string, link?: string): JSX.Element => {
+  const t = startCase(title.replace('-', ' ').replace('On Call', 'On-Call'))
   const typography = (
     <Typography
+      data-cy={t}
       noWrap
       component='h1'
       sx={{
@@ -38,7 +40,7 @@ const renderText = (title: string, link?: string): JSX.Element => {
         color: getContrastColor,
       }}
     >
-      {startCase(title.replace('-', ' ').replace('On Call', 'On-Call'))}
+      {t}
     </Typography>
   )
 
@@ -95,7 +97,6 @@ function ToolbarBreadcrumbs(p: { type?: string }): JSX.Element {
 
   return (
     <Breadcrumbs
-      aria-label='breadcrumbs'
       separator={
         <ChevronRight
           sx={{
