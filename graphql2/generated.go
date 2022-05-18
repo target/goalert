@@ -109,6 +109,7 @@ type ComplexityRoot struct {
 		AlertCount     func(childComplexity int) int
 		AvgTimeToAck   func(childComplexity int) int
 		AvgTimeToClose func(childComplexity int) int
+		EscalatedCount func(childComplexity int) int
 		Timestamp      func(childComplexity int) int
 	}
 
@@ -890,6 +891,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertDataPoint.AvgTimeToClose(childComplexity), true
+
+	case "AlertDataPoint.escalatedCount":
+		if e.complexity.AlertDataPoint.EscalatedCount == nil {
+			break
+		}
+
+		return e.complexity.AlertDataPoint.EscalatedCount(childComplexity), true
 
 	case "AlertDataPoint.timestamp":
 		if e.complexity.AlertDataPoint.Timestamp == nil {
@@ -3527,6 +3535,7 @@ type AlertDataPoint {
   alertCount: Int!
   avgTimeToAck: ISODuration # only null if alertCount is 0
   avgTimeToClose: ISODuration # only null if alertCount is 0
+  escalatedCount: Int!
 }
 
 input DebugMessagesInput {
@@ -6506,6 +6515,41 @@ func (ec *executionContext) _AlertDataPoint_avgTimeToClose(ctx context.Context, 
 	res := resTmp.(*timeutil.ISODuration)
 	fc.Result = res
 	return ec.marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertDataPoint_escalatedCount(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AlertDataPoint",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EscalatedCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntry_id(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
@@ -21707,6 +21751,16 @@ func (ec *executionContext) _AlertDataPoint(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "escalatedCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._AlertDataPoint_escalatedCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -47,6 +47,7 @@ export interface AlertDataPoint {
   alertCount: number
   avgTimeToAck?: null | ISODuration
   avgTimeToClose?: null | ISODuration
+  escalatedCount: number
 }
 
 export interface DebugMessagesInput {

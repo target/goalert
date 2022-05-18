@@ -35,6 +35,7 @@ type AlertDataPoint struct {
 	AlertCount     int                   `json:"alertCount"`
 	AvgTimeToAck   *timeutil.ISODuration `json:"avgTimeToAck"`
 	AvgTimeToClose *timeutil.ISODuration `json:"avgTimeToClose"`
+	EscalatedCount int                   `json:"escalatedCount"`
 }
 
 type AlertLogEntryConnection struct {
