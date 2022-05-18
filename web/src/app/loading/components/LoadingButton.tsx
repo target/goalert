@@ -1,9 +1,16 @@
 import React from 'react'
-import p from 'prop-types'
-import Button from '@mui/material/Button'
+import Button, { ButtonProps } from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 
-const LoadingButton = (props) => {
+interface LoadingButtonProps extends ButtonProps {
+  attemptCount?: number
+  buttonText?: string
+  loading?: boolean
+  noSubmit?: boolean
+  style?: React.CSSProperties
+}
+
+const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
   const {
     attemptCount,
     buttonText,
@@ -44,16 +51,6 @@ const LoadingButton = (props) => {
       )}
     </div>
   )
-}
-
-LoadingButton.propTypes = {
-  attemptCount: p.number,
-  buttonText: p.string,
-  color: p.string,
-  disabled: p.bool,
-  loading: p.bool,
-  noSubmit: p.bool,
-  onClick: p.func,
 }
 
 export default LoadingButton

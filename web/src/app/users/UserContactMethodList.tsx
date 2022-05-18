@@ -3,6 +3,7 @@ import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
@@ -43,7 +44,7 @@ interface UserContactMethodListProps {
   readOnly?: boolean
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   cardHeader: globalStyles(theme).cardHeader,
 }))
 
