@@ -11,4 +11,5 @@ type Record struct {
 	ClosedAt    time.Time
 	TimeToAck   time.Duration
 	TimeToClose time.Duration
+	EscalatedCount int
 }

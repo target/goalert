@@ -125,6 +125,7 @@ type AlertDataPoint {
   alertCount: Int!
   avgTimeToAck: ISODuration # only null if alertCount is 0
   avgTimeToClose: ISODuration # only null if alertCount is 0
+  escalatedCount: Int!
 }
 
 input DebugMessagesInput {
