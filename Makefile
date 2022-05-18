@@ -21,6 +21,12 @@ export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
+PROD_PROC = Procfile.cypress.prod
+
+ifeq ($(CI), 1)
+PROD_CY_PROC = Procfile.cypress.ci
+endif
+
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
@@ -74,9 +80,9 @@ cy-wide: cypress
 cy-mobile: cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
