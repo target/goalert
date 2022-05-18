@@ -31,7 +31,8 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 		(date(timezone('UTC'::text, closed_at))),
 		count(*),
 		EXTRACT(EPOCH FROM coalesce(avg(time_to_ack), avg(time_to_close))),
-		EXTRACT(EPOCH FROM avg(time_to_close))
+		EXTRACT(EPOCH FROM avg(time_to_close)),
+		count(*) filter (WHERE escalated=TRUE)
 	FROM alert_metrics
 	WHERE true
 	{{if .ServiceIDs}}
@@ -95,7 +96,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Record, erro
 	var timeToClose sql.NullFloat64
 	for rows.Next() {
 		var rec Record
-		err := rows.Scan(&rec.ServiceID, &rec.ClosedAt, &rec.AlertCount, &timeToAck, &timeToClose)
+		err := rows.Scan(&rec.ServiceID, &rec.ClosedAt, &rec.AlertCount, &timeToAck, &timeToClose, &rec.EscalatedCount)
 		if err != nil {
 			return nil, err
 		}

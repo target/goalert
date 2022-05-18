@@ -201,6 +201,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 
 	alertMetricsUntil := func(ts time.Time) graphql2.AlertDataPoint {
 		var count int
+		var escalatedCount int
 		var avgTimeToAck time.Duration
 		var avgTimeToClose time.Duration
 		for len(metrics) > 0 {
@@ -209,6 +210,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 			}
 
 			count = count + metrics[0].AlertCount
+			escalatedCount = escalatedCount + metrics[0].EscalatedCount
 			avgTimeToAck = metrics[0].TimeToAck
 			avgTimeToClose = metrics[0].TimeToClose
 			metrics = metrics[1:]
@@ -218,6 +220,7 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 			AlertCount:     count,
 			AvgTimeToAck:   &timeutil.ISODuration{TimePart: avgTimeToAck},
 			AvgTimeToClose: &timeutil.ISODuration{TimePart: avgTimeToClose},
+			EscalatedCount: escalatedCount,
 		}
 	}
 
