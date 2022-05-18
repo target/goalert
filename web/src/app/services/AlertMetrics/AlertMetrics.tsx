@@ -46,6 +46,7 @@ const query = gql`
       timestamp
       avgTimeToAck
       avgTimeToClose
+      escalatedCount
     }
   }
 `
@@ -118,6 +119,7 @@ export default function AlertMetrics(): JSX.Element {
     }
     const ackDuration = Duration.fromISO(day.avgTimeToAck || '')
     const closeDuration = Duration.fromISO(day.avgTimeToClose || '')
+    console.log('here', closeDuration)
 
     const ackAvgMinutes = ackDuration.shiftTo('minutes').minutes
     const closeAvgMinutes = closeDuration.shiftTo('minutes').minutes
@@ -136,6 +138,7 @@ export default function AlertMetrics(): JSX.Element {
       date: date,
       label: label,
       count: day.alertCount,
+      escalatedCount: day.escalatedCount,
       avgTimeToAck: ackDuration.isValid ? ackAvgMinutes : 0,
       avgTimeToClose: closeDuration.isValid ? closeAvgMinutes : 0,
       formattedAckLabel: formatDuration(ackDuration),

@@ -67,13 +67,17 @@ export default function AlertCountGraph(
               data-cy='metrics-tooltip'
               cursor={{ fill: theme.palette.background.default }}
               content={(props) => {
-                const dataStr = props.payload?.length
+                const alertCountStr = props.payload?.length
                   ? `${props.payload[0].name}: ${props.payload[0].value}`
+                  : ''
+                const escalatedCountStr = props.payload?.length
+                  ? `${props.payload[1].name}: ${props.payload[1].value}`
                   : ''
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>
                     <Typography variant='body2'>{props.label}</Typography>
-                    <Typography variant='body2'>{dataStr}</Typography>
+                    <Typography variant='body2'>{alertCountStr}</Typography>
+                    <Typography variant='body2'>{escalatedCountStr}</Typography>
                   </Paper>
                 )
               }}
@@ -84,6 +88,16 @@ export default function AlertCountGraph(
               fill={theme.palette.primary.main}
               className={classes.bar}
               name='Alert Count'
+            />
+            <Bar
+              dataKey='escalatedCount'
+              fill={
+                theme.palette.mode === 'light'
+                  ? theme.palette.secondary.dark
+                  : theme.palette.secondary.light
+              }
+              className={classes.bar}
+              name='Escalated Count'
             />
           </BarChart>
         </ResponsiveContainer>
