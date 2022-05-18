@@ -371,6 +371,12 @@ func (d *datagen) NewAlertLogs(alrt alert.Alert) {
 			Event:     "acknowledged",
 			Message:   "",
 		})
+		d.AlertLogs = append(d.AlertLogs, AlertLog{
+			AlertID:   alrt.ID,
+			Timestamp: gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute)),
+			Event:     "escalated",
+			Message:   "",
+		})
 	case alert.StatusClosed:
 		closeTime := gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute))
 
@@ -380,6 +386,16 @@ func (d *datagen) NewAlertLogs(alrt alert.Alert) {
 				AlertID:   alrt.ID,
 				Timestamp: gofakeit.DateRange(alrt.CreatedAt, closeTime),
 				Event:     "acknowledged",
+				Message:   "",
+			})
+		}
+
+		if gofakeit.Bool() {
+			// was escalated
+			d.AlertLogs = append(d.AlertLogs, AlertLog{
+				AlertID:   alrt.ID,
+				Timestamp: gofakeit.DateRange(alrt.CreatedAt, closeTime),
+				Event:     "escalated",
 				Message:   "",
 			})
 		}
