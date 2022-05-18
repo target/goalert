@@ -119,7 +119,6 @@ export default function AlertMetrics(): JSX.Element {
     }
     const ackDuration = Duration.fromISO(day.avgTimeToAck || '')
     const closeDuration = Duration.fromISO(day.avgTimeToClose || '')
-    console.log('here', closeDuration)
 
     const ackAvgMinutes = ackDuration.shiftTo('minutes').minutes
     const closeAvgMinutes = closeDuration.shiftTo('minutes').minutes
