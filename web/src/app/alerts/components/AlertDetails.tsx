@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState, ReactNode } from 'react'
 import p from 'prop-types'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -12,6 +12,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -28,22 +29,44 @@ import {
   SlackChannelLink,
   UserLink,
 } from '../../links'
-import { styles } from '../../styles/materialStyles'
+import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
-import CardActions from '../../details/CardActions'
+import CardActions, { Action } from '../../details/CardActions'
 import Notices from '../../details/Notices'
+import {
+  Alert,
+  Target,
+  EscalationPolicyStep,
+  Notice,
+  AlertStatus,
+} from '../../../schema'
 
-const useStyles = makeStyles((theme) => {
-  return {
-    ...styles(theme),
-    epHeader: {
-      paddingBottom: 8,
-    },
-  }
-})
+interface AlertDetailsProps {
+  data: Alert
+}
+
+interface EscalationPolicyInfo {
+  repeatCount?: number
+  repeat?: number
+  numSteps?: number
+  steps?: EscalationPolicyStep[]
+  status: AlertStatus
+  currentLevel?: number
+  lastEscalation?: string
+}
+
+const useStyles = makeStyles((theme: Theme) => ({
+  card: globalStyles(theme).card,
+  cardContainer: globalStyles(theme).cardContainer,
+  cardFull: globalStyles(theme).cardFull,
+  tableCardContent: globalStyles(theme).tableCardContent,
+  epHeader: {
+    paddingBottom: 8,
+  },
+}))
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
@@ -56,7 +79,7 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AlertDetails(props) {
+export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
 
@@ -105,17 +128,17 @@ export default function AlertDetails(props) {
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  function handleToggleExactTimes() {
+  function handleToggleExactTimes(): void {
     const newVal = !showExactTimes
     setShowExactTimes(newVal)
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
 
-  function getCardClassName() {
+  function getCardClassName(): string {
     return fullScreen ? classes.cardFull : classes.card
   }
 
-  function renderTargets(targets, stepID) {
+  function renderTargets(targets: Target[], stepID: string): ReactElement[] {
     return _.sortBy(targets, 'name').map((target, i) => {
       const separator = i === 0 ? '' : ', '
 
@@ -140,39 +163,42 @@ export default function AlertDetails(props) {
    * Returns properties from the escalation policy
    * for easier use in functions.
    */
-  function epsHelper() {
-    const ep = props.data.service.escalationPolicy
+  function epsHelper(): EscalationPolicyInfo {
+    const ep = props.data?.service?.escalationPolicy
     const alert = props.data
     const state = props.data.state
 
     return {
       repeatCount: state?.repeatCount,
-      repeat: ep.repeat,
-      numSteps: ep.steps.length,
-      steps: ep.steps,
+      repeat: ep?.repeat,
+      numSteps: ep?.steps.length,
+      steps: ep?.steps,
       status: alert.status,
       currentLevel: state?.stepNumber,
       lastEscalation: state?.lastEscalation,
     }
   }
 
-  function canAutoEscalate() {
+  function canAutoEscalate(): boolean {
     const { currentLevel, status, steps, repeat, repeatCount } = epsHelper()
 
     if (status !== 'StatusUnacknowledged') {
       return false
     }
 
-    if (currentLevel === steps.length - 1 && repeatCount >= repeat) {
+    if (
+      currentLevel === (steps?.length ?? 0) - 1 &&
+      (repeatCount ?? 0) >= (repeat ?? 0)
+    ) {
       return false
     }
 
     return true
   }
 
-  function getNextEscalation() {
+  function getNextEscalation(): JSX.Element | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
-    const prevEscalation = new Date(lastEscalation)
+    const prevEscalation = new Date(lastEscalation ?? '')
 
     if (canAutoEscalate()) {
       return (
@@ -180,7 +206,7 @@ export default function AlertDetails(props) {
           date={
             new Date(
               prevEscalation.getTime() +
-                steps[currentLevel].delayMinutes * 60000,
+                (steps ? steps[currentLevel ?? 0].delayMinutes : 0) * 60000,
             )
           }
           overtime
@@ -189,15 +215,13 @@ export default function AlertDetails(props) {
 
             if (completed) return 'Escalating...'
 
-            const hourTxt = parseInt(hours)
-              ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
+            const hourTxt = hours
+              ? `${hours} hour${hours === 1 ? '' : 's'} `
               : ''
-            const minTxt = parseInt(minutes)
-              ? `${minutes} minute${parseInt(minutes) === 1 ? '' : 's'} `
+            const minTxt = minutes
+              ? `${minutes} minute${minutes === 1 ? '' : 's'} `
               : ''
-            const secTxt = `${seconds} second${
-              parseInt(seconds) === 1 ? '' : 's'
-            }`
+            const secTxt = `${seconds} second${seconds === 1 ? '' : 's'}`
 
             return hourTxt + minTxt + secTxt
           }}
@@ -208,10 +232,10 @@ export default function AlertDetails(props) {
     return 'None'
   }
 
-  function renderEscalationPolicySteps() {
+  function renderEscalationPolicySteps(): JSX.Element[] | JSX.Element {
     const { steps, status, currentLevel } = epsHelper()
 
-    if (!steps.length) {
+    if (!steps?.length) {
       return (
         <TableRow>
           <TableCell>No steps</TableCell>
@@ -229,7 +253,8 @@ export default function AlertDetails(props) {
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
       const selected =
-        status !== 'closed' && currentLevel % steps.length === index
+        status !== 'StatusClosed' &&
+        (currentLevel ?? 0) % steps.length === index
 
       return (
         <TableRow key={index} selected={selected}>
@@ -252,7 +277,7 @@ export default function AlertDetails(props) {
     })
   }
 
-  function renderAlertDetails() {
+  function renderAlertDetails(): ReactNode {
     const alert = props.data
     let details = (alert.details || '').trim()
     if (!details) return null
@@ -312,9 +337,9 @@ export default function AlertDetails(props) {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions() {
+  function getMenuOptions(): Action[] {
     const { status } = props.data
-    let options = []
+    let options: Action[] = []
 
     if (status === 'StatusClosed') return options
     if (status === 'StatusUnacknowledged') {
@@ -345,7 +370,7 @@ export default function AlertDetails(props) {
 
   const { data: alert } = props
 
-  const notices = alert.pendingNotifications.map((n) => ({
+  const notices: Notice[] = alert.pendingNotifications.map((n) => ({
     type: 'WARNING',
     message: `Notification Pending for ${n.destination}`,
     details:
@@ -395,7 +420,7 @@ export default function AlertDetails(props) {
               variant='h5'
             >
               <AppLink
-                to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
+                to={`/escalation-policies/${alert.service?.escalationPolicy?.id}`}
               >
                 Escalation Policy
               </AppLink>
