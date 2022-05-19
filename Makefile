@@ -21,7 +21,7 @@ export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
-PROD_PROC = Procfile.cypress.prod
+PROD_CY_PROC = Procfile.cypress.prod
 
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
