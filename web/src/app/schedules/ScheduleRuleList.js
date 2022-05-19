@@ -2,9 +2,8 @@ import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
-import { Grid, Card } from '@mui/material'
-import FilterContainer from '../util/FilterContainer'
+import { Card } from '@mui/material'
+import Tooltip from '@mui/material/Tooltip'
 import { startCase, sortBy } from 'lodash'
 import { RotationAvatar, UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
@@ -14,9 +13,16 @@ import ScheduleRuleCreateDialog from './ScheduleRuleCreateDialog'
 import { ruleSummary } from './util'
 import ScheduleRuleEditDialog from './ScheduleRuleEditDialog'
 import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
-import { useResetURLParams, useURLParam } from '../actions'
 import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
+import { DateTime } from 'luxon'
+import makeStyles from '@mui/styles/makeStyles'
+
+const useStyles = makeStyles({
+  popper: {
+    opacity: 1,
+  },
+})
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -41,13 +47,11 @@ const query = gql`
 `
 
 export default function ScheduleRuleList() {
+  const classes = useStyles()
   const { scheduleID } = useParams()
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)
-
-  const [zone] = useURLParam('tz', 'local')
-  const resetFilter = useResetURLParams('tz')
 
   const { data, loading, error } = useQuery(query, {
     variables: { id: scheduleID },
@@ -62,8 +66,26 @@ export default function ScheduleRuleList() {
     return <Spinner />
   }
 
-  function getHeaderNote() {
-    return `Showing times in ${zone === 'local' ? 'local time' : zone}.`
+  function renderSubText(rules, timeZone) {
+    const tzSummary = ruleSummary(rules, timeZone, timeZone)
+    const tzAbbr = DateTime.local({ zone: timeZone }).toFormat('ZZZZ')
+    const localTzSummary = ruleSummary(rules, timeZone, 'local')
+    const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+
+    return tzSummary === 'Always' || tzSummary === 'Never' ? (
+      tzSummary
+    ) : (
+      <Tooltip
+        title={localTzSummary + ` ${localTzAbbr}`}
+        placement='bottom-start'
+        classes={{ popper: classes.popper }}
+        PopperProps={{
+          'aria-label': 'local-timezone-tooltip',
+        }}
+      >
+        <span aria-label='subtext'>{`${tzSummary} ${tzAbbr}`}</span>
+      </Tooltip>
+    )
   }
 
   function renderList(targets, timeZone) {
@@ -80,7 +102,7 @@ export default function ScheduleRuleList() {
       items.push({
         title: name,
         url: (type === 'rotation' ? '/rotations/' : '/users/') + id,
-        subText: ruleSummary(tgt.rules, timeZone, zone),
+        subText: renderSubText(tgt.rules, timeZone),
         icon:
           type === 'rotation' ? <RotationAvatar /> : <UserAvatar userID={id} />,
         secondaryAction: (
@@ -119,14 +141,7 @@ export default function ScheduleRuleList() {
         />
         <Card style={{ width: '100%', marginBottom: 64 }}>
           <FlatList
-            headerNote={getHeaderNote()}
-            headerAction={
-              <FilterContainer onReset={() => resetFilter()}>
-                <Grid item xs={12}>
-                  <ScheduleTZFilter scheduleID={scheduleID} />
-                </Grid>
-              </FilterContainer>
-            }
+            headerNote={`Showing times in ${data.schedule.timeZone}.`}
             items={items}
           />
         </Card>
