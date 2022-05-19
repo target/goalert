@@ -76,7 +76,7 @@ function ToolbarBreadcrumbs(p: { type?: string }): JSX.Element {
   const typeFallback = p.type ?? ''
   const { sub, type = typeFallback, id } = useParams()
 
-  const queryName = camelCase(typeMap[type]) ?? 'skipping'
+  const queryName = camelCase(typeMap[type] ?? 'skipping')
   const detailsTitle = typeMap[type] + ' Details'
 
   document.title = `${applicationName || appName} - ${
