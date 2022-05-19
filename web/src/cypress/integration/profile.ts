@@ -86,34 +86,36 @@ function testProfile(): void {
       cy.get('[aria-label="Manage Profile"]').click()
 
       // test changing theme color
-      let lightBtnColor: string, lightBtnNewColor: string
-
-      cy.get('[data-cy="manage-profile"] button')
-        .contains('Light')
-        .as('lightBtn')
-      cy.get('@lightBtn').click()
-      cy.get('@lightBtn').then(
-        (el) => (lightBtnColor = el.css('background-color')),
+      let appbarColor: string
+      cy.get('[data-cy="manage-profile"] button').contains('Light').click()
+      cy.get('[data-cy="app-bar"]').then(
+        (el) => (appbarColor = el.css('background-color')),
       )
-      cy.get('div[class="circle-picker "]').children().eq(1).click()
-      cy.get('@lightBtn')
-        .then((el) => (lightBtnNewColor = el.css('background-color')))
-        .then(() => {
-          expect(lightBtnColor).not.to.equal(lightBtnNewColor)
-        })
 
-      // test changing theme mode
-      let lightModeColor: string, darkModeColor: string
+      // set input of color
+      cy.get(
+        '[data-cy="manage-profile"] button[aria-label="More Options"]',
+      ).click()
+      cy.get('input[id="custom-color-picker"]')
+        .invoke('val', '#378643')
+        .trigger('input')
 
-      cy.get('div[id="app-root"]').then(
-        (el) => (lightModeColor = el.css('background-color')),
+      // assert primary color has changed
+      cy.reload()
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="app-bar"]').then((el) =>
+        expect(appbarColor).not.to.equal(el.css('background-color')),
       )
+
+      // test changing theme mode to dark
       cy.get('[data-cy="manage-profile"] button').contains('Dark').click()
-      cy.get('div[id="app-root"]')
-        .then((el) => (darkModeColor = el.css('background-color')))
-        .then(() => {
-          expect(lightModeColor).not.to.equal(darkModeColor)
-        })
+
+      // assert theme mode has changed
+      cy.reload()
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="app-bar"]').then((el) =>
+        expect(appbarColor).not.to.equal(el.css('background-color')),
+      )
     })
 
     it('should not display feedback by default', () => {

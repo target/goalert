@@ -98,15 +98,22 @@ export default function ThemePicker(): JSX.Element {
               <input
                 id='custom-color-picker'
                 onChange={(e) => {
-                  setSourceColor(e.target.value)
+                  if (e.target.value !== sourceColor) {
+                    setSourceColor(e.target.value)
+                  }
+                }}
+                onInput={(e) => {
+                  if (e.currentTarget.value !== sourceColor) {
+                    setSourceColor(e.currentTarget.value)
+                  }
                 }}
                 type='color'
                 value={sourceColor}
                 style={{
-                  width: 0,
+                  position: 'absolute',
+                  opacity: 0,
                   border: 'none',
                   padding: 0,
-                  visibility: 'hidden',
                 }}
               />
               <ListItemIcon>
