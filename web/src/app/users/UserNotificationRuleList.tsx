@@ -2,7 +2,7 @@ import React, { useState, ReactNode } from 'react'
 import Query from '../util/Query'
 import { gql, QueryResult } from '@apollo/client'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
-import { Grid, Card, CardHeader, IconButton } from '@mui/material'
+import { Grid, Card, CardHeader, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import { Delete } from '@mui/icons-material'
@@ -28,7 +28,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
   return {
     cardHeader,
