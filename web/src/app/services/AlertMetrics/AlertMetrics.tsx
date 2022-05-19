@@ -111,13 +111,18 @@ export default function AlertMetrics(): JSX.Element {
 
   const data = alertMetrics.map((day: AlertDataPoint) => {
     const formatDuration = (dur: Duration): string => {
-      if (!dur.isValid) return '0'
+      if (!dur.isValid) return '0 sec'
       const durStr = dur.toHuman({ unitDisplay: 'short' })
+      if (durStr.lastIndexOf(',') === -1) return durStr
       // strip milliseconds from duration string
       return durStr.substring(0, durStr.lastIndexOf(','))
     }
-    const ackDuration = Duration.fromISO(day.avgTimeToAck || '')
-    const closeDuration = Duration.fromISO(day.avgTimeToClose || '')
+    const ackDuration = Duration.fromISO(
+      day.avgTimeToAck ? day.avgTimeToAck : 'PT0S',
+    )
+    const closeDuration = Duration.fromISO(
+      day.avgTimeToClose ? day.avgTimeToClose : 'PT0S',
+    )
 
     const ackAvgMinutes = ackDuration.shiftTo('minutes').minutes
     const closeAvgMinutes = closeDuration.shiftTo('minutes').minutes
@@ -136,8 +141,8 @@ export default function AlertMetrics(): JSX.Element {
       date: date,
       label: label,
       count: day.alertCount,
-      avgTimeToAck: ackDuration.isValid ? ackAvgMinutes : 0,
-      avgTimeToClose: closeDuration.isValid ? closeAvgMinutes : 0,
+      avgTimeToAck: ackAvgMinutes,
+      avgTimeToClose: closeAvgMinutes,
       formattedAckLabel: formatDuration(ackDuration),
       formattedCloseLabel: formatDuration(closeDuration),
     }
