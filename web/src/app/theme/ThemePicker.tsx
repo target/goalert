@@ -97,16 +97,9 @@ export default function ThemePicker(): JSX.Element {
             >
               <input
                 id='custom-color-picker'
-                onChange={(e) => {
-                  if (e.target.value !== sourceColor) {
-                    setSourceColor(e.target.value)
-                  }
-                }}
-                onInput={(e) => {
-                  if (e.currentTarget.value !== sourceColor) {
-                    setSourceColor(e.currentTarget.value)
-                  }
-                }}
+                onChange={(e) => setSourceColor(e.target.value)}
+                // onInput required for Cypress test to execute a `trigger:input` event
+                onInput={(e) => setSourceColor(e.currentTarget.value)}
                 type='color'
                 value={sourceColor}
                 style={{

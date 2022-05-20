@@ -97,7 +97,7 @@ function testProfile(): void {
         '[data-cy="manage-profile"] button[aria-label="More Options"]',
       ).click()
       cy.get('input[id="custom-color-picker"]')
-        .invoke('val', '#378643')
+        .invoke('val', '#fff000')
         .trigger('input')
 
       // assert primary color has changed
