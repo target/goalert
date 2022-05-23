@@ -6,6 +6,8 @@ import { Provider as ReduxProvider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { DndProvider } from 'react-dnd'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
@@ -39,23 +41,25 @@ const root = createRoot(rootElement as HTMLElement)
 
 root.render(
   <StrictMode>
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider>
-        <ApolloProvider client={GraphQLClient}>
-          <ReduxProvider store={store}>
-            <BrowserRouter basename={pathPrefix}>
-              <MuiPickersUtilsProvider>
-                <URQLProvider value={urqlClient}>
-                  <ConfigProvider>
-                    <NewVersionCheck />
-                    <App />
-                  </ConfigProvider>
-                </URQLProvider>
-              </MuiPickersUtilsProvider>
-            </BrowserRouter>
-          </ReduxProvider>
-        </ApolloProvider>
-      </ThemeProvider>
-    </StyledEngineProvider>
+    <DndProvider backend={HTML5Backend}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider>
+          <ApolloProvider client={GraphQLClient}>
+            <ReduxProvider store={store}>
+              <BrowserRouter basename={pathPrefix}>
+                <MuiPickersUtilsProvider>
+                  <URQLProvider value={urqlClient}>
+                    <ConfigProvider>
+                      <NewVersionCheck />
+                      <App />
+                    </ConfigProvider>
+                  </URQLProvider>
+                </MuiPickersUtilsProvider>
+              </BrowserRouter>
+            </ReduxProvider>
+          </ApolloProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
+    </DndProvider>
   </StrictMode>,
 )
