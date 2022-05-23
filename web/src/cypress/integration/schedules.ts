@@ -188,11 +188,6 @@ function testSchedules(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         cy.get('body').contains('li', name)
-
-        cy.get('[aria-label="subtext"]')
-          .trigger('mouseover')
-          .get('[aria-label="local-timezone-tooltip"]')
-          .should('contain', 'CDT')
       })
     })
 

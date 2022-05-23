@@ -17,6 +17,7 @@ import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
 import makeStyles from '@mui/styles/makeStyles'
+import { useScheduleTZ } from './useScheduleTZ'
 
 const useStyles = makeStyles({
   popper: {
@@ -57,6 +58,7 @@ export default function ScheduleRuleList() {
     variables: { id: scheduleID },
     pollInterval: 0,
   })
+  const { isLocalZone } = useScheduleTZ(scheduleID)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -72,8 +74,12 @@ export default function ScheduleRuleList() {
     const localTzSummary = ruleSummary(rules, timeZone, 'local')
     const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
-    return tzSummary === 'Always' || tzSummary === 'Never' ? (
-      tzSummary
+    if (tzSummary === 'Always' || tzSummary === 'Never') {
+      return tzSummary
+    }
+
+    return isLocalZone ? (
+      <span aria-label='subtext'>{`${tzSummary} ${tzAbbr}`}</span>
     ) : (
       <Tooltip
         title={localTzSummary + ` ${localTzAbbr}`}
