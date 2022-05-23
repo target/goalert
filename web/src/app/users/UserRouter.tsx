@@ -9,26 +9,26 @@ import UserCalendarSubscriptionList from './UserCalendarSubscriptionList'
 import UserSessionList from './UserSessionList'
 import UserList from './UserList'
 
-function UserProfile() {
+function UserProfile(): JSX.Element {
   const { userID, ready } = useSessionInfo()
   if (!ready) return <Spinner />
 
   return <UserDetails userID={userID} />
 }
 
-function UserOnCallAssignments() {
+function UserOnCallAssignments(): JSX.Element {
   const { userID, ready } = useSessionInfo()
   if (!ready) return <Spinner />
   return <UserOnCallAssignmentList userID={userID} currentUser />
 }
 
-function UserCalendarSubscriptions() {
+function UserCalendarSubscriptions(): JSX.Element {
   const { userID, ready } = useSessionInfo()
   if (!ready) return <Spinner />
   return <UserCalendarSubscriptionList userID={userID} />
 }
 
-export function ProfileRouter() {
+export function ProfileRouter(): JSX.Element {
   return (
     <Routes>
       <Route path='/' element={<UserProfile />} />
@@ -44,7 +44,7 @@ export function ProfileRouter() {
   )
 }
 
-export default function UserRouter() {
+export default function UserRouter(): JSX.Element {
   const { userID } = useSessionInfo()
 
   return (
