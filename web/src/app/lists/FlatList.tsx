@@ -1,29 +1,20 @@
-import React, { useLayoutEffect, MouseEvent } from 'react'
+import React, { MouseEvent, useCallback } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
-import ListItem, { ListItemProps } from '@mui/material/ListItem'
-import ListItemIcon from '@mui/material/ListItemIcon'
+import MUIListItem from '@mui/material/ListItem'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import { Theme } from '@mui/material/styles'
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-  DraggableStateSnapshot,
-  DraggableProvided,
-  DroppableProvided,
-} from 'react-beautiful-dnd'
 import ListSubheader from '@mui/material/ListSubheader'
-import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
 import { AlertColor } from '@mui/material/Alert'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
+import { DraggableListItem } from './DraggableListItem'
+import ListItem from './ListItem'
 
 const useStyles = makeStyles((theme: Theme) => ({
   alert: {
@@ -40,9 +31,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  secondaryText: {
-    whiteSpace: 'pre-line',
-  },
   participantDragging: {
     backgroundColor: theme.palette.background.default,
   },
@@ -68,15 +56,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     transform: 'translateX(-100%)',
     transition: 'all 500ms',
   },
-  listItem: {
-    width: '100%',
-  },
   listItemText: {
     fontStyle: 'italic',
-  },
-  listItemDisabled: {
-    opacity: 0.6,
-    width: '100%',
   },
 }))
 
@@ -136,24 +117,6 @@ const severityMap: { [K in NoticeType]: AlertColor } = {
   OK: 'success',
 }
 
-interface ScrollIntoViewListItemProps extends ListItemProps {
-  scrollIntoView?: boolean
-}
-
-function ScrollIntoViewListItem(
-  props: ScrollIntoViewListItemProps,
-): JSX.Element {
-  const { scrollIntoView, ...other } = props
-  const ref = React.useRef<HTMLLIElement>(null)
-  useLayoutEffect(() => {
-    if (scrollIntoView) {
-      ref.current?.scrollIntoView({ block: 'center' })
-    }
-  }, [scrollIntoView])
-
-  return <ListItem ref={ref} {...other} />
-}
-
 export default function FlatList({
   onReorder,
   emptyMessage,
@@ -166,18 +129,25 @@ export default function FlatList({
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
-  function handleDragStart(): void {
-    // adds a little vibration if the browser supports it
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(100)
-    }
-  }
+  const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
+    if (!onReorder) return
+    onReorder(dragIndex, hoverIndex)
+  }, [])
 
-  function handleDragEnd(result: DropResult): void {
-    if (result.destination && onReorder) {
-      onReorder(result.source.index, result.destination.index)
-    }
-  }
+  const renderDraggableItem = useCallback(
+    (item: FlatListItem, index: number) => {
+      return (
+        <DraggableListItem
+          key={item.id}
+          id={item.id as string}
+          index={index}
+          moveItem={moveItem}
+          item={item}
+        />
+      )
+    },
+    [],
+  )
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
     if (item.handleOnClick) {
@@ -228,48 +198,6 @@ export default function FlatList({
     )
   }
 
-  function renderItem(item: FlatListItem, idx: number): JSX.Element {
-    let itemProps = {}
-    if (item.url) {
-      itemProps = {
-        component: AppLink,
-        to: item.url,
-        button: true,
-      }
-    }
-
-    return (
-      <ScrollIntoViewListItem
-        scrollIntoView={item.scrollIntoView}
-        key={idx}
-        {...itemProps}
-        className={classnames({
-          [classes.listItem]: true,
-          [classes.listItemDisabled]: item.disabled,
-        })}
-        selected={item.highlight}
-      >
-        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-        <ListItemText
-          primary={item.title}
-          secondary={item.subText}
-          secondaryTypographyProps={{
-            className: classnames({
-              [classes.secondaryText]: true,
-              [classes.listItemDisabled]: item.disabled,
-            }),
-          }}
-          inset={inset && !item.icon}
-        />
-        {item.secondaryAction && (
-          <ListItemSecondaryAction>
-            {item.secondaryAction}
-          </ListItemSecondaryAction>
-        )}
-      </ScrollIntoViewListItem>
-    )
-  }
-
   function renderTransitionItems(): JSX.Element[] {
     return items.map((item, idx) => {
       if ('subHeader' in item) {
@@ -313,7 +241,7 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          {renderItem(item, idx)}
+          <ListItem index={idx} item={item} />
         </CSSTransition>
       )
     })
@@ -321,7 +249,7 @@ export default function FlatList({
 
   function renderEmptyMessage(): JSX.Element {
     return (
-      <ListItem>
+      <MUIListItem>
         <ListItemText
           disableTypography
           secondary={
@@ -330,7 +258,7 @@ export default function FlatList({
             </Typography>
           }
         />
-      </ListItem>
+      </MUIListItem>
     )
   }
 
@@ -342,33 +270,11 @@ export default function FlatList({
       if ('type' in item) {
         return renderNoticeItem(item, idx)
       }
-      if (!onReorder) {
-        return renderItem(item, idx)
+      if (item.id && onReorder) {
+        return renderDraggableItem(item, idx)
       }
-      if (item.id) {
-        return (
-          <Draggable key={item.id} draggableId={item.id} index={idx}>
-            {(
-              provided: DraggableProvided,
-              snapshot: DraggableStateSnapshot,
-            ) => {
-              const draggingBackground = snapshot.isDragging
-                ? classes.participantDragging
-                : ''
-              return (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  className={draggingBackground}
-                >
-                  {renderItem(item, idx)}
-                </div>
-              )
-            }}
-          </Draggable>
-        )
-      }
+
+      return <ListItem key={idx} index={idx} item={item} />
     })
   }
 
@@ -382,7 +288,7 @@ export default function FlatList({
     return (
       <List {...listProps}>
         {(headerNote || headerAction) && (
-          <ListItem>
+          <MUIListItem>
             {headerNote && (
               <ListItemText
                 disableTypography
@@ -395,7 +301,7 @@ export default function FlatList({
             {headerAction && (
               <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
             )}
-          </ListItem>
+          </MUIListItem>
         )}
         {!items.length && renderEmptyMessage()}
         {transition ? renderTransitions() : renderItems()}
@@ -403,24 +309,5 @@ export default function FlatList({
     )
   }
 
-  function renderDragAndDrop(): JSX.Element {
-    return (
-      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <Droppable droppableId='droppable'>
-          {(provided: DroppableProvided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              {renderList()}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-    )
-  }
-
-  if (onReorder) {
-    // Enable drag and drop
-    return renderDragAndDrop()
-  }
   return renderList()
 }
