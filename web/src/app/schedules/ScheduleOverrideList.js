@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Grid, FormControlLabel, Switch } from '@mui/material'
+import { Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import QueryList from '../lists/QueryList'
 import { gql } from '@apollo/client'
@@ -8,12 +8,20 @@ import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
 import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
+import { useScheduleTZ } from './useScheduleTZ'
+import { DateTime } from 'luxon'
+import makeStyles from '@mui/styles/makeStyles'
+
+const useStyles = makeStyles({
+  popper: {
+    opacity: 1,
+  },
+})
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -42,6 +50,7 @@ const query = gql`
 `
 
 export default function ScheduleOverrideList() {
+  const classes = useStyles()
   const { scheduleID } = useParams()
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
@@ -50,32 +59,56 @@ export default function ScheduleOverrideList() {
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [showPast, setShowPast] = useURLParam('showPast', false)
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
-  const [zone] = useURLParam('tz', 'local')
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+
   const subText = (n) => {
-    const timeStr = formatOverrideTime(n.start, n.end, zone)
+    const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
+    const tzAbbr = DateTime.local({ zone: zone }).toFormat('ZZZZ')
+    const localTimeStr = formatOverrideTime(n.start, n.end, 'local')
+    const localAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+
+    let tzSubText
+    let localSubText
     if (n.addUser && n.removeUser) {
       // replace
-      return `Replaces ${n.removeUser.name} from ${timeStr}`
-    }
-    if (n.addUser) {
+      tzSubText = `Replaces ${n.removeUser.name} from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Replaces ${n.removeUser.name} from ${localTimeStr} ${localAbbr}`
+    } else if (n.addUser) {
       // add
-      return `Added from ${timeStr}`
+      tzSubText = `Added from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Added from ${localTimeStr} ${localAbbr}`
+    } else {
+      // remove
+      tzSubText = `Removed from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Removed from ${localTimeStr} ${localAbbr}`
     }
-    // remove
-    return `Removed from ${timeStr}`
+
+    return isLocalZone ? (
+      <span>{localSubText}</span>
+    ) : (
+      <Tooltip
+        title={localSubText}
+        placement='bottom-start'
+        classes={{ popper: classes.popper }}
+        PopperProps={{
+          'aria-label': 'local-timezone-tooltip',
+        }}
+      >
+        <span>{tzSubText}</span>
+      </Tooltip>
+    )
   }
 
-  const zoneText = zone === 'local' ? 'local time' : zone
   const hasUsers = Boolean(userFilter.length)
   const note = showPast
     ? `Showing all overrides${
         hasUsers ? ' for selected users' : ''
-      } in ${zoneText}.`
+      } in ${zone}.`
     : `Showing active and future overrides${
         hasUsers ? ' for selected users' : ''
-      } in ${zoneText}.`
+      } in ${zone}.`
 
   return (
     <React.Fragment>
@@ -126,9 +159,6 @@ export default function ScheduleOverrideList() {
                 }
                 label='Show past overrides'
               />
-            </Grid>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={scheduleID} />
             </Grid>
             <Grid item xs={12}>
               <UserSelect
