@@ -17,7 +17,7 @@ export default function NewUserSetup() {
   if (contactMethodID) {
     return (
       <UserContactMethodVerificationDialog
-        contactMethodID={contactMethodID.contactMethodID}
+        contactMethodID={contactMethodID}
         onClose={clearIsFirstLogin}
       />
     )
