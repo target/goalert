@@ -7,14 +7,6 @@ export const ItemTypes = {
   ITEM: 'item',
 }
 
-const style = {
-  border: '1px dashed gray',
-  padding: '0.5rem 1rem',
-  marginBottom: '.5rem',
-  backgroundColor: 'white',
-  cursor: 'move',
-}
-
 interface DraggableListItemProps extends FlatListItem {
   id: string
   index: number
@@ -109,7 +101,11 @@ export function DraggableListItem({
   const opacity = isDragging ? 0 : 1
   drag(drop(ref))
   return (
-    <div ref={ref} style={{ ...style, opacity }} data-handler-id={handlerId}>
+    <div
+      ref={ref}
+      style={{ cursor: 'move', opacity }}
+      data-handler-id={handlerId}
+    >
       <ListItem index={index} item={item} />
     </div>
   )
