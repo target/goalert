@@ -1,4 +1,4 @@
-import React, { MouseEvent, useCallback } from 'react'
+import React, { MouseEvent, useState, useEffect } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
@@ -129,25 +129,29 @@ export default function FlatList({
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
-  const moveItem = useCallback((dragIndex: number, hoverIndex: number) => {
-    if (!onReorder) return
-    onReorder(dragIndex, hoverIndex)
-  }, [])
+  const [dndItems, setDndItems] = useState(items)
 
-  const renderDraggableItem = useCallback(
-    (item: FlatListItem, index: number) => {
-      return (
-        <DraggableListItem
-          key={item.id}
-          id={item.id as string}
-          index={index}
-          moveItem={moveItem}
-          item={item}
-        />
-      )
-    },
-    [],
-  )
+  useEffect(() => {
+    setDndItems(items)
+  }, [items])
+
+  function moveItem(oldIndex: number, newIndex: number): void {
+    if (!onReorder) return
+    onReorder(oldIndex, newIndex)
+  }
+
+  function handleDrag(dragIndex: number, hoverIndex: number): void {
+    const dragItem = dndItems[dragIndex]
+    console.log('drag item: ', dragItem)
+    setDndItems((prevState) => {
+      const _items = [...prevState]
+      // replace the new hover index with the item being dragged
+      const prevItem = _items.splice(hoverIndex, 1, dragItem)
+      // then replace the old index with that hover index item
+      _items.splice(dragIndex, 1, prevItem[0])
+      return _items
+    })
+  }
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
     if (item.handleOnClick) {
@@ -263,19 +267,30 @@ export default function FlatList({
   }
 
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
-    return items.map((item: FlatListListItem, idx: number) => {
-      if ('subHeader' in item) {
-        return renderSubheaderItem(item, idx)
-      }
-      if ('type' in item) {
-        return renderNoticeItem(item, idx)
-      }
-      if (item.id && onReorder) {
-        return renderDraggableItem(item, idx)
-      }
+    return (onReorder ? dndItems : items).map(
+      (item: FlatListListItem, idx: number) => {
+        if ('subHeader' in item) {
+          return renderSubheaderItem(item, idx)
+        }
+        if ('type' in item) {
+          return renderNoticeItem(item, idx)
+        }
+        if (item.id && onReorder) {
+          return (
+            <DraggableListItem
+              key={`${idx}-${item.id}`}
+              id={idx}
+              index={idx}
+              onDrag={handleDrag}
+              onReorder={moveItem}
+              item={item}
+            />
+          )
+        }
 
-      return <ListItem key={idx} index={idx} item={item} />
-    })
+        return <ListItem key={`${idx}-${item.id}`} index={idx} item={item} />
+      },
+    )
   }
 
   function renderTransitions(): JSX.Element {
