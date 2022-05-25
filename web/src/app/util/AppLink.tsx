@@ -1,14 +1,11 @@
 import React, { forwardRef, ForwardRefRenderFunction } from 'react'
 import { LinkProps } from '@mui/material'
-import Link from '@mui/material/Link'
-import {
-  Link as RRLink,
-  LinkProps as RRLinkProps,
-  useLocation,
-} from 'react-router-dom'
+import MUILink from '@mui/material/Link'
+
+import { Link, LinkProps as WLinkProps } from 'wouter'
 import joinURL from './joinURL'
 
-type MergedLinkProps = Omit<LinkProps & RRLinkProps, 'to' | 'href'>
+type MergedLinkProps = Omit<LinkProps & WLinkProps, 'to' | 'href'>
 
 export interface AppLinkProps extends MergedLinkProps {
   to: string
@@ -16,10 +13,17 @@ export interface AppLinkProps extends MergedLinkProps {
   onClick?: React.MouseEventHandler<HTMLAnchorElement> // use explicit anchor elem
 }
 
+function WrapLink(props, ref) {
+  return (
+    <Link to={props.to}>
+      <a ref={ref} {...props} />
+    </Link>
+  )
+}
+
 const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   function AppLink(props, ref): JSX.Element {
     let { to, newTab, ...other } = props
-    const { pathname } = useLocation()
 
     if (newTab) {
       other.target = '_blank'
@@ -30,15 +34,15 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
 
     // handle relative URLs
     if (!external && !to.startsWith('/')) {
-      to = joinURL(pathname, to)
+      to = joinURL(window.location.pathname, to)
     }
 
     return (
-      <Link
+      <MUILink
         ref={ref}
         to={to}
         href={to}
-        component={external ? 'a' : RRLink}
+        component={external ? 'a' : forwardRef(WrapLink)}
         {...other}
       />
     )
