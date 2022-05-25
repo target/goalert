@@ -1,11 +1,35 @@
 import React from 'react'
-import p from 'prop-types'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import UserContactMethodSelect from './UserContactMethodSelect'
+import { FieldError } from '../util/errutil'
 
-export default function UserNotificationRuleForm(props) {
+interface CreateNotificationRule {
+  contactMethodID: string
+  delayMinutes: number
+}
+
+interface UserNotificationRuleFormProps {
+  userID: string
+
+  value: CreateNotificationRule
+
+  errors: Error[] | FieldError[]
+
+  onChange: (value: CreateNotificationRule) => void
+
+  disabled: boolean
+}
+
+interface Error {
+  field: 'delayMinutes' | 'contactMethodID'
+  message: string
+}
+
+export default function UserNotificationRuleForm(
+  props: UserNotificationRuleFormProps,
+): JSX.Element {
   const { userID, ...other } = props
   return (
     <FormContainer {...other} optionalLabels>
@@ -35,24 +59,4 @@ export default function UserNotificationRuleForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-UserNotificationRuleForm.propTypes = {
-  userID: p.string.isRequired,
-
-  value: p.shape({
-    contactMethodID: p.string.isRequired,
-    delayMinutes: p.number.isRequired,
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['delayMinutes', 'contactMethodID']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func,
-
-  disabled: p.bool,
 }

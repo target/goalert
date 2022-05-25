@@ -35,6 +35,8 @@ func Parse(r io.Reader) ([]Task, error) {
 			// parameter
 			parts := strings.SplitN(str[1:], "=", 2)
 			switch strings.TrimSpace(parts[0]) {
+			case "oneshot":
+				t.OneShot = true
 			case "watch-file":
 				if len(parts) != 2 {
 					return nil, fmt.Errorf("line %d: missing file path for watch-file", line)

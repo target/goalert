@@ -5,8 +5,8 @@ import { useURLParam } from '../../actions'
 
 const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']
 
-function AlertsListControls() {
-  const [filter, setFilter] = useURLParam('filter', 'active')
+function AlertsListControls(): JSX.Element {
+  const [filter, setFilter] = useURLParam<string>('filter', 'active')
 
   let currTab = tabs.indexOf(filter)
   if (currTab === -1) currTab = 0 // handle jargon input from url params

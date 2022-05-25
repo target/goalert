@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from 'urql'
 import _ from 'lodash'
 import useMultiQuery from './useMultiQuery'
 
@@ -30,15 +30,15 @@ export function useUserInfo<T extends HasUserID>(
     (id) => ({ id }),
   )
 
-  const { data, loading, error } = useMultiQuery(infoQuery, {
+  const [{ data, fetching, error }] = useMultiQuery({
+    query: infoQuery,
     variables,
-    fetchPolicy: 'cache-first',
-    pollInterval: 0,
-    skip: items.length === 0,
+    requestPolicy: 'cache-first',
+    pause: items.length === 0,
   })
 
   // handle error
-  if (error && !loading) {
+  if (error && !fetching) {
     return items.map((item) => ({
       ...item,
       user: { id: item.userID, name: 'Error: ' + error.message },

@@ -36,6 +36,8 @@ type Store struct {
 	rotationParts      *sql.Stmt
 	updateRotationPart *sql.Stmt
 	deleteRotationPart *sql.Stmt
+	rotActiveIndex     *sql.Stmt
+	rotSetActive       *sql.Stmt
 
 	findOneForUpdate *sql.Stmt
 
@@ -84,6 +86,9 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				alert_status_log_contact_method_id = $4
 			WHERE id = $1
 		`),
+
+		rotActiveIndex: p.P(`SELECT position FROM rotation_state WHERE rotation_id = $1 FOR UPDATE`),
+		rotSetActive:   p.P(`UPDATE rotation_state SET position = $2, rotation_participant_id = $3 WHERE rotation_id = $1`),
 
 		setUserRole: p.P(`UPDATE users SET role = $2 WHERE id = $1`),
 		findAuthSubjects: p.P(`
@@ -343,6 +348,7 @@ func withTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 
 	return tx.StmtContext(ctx, stmt)
 }
+
 func (s *Store) requireTx(ctx context.Context, tx *sql.Tx, fn func(*sql.Tx) error) error {
 	return nil
 }
@@ -456,12 +462,22 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 		participants = append(participants, p)
 	}
 
+	var activeIndex int
+	err = tx.StmtContext(ctx, s.rotActiveIndex).QueryRowContext(ctx, rotationID).Scan(&activeIndex)
+	if err != nil {
+		return fmt.Errorf("query active index: %w", err)
+	}
+
 	// update participant user IDs
 	var skipped bool
 	curIndex := -1
 	updatePart := tx.StmtContext(ctx, s.updateRotationPart)
-	for _, p := range participants {
+	for i, p := range participants {
 		if p.UserID == userID {
+			if i < activeIndex {
+				activeIndex--
+			}
+
 			skipped = true
 			continue
 		}
@@ -481,6 +497,11 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 		if err != nil {
 			return fmt.Errorf("delete participant %d: %w", i, err)
 		}
+	}
+
+	_, err = tx.StmtContext(ctx, s.rotSetActive).ExecContext(ctx, rotationID, activeIndex, participants[activeIndex].ID)
+	if err != nil {
+		return fmt.Errorf("set active index: %w", err)
 	}
 
 	return nil

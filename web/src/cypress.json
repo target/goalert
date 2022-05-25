@@ -7,6 +7,7 @@
   "requestTimeout": 15000,
   "defaultCommandTimeout": 15000,
   "ignoreTestFiles": "*.map",
+  "video": false,
   "retries": {
     "runMode": 2,
     "openMode": 0

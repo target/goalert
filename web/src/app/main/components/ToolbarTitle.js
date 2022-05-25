@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography'
 import { Routes, Route, useParams } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronRight } from '@mui/icons-material'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
@@ -79,9 +79,10 @@ const queries = {
 }
 
 function NameLoader(props) {
-  const { data } = useQuery(props.query, {
+  const [{ data }] = useQuery({
+    query: props.query,
     variables: { id: props.id },
-    skip: !props.id,
+    pause: !props.id,
   })
   return data?.data?.name ?? props.fallback
 }
