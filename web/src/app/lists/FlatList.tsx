@@ -130,19 +130,21 @@ export default function FlatList({
   const classes = useStyles()
 
   const [dndItems, setDndItems] = useState(items)
-
   useEffect(() => {
     setDndItems(items)
   }, [items])
 
+  // moveItem calls the onReorder function, called after a drag and drop
+  // action has been completed by the user
   function moveItem(oldIndex: number, newIndex: number): void {
     if (!onReorder) return
     onReorder(oldIndex, newIndex)
   }
 
+  // handleDrag updates the order of the given items array after a drag action
+  // has been started by the user (not dropped yet/still dragging)
   function handleDrag(dragIndex: number, hoverIndex: number): void {
     const dragItem = dndItems[dragIndex]
-    console.log('drag item: ', dragItem)
     setDndItems((prevState) => {
       const _items = [...prevState]
       // replace the new hover index with the item being dragged
@@ -151,6 +153,21 @@ export default function FlatList({
       _items.splice(dragIndex, 1, prevItem[0])
       return _items
     })
+  }
+
+  function renderEmptyMessage(): JSX.Element {
+    return (
+      <MUIListItem>
+        <ListItemText
+          disableTypography
+          secondary={
+            <Typography data-cy='list-empty-message' variant='caption'>
+              {emptyMessage}
+            </Typography>
+          }
+        />
+      </MUIListItem>
+    )
   }
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
@@ -251,19 +268,8 @@ export default function FlatList({
     })
   }
 
-  function renderEmptyMessage(): JSX.Element {
-    return (
-      <MUIListItem>
-        <ListItemText
-          disableTypography
-          secondary={
-            <Typography data-cy='list-empty-message' variant='caption'>
-              {emptyMessage}
-            </Typography>
-          }
-        />
-      </MUIListItem>
-    )
+  function renderTransitions(): JSX.Element {
+    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
@@ -293,36 +299,26 @@ export default function FlatList({
     )
   }
 
-  function renderTransitions(): JSX.Element {
-    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
-  }
-
-  // renderList handles rendering the list container as well as any
-  // header elements provided
-  function renderList(): JSX.Element {
-    return (
-      <List {...listProps}>
-        {(headerNote || headerAction) && (
-          <MUIListItem>
-            {headerNote && (
-              <ListItemText
-                disableTypography
-                secondary={
-                  <Typography color='textSecondary'>{headerNote}</Typography>
-                }
-                className={classes.listItemText}
-              />
-            )}
-            {headerAction && (
-              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
-            )}
-          </MUIListItem>
-        )}
-        {!items.length && renderEmptyMessage()}
-        {transition ? renderTransitions() : renderItems()}
-      </List>
-    )
-  }
-
-  return renderList()
+  return (
+    <List {...listProps}>
+      {(headerNote || headerAction) && (
+        <MUIListItem>
+          {headerNote && (
+            <ListItemText
+              disableTypography
+              secondary={
+                <Typography color='textSecondary'>{headerNote}</Typography>
+              }
+              className={classes.listItemText}
+            />
+          )}
+          {headerAction && (
+            <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
+          )}
+        </MUIListItem>
+      )}
+      {!items.length && renderEmptyMessage()}
+      {transition ? renderTransitions() : renderItems()}
+    </List>
+  )
 }
