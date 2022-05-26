@@ -4,7 +4,7 @@ import SimpleListPage from '../lists/SimpleListPage'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 
 const query = gql`
-  query schedulesQuery($input: ScheduleSearchOptions): JSX.Element {
+  query schedulesQuery($input: ScheduleSearchOptions) {
     data: schedules(input: $input) {
       nodes {
         id
