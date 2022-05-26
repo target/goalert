@@ -128,7 +128,7 @@ export default function AppRoutes(): JSX.Element {
     pause: !urlAlertID,
     variables: { id: urlAlertID },
   })
-  const alertServiceID = alertQ.data?.alert?.serviceID
+  const alertServiceID = urlAlertID && alertQ.data?.alert?.serviceID
 
   useLayoutEffect(() => {
     if (path.endsWith('/') && path !== '/') {
@@ -169,7 +169,7 @@ export default function AppRoutes(): JSX.Element {
       redirect(from, to)
       return
     }
-  }, [path, userID, alertServiceID])
+  }, [path, userID, alertServiceID, urlAlertID, urlServiceID])
 
   return (
     <Switch>
