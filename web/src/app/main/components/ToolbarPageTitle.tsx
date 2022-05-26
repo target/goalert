@@ -82,57 +82,12 @@ const renderCrumb = (title: string, link?: string): JSX.Element => {
   )
 }
 
-function ToolbarBreadcrumbs(p: { type?: string }): JSX.Element {
-  const typeFallback = p.type ?? ''
-  const { sub, type = typeFallback, id } = useParams()
-
-  const queryName = camelCase(typeMap[type] ?? 'skipping')
-  const detailsTitle = typeMap[type] + ' Details'
-
-  document.title = `${applicationName || appName} - ${
-    sub || (type ? detailsTitle : type)
-  }`
-
-  // query for details page name if on a subpage
-  const [result] = useQuery({
-    pause: !sub,
-    query: `query ($id: ID!) {
-        data: ${queryName}(id: $id) {
-          id
-          name
-        }
-      }`,
-    variables: { id },
-  })
-
-  return (
-    <Breadcrumbs
-      separator={
-        <ChevronRight
-          sx={{
-            color: getContrastColor,
-          }}
-        />
-      }
-    >
-      {renderText(type, sub || id ? '/' + type : '')}
-      {id && type && !sub && renderText(detailsTitle)}
-      {id &&
-        type &&
-        sub &&
-        renderText(
-          result?.data?.data?.name ?? detailsTitle,
-          '/' + type + '/' + id,
-        )}
-      {sub && renderText(sub)}
-    </Breadcrumbs>
-  )
-}
-
 const matchPath = makeMatcher()
 
 function useName(type: string = '', id: string = '') {
   const queryName = camelCase(typeMap[type] ?? 'skipping')
+  const isUUID =
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/.test(id)
   // query for details page name if on a subpage
   const [result] = useQuery({
     query: `query ($id: ID!) {
@@ -142,45 +97,38 @@ function useName(type: string = '', id: string = '') {
         }
       }`,
     variables: { id },
-    pause: !type || !id || type === 'admin',
+    pause: !type || !isUUID,
   })
 
   if (result?.data?.data?.name) {
     return result.data.data.name
   }
 
-  return typeMap[type] ?? type
+  return isUUID ? toTitleCase(typeMap[type] ?? type) : id
 }
 
 function useBreadcrumbs() {
-  const [, info] = useRoute('/:type?/:id?/:subType?')
-  const { type, id, subType } = info || {}
   const [path] = useLocation()
+
+  let title = ''
+  const crumbs: Array<JSX.Element> = []
+  const parts = path.split('/')
+  const name = useName(parts[1], parts[2])
+  parts.slice(1).forEach((part, i) => {
+    title = i === 1 ? name : toTitleCase(part)
+    crumbs.push(renderCrumb(title, parts.slice(0, i + 2).join('/')))
+  })
+
+  // we only look up the first name
+  // const name = useName(type, id)
   const isValidRoute = Object.keys(routes).some((pattern) => {
     const [match] = matchPath(pattern, path)
     return match
   })
-  const name = useName(type, id)
-
-  let title
-  const crumbs: Array<JSX.Element> = []
-
-  const push = (text: string, link?: string) => {
-    crumbs.push(renderCrumb(text, link))
-    title = toTitleCase(text)
-  }
 
   if (!isValidRoute) {
-    push('page-not-found')
-  } else if (type === 'admin') {
-    push('admin ' + id)
-  } else if (type && id && subType) {
-    push(name, '/' + type + '/' + id)
-    push(subType)
-  } else if (type && id) {
-    push((typeMap[type] ?? type) + ' details')
-  } else if (type) {
-    push(type)
+    const title = toTitleCase('page-not-found')
+    return [title, renderCrumb(title)]
   }
 
   return [title, crumbs]
