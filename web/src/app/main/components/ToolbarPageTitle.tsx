@@ -3,14 +3,17 @@ import Typography from '@mui/material/Typography'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import { ChevronRight } from '@mui/icons-material'
 import { useQuery } from 'urql'
-import { useLocation, useRoute } from 'wouter'
+import { useLocation } from 'wouter'
 import { Theme } from '@mui/material'
 import { startCase, camelCase } from 'lodash'
 import { applicationName as appName } from '../../env'
 import { routes } from '../AppRoutes'
-import makeMatcher from 'wouter/matcher'
 import { useConfigValue } from '../../util/RequireConfig'
 import AppLink from '../../util/AppLink'
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore type definition is broken for this file
+import makeMatcher from 'wouter/matcher'
 
 const typeMap: { [key: string]: string } = {
   alerts: 'Alert',
@@ -20,7 +23,7 @@ const typeMap: { [key: string]: string } = {
   users: 'User',
   services: 'Service',
 }
-const toTitleCase = (str: string) =>
+const toTitleCase = (str: string): string =>
   startCase(str)
     .replace(/^Wizard/, 'Setup Wizard')
     .replace('On Call', 'On-Call')
@@ -84,7 +87,7 @@ const renderCrumb = (title: string, link?: string): JSX.Element => {
 
 const matchPath = makeMatcher()
 
-function useName(type: string = '', id: string = '') {
+function useName(type = '', id = ''): string {
   const queryName = camelCase(typeMap[type] ?? 'skipping')
   const isUUID =
     /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/.test(id)
@@ -107,7 +110,7 @@ function useName(type: string = '', id: string = '') {
   return isUUID ? toTitleCase(typeMap[type] ?? type) : id
 }
 
-function useBreadcrumbs() {
+function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   const [path] = useLocation()
 
   let title = ''
@@ -119,8 +122,6 @@ function useBreadcrumbs() {
     crumbs.push(renderCrumb(title, parts.slice(0, i + 2).join('/')))
   })
 
-  // we only look up the first name
-  // const name = useName(type, id)
   const isValidRoute = Object.keys(routes).some((pattern) => {
     const [match] = matchPath(pattern, path)
     return match
