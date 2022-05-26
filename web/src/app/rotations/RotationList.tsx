@@ -20,7 +20,7 @@ const query = gql`
   }
 `
 
-export default function RotationList() {
+export default function RotationList(): JSX.Element {
   return (
     <SimpleListPage
       query={query}

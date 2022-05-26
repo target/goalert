@@ -1,4 +1,4 @@
-import React, { ReactChild, ReactNode, useContext } from 'react'
+import React, { ReactChild, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 

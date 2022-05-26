@@ -67,7 +67,7 @@ export default function NavBarLink({
   title,
   to,
   children,
-}: NavBarLinkProps) {
+}: NavBarLinkProps): JSX.Element {
   const classes = useStyles()
   const [path] = useLocation()
   const isRoute = path.startsWith(to)

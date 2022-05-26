@@ -23,7 +23,7 @@ const query = gql`
   }
 `
 
-export default function ServiceList() {
+export default function ServiceList(): JSX.Element {
   const [searchParam, setSearchParam] = useURLParam<string>('search', '')
   const { labelKey, labelValue } = getServiceLabel(searchParam)
 

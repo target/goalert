@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from 'react'
+import React, { useEffect } from 'react'
 import p from 'prop-types'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
@@ -10,7 +10,6 @@ import { useIsWidthDown } from '../../util/useWidth'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
 import { Route, Switch, useRoute } from 'wouter'
-import _ from 'lodash'
 
 const useStyles = makeStyles(() => ({
   backPage: {
@@ -133,18 +132,6 @@ function ToolbarTitle() {
     )
   }
 
-  function mapInfo(info, userID) {
-    if (info.type === 'users' && info.id === userID) {
-      return {
-        ...info,
-        type: 'profile',
-        id: null,
-      }
-    }
-
-    return info
-  }
-
   function SubPageTitle() {
     let [, { type, sub, id }] = useRoute('/:type/:id/:sub')
     const { userID } = useSessionInfo()
@@ -211,9 +198,9 @@ function ToolbarTitle() {
 
   return (
     <Switch>
-      <Route path='/:type' children={<TopLevelTitle />} />
-      <Route path='/:type/:id' children={<DetailsPageTitle />} />
-      <Route path='/:type/:id/:sub' children={<SubPageTitle />} />
+      <Route path='/:type' component={TopLevelTitle} />
+      <Route path='/:type/:id' component={DetailsPageTitle} />
+      <Route path='/:type/:id/:sub' component={SubPageTitle} />
     </Switch>
   )
 }

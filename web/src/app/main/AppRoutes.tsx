@@ -37,7 +37,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 
 // ParamRoute will pass route parameters as props to the route's child.
-function ParamRoute(props: RouteProps) {
+function ParamRoute(props: RouteProps): JSX.Element {
   if (!props.path) {
     throw new Error('ParamRoute requires a path prop')
   }
@@ -55,6 +55,8 @@ function ParamRoute(props: RouteProps) {
   )
 }
 
+// Allow any component to be used as a route.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
   '/alerts': AlertsList,
   '/alerts/:alertID': AlertDetailPage,
@@ -103,7 +105,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/docs': Documentation,
 }
 
-export default function AppRoutes() {
+export default function AppRoutes(): JSX.Element {
   const [path, setPath] = useLocation()
   const { userID } = useSessionInfo()
 
@@ -124,10 +126,11 @@ export default function AppRoutes() {
     if (userID) {
       redirects['/profile'] = `/users/${userID}`
     }
-    const redirect = (from: string, to: string) =>
+    const redirect = (from: string, to: string): void => {
       setPath(to + path.slice(from.length) + location.search + location.hash, {
         replace: true,
       })
+    }
 
     for (const [from, to] of Object.entries(redirects)) {
       if (from.startsWith('=') && path === from.slice(1)) {
@@ -149,6 +152,9 @@ export default function AppRoutes() {
       {
         Object.entries(routes).map(([path, component]) => (
           <ParamRoute key={path} path={path} component={component} />
+
+          // not worth the type headache, we just want our routes
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         )) as any
       }
       <Route component={PageNotFound} />

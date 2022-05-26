@@ -13,10 +13,18 @@ export interface AppLinkProps extends MergedLinkProps {
   onClick?: React.MouseEventHandler<HTMLAnchorElement> // use explicit anchor elem
 }
 
-const WrapLink = forwardRef(function WrapLink(props, ref) {
+interface WrapLinkProps {
+  to: string
+  children: React.ReactNode
+}
+
+const WrapLink = forwardRef(function WrapLink(props: WrapLinkProps, ref) {
+  const { to, children, ...rest } = props
   return (
-    <Link to={props.to}>
-      <a ref={ref} {...props} />
+    <Link to={to}>
+      <a ref={ref} {...rest}>
+        {children}
+      </a>
     </Link>
   )
 })

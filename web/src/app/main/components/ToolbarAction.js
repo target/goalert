@@ -59,7 +59,9 @@ function ToolbarAction(props) {
   }
 
   const getRoute = (route, idx) => (
-    <Route key={idx} path={route} children={renderToolbarAction()} />
+    <Route key={idx} path={route}>
+      {renderToolbarAction()}
+    </Route>
   )
 
   return (
@@ -67,8 +69,8 @@ function ToolbarAction(props) {
       {Object.keys(routes)
         .filter((path) => path.split('/').length > 3)
         .map(getRoute)}
-      <Route path='/:type' children={renderToolbarMenu()} />
-      <Route path='/:type/:id' children={renderToolbarMenu()} />
+      <Route path='/:type'>{renderToolbarMenu()}</Route>
+      <Route path='/:type/:id'>{renderToolbarMenu()}</Route>
     </Switch>
   )
 }
