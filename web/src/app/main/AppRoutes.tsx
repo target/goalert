@@ -1,9 +1,9 @@
-import React, {
-  JSXElementConstructor,
-  ReactElement,
-  useLayoutEffect,
-} from 'react'
+import React, { JSXElementConstructor, useLayoutEffect } from 'react'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
+import AdminDebugMessagesLayout from '../admin/admin-message-logs/AdminDebugMessagesLayout'
+import AdminConfig from '../admin/AdminConfig'
+import AdminLimits from '../admin/AdminLimits'
+import AdminToolbox from '../admin/AdminToolbox'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
 import { PageNotFound } from '../error-pages'
@@ -33,6 +33,7 @@ import UserList from '../users/UserList'
 import UserOnCallAssignmentList from '../users/UserOnCallAssignmentList'
 import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
+import WizardRouter from '../wizard/WizardRouter'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps) {
@@ -90,6 +91,13 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/users/:userID/sessions': UserSessionList,
 
   '/profile': Spinner, // should redirect once user ID loads
+
+  '/admin/config': AdminConfig,
+  '/admin/limits': AdminLimits,
+  '/admin/toolbox': AdminToolbox,
+  '/admin/message-logs': AdminDebugMessagesLayout,
+
+  '/wizard': WizardRouter,
 }
 
 export default function AppRoutes() {
