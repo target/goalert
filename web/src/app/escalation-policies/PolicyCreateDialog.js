@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import { Navigate } from 'react-router-dom'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
+import { Redirect } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateEscalationPolicyInput!) {
@@ -38,7 +38,7 @@ function PolicyCreateDialog(props) {
 
   if (data && data.createEscalationPolicy) {
     return (
-      <Navigate to={`/escalation-policies/${data.createEscalationPolicy.id}`} />
+      <Redirect to={`/escalation-policies/${data.createEscalationPolicy.id}`} />
     )
   }
 

@@ -23,6 +23,7 @@ import ScheduleShiftList from '../schedules/ScheduleShiftList'
 import AlertMetrics from '../services/AlertMetrics/AlertMetrics'
 import HeartbeatMonitorList from '../services/HeartbeatMonitorList'
 import IntegrationKeyList from '../services/IntegrationKeyList'
+import ServiceAlerts from '../services/ServiceAlerts'
 import ServiceDetails from '../services/ServiceDetails'
 import ServiceLabelList from '../services/ServiceLabelList'
 import ServiceList from '../services/ServiceList'
@@ -74,7 +75,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
 
   '/services': ServiceList,
   '/services/:serviceID': ServiceDetails,
-  '/services/:serviceID/alerts': AlertsList,
+  '/services/:serviceID/alerts': ServiceAlerts,
   '/services/:serviceID/alerts/:alertID': AlertDetailPage,
   '/services/:serviceID/heartbeat-monitors': HeartbeatMonitorList,
   '/services/:serviceID/integration-keys': IntegrationKeyList,
