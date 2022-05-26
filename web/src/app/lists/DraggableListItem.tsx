@@ -69,6 +69,8 @@ export function DraggableListItem({
       ref={ref}
       style={{ cursor: 'move', opacity: isDragging ? 0 : 1 }}
       data-handler-id={handlerId}
+      tabIndex={0}
+      role='tablist'
     >
       <ListItem index={index} item={item} />
     </div>
