@@ -6,6 +6,7 @@ import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
+import Documentation from '../documentation/Documentation'
 import { PageNotFound } from '../error-pages'
 import PolicyDetails from '../escalation-policies/PolicyDetails'
 import PolicyList from '../escalation-policies/PolicyList'
@@ -98,6 +99,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/message-logs': AdminDebugMessagesLayout,
 
   '/wizard': WizardRouter,
+  '/docs': Documentation,
 }
 
 export default function AppRoutes() {
