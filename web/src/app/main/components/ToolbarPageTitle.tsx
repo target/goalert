@@ -131,6 +131,10 @@ function useBreadcrumbs() {
     return [title, renderCrumb(title)]
   }
 
+  if (/^\d+$/.test(title)) {
+    title = 'Alert ' + title
+  }
+
   return [title, crumbs]
 }
 
