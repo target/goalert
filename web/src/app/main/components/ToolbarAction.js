@@ -1,10 +1,11 @@
 import React from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
 import { useIsWidthDown } from '../../util/useWidth'
 import { PropTypes as p } from 'prop-types'
+import { Route, Switch, useLocation } from 'wouter'
+import { routes } from '../AppRoutes'
 
 function removeLastPartOfPath(path) {
   const parts = path.split('/')
@@ -15,7 +16,7 @@ function removeLastPartOfPath(path) {
 function ToolbarAction(props) {
   const fullScreen = useIsWidthDown('md')
 
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   function renderToolbarAction() {
     const route = removeLastPartOfPath(window.location.pathname)
@@ -58,30 +59,17 @@ function ToolbarAction(props) {
   }
 
   const getRoute = (route) => (
-    <Route path={route} element={renderToolbarAction()} />
+    <Route path={route} children={renderToolbarAction()} />
   )
 
   return (
-    <Routes>
-      {getRoute('/schedules/:scheduleID/assignments')}
-      {getRoute('/schedules/:scheduleID/escalation-policies')}
-      {getRoute('/schedules/:scheduleID/overrides')}
-      {getRoute('/schedules/:scheduleID/shifts')}
-      {getRoute('/schedules/:scheduleID/on-call-notifications')}
-      {getRoute('/escalation-policies/:escalationPolicyID/services')}
-      {getRoute('/services/:serviceID/alerts')}
-      {getRoute('/services/:serviceID/integration-keys')}
-      {getRoute('/services/:serviceID/heartbeat-monitors')}
-      {getRoute('/services/:serviceID/labels')}
-      {getRoute('/services/:serviceID/alert-metrics')}
-      {getRoute('/users/:userID/on-call-assignments')}
-      {getRoute('/users/:userID/sessions')}
-      {getRoute('/users/:userID/schedule-calendar-subscriptions')}
-      {getRoute('/profile/on-call-assignments')}
-      {getRoute('/profile/schedule-calendar-subscriptions')}
-      <Route path='/:type' element={renderToolbarMenu()} />
-      <Route path='/:type/:id' element={renderToolbarMenu()} />
-    </Routes>
+    <Switch>
+      {Object.keys(routes)
+        .filter((path) => path.split('/').length > 3)
+        .map(getRoute)}
+      <Route path='/:type' children={renderToolbarMenu()} />
+      <Route path='/:type/:id' children={renderToolbarMenu()} />
+    </Switch>
   )
 }
 
