@@ -77,7 +77,11 @@ func contains(s []string, e string) bool {
 }
 
 func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string) error {
-	tx, err := conn.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
+	tx, err := conn.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel:       pgx.Serializable,
+		DeferrableMode: pgx.Deferrable,
+		AccessMode:     pgx.ReadOnly,
+	})
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}

@@ -3,16 +3,21 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import UserContactMethodSelect from './UserContactMethodSelect'
-import { UserNotificationRule } from '../../schema'
+import { FieldError } from '../util/errutil'
+
+interface CreateNotificationRule {
+  contactMethodID: string
+  delayMinutes: number
+}
 
 interface UserNotificationRuleFormProps {
   userID: string
 
-  value: UserNotificationRule
+  value: CreateNotificationRule
 
-  errors: Error[]
+  errors: Error[] | FieldError[]
 
-  onChange: () => void
+  onChange: (value: CreateNotificationRule) => void
 
   disabled: boolean
 }
