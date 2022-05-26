@@ -1,15 +1,16 @@
-import React from 'react'
+import React, { useEffect, useLayoutEffect } from 'react'
 import p from 'prop-types'
 import Typography from '@mui/material/Typography'
-import { Routes, Route, useParams } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { ChevronRight } from '@mui/icons-material'
 import { gql, useQuery } from 'urql'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
-import { useConfigValue } from '../../util/RequireConfig'
+import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import { applicationName as appName } from '../../env'
+import { Route, Switch, useRoute } from 'wouter'
+import _ from 'lodash'
 
 const useStyles = makeStyles(() => ({
   backPage: {
@@ -93,13 +94,22 @@ NameLoader.propTypes = {
   query: p.object.isRequired,
 }
 
+const titleMap = {
+  'On Call': 'On-Call',
+  Docs: 'Documentation',
+  Wizard: 'Setup Wizard',
+}
+
 function ToolbarTitle() {
   const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
   const [applicationName] = useConfigValue('General.ApplicationName')
 
-  const renderTitle = (title) => {
-    document.title = `${applicationName || appName} - ${title}`
+  const useTitle = (title) => {
+    title = titleMap[title] ?? title
+    useEffect(() => {
+      document.title = `${applicationName || appName} - ${title}`
+    }, [title, applicationName])
 
     return (
       <Typography
@@ -108,27 +118,41 @@ function ToolbarTitle() {
         noWrap
         component='h1'
       >
-        {title.replace('On Call', 'On-Call')}
+        {title}
       </Typography>
     )
   }
 
   const detailsText = (type) => {
-    const typeName = startCase(type)
+    const typeName = startCase(type).replace(/^Admin /, 'Admin: ')
     return (
       (mapSingular[typeName] || typeName) +
-      (type !== 'profile' ? ' Details' : '')
+      (type !== 'profile' && !type.startsWith('admin') ? ' Details' : '')
     )
   }
 
-  function SubPageTitle({ isProfile }) {
-    const { sub: _sub, type: _type, id } = useParams()
-    const sub = startCase(_sub)
-    const type = isProfile ? 'profile' : _type
+  function mapInfo(info, userID) {
+    if (info.type === 'users' && info.id === userID) {
+      return {
+        ...info,
+        type: 'profile',
+        id: null,
+      }
+    }
 
+    return info
+  }
+
+  function SubPageTitle() {
+    let [, { type, sub, id }] = useRoute('/:type/:id/:sub')
+    const { userID } = useSessionInfo()
+    const isProfile = type === 'user' && id === userID
+    if (isProfile) type = 'profile'
+
+    const title = useTitle(startCase(sub))
     if (fullScreen) {
       // mobile, only render current title
-      return renderTitle(sub)
+      return title
     }
     const query = queries[type]
 
@@ -142,38 +166,53 @@ function ToolbarTitle() {
           variant='h6'
           to='..'
         >
-          {query ? (
+          {query && !isProfile ? (
             <NameLoader id={id} query={query} fallback={detailsText(type)} />
           ) : (
             detailsText(type)
           )}
         </Typography>
         <ChevronRight />
-        {renderTitle(sub)}
+        {title}
       </div>
     )
   }
 
   function DetailsPageTitle() {
-    const { type } = useParams()
-    return renderTitle(detailsText(type))
+    let [, { type, id }] = useRoute('/:type/:id')
+    const { userID } = useSessionInfo()
+
+    if (type === 'users' && id === userID) {
+      type = 'profile'
+    }
+
+    if (type === 'admin') {
+      switch (id) {
+        case 'config':
+          type = 'admin configuration'
+          break
+        case 'limits':
+          type = 'admin system limits'
+          break
+        default:
+          type = 'admin ' + id
+      }
+    }
+
+    return useTitle(detailsText(type))
   }
 
   function TopLevelTitle() {
-    const { type } = useParams()
-    return renderTitle(startCase(type))
+    const [, { type }] = useRoute('/:type')
+    return useTitle(startCase(type))
   }
 
   return (
-    <Routes>
-      <Route path='/:type' element={<TopLevelTitle />} />
-      <Route path='/:type/:id' element={<DetailsPageTitle />} />
-      <Route path='/:type/:id/:sub' element={<SubPageTitle />} />
-      <Route path='/profile/:sub' element={<SubPageTitle isProfile />} />
-      <Route path='/wizard' element={renderTitle('Setup Wizard')} />
-      <Route path='/admin' element={renderTitle('Admin Page')} />
-      <Route path='/docs' element={renderTitle('Documentation')} />
-    </Routes>
+    <Switch>
+      <Route path='/:type' children={<TopLevelTitle />} />
+      <Route path='/:type/:id' children={<DetailsPageTitle />} />
+      <Route path='/:type/:id/:sub' children={<SubPageTitle />} />
+    </Switch>
   )
 }
 
