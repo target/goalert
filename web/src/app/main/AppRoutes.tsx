@@ -91,7 +91,8 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
     UserCalendarSubscriptionList,
   '/users/:userID/sessions': UserSessionList,
 
-  '/profile*': Spinner, // should redirect once user ID loads
+  '/profile': Spinner, // should redirect once user ID loads
+  '/profile/*': Spinner, // should redirect once user ID loads
 
   '/admin/config': AdminConfig,
   '/admin/limits': AdminLimits,

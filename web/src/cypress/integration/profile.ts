@@ -79,7 +79,7 @@ function testProfile(): void {
         .find('button')
         .contains('Manage Profile')
         .click()
-      cy.url().should('eq', Cypress.config().baseUrl + '/profile')
+      cy.url().should('eq', Cypress.config().baseUrl + '/users/' + profile.id)
     })
 
     it('should change the theme mode', () => {
