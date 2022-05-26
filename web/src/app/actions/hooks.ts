@@ -57,16 +57,16 @@ export function getParamValues<T extends Record<string, Value>>(
 }
 
 // newSearch will return a normalized URL search string if different from the current one.
-function newSearch(params: URLSearchParams): string {
+function newSearch(params: URLSearchParams): [boolean, string] {
   if (params.sort) params.sort()
   let newSearch = params.toString()
   newSearch = newSearch ? '?' + newSearch : ''
   if (newSearch === location.search) {
     // no action for no param change
-    return ''
+    return [false, '']
   }
 
-  return newSearch
+  return [true, newSearch]
 }
 
 // useURLParams returns the values for the given URL params if present, else the given defaults.
@@ -101,8 +101,8 @@ export function useURLParams<T extends Record<string, Value>>(
       }
     }
 
-    const search = newSearch(q)
-    if (!search) {
+    const [hasNew, search] = newSearch(q)
+    if (!hasNew) {
       // nothing to do
       return
     }
@@ -154,8 +154,8 @@ export function useResetURLParams(...names: string[]): () => void {
     const params = new URLSearchParams(location.search)
     names.forEach((name) => params.delete(name))
 
-    const search = newSearch(params)
-    if (!search) {
+    const [hasNew, search] = newSearch(params)
+    if (!hasNew) {
       // nothing to do
       return
     }
