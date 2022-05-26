@@ -52,7 +52,6 @@
     "react-infinite-scroll-component": "6.1.0",
     "react-markdown": "8.0.0",
     "react-redux": "8.0.0",
-    "react-router-dom": "6.3.0",
     "react-transition-group": "4.4.2",
     "recharts": "2.1.8",
     "redux-thunk": "2.4.0",
