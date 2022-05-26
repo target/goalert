@@ -18,7 +18,10 @@ interface WrapLinkProps {
   children: React.ReactNode
 }
 
-const WrapLink = forwardRef(function WrapLink(props: WrapLinkProps, ref) {
+const WrapLink = forwardRef(function WrapLink(
+  props: WrapLinkProps,
+  ref: React.Ref<HTMLAnchorElement>,
+) {
   const { to, children, ...rest } = props
   return (
     <Link to={to}>

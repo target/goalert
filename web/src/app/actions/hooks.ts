@@ -32,11 +32,11 @@ export function sanitizeURLParam(value: Value): string | string[] {
 // getParamValues converts each URL search param into the
 // desired type based on its respective default value.
 export function getParamValues<T extends Record<string, Value>>(
-  location: Location,
+  search: string,
   params: T, // <name, default> pairs
 ): T {
   const result = {} as Record<string, Value>
-  const q = new URLSearchParams(location.search)
+  const q = new URLSearchParams(search)
 
   for (const [name, defaultVal] of Object.entries(params)) {
     if (!q.has(name)) {
@@ -110,7 +110,7 @@ export function useURLParams<T extends Record<string, Value>>(
     navigate(path + search + location.hash, { replace: true })
   }
 
-  const values = getParamValues<T>(location, params)
+  const values = getParamValues<T>(location.search, params)
 
   return [values, setParams]
 }
