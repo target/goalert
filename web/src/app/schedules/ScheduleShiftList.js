@@ -11,16 +11,17 @@ import {
   Switch,
   TextField,
   MenuItem,
+  Tooltip,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { ISODatePicker } from '../util/ISOPickers'
+import { useScheduleTZ } from './useScheduleTZ'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -55,6 +56,9 @@ const useStyles = makeStyles({
   datePicker: {
     width: '100%',
   },
+  popper: {
+    opacity: 1,
+  },
 })
 
 function ScheduleShiftList() {
@@ -66,9 +70,9 @@ function ScheduleShiftList() {
   const [isClear, setIsClear] = useState(false)
 
   const [duration, setDuration] = useURLParam('duration', 'P14D')
-  const [zone] = useURLParam('tz', 'local')
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   const defaultStart = useMemo(
     () => DateTime.local({ zone }).startOf('day').toISO(),
@@ -99,6 +103,93 @@ function ScheduleShiftList() {
       end,
     },
   })
+
+  function getShiftDetails(s, day) {
+    let shiftDetails = ''
+    const startTime = s.start.toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+    const endTime = s.end.toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+
+    const localStartTime = DateTime.fromISO(s.start, {
+      zone: 'local',
+    }).toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+
+    const localEndTime = DateTime.fromISO(s.end, {
+      zone: 'local',
+    }).toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+
+    // shift (s.interval) spans all day
+    if (s.interval.engulfs(day)) {
+      return 'All day'
+    }
+    if (day.engulfs(s.interval)) {
+      // shift is inside the day
+      shiftDetails = `From ${startTime} to ${endTime}`
+      if (isLocalZone) {
+        return shiftDetails
+      }
+      return (
+        <Tooltip
+          title={`From ${localStartTime} to ${localEndTime}`}
+          placement='bottom-start'
+          classes={{ popper: classes.popper }}
+          PopperProps={{
+            'aria-label': 'local-timezone-tooltip',
+          }}
+        >
+          <span>{shiftDetails}</span>
+        </Tooltip>
+      )
+    }
+    if (day.contains(s.end)) {
+      shiftDetails = `Active until${s.truncated ? ' at least' : ''} ${endTime}`
+      if (isLocalZone) {
+        return shiftDetails
+      }
+      return (
+        <Tooltip
+          title={`Active until${
+            s.truncated ? ' at least' : ''
+          } ${localEndTime}`}
+          placement='bottom-start'
+          classes={{ popper: classes.popper }}
+          PopperProps={{
+            'aria-label': 'local-timezone-tooltip',
+          }}
+        >
+          <span>{shiftDetails}</span>
+        </Tooltip>
+      )
+    }
+    // shift starts and continues on for the rest of the day
+    shiftDetails = `Active after ${startTime}`
+    if (isLocalZone) {
+      return shiftDetails
+    }
+    return (
+      <Tooltip
+        title={`Active after ${localStartTime}`}
+        placement='bottom-start'
+        classes={{ popper: classes.popper }}
+        PopperProps={{
+          'aria-label': 'local-timezone-tooltip',
+        }}
+      >
+        <span>{shiftDetails}</span>
+      </Tooltip>
+    )
+  }
 
   function items() {
     const _shifts =
@@ -140,32 +231,9 @@ function ScheduleShiftList() {
         subHeader: relativeDate(day.start),
       })
       dayShifts.forEach((s) => {
-        let shiftDetails = ''
-        const startTime = s.start.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        const endTime = s.end.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        if (s.interval.engulfs(day)) {
-          // shift (s.interval) spans all day
-          shiftDetails = 'All day'
-        } else if (day.engulfs(s.interval)) {
-          // shift is inside the day
-          shiftDetails = `From ${startTime} to ${endTime}`
-        } else if (day.contains(s.end)) {
-          shiftDetails = `Active until${
-            s.truncated ? ' at least' : ''
-          } ${endTime}`
-        } else {
-          // shift starts and continues on for the rest of the day
-          shiftDetails = `Active after ${startTime}`
-        }
         result.push({
           title: s.userName,
-          subText: shiftDetails,
+          subText: getShiftDetails(s, day),
           icon: <UserAvatar userID={s.userID} />,
         })
       })
@@ -266,9 +334,6 @@ function ScheduleShiftList() {
                   }
                   label='Active shifts only'
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <ScheduleTZFilter scheduleID={scheduleID} />
               </Grid>
               <Grid item xs={12}>
                 <ISODatePicker
