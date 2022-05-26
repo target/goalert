@@ -58,8 +58,8 @@ function ToolbarAction(props) {
     )
   }
 
-  const getRoute = (route) => (
-    <Route path={route} children={renderToolbarAction()} />
+  const getRoute = (route, idx) => (
+    <Route key={idx} path={route} children={renderToolbarAction()} />
   )
 
   return (
