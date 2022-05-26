@@ -1,3 +1,4 @@
+import { startCase } from 'lodash'
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -25,39 +26,42 @@ function navigateToAndFrom(
   detailsName: string, // sub page title
   route: string,
 ): void {
+  const page = startCase(pageName)
+  const target = startCase(targetName)
+  const details = startCase(detailsName)
+
   // navigate to extended details view
-  cy.get('[data-cy=app-bar]').should('contain', pageName)
+  cy.get(`[data-cy="${page}"]`).should('include.text', page)
   cy.get('ul[data-cy="route-links"] li').contains(detailsName).click()
 
   // verify url
   cy.url().should('include', route)
 
   if (screen === 'widescreen') {
-    // verify on new view
-    cy.get('[data-cy=app-bar]')
-      .should('contain', targetName)
-      .should('contain', detailsName)
+    cy.get(`[data-cy="${target}"]`).should('include.text', target)
 
+    cy.get(`[data-cy="${details}"]`).should('include.text', details)
+    // verify on new view
+    cy.get(`[data-cy="${target}"]`)
       // navigate back to details page
-      .contains(targetName)
       .click()
 
     // verify back on details page
-    cy.get('[data-cy=app-bar]').should('contain', pageName)
+    cy.get(`[data-cy="${page}"]`).should('include.text', page)
   } else if (screen === 'mobile' || screen === 'tablet') {
     // verify on new view
-    cy.get('[data-cy=app-bar]')
-      .should('contain', detailsName)
-      .should('not.contain', targetName)
+    cy.get(`[data-cy="${details}"]`)
+      .should('include.text', details)
+      .should('not.include.text', target)
 
     // navigate back to details page
     cy.get('button[data-cy=nav-back-icon]').click()
 
     // verify back on details page
-    cy.get('[data-cy=app-bar]').should('contain', pageName)
+    cy.get(`[data-cy="${page}"]`).should('include.text', page)
 
     if (!route.includes('profile')) {
-      cy.get('[data-cy=app-bar]').should('not.contain', targetName)
+      cy.get(`[data-cy="${target}"]`).should('not.include.text', target)
     }
   }
 }

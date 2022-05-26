@@ -75,6 +75,13 @@ function makeTheme(mode: MUIThemeMode): Theme {
           color: 'primary',
         },
       },
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          separator: {
+            margin: 4,
+          },
+        },
+      },
     },
     ...testOverrides,
   })
