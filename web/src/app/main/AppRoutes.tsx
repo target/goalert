@@ -91,7 +91,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
     UserCalendarSubscriptionList,
   '/users/:userID/sessions': UserSessionList,
 
-  '/profile': Spinner, // should redirect once user ID loads
+  '/profile*': Spinner, // should redirect once user ID loads
 
   '/admin/config': AdminConfig,
   '/admin/limits': AdminLimits,
@@ -114,12 +114,14 @@ export default function AppRoutes() {
       return
     }
 
-    const redirects = {
+    const redirects: Record<string, string> = {
       '=/': '/alerts',
-      '/profile': `/users/${userID}`,
       '/on_call_schedules': '/schedules',
       '/escalation_policies': '/escalation-policies',
       '=/admin': '/admin/config',
+    }
+    if (userID) {
+      redirects['/profile'] = `/users/${userID}`
     }
     const redirect = (from: string, to: string) =>
       setPath(to + path.slice(from.length) + location.search + location.hash, {
