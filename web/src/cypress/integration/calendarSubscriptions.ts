@@ -2,6 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
+import profile from '../fixtures/profile.json'
 
 const c = new Chance()
 
@@ -99,6 +100,7 @@ function testSubs(screen: ScreenFormat): void {
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
+      cy.window().invoke('refetchAll')
 
       cy.get(subsribeBtn)
         .trigger('mouseover')
@@ -108,6 +110,7 @@ function testSubs(screen: ScreenFormat): void {
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
+      cy.window().invoke('refetchAll')
 
       cy.get(subsribeBtn)
         .trigger('mouseover')
@@ -134,7 +137,7 @@ function testSubs(screen: ScreenFormat): void {
         'Profile',
         'Profile',
         'Schedule Calendar Subscriptions',
-        '/profile/schedule-calendar-subscriptions',
+        `/users/${profile.id}/schedule-calendar-subscriptions`,
       )
     })
 

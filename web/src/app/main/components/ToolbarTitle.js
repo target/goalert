@@ -146,7 +146,7 @@ function ToolbarTitle() {
   function SubPageTitle() {
     let [, { type, sub, id }] = useRoute('/:type/:id/:sub')
     const { userID } = useSessionInfo()
-    const isProfile = type === 'user' && id === userID
+    const isProfile = type === 'users' && id === userID
     if (isProfile) type = 'profile'
 
     const title = useTitle(startCase(sub))
@@ -154,7 +154,7 @@ function ToolbarTitle() {
       // mobile, only render current title
       return title
     }
-    const query = queries[type]
+    const query = !isProfile && queries[type]
 
     return (
       <div className={classes.div}>
@@ -166,7 +166,7 @@ function ToolbarTitle() {
           variant='h6'
           to='..'
         >
-          {query && !isProfile ? (
+          {query ? (
             <NameLoader id={id} query={query} fallback={detailsText(type)} />
           ) : (
             detailsText(type)
