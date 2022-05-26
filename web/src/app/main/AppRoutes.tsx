@@ -1,4 +1,5 @@
 import React, { JSXElementConstructor, useLayoutEffect } from 'react'
+import { gql, useQuery } from 'urql'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
 import AdminDebugMessagesLayout from '../admin/admin-message-logs/AdminDebugMessagesLayout'
 import AdminConfig from '../admin/AdminConfig'
@@ -55,6 +56,15 @@ function ParamRoute(props: RouteProps): JSX.Element {
   )
 }
 
+const alertQuery = gql`
+  query AlertQuery($id: Int!) {
+    alert(id: $id) {
+      id
+      serviceID
+    }
+  }
+`
+
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
@@ -109,6 +119,17 @@ export default function AppRoutes(): JSX.Element {
   const [path, setPath] = useLocation()
   const { userID } = useSessionInfo()
 
+  const [, rootAlertInfo] = useRoute('/alerts/:alertID')
+  const [, svcAlertInfo] = useRoute('/services/:serviceID/alerts/:alertID')
+  const urlAlertID = rootAlertInfo?.alertID || svcAlertInfo?.alertID
+  const urlServiceID = svcAlertInfo?.serviceID
+  const [alertQ] = useQuery({
+    query: alertQuery,
+    pause: !urlAlertID,
+    variables: { id: urlAlertID },
+  })
+  const alertServiceID = alertQ.data?.alert?.serviceID
+
   useLayoutEffect(() => {
     if (path.endsWith('/') && path !== '/') {
       setPath(path.slice(0, -1) + location.search + location.hash, {
@@ -125,6 +146,9 @@ export default function AppRoutes(): JSX.Element {
     }
     if (userID) {
       redirects['/profile'] = `/users/${userID}`
+    }
+    if (alertServiceID && alertServiceID !== urlServiceID) {
+      redirects[path] = `/services/${alertServiceID}/alerts/${urlAlertID}`
     }
     const redirect = (from: string, to: string): void => {
       setPath(to + path.slice(from.length) + location.search + location.hash, {
@@ -145,7 +169,7 @@ export default function AppRoutes(): JSX.Element {
       redirect(from, to)
       return
     }
-  }, [path, userID])
+  }, [path, userID, alertServiceID])
 
   return (
     <Switch>
