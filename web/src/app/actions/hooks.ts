@@ -2,6 +2,11 @@ import { useLocation } from 'wouter'
 
 export type Value = string | boolean | number | string[]
 
+export function useURLKey(): string {
+  const [path] = useLocation()
+  return path + location.search
+}
+
 // sanitizeURLParam serializes a value to be ready to store in a URL.
 // If a value cannot or should not be stored, an empty string is returned.
 export function sanitizeURLParam(value: Value): string | string[] {
