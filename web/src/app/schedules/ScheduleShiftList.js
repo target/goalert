@@ -105,6 +105,9 @@ function ScheduleShiftList() {
   })
 
   function getShiftDetails(s, day) {
+    const tzAbbr = DateTime.local({ zone: zone }).toFormat('ZZZZ')
+    const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+
     let shiftDetails = ''
     const startTime = s.start.toLocaleString({
       hour: 'numeric',
@@ -135,13 +138,13 @@ function ScheduleShiftList() {
     }
     if (day.engulfs(s.interval)) {
       // shift is inside the day
-      shiftDetails = `From ${startTime} to ${endTime}`
+      shiftDetails = `From ${startTime} to ${endTime} ${tzAbbr}`
       if (isLocalZone) {
         return shiftDetails
       }
       return (
         <Tooltip
-          title={`From ${localStartTime} to ${localEndTime}`}
+          title={`From ${localStartTime} to ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
           classes={{ popper: classes.popper }}
           PopperProps={{
@@ -153,7 +156,9 @@ function ScheduleShiftList() {
       )
     }
     if (day.contains(s.end)) {
-      shiftDetails = `Active until${s.truncated ? ' at least' : ''} ${endTime}`
+      shiftDetails = `Active until${
+        s.truncated ? ' at least' : ''
+      } ${endTime} ${tzAbbr}`
       if (isLocalZone) {
         return shiftDetails
       }
@@ -161,7 +166,7 @@ function ScheduleShiftList() {
         <Tooltip
           title={`Active until${
             s.truncated ? ' at least' : ''
-          } ${localEndTime}`}
+          } ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
           classes={{ popper: classes.popper }}
           PopperProps={{
@@ -173,13 +178,13 @@ function ScheduleShiftList() {
       )
     }
     // shift starts and continues on for the rest of the day
-    shiftDetails = `Active after ${startTime}`
+    shiftDetails = `Active after ${startTime} ${tzAbbr}`
     if (isLocalZone) {
       return shiftDetails
     }
     return (
       <Tooltip
-        title={`Active after ${localStartTime}`}
+        title={`Active after ${localStartTime} ${localTzAbbr}`}
         placement='bottom-start'
         classes={{ popper: classes.popper }}
         PopperProps={{
