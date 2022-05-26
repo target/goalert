@@ -106,7 +106,9 @@ function ToolbarTitle() {
   const [applicationName] = useConfigValue('General.ApplicationName')
 
   const useTitle = (title) => {
-    title = titleMap[title] ?? title
+    for (const [key, value] of Object.entries(titleMap)) {
+      title = title.replace(key, value)
+    }
     useEffect(() => {
       document.title = `${applicationName || appName} - ${title}`
     }, [title, applicationName])
