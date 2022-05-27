@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.102.0 // indirect
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.12
-	github.com/99designs/gqlgen v0.16.0
+	github.com/99designs/gqlgen v0.17.9
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
@@ -61,9 +61,8 @@ require (
 	github.com/tinylib/msgp v1.1.5 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.2.1
-	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/vbauerster/mpb/v4 v4.12.2
-	github.com/vektah/gqlparser/v2 v2.3.1
+	github.com/vektah/gqlparser/v2 v2.4.4
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/net v0.0.0-20220526153639-5463443f8c37 // indirect
@@ -93,7 +92,7 @@ require (
 require (
 	cloud.google.com/go/monitoring v1.5.0 // indirect
 	cloud.google.com/go/trace v1.2.0 // indirect
-	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
@@ -104,7 +103,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
