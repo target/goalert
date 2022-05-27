@@ -14,6 +14,7 @@ import AppLink from '../../util/AppLink'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore type definition is broken for this file
 import makeMatcher from 'wouter/matcher'
+import { useIsWidthDown } from '../../util/useWidth'
 
 const typeMap: { [key: string]: string } = {
   alerts: 'Alert',
@@ -41,12 +42,16 @@ const getContrastColor = (theme: Theme): string => {
   )
 }
 
-const renderCrumb = (title: string, link?: string): JSX.Element => {
+const renderCrumb = (
+  index: number,
+  title: string,
+  link?: string,
+): JSX.Element => {
   const text = (
     <Typography
-      data-cy={title}
+      data-cy={`breadcrumb-${index}`}
       noWrap
-      key={title}
+      key={index}
       component='h1'
       sx={{
         padding: '0 4px 0 4px',
@@ -119,7 +124,7 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   const name = useName(parts[1], parts[2])
   parts.slice(1).forEach((part, i) => {
     title = i === 1 ? name : toTitleCase(part)
-    crumbs.push(renderCrumb(title, parts.slice(0, i + 2).join('/')))
+    crumbs.push(renderCrumb(i, title, parts.slice(0, i + 2).join('/')))
   })
 
   const isValidRoute = Object.keys(routes).some((pattern) => {
@@ -129,7 +134,7 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
 
   if (!isValidRoute) {
     const title = toTitleCase('page-not-found')
-    return [title, renderCrumb(title)]
+    return [title, renderCrumb(0, title)]
   }
 
   if (/^\d+$/.test(title)) {
@@ -142,6 +147,7 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
 export default function ToolbarPageTitle(): JSX.Element {
   const [title, crumbs] = useBreadcrumbs()
   const [applicationName] = useConfigValue('General.ApplicationName')
+  const isMobile = useIsWidthDown('md')
 
   React.useLayoutEffect(() => {
     document.title = `${applicationName || appName} - ${title}`
@@ -149,6 +155,7 @@ export default function ToolbarPageTitle(): JSX.Element {
 
   return (
     <Breadcrumbs
+      maxItems={isMobile ? 2 : undefined}
       separator={
         <ChevronRight
           sx={{
