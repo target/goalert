@@ -3,12 +3,11 @@ package permission
 import (
 	"context"
 	"errors"
-	"github.com/target/goalert/util/log"
 	"regexp"
 	"strings"
 	"sync/atomic"
 
-	"go.opencensus.io/trace"
+	"github.com/target/goalert/util/log"
 )
 
 // SourceContext will return a context with the provided SourceInfo.
@@ -31,17 +30,6 @@ func Source(ctx context.Context) *SourceInfo {
 	return &src
 }
 
-func sourceAttrs(ctx context.Context, extra ...trace.Attribute) []trace.Attribute {
-	src := Source(ctx)
-	if src == nil {
-		return extra
-	}
-	return append([]trace.Attribute{
-		trace.StringAttribute("auth.source.type", src.Type.String()),
-		trace.StringAttribute("auth.source.id", src.ID),
-	}, extra...)
-}
-
 // UserSourceContext behaves like UserContext, but provides SourceInfo about the authorization.
 func UserSourceContext(ctx context.Context, id string, r Role, src *SourceInfo) context.Context {
 	ctx = SourceContext(ctx, src)
@@ -57,10 +45,6 @@ func UserContext(ctx context.Context, id string, r Role) context.Context {
 	ctx = ensureAuthCheckCountContext(ctx)
 	ctx = context.WithValue(ctx, contextKeyUserRole, r)
 	ctx = log.WithField(ctx, "AuthUserID", id)
-	trace.FromContext(ctx).Annotate(sourceAttrs(ctx,
-		trace.StringAttribute("auth.user.id", id),
-		trace.StringAttribute("auth.user.role", string(r)),
-	), "Authorized as User.")
 	return ctx
 }
 
@@ -76,7 +60,6 @@ func SystemContext(ctx context.Context, componentName string) context.Context {
 	ctx = context.WithValue(ctx, contextKeySystem, componentName)
 	ctx = AuthCheckCountContext(ctx, 0)
 	ctx = log.WithField(ctx, "AuthSystemComponent", componentName)
-	trace.FromContext(ctx).Annotate([]trace.Attribute{trace.StringAttribute("auth.system.componentName", componentName)}, "Authorized as System.")
 	return ctx
 }
 
@@ -128,10 +111,6 @@ func ServiceContext(ctx context.Context, serviceID string) context.Context {
 	ctx = context.WithValue(ctx, contextKeyServiceID, serviceID)
 	ctx = log.WithField(ctx, "AuthServiceID", serviceID)
 
-	trace.FromContext(ctx).Annotate(sourceAttrs(ctx,
-		trace.StringAttribute("auth.service.id", serviceID),
-	), "Authorized as Service.")
-
 	return ctx
 }
 
@@ -163,10 +142,7 @@ func WithoutAuth(ctx context.Context) context.Context {
 	if v == 1 {
 		ctx = context.WithValue(ctx, contextHasAuth, nil)
 	}
-	trace.FromContext(ctx).Annotate(
-		nil,
-		"Authorization dropped.",
-	)
+
 	return ctx
 }
 
@@ -178,9 +154,7 @@ func SudoContext(ctx context.Context, f func(context.Context)) {
 	if cname != "" {
 		name += "[" + cname + "]"
 	}
-	sCtx, span := trace.StartSpan(ctx, "Auth.Sudo")
-	defer span.End()
-	sCtx, cancel := context.WithCancel(SystemContext(sCtx, name))
+	sCtx, cancel := context.WithCancel(SystemContext(ctx, name))
 	defer cancel()
 	f(sCtx)
 }
