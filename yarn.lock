@@ -1653,7 +1653,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-dnd-multi-backend@^6.0.1":
+"@types/react-dnd-multi-backend@6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/@types/react-dnd-multi-backend/-/react-dnd-multi-backend-6.0.1.tgz#4526c8867db472aea16282204efd9cf63db81759"
   integrity sha512-qaq8eaIKC8mCKz6OFLoXu7mCbnGe2CqzaXYh/UL2Y6we3ZnXmLYsm8WWsR7FYF3UyYn87/gru2iRU8QJtPAKnA==
@@ -6916,7 +6916,7 @@ react-csv@2.2.1:
   resolved "https://registry.yarnpkg.com/react-csv/-/react-csv-2.2.1.tgz#2ec723dd3ce8069269bffb3a95d968302fc87740"
   integrity sha512-QdImVwsFQIUcOti2dJFTLnxZ8dW/q+DDpjTmD1m1UVBxh2OaEwIBg7PSGA71m7GQEEoz8M5BfvEc1rd7q8rgPw==
 
-react-dnd-accessible-backend@^1.0.1:
+react-dnd-accessible-backend@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-dnd-accessible-backend/-/react-dnd-accessible-backend-1.0.1.tgz#32fddf3ea22e59d3435d3038067c33a0f216c14e"
   integrity sha512-bh4FOA43r+zxLduELKl2bEiEsf3Ja1NahzpUOcBUn/3mdXm2i/4pV59dXblBwEZVgg8z/ZhEivy244AN7xTMLQ==
@@ -6930,7 +6930,7 @@ react-dnd-html5-backend@16.0.1:
   dependencies:
     dnd-core "^16.0.1"
 
-react-dnd-multi-backend@^6.0.2:
+react-dnd-multi-backend@6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/react-dnd-multi-backend/-/react-dnd-multi-backend-6.0.2.tgz#485878014dfbac46fcc898961871be6e5277c3f2"
   integrity sha512-SwpqRv0HkJYu244FbHf9NbvGzGy14Ir9wIAhm909uvOVaHgsOq6I1THMSWSgpwUI31J3Bo5uS19tuvGpVPjzZw==
@@ -6945,6 +6945,14 @@ react-dnd-preview@^6.0.2:
   integrity sha512-F2+uK4Be+q+7mZfNh9kaZols7wp1hX6G7UBTVaTpDsBpMhjFvY7/v7odxYSerSFBShh23MJl33a4XOVRFj1zoQ==
   dependencies:
     prop-types "^15.7.2"
+
+react-dnd-touch-backend@16.0.1:
+  version "16.0.1"
+  resolved "https://registry.yarnpkg.com/react-dnd-touch-backend/-/react-dnd-touch-backend-16.0.1.tgz#e73f8169e2b9fac0f687970f875cac0a4d02d6e2"
+  integrity sha512-NonoCABzzjyWGZuDxSG77dbgMZ2Wad7eQiCd/ECtsR2/NBLTjGksPUx9UPezZ1nQ/L7iD130Tz3RUshL/ClKLA==
+  dependencies:
+    "@react-dnd/invariant" "^4.0.1"
+    dnd-core "^16.0.1"
 
 react-dnd-touch-backend@^10.0.2:
   version "10.0.2"

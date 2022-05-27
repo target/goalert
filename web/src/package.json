@@ -51,6 +51,7 @@
     "react-dnd": "16.0.0",
     "react-dnd-accessible-backend": "1.0.1",
     "react-dnd-multi-backend": "6.0.2",
+    "react-dnd-touch-backend": "16.0.1",
     "react-dom": "18.1.0",
     "react-infinite-scroll-component": "6.1.0",
     "react-markdown": "8.0.0",
