@@ -134,7 +134,7 @@ function testSubs(screen: ScreenFormat): void {
       cy.visit('/profile')
       cy.navigateToAndFrom(
         screen,
-        'Cypress User',
+        'Users',
         'Cypress User',
         'Schedule Calendar Subscriptions',
         `/users/${profile.id}/schedule-calendar-subscriptions`,

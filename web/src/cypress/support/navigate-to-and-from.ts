@@ -16,53 +16,42 @@ declare global {
  * screen: screen size
  * pageName: name of title when on main details page
  * targetName: name of schedule, service, etc when on an information card route
- * detailsName: name of route that is being viewed
+ * linkName: name of route that is being viewed
  * route: actual route to verify
  */
 function navigateToAndFrom(
   screen: string,
-  pageName: string, // details page title
-  targetName: string, // item name/title
-  detailsName: string, // sub page title
+  _pageName: string, // details page title
+  _targetName: string, // item name/title
+  _linkName: string, // sub page title
   route: string,
 ): void {
-  const page = startCase(pageName)
-  const target = startCase(targetName)
-  const details = startCase(detailsName)
+  const pageName = startCase(_pageName)
+  const targetName = startCase(_targetName)
+  const linkName = startCase(_linkName)
 
   // navigate to extended details view
-  cy.get(`[data-cy="${page}"]`).should('include.text', page)
-  cy.get('ul[data-cy="route-links"] li').contains(detailsName).click()
+  cy.get(`[data-cy=breadcrumb-0]`).should('include.text', pageName)
+  cy.get(`[data-cy=breadcrumb-1]`).should('include.text', targetName)
+  cy.get('ul[data-cy="route-links"] li').contains(linkName).click()
+  cy.get(`[data-cy=breadcrumb-2]`).should('include.text', linkName)
 
   // verify url
   cy.url().should('include', route)
 
   if (screen === 'widescreen') {
-    cy.get(`[data-cy="${target}"]`).should('include.text', target)
-
-    cy.get(`[data-cy="${details}"]`).should('include.text', details)
-    // verify on new view
-    cy.get(`[data-cy="${target}"]`)
+    cy.get(`[data-cy=breadcrumb-1]`)
       // navigate back to details page
       .click()
 
     // verify back on details page
-    cy.get(`[data-cy="${page}"]`).should('include.text', page)
+    cy.get(`[data-cy=breadcrumb-2]`).should('not.exist')
   } else if (screen === 'mobile' || screen === 'tablet') {
-    // verify on new view
-    cy.get(`[data-cy="${details}"]`)
-      .should('include.text', details)
-      .should('not.include.text', target)
+    cy.get(`[data-cy=breadcrumb-1]`).should('not.be.visible')
 
     // navigate back to details page
     cy.get('button[data-cy=nav-back-icon]').click()
-
-    // verify back on details page
-    cy.get(`[data-cy="${page}"]`).should('include.text', page)
-
-    if (!route.includes('profile')) {
-      cy.get(`[data-cy="${target}"]`).should('not.include.text', target)
-    }
+    cy.get(`[data-cy=breadcrumb-1]`).should('be.visible')
   }
 }
 

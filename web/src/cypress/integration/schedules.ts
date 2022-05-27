@@ -89,7 +89,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from assignments', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Assignments',
         `${sched.id}/assignments`,
@@ -99,7 +99,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from escalation policies', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Escalation Policies',
         `${sched.id}/escalation-policies`,
@@ -109,7 +109,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from overrides', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Overrides',
         `${sched.id}/overrides`,
@@ -119,7 +119,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from shifts', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Shifts',
         `${sched.id}/shifts`,
@@ -130,9 +130,9 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('ul[data-cy="route-links"] li').should('have.lengthOf', 5)
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
-        'On-Call Notifications',
+        'Notifications',
         `${sched.id}/on-call-notifications`,
       )
     })
