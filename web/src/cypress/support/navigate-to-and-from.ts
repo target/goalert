@@ -28,7 +28,7 @@ function navigateToAndFrom(
 ): void {
   const pageName = startCase(_pageName)
   const targetName = startCase(_targetName)
-  const linkName = startCase(_linkName)
+  const linkName = startCase(_linkName).replace('On Call', 'On-Call')
 
   // navigate to extended details view
   cy.get(`[data-cy=breadcrumb-0]`).should('include.text', pageName)
