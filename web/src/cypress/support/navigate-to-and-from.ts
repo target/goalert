@@ -47,7 +47,7 @@ function navigateToAndFrom(
     // verify back on details page
     cy.get(`[data-cy=breadcrumb-2]`).should('not.exist')
   } else if (screen === 'mobile' || screen === 'tablet') {
-    cy.get(`[data-cy=breadcrumb-1]`).should('not.be.visible')
+    cy.get(`[data-cy=breadcrumb-1]`).should('not.exist')
 
     // navigate back to details page
     cy.get('button[data-cy=nav-back-icon]').click()
