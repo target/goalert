@@ -159,11 +159,6 @@ func SudoContext(ctx context.Context, f func(context.Context)) {
 	f(sCtx)
 }
 
-func userRole(ctx context.Context) Role {
-	role, _ := ctx.Value(contextKeyUserRole).(Role)
-	return role
-}
-
 // UserID will return the UserID associated with a context.
 func UserID(ctx context.Context) string {
 	uid, _ := ctx.Value(contextKeyUserID).(string)

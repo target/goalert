@@ -33,7 +33,6 @@ func (db *DB) processAll(ctx context.Context) error {
 	defer tx.Rollback()
 
 	var newAlertCtx []context.Context
-	var newAlerts []alert.Alert
 	bad, err := db.unhealthy(ctx, tx)
 	if err != nil {
 		return errors.Wrap(err, "fetch unhealthy heartbeats")
@@ -59,7 +58,6 @@ func (db *DB) processAll(ctx context.Context) error {
 				"AlertID":   a.ID,
 				"ServiceID": a.ServiceID,
 			}))
-			newAlerts = append(newAlerts, *a)
 		}
 	}
 	good, err := db.healthy(ctx, tx)
