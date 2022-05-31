@@ -154,7 +154,7 @@ func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 	return cfg.Twilio.FromNumber
 }
 
-// RequestURL returns the full URL for the given request.
+// RequestURL returns the full URL for the given request based on the current public url.
 func RequestURL(req *http.Request) string {
 	cfg := FromContext(req.Context())
 
