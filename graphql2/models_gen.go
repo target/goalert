@@ -98,6 +98,7 @@ type ConfigValue struct {
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
 	Password    bool       `json:"password"`
+	Deprecated  string     `json:"deprecated"`
 }
 
 type ConfigValueInput struct {

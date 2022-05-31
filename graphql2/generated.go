@@ -149,6 +149,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigValue struct {
+		Deprecated  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Password    func(childComplexity int) int
@@ -1000,6 +1001,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHint.Value(childComplexity), true
+
+	case "ConfigValue.deprecated":
+		if e.complexity.ConfigValue.Deprecated == nil {
+			break
+		}
+
+		return e.complexity.ConfigValue.Deprecated(childComplexity), true
 
 	case "ConfigValue.description":
 		if e.complexity.ConfigValue.Description == nil {
@@ -3568,6 +3576,7 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+  deprecated: String!
 }
 type ConfigHint {
   id: String!
@@ -7191,6 +7200,41 @@ func (ec *executionContext) _ConfigValue_password(ctx context.Context, field gra
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ConfigValue_deprecated(ctx context.Context, field graphql.CollectedField, obj *ConfigValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ConfigValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deprecated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DebugCarrierInfo_name(ctx context.Context, field graphql.CollectedField, obj *twilio.CarrierInfo) (ret graphql.Marshaler) {
@@ -22009,6 +22053,16 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 		case "password":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ConfigValue_password(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deprecated":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ConfigValue_deprecated(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

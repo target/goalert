@@ -104,6 +104,7 @@ export interface ConfigValue {
   value: string
   type: ConfigType
   password: boolean
+  deprecated: string
 }
 
 export interface ConfigHint {
