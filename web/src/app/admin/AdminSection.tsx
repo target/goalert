@@ -87,7 +87,17 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
               <ListItemText
                 className={classes.listItemText}
                 primary={f.label}
-                secondary={f.description}
+                secondary={
+                  f.deprecated ? (
+                    <React.Fragment>
+                      <b>Deprecated:</b> {f.deprecated}
+                      <br />
+                      {f.description}
+                    </React.Fragment>
+                  ) : (
+                    f.description
+                  )
+                }
               />
               <div className={classes.listItemAction}>
                 <Field
