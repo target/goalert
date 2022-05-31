@@ -22,7 +22,7 @@ type Config struct {
 
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
-		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead."`
+		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
 		GoogleAnalyticsID            string `public:"true" info:"No longer used."`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
@@ -39,7 +39,7 @@ type Config struct {
 	}
 
 	Auth struct {
-		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects."`
+		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects." deprecated:"Use --public-url flag instead, which takes precedence."`
 		DisableBasic bool     `public:"true" info:"Disallow username/password login."`
 	}
 
@@ -303,6 +303,12 @@ func (cfg Config) ValidWebhookURL(testURL string) bool {
 
 // ValidReferer returns true if the URL is an allowed referer source.
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
+	// --public-url flag takes precedence
+	if cfg.explicitURL != "" {
+		valid, _ := MatchURL(cfg.explicitURL, reqURL)
+		return valid
+	}
+
 	pubURL := cfg.PublicURL()
 	if pubURL != "" && strings.HasPrefix(ref, pubURL) {
 		return true
