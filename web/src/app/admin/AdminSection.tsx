@@ -92,6 +92,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
                     <React.Fragment>
                       <b>Deprecated:</b> {f.deprecated}
                       <br />
+                      <br />
                       {f.description}
                     </React.Fragment>
                   ) : (
