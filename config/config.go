@@ -301,6 +301,10 @@ func (cfg Config) ValidWebhookURL(testURL string) bool {
 	return false
 }
 
+// ShouldUsePublicURL returns true if redirects, validation, etc.. should use the
+// configured PublicURL instead of host/referer.
+func (cfg Config) ShouldUsePublicURL() bool { return cfg.explicitURL != "" }
+
 // ValidReferer returns true if the URL is an allowed referer source.
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	// --public-url flag takes precedence

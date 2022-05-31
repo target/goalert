@@ -360,9 +360,14 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	u := *req.URL
-	u.RawQuery = "" // strip query params
-	route.CurrentURL = u.String()
+	cfg := config.FromContext(ctx)
+	if cfg.ShouldUsePublicURL() {
+		route.CurrentURL = cfg.CallbackURL(req.URL.Path)
+	} else {
+		u := *req.URL
+		u.RawQuery = "" // strip query params
+		route.CurrentURL = u.String()
+	}
 
 	sub, err := p.ExtractIdentity(&route, w, req)
 	var r Redirector
@@ -693,6 +698,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 	refU.RawQuery = q.Encode()
 	return refU, true
 }
+
 func (h *Handler) serveProviderPost(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	SetCookie(w, req, "login_redir", refU.String())
 
