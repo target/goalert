@@ -8,7 +8,7 @@ import {
   Operation,
 } from 'urql'
 import { pipe, tap } from 'wonka'
-import { pathPrefix } from './env'
+import { pathPrefix, isCypress } from './env'
 
 const refetch: Array<(force: boolean) => void> = []
 export function refetchAll(force = false): void {
@@ -64,7 +64,7 @@ let poll: NodeJS.Timer
 function resetPoll(): void {
   if (new URLSearchParams(location.search).get('poll') === '0') return
   clearInterval(poll)
-  poll = setInterval(refetchAll, 15000)
+  poll = setInterval(refetchAll, isCypress ? 1000 : 15000)
 }
 window.addEventListener('visibilitychange', () => {
   switch (document.visibilityState) {
