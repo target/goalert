@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { Grid, FormControlLabel, Switch } from '@mui/material'
-import { useParams } from 'react-router-dom'
 import QueryList from '../lists/QueryList'
 import { gql } from '@apollo/client'
 import { UserAvatar } from '../util/avatars'
@@ -41,8 +40,7 @@ const query = gql`
   }
 `
 
-export default function ScheduleOverrideList() {
-  const { scheduleID } = useParams()
+export default function ScheduleOverrideList({ scheduleID }) {
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
   const [create, setCreate] = useState(null)
