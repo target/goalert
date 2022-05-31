@@ -163,11 +163,7 @@ func RequestURL(req *http.Request) string {
 		panic(errors.Wrap(err, "parse PublicURL"))
 	}
 
-	base.RawQuery = ""
-	if strings.HasSuffix(base.Path, "/") {
-		base.Path = base.Path[:len(base.Path)-1]
-	}
-	base.Path += req.URL.Path
+	base.Path = strings.TrimSuffix(base.Path, "/") + req.URL.Path
 	base.RawQuery = req.URL.RawQuery
 
 	return base.String()
