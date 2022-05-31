@@ -82,27 +82,40 @@ function testProfile(): void {
       cy.url().should('eq', Cypress.config().baseUrl + '/profile')
     })
 
-    it('should change the theme mode', () => {
+    it('should change the theme mode and color', () => {
       cy.get('[aria-label="Manage Profile"]').click()
-      cy.get('[data-cy="manage-profile"]')
-        .find('button')
-        .contains('Light')
-        .click()
 
-      let lightModeColor: string, darkModeColor: string
-      cy.get('div[id="app-root"]').then(
-        (el) => (lightModeColor = el.css('background-color')),
+      // test changing theme color
+      let appbarColor: string
+      cy.get('[data-cy="manage-profile"] button').contains('Light').click()
+      cy.get('[data-cy="app-bar"]').then(
+        (el) => (appbarColor = el.css('background-color')),
       )
 
-      cy.get('[data-cy="manage-profile"]')
-        .find('button')
-        .contains('Dark')
-        .click()
-      cy.get('div[id="app-root"]')
-        .then((el) => (darkModeColor = el.css('background-color')))
-        .then(() => {
-          expect(lightModeColor).not.to.equal(darkModeColor)
-        })
+      // set input of color
+      cy.get(
+        '[data-cy="manage-profile"] button[aria-label="More Options"]',
+      ).click()
+      cy.get('input[id="custom-color-picker"]')
+        .invoke('val', '#fff000')
+        .trigger('input')
+
+      // assert primary color has changed
+      cy.reload()
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="app-bar"]').then((el) =>
+        expect(appbarColor).not.to.equal(el.css('background-color')),
+      )
+
+      // test changing theme mode to dark
+      cy.get('[data-cy="manage-profile"] button').contains('Dark').click()
+
+      // assert theme mode has changed
+      cy.reload()
+      cy.get('[aria-label="Manage Profile"]').click()
+      cy.get('[data-cy="app-bar"]').then((el) =>
+        expect(appbarColor).not.to.equal(el.css('background-color')),
+      )
     })
 
     it('should not display feedback by default', () => {
