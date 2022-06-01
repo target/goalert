@@ -76,7 +76,7 @@ export const styles = (theme: Theme): StyleRules => ({
   grow: {
     flexGrow: 1,
   },
-  // used for react-router Link components
+  // used for Link components
   nav: {
     borderRadius: 4,
     margin: 8,

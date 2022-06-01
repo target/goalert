@@ -1,4 +1,4 @@
-import React, { ReactChild, ReactNode, useContext } from 'react'
+import React, { ReactChild, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 
@@ -132,7 +132,7 @@ export function Config(props: {
 }
 
 export type RequireConfigProps = {
-  configID: ConfigID
+  configID?: ConfigID
   // test to determine whether or not children or else is returned
   test?: (x: Value) => boolean
 
@@ -142,7 +142,9 @@ export type RequireConfigProps = {
   children: ReactChild
 }
 
-export default function RequireConfig(props: RequireConfigProps): ReactNode {
+export default function RequireConfig(
+  props: RequireConfigProps,
+): JSX.Element | null {
   const {
     configID,
     test = isTrue,

@@ -7,8 +7,7 @@ import {
 } from '@apollo/client'
 import { Card, Grid } from '@mui/material'
 import { once } from 'lodash'
-import { useLocation } from 'react-router-dom'
-import { useURLParam } from '../actions/hooks'
+import { useURLKey, useURLParam } from '../actions/hooks'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { fieldAlias } from '../util/graphql'
@@ -107,7 +106,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
   const [page, setPage] = useState(0)
 
   const [searchParam] = useURLParam('search', '')
-  const { key: urlKey } = useLocation()
+  const urlKey = useURLKey()
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
 
   // reset pageNumber on page reload

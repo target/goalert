@@ -284,7 +284,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
               }
             />
           ),
-          url: `/alerts/${a.id}`,
+          url: `/services/${a.service.id}/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
