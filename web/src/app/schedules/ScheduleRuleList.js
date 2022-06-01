@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Grid, Card } from '@mui/material'
@@ -40,8 +39,7 @@ const query = gql`
   }
 `
 
-export default function ScheduleRuleList() {
-  const { scheduleID } = useParams()
+export default function ScheduleRuleList({ scheduleID }) {
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)

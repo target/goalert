@@ -3,12 +3,11 @@ import { gql, useMutation } from '@apollo/client'
 
 import p from 'prop-types'
 
-import { Navigate } from 'react-router-dom'
-
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
+import { Redirect } from 'wouter'
 
 const createMutation = gql`
   mutation createService($input: CreateServiceInput!) {
@@ -60,7 +59,7 @@ export default function ServiceCreateDialog(props) {
 
   const { loading, data, error } = createKeyStatus
   if (data && data.createService) {
-    return <Navigate to={`/services/${data.createService.id}`} />
+    return <Redirect to={`/services/${data.createService.id}`} />
   }
 
   const fieldErrs = fieldErrors(error).filter(
