@@ -1,10 +1,10 @@
 import React from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
-import { useNavigate } from 'react-router-dom'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
 import { GenericError } from '../error-pages'
+import { useLocation } from 'wouter'
 
 const query = gql`
   query ($id: ID!) {
@@ -27,7 +27,7 @@ interface RotationDeleteDialogProps {
 
 function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
   const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   const {
     data,

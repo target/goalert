@@ -11,7 +11,7 @@ import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
-import { useLocation } from 'react-router-dom'
+import { useURLKey } from '../actions'
 
 const useStyles = makeStyles({
   actionsContainer: {
@@ -123,7 +123,7 @@ export default function ControlledPaginatedList(
   const checkedItems = _checkedItems.filter((id) =>
     getSelectableIDs().includes(id),
   )
-  const { key: urlKey } = useLocation()
+  const urlKey = useURLKey()
 
   function setAll(): void {
     setCheckedItems(getSelectableIDs())

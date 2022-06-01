@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { gql } from '@apollo/client'
-import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -54,8 +53,7 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export default function HeartbeatMonitorList() {
-  const { serviceID } = useParams()
+export default function HeartbeatMonitorList({ serviceID }) {
   const classes = useStyles()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
