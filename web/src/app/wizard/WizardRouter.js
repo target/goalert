@@ -7,7 +7,6 @@ import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
-import { Navigate } from 'react-router-dom'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -25,6 +24,7 @@ import {
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useIsWidthDown } from '../util/useWidth'
+import { Redirect } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateServiceInput!) {
@@ -188,7 +188,7 @@ export default function WizardRouter() {
     <Mutation mutation={mutation}>
       {(commit, { data, error, loading }) => {
         if (redirect && data && data.createService) {
-          return <Navigate to={`/services/${data.createService.id}`} />
+          return <Redirect to={`/services/${data.createService.id}`} />
         }
 
         return (

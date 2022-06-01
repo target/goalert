@@ -1,6 +1,5 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { useParams } from 'react-router-dom'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import AlertDetails from '../components/AlertDetails'
@@ -42,8 +41,7 @@ const query = gql`
   }
 `
 
-function AlertDetailPage() {
-  const { alertID } = useParams()
+function AlertDetailPage({ alertID }) {
   const { loading, error, data } = useQuery(query, {
     variables: { id: alertID },
   })
