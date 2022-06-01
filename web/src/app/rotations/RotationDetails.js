@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import _ from 'lodash'
-import { Navigate, useParams } from 'react-router-dom'
+import { Redirect } from 'wouter'
 import { Edit, Delete } from '@mui/icons-material'
 
 import CreateFAB from '../lists/CreateFAB'
@@ -37,8 +37,7 @@ const query = gql`
   }
 `
 
-export default function RotationDetails() {
-  const { rotationID } = useParams()
+export default function RotationDetails({ rotationID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showAddUser, setShowAddUser] = useState(false)
@@ -59,7 +58,7 @@ export default function RotationDetails() {
 
   if (!data)
     return showDelete ? (
-      <Navigate to='/rotations' />
+      <Redirect to='/rotations' />
     ) : (
       <ObjectNotFound type='rotation' />
     )
