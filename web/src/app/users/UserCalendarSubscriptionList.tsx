@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { useParams } from 'react-router-dom'
 import { Card, Alert } from '@mui/material'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
@@ -37,10 +36,9 @@ export const calendarSubscriptionsQuery = gql`
 `
 
 export default function UserCalendarSubscriptionList(props: {
-  userID?: string | null
+  userID: string
 }): JSX.Element {
-  const { userID: _userID } = useParams()
-  const userID = props.userID || _userID
+  const userID = props.userID
   const [creationDisabled] = useConfigValue(
     'General.DisableCalendarSubscriptions',
   )

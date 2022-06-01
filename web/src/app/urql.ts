@@ -15,6 +15,12 @@ export function refetchAll(force = false): void {
   refetch.forEach((refetch) => refetch(force))
 }
 
+Object.defineProperty(window, 'refetchAll', {
+  get() {
+    return refetchAll
+  },
+})
+
 // allow refetching all active queries at any time
 const refetchExchange = (): Exchange => {
   return ({ client, forward }) =>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { useParams } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Grid from '@mui/material/Grid'
@@ -22,8 +21,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ServiceAlerts() {
-  const { serviceID } = useParams()
+export default function ServiceAlerts({ serviceID }) {
   const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')

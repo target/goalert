@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
 import { DateTime, Duration, Interval } from 'luxon'
-import { useParams } from 'react-router-dom'
 import FlatList from '../lists/FlatList'
 import { gql, useQuery } from '@apollo/client'
 import { relativeDate } from '../util/timeFormat'
@@ -57,8 +56,7 @@ const useStyles = makeStyles({
   },
 })
 
-function ScheduleShiftList() {
-  const { scheduleID } = useParams()
+function ScheduleShiftList({ scheduleID }) {
   const classes = useStyles()
 
   const [create, setCreate] = useState(null)
