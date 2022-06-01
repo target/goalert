@@ -108,7 +108,7 @@ function useName(type = '', id = ''): string {
     pause: !type || !isUUID,
   })
 
-  if (result?.data?.data?.name) {
+  if (type && isUUID && result?.data?.data?.name) {
     return result.data.data.name
   }
 
