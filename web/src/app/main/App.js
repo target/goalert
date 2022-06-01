@@ -1,18 +1,14 @@
-import React, { useState } from 'react'
+import React, { useLayoutEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import Toolbar from '@mui/material/Toolbar'
-import ToolbarTitle from './components/ToolbarTitle'
+import ToolbarPageTitle from './components/ToolbarPageTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
-import routeConfig, { renderRoutes } from './routes'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import { useSelector } from 'react-redux'
 import { authSelector } from '../selectors'
 import { PageActionContainer, PageActionProvider } from '../util/PageActions'
-import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
-import LazySideBarDrawerList from './components/SideBarDrawerList'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
@@ -23,6 +19,9 @@ import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 import UserSettingsPopover from './components/UserSettingsPopover'
+import AppRoutes from './AppRoutes'
+import { useURLKey } from '../actions'
+import NavBar from './NavBar'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,11 +51,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function App() {
   const classes = useStyles()
-  const location = useLocation()
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
+  const urlKey = useURLKey()
+
+  useLayoutEffect(() => {
+    setShowMobile(false)
+  }, [urlKey])
 
   if (!authValid) {
     return (
@@ -84,8 +87,8 @@ export default function App() {
                 showMobileSidebar={showMobile}
                 openMobileSidebar={() => setShowMobile(true)}
               />
-              <ToolbarTitle />
-
+              <ToolbarPageTitle />
+              <div style={{ flex: 1 }} />
               <PageActionContainer />
               <SearchContainer />
               <UserSettingsPopover />
@@ -94,9 +97,7 @@ export default function App() {
 
           <Hidden mdDown>
             <LazyWideSideBar>
-              <LazySideBarDrawerList
-                closeMobileSidebar={() => setShowMobile(false)}
-              />
+              <NavBar />
             </LazyWideSideBar>
           </Hidden>
           <Hidden mdUp>
@@ -106,9 +107,7 @@ export default function App() {
               onOpen={() => setShowMobile(true)}
               onClose={() => setShowMobile(false)}
             >
-              <LazySideBarDrawerList
-                closeMobileSidebar={() => setShowMobile(false)}
-              />
+              <NavBar />
             </SwipeableDrawer>
           </Hidden>
 
@@ -121,20 +120,7 @@ export default function App() {
                 className={classes.mainContainer}
               >
                 <Grid className={classes.containerClass} item>
-                  {/* redirect to remove trailing slashes */}
-                  {location.pathname.match('/.*/$') && (
-                    <Navigate
-                      replace
-                      to={{
-                        pathname: location.pathname.replace(/\/+$/, ''),
-                        search: location.search,
-                      }}
-                    />
-                  )}
-                  <Routes>
-                    {renderRoutes(routeConfig)}
-                    <Route element={<LazyPageNotFound />} />
-                  </Routes>
+                  <AppRoutes />
                 </Grid>
               </Grid>
             </ErrorBoundary>

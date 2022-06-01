@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -19,6 +18,7 @@ import { useConfigValue } from '../util/RequireConfig'
 import ScheduleCalendarOverrideDialog from './calendar/ScheduleCalendarOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue } from './temp-sched/sharedUtils'
+import { Redirect } from 'wouter'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -60,8 +60,13 @@ export const ScheduleCalendarContext =
     setOverrideDialog: () => {},
   })
 
-export default function ScheduleDetails(): JSX.Element {
-  const { scheduleID = '' } = useParams()
+export type ScheduleDetailsProps = {
+  scheduleID: string
+}
+
+export default function ScheduleDetails({
+  scheduleID,
+}: ScheduleDetailsProps): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] =
@@ -97,7 +102,7 @@ export default function ScheduleDetails(): JSX.Element {
   if (error) return <GenericError error={error.message} />
 
   if (!data) {
-    return showDelete ? <Navigate to='/schedules' /> : <ObjectNotFound />
+    return showDelete ? <Redirect to='/schedules' /> : <ObjectNotFound />
   }
 
   return (
