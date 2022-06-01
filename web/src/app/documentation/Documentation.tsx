@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function IntegrationKeyAPI(): JSX.Element {
+export default function Documentation(): JSX.Element {
   const [publicURL, webhookEnabled] = useConfigValue(
     'General.PublicURL',
     'Webhook.Enable',

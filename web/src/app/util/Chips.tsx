@@ -1,6 +1,6 @@
 import React from 'react'
 import Chip, { ChipProps } from '@mui/material/Chip'
-import { useNavigate } from 'react-router-dom'
+import { useLocation } from 'wouter'
 import { useQuery, gql } from 'urql'
 import {
   RotateRight as RotationIcon,
@@ -25,7 +25,7 @@ type WithID<T> = { id: string } & T
 
 export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   const { id, label, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   const [{ data, fetching, error }] = useQuery({
     query: serviceQuery,
@@ -56,7 +56,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
 
 export function UserChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip
@@ -70,7 +70,7 @@ export function UserChip(props: WithID<ChipProps>): JSX.Element {
 
 export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip
@@ -88,7 +88,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
 
 export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip

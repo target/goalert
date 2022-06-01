@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Navigate, useParams } from 'react-router-dom'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -15,6 +14,7 @@ import { useResetURLParams, useURLParam } from '../actions'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { EPAvatar } from '../util/avatars'
+import { Redirect } from 'wouter'
 
 const query = gql`
   query ($id: ID!) {
@@ -32,8 +32,7 @@ const query = gql`
   }
 `
 
-export default function PolicyDetails() {
-  const { escalationPolicyID } = useParams()
+export default function PolicyDetails({ policyID }) {
   const stepNumParam = 'createStep'
   const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
@@ -47,7 +46,7 @@ export default function PolicyDetails() {
     data: _data,
   } = useQuery(query, {
     variables: {
-      id: escalationPolicyID,
+      id: policyID,
     },
   })
 
@@ -58,7 +57,7 @@ export default function PolicyDetails() {
 
   if (!data) {
     return showDeleteDialog ? (
-      <Navigate to='/escalation-policies' />
+      <Redirect to='/escalation-policies' />
     ) : (
       <ObjectNotFound />
     )
