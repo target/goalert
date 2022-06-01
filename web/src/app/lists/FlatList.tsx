@@ -1,4 +1,4 @@
-import React, { MouseEvent, useState, useEffect } from 'react'
+import React, { useState, MouseEvent } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
@@ -11,10 +11,27 @@ import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
 import { AlertColor } from '@mui/material/Alert'
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
+import FlatListItem from './FlatListItem'
 import { DraggableListItem } from './DraggableListItem'
-import ListItem from './ListItem'
 
 const useStyles = makeStyles((theme: Theme) => ({
   alert: {
@@ -80,7 +97,7 @@ export interface FlatListItem {
   icon?: JSX.Element | null
   secondaryAction?: JSX.Element | null
   url?: string
-  id?: string
+  id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
   'data-cy'?: string
   disabled?: boolean
@@ -129,30 +146,39 @@ export default function FlatList({
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
-  const [dndItems, setDndItems] = useState(items)
-  useEffect(() => {
-    setDndItems(items)
-  }, [items])
+  const [activeId, setActiveId] = useState('')
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+  const [dndItems, setDndItems] = useState(
+    // use IDs to sort, fallback to index
+    items.map((i, idx) => (i.id ? i.id : idx.toString())),
+  )
 
-  // moveItem calls the onReorder function, called after a drag and drop
-  // action has been completed by the user
-  function moveItem(oldIndex: number, newIndex: number): void {
-    if (!onReorder) return
-    onReorder(oldIndex, newIndex)
+  function handleDragStart(event: DragStartEvent): void {
+    const { active } = event
+
+    setActiveId(active.id.toString())
+
+    // adds a little vibration if the browser supports it
+    if (window.navigator.vibrate) {
+      window.navigator.vibrate(100)
+    }
   }
 
-  // handleDrag updates the order of the given items array after a drag action
-  // has been started by the user (not dropped yet/still dragging)
-  function handleDrag(dragIndex: number, hoverIndex: number): void {
-    const dragItem = dndItems[dragIndex]
-    setDndItems((prevState) => {
-      const _items = [...prevState]
-      // replace the new hover index with the item being dragged
-      const prevItem = _items.splice(hoverIndex, 1, dragItem)
-      // then replace the old index with that hover index item
-      _items.splice(dragIndex, 1, prevItem[0])
-      return _items
-    })
+  function handleDragEnd(e: DragEndEvent): void {
+    if (!onReorder || !e.over) return
+    if (e.active.id !== e.over.id) {
+      const oldIndex = dndItems.indexOf(e.active.id.toString())
+      const newIndex = dndItems.indexOf(e.over.id.toString())
+      setDndItems(arrayMove(dndItems, oldIndex, newIndex)) // update order in local state
+      onReorder(oldIndex, newIndex) // callback fn from props
+    }
+
+    setActiveId('')
   }
 
   function renderEmptyMessage(): JSX.Element {
@@ -262,7 +288,7 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          <ListItem index={idx} item={item} />
+          <FlatListItem index={idx} item={item} />
         </CSSTransition>
       )
     })
@@ -273,52 +299,73 @@ export default function FlatList({
   }
 
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
-    return (onReorder ? dndItems : items).map(
-      (item: FlatListListItem, idx: number) => {
-        if ('subHeader' in item) {
-          return renderSubheaderItem(item, idx)
-        }
-        if ('type' in item) {
-          return renderNoticeItem(item, idx)
-        }
-        if (item.id && onReorder) {
-          return (
-            <DraggableListItem
-              key={`${idx}-${item.id}`}
-              id={idx}
-              index={idx}
-              onDrag={handleDrag}
-              onReorder={moveItem}
-              item={item}
-            />
-          )
-        }
+    return items.map((item: FlatListListItem, idx: number) => {
+      if ('subHeader' in item) {
+        return renderSubheaderItem(item, idx)
+      }
+      if ('type' in item) {
+        return renderNoticeItem(item, idx)
+      }
+      if (onReorder) {
+        return (
+          <DraggableListItem
+            key={`${idx}-${item.id}`}
+            index={idx}
+            item={item}
+            id={item.id ?? idx.toString()}
+          />
+        )
+      }
 
-        return <ListItem key={`${idx}-${item.id}`} index={idx} item={item} />
-      },
+      return <FlatListItem key={`${idx}-${item.id}`} index={idx} item={item} />
+    })
+  }
+
+  function renderList(): JSX.Element {
+    return (
+      <List {...listProps}>
+        {(headerNote || headerAction) && (
+          <MUIListItem>
+            {headerNote && (
+              <ListItemText
+                disableTypography
+                secondary={
+                  <Typography color='textSecondary'>{headerNote}</Typography>
+                }
+                className={classes.listItemText}
+              />
+            )}
+            {headerAction && (
+              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
+            )}
+          </MUIListItem>
+        )}
+        {!items.length && renderEmptyMessage()}
+        {transition ? renderTransitions() : renderItems()}
+      </List>
     )
   }
 
-  return (
-    <List {...listProps}>
-      {(headerNote || headerAction) && (
-        <MUIListItem>
-          {headerNote && (
-            <ListItemText
-              disableTypography
-              secondary={
-                <Typography color='textSecondary'>{headerNote}</Typography>
-              }
-              className={classes.listItemText}
-            />
-          )}
-          {headerAction && (
-            <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
-          )}
-        </MUIListItem>
-      )}
-      {!items.length && renderEmptyMessage()}
-      {transition ? renderTransitions() : renderItems()}
-    </List>
-  )
+  if (onReorder) {
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={dndItems}
+          strategy={verticalListSortingStrategy}
+        >
+          {renderList()}
+        </SortableContext>
+        <DragOverlay>
+          {activeId ? <MUIListItem id={activeId} /> : null}
+        </DragOverlay>
+      </DndContext>
+    )
+  }
+
+  return renderList()
 }

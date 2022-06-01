@@ -23,14 +23,26 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-interface ScrollIntoViewListItemProps extends MUIListItemProps {
-  scrollIntoView?: boolean
+export interface FlatListItemProps extends MUIListItemProps {
+  item: FlatListItem
+  index: number
 }
 
-function ScrollIntoViewListItem(
-  props: ScrollIntoViewListItemProps,
-): JSX.Element {
-  const { scrollIntoView, ...other } = props
+export default function FlatListItem(props: FlatListItemProps): JSX.Element {
+  const classes = useStyles()
+
+  const {
+    disabled,
+    highlight,
+    icon,
+    secondaryAction,
+    scrollIntoView,
+    subText,
+    title,
+    url,
+    ...muiListItemProps
+  } = props.item
+
   const ref = React.useRef<HTMLLIElement>(null)
   useLayoutEffect(() => {
     if (scrollIntoView) {
@@ -38,53 +50,40 @@ function ScrollIntoViewListItem(
     }
   }, [scrollIntoView])
 
-  return <MUIListItem ref={ref} {...other} />
-}
-
-interface ListItemProps extends MUIListItemProps {
-  item: FlatListItem
-  index: number
-}
-
-export default function ListItem({ item, index }: ListItemProps): JSX.Element {
-  const classes = useStyles()
-
   let linkProps = {}
-  if (item.url) {
+  if (url) {
     linkProps = {
       component: AppLink,
-      to: item.url,
+      to: url,
       button: true,
     }
   }
 
   return (
-    <ScrollIntoViewListItem
-      scrollIntoView={item.scrollIntoView}
-      key={index}
+    <MUIListItem
+      key={props.index}
       {...linkProps}
+      {...muiListItemProps}
       className={classnames({
         [classes.listItem]: true,
-        [classes.listItemDisabled]: item.disabled,
+        [classes.listItemDisabled]: disabled,
       })}
-      selected={item.highlight}
+      selected={highlight}
     >
-      {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+      {icon && <ListItemIcon>{icon}</ListItemIcon>}
       <ListItemText
-        primary={item.title}
-        secondary={item.subText}
+        primary={title}
+        secondary={subText}
         secondaryTypographyProps={{
           className: classnames({
             [classes.secondaryText]: true,
-            [classes.listItemDisabled]: item.disabled,
+            [classes.listItemDisabled]: disabled,
           }),
         }}
       />
-      {item.secondaryAction && (
-        <ListItemSecondaryAction>
-          {item.secondaryAction}
-        </ListItemSecondaryAction>
+      {secondaryAction && (
+        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
-    </ScrollIntoViewListItem>
+    </MUIListItem>
   )
 }
