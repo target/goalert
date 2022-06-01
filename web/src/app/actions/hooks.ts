@@ -1,7 +1,11 @@
-import { Location } from 'history'
-import { useNavigate, useLocation, NavigateFunction } from 'react-router-dom'
+import { useLocation } from 'wouter'
 
 export type Value = string | boolean | number | string[]
+
+export function useURLKey(): string {
+  const [path] = useLocation()
+  return path + location.search
+}
 
 // sanitizeURLParam serializes a value to be ready to store in a URL.
 // If a value cannot or should not be stored, an empty string is returned.
@@ -28,11 +32,11 @@ export function sanitizeURLParam(value: Value): string | string[] {
 // getParamValues converts each URL search param into the
 // desired type based on its respective default value.
 export function getParamValues<T extends Record<string, Value>>(
-  location: Location,
+  search: string,
   params: T, // <name, default> pairs
 ): T {
   const result = {} as Record<string, Value>
-  const q = new URLSearchParams(location.search)
+  const q = new URLSearchParams(search)
 
   for (const [name, defaultVal] of Object.entries(params)) {
     if (!q.has(name)) {
@@ -52,21 +56,17 @@ export function getParamValues<T extends Record<string, Value>>(
   return result as T
 }
 
-// setURLParams will replace the latest browser history entry with the provided params.
-function setURLParams(
-  navigate: NavigateFunction,
-  location: Location,
-  params: URLSearchParams,
-): void {
+// newSearch will return a normalized URL search string if different from the current one.
+function newSearch(params: URLSearchParams): [boolean, string] {
   if (params.sort) params.sort()
   let newSearch = params.toString()
   newSearch = newSearch ? '?' + newSearch : ''
-
   if (newSearch === location.search) {
     // no action for no param change
-    return
+    return [false, '']
   }
-  navigate(location.pathname + newSearch + location.hash, { replace: true })
+
+  return [true, newSearch]
 }
 
 // useURLParams returns the values for the given URL params if present, else the given defaults.
@@ -76,8 +76,7 @@ function setURLParams(
 export function useURLParams<T extends Record<string, Value>>(
   params: T, // <name, default> pairs
 ): [T, (newValues: Partial<T>) => void] {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [path, navigate] = useLocation()
   const q = new URLSearchParams(location.search)
   let called = false
 
@@ -102,10 +101,16 @@ export function useURLParams<T extends Record<string, Value>>(
       }
     }
 
-    setURLParams(navigate, location, q)
+    const [hasNew, search] = newSearch(q)
+    if (!hasNew) {
+      // nothing to do
+      return
+    }
+
+    navigate(path + search + location.hash, { replace: true })
   }
 
-  const values = getParamValues<T>(location, params)
+  const values = getParamValues<T>(location.search, params)
 
   return [values, setParams]
 }
@@ -129,8 +134,7 @@ export function useURLParam<T extends Value>(
 // The native history stack will not push a new entry; instead, its
 // latest entry will be replaced.
 export function useResetURLParams(...names: string[]): () => void {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [path, navigate] = useLocation()
   let called = false
 
   return function resetURLParams(): void {
@@ -150,6 +154,12 @@ export function useResetURLParams(...names: string[]): () => void {
     const params = new URLSearchParams(location.search)
     names.forEach((name) => params.delete(name))
 
-    setURLParams(navigate, location, params)
+    const [hasNew, search] = newSearch(params)
+    if (!hasNew) {
+      // nothing to do
+      return
+    }
+
+    navigate(path + search + location.hash, { replace: true })
   }
 }
