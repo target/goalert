@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import p from 'prop-types'
 import {
   Button,
   Grid,
@@ -7,21 +6,28 @@ import {
   Step,
   StepLabel,
   Typography,
+  Theme,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { makeStyles } from '@mui/styles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import _ from 'lodash'
 
 import { useCreateAlerts } from './useCreateAlerts'
-import { fieldErrors, allErrors } from '../../util/errutil'
+import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
 import AppLink from '../../util/AppLink'
 
-const pluralize = (num) => (num !== 1 ? 's' : '')
+interface Value {
+  summary: string
+  details: string
+  serviceIDs: Array<string>
+}
 
-const useStyles = makeStyles((theme) => ({
+const pluralize = (num: number): string => (num !== 1 ? 's' : '')
+
+const useStyles = makeStyles((theme: Theme) => ({
   dialog: {
     [theme.breakpoints.up('md')]: {
       height: '65vh',
@@ -32,10 +38,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function CreateAlertDialog(props) {
+export default function CreateAlertDialog(props: {
+  onClose: () => void
+  serviceID: string
+}): JSX.Element {
   const classes = useStyles()
   const [step, setStep] = useState(0)
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<Value>({
     summary: '',
     details: '',
     serviceIDs: props.serviceID ? [props.serviceID] : [],
@@ -60,7 +69,7 @@ export default function CreateAlertDialog(props) {
     ? ['Alert Info', 'Confirm']
     : ['Alert Info', 'Service Selection', 'Confirm']
 
-  const onNext = () => {
+  const onNext = (): void => {
     if (currentStep === 0 && props.serviceID) {
       setStep(currentStep + 2)
     } else if (currentStep < 2) {
@@ -76,8 +85,8 @@ export default function CreateAlertDialog(props) {
       .map((a) => a.id)
       .value()
 
-    const failedServices = allErrors(error).map((e) => ({
-      id: getSvcID(e.path),
+    const failedServices = fieldErrors(error).map((e) => ({
+      id: getSvcID(e.path ? e.path[1] : ''),
       message: e.message,
     }))
 
@@ -143,7 +152,7 @@ export default function CreateAlertDialog(props) {
           <CreateAlertForm
             activeStep={currentStep}
             value={value}
-            onChange={(newValue) => setValue(newValue)}
+            onChange={(newValue: Value) => setValue(newValue)}
             disabled={loading}
             errors={fieldErrors(error)}
           />
@@ -155,9 +164,4 @@ export default function CreateAlertDialog(props) {
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
   )
-}
-
-CreateAlertDialog.propTypes = {
-  onClose: p.func.isRequired,
-  serviceID: p.string,
 }

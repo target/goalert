@@ -1,0 +1,54 @@
+import React from 'react'
+import { FormContainer, FormField } from '../../../forms'
+import { CreateAlertInfo } from './CreateAlertInfo'
+import { CreateAlertServiceSelect } from './CreateAlertServiceSelect'
+import { CreateAlertConfirm } from './CreateAlertConfirm'
+
+// TODO: extend FormContainer once that file has been converted to typescript
+interface CreateAlertFormProps {
+  activeStep: number
+  value: Value
+
+  errors: Error[]
+
+  onChange?: (newValue: Value) => void
+  disabled?: boolean
+
+  mapValue?: () => void
+  mapOnChangeValue?: () => void
+
+  // Enables functionality to remove an incoming value at it's index from
+  // an array field if the new value is falsey.
+  removeFalseyIdxs?: boolean
+}
+
+interface Value {
+  summary: string
+  details: string
+  serviceIDs: Array<string>
+}
+
+interface Error {
+  message: string
+  field: string
+  helpLink?: string
+}
+
+export function CreateAlertForm({
+  activeStep,
+  ...otherProps
+}: CreateAlertFormProps): JSX.Element {
+  return (
+    <FormContainer optionalLabels {...otherProps}>
+      {activeStep === 0 && <CreateAlertInfo />}
+      {activeStep === 1 && (
+        <FormField
+          required
+          render={(props) => <CreateAlertServiceSelect {...props} />}
+          name='serviceIDs'
+        />
+      )}
+      {activeStep === 2 && <CreateAlertConfirm />}
+    </FormContainer>
+  )
+}
