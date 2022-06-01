@@ -65,8 +65,11 @@ func (r *Runner) Run() error {
 
 	var err error
 	for range r.procs {
-		<-result
-		go r.stopOnce.Do(r._stopFail)
+		if <-result {
+			go r.stopOnce.Do(r._stop)
+		} else {
+			go r.stopOnce.Do(r._stopFail)
+		}
 	}
 
 	if r.failed {

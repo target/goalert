@@ -70,7 +70,11 @@ function testAlerts(screen: ScreenFormat): void {
         cy.get('ul[data-cy=apollo-list] li a').should('have.lengthOf', 1)
         cy.get('ul[data-cy=apollo-list]').contains(alert.id.toString()).click()
 
-        cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
+        cy.url().should(
+          'eq',
+          Cypress.config().baseUrl +
+            `/services/${alert.serviceID}/alerts/${alert.id}`,
+        )
       })
     })
   })
@@ -170,18 +174,15 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('button[aria-label=Acknowledge]').click()
       cy.get('button[aria-label=Acknowledge]').should('not.exist')
 
-      cy.get(`[href="/alerts/${alert1.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert2.id}"]`).should(
-        'contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert3.id}"]`).should(
-        'contain',
-        'UNACKNOWLEDGED',
-      )
+      cy.get(
+        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+      ).should('contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+      ).should('contain', 'UNACKNOWLEDGED')
 
       cy.reload()
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
@@ -190,18 +191,15 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('button[aria-label=Acknowledge]').click()
       cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
-      cy.get(`[href="/alerts/${alert1.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert2.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert3.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
+      cy.get(
+        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
     })
 
     it('should not acknowledge acknowledged alerts', () => {
@@ -213,18 +211,15 @@ function testAlerts(screen: ScreenFormat): void {
       // ack
       // ack
       // unack
-      cy.get(`[href="/alerts/${alert1.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert2.id}"]`).should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-      cy.get(`[href="/alerts/${alert3.id}"]`).should(
-        'contain',
-        'UNACKNOWLEDGED',
-      )
+      cy.get(
+        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+      ).should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(
+        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+      ).should('contain', 'UNACKNOWLEDGED')
 
       // ack first two again (noop)
       cy.reload()
@@ -298,6 +293,16 @@ function testAlerts(screen: ScreenFormat): void {
       // Review
       cy.dialogContains('Successfully created 2 alerts')
       cy.dialogFinish('Done')
+    })
+  })
+
+  it('should redirect to the correct service', () => {
+    cy.createAlert().then((a: Alert) => {
+      cy.visit(`/services/bobs-service/alerts/${a.id}`)
+      cy.url().should(
+        'eq',
+        Cypress.config().baseUrl + `/services/${a.serviceID}/alerts/${a.id}`,
+      )
     })
   })
 

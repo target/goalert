@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
-import p from 'prop-types'
+import React, { useState, ReactNode } from 'react'
 import Query from '../util/Query'
-import { gql } from '@apollo/client'
-import FlatList from '../lists/FlatList'
-import { Grid, Card, CardHeader, IconButton } from '@mui/material'
+import { gql, QueryResult } from '@apollo/client'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
+import { Grid, Card, CardHeader, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import { Delete } from '@mui/icons-material'
@@ -29,18 +28,21 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
   return {
     cardHeader,
   }
 })
 
-export default function UserNotificationRuleList({ userID, readOnly }) {
+export default function UserNotificationRuleList(props: {
+  userID: string
+  readOnly: boolean
+}): JSX.Element {
   const classes = useStyles()
   const [deleteID, setDeleteID] = useState(null)
 
-  function renderList(notificationRules) {
+  function renderList(notificationRules: FlatListListItem[]): ReactNode {
     return (
       <Grid item xs={12}>
         <Card>
@@ -53,7 +55,7 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
             data-cy='notification-rules'
             items={sortNotificationRules(notificationRules).map((nr) => ({
               title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-              secondaryAction: readOnly ? null : (
+              secondaryAction: props.readOnly ? null : (
                 <IconButton
                   aria-label='Delete notification rule'
                   onClick={() => setDeleteID(nr.id)}
@@ -78,13 +80,10 @@ export default function UserNotificationRuleList({ userID, readOnly }) {
   return (
     <Query
       query={query}
-      variables={{ id: userID }}
-      render={({ data }) => renderList(data.user.notificationRules)}
+      variables={{ id: props.userID }}
+      render={({ data }: QueryResult) =>
+        renderList(data.user.notificationRules)
+      }
     />
   )
-}
-
-UserNotificationRuleList.propTypes = {
-  userID: p.string.isRequired,
-  readOnly: p.bool,
 }

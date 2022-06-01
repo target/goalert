@@ -55,12 +55,12 @@ type Store struct {
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
 
-	ruleStore  rule.Store
+	ruleStore  *rule.Store
 	schedStore *schedule.Store
 }
 
 // NewStore will create a new DB, preparing required statements using the provided context.
-func NewStore(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *schedule.Store) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore *schedule.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{

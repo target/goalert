@@ -1,4 +1,7 @@
-export const styles = (theme) => ({
+import { Theme } from '@mui/material/styles'
+import { StyleRules } from '@mui/styles'
+
+export const styles = (theme: Theme): StyleRules => ({
   // used on details pages on desktop
   card: {
     width: '75%',
@@ -73,7 +76,7 @@ export const styles = (theme) => ({
   grow: {
     flexGrow: 1,
   },
-  // used for react-router Link components
+  // used for Link components
   nav: {
     borderRadius: 4,
     margin: 8,

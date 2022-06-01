@@ -109,7 +109,7 @@ function testEP(screen: ScreenFormat): void {
 
         cy.navigateToAndFrom(
           screen,
-          'Escalation Policy Details',
+          'Escalation Policies',
           ep.name,
           'Services',
           `${ep.id}/services`,
@@ -121,7 +121,7 @@ function testEP(screen: ScreenFormat): void {
       cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
-        cy.get('li').contains('Services').click()
+        cy.get('[data-cy=route-links] li').contains('Services').click()
         cy.get('body').should(
           'contain',
           'No services are associated with this Escalation Policy',
@@ -133,7 +133,7 @@ function testEP(screen: ScreenFormat): void {
       cy.createEP().then((ep: EP) => {
         cy.createService({ epID: ep.id }).then((svc: Service) => {
           cy.visit(`/escalation-policies/${ep.id}`)
-          cy.get('li').contains('Services').click()
+          cy.get('[data-cy=route-links] li').contains('Services').click()
           cy.get('body').should('contain', svc.name)
         })
       })

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { useMutation, useQuery, gql } from '@apollo/client'
+import { useMutation } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import { PropTypes as p } from 'prop-types'
 import { Alert, Hidden, ListItemText } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
@@ -100,8 +101,8 @@ export default function AlertsList(props) {
   const [filter] = useURLParam('filter', 'active')
 
   // query for current service name if props.serviceID is provided
-  const serviceNameQuery = useQuery(
-    gql`
+  const [serviceNameQuery] = useQuery({
+    query: gql`
       query ($id: ID!) {
         service(id: $id) {
           id
@@ -109,11 +110,9 @@ export default function AlertsList(props) {
         }
       }
     `,
-    {
-      variables: { id: props.serviceID || '' },
-      skip: !props.serviceID,
-    },
-  )
+    variables: { id: props.serviceID || '' },
+    pause: !props.serviceID,
+  })
 
   // alerts list query variables
   const variables = {
@@ -269,7 +268,7 @@ export default function AlertsList(props) {
               }
             />
           ),
-          url: `/alerts/${a.id}`,
+          url: `/services/${a.service.id}/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
