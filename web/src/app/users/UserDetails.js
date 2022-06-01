@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from 'urql'
 import p from 'prop-types'
-import { useParams } from 'react-router-dom'
 import Delete from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import DetailsPage from '../details/DetailsPage'
@@ -86,8 +85,7 @@ function serviceCount(onCallSteps = []) {
 }
 
 export default function UserDetails(props) {
-  const { userID: _userID } = useParams()
-  const userID = props.userID || _userID
+  const userID = props.userID
   const {
     userID: currentUserID,
     isAdmin,

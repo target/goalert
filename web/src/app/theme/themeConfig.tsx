@@ -1,4 +1,10 @@
-import React, { ReactNode, useEffect, useState } from 'react'
+import React, {
+  ReactNode,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { PaletteOptions } from '@mui/material/styles/createPalette'
 import { isCypress } from '../env'
 import {
@@ -6,6 +12,13 @@ import {
   Theme,
   ThemeProvider as MUIThemeProvider,
 } from '@mui/material/styles'
+import {
+  argbFromHex,
+  hexFromArgb,
+  themeFromSourceColor,
+  Scheme,
+} from '@material/material-color-utilities'
+import { blueGrey } from '@mui/material/colors'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -14,6 +27,8 @@ interface ThemeProviderProps {
 interface ThemeContextParams {
   themeMode: string
   setThemeMode: (newMode: ThemeModeOption) => void
+  sourceColor: string
+  setSourceColor: (newColor: string) => void
 }
 
 type MUIThemeMode = 'dark' | 'light'
@@ -22,41 +37,66 @@ type ThemeModeOption = 'dark' | 'light' | 'system'
 export const ThemeContext = React.createContext<ThemeContextParams>({
   themeMode: '',
   setThemeMode: (): void => {},
+  sourceColor: '',
+  setSourceColor: (): void => {},
 })
 ThemeContext.displayName = 'ThemeContext'
 
-// palette generated from https://material-foundation.github.io/material-theme-builder/#/custom
-function getPalette(mode: MUIThemeMode): PaletteOptions {
+function makePalette(
+  scheme: Scheme,
+  useSurfaceVariant?: boolean,
+): PaletteOptions {
+  return {
+    primary: {
+      main: hexFromArgb(scheme.primary),
+    },
+    secondary: {
+      main: hexFromArgb(scheme.secondary),
+    },
+    background: {
+      default: useSurfaceVariant
+        ? hexFromArgb(scheme.surfaceVariant)
+        : hexFromArgb(scheme.background),
+      paper: hexFromArgb(scheme.surface),
+    },
+    error: {
+      main: hexFromArgb(scheme.error),
+    },
+  }
+}
+
+function validHexColor(hex: string | null): boolean {
+  if (!hex) return false
+  return /^#[0-9A-F]{6}$/i.test(hex)
+}
+
+function safeArgbFromHex(hex: string): number {
+  if (!validHexColor(hex)) return argbFromHex(blueGrey[500])
+
+  return argbFromHex(hex)
+}
+
+function getPalette(
+  mode: MUIThemeMode,
+  sourceColorHex: string,
+): PaletteOptions {
+  const sourceColor = safeArgbFromHex(sourceColorHex)
+  const theme = themeFromSourceColor(sourceColor)
+
   if (mode === 'dark') {
     return {
       mode: 'dark',
-      primary: { main: '#64d3ff', light: '#bbe9ff', dark: '#004d65' },
-      secondary: { main: '#b5cad6', light: '#d0e6f3', dark: '#354a54' },
-      background: {
-        default: '#191c1e',
-        paper: '#191c1e', // m3 surface
-      },
-      error: { main: '#ffb4a9', light: '#ffdad4', dark: '#930006' },
+      ...makePalette(theme.schemes.dark),
     }
   }
 
   return {
     mode: 'light',
-    primary: {
-      main: '#006684',
-      light: '#bbe9ff',
-      dark: '#001f2a',
-    },
-    secondary: { main: '#4d616b', light: '#d0e6f3', dark: '#081e27' },
-    background: {
-      default: '#dce3e8', // m3 surface variant
-      paper: '#fbfcfe',
-    },
-    error: { main: '#ba1b1b', light: '#ffdad4', dark: '#410001' },
+    ...makePalette(theme.schemes.light, true),
   }
 }
 
-function makeTheme(mode: MUIThemeMode): Theme {
+function makeTheme(mode: MUIThemeMode, sourceColor: string): Theme {
   let testOverrides = {}
   if (isCypress) {
     testOverrides = {
@@ -68,11 +108,18 @@ function makeTheme(mode: MUIThemeMode): Theme {
   }
 
   return createTheme({
-    palette: getPalette(mode),
+    palette: getPalette(mode, sourceColor),
     components: {
       MuiIconButton: {
         defaultProps: {
           color: 'primary',
+        },
+      },
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          separator: {
+            margin: 4,
+          },
         },
       },
     },
@@ -80,11 +127,10 @@ function makeTheme(mode: MUIThemeMode): Theme {
   })
 }
 
-function saveTheme(theme: ThemeModeOption): void {
+function saveThemeMode(theme: ThemeModeOption): void {
   if (!window.localStorage) return
   window.localStorage.setItem('theme', theme)
 }
-
 function loadTheme(): ThemeModeOption {
   if (!window.localStorage) return 'system'
 
@@ -98,8 +144,20 @@ function loadTheme(): ThemeModeOption {
   return 'system'
 }
 
+function saveThemeColor(hex: string): void {
+  if (!window.localStorage) return
+  window.localStorage.setItem('themeColor', hex)
+}
+function loadThemeColor(): string {
+  const savedColor = window?.localStorage?.getItem('themeColor')
+  return validHexColor(savedColor) ? (savedColor as string) : blueGrey[500]
+}
+
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
+  const [sourceColor, setSourceColor] = useState(loadThemeColor())
+
+  // used for watching if system theme mode changes
   const [systemThemeMode, setSystemThemeMode] = useState<MUIThemeMode>(
     window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
@@ -120,23 +178,28 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         .removeEventListener('change', listener)
   }, [])
 
+  const mode = savedThemeMode === 'system' ? systemThemeMode : savedThemeMode
+  // Use deferred and memoized values so we don't regenerate the entire theme on every render/change event
+  const defMode = useDeferredValue(mode)
+  const defSrc = useDeferredValue(sourceColor)
+  const theme = useMemo(() => makeTheme(defMode, defSrc), [defMode, defSrc])
+
   return (
     <ThemeContext.Provider
       value={{
         themeMode: savedThemeMode,
         setThemeMode: (newMode: ThemeModeOption) => {
           setSavedThemeMode(newMode)
-          saveTheme(newMode)
+          saveThemeMode(newMode)
+        },
+        sourceColor,
+        setSourceColor: (newColor: string) => {
+          setSourceColor(newColor)
+          saveThemeColor(newColor)
         },
       }}
     >
-      <MUIThemeProvider
-        theme={makeTheme(
-          savedThemeMode === 'system' ? systemThemeMode : savedThemeMode,
-        )}
-      >
-        {props.children}
-      </MUIThemeProvider>
+      <MUIThemeProvider theme={theme}>{props.children}</MUIThemeProvider>
     </ThemeContext.Provider>
   )
 }
