@@ -6,7 +6,7 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { Fade, SvgIconProps, Tooltip, Zoom } from '@mui/material'
+import { Fade, SvgIconProps, Zoom } from '@mui/material'
 import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
@@ -23,7 +23,6 @@ import SWONode from './SWONode'
 import LoadingButton from '@mui/lab/LoadingButton'
 import DatabaseOff from 'mdi-material-ui/DatabaseOff'
 import DatabaseCheck from 'mdi-material-ui/DatabaseCheck'
-import { Info } from '@mui/icons-material'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -318,7 +317,7 @@ export default function AdminSwitchover(): JSX.Element {
             </Card>
           </Grid>
 
-          <Grid item xs={12} container>
+          <Grid item xs={12} container spacing={1}>
             {data?.nodes.length > 0 &&
               data.nodes
                 .slice()
