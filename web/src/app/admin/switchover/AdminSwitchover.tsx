@@ -100,15 +100,20 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item container alignItems='center' justifyContent='center'>
         <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
         <Grid item>
-          <Typography color='secondary' variant='h6' style={{ marginTop: 16 }}>
-            Unavailable: Application is not in switchover mode.{' '}
-            <Tooltip
-              title='--db-url-next or GOALERT_DB_URL must be set. See SWO documentation.'
-              placement='top'
+          <center>
+            <Typography
+              color='secondary'
+              variant='h6'
+              style={{ marginTop: 16 }}
             >
-              <Info />
-            </Tooltip>
-          </Typography>
+              Unavailable: Application is not in switchover mode.
+              <br />
+              <br />
+              You must start GoAlert with <code>
+                GOALERT_DB_URL_NEXT
+              </code> or <code>--db-url-next</code> to perform a switchover.
+            </Typography>
+          </center>
         </Grid>
       </Grid>
     )
