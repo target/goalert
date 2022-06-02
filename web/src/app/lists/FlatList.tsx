@@ -26,7 +26,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
@@ -354,10 +354,7 @@ export default function FlatList({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={dndItems}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={dndItems} strategy={rectSortingStrategy}>
           {renderList()}
         </SortableContext>
         <DragOverlay>

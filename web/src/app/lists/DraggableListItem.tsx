@@ -28,31 +28,24 @@ export function DraggableListItem({
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
   const {
-    active,
     attributes,
     isDragging,
-    isSorting,
     listeners,
-    overIndex,
     setNodeRef,
-    setActivatorNodeRef,
     transform,
     transition,
   } = useSortable({
     id,
-    // animateLayoutChanges,
-    // disabled,
-    // getNewIndex,
   })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
+    cursor: 'pointer',
   }
 
-  // todo: style when dragging
-  // todo: show different mouse pointer when hovering
+  // todo: show cursor as pointer when dragging
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <FlatListItem index={index} item={item} />
