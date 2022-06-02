@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { Schedule, ScheduleTarget } from '../../schema'
+import users from '../fixtures/users.json'
 
 import { testScreen } from '../support'
 const c = new Chance()
@@ -119,13 +120,11 @@ function testTimePickers(): void {
           }) as Date,
         )
 
-        cy.fixture('users').then((users) => {
-          const userName: string = (c.pickone(users) as Profile).name
-          cy.dialogForm({
-            addUserID: userName,
-            start,
-            end: start.plus({ days: 1 }),
-          })
+        const userName: string = (c.pickone(users) as Profile).name
+        cy.dialogForm({
+          addUserID: userName,
+          start,
+          end: start.plus({ days: 1 }),
         })
 
         cy.dialogFinish('Submit')

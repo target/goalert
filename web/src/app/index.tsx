@@ -1,10 +1,8 @@
-// set webpack public path for loading additional assets
 import { GOALERT_VERSION, pathPrefix } from './env'
 
-import React from 'react'
-import ReactDOM from 'react-dom'
+import React, { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
-import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
 import { ThemeProvider } from './theme/themeConfig'
@@ -16,6 +14,9 @@ import store from './reduxStore'
 import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
+import { Provider as URQLProvider } from 'urql'
+import { client as urqlClient } from './urql'
+import { Router } from 'wouter'
 
 // version check
 if (
@@ -33,22 +34,28 @@ if (
   )
 }
 
-ReactDOM.render(
-  <StyledEngineProvider injectFirst>
-    <ThemeProvider>
-      <ApolloProvider client={GraphQLClient}>
-        <ReduxProvider store={store}>
-          <BrowserRouter basename={pathPrefix}>
-            <MuiPickersUtilsProvider>
-              <ConfigProvider>
-                <NewVersionCheck />
-                <App />
-              </ConfigProvider>
-            </MuiPickersUtilsProvider>
-          </BrowserRouter>
-        </ReduxProvider>
-      </ApolloProvider>
-    </ThemeProvider>
-  </StyledEngineProvider>,
-  document.getElementById('app'),
+const rootElement = document.getElementById('app')
+const root = createRoot(rootElement as HTMLElement)
+
+root.render(
+  <StrictMode>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider>
+        <ApolloProvider client={GraphQLClient}>
+          <ReduxProvider store={store}>
+            <Router base={pathPrefix}>
+              <MuiPickersUtilsProvider>
+                <URQLProvider value={urqlClient}>
+                  <ConfigProvider>
+                    <NewVersionCheck />
+                    <App />
+                  </ConfigProvider>
+                </URQLProvider>
+              </MuiPickersUtilsProvider>
+            </Router>
+          </ReduxProvider>
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
+  </StrictMode>,
 )

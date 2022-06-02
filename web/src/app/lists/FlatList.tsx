@@ -24,10 +24,6 @@ import { Alert, AlertTitle } from '@mui/material'
 import classnames from 'classnames'
 import { Notice } from '../details/Notices'
 
-const lime = '#93ed94'
-const lightLime = '#defadf'
-const lightGrey = '#ebebeb'
-
 const useStyles = makeStyles((theme: Theme) => ({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
@@ -43,19 +39,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  highlightedItem: {
-    borderLeft: '6px solid ' + lime,
-    background: lightLime,
-    color: theme.palette.getContrastText(lightLime),
-  },
-  highlightedSecondaryText: {
-    color: theme.palette.getContrastText(lightLime),
-  },
   secondaryText: {
     whiteSpace: 'pre-line',
   },
   participantDragging: {
-    backgroundColor: lightGrey,
+    backgroundColor: theme.palette.background.default,
   },
   slideEnter: {
     maxHeight: '0px',
@@ -93,7 +81,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export interface FlatListSub {
   id?: string
-  subHeader: string
+  subHeader: JSX.Element | string
 }
 
 export interface FlatListNotice extends Notice {
@@ -249,9 +237,9 @@ export default function FlatList({
         {...itemProps}
         className={classnames({
           [classes.listItem]: true,
-          [classes.highlightedItem]: item.highlight,
           [classes.listItemDisabled]: item.disabled,
         })}
+        selected={item.highlight}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
@@ -260,7 +248,6 @@ export default function FlatList({
           secondaryTypographyProps={{
             className: classnames({
               [classes.secondaryText]: true,
-              [classes.highlightedSecondaryText]: item.highlight,
               [classes.listItemDisabled]: item.disabled,
             }),
           }}
@@ -357,7 +344,6 @@ export default function FlatList({
               provided: DraggableProvided,
               snapshot: DraggableStateSnapshot,
             ) => {
-              // light grey background while dragging non-active user
               const draggingBackground = snapshot.isDragging
                 ? classes.participantDragging
                 : ''

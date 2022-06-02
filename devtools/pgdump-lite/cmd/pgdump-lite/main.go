@@ -16,7 +16,7 @@ func main() {
 	file := flag.String("f", "", "Output file (default is stdout).")
 	db := flag.String("d", os.Getenv("DBURL"), "DB URL") // use same env var as pg_dump
 	dataOnly := flag.Bool("a", false, "dump only the data, not the schema")
-	skip := flag.String("s", "", "skip tables")
+	skip := flag.String("T", "", "skip tables")
 	flag.Parse()
 
 	out := os.Stdout

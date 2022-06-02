@@ -13,17 +13,7 @@ import (
 )
 
 // Store allows the lookup and management of Labels.
-type Store interface {
-	SetTx(ctx context.Context, tx *sql.Tx, label *Label) error
-	FindAllByService(ctx context.Context, serviceID string) ([]Label, error)
-	UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error)
-	UniqueKeys(ctx context.Context) ([]string, error)
-	SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string, error)
-	SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]string, error)
-}
-
-// DB implements the Store interface using a postgres database.
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	upsert           *sql.Stmt
@@ -32,10 +22,10 @@ type DB struct {
 	uniqueKeys       *sql.Stmt
 }
 
-// NewDB will Set a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+// NewStore will Set a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
-	return &DB{
+	return &Store{
 		db: db,
 		upsert: p.P(`
 			INSERT INTO labels (tgt_service_id, key, value)
@@ -64,7 +54,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 // SetTx will set a label for the service. It can be used to set the key-value pair for the label,
 // delete a label or update the value given the label's key.
-func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, label *Label) error {
+func (s *Store) SetTx(ctx context.Context, tx *sql.Tx, label *Label) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return err
@@ -77,7 +67,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, label *Label) error {
 
 	if n.Value == "" {
 		// Delete Operation
-		stmt := db.delete
+		stmt := s.delete
 		if tx != nil {
 			stmt = tx.StmtContext(ctx, stmt)
 		}
@@ -86,7 +76,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, label *Label) error {
 		return errors.Wrap(err, "delete label")
 	}
 
-	stmt := db.upsert
+	stmt := s.upsert
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -100,7 +90,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, label *Label) error {
 }
 
 // FindAllByService finds all labels for a particular service. It returns all key-value pairs.
-func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Label, error) {
+func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Label, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -110,7 +100,7 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Label, 
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findAllByService.QueryContext(ctx, serviceID)
+	rows, err := s.findAllByService.QueryContext(ctx, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -136,13 +126,13 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Label, 
 	return labels, nil
 }
 
-func (db *DB) UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error) {
+func (s *Store) UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	stmt := db.uniqueKeys
+	stmt := s.uniqueKeys
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -167,6 +157,6 @@ func (db *DB) UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error) {
 	return keys, nil
 }
 
-func (db *DB) UniqueKeys(ctx context.Context) ([]string, error) {
-	return db.UniqueKeysTx(ctx, nil)
+func (s *Store) UniqueKeys(ctx context.Context) ([]string, error) {
+	return s.UniqueKeysTx(ctx, nil)
 }

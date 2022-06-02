@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Navigate, useParams } from 'react-router-dom'
+import { Redirect } from 'wouter'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -68,8 +68,7 @@ const alertStatus = (a) => {
   return 'warn'
 }
 
-export default function ServiceDetails() {
-  const { serviceID } = useParams()
+export default function ServiceDetails({ serviceID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const { data, loading, error } = useQuery(query, {
@@ -81,7 +80,7 @@ export default function ServiceDetails() {
   if (error) return <GenericError error={error.message} />
 
   if (!_.get(data, 'service.id')) {
-    return showDelete ? <Navigate to='/services' /> : <ObjectNotFound />
+    return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
   return (

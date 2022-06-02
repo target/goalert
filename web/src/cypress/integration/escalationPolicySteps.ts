@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { Schedule } from '../../schema'
+import users from '../fixtures/users.json'
 
 const c = new Chance()
 
@@ -33,52 +34,48 @@ function testSteps(): void {
 
     // Create a step with 2 of each type of GoAlert target
     it('should create a step', () => {
-      cy.fixture('users').then((users) => {
-        const u1 = users[0]
-        const u2 = users[1]
-        const delay = c.integer({ min: 1, max: 9000 })
+      const u1 = users[0]
+      const u2 = users[1]
+      const delay = c.integer({ min: 1, max: 9000 })
 
-        cy.pageFab()
-        cy.dialogTitle('Create Step')
-        cy.dialogForm({ schedules: [s1.name, s2.name] })
+      cy.pageFab()
+      cy.dialogTitle('Create Step')
+      cy.dialogForm({ schedules: [s1.name, s2.name] })
 
-        cy.get('button[data-cy="users-step"]').click()
-        cy.dialogForm({ users: [u1.name, u2.name] })
+      cy.get('button[data-cy="users-step"]').click()
+      cy.dialogForm({ users: [u1.name, u2.name] })
 
-        cy.get('button[data-cy="rotations-step"]').click()
-        cy.dialogForm({ rotations: [r1.name, r2.name] })
+      cy.get('button[data-cy="rotations-step"]').click()
+      cy.dialogForm({ rotations: [r1.name, r2.name] })
 
-        cy.dialogForm({ delayMinutes: delay.toString() })
-        cy.dialogFinish('Submit')
+      cy.dialogForm({ delayMinutes: delay.toString() })
+      cy.dialogFinish('Submit')
 
-        // verify data integrity
-        cy.get('body').should('contain', 'Notify the following:')
-        cy.get('body').should('contain', 'Step #1:')
-        cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
-        cy.get('div[data-cy=rotation-chip]').should('contain', r2.name)
-        cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
-        cy.get('div[data-cy=schedule-chip]').should('contain', s2.name)
-        cy.get('div[data-cy=user-chip]').should('contain', u1.name)
-        cy.get('div[data-cy=user-chip]').should('contain', u2.name)
-        cy.get('body').should(
-          'contain',
-          `Go back to step #1 after ${delay.toString()} minutes`,
-        )
-      })
+      // verify data integrity
+      cy.get('body').should('contain', 'Notify the following:')
+      cy.get('body').should('contain', 'Step #1:')
+      cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
+      cy.get('div[data-cy=rotation-chip]').should('contain', r2.name)
+      cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
+      cy.get('div[data-cy=schedule-chip]').should('contain', s2.name)
+      cy.get('div[data-cy=user-chip]').should('contain', u1.name)
+      cy.get('div[data-cy=user-chip]').should('contain', u2.name)
+      cy.get('body').should(
+        'contain',
+        `Go back to step #1 after ${delay.toString()} minutes`,
+      )
     })
 
     it('should add users when slack is disabled', () => {
       cy.updateConfig({ Slack: { Enable: false } })
       cy.reload()
-      cy.fixture('users').then((users) => {
-        const u1 = users[0]
-        const u2 = users[1]
+      const u1 = users[0]
+      const u2 = users[1]
 
-        cy.pageFab()
-        cy.dialogTitle('Create Step')
-        cy.get('button[data-cy="users-step"]').click()
-        cy.dialogForm({ users: [u1.name, u2.name] })
-      })
+      cy.pageFab()
+      cy.dialogTitle('Create Step')
+      cy.get('button[data-cy="users-step"]').click()
+      cy.dialogForm({ users: [u1.name, u2.name] })
     })
 
     it('should edit a step', () => {

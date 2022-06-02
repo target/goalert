@@ -1,6 +1,8 @@
 package web
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func NoCache(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {

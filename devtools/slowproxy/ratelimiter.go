@@ -9,6 +9,7 @@ import (
 type rateLimiter struct {
 	bucket   chan int
 	overflow chan int
+	rate     bool
 	latency  time.Duration
 	jitter   time.Duration
 }
@@ -22,6 +23,7 @@ func newRateLimiter(bps int, latency, jitter time.Duration) *rateLimiter {
 		}
 	}()
 	return &rateLimiter{
+		rate:     bps > 0,
 		bucket:   ch,
 		overflow: make(chan int, 1000),
 		latency:  latency,
@@ -31,7 +33,7 @@ func newRateLimiter(bps int, latency, jitter time.Duration) *rateLimiter {
 
 func (r *rateLimiter) WaitFor(count int) time.Duration {
 	var n int
-	for n < count {
+	for r.rate && n < count {
 		select {
 		case val := <-r.bucket:
 			n += val

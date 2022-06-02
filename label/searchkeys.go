@@ -87,7 +87,7 @@ func (opts keyRenderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string, error) {
+func (s *Store) SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (db *DB) SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string,
 		return nil, errors.Wrap(err, "render query")
 	}
 
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

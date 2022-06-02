@@ -18,13 +18,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// Store allows retrieving and calculating on-call information.
-type Store interface {
-	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
-	OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error)
-	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
-}
-
 // ScheduleOnCallUser represents a currently on-call user for a schedule.
 type ScheduleOnCallUser struct {
 	ID   string
@@ -49,8 +42,8 @@ type Shift struct {
 	Truncated bool      `json:"truncated"`
 }
 
-// DB implements the Store interface from Postgres.
-type DB struct {
+// Store allows retrieving and calculating on-call information.
+type Store struct {
 	db *sql.DB
 
 	onCallUsersSvc      *sql.Stmt
@@ -62,15 +55,15 @@ type DB struct {
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
 
-	ruleStore  rule.Store
+	ruleStore  *rule.Store
 	schedStore *schedule.Store
 }
 
-// NewDB will create a new DB, preparing required statements using the provided context.
-func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *schedule.Store) (*DB, error) {
+// NewStore will create a new DB, preparing required statements using the provided context.
+func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore *schedule.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db:         db,
 		ruleStore:  ruleStore,
 		schedStore: schedStore,
@@ -143,7 +136,7 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 }
 
 // OnCallUsersByService will return the current set of users who are on-call for the given service.
-func (db *DB) OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error) {
+func (s *Store) OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -152,7 +145,7 @@ func (db *DB) OnCallUsersByService(ctx context.Context, serviceID string) ([]Ser
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.onCallUsersSvc.QueryContext(ctx, serviceID)
+	rows, err := s.onCallUsersSvc.QueryContext(ctx, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +162,7 @@ func (db *DB) OnCallUsersByService(ctx context.Context, serviceID string) ([]Ser
 	return onCall, nil
 }
 
-func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error) {
+func (s *Store) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -178,7 +171,7 @@ func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]S
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.onCallUsersSchedule.QueryContext(ctx, scheduleID)
+	rows, err := s.onCallUsersSchedule.QueryContext(ctx, scheduleID)
 	if err != nil {
 		return nil, fmt.Errorf("fetch on-call users for schedule '%s': %w", scheduleID, err)
 	}
@@ -199,7 +192,7 @@ func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]S
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
-func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error) {
+func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -209,7 +202,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		return nil, err
 	}
 
-	tx, err := db.db.BeginTx(ctx, &sql.TxOptions{
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{
 		ReadOnly:  true,
 		Isolation: sql.LevelRepeatableRead,
 	})
@@ -220,12 +213,12 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 
 	var schedTZ string
 	var now time.Time
-	err = tx.StmtContext(ctx, db.schedTZ).QueryRowContext(ctx, scheduleID).Scan(&schedTZ, &now)
+	err = tx.StmtContext(ctx, s.schedTZ).QueryRowContext(ctx, scheduleID).Scan(&schedTZ, &now)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup schedule time zone")
 	}
 
-	rows, err := tx.StmtContext(ctx, db.schedRot).QueryContext(ctx, scheduleID)
+	rows, err := tx.StmtContext(ctx, s.schedRot).QueryContext(ctx, scheduleID)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup schedule rotations")
 	}
@@ -248,7 +241,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		rotIDs = append(rotIDs, rot.ID)
 	}
 
-	rows, err = tx.StmtContext(ctx, db.rotParts).QueryContext(ctx, sqlutil.UUIDArray(rotIDs))
+	rows, err = tx.StmtContext(ctx, s.rotParts).QueryContext(ctx, sqlutil.UUIDArray(rotIDs))
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup rotation participants")
 	}
@@ -262,7 +255,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		rots[rotID].Users = append(rots[rotID].Users, userID)
 	}
 
-	rawRules, err := db.ruleStore.FindAllTx(ctx, tx, scheduleID)
+	rawRules, err := s.ruleStore.FindAllTx(ctx, tx, scheduleID)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup schedule rules")
 	}
@@ -279,7 +272,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		}
 	}
 
-	rows, err = tx.StmtContext(ctx, db.schedOnCall).QueryContext(ctx, scheduleID, start, end)
+	rows, err = tx.StmtContext(ctx, s.schedOnCall).QueryContext(ctx, scheduleID, start, end)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup on-call history")
 	}
@@ -296,7 +289,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		userHistory = append(userHistory, s)
 	}
 
-	rows, err = tx.StmtContext(ctx, db.schedOverrides).QueryContext(ctx, scheduleID, start, end)
+	rows, err = tx.StmtContext(ctx, s.schedOverrides).QueryContext(ctx, scheduleID, start, end)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup overrides")
 	}
@@ -317,7 +310,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 	if err != nil {
 		return nil, errors.Wrap(err, "parse schedule ID")
 	}
-	tempScheds, err := db.schedStore.TemporarySchedules(ctx, tx, id)
+	tempScheds, err := s.schedStore.TemporarySchedules(ctx, tx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup temporary schedules")
 	}
@@ -331,7 +324,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 	if err != nil {
 		return nil, errors.Wrap(err, "load time zone info")
 	}
-	s := state{
+	st := state{
 		rules:      rules,
 		overrides:  overrides,
 		history:    userHistory,
@@ -340,5 +333,5 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		tempScheds: tempScheds,
 	}
 
-	return s.CalculateShifts(start, end), nil
+	return st.CalculateShifts(start, end), nil
 }
