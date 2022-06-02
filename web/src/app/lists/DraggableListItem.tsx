@@ -48,7 +48,7 @@ export function DraggableListItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    backgroundColor: isDragging ? theme.palette.secondary.main : 'inherit',
+    backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
   }
 
   // todo: style when dragging
