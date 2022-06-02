@@ -99,7 +99,7 @@ function testRotations(): void {
         .should('contain', rot.users[1].name)
     })
 
-    it('should allow re-ordering participants', () => {
+    it.only('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
 

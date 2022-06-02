@@ -1,15 +1,24 @@
 import React from 'react'
 import { FlatListItem as FlatListItemType } from './FlatList'
 import FlatListItem from './FlatListItem'
-import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+
+import {
+  // arrayMove,
+  useSortable,
+  // SortableContext,
+  // sortableKeyboardCoordinates,
+  // SortingStrategy,
+  // rectSortingStrategy,
+  // AnimateLayoutChanges,
+  // NewIndexGetter,
+} from '@dnd-kit/sortable'
+import { useTheme } from '@mui/material'
 
 interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  // onReorder: (oldIndex: number, newIndex: number) => void
-  // onDrag: (dragIndex: number, hoverIndex: number) => void
 }
 
 export function DraggableListItem({
@@ -17,14 +26,33 @@ export function DraggableListItem({
   index,
   item,
 }: DraggableListItemProps): JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id })
+  const theme = useTheme()
+  const {
+    active,
+    attributes,
+    isDragging,
+    isSorting,
+    listeners,
+    overIndex,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    id,
+    // animateLayoutChanges,
+    // disabled,
+    // getNewIndex,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    backgroundColor: isDragging ? theme.palette.secondary.main : 'inherit',
   }
 
+  // todo: style when dragging
+  // todo: show different mouse pointer when hovering
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <FlatListItem index={index} item={item} />
