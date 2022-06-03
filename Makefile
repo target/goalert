@@ -91,6 +91,13 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
 
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
+	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; drop database if exists goalert2; create database goalert2;"
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
+	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo
+
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
@@ -136,7 +143,11 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
+bin/tools/sqlc: go.mod go.sum
+	CGO_ENABLED=1 go build -o bin/tools/sqlc github.com/kyleconroy/sqlc/cmd/sqlc
+
+generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go bin/tools/sqlc
+	./bin/tools/sqlc generate
 	go generate ./...
 
 smoketest:
