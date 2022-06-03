@@ -5,7 +5,6 @@ import MUIListItem from '@mui/material/ListItem'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-import { Theme } from '@mui/material/styles'
 import ListSubheader from '@mui/material/ListSubheader'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
@@ -15,8 +14,6 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -26,14 +23,13 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem } from './DraggableListItem'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
     width: '100%',
@@ -48,8 +44,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  participantDragging: {
-    backgroundColor: theme.palette.background.default,
+  listItemText: {
+    fontStyle: 'italic',
   },
   slideEnter: {
     maxHeight: '0px',
@@ -73,10 +69,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     transform: 'translateX(-100%)',
     transition: 'all 500ms',
   },
-  listItemText: {
-    fontStyle: 'italic',
-  },
-}))
+})
 
 export interface FlatListSub {
   id?: string
@@ -146,7 +139,6 @@ export default function FlatList({
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
-  const [activeId, setActiveId] = useState('')
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -158,17 +150,6 @@ export default function FlatList({
     items.map((i, idx) => (i.id ? i.id : idx.toString())),
   )
 
-  function handleDragStart(event: DragStartEvent): void {
-    const { active } = event
-
-    setActiveId(active.id.toString())
-
-    // adds a little vibration if the browser supports it
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(100)
-    }
-  }
-
   function handleDragEnd(e: DragEndEvent): void {
     if (!onReorder || !e.over) return
     if (e.active.id !== e.over.id) {
@@ -177,8 +158,6 @@ export default function FlatList({
       setDndItems(arrayMove(dndItems, oldIndex, newIndex)) // update order in local state
       onReorder(oldIndex, newIndex) // callback fn from props
     }
-
-    setActiveId('')
   }
 
   function renderEmptyMessage(): JSX.Element {
@@ -351,15 +330,9 @@ export default function FlatList({
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={dndItems} strategy={rectSortingStrategy}>
-          {renderList()}
-        </SortableContext>
-        <DragOverlay>
-          {activeId ? <MUIListItem id={activeId} /> : null}
-        </DragOverlay>
+        <SortableContext items={dndItems}>{renderList()}</SortableContext>
       </DndContext>
     )
   }
