@@ -5,32 +5,27 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/swo/swodb"
 )
 
 // syncChanges will apply all changes recorded in the change_log table to the next DB.
 func (e *Execute) syncChanges(ctx context.Context, srcTx, dstTx pgxQueryer) ([]int, error) {
-	type rowID struct {
-		table string
-		id    string
-	}
-
-	var r rowID
-	var changeIDs []int
-	var changeID int
-	changes := make(map[rowID]struct{})
-	rowIDs := make(map[string][]string)
-	_, err := srcTx.QueryFunc(ctx, "select id, table_name, row_id from change_log", nil, []interface{}{&changeID, &r.table, &r.id}, func(pgx.QueryFuncRow) error {
-		if _, ok := changes[r]; ok {
-			return nil
-		}
-		changes[r] = struct{}{}
-		rowIDs[r.table] = append(rowIDs[r.table], r.id)
-		changeIDs = append(changeIDs, changeID)
-
-		return nil
-	})
+	changeRows, err := swodb.New(srcTx).Changes(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetch changes: %w", err)
+	}
+
+	type rowID struct {
+		id    string
+		table string
+	}
+	changes := make(map[rowID]struct{})
+	rowIDs := make(map[string][]string)
+	var changeIDs []int
+	for _, row := range changeRows {
+		changes[rowID{row.RowID, row.TableName}] = struct{}{}
+		rowIDs[row.TableName] = append(rowIDs[row.TableName], row.RowID)
+		changeIDs = append(changeIDs, int(row.ID))
 	}
 	if len(changes) == 0 {
 		return nil, nil

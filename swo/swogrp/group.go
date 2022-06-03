@@ -48,7 +48,9 @@ type Group struct {
 	leader bool
 	mx     sync.Mutex
 
-	nextDBNodes map[uuid.UUID]struct{}
+	nextDBValid *Set
+	oldDBValid  *Set
+	nodeIDs     *Set
 
 	ackMsgs chan map[uuid.UUID]*ackWait
 
@@ -73,10 +75,11 @@ type TaskInfo struct {
 type Node struct {
 	ID uuid.UUID
 
-	IsLeader   bool
-	CanExec    bool
-	OldDBValid bool
-	NewDBValid bool
+	IsLeader bool
+	CanExec  bool
+
+	OldDBValid func() bool
+	NewDBValid func() bool
 
 	Tasks []TaskInfo
 }
@@ -89,7 +92,9 @@ func NewGroup(cfg Config) *Group {
 		tasks:       make(map[uuid.UUID]TaskInfo),
 		State:       stateNeedsReset,
 		ackMsgs:     make(chan map[uuid.UUID]*ackWait, 1),
-		nextDBNodes: make(map[uuid.UUID]struct{}),
+		nextDBValid: NewSet(),
+		oldDBValid:  NewSet(),
+		nodeIDs:     NewSet(),
 	}
 	g.ackMsgs <- make(map[uuid.UUID]*ackWait)
 
@@ -117,20 +122,26 @@ func cloneTasks(in []TaskInfo) []TaskInfo {
 }
 
 func (g *Group) Status() Status {
-	g.mx.Lock()
-	defer g.mx.Unlock()
-
 	var nodes []Node
+	for _, id := range g.nodeIDs.List() {
+		node := Node{
+			ID: id,
+		}
+		g.mx.Lock()
+		if n := g.nodes[id]; n != nil {
+			node = *n
+		}
+		g.mx.Unlock()
 
-	for _, n := range g.nodes {
-		cpy := *n
-		cpy.Tasks = cloneTasks(n.Tasks)
-		nodes = append(nodes, cpy)
+		node.NewDBValid = func() bool { return g.nextDBValid.Has(node.ID) }
+		node.OldDBValid = func() bool { return g.oldDBValid.Has(node.ID) }
+		nodes = append(nodes, node)
 	}
 
 	failed := make([]TaskInfo, len(g.failed))
+	g.mx.Lock()
+	defer g.mx.Unlock()
 	copy(failed, g.failed)
-
 	if g.State == stateReset && time.Since(g.resetS) > time.Minute {
 		g.State = stateNeedsReset
 	}
@@ -144,14 +155,13 @@ func (g *Group) Status() Status {
 
 func (g *Group) loopNextLog() {
 	for msg := range g.NextLog.Events() {
+		g.nodeIDs.Add(msg.Node)
 		if msg.Type != "hello-next" {
 			// ignore
 			continue
 		}
 
-		g.mx.Lock()
-		g.addNode(msg.Node, false, true, false)
-		g.mx.Unlock()
+		g.nextDBValid.Add(msg.Node)
 	}
 }
 
@@ -239,7 +249,8 @@ func (g *Group) resetState() {
 
 // addNode adds a node to the group, returns true if we have become the leader node
 // after a reset.
-func (g *Group) addNode(id uuid.UUID, oldDB, newDB, exec bool) bool {
+func (g *Group) addNode(id uuid.UUID, exec bool) bool {
+	g.oldDBValid.Add(id)
 	if g.State != stateReset {
 		g.State = stateNeedsReset
 	}
@@ -248,8 +259,6 @@ func (g *Group) addNode(id uuid.UUID, oldDB, newDB, exec bool) bool {
 		n = &Node{ID: id}
 		g.nodes[id] = n
 	}
-	n.NewDBValid = n.NewDBValid || newDB
-	n.OldDBValid = n.OldDBValid || oldDB
 	n.CanExec = n.CanExec || exec
 
 	var isNewLeader bool
@@ -348,6 +357,7 @@ func (g *Group) updateTask(msg swomsg.Message, upsert bool) error {
 var ErrDone = errors.New("already done")
 
 func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
+	g.nodeIDs.Add(msg.Node)
 	g.mx.Lock()
 	defer g.mx.Unlock()
 
@@ -357,7 +367,7 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 
 	switch msg.Type {
 	case "hello-exec":
-		if g.addNode(msg.Node, true, false, true) {
+		if g.addNode(msg.Node, true) {
 			// we are the new leader, perform DB reset
 			return g.startTask(ctx, "reset-db", g.ResetFunc)
 		}
@@ -368,7 +378,7 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 	case "task-progress":
 		return g.updateTask(msg, true)
 	case "hello":
-		g.addNode(msg.Node, true, false, false)
+		g.addNode(msg.Node, false)
 	case "ping":
 	case "done":
 		g.State = stateDone

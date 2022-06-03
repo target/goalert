@@ -69,8 +69,8 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 
 		nodes = append(nodes, graphql2.SWONode{
 			ID:       n.ID.String(),
-			OldValid: n.OldDBValid,
-			NewValid: n.NewDBValid,
+			OldValid: n.OldDBValid(),
+			NewValid: n.NewDBValid(),
 			IsLeader: n.IsLeader,
 			CanExec:  n.CanExec,
 			Status:   strings.Join(tasks, ","),

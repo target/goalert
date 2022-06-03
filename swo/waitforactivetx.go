@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/swo/swogrp"
 )
 
@@ -16,16 +17,17 @@ func (e *Execute) WaitForActiveTx(ctx context.Context) {
 
 	swogrp.Progressf(ctx, "waiting for in-flight transactions to finish")
 
+	db := swodb.New(e.mainDBConn)
+
 	var now time.Time
-	err := e.mainDBConn.QueryRow(ctx, "select now()").Scan(&now)
+	now, err := db.CurrentTime(ctx)
 	if err != nil {
 		e.err = fmt.Errorf("wait for active tx: get current time: %w", err)
 		return
 	}
 
 	for {
-		var n int
-		err = e.mainDBConn.QueryRow(ctx, "select count(*) from pg_stat_activity where state <> 'idle' and xact_start <= $1", now).Scan(&n)
+		n, err := db.ActiveTxCount(ctx, now)
 		if err != nil {
 			e.err = fmt.Errorf("wait for active tx: get active tx count: %w", err)
 			return

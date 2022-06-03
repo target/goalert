@@ -1,3 +1,15 @@
+CREATE UNLOGGED TABLE change_log (
+    id BIGSERIAL PRIMARY KEY,
+    table_name TEXT NOT NULL,
+    row_id TEXT NOT NULL
+);
+
+ALTER TABLE change_log
+SET (
+        autovacuum_enabled = FALSE,
+        toast.autovacuum_enabled = FALSE
+    );
+
 CREATE
 OR REPLACE FUNCTION fn_process_change_log() RETURNS TRIGGER AS $$
 DECLARE cur_state enum_switchover_state := 'idle';

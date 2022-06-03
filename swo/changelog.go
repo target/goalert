@@ -8,13 +8,8 @@ import (
 	"github.com/target/goalert/swo/swogrp"
 )
 
-var (
-	//go:embed changelog_table.sql
-	changelogTable string
-
-	//go:embed changelog_trigger.sql
-	changelogTrigger string
-)
+//go:embed changelog.sql
+var changelogQuery string
 
 func (e *Execute) exec(ctx context.Context, conn pgxQueryer, query string) {
 	if e.err != nil {
@@ -42,8 +37,7 @@ func (e *Execute) EnableChangeLog(ctx context.Context) {
 	}
 
 	swogrp.Progressf(ctx, "enabling change log")
-	e.exec(ctx, e.mainDBConn, changelogTable)
-	e.exec(ctx, e.mainDBConn, changelogTrigger)
+	e.exec(ctx, e.mainDBConn, changelogQuery)
 
 	// create triggers for all tables
 	for _, table := range e.tables {

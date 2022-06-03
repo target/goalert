@@ -5,6 +5,7 @@ package devtools
 
 import (
 	_ "github.com/gordonklaus/ineffassign"
+	_ "github.com/kyleconroy/sqlc/cmd/sqlc"
 	_ "github.com/mailhog/MailHog"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/cmd/stringer"

@@ -44,13 +44,13 @@ func (t Table) QuotedLockTriggerName() string {
 func (t Table) ColumnNames() []string {
 	colNames := make([]string, len(t.Columns))
 	for i, col := range t.Columns {
-		colNames[i] = col.Name
+		colNames[i] = col.ColumnName
 	}
 	return colNames
 }
 
 func (t Table) SelectRowsQuery() string {
-	if t.IDCol.Type == "USER-DEFINED" {
+	if t.IDCol.DataType == "USER-DEFINED" {
 		return fmt.Sprintf(`select id::text, to_jsonb(row) from %s row where id::text = any($1)`, t.QuotedName())
 	}
 	return fmt.Sprintf(`select id::text, to_jsonb(row) from %s row where id = any($1)`, t.QuotedName())
@@ -74,7 +74,7 @@ func (t Table) UpdateRowsQuery() string {
 		if i > 0 {
 			set.WriteString(", ")
 		}
-		set.WriteString(fmt.Sprintf("%s = data.%s", col.Name, col.Name))
+		set.WriteString(fmt.Sprintf("%s = data.%s", col.ColumnName, col.ColumnName))
 	}
 
 	return fmt.Sprintf(`

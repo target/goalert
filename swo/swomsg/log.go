@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/util/log"
 )
 
@@ -34,9 +34,14 @@ type logEvent struct {
 }
 
 func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
-	var lastID int64
+	conn, err := stdlib.AcquireConn(db)
+	if err != nil {
+		return nil, err
+	}
+	defer stdlib.ReleaseConn(db, conn)
+
 	// only ever load new events
-	err := db.QueryRowContext(ctx, "select coalesce(max(id), 0) from switchover_log").Scan(&lastID)
+	lastID, err := swodb.New(conn).LastLogID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +67,7 @@ func (l *Log) readLoop(ctx context.Context, lastID int64) {
 		for _, e := range events {
 			lastID = e.ID
 			var w Message
-			err = json.Unmarshal(e.Data, &w)
+			err = json.Unmarshal(e.Data.Bytes, &w)
 			if err != nil {
 				log.Log(ctx, fmt.Errorf("error parsing event: %v", err))
 				continue
@@ -89,33 +94,20 @@ func ctxSleep(ctx context.Context, d time.Duration) error {
 	}
 }
 
-func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]logEvent, error) {
+func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverLog, error) {
 	err := ctxSleep(ctx, PollInterval-time.Since(l.lastLoad))
 	if err != nil {
 		return nil, err
 	}
 	l.lastLoad = time.Now()
 
-	rows, err := l.db.QueryContext(ctx, "select id, timestamp, data from switchover_log where id > $1 order by id asc limit 100", lastID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
+	conn, err := stdlib.AcquireConn(l.db)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer stdlib.ReleaseConn(l.db, conn)
 
-	var events []logEvent
-	var r logEvent
-	for rows.Next() {
-		err := rows.Scan(&r.ID, &r.Timestamp, &r.Data)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, r)
-	}
-
-	return events, nil
+	return swodb.New(conn).LogEvents(ctx, lastID)
 }
 
 func (l *Log) Append(ctx context.Context, msg Message) error {

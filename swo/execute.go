@@ -9,7 +9,7 @@ import (
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
-	"github.com/target/goalert/lock"
+	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/swo/swogrp"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -36,22 +36,7 @@ func NewExecute(ctx context.Context, mainDBConn, nextDBConn *pgx.Conn, grp *swog
 		return nil, fmt.Errorf("scan tables: %w", err)
 	}
 
-	var seqNames []string
-	var name string
-	_, err = mainDBConn.QueryFunc(ctx, `
-		select sequence_name
-		from information_schema.sequences
-		where
-			sequence_catalog = current_database() and
-			sequence_schema = 'public'
-	`, nil, []interface{}{&name}, func(r pgx.QueryFuncRow) error {
-		if name == "change_log_id_seq" {
-			// skip, as it does not exist in next db
-			return nil
-		}
-		seqNames = append(seqNames, name)
-		return nil
-	})
+	seqNames, err := swodb.New(mainDBConn).SequenceNames(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("scan sequences: %w", err)
 	}
@@ -165,26 +150,25 @@ func (e *Execute) enableTriggers(ctx context.Context) error {
 // is set to in_progress.
 func (e *Execute) stopTheWorld(ctx context.Context, srcTx pgx.Tx) error {
 	e.Progressf(ctx, "stop-the-world")
-	_, err := srcTx.Exec(ctx, fmt.Sprintf("select pg_advisory_xact_lock(%d)", lock.GlobalSwitchOver))
+	err := swodb.New(srcTx).GlobalSwitchoverTxExclusiveConnLock(ctx)
 	if err != nil {
 		return err
 	}
 
-	var stat string
-	err = srcTx.QueryRow(ctx, "select current_state from switchover_state nowait").Scan(&stat)
+	stat, err := swodb.New(srcTx).CurrentSwitchoverStateNoWait(ctx)
 	if err != nil {
 		return err
 	}
 	switch stat {
-	case "in_progress":
+	case swodb.EnumSwitchoverStateInProgress:
 		return nil
-	case "use_next_db":
+	case swodb.EnumSwitchoverStateUseNextDb:
 		return swogrp.ErrDone
-	case "idle":
+	case swodb.EnumSwitchoverStateIdle:
 		return errors.New("not in progress")
 	default:
 		if e.err == nil {
-			return errors.New("unknown state: " + stat)
+			return errors.New("unknown state: " + string(stat))
 		}
 		return e.err
 	}
@@ -280,7 +264,7 @@ func (e *Execute) syncTx(ctx context.Context, readOnly bool) (src, dst pgx.Tx, e
 }
 
 func (t Table) IDs(ids []string) interface{} {
-	switch t.IDCol.Type {
+	switch t.IDCol.DataType {
 	case "integer", "bigint":
 		return sqlutil.IntArray(intIDs(ids))
 	case "uuid":
