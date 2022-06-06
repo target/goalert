@@ -50,12 +50,12 @@ func (app *App) engineStatus(w http.ResponseWriter, req *http.Request) {
 
 func (app *App) engineCycle(w http.ResponseWriter, req *http.Request) {
 	if app.mgr.Status() == lifecycle.StatusShutdown {
-		http.Error(w, "server shutting down", http.StatusInternalServerError)
+		http.Error(w, "server shutting down", http.StatusBadRequest)
 		return
 	}
 
 	if app.cfg.APIOnly {
-		http.Error(w, "engine not running", http.StatusInternalServerError)
+		http.Error(w, "engine not running", http.StatusBadRequest)
 		return
 	}
 
