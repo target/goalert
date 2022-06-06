@@ -2,19 +2,16 @@ package app
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/twilio"
 
 	"github.com/pkg/errors"
-	"go.opencensus.io/plugin/ochttp"
 )
 
 func (app *App) initTwilio(ctx context.Context) error {
 	app.twilioConfig = &twilio.Config{
 		BaseURL: app.cfg.TwilioBaseURL,
-		Client:  &http.Client{Transport: &ochttp.Transport{}},
 		CMStore: app.ContactMethodStore,
 	}
 

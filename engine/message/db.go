@@ -19,7 +19,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-	"go.opencensus.io/trace"
 
 	"github.com/pkg/errors"
 )
@@ -498,6 +497,7 @@ func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.Send
 		retry.FibBackoff(time.Millisecond*100),
 	)
 }
+
 func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.SendResult) error {
 	if status == nil {
 		// nothing to do
@@ -598,8 +598,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "acquire global sending advisory lock")
 	}
 	defer func() {
-		ctx := trace.NewContext(context.Background(), trace.FromContext(execCtx))
-		cLock.ExecWithoutLock(ctx, `select pg_advisory_unlock_all()`)
+		cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock_all()`)
 	}()
 
 	tx, err := cLock.BeginTx(execCtx, nil)
@@ -840,18 +839,12 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 }
 
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
-	ctx, sp := trace.StartSpan(ctx, "Engine.MessageManager.SendMessage")
-	defer sp.End()
 	ctx = log.WithFields(ctx, log.Fields{
 		"DestTypeID": m.Dest.ID,
 		"DestType":   m.Dest.Type.String(),
 		"CallbackID": m.ID,
 	})
-	sp.AddAttributes(
-		trace.StringAttribute("message.dest.id", m.Dest.ID),
-		trace.StringAttribute("message.dest.type", m.Dest.Type.String()),
-		trace.StringAttribute("message.callback.id", m.ID),
-	)
+
 	if m.AlertID != 0 {
 		ctx = log.WithField(ctx, "AlertID", m.AlertID)
 	}
