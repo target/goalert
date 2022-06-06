@@ -639,21 +639,25 @@ function testServices(screen: ScreenFormat): void {
   describe('Metrics', () => {
     let closedAlert: Alert
     let openAlert: Alert
-    beforeEach(() =>
-      cy
-        .createAlert()
-        .then((a: Alert) => {
-          closedAlert = a
-          cy.ackAlert(a.id)
-          cy.closeAlert(a.id)
-          // non-closed alert
-          return cy.createAlert({ serviceID: a.serviceID })
-        })
-        .then((a: Alert) => {
-          openAlert = a
-          return cy.visit(`/services/${a.serviceID}/alert-metrics`)
-        }),
-    )
+    let svc: Service
+    beforeEach(() => {
+      cy.createService({ ep: { stepCount: 1 } }).then((s: Service) => {
+        svc = s
+        cy.createAlert({ serviceID: svc.id })
+          .then((a: Alert) => {
+            closedAlert = a
+            cy.escalateAlert(a.id)
+            cy.ackAlert(a.id)
+            cy.closeAlert(a.id)
+            // non-closed alert
+            return cy.createAlert({ serviceID: svc.id })
+          })
+          .then((a: Alert) => {
+            openAlert = a
+            return cy.visit(`/services/${svc.id}/alert-metrics`)
+          })
+      })
+    })
 
     it('should display alert metrics', () => {
       const now = DateTime.local().toLocaleString({
@@ -672,6 +676,13 @@ function testServices(screen: ScreenFormat): void {
       cy.get('[data-cy=metrics-count-graph]')
         .should('contain', now)
         .should('contain', 'Alert Count: 1')
+
+      cy.get('path[name="Escalated Count"]')
+        .should('have.length', 1)
+        .trigger('mouseover')
+      cy.get('[data-cy=metrics-count-graph]')
+        .should('contain', now)
+        .should('contain', 'Escalated Count: 1')
 
       cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0)
       cy.get('[data-cy=metrics-averages-graph]')
