@@ -26,8 +26,13 @@ func newCycleMonitor() *cycleMonitor {
 }
 
 func (c *cycleMonitor) _newID() {
+	// remove oldest cycle
 	delete(c.cycles, c.history[cycleHist-1])
+
+	// shift history
 	copy(c.history[:], c.history[1:])
+
+	// add new cycle
 	c.history[0] = uuid.New()
 	c.cycles[c.history[0]] = make(chan struct{})
 }
