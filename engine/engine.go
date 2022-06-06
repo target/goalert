@@ -450,6 +450,7 @@ func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 }
 
 func (p *Engine) cycle(ctx context.Context) {
+	// track start of next cycle, and defer the call to the returned sfinish function
 	defer p.startNextCycle()()
 	ctx = p.cfg.ConfigSource.Config().Context(ctx)
 
