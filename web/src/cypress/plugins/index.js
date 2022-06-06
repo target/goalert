@@ -50,7 +50,7 @@ function execQuery(query) {
   })
 }
 
-let durations = []
+const durations = []
 
 function fastForwardDB(duration) {
   if (duration) durations.push(duration)
