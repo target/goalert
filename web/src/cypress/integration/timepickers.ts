@@ -77,27 +77,17 @@ function testTimePickers(): void {
 
     describe('Native', () => {
       check(
-        'should handle selecting date values when displaying the same time zone',
-        '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z',
+        'should handle selecting date values',
+        '?start=2006-01-02T06%3A00%3A00.000Z',
         '1/2/2006',
-      )
-      check(
-        'should handle selecting date values when displaying an alternate time zone',
-        '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z',
-        '1/1/2006',
       )
     })
 
     describe('Fallback', () => {
       check(
-        'should handle selecting date values when displaying the same time zone',
-        '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
+        'should handle selecting date values',
+        '?start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
         '1/2/2006',
-      )
-      check(
-        'should handle selecting date values when displaying an alternate time zone',
-        '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/1/2006',
       )
     })
   })

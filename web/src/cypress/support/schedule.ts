@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime, Interval } from 'luxon'
 import {
+  CreateScheduleInput,
   OnCallNotificationRuleInput,
   Schedule,
   ScheduleTarget,
@@ -198,7 +199,7 @@ function setScheduleTarget(
 }
 
 function createSchedule(
-  sched?: Partial<Schedule>,
+  sched?: Partial<CreateScheduleInput>,
 ): Cypress.Chainable<Schedule> {
   const query = `mutation createSchedule($input: CreateScheduleInput!){
       createSchedule(input: $input) {
@@ -218,7 +219,8 @@ function createSchedule(
         name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
         description: sched.description || c.sentence(),
         timeZone: sched.timeZone || 'America/Chicago',
-        favorite: sched.isFavorite,
+        favorite: sched.favorite,
+        targets: sched.targets,
       },
     })
     .then((res: GraphQLResponse) => res.createSchedule)

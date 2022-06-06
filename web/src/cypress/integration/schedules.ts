@@ -159,6 +159,41 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('p').should('contain', 'Showing shifts')
       })
     })
+
+    it('should display correct local time on hover', () => {
+      cy.createSchedule({
+        timeZone: 'America/New_York',
+        targets: [
+          {
+            newRotation: {
+              name: 'test rotation',
+              timeZone: 'America/New_York',
+              start: '2022-01-01T00:00:00-00:00',
+              type: 'daily',
+              shiftLength: 6,
+              userIDs: [users[0].id],
+            },
+            rules: [
+              {
+                start: '00:00',
+                end: '20:00',
+                weekdayFilter: [true, true, true, true, true, true, true],
+              },
+            ],
+          },
+        ],
+      }).then((s: Schedule) =>
+        cy.visit(`/schedules/${s.id}/shifts?activeOnly=1`),
+      )
+
+      cy.get('body').should('contain', 'From 12:00 AM to 8:00 PM EDT')
+
+      cy.get('[data-cy="shift-details"]').trigger('mouseover')
+      cy.get('[aria-label="local-timezone-tooltip"]').should(
+        'contain',
+        'From 11:00 PM to 7:00 PM CDT',
+      )
+    })
   })
 
   describe('Schedule Assignments', () => {

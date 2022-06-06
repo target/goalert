@@ -149,7 +149,7 @@ function ScheduleShiftList({ scheduleID }) {
             'aria-label': 'local-timezone-tooltip',
           }}
         >
-          <span>{shiftDetails}</span>
+          <span data-cy='shift-details'>{shiftDetails}</span>
         </Tooltip>
       )
     }
