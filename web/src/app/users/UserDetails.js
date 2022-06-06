@@ -180,11 +180,9 @@ export default function UserDetails(props) {
         <UserContactMethodCreateDialog
           userID={userID}
           disclaimer={disclaimer}
-          onClose={(result) => {
+          onClose={(contactMethodID) => {
             setCreateCM(false)
-            setShowVerifyDialogByID(
-              result && result.contactMethodID ? result.contactMethodID : null,
-            )
+            setShowVerifyDialogByID(contactMethodID)
           }}
         />
       )}

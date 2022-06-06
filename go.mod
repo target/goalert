@@ -4,14 +4,11 @@ go 1.18
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
-	contrib.go.opencensus.io/exporter/jaeger v0.2.1
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.10
 	github.com/99designs/gqlgen v0.16.0
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/alexeyco/simpletable v1.0.0
-	github.com/aws/aws-sdk-go v1.42.25 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/coreos/go-oidc v2.2.1+incompatible
@@ -64,7 +61,7 @@ require (
 	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/vbauerster/mpb/v4 v4.12.2
 	github.com/vektah/gqlparser/v2 v2.3.1
-	go.opencensus.io v0.23.0
+	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20220213190939-1e6e3497d506
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
@@ -83,7 +80,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v0.1.0
 	github.com/creack/pty v1.1.17
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	gorm.io/driver/postgres v1.2.3
@@ -91,10 +87,9 @@ require (
 )
 
 require (
+	cloud.google.com/go/compute v0.1.0 // indirect
 	cloud.google.com/go/iam v0.1.1 // indirect
-	cloud.google.com/go/monitoring v1.1.0 // indirect
 	cloud.google.com/go/storage v1.18.2 // indirect
-	cloud.google.com/go/trace v1.0.0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -104,7 +99,6 @@ require (
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/andybalholm/cascadia v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -151,12 +145,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/uber/jaeger-client-go v2.25.0+incompatible // indirect
 	github.com/vanng822/css v0.0.0-20190504095207-a21e860bcd04 // indirect
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220314205449-43aec2f8a4e7 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.64.0 // indirect

@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 	"time"
-
-	"go.opencensus.io/trace"
 )
 
 type loaderConfig struct {
@@ -67,7 +65,6 @@ func (l *loader) init() {
 
 // load will perform a batch load for a list of entries
 func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
-
 	// If we need to load more than the max, call load with the max, and return the rest.
 	if len(entries) > l.cfg.Max {
 		l.load(entries[:l.cfg.Max])
@@ -80,8 +77,7 @@ func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
 	copy(cpy, entries)
 
 	go func() {
-		ctx, sp := trace.StartSpan(l.ctx, "Loader.Fetch/"+l.cfg.Name)
-		defer sp.End()
+		ctx := l.ctx
 
 		// Map the entries out by ID, and collect the list of IDs
 		// for the DB call.
@@ -145,7 +141,6 @@ func (l *loader) entry(req loaderReq) (*loaderEntry, bool) {
 }
 
 func (l *loader) loop() {
-
 	// timerStart tracks if the delay timer has started or not.
 	var timerStart bool
 	var t *time.Timer

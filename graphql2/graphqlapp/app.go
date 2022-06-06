@@ -47,7 +47,6 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"go.opencensus.io/trace"
 )
 
 type App struct {
@@ -106,6 +105,7 @@ func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver)
 
 	return a.Tracer.InterceptField(ctx, next)
 }
+
 func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	if !a.shouldTrace(ctx) {
 		return next(ctx)
@@ -156,12 +156,6 @@ func (a *App) Handler() http.Handler {
 		}()
 		fieldCtx := graphql.GetFieldContext(ctx)
 
-		ctx, sp := trace.StartSpan(ctx, "GQL."+fieldCtx.Object+"."+fieldCtx.Field.Name, trace.WithSpanKind(trace.SpanKindServer))
-		defer sp.End()
-		sp.AddAttributes(
-			trace.StringAttribute("graphql.object", fieldCtx.Object),
-			trace.StringAttribute("graphql.field.name", fieldCtx.Field.Name),
-		)
 		start := time.Now()
 		res, err = next(ctx)
 		errVal := "0"
@@ -173,11 +167,7 @@ func (a *App) Handler() http.Handler {
 				WithLabelValues(fmt.Sprintf("%s.%s", fieldCtx.Object, fieldCtx.Field.Name), errVal).
 				Observe(time.Since(start).Seconds())
 		}
-		if err != nil {
-			sp.Annotate([]trace.Attribute{
-				trace.BoolAttribute("error", true),
-			}, err.Error())
-		} else if fieldCtx.Object == "Mutation" {
+		if err == nil && fieldCtx.Object == "Mutation" {
 			ctx = log.WithFields(ctx, log.Fields{
 				"MutationName": fieldCtx.Field.Name,
 			})

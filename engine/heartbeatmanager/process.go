@@ -11,7 +11,6 @@ import (
 	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
-	"go.opencensus.io/trace"
 )
 
 // UpdateAll will process all heartbeats opening and closing alerts as needed.
@@ -34,7 +33,6 @@ func (db *DB) processAll(ctx context.Context) error {
 	defer tx.Rollback()
 
 	var newAlertCtx []context.Context
-	var newAlerts []alert.Alert
 	bad, err := db.unhealthy(ctx, tx)
 	if err != nil {
 		return errors.Wrap(err, "fetch unhealthy heartbeats")
@@ -60,7 +58,6 @@ func (db *DB) processAll(ctx context.Context) error {
 				"AlertID":   a.ID,
 				"ServiceID": a.ServiceID,
 			}))
-			newAlerts = append(newAlerts, *a)
 		}
 	}
 	good, err := db.healthy(ctx, tx)
@@ -90,17 +87,8 @@ func (db *DB) processAll(ctx context.Context) error {
 	// log new alert creations, after the tx was committed without err.
 	for _, ctx := range newAlertCtx {
 		log.Logf(ctx, "Alert created.")
+	}
 
-	}
-	for _, n := range newAlerts {
-		trace.FromContext(ctx).Annotate(
-			[]trace.Attribute{
-				trace.StringAttribute("service.id", n.ServiceID),
-				trace.Int64Attribute("alert.id", int64(n.ID)),
-			},
-			"Alert created.",
-		)
-	}
 	return nil
 }
 
@@ -135,6 +123,7 @@ func (db *DB) unhealthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 	}
 	return result, nil
 }
+
 func (db *DB) healthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 	rows, err := tx.Stmt(db.fetchHealthy).QueryContext(ctx)
 	if err != nil {
