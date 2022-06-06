@@ -15,7 +15,6 @@ export function getAnnouncements(
 
   return {
     onDragStart({ active: { id } }) {
-      console.log('isFirstAnnouncement? ', isFirstAnnouncement)
       return `Picked up sortable item ${String(
         id,
       )}. Sortable item ${id} is in position ${getPosition(id)} of ${

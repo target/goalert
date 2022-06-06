@@ -99,7 +99,7 @@ function testRotations(): void {
         .should('contain', rot.users[1].name)
     })
 
-    it.only('should allow re-ordering participants', () => {
+    it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
 
@@ -111,16 +111,20 @@ function testRotations(): void {
         .parent('[tabindex]')
         .focus()
         .type(' ')
-
-      cy.get('body').should('contain', 'You have lifted an item in position 1')
-
+      cy.get('body').should(
+        'contain',
+        'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
+      )
       cy.focused().type('{downarrow}', { force: true })
-
-      cy.get('body')
-        .should('contain', 'You have moved the item from position 1')
-        .should('contain', 'to position 2')
-
+      cy.get('body').should(
+        'contain',
+        'Sortable item 0 was moved into position 2 of 3',
+      )
       cy.focused().type(' ', { force: true })
+      cy.get('body').should(
+        'contain',
+        'Sortable item 0 was dropped at position 2 of 3',
+      )
 
       cy.get('ul[data-cy=users]').find('li').as('parts')
       cy.get('@parts')
