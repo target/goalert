@@ -112,6 +112,7 @@ export default function AlertAveragesGraph(
               strokeWidth={2}
               stroke={theme.palette.primary.main}
               activeDot={{ r: 8 }}
+              isAnimationActive={false}
               dot={CustomDot}
               name='Average Time To Acknowledge'
             />
@@ -119,6 +120,7 @@ export default function AlertAveragesGraph(
               type='monotone'
               strokeWidth={2}
               dataKey='avgTimeToClose'
+              isAnimationActive={false}
               stroke={
                 theme.palette.mode === 'light'
                   ? theme.palette.secondary.dark

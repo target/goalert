@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
-import { useParams } from 'react-router-dom'
 import {
   QueryHookOptions,
   useMutation,
@@ -87,8 +86,13 @@ type Session = {
   userAgent: string
 }
 
-export default function UserSessionList(): JSX.Element {
-  const { userID } = useParams<{ userID: string }>()
+export type UserSessionListProps = {
+  userID: string
+}
+
+export default function UserSessionList({
+  userID,
+}: UserSessionListProps): JSX.Element {
   // handles both logout all and logout individual sessions
   const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 
