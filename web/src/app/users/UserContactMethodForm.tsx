@@ -6,6 +6,7 @@ import TelTextField from '../util/TelTextField'
 import { MenuItem, Typography } from '@mui/material'
 import { ContactMethodType } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
+import { FieldError } from '../util/errutil'
 
 type Value = {
   name: string
@@ -17,10 +18,12 @@ export type UserContactMethodFormProps = {
   value: Value
   disclaimer?: string
 
-  errors?: Array<{ field: 'name' | 'type' | 'value'; message: string }>
+  errors?: Array<FieldError>
 
   disabled?: boolean
   edit?: boolean
+
+  onChange?: (CMValue: Value) => void
 }
 
 function renderEmailField(edit: boolean): JSX.Element {
