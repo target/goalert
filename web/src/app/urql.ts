@@ -68,9 +68,10 @@ const refetchExchange = (): Exchange => {
 // refetch every 15 sec or on refocus, every 10 sec for Cypress
 let poll: NodeJS.Timer
 function resetPoll(): void {
-  if (new URLSearchParams(location.search).get('poll') === '0') return
+  if (new URLSearchParams(location.search).get('poll') === '0' || isCypress)
+    return
   clearInterval(poll)
-  poll = setInterval(refetchAll, isCypress ? 10000 : 15000)
+  poll = setInterval(refetchAll, 15000)
 }
 window.addEventListener('visibilitychange', () => {
   switch (document.visibilityState) {

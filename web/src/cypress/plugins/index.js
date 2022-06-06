@@ -2,15 +2,27 @@
 const http = require('http')
 const { exec } = require('child_process')
 
-function makeDoCall(path) {
+function makeDoCall(path, base = 'http://127.0.0.1:3033') {
   return () =>
     new Promise((resolve, reject) => {
-      http.get('http://127.0.0.1:3033' + path, (res) => {
+      http.get(base + path, (res) => {
         if (res.statusCode !== 200) {
-          reject(new Error('request failed: ' + res.statusCode))
+          reject(
+            new Error(`request failed: ${res.statusCode}; url=${base + path}`),
+          )
           return
         }
-        resolve(null)
+        let data = ''
+        res.on('data', (chunk) => {
+          data += chunk
+        })
+        res.on('end', () => {
+          resolve(data)
+        })
+
+        res.on('error', (err) => {
+          reject(err)
+        })
       })
     })
 }
@@ -61,14 +73,23 @@ function fastForwardDB(duration) {
 }
 
 let failed = false
-module.exports = (on) => {
+module.exports = (on, config) => {
+  async function engineCycle() {
+    const cycleID = await makeDoCall('/health/engine/cycle', config.baseUrl)()
+    await makeDoCall('/signal?sig=SIGUSR2')()
+    await makeDoCall('/health/engine?id=' + cycleID, config.baseUrl)()
+    return null
+  }
+  async function fastForward(dur) {
+    await fastForwardDB(dur)
+    await engineCycle()
+    return null
+  }
+
   on('task', {
-    'engine:trigger': makeDoCall('/signal?sig=SIGUSR2'),
-    'db:fastforward': fastForwardDB,
-    'db:resettime': () => {
-      durations = []
-      return fastForwardDB()
-    },
+    'engine:trigger': engineCycle,
+    'db:fastforward': fastForward,
+    'db:resettime': () => fastForwardDB(),
     'engine:start': makeDoCall('/start'),
     'engine:stop': makeDoCall('/stop'),
     'check:abort': () => failed,
