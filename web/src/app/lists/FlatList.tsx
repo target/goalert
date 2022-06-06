@@ -301,8 +301,16 @@ export default function FlatList({
   }
 
   function renderList(): JSX.Element {
+    let sx = listProps.sx
+    if (onReorder) {
+      sx = {
+        ...sx,
+        display: 'grid',
+      }
+    }
+
     return (
-      <List {...listProps}>
+      <List {...listProps} sx={sx}>
         {(headerNote || headerAction) && (
           <MUIListItem>
             {headerNote && (

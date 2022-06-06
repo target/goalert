@@ -43,9 +43,9 @@ export function DraggableListItem({
     transition,
     backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
     cursor: 'pointer',
+    zIndex: isDragging ? 9001 : 1,
   }
 
-  // todo: show cursor as pointer when dragging
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <FlatListItem index={index} item={item} />
