@@ -81,7 +81,7 @@ function testUsers(screen: ScreenFormat): void {
 
         cy.navigateToAndFrom(
           screen,
-          'User Details',
+          'Users',
           user.name,
           'On-Call Assignments',
           `${user.id}/on-call-assignments`,
@@ -138,7 +138,7 @@ function testUsers(screen: ScreenFormat): void {
 
         cy.navigateToAndFrom(
           screen,
-          'User Details',
+          'Users',
           user.name,
           'Sessions',
           `${user.id}/sessions`,
