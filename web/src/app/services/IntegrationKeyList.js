@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import { useParams } from 'react-router-dom'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -85,8 +84,7 @@ IntegrationKeyDetails.propTypes = {
   type: p.string.isRequired,
 }
 
-export default function IntegrationKeyList() {
-  const { serviceID } = useParams()
+export default function IntegrationKeyList({ serviceID }) {
   const classes = useStyles()
 
   const [create, setCreate] = useState(false)

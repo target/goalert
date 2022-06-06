@@ -1,7 +1,6 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
-import { BrowserRouter } from 'react-router-dom'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
 
@@ -17,6 +16,7 @@ import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
 import { Provider as URQLProvider } from 'urql'
 import { client as urqlClient } from './urql'
+import { Router } from 'wouter'
 
 // version check
 if (
@@ -43,7 +43,7 @@ root.render(
       <ThemeProvider>
         <ApolloProvider client={GraphQLClient}>
           <ReduxProvider store={store}>
-            <BrowserRouter basename={pathPrefix}>
+            <Router base={pathPrefix}>
               <MuiPickersUtilsProvider>
                 <URQLProvider value={urqlClient}>
                   <ConfigProvider>
@@ -52,7 +52,7 @@ root.render(
                   </ConfigProvider>
                 </URQLProvider>
               </MuiPickersUtilsProvider>
-            </BrowserRouter>
+            </Router>
           </ReduxProvider>
         </ApolloProvider>
       </ThemeProvider>
