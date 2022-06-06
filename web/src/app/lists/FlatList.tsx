@@ -1,4 +1,4 @@
-import React, { useState, MouseEvent } from 'react'
+import React, { useRef, useState, MouseEvent } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
@@ -27,7 +27,7 @@ import {
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
 import FlatListItem from './FlatListItem'
-import { DraggableListItem } from './DraggableListItem'
+import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 
 const useStyles = makeStyles({
   alert: {
@@ -139,6 +139,7 @@ export default function FlatList({
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
+  // drag and drop stuff
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -149,7 +150,13 @@ export default function FlatList({
     // use IDs to sort, fallback to index
     items.map((i, idx) => (i.id ? i.id : idx.toString())),
   )
-
+  const isFirstAnnouncement = useRef(false)
+  const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
+  function handleDragStart(): void {
+    if (!isFirstAnnouncement.current) {
+      isFirstAnnouncement.current = true
+    }
+  }
   function handleDragEnd(e: DragEndEvent): void {
     if (!onReorder || !e.over) return
     if (e.active.id !== e.over.id) {
@@ -336,8 +343,10 @@ export default function FlatList({
   if (onReorder) {
     return (
       <DndContext
+        accessibility={{ announcements }}
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={dndItems}>{renderList()}</SortableContext>
