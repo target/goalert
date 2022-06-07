@@ -55,9 +55,6 @@ const useStyles = makeStyles({
   datePicker: {
     width: '100%',
   },
-  popper: {
-    opacity: 1,
-  },
 })
 
 function ScheduleShiftList({ scheduleID }) {
@@ -144,7 +141,6 @@ function ScheduleShiftList({ scheduleID }) {
         <Tooltip
           title={`From ${localStartTime} to ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
-          classes={{ popper: classes.popper }}
           PopperProps={{
             'aria-label': 'local-timezone-tooltip',
           }}
@@ -166,7 +162,6 @@ function ScheduleShiftList({ scheduleID }) {
             s.truncated ? ' at least' : ''
           } ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
-          classes={{ popper: classes.popper }}
           PopperProps={{
             'aria-label': 'local-timezone-tooltip',
           }}
@@ -184,7 +179,6 @@ function ScheduleShiftList({ scheduleID }) {
       <Tooltip
         title={`Active after ${localStartTime} ${localTzAbbr}`}
         placement='bottom-start'
-        classes={{ popper: classes.popper }}
         PopperProps={{
           'aria-label': 'local-timezone-tooltip',
         }}
