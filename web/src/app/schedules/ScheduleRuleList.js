@@ -15,14 +15,7 @@ import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
 import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
-import makeStyles from '@mui/styles/makeStyles'
 import { useScheduleTZ } from './useScheduleTZ'
-
-const useStyles = makeStyles({
-  popper: {
-    opacity: 1,
-  },
-})
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -47,7 +40,6 @@ const query = gql`
 `
 
 export default function ScheduleRuleList({ scheduleID }) {
-  const classes = useStyles()
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)
@@ -82,7 +74,6 @@ export default function ScheduleRuleList({ scheduleID }) {
       <Tooltip
         title={localTzSummary + ` ${localTzAbbr}`}
         placement='bottom-start'
-        classes={{ popper: classes.popper }}
         PopperProps={{
           'aria-label': 'local-timezone-tooltip',
         }}
