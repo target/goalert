@@ -14,13 +14,6 @@ import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
 import { DateTime } from 'luxon'
-import makeStyles from '@mui/styles/makeStyles'
-
-const useStyles = makeStyles({
-  popper: {
-    opacity: 1,
-  },
-})
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -49,7 +42,6 @@ const query = gql`
 `
 
 export default function ScheduleOverrideList({ scheduleID }) {
-  const classes = useStyles()
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
   const [create, setCreate] = useState(null)
@@ -89,7 +81,6 @@ export default function ScheduleOverrideList({ scheduleID }) {
       <Tooltip
         title={localSubText}
         placement='bottom-start'
-        classes={{ popper: classes.popper }}
         PopperProps={{
           'aria-label': 'local-timezone-tooltip',
         }}
