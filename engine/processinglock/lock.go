@@ -7,8 +7,6 @@ import (
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
-
-	"go.opencensus.io/trace"
 )
 
 // A Lock is used to start "locked" transactions.
@@ -45,10 +43,6 @@ func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
 }
 
 func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) (*sql.Tx, error) {
-	ctx, sp := trace.StartSpan(ctx, "ProcessingLock.BeginTx")
-	defer sp.End()
-	l.cfg.decorateSpan(sp)
-
 	tx, err := b.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -85,6 +79,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 
 	return tx, nil
 }
+
 func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...interface{}) (sql.Result, error) {
 	tx, err := l._BeginTx(ctx, b, nil)
 	if err != nil {
