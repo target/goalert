@@ -114,10 +114,8 @@ function testFavorites(): void {
   check(
     'Schedule',
     'schedules',
-    (name: string, isFavorite: boolean) =>
-      cy
-        .createSchedule({ name, isFavorite })
-        .then((sched: Schedule) => sched.id),
+    (name: string, favorite: boolean) =>
+      cy.createSchedule({ name, favorite }).then((sched: Schedule) => sched.id),
     () =>
       cy
         .createEP()
