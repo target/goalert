@@ -30,7 +30,7 @@ const mutation = gql`
   }
 `
 
-const RotationCreateDialog = (props: { onClose: () => void }): JSX.Element => {
+const RotationCreateDialog = (props: { onClose?: () => void }): JSX.Element => {
   const [value, setValue] = useState<Value>({
     name: '',
     description: '',
