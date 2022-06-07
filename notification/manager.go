@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
-	"go.opencensus.io/trace"
 )
 
 // Manager is used as an intermediary between Senders and Receivers.
@@ -72,7 +71,6 @@ func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, valu
 
 // MessageStatus will return the current status of a message.
 func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
-
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
 		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
@@ -82,13 +80,6 @@ func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMes
 	if !ok {
 		return nil, DestTypeUnknown, ErrStatusUnsupported
 	}
-
-	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
-	sp.AddAttributes(
-		trace.StringAttribute("provider.id", providerMsgID.ExternalID),
-		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
-	)
-	defer sp.End()
 
 	status, err := checker.Status(ctx, providerMsgID.ExternalID)
 	return status, provider.destType, err
@@ -152,14 +143,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		tried = true
 
 		sendCtx := log.WithField(ctx, "ProviderName", s.name)
-		sendCtx, sp := trace.StartSpan(sendCtx, "NotificationManager.Send")
-		sp.AddAttributes(
-			trace.StringAttribute("provider.id", s.name),
-			trace.StringAttribute("message.type", msg.Type().String()),
-			trace.StringAttribute("message.id", msg.ID()),
-		)
 		res, err := s.Send(sendCtx, msg)
-		sp.End()
 		if err != nil {
 			log.Log(sendCtx, errors.Wrap(err, "send notification"))
 			continue

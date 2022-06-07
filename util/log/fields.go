@@ -3,7 +3,7 @@ package log
 import (
 	"context"
 
-	"go.opencensus.io/trace"
+	"github.com/google/uuid"
 )
 
 // Fields are used to add values in structured logging.
@@ -12,7 +12,7 @@ type logContextField string
 
 // SetRequestID will assign a unique ID to the context for tracing.
 func SetRequestID(ctx context.Context) context.Context {
-	return context.WithValue(ctx, logContextKeyRequestID, trace.FromContext(ctx).SpanContext().TraceID.String())
+	return context.WithValue(ctx, logContextKeyRequestID, uuid.New().String())
 }
 
 // ContextFields will return the current set of fields associated with a context.
