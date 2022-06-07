@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 	"sync/atomic"
-
-	"go.opencensus.io/trace"
 )
 
 // A Checker is used to give a pass-or-fail result for a given context.
@@ -50,39 +48,11 @@ func LimitCheckAny(ctx context.Context, checks ...Checker) error {
 	}
 	for _, c := range checks {
 		if c != nil && c(ctx) {
-			addAuthAttrs(ctx)
 			return nil
 		}
 	}
 
 	return newGeneric(false, "")
-}
-
-func addAuthAttrs(ctx context.Context) {
-	sp := trace.FromContext(ctx)
-	if sp == nil {
-		return
-	}
-	var attrs []trace.Attribute
-	if User(ctx) {
-		attrs = append(attrs,
-			sourceAttrs(ctx,
-				trace.StringAttribute("auth.user.id", UserID(ctx)),
-				trace.StringAttribute("auth.user.role", string(userRole(ctx))),
-			)...)
-	}
-	if System(ctx) {
-		attrs = append(attrs, trace.StringAttribute("auth.system.componentName", SystemComponentName(ctx)))
-	}
-	if Service(ctx) {
-		attrs = append(attrs, sourceAttrs(ctx,
-			trace.StringAttribute("auth.service.id", ServiceID(ctx)),
-		)...)
-	}
-	if len(attrs) == 0 {
-		return
-	}
-	sp.AddAttributes(attrs...)
 }
 
 // All is a Checker that checks against ALL providers, returning true
