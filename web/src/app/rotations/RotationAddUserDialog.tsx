@@ -12,6 +12,10 @@ interface RotationAddUserDialogProps {
   onClose: () => void
 }
 
+interface Value {
+  users: string[]
+}
+
 const mutation = gql`
   mutation ($input: UpdateRotationInput!) {
     updateRotation(input: $input)
@@ -22,7 +26,7 @@ const RotationAddUserDialog = (
   props: RotationAddUserDialogProps,
 ): JSX.Element => {
   const { rotationID, userIDs, onClose } = props
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<Value>({
     users: [],
   })
   // append to users array from selected users
@@ -57,9 +61,7 @@ const RotationAddUserDialog = (
           errors={fieldErrors(error)}
           disabled={loading}
           value={value}
-          onChange={(value: React.SetStateAction<{ users: never[] }>) =>
-            setValue(value)
-          }
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
