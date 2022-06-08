@@ -27,15 +27,14 @@ function makeDoCall(path, base = 'http://127.0.0.1:3033') {
     })
 }
 
-function execQuery(query) {
+function pgmocktime(flags) {
   return new Promise((resolve, reject) => {
     exec(
-      `psql-lite -d "$DB" -c "$QUERY"`,
+      `pgmocktime -d "$DB" ${flags}`,
       {
         env: {
           PATH: process.env.PATH,
           DB: process.env.CYPRESS_DB_URL,
-          QUERY: query,
         },
       },
       (err, stdout, stderr) => {
@@ -50,26 +49,12 @@ function execQuery(query) {
   })
 }
 
-const durations = []
-
 function fastForwardDB(duration) {
-  if (duration) durations.push(duration)
+  if (!duration) {
+    return pgmocktime('--inject --reset')
+  }
 
-  const durStr = durations.map((d) => `'${d}'::interval`).join(' + ')
-
-  const query = `
-    create schema if not exists testing_overrides;
-    alter database postgres set search_path = "$user", public, testing_overrides, pg_catalog;
-		create or replace function testing_overrides.now()
-		returns timestamp with time zone
-		as $$
-			begin
-			return (pg_catalog.now()${durStr ? ` + ${durStr}` : ''});
-			end;
-		$$ language plpgsql;
-  `
-
-  return execQuery(query)
+  return pgmocktime('-a ' + duration)
 }
 
 let failed = false
@@ -80,6 +65,9 @@ module.exports = (on, config) => {
     await makeDoCall('/health/engine?id=' + cycleID, config.baseUrl)()
     return null
   }
+
+  const stopBackend = makeDoCall('/stop')
+  const startBackend = makeDoCall('/start')
   async function fastForward(dur) {
     await fastForwardDB(dur)
     await engineCycle()
@@ -88,11 +76,17 @@ module.exports = (on, config) => {
 
   on('task', {
     'engine:trigger': engineCycle,
+    'db:setTimeSpeed': (speed) => pgmocktime('-s ' + speed),
     'db:fastforward': fastForward,
     'db:resettime': () => fastForwardDB(),
-    'engine:start': makeDoCall('/start'),
-    'engine:stop': makeDoCall('/stop'),
+    'engine:start': startBackend,
+    'engine:stop': stopBackend,
     'check:abort': () => failed,
+  })
+
+  on('before:spec', async () => {
+    await pgmocktime('--inject --reset')
+    await fastForwardDB()
   })
 
   on('after:spec', (spec, results) => {

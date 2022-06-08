@@ -7,6 +7,9 @@ declare global {
       /** Fast-forwards the test DB clock by the specified duration and triggers a data refetch after. */
       fastForward: typeof fastForward
 
+      /** Alters the passage of time. */
+      setTimeSpeed: typeof setTimeSpeed
+
       /** Triggers the engine to run and triggers a data refetch after. */
       engineTrigger: typeof engineTrigger
 
@@ -21,7 +24,7 @@ function refetchAll(): Cypress.Chainable {
 }
 
 function fastForward(duration: string): Cypress.Chainable {
-  return cy.task('db:fastforward', duration).refetchAll()
+  return cy.task('db:fastforward', duration)
 }
 
 function sql(query: string): Cypress.Chainable {
@@ -40,9 +43,14 @@ function engineTrigger(): Cypress.Chainable {
   return cy.task('engine:trigger').refetchAll()
 }
 
+function setTimeSpeed(speed: number): Cypress.Chainable {
+  return cy.task('db:setTimeSpeed', speed)
+}
+
 Cypress.Commands.add('sql', sql)
 Cypress.Commands.add('fastForward', fastForward)
 Cypress.Commands.add('engineTrigger', engineTrigger)
 Cypress.Commands.add('refetchAll', refetchAll)
+Cypress.Commands.add('setTimeSpeed', setTimeSpeed)
 
 export {}
