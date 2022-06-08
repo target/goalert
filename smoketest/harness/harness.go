@@ -543,7 +543,9 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 
 // Trigger will trigger, and wait for, an engine cycle.
 func (h *Harness) Trigger() {
-	h.backend.Engine.TriggerAndWaitNextCycle(context.Background())
+	id := h.backend.Engine.NextCycleID()
+	go h.backend.Engine.Trigger()
+	h.backend.Engine.WaitCycleID(context.Background(), id)
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
