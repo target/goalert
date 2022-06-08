@@ -52,8 +52,8 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gorm.io/driver/postgres v1.3.7
-	gorm.io/gorm v1.23.5
+	gorm.io/driver/postgres v1.2.3
+	gorm.io/gorm v1.22.5
 	honnef.co/go/tools v0.3.2
 )
 
