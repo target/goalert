@@ -83,6 +83,8 @@ export default function AlertMetrics({
         notCreatedBefore: since.toISO(),
         createdBefore: until.toISO(),
         filterByStatus: ['StatusClosed'],
+        notClosedBefore: since.toISO(),
+        closedBefore: until.toISO(),
       },
       alertMetricsInput: {
         rInterval: `R${Math.floor(

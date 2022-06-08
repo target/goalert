@@ -65,6 +65,12 @@ type SearchOptions struct {
 
 	// serviceNameIDs is used internally to store IDs for services matching the query name.
 	serviceNameIDs []string
+
+	// ClosedBefore will only include alerts that were closed before the provided time.
+	ClosedBefore time.Time `json:"c,omitempty"`
+
+	// NotClosedBefore will omit any alerts closed any time before the provided time.
+	NotClosedBefore time.Time `json:"nc,omitempty"`
 }
 
 type IDFilter struct {
@@ -133,6 +139,12 @@ var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Hel
 				(a.status = :afterStatus::enum_alert_status AND a.id < :afterID)
 			{{ end }}
 		)
+	{{ end }}
+	{{ if not .ClosedBefore.IsZero }}
+		AND (select timestamp from alert_logs where alert_id = a.id and event = 'closed') < :closedBeforeTime
+	{{ end }}
+	{{ if not .NotClosedBefore.IsZero }}
+		AND (select timestamp from alert_logs where alert_id = a.id and event = 'closed') > :notClosedBeforeTime
 	{{ end }}
 	ORDER BY {{.SortStr}}
 	LIMIT {{.Limit}}
@@ -207,6 +219,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("notifiedUserID", opts.NotifiedUserID),
 		sql.Named("beforeTime", opts.Before),
 		sql.Named("notBeforeTime", opts.NotBefore),
+		sql.Named("closedBeforeTime", opts.ClosedBefore),
+		sql.Named("notClosedBeforeTime", opts.NotClosedBefore),
 	}
 }
 
