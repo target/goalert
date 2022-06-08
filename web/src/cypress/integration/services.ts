@@ -641,11 +641,16 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
+        .setTimeSpeed(0) // freeze time
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
+          cy.fastForward('1m')
           cy.ackAlert(a.id)
+          cy.fastForward('1m')
           cy.closeAlert(a.id)
+          cy.fastForward('5m')
+          cy.setTimeSpeed(1) // unfreeze time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
@@ -664,8 +669,6 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
 
-      cy.fastForward('5 minutes')
-
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
@@ -673,11 +676,13 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', now)
         .should('contain', 'Alert Count: 1')
 
-      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0)
+      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0, {
+        force: true,
+      })
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
-        .should('contain', 'Average Time To Acknowledge: 0 sec')
-        .should('contain', 'Average Time To Close: 0 sec')
+        .should('contain', 'Avg. Acknowledge: 1 min')
+        .should('contain', 'Avg. Close: 2 min')
     })
   })
 }

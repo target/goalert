@@ -114,7 +114,7 @@ export default function AlertAveragesGraph(
               activeDot={{ r: 8 }}
               isAnimationActive={false}
               dot={CustomDot}
-              name='Average Time To Acknowledge'
+              name='Avg. Acknowledge'
             />
             <Line
               type='monotone'
@@ -128,7 +128,7 @@ export default function AlertAveragesGraph(
               }
               activeDot={{ r: 8 }}
               dot={CustomDot}
-              name='Average Time To Close'
+              name='Avg. Close'
             />
           </LineChart>
         </ResponsiveContainer>
