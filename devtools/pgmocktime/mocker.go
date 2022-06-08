@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v4"
@@ -17,6 +18,8 @@ type Mocker struct {
 	schema string
 	err    error
 }
+
+var mx sync.Mutex
 
 // New creates a new Mocker capable of manipulating time in a postgres database.
 func New(ctx context.Context, dbURL string) (*Mocker, error) {
@@ -39,6 +42,9 @@ func (m *Mocker) setSpeed(ctx context.Context, s float64) {
 		return
 	}
 
+	mx.Lock()
+	defer mx.Unlock()
+
 	m.exec(ctx, `
 	create or replace function %s.time_speed()
 	returns float
@@ -58,6 +64,8 @@ func (m *Mocker) setOffset(ctx context.Context, offset time.Duration) {
 		return
 	}
 
+	mx.Lock()
+	defer mx.Unlock()
 	m.exec(ctx, `
 	create or replace function %s.time_offset()
 	returns interval
@@ -126,6 +134,8 @@ func (m *Mocker) Inject(ctx context.Context) error {
 	if refTime.IsZero() {
 		return m.readErr("inject")
 	}
+
+	mx.Lock()
 	m.exec(ctx, `
 	create or replace function %s.now()
 	returns timestamptz
@@ -139,6 +149,7 @@ func (m *Mocker) Inject(ctx context.Context) error {
 		refTime.Format(time.RFC3339Nano),
 		refTime.Format(time.RFC3339Nano),
 	)
+	mx.Unlock()
 
 	m.exec(ctx, `alter database %s set search_path = "$user", public, %s, pg_catalog`, m.safeDB(), m.safeSchema())
 	if m.err != nil {
