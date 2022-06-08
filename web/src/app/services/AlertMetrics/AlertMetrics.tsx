@@ -121,12 +121,24 @@ export default function AlertMetrics({
       // strip milliseconds from duration string
       return durStr.substring(0, durStr.lastIndexOf(','))
     }
-    const ackDuration = Duration.fromISO(
-      day.avgTimeToAck ? day.avgTimeToAck : 'PT0S',
-    )
-    const closeDuration = Duration.fromISO(
-      day.avgTimeToClose ? day.avgTimeToClose : 'PT0S',
-    )
+    let ackDuration = Duration.fromISO('PT0S')
+    let closeDuration = Duration.fromISO('PT0S')
+    if (day.avgTimeToAck) {
+      ackDuration = Duration.fromISO(day.avgTimeToAck)
+      // trim unparsable long ISODuration strings
+      if (day.avgTimeToAck.length > 10) {
+        ackDuration = Duration.fromISO(day.avgTimeToAck.substring(0, 10) + 'S')
+      }
+    }
+    if (day.avgTimeToClose) {
+      closeDuration = Duration.fromISO(day.avgTimeToClose)
+      // trim unparsable long ISODuration strings
+      if (day.avgTimeToClose.length > 10) {
+        closeDuration = Duration.fromISO(
+          day.avgTimeToClose.substring(0, 10) + 'S',
+        )
+      }
+    }
 
     const ackAvgMinutes = ackDuration.shiftTo('minutes').minutes
     const closeAvgMinutes = closeDuration.shiftTo('minutes').minutes
