@@ -21,7 +21,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -31,6 +30,7 @@ import (
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/devtools/pgdump-lite"
+	"github.com/target/goalert/devtools/pgmocktime"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -87,22 +87,16 @@ type Harness struct {
 	slackApp  mockslack.AppInfo
 	slackUser mockslack.UserInfo
 
+	pgTime *pgmocktime.Mocker
+
 	ignoreErrors []string
 
 	backend     *app.App
 	backendLogs io.Closer
 
-	dbURL       string
-	dbName      string
-	delayOffset time.Duration
-	mx          sync.Mutex
-
-	start          time.Time
-	resumed        time.Time
-	lastTimeChange time.Time
-	pgResume       time.Time
-
-	db *pgxpool.Pool
+	dbURL  string
+	dbName string
+	mx     sync.Mutex
 
 	userGeneratedIndex int
 
@@ -159,7 +153,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	}
 
 	t.Logf("Using DB URL: %s", dbURL)
-	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "", -1)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -184,14 +177,18 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		MinQueueTime: 100 * time.Millisecond, // until we have a stateless backend for answering calls
 	}
 
+	pgTime, err := pgmocktime.New(ctx, DBURL(name))
+	if err != nil {
+		t.Fatal("create pgmocktime:", err)
+	}
+
 	h := &Harness{
-		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
-		phoneCCG:       NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
-		emailG:         NewDataGen(t, "Email", DataGenFunc(func() string { return GenUUID() + "@example.com" })),
-		dbName:         name,
-		dbURL:          DBURL(name),
-		lastTimeChange: start,
-		start:          start,
+		uuidG:    NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
+		phoneCCG: NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
+		emailG:   NewDataGen(t, "Email", DataGenFunc(func() string { return GenUUID() + "@example.com" })),
+		dbName:   name,
+		dbURL:    DBURL(name),
+		pgTime:   pgTime,
 
 		gqlSessions: make(map[string]string),
 
@@ -213,20 +210,14 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 	h.twS = httptest.NewServer(h.tw)
 
-	// freeze DB time until backend starts
-	h.execQuery(`
-		create schema testing_overrides;
-		alter database `+sqlutil.QuoteID(name)+` set search_path = "$user", public,testing_overrides, pg_catalog;
-		
-
-		create or replace function testing_overrides.now()
-		returns timestamp with time zone
-		as $$
-			begin
-			return '`+start.Format(dbTimeFormat)+`';
-			end;
-		$$ language plpgsql;
-	`, nil)
+	err = h.pgTime.Inject(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = h.pgTime.SetSpeed(ctx, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	h.Migrate(migrationName)
 	h.initSlack()
@@ -270,25 +261,10 @@ func (h *Harness) Start() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
+	err = h.pgTime.SetSpeed(ctx, 1)
 	if err != nil {
-		h.t.Fatalf("failed to parse db url: %v", err)
+		h.t.Fatalf("resume flow of time: %v", err)
 	}
-	poolCfg.MaxConns = 2
-
-	h.db, err = pgxpool.ConnectConfig(ctx, poolCfg)
-	if err != nil {
-		h.t.Fatalf("failed to connect to db: %v", err)
-	}
-
-	// resume the flow of time
-	err = h.db.QueryRow(ctx, `select pg_catalog.now()`).Scan(&h.pgResume)
-	if err != nil {
-		h.t.Fatalf("failed to get postgres timestamp: %v", err)
-	}
-	h.resumed = time.Now()
-	h.lastTimeChange = time.Now().Add(100 * time.Millisecond)
-	h.modifyDBOffset(0)
 
 	appCfg := app.Defaults()
 	appCfg.Logger = log.NewLogger()
@@ -350,47 +326,13 @@ func (h *Harness) IgnoreErrorsWith(substr string) {
 	h.ignoreErrors = append(h.ignoreErrors, substr)
 }
 
-func (h *Harness) modifyDBOffset(d time.Duration) {
-	n := time.Now()
-	d -= n.Sub(h.lastTimeChange)
-	if n.After(h.lastTimeChange) {
-		h.lastTimeChange = n
-	}
-
-	h.delayOffset += d
-
-	h.setDBOffset(h.delayOffset)
-}
-
-func (h *Harness) setDBOffset(d time.Duration) {
-	h.mx.Lock()
-	defer h.mx.Unlock()
-	elapsed := time.Since(h.resumed)
-	h.t.Logf("Updating DB time offset to: %s (+ %s elapsed = %s since test start)", h.delayOffset.String(), elapsed.String(), (h.delayOffset + elapsed).String())
-
-	if h.App() != nil {
-		h.App().SetTimeOffset(d)
-	}
-
-	h.execQuery(fmt.Sprintf(`
-		create or replace function testing_overrides.now()
-		returns timestamp with time zone
-		as $$
-			begin
-			return cast('%s' as timestamp with time zone) + (pg_catalog.now() - cast('%s' as timestamp with time zone))::interval;
-			end;
-		$$ language plpgsql;
-	`,
-		h.start.Add(d).Format(dbTimeFormat),
-		h.pgResume.Format(dbTimeFormat),
-	), nil)
-}
-
 func (h *Harness) FastForward(d time.Duration) {
 	h.t.Helper()
 	h.t.Logf("Fast-forward %s", d.String())
-	h.delayOffset += d
-	h.setDBOffset(h.delayOffset)
+	err := h.pgTime.AdvanceTime(context.Background(), d)
+	if err != nil {
+		h.t.Fatalf("failed to fast-forward time: %v", err)
+	}
 }
 
 func (h *Harness) execQuery(sql string, data interface{}) {
@@ -583,17 +525,18 @@ func (h *Harness) dumpDB() {
 		h.t.Fatalf("failed to get abs dump path: %v", err)
 	}
 	os.MkdirAll(filepath.Dir(file), 0o755)
-	var t time.Time
-	err = h.db.QueryRow(context.Background(), "select now()").Scan(&t)
-	if err != nil {
-		h.t.Fatalf("failed to get current timestamp: %v", err)
-	}
 
-	conn, err := h.db.Acquire(context.Background())
+	conn, err := pgx.Connect(context.Background(), h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to get db connection: %v", err)
 	}
-	defer conn.Release()
+	defer conn.Close(context.Background())
+
+	var t time.Time
+	err = conn.QueryRow(context.Background(), "select now()").Scan(&t)
+	if err != nil {
+		h.t.Fatalf("failed to get current timestamp: %v", err)
+	}
 
 	fd, err := os.Create(file)
 	if err != nil {
@@ -601,7 +544,7 @@ func (h *Harness) dumpDB() {
 	}
 	defer fd.Close()
 
-	err = pgdump.DumpData(context.Background(), conn.Conn(), fd, nil)
+	err = pgdump.DumpData(context.Background(), conn, fd, nil)
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}
@@ -642,7 +585,7 @@ func (h *Harness) Close() error {
 	h.tw.Close()
 	h.dumpDB()
 
-	h.db.Close()
+	h.pgTime.Close()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {
