@@ -37,20 +37,6 @@ func New(ctx context.Context, dbURL string) (*Mocker, error) {
 	return &Mocker{db: db, dbName: dbName, schema: "pgmocktime"}, nil
 }
 
-func (m *Mocker) timestamp(ctx context.Context) time.Time {
-	if m.err != nil {
-		return time.Time{}
-	}
-
-	var t time.Time
-	m.err = m.db.QueryRow(ctx, `SELECT current_timestamp`).Scan(&t)
-	if m.err != nil {
-		m.err = fmt.Errorf("select current time: %w", m.err)
-	}
-
-	return t
-}
-
 func (m *Mocker) exec(ctx context.Context, queryFormat string, args ...interface{}) {
 	if m.err != nil {
 		log.Println("skipping", queryFormat, args)
