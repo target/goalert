@@ -646,6 +646,7 @@ function testServices(screen: ScreenFormat): void {
           closedAlert = a
           cy.closeAlert(a.id)
           cy.fastForward('5m')
+          cy.setTimeSpeed(1) // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
