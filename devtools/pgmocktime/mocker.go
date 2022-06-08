@@ -80,7 +80,7 @@ func (m *Mocker) Inject(ctx context.Context) error {
 		CHECK(ok)
 	)`, m.safeSchema())
 
-	m.exec(ctx, `insert into %s.flux_capacitor (ok) values (true)`, m.safeSchema())
+	m.exec(ctx, `insert into %s.flux_capacitor (ok) values (true) on conflict do nothing`, m.safeSchema())
 
 	mx.Lock()
 	m.exec(ctx, `

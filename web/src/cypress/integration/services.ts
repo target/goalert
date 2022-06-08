@@ -640,10 +640,12 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
+        .setTimeSpeed(0)
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
           cy.closeAlert(a.id)
+          cy.fastForward('5m')
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
@@ -657,8 +659,6 @@ function testServices(screen: ScreenFormat): void {
       cy.get('[data-cy=metrics-table]')
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
-
-      cy.fastForward('5 minutes')
 
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
