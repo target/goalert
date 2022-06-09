@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
+import React, { useMemo, useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from 'urql'
 import { DateTime } from 'luxon'
 import { useURLParams } from '../../actions/hooks'
@@ -9,8 +9,8 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
+import { Alert } from '../../../schema'
 
 const query = gql`
   query alertmetrics(
@@ -36,6 +36,7 @@ const query = gql`
       }
       pageInfo {
         hasNextPage
+        endCursor
       }
     }
     alertMetrics(input: $alertMetricsInput) {
@@ -54,6 +55,9 @@ export type AlertMetricsProps = {
 export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
+  const [alertsList, setAlertsList] = useState<Alert[]>([])
+  const [endCursor, setEndCursor] = useState()
+
   const now = useMemo(() => DateTime.now(), [])
   const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
   const maxDate = now.endOf('day')
@@ -83,6 +87,7 @@ export default function AlertMetrics({
         notCreatedBefore: since.toISO(),
         createdBefore: until.toISO(),
         filterByStatus: ['StatusClosed'],
+        after: endCursor,
       },
       alertMetricsInput: {
         rInterval: `R${Math.floor(
@@ -93,6 +98,28 @@ export default function AlertMetrics({
     },
     pause: !isValidRange,
   })
+
+  useEffect(() => {
+    if (q.data) {
+      for (let i = 0; i < q.data?.alerts?.nodes.length; i++) {
+        // Do not save duplciate alerts to state
+        if (
+          !(
+            alertsList.filter(
+              (alert) => alert.id === q.data?.alerts?.nodes[i].id,
+            ).length > 0
+          )
+        ) {
+          setAlertsList((prev) => [...prev, q.data?.alerts?.nodes[i]])
+        }
+      }
+
+      // Update endCursor if hasNextPage
+      if (q.data?.alerts?.pageInfo?.hasNextPage) {
+        setEndCursor(q.data?.alerts?.pageInfo?.endCursor)
+      }
+    }
+  }, [q])
 
   if (!isValidRange) {
     return <GenericError error='The requested date range is out-of-bounds' />
@@ -105,11 +132,8 @@ export default function AlertMetrics({
     return <ObjectNotFound type='service' />
   }
 
-  const hasNextPage = q.data?.alerts?.pageInfo?.hasNextPage ?? false
-  const alerts = q.data?.alerts?.nodes ?? []
   const alertMetrics = q.data?.alertMetrics ?? []
-
-  const data = alertMetrics.map(
+  const graphData = alertMetrics.map(
     (day: { timestamp: string; alertCount: number }) => {
       const timestamp = DateTime.fromISO(day.timestamp)
       const date = timestamp.toLocaleString({
@@ -134,19 +158,6 @@ export default function AlertMetrics({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        {hasNextPage && (
-          <Box sx={{ marginBottom: '1rem' }}>
-            <Notices
-              notices={[
-                {
-                  type: 'WARNING',
-                  message: 'Query limit reached',
-                  details: `More than ${QUERY_LIMIT} alerts were found, but only the first ${QUERY_LIMIT} are represented below.`,
-                },
-              ]}
-            />
-          </Box>
-        )}
         <Card>
           <CardHeader
             component='h2'
@@ -154,10 +165,12 @@ export default function AlertMetrics({
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-            <AlertCountGraph data={data} />
+            <AlertCountGraph data={graphData} />
             <AlertMetricsTable
-              alerts={alerts}
-              loading={q.fetching || !q?.data?.alerts}
+              alerts={alertsList.filter(function (alert) {
+                return DateTime.fromISO(alert.createdAt) >= since
+              })}
+              loading={q.fetching || !alertsList}
             />
           </CardContent>
         </Card>
