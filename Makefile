@@ -88,7 +88,7 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
