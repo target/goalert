@@ -17,6 +17,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calsub"
@@ -93,6 +94,7 @@ type ComplexityRoot struct {
 		CreatedAt            func(childComplexity int) int
 		Details              func(childComplexity int) int
 		ID                   func(childComplexity int) int
+		Metrics              func(childComplexity int) int
 		PendingNotifications func(childComplexity int) int
 		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
 		Service              func(childComplexity int) int
@@ -122,6 +124,10 @@ type ComplexityRoot struct {
 	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	AlertMetric struct {
+		Escalated func(childComplexity int) int
 	}
 
 	AlertPendingNotification struct {
@@ -572,6 +578,7 @@ type AlertResolver interface {
 	State(ctx context.Context, obj *alert.Alert) (*alert.State, error)
 	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
 	PendingNotifications(ctx context.Context, obj *alert.Alert) ([]AlertPendingNotification, error)
+	Metrics(ctx context.Context, obj *alert.Alert) (*alertmetrics.Metric, error)
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
@@ -802,6 +809,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.ID(childComplexity), true
 
+	case "Alert.metrics":
+		if e.complexity.Alert.Metrics == nil {
+			break
+		}
+
+		return e.complexity.Alert.Metrics(childComplexity), true
+
 	case "Alert.pendingNotifications":
 		if e.complexity.Alert.PendingNotifications == nil {
 			break
@@ -925,6 +939,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
+
+	case "AlertMetric.escalated":
+		if e.complexity.AlertMetric.Escalated == nil {
+			break
+		}
+
+		return e.complexity.AlertMetric.Escalated(childComplexity), true
 
 	case "AlertPendingNotification.destination":
 		if e.complexity.AlertPendingNotification.Destination == nil {
@@ -5259,6 +5280,51 @@ func (ec *executionContext) fieldContext_Alert_pendingNotifications(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Alert_metrics(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_metrics(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Alert().Metrics(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*alertmetrics.Metric)
+	fc.Result = res
+	return ec.marshalOAlertMetric2ᚖgithubᚗcomᚋtargetᚋgoalertᚋalertᚋalertmetricsᚐMetric(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Alert_metrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "escalated":
+				return ec.fieldContext_AlertMetric_escalated(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertMetric", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AlertConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AlertConnection_nodes(ctx, field)
 	if err != nil {
@@ -5320,6 +5386,8 @@ func (ec *executionContext) fieldContext_AlertConnection_nodes(ctx context.Conte
 				return ec.fieldContext_Alert_recentEvents(ctx, field)
 			case "pendingNotifications":
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
+			case "metrics":
+				return ec.fieldContext_Alert_metrics(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -5745,6 +5813,50 @@ func (ec *executionContext) fieldContext_AlertLogEntryConnection_pageInfo(ctx co
 				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertMetric_escalated(ctx context.Context, field graphql.CollectedField, obj *alertmetrics.Metric) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertMetric_escalated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Escalated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertMetric_escalated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertMetric",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9439,6 +9551,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlerts(ctx context.Conte
 				return ec.fieldContext_Alert_recentEvents(ctx, field)
 			case "pendingNotifications":
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
+			case "metrics":
+				return ec.fieldContext_Alert_metrics(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -9570,6 +9684,8 @@ func (ec *executionContext) fieldContext_Mutation_escalateAlerts(ctx context.Con
 				return ec.fieldContext_Alert_recentEvents(ctx, field)
 			case "pendingNotifications":
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
+			case "metrics":
+				return ec.fieldContext_Alert_metrics(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -9921,6 +10037,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 				return ec.fieldContext_Alert_recentEvents(ctx, field)
 			case "pendingNotifications":
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
+			case "metrics":
+				return ec.fieldContext_Alert_metrics(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -12825,6 +12943,8 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 				return ec.fieldContext_Alert_recentEvents(ctx, field)
 			case "pendingNotifications":
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
+			case "metrics":
+				return ec.fieldContext_Alert_metrics(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -25636,6 +25756,23 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 				return innerFunc(ctx)
 
 			})
+		case "metrics":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_metrics(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25809,6 +25946,34 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 		case "pageInfo":
 
 			out.Values[i] = ec._AlertLogEntryConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertMetricImplementors = []string{"AlertMetric"}
+
+func (ec *executionContext) _AlertMetric(ctx context.Context, sel ast.SelectionSet, obj *alertmetrics.Metric) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertMetricImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertMetric")
+		case "escalated":
+
+			out.Values[i] = ec._AlertMetric_escalated(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -33213,6 +33378,13 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 		return graphql.Null
 	}
 	return ec._Alert(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAlertMetric2ᚖgithubᚗcomᚋtargetᚋgoalertᚋalertᚋalertmetricsᚐMetric(ctx context.Context, sel ast.SelectionSet, v *alertmetrics.Metric) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AlertMetric(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (*AlertRecentEventsOptions, error) {

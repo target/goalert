@@ -703,6 +703,11 @@ export interface Alert {
   state?: null | AlertState
   recentEvents: AlertLogEntryConnection
   pendingNotifications: AlertPendingNotification[]
+  metrics?: null | AlertMetric
+}
+
+export interface AlertMetric {
+  escalated: boolean
 }
 
 export interface AlertPendingNotification {
