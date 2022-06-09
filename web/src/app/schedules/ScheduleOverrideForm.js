@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { Grid, Typography } from '@mui/material'
@@ -48,12 +48,13 @@ export default function ScheduleOverrideForm(props) {
   )
 
   // used to grab conflicting errors from pre-existing overrides
-  const { data } = useQuery(query, {
+  const [{ data }] = useQuery({
+    query,
     variables: {
       id: _.get(conflictingUserFieldError, 'details.CONFLICTING_ID', ''),
     },
-    pollInterval: 0,
-    skip: !conflictingUserFieldError,
+    requestPolicy: 'cache-first',
+    pause: !conflictingUserFieldError,
   })
 
   const userConflictErrors = errors
@@ -78,7 +79,9 @@ export default function ScheduleOverrideForm(props) {
               fullWidth
               component={UserSelect}
               name='removeUserID'
-              label={add && remove ? 'User to be Replaced' : 'User to Remove'}
+              label={
+                add && remove ? 'User Currently Scheduled' : 'User to Remove'
+              }
               required
               disabled={removeUserReadOnly}
             />
@@ -97,7 +100,7 @@ export default function ScheduleOverrideForm(props) {
         )}
         <Grid item xs={12}>
           <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-            Configuring in {zone || '...'}
+            Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
         <Grid item xs={12}>

@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"sync"
 	"time"
-
-	"go.opencensus.io/trace"
 )
 
 func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Context, []int) ([]V, error)) *Loader[int, V] {
@@ -98,8 +96,7 @@ func (l *Loader[K, V]) load(entries []*entry[K, V]) []*entry[K, V] {
 	copy(cpy, entries)
 
 	go func() {
-		ctx, sp := trace.StartSpan(l.ctx, "Loader.Fetch/"+l.cfg.Name)
-		defer sp.End()
+		ctx := l.ctx
 
 		// Map the entries out by ID, and collect the list of IDs
 		// for the DB call.

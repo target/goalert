@@ -7,49 +7,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
-)
-
-// Connector will return a new *pgx.Conn.
-type Connector interface {
-	Connect(context.Context) (*pgx.Conn, error)
-}
-
-// Releaser is an optional interface with a Release method to be called
-// after a connection is closed.
-type Releaser interface {
-	Release(*pgx.Conn) error
-}
-
-// DBConnector implements the Connector and Releaser interfaces for
-// a *sql.DB.
-type DBConnector sql.DB
-
-// Connect will return a *pgx.Conn from the underlying *sql.DB pool.
-func (db *DBConnector) Connect(context.Context) (*pgx.Conn, error) {
-	return stdlib.AcquireConn((*sql.DB)(db))
-}
-
-// Release will release a *pgx.Conn to the underlying *sql.DB pool.
-func (db *DBConnector) Release(conn *pgx.Conn) error {
-	return stdlib.ReleaseConn((*sql.DB)(db), conn)
-}
-
-// ConfigConnector implements the Connector interface for a `pgx.ConnConfig`.
-type ConfigConnector pgx.ConnConfig
-
-// Connect will get a new connection using the underlying `pgx.ConnConfig`.
-func (cfg ConfigConnector) Connect(ctx context.Context) (*pgx.Conn, error) {
-	return pgx.ConnectConfig(ctx, (*pgx.ConnConfig)(&cfg))
-}
-
-var (
-	_ = Connector(&DBConnector{})
-	_ = Releaser(&DBConnector{})
-	_ = Connector(ConfigConnector{})
 )
 
 // Listener will listen for NOTIFY commands on a set of channels.
@@ -59,7 +19,7 @@ type Listener struct {
 	logger *log.Logger
 
 	ctx      context.Context
-	db       Connector
+	db       *sql.DB
 	channels []string
 
 	stopFn    func()
@@ -67,12 +27,12 @@ type Listener struct {
 	errCh     chan error
 
 	mx      sync.Mutex
-	conn    *pgx.Conn
+	conn    *sql.Conn
 	running bool
 }
 
 // NewListener will create and initialize a Listener which will automatically reconnect and listen to the provided channels.
-func NewListener(ctx context.Context, logger *log.Logger, db Connector, channels ...string) (*Listener, error) {
+func NewListener(ctx context.Context, logger *log.Logger, db *sql.DB, channels ...string) (*Listener, error) {
 	l := &Listener{
 		notifCh:  make(chan *pgconn.Notification, 32),
 		ctx:      ctx,
@@ -109,6 +69,7 @@ func (l *Listener) Start() {
 
 	l.running = true
 }
+
 func (l *Listener) run(ctx context.Context) {
 	for {
 		select {
@@ -179,26 +140,28 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 		break
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-		n, err := l.conn.WaitForNotification(ctx)
-		if err != nil && ctx.Err() == nil {
-			return errors.Wrap(err, "wait for notifications")
-		}
+	return l.conn.Raw(func(c interface{}) error {
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
+			n, err := c.(*stdlib.Conn).Conn().WaitForNotification(ctx)
+			if err != nil && ctx.Err() == nil {
+				return errors.Wrap(err, "wait for notifications")
+			}
 
-		if n == nil {
-			continue
+			if n == nil {
+				continue
+			}
+			select {
+			// Writing to channel
+			case l.notifCh <- n:
+			default:
+			}
 		}
-		select {
-		// Writing to channel
-		case l.notifCh <- n:
-		default:
-		}
-	}
+	})
 }
 
 // Errors will return a channel that will be fed errors from this listener.
@@ -212,12 +175,10 @@ func (l *Listener) disconnect() {
 	if l.conn == nil {
 		return
 	}
-	l.conn.Close(l.ctx)
-	if r, ok := l.db.(Releaser); ok {
-		r.Release(l.conn)
-	}
+	l.conn.Close()
 	l.conn = nil
 }
+
 func (l *Listener) connect(ctx context.Context) error {
 	if l.conn != nil {
 		return nil
@@ -227,10 +188,11 @@ func (l *Listener) connect(ctx context.Context) error {
 		return ctx.Err()
 	default:
 	}
-	conn, err := l.db.Connect(ctx)
+	conn, err := l.db.Conn(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get connection")
 	}
+
 	l.conn = conn
 
 	for _, name := range l.channels {
@@ -241,12 +203,12 @@ func (l *Listener) connect(ctx context.Context) error {
 		default:
 		}
 
-		_, err = conn.Exec(ctx, "listen "+QuoteID(name))
+		_, err = conn.ExecContext(ctx, "listen "+QuoteID(name))
 		if err != nil {
 			l.disconnect()
 			return err
 		}
 	}
-	l.conn = conn
+
 	return nil
 }

@@ -11,18 +11,9 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"go.opencensus.io/trace"
 )
 
 func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
-	ctx, sp := trace.StartSpan(ctx, "Engine.SendMessage")
-	defer sp.End()
-	sp.AddAttributes(
-		trace.StringAttribute("message.id", msg.ID),
-		trace.StringAttribute("message.type", msg.Type.String()),
-		trace.StringAttribute("dest.type", msg.Dest.Type.String()),
-		trace.StringAttribute("dest.id", msg.Dest.ID),
-	)
 	ctx = log.WithField(ctx, "CallbackID", msg.ID)
 
 	if msg.Dest.Type.IsUserCM() {

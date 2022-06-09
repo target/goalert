@@ -6,8 +6,9 @@ import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import { OpenInNew, Logout } from '@mui/icons-material'
 import { useDispatch } from 'react-redux'
+import { Dispatch, AnyAction } from 'redux'
 import { authLogout } from '../../actions'
-import ThemePicker from './ThemePicker'
+import ThemePicker from '../../theme/ThemePicker'
 import { CurrentUserAvatar } from '../../util/avatars'
 import AppLink from '../../util/AppLink'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
@@ -20,9 +21,8 @@ export default function UserSettingsPopover(): JSX.Element {
   const { userName } = useSessionInfo()
   const firstName = userName?.split(' ')[0]
 
-  const dispatch = useDispatch()
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const logout = () => dispatch(authLogout(true))
+  const dispatch: Dispatch<AnyAction> = useDispatch()
+  const logout = (): AnyAction => dispatch(authLogout(true) as AnyAction)
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const open = Boolean(anchorEl)

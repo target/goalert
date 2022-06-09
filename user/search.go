@@ -86,9 +86,9 @@ type renderData SearchOptions
 
 func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
-		return "fav isnull, lower(usr.name)"
+		return "fav isnull, lower(usr.name), usr.id"
 	}
-	return "lower(usr.name)"
+	return "lower(usr.name), usr.id"
 }
 
 func (opts renderData) Normalize() (*renderData, error) {

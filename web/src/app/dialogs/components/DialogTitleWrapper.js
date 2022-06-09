@@ -15,21 +15,11 @@ const useStyles = makeStyles((theme) => {
   const { topRightActions } = globalStyles(theme)
 
   return {
-    appBar: {
-      marginBottom: '1em',
-    },
-    appBarTitle: {
-      fontSize: '1.2em',
-      flex: 1,
-    },
     subtitle: {
       overflowY: 'unset',
       flexGrow: 0,
     },
     topRightActions,
-    wideScreenTitle: {
-      paddingBottom: 0,
-    },
   }
 })
 
@@ -41,37 +31,25 @@ function DialogTitleWrapper(props) {
   const classes = useStyles()
 
   const {
-    closeIcon,
-    fullScreen,
-    toolbarItems,
-    onClose,
-    actions,
-    subTitle,
-    title,
+    closeIcon = <CloseIcon />,
+    fullScreen = false,
+    toolbarItems = [],
+    onClose = undefined,
+    actions = [],
+    subTitle = '',
+    title = '',
   } = props
 
   let menu
-  if (actions && actions.length > 0 && fullScreen) {
-    menu = <OtherActions actions={actions} color='white' />
-  } else if (actions && actions.length > 0) {
+  if (actions.length === 0) {
+    menu = null
+  } else if (fullScreen) {
+    menu = <OtherActions actions={actions} />
+  } else {
     menu = (
       <div className={classes.topRightActions}>
         <OtherActions actions={actions} />
       </div>
-    )
-  }
-
-  let closeButton
-  if (onClose) {
-    closeButton = (
-      <IconButton
-        color='inherit'
-        onClick={onClose}
-        aria-label='Close'
-        size='large'
-      >
-        {closeIcon || <CloseIcon />}
-      </IconButton>
     )
   }
 
@@ -93,14 +71,24 @@ function DialogTitleWrapper(props) {
   if (fullScreen) {
     return (
       <React.Fragment>
-        <AppBar position='sticky' className={classes.appBar}>
+        <AppBar position='sticky' sx={{ mb: 2 }}>
           <Toolbar>
-            {closeButton}
+            {onClose && (
+              <IconButton
+                color='inherit'
+                onClick={onClose}
+                aria-label='Close'
+                sx={{ mr: 2 }}
+              >
+                {closeIcon}
+              </IconButton>
+            )}
             {typeof title === 'string' ? (
               <Typography
                 data-cy='dialog-title'
                 color='inherit'
-                className={classes.appBarTitle}
+                variant='h6'
+                component='h1'
               >
                 {title}
               </Typography>
@@ -115,13 +103,10 @@ function DialogTitleWrapper(props) {
       </React.Fragment>
     )
   }
+
   return (
     <React.Fragment>
-      <DialogTitle
-        className={classes.wideScreenTitle}
-        key='title'
-        data-cy='dialog-title'
-      >
+      <DialogTitle key='title' data-cy='dialog-title'>
         {title}
       </DialogTitle>
       {subtitle}

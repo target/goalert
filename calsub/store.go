@@ -30,11 +30,11 @@ type Store struct {
 	now      *sql.Stmt
 
 	keys keyring.Keyring
-	oc   oncall.Store
+	oc   *oncall.Store
 }
 
 // NewStore will create a new Store with the given parameters.
-func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc oncall.Store) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc *oncall.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{

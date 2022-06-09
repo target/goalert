@@ -1,7 +1,7 @@
 import React from 'react'
 import Chip, { ChipProps } from '@mui/material/Chip'
-import { useNavigate } from 'react-router-dom'
-import { useQuery, gql } from '@apollo/client'
+import { useLocation } from 'wouter'
+import { useQuery, gql } from 'urql'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
@@ -25,20 +25,20 @@ type WithID<T> = { id: string } & T
 
 export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   const { id, label, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
-  const { data, loading, error } = useQuery(serviceQuery, {
+  const [{ data, fetching, error }] = useQuery({
+    query: serviceQuery,
     variables: {
       id,
     },
-    skip: Boolean(label),
-    fetchPolicy: 'cache-first',
-    pollInterval: 0,
+    pause: Boolean(label),
+    requestPolicy: 'cache-first',
   })
 
   const getLabel = (): typeof label => {
     if (label) return label
-    if (!data && loading) return 'Loading...'
+    if (!data && fetching) return 'Loading...'
     if (error) return `Error: ${error.message}`
     return data.service.name
   }
@@ -56,7 +56,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
 
 export function UserChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip
@@ -70,7 +70,7 @@ export function UserChip(props: WithID<ChipProps>): JSX.Element {
 
 export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip
@@ -88,7 +88,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
 
 export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   const { id, ...rest } = props
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
 
   return (
     <Chip
@@ -116,9 +116,10 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
     }
   `
 
-  const { data, error } = useQuery<Query>(query, {
+  const [{ data, error }] = useQuery<Query>({
+    query,
     variables: { id: channelID },
-    fetchPolicy: 'cache-first',
+    requestPolicy: 'cache-first',
   })
   const teamID = data?.slackChannel?.teamID
 

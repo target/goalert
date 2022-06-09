@@ -17,18 +17,7 @@ import (
 )
 
 // Store is used to manage active overrides.
-type Store interface {
-	CreateUserOverrideTx(context.Context, *sql.Tx, *UserOverride) (*UserOverride, error)
-	FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*UserOverride, error)
-	DeleteUserOverrideTx(context.Context, *sql.Tx, ...string) error
-	FindAllUserOverrides(ctx context.Context, start, end time.Time, t assignment.Target) ([]UserOverride, error)
-	UpdateUserOverride(context.Context, *UserOverride) error
-	UpdateUserOverrideTx(context.Context, *sql.Tx, *UserOverride) error
-	Search(context.Context, *SearchOptions) ([]UserOverride, error)
-}
-
-// DB implements the Store interface using a Postgres DB as a backend.
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	findUO    *sql.Stmt
@@ -40,11 +29,11 @@ type DB struct {
 	findUOUpdate *sql.Stmt
 }
 
-// NewDB initializes a new DB using an existing sql connection.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+// NewStore initializes a new DB using an existing sql connection.
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db: db,
 		findUOUpdate: p.P(`
 		select
@@ -110,7 +99,7 @@ func wrap(stmt *sql.Stmt, tx *sql.Tx) *sql.Stmt {
 	return tx.Stmt(stmt)
 }
 
-func (db *DB) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*UserOverride, error) {
+func (s *Store) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*UserOverride, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -120,9 +109,9 @@ func (db *DB) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, 
 		return nil, err
 	}
 
-	stmt := db.findUO
+	stmt := s.findUO
 	if forUpdate {
-		stmt = db.findUOUpdate
+		stmt = s.findUOUpdate
 	}
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
@@ -147,7 +136,7 @@ func (db *DB) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, 
 }
 
 // UpdateUserOverrideTx updates an existing UserOverride, inside an optional transaction.
-func (db *DB) UpdateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverride) error {
+func (s *Store) UpdateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverride) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return err
@@ -177,7 +166,7 @@ func (db *DB) UpdateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverr
 		schedTgt.Valid = true
 		schedTgt.String = n.Target.TargetID()
 	}
-	stmt := db.updateUO
+	stmt := s.updateUO
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -186,12 +175,12 @@ func (db *DB) UpdateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverr
 }
 
 // UpdateUserOverride updates an existing UserOverride.
-func (db *DB) UpdateUserOverride(ctx context.Context, o *UserOverride) error {
-	return db.UpdateUserOverrideTx(ctx, nil, o)
+func (s *Store) UpdateUserOverride(ctx context.Context, o *UserOverride) error {
+	return s.UpdateUserOverrideTx(ctx, nil, o)
 }
 
 // CreateUserOverrideTx adds a UserOverride to the DB with a new ID.
-func (db *DB) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverride) (*UserOverride, error) {
+func (s *Store) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverride) (*UserOverride, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -218,7 +207,7 @@ func (db *DB) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverr
 		schedTgt.Valid = true
 		schedTgt.String = n.Target.TargetID()
 	}
-	_, err = wrap(db.createUO, tx).ExecContext(ctx, n.ID, add, rem, n.Start, n.End, schedTgt)
+	_, err = wrap(s.createUO, tx).ExecContext(ctx, n.ID, add, rem, n.Start, n.End, schedTgt)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +216,7 @@ func (db *DB) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOverr
 }
 
 // DeleteUserOverride removes a UserOverride from the DB matching the given ID.
-func (db *DB) DeleteUserOverrideTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
+func (s *Store) DeleteUserOverrideTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return err
@@ -240,12 +229,12 @@ func (db *DB) DeleteUserOverrideTx(ctx context.Context, tx *sql.Tx, ids ...strin
 		return err
 	}
 
-	_, err = wrap(db.deleteUO, tx).ExecContext(ctx, sqlutil.UUIDArray(ids))
+	_, err = wrap(s.deleteUO, tx).ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
 // FindAllUserOverrides will return all UserOverrides that belong to the provided Target within the provided time range.
-func (db *DB) FindAllUserOverrides(ctx context.Context, start, end time.Time, t assignment.Target) ([]UserOverride, error) {
+func (s *Store) FindAllUserOverrides(ctx context.Context, start, end time.Time, t assignment.Target) ([]UserOverride, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -264,7 +253,7 @@ func (db *DB) FindAllUserOverrides(ctx context.Context, start, end time.Time, t 
 		schedTgt.String = t.TargetID()
 	}
 
-	rows, err := db.findAllUO.QueryContext(ctx, schedTgt, start, end)
+	rows, err := s.findAllUO.QueryContext(ctx, schedTgt, start, end)
 	if err != nil {
 		return nil, err
 	}

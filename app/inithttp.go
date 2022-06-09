@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/genericapi"
@@ -20,28 +19,9 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/web"
-	"go.opencensus.io/plugin/ochttp"
 )
 
 func (app *App) initHTTP(ctx context.Context) error {
-	var traceMiddleware func(next http.Handler) http.Handler
-	if app.cfg.StackdriverProjectID != "" {
-		traceMiddleware = func(next http.Handler) http.Handler {
-			return &ochttp.Handler{
-				IsPublicEndpoint: true,
-				Propagation:      &propagation.HTTPFormat{},
-				Handler:          next,
-			}
-		}
-	} else {
-		traceMiddleware = func(next http.Handler) http.Handler {
-			return &ochttp.Handler{
-				IsPublicEndpoint: true,
-				Handler:          next,
-			}
-		}
-	}
-
 	middleware := []func(http.Handler) http.Handler{
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -49,7 +29,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
-		traceMiddleware,
 		// add app config to request context
 		func(next http.Handler) http.Handler { return config.Handler(next, app.ConfigStore) },
 
@@ -186,7 +165,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())
-	mux.HandleFunc("/api/graphql/explore", app.graphql2.PlayHandler)
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import { Navigate } from 'react-router-dom'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
 import { DateTime } from 'luxon'
+import { Redirect } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateRotationInput!) {
@@ -44,7 +44,7 @@ const RotationCreateDialog = (props) => {
   )
 
   if (data?.createRotation) {
-    return <Navigate to={`/rotations/${data.createRotation.id}`} />
+    return <Redirect to={`/rotations/${data.createRotation.id}`} />
   }
 
   return (

@@ -1,6 +1,7 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { Schedule, ScheduleTarget } from '../../schema'
+import users from '../fixtures/users.json'
 
 const c = new Chance()
 
@@ -88,7 +89,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from assignments', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Assignments',
         `${sched.id}/assignments`,
@@ -98,7 +99,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from escalation policies', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Escalation Policies',
         `${sched.id}/escalation-policies`,
@@ -108,7 +109,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from overrides', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Overrides',
         `${sched.id}/overrides`,
@@ -118,7 +119,7 @@ function testSchedules(screen: ScreenFormat): void {
     it('should navigate to and from shifts', () => {
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
         'Shifts',
         `${sched.id}/shifts`,
@@ -129,9 +130,9 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('ul[data-cy="route-links"] li').should('have.lengthOf', 5)
       cy.navigateToAndFrom(
         screen,
-        'Schedule Details',
+        'Schedules',
         sched.name,
-        'On-Call Notifications',
+        'Notifications',
         `${sched.id}/on-call-notifications`,
       )
     })
@@ -148,7 +149,7 @@ function testSchedules(screen: ScreenFormat): void {
           },
         ],
       }).then(() => {
-        cy.get('li').contains('Shifts').click()
+        cy.get('[data-cy="route-links"] li').contains('Shifts').click()
         cy.reload()
         cy.get('[data-cy=flat-list-item-subheader]').should('contain', 'Today')
         cy.get('[data-cy=flat-list-item-subheader]').should(
@@ -333,78 +334,70 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create an add override', () => {
-      cy.fixture('users').then((users) => {
-        cy.get('span').should('contain', 'No results')
+      cy.get('span').should('contain', 'No results')
 
-        cy.pageFab('Add')
-        cy.dialogTitle('Add')
-        cy.dialogForm({ addUserID: users[0].name })
-        cy.dialogFinish('Submit')
+      cy.pageFab('Add')
+      cy.dialogTitle('Add')
+      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogFinish('Submit')
 
-        cy.get('span').should('contain', users[0].name)
-        cy.get('p').should('contain', 'Added from')
-        expect('span').to.not.contain('No results')
-      })
+      cy.get('span').should('contain', users[0].name)
+      cy.get('p').should('contain', 'Added from')
+      expect('span').to.not.contain('No results')
     })
 
     it('should create a remove override', () => {
-      cy.fixture('users').then((users) => {
-        cy.get('span').should('contain', 'No results')
+      cy.get('span').should('contain', 'No results')
 
-        cy.pageFab('Remove')
-        cy.dialogTitle('Remove')
-        cy.dialogForm({ removeUserID: users[0].name })
-        cy.dialogFinish('Submit')
+      cy.pageFab('Remove')
+      cy.dialogTitle('Remove')
+      cy.dialogForm({ removeUserID: users[0].name })
+      cy.dialogFinish('Submit')
 
-        cy.get('span').should('contain', users[0].name)
-        cy.get('p').should('contain', 'Removed from')
-        expect('span').to.not.contain('No results')
-      })
+      cy.get('span').should('contain', users[0].name)
+      cy.get('p').should('contain', 'Removed from')
+      expect('span').to.not.contain('No results')
     })
 
     it('should create a replace override', () => {
-      cy.fixture('users').then((users) => {
-        cy.get('span').should('contain', 'No results')
+      cy.get('span').should('contain', 'No results')
 
-        cy.pageFab('Replace')
-        cy.dialogTitle('Replace')
-        cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
-        cy.dialogFinish('Submit')
+      cy.pageFab('Replace')
+      cy.dialogTitle('Replace')
+      cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
+      cy.dialogFinish('Submit')
 
-        cy.get('span').should('contain', users[1].name)
-        cy.get('p').should('contain', `Replaces ${users[0].name} from`)
-        expect('span').to.not.contain('No results')
-      })
+      cy.get('span').should('contain', users[1].name)
+      cy.get('p').should('contain', `Replaces ${users[0].name} from`)
+      expect('span').to.not.contain('No results')
     })
 
     it('should edit and delete an override', () => {
-      cy.fixture('users').then((users) => {
-        cy.get('body').should('contain', 'No results')
+      cy.get('body').should('contain', 'No results')
 
-        cy.pageFab('Add')
-        cy.dialogTitle('Add')
-        cy.dialogForm({ addUserID: users[0].name })
-        cy.dialogFinish('Submit')
+      cy.pageFab('Add')
+      cy.dialogTitle('Add')
+      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogFinish('Submit')
 
-        cy.get('body').should('not.contain', 'No results')
-        cy.get('body').contains('li', users[0].name)
+      cy.get('body').should('not.contain', 'No results')
+      cy.get('body').contains('li', users[0].name)
 
-        cy.get('button[data-cy=other-actions]').menu('Edit')
+      cy.get('button[data-cy=other-actions]').menu('Edit')
 
-        cy.dialogTitle('Edit Schedule Override')
-        cy.dialogForm({ addUserID: users[1].name })
-        cy.dialogFinish('Submit')
+      cy.dialogTitle('Edit Schedule Override')
+      cy.dialogForm({ addUserID: users[1].name })
+      cy.dialogFinish('Submit')
 
-        cy.get('body')
-          .should('not.contain', users[0].name)
-          .should('contain', users[1].name)
+      cy.get('body')
+        .should('not.contain', users[0].name)
+        .should('contain', users[1].name)
 
-        cy.get('li button[data-cy=other-actions]').menu('Delete')
+      cy.get('li button[data-cy=other-actions]').menu('Delete')
 
-        cy.dialogFinish('Confirm')
+      cy.dialogFinish('Confirm')
 
-        cy.get('body').should('contain', 'No results')
-      })
+      cy.get('body').should('contain', 'No results')
     })
   })
 

@@ -283,7 +283,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from metrics', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Metrics',
         `${svc.id}/alert-metrics`,
@@ -293,7 +293,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from metrics', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Alerts',
         `${svc.id}/alerts`,
@@ -303,7 +303,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from integration keys', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Integration Keys',
         `${svc.id}/integration-keys`,
@@ -313,7 +313,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from heartbeat monitors', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Heartbeat Monitors',
         `${svc.id}/heartbeat-monitors`,
@@ -323,7 +323,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from labels', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Labels',
         `${svc.id}/labels`,
@@ -658,10 +658,12 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
 
+      cy.fastForward('5 minutes')
+
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
-      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count : 1')
+      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count: 1')
     })
   })
 }

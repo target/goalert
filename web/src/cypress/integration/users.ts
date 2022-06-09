@@ -1,19 +1,16 @@
 import { testScreen } from '../support'
 import { Chance } from 'chance'
+import prof from '../fixtures/profile.json'
 
 const c = new Chance()
 
 function testUsers(screen: ScreenFormat): void {
   describe('List Page', () => {
     let cm: ContactMethod
-    let prof: Profile
     beforeEach(() => {
       cy.addContactMethod({ type: 'SMS' })
         .then((_cm: ContactMethod) => {
           cm = _cm
-          return cy.fixture('profile').then((_prof: Profile) => {
-            prof = _prof
-          })
         })
         .visit('/users')
     })
@@ -84,7 +81,7 @@ function testUsers(screen: ScreenFormat): void {
 
         cy.navigateToAndFrom(
           screen,
-          'User Details',
+          'Users',
           user.name,
           'On-Call Assignments',
           `${user.id}/on-call-assignments`,
@@ -113,12 +110,9 @@ function testUsers(screen: ScreenFormat): void {
           .createService({ name })
           .then((svc: Service) => {
             return cy
-              .fixture('users')
-              .then(() => {
-                return cy.createEPStep({
-                  epID: svc.epID,
-                  targets: [{ type: 'user', id: user.id }],
-                })
+              .createEPStep({
+                epID: svc.epID,
+                targets: [{ type: 'user', id: user.id }],
               })
               .task('engine:trigger')
               .then(() => svc.id)
@@ -144,7 +138,7 @@ function testUsers(screen: ScreenFormat): void {
 
         cy.navigateToAndFrom(
           screen,
-          'User Details',
+          'Users',
           user.name,
           'Sessions',
           `${user.id}/sessions`,

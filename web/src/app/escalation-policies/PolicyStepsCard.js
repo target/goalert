@@ -14,9 +14,9 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 import { useIsWidthDown } from '../util/useWidth'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   dndDragging: {
-    backgroundColor: '#ebebeb',
+    backgroundColor: theme.palette.background.default,
   },
   paddingTop: {
     paddingTop: '1em',
@@ -210,6 +210,7 @@ function PolicyStepsCard(props) {
                               repeat={repeat}
                               step={step}
                               steps={steps}
+                              selected={snapshot.isDragging}
                             />
                           </div>
                         )

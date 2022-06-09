@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { ReactChild, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 
@@ -29,7 +29,7 @@ const query = gql`
 `
 
 type ConfigProviderProps = {
-  children: JSX.Element | JSX.Element[]
+  children: ReactChild | ReactChild[]
 }
 
 export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
@@ -132,14 +132,14 @@ export function Config(props: {
 }
 
 export type RequireConfigProps = {
-  configID: ConfigID
+  configID?: ConfigID
   // test to determine whether or not children or else is returned
   test?: (x: Value) => boolean
 
   // react element to render if checks failed
   else?: JSX.Element
   isAdmin?: boolean
-  children: React.ReactChildren
+  children: ReactChild
 }
 
 export default function RequireConfig(

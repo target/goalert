@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
@@ -92,25 +93,26 @@ type App struct {
 
 	ConfigStore *config.Store
 
-	AlertStore    *alert.Store
-	AlertLogStore *alertlog.Store
+	AlertStore        *alert.Store
+	AlertLogStore     *alertlog.Store
+	AlertMetricsStore *alertmetrics.Store
 
 	AuthBasicStore        *basic.Store
 	UserStore             *user.Store
 	ContactMethodStore    *contactmethod.Store
-	NotificationRuleStore notificationrule.Store
-	FavoriteStore         favorite.Store
+	NotificationRuleStore *notificationrule.Store
+	FavoriteStore         *favorite.Store
 
-	ServiceStore        service.Store
+	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
-	IntegrationKeyStore integrationkey.Store
-	ScheduleRuleStore   rule.Store
+	IntegrationKeyStore *integrationkey.Store
+	ScheduleRuleStore   *rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
-	RotationStore       rotation.Store
+	RotationStore       *rotation.Store
 
 	CalSubStore    *calsub.Store
-	OverrideStore  override.Store
+	OverrideStore  *override.Store
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
@@ -119,8 +121,8 @@ type App struct {
 	APIKeyring     keyring.Keyring
 
 	NonceStore    *nonce.Store
-	LabelStore    label.Store
-	OnCallStore   oncall.Store
+	LabelStore    *label.Store
+	OnCallStore   *oncall.Store
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
