@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { useQuery, gql } from 'urql'
 import { DateTime } from 'luxon'
@@ -12,16 +12,9 @@ import AlertMetricsTable from './AlertMetricsTable'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { Alert } from '../../../schema'
 
-const query = gql`
-  query alertmetrics(
-    $serviceID: ID!
-    $alertSearchInput: AlertSearchOptions!
-    $alertMetricsInput: AlertMetricsOptions!
-  ) {
-    service(id: $serviceID) {
-      id
-    }
-    alerts(input: $alertSearchInput) {
+const alertsQuery = gql`
+  query alerts($input: AlertSearchOptions!) {
+    alerts(input: $input) {
       nodes {
         id
         alertID
@@ -39,7 +32,17 @@ const query = gql`
         endCursor
       }
     }
-    alertMetrics(input: $alertMetricsInput) {
+  }
+`
+
+const metricsQuery = gql`
+  query alertmetrics($rInterval: ISORInterval!, $serviceID: ID!) {
+    service(id: $serviceID) {
+      id
+    }
+    alertMetrics(
+      input: { filterByServiceID: [$serviceID], rInterval: $rInterval }
+    ) {
       alertCount
       timestamp
     }
@@ -52,12 +55,63 @@ export type AlertMetricsProps = {
   serviceID: string
 }
 
+type AlertsData = {
+  alerts: Alert[]
+  loading: boolean
+  error: Error | undefined
+}
+
+function useAlerts(
+  serviceID: string,
+  since: string,
+  until: string,
+  isValidRange: boolean,
+): AlertsData {
+  const key = `${serviceID}-${since}-${until}`
+  const [cursor, setCursor] = useState<string>('')
+  const alertData = useRef<Record<string, Alert[]>>({})
+  const dataKey = useRef<string>(key)
+
+  if (key !== dataKey.current) {
+    alertData.current = {}
+    dataKey.current = key
+  }
+
+  const [{ data, fetching, error }] = useQuery({
+    query: alertsQuery,
+    variables: {
+      input: {
+        filterByServiceID: [serviceID],
+        first: QUERY_LIMIT,
+        notCreatedBefore: since,
+        createdBefore: until,
+        filterByStatus: ['StatusClosed'],
+        after: cursor,
+      },
+    },
+    pause: !isValidRange,
+  })
+  if (data?.alerts) alertData.current[cursor] = data.alerts.nodes as Alert[]
+
+  useEffect(() => {
+    setCursor('')
+  }, [key])
+
+  useEffect(() => {
+    if (!data?.alerts?.pageInfo?.hasNextPage) return
+    setCursor(data.alerts.pageInfo.endCursor)
+  })
+
+  return {
+    alerts: Object.values(alertData.current).flat(),
+    loading: fetching || data?.alerts?.pageInfo?.hasNextPage,
+    error,
+  }
+}
+
 export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
-  const [alertsList, setAlertsList] = useState<Alert[]>([])
-  const [endCursor, setEndCursor] = useState()
-
   const now = useMemo(() => DateTime.now(), [])
   const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
   const maxDate = now.endOf('day')
@@ -77,49 +131,23 @@ export default function AlertMetrics({
     until <= maxDate &&
     since <= until
 
+  const alertsData = useAlerts(
+    serviceID,
+    since.toISO(),
+    until.toISO(),
+    isValidRange,
+  )
+
   const [q] = useQuery({
-    query,
+    query: metricsQuery,
     variables: {
       serviceID,
-      alertSearchInput: {
-        filterByServiceID: [serviceID],
-        first: QUERY_LIMIT,
-        notCreatedBefore: since.toISO(),
-        createdBefore: until.toISO(),
-        filterByStatus: ['StatusClosed'],
-        after: endCursor,
-      },
-      alertMetricsInput: {
-        rInterval: `R${Math.floor(
-          until.diff(since, 'days').days,
-        )}/${since.toISO()}/P1D`,
-        filterByServiceID: [serviceID],
-      },
+      rInterval: `R${Math.floor(
+        until.diff(since, 'days').days,
+      )}/${since.toISO()}/P1D`,
     },
     pause: !isValidRange,
   })
-
-  useEffect(() => {
-    if (q.data) {
-      for (let i = 0; i < q.data?.alerts?.nodes.length; i++) {
-        // Do not save duplciate alerts to state
-        if (
-          !(
-            alertsList.filter(
-              (alert) => alert.id === q.data?.alerts?.nodes[i].id,
-            ).length > 0
-          )
-        ) {
-          setAlertsList((prev) => [...prev, q.data?.alerts?.nodes[i]])
-        }
-      }
-
-      // Update endCursor if hasNextPage
-      if (q.data?.alerts?.pageInfo?.hasNextPage) {
-        setEndCursor(q.data?.alerts?.pageInfo?.endCursor)
-      }
-    }
-  }, [q])
 
   if (!isValidRange) {
     return <GenericError error='The requested date range is out-of-bounds' />
@@ -127,6 +155,9 @@ export default function AlertMetrics({
 
   if (q.error) {
     return <GenericError error={q.error.message} />
+  }
+  if (alertsData.error) {
+    return <GenericError error={alertsData.error.message} />
   }
   if (!q.fetching && !q.data?.service?.id) {
     return <ObjectNotFound type='service' />
@@ -167,10 +198,8 @@ export default function AlertMetrics({
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={graphData} />
             <AlertMetricsTable
-              alerts={alertsList.filter(function (alert) {
-                return DateTime.fromISO(alert.createdAt) >= since
-              })}
-              loading={q.fetching || !alertsList}
+              alerts={alertsData.alerts}
+              loading={alertsData.loading}
             />
           </CardContent>
         </Card>
