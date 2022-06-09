@@ -1,6 +1,12 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useDeferredValue,
+} from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
-import { useQuery, gql } from 'urql'
+import { useQuery, gql, useClient } from 'urql'
 import { DateTime } from 'luxon'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
@@ -11,6 +17,7 @@ import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { Alert } from '../../../schema'
+import _ from 'lodash'
 
 const alertsQuery = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -19,7 +26,6 @@ const alertsQuery = gql`
         id
         alertID
         summary
-        details
         status
         service {
           name
@@ -67,44 +73,91 @@ function useAlerts(
   until: string,
   isValidRange: boolean,
 ): AlertsData {
-  const key = `${serviceID}-${since}-${until}`
-  const [cursor, setCursor] = useState<string>('')
-  const alertData = useRef<Record<string, Alert[]>>({})
-  const dataKey = useRef<string>(key)
-
-  if (key !== dataKey.current) {
-    alertData.current = {}
-    dataKey.current = key
-  }
-
-  const [{ data, fetching, error }] = useQuery({
-    query: alertsQuery,
-    variables: {
-      input: {
-        filterByServiceID: [serviceID],
-        first: QUERY_LIMIT,
-        notCreatedBefore: since,
-        createdBefore: until,
-        filterByStatus: ['StatusClosed'],
-        after: cursor,
-      },
-    },
-    pause: !isValidRange,
-  })
-  if (data?.alerts) alertData.current[cursor] = data.alerts.nodes as Alert[]
+  const depKey = `${serviceID}-${since}-${until}`
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | undefined>()
+  const key = useRef(depKey)
+  key.current = depKey
+  const renderAlerts = useDeferredValue(alerts)
 
   useEffect(() => {
-    setCursor('')
-  }, [key])
+    return () => {
+      // cancel on unmount
+      key.current = ''
+    }
+  }, [])
+
+  const client = useClient()
+  const fetch = React.useCallback(async () => {
+    setAlerts([])
+    setLoading(true)
+    setError(undefined)
+    if (!isValidRange) {
+      return
+    }
+    async function fetchAlerts(
+      cursor: string,
+    ): Promise<[Alert[], boolean, string, Error | undefined]> {
+      const q = await client
+        .query(alertsQuery, {
+          input: {
+            filterByServiceID: [serviceID],
+            first: QUERY_LIMIT,
+            notCreatedBefore: since,
+            createdBefore: until,
+            filterByStatus: ['StatusClosed'],
+            after: cursor,
+          },
+        })
+        .toPromise()
+
+      if (q.error) {
+        return [[], false, '', q.error]
+      }
+
+      return [
+        q.data.alerts.nodes,
+        q.data.alerts.pageInfo.hasNextPage,
+        q.data.alerts.pageInfo.endCursor,
+        undefined,
+      ]
+    }
+
+    const throttledSetAlerts = _.throttle(setAlerts, 1000)
+
+    let [alerts, hasNextPage, endCursor, error] = await fetchAlerts('')
+    if (key.current !== depKey) return // abort if the key has changed
+    if (error) {
+      setError(error)
+      throttledSetAlerts.cancel()
+      return
+    }
+    let allAlerts = alerts
+    setAlerts(allAlerts)
+    while (hasNextPage) {
+      ;[alerts, hasNextPage, endCursor, error] = await fetchAlerts(endCursor)
+      if (key.current !== depKey) return // abort if the key has changed
+      if (error) {
+        setError(error)
+        throttledSetAlerts.cancel()
+        return
+      }
+      allAlerts = allAlerts.concat(alerts)
+      console.log(allAlerts.length)
+      throttledSetAlerts(allAlerts)
+    }
+
+    setLoading(false)
+  }, [depKey])
 
   useEffect(() => {
-    if (!data?.alerts?.pageInfo?.hasNextPage) return
-    setCursor(data.alerts.pageInfo.endCursor)
-  })
+    fetch()
+  }, [depKey])
 
   return {
-    alerts: Object.values(alertData.current).flat(),
-    loading: fetching || data?.alerts?.pageInfo?.hasNextPage,
+    alerts: renderAlerts,
+    loading,
     error,
   }
 }
