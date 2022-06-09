@@ -80,8 +80,6 @@ export default function AlertMetrics({
       alertSearchInput: {
         filterByServiceID: [serviceID],
         first: QUERY_LIMIT,
-        notCreatedBefore: since.toISO(),
-        createdBefore: until.toISO(),
         filterByStatus: ['StatusClosed'],
         notClosedBefore: since.toISO(),
         closedBefore: until.toISO(),
