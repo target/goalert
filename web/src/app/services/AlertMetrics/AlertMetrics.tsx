@@ -144,7 +144,6 @@ function useAlerts(
         return
       }
       allAlerts = allAlerts.concat(alerts)
-      console.log(allAlerts.length)
       throttledSetAlerts(allAlerts)
     }
 
