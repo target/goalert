@@ -809,7 +809,7 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	list := make([]State, 0, len(alertIDs))
 	for rows.Next() {
 		var s State
-		err = rows.Scan(&s.AlertID, &t, &s.RepeatCount, &s.StepNumber)
+		err = rows.Scan(&s.ID, &t, &s.RepeatCount, &s.StepNumber)
 		if t.Valid {
 			s.LastEscalation = t.Time
 		}
