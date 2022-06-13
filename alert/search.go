@@ -141,10 +141,10 @@ var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Hel
 		)
 	{{ end }}
 	{{ if not .ClosedBefore.IsZero }}
-		AND (select timestamp from alert_logs where alert_id = a.id and event = 'closed') < :closedBeforeTime
+		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at < :closedBeforeTime) 
 	{{ end }}
 	{{ if not .NotClosedBefore.IsZero }}
-		AND (select timestamp from alert_logs where alert_id = a.id and event = 'closed') > :notClosedBeforeTime
+		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at > :notClosedBeforeTime) 
 	{{ end }}
 	ORDER BY {{.SortStr}}
 	LIMIT {{.Limit}}
