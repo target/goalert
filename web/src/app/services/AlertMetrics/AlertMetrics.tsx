@@ -6,8 +6,8 @@ import React, {
   useDeferredValue,
 } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
-import { useQuery, gql, useClient } from 'urql'
-import { DateTime } from 'luxon'
+import { gql, useClient } from 'urql'
+import { DateTime, Interval } from 'luxon'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
   DATE_FORMAT,
@@ -15,7 +15,7 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import { GenericError, ObjectNotFound } from '../../error-pages'
+import { GenericError } from '../../error-pages'
 import { Alert } from '../../../schema'
 import _ from 'lodash'
 
@@ -37,20 +37,6 @@ const alertsQuery = gql`
         hasNextPage
         endCursor
       }
-    }
-  }
-`
-
-const metricsQuery = gql`
-  query alertmetrics($rInterval: ISORInterval!, $serviceID: ID!) {
-    service(id: $serviceID) {
-      id
-    }
-    alertMetrics(
-      input: { filterByServiceID: [$serviceID], rInterval: $rInterval }
-    ) {
-      alertCount
-      timestamp
     }
   }
 `
@@ -190,51 +176,32 @@ export default function AlertMetrics({
     isValidRange,
   )
 
-  const [q] = useQuery({
-    query: metricsQuery,
-    variables: {
-      serviceID,
-      rInterval: `R${Math.floor(
-        until.diff(since, 'days').days,
-      )}/${since.toISO()}/P1D`,
-    },
-    pause: !isValidRange,
-  })
-
   if (!isValidRange) {
     return <GenericError error='The requested date range is out-of-bounds' />
   }
 
-  if (q.error) {
-    return <GenericError error={q.error.message} />
-  }
   if (alertsData.error) {
     return <GenericError error={alertsData.error.message} />
   }
-  if (!q.fetching && !q.data?.service?.id) {
-    return <ObjectNotFound type='service' />
-  }
 
-  const alertMetrics = q.data?.alertMetrics ?? []
-  const graphData = alertMetrics.map(
-    (day: { timestamp: string; alertCount: number }) => {
-      const timestamp = DateTime.fromISO(day.timestamp)
-      const date = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-      })
-      const label = timestamp.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-      return {
-        date: date,
-        count: day.alertCount,
-        label: label,
-      }
-    },
-  )
+  const ivl = Interval.fromDateTimes(since, until)
+
+  const graphData = ivl.splitBy({ days: 1 }).map((i) => {
+    const date = i.start.toLocaleString({ month: 'short', day: 'numeric' })
+    const label = i.start.toLocaleString({
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+
+    return {
+      date,
+      label,
+      count: alertsData.alerts.filter((a) =>
+        i.contains(DateTime.fromISO(a.createdAt)),
+      ).length,
+    }
+  })
 
   const daycount = Math.floor(now.diff(since, 'days').plus({ day: 1 }).days)
 
