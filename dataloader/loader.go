@@ -2,13 +2,32 @@ package dataloader
 
 import (
 	"context"
+	"reflect"
 	"sync"
 	"time"
 )
 
-type loaderConfig struct {
-	FetchFunc func(context.Context, []string) ([]interface{}, error) // FetchFunc should return resources for the provided IDs (order doesn't matter).
-	IDFunc    func(interface{}) string                               // Should return the unique ID for a given resource.
+func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Context, []int) ([]V, error)) *Loader[int, V] {
+	return newLoader(ctx, loaderConfig[int, V]{
+		Max:       100,
+		Delay:     time.Millisecond,
+		IDFunc:    func(v V) int { return int(reflect.ValueOf(v).FieldByName("ID").Int()) },
+		FetchFunc: fetchMany,
+	})
+}
+
+func NewStoreLoader[V any](ctx context.Context, fetchMany func(context.Context, []string) ([]V, error)) *Loader[string, V] {
+	return newLoader(ctx, loaderConfig[string, V]{
+		Max:       100,
+		Delay:     time.Millisecond,
+		IDFunc:    func(v V) string { return reflect.ValueOf(v).FieldByName("ID").String() },
+		FetchFunc: fetchMany,
+	})
+}
+
+type loaderConfig[K comparable, V any] struct {
+	FetchFunc func(context.Context, []K) ([]V, error) // FetchFunc should return resources for the provided IDs (order doesn't matter).
+	IDFunc    func(V) K                               // Should return the unique ID for a given resource.
 
 	Delay time.Duration // Delay before fetching pending requests.
 	Max   int           // Max number of pending requests before immediate fetch (also max number of requests per-db-call).
@@ -16,37 +35,37 @@ type loaderConfig struct {
 	Name string // Name to use in traces.
 }
 
-type loaderReq struct {
-	id string
-	ch chan *loaderEntry
+type loaderReq[K comparable, V any] struct {
+	id K
+	ch chan *entry[K, V]
 }
 
-type loaderEntry struct {
-	id   string
+type entry[K comparable, V any] struct {
+	id   K
 	done chan struct{}
 	err  error
-	data interface{}
+	data *V
 }
-type loader struct {
+type Loader[K comparable, V any] struct {
 	ctx    context.Context
 	cancel func()
 
-	cfg   loaderConfig
-	cache map[string]*loaderEntry
+	cfg   loaderConfig[K, V]
+	cache map[K]*entry[K, V]
 
 	start sync.Once
 
-	reqCh chan loaderReq
+	reqCh chan loaderReq[K, V]
 }
 
-func newLoader(ctx context.Context, cfg loaderConfig) *loader {
-	l := &loader{cfg: cfg}
+func newLoader[K comparable, V any](ctx context.Context, cfg loaderConfig[K, V]) *Loader[K, V] {
+	l := &Loader[K, V]{cfg: cfg}
 	l.ctx, l.cancel = context.WithCancel(ctx)
 
 	return l
 }
 
-func (l *loader) Close() error {
+func (l *Loader[K, V]) Close() error {
 	// ensure we don't start in the future, ensure cancel is called
 	// before `start.Do` returns if it's the first call.
 	l.start.Do(l.cancel)
@@ -57,14 +76,14 @@ func (l *loader) Close() error {
 	return nil
 }
 
-func (l *loader) init() {
-	l.cache = make(map[string]*loaderEntry, l.cfg.Max)
-	l.reqCh = make(chan loaderReq, l.cfg.Max)
+func (l *Loader[K, V]) init() {
+	l.cache = make(map[K]*entry[K, V], l.cfg.Max)
+	l.reqCh = make(chan loaderReq[K, V], l.cfg.Max)
 	go l.loop()
 }
 
 // load will perform a batch load for a list of entries
-func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
+func (l *Loader[K, V]) load(entries []*entry[K, V]) []*entry[K, V] {
 	// If we need to load more than the max, call load with the max, and return the rest.
 	if len(entries) > l.cfg.Max {
 		l.load(entries[:l.cfg.Max])
@@ -73,7 +92,7 @@ func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
 
 	// We need to copy the list so we don't get overwritten if other
 	// batch updates are done in the background while this call is processing.
-	cpy := make([]*loaderEntry, len(entries))
+	cpy := make([]*entry[K, V], len(entries))
 	copy(cpy, entries)
 
 	go func() {
@@ -81,8 +100,8 @@ func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
 
 		// Map the entries out by ID, and collect the list of IDs
 		// for the DB call.
-		m := make(map[string]*loaderEntry, len(entries))
-		ids := make([]string, len(entries))
+		m := make(map[K]*entry[K, V], len(entries))
+		ids := make([]K, len(entries))
 		for i, e := range cpy {
 			ids[i] = e.id
 			m[e.id] = e
@@ -110,7 +129,7 @@ func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
 				// Ignore any unknown/unexpected results
 				continue
 			}
-			e.data = res[i]
+			e.data = &res[i]
 		}
 
 		// nil or not, all entires are now done loading, if the .data prop was not set
@@ -125,13 +144,13 @@ func (l *loader) load(entries []*loaderEntry) []*loaderEntry {
 
 // entry will return the current entry or create a new one in the map.
 // It passes the new or existing loaderEntry to the requester.
-func (l *loader) entry(req loaderReq) (*loaderEntry, bool) {
+func (l *Loader[K, V]) entry(req loaderReq[K, V]) (*entry[K, V], bool) {
 	if v, ok := l.cache[req.id]; ok {
 		req.ch <- v
 		return v, false
 	}
 
-	e := &loaderEntry{
+	e := &entry[K, V]{
 		id:   req.id,
 		done: make(chan struct{}),
 	}
@@ -140,16 +159,16 @@ func (l *loader) entry(req loaderReq) (*loaderEntry, bool) {
 	return e, true
 }
 
-func (l *loader) loop() {
+func (l *Loader[K, V]) loop() {
 	// timerStart tracks if the delay timer has started or not.
 	var timerStart bool
 	var t *time.Timer
 	// waitCh by default will block indefinitely, since the timer
 	// shouldn't start until the first pending request is made.
 	waitCh := (<-chan time.Time)(make(chan time.Time))
-	batch := make([]*loaderEntry, 0, l.cfg.Max)
+	batch := make([]*entry[K, V], 0, l.cfg.Max)
 
-	var req loaderReq
+	var req loaderReq[K, V]
 	for {
 		select {
 		case <-waitCh:
@@ -190,7 +209,7 @@ func (l *loader) loop() {
 	}
 }
 
-func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
+func (l *Loader[K, V]) FetchOne(ctx context.Context, id K) (*V, error) {
 	l.start.Do(l.init)
 	select {
 	case <-l.ctx.Done():
@@ -198,11 +217,11 @@ func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
 	default:
 	}
 
-	req := loaderReq{
+	req := loaderReq[K, V]{
 		id: id,
 		// We use a buffered channel so we don't have anything block if we jump out
 		// of this method (e.g. for context deadline).
-		ch: make(chan *loaderEntry, 1),
+		ch: make(chan *entry[K, V], 1),
 	}
 
 	// Wait for context, loader shutdown, or acceptance of our request.
@@ -215,7 +234,7 @@ func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
 	}
 
 	// Wait for context, or the loaderEntry associated with our request.
-	var resp *loaderEntry
+	var resp *entry[K, V]
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()

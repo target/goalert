@@ -383,7 +383,7 @@ func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error)
 	}
 }
 
-func (s *Store) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error) {
+func (s *Store) FindManyMessageStatuses(ctx context.Context, ids []string) ([]SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
