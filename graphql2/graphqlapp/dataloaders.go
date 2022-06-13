@@ -144,7 +144,7 @@ func (app *App) FindOneService(ctx context.Context, id string) (*service.Service
 }
 
 func (app *App) FindOneAlertState(ctx context.Context, alertID int) (*alert.State, error) {
-	loader, ok := ctx.Value(dataLoaderKeyAlert).(*dataloader.Loader[int, alert.State])
+	loader, ok := ctx.Value(dataLoaderKeyAlertState).(*dataloader.Loader[int, alert.State])
 	if !ok {
 		epState, err := app.AlertStore.State(ctx, []int{alertID})
 		if err != nil {
