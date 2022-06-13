@@ -1,6 +1,12 @@
-import React, { useMemo } from 'react'
-import { Box, Card, CardContent, CardHeader, Grid } from '@mui/material'
-import { useQuery, gql } from 'urql'
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useDeferredValue,
+} from 'react'
+import { Card, CardContent, CardHeader, Grid } from '@mui/material'
+import { useQuery, gql, useClient } from 'urql'
 import { DateTime } from 'luxon'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
@@ -9,24 +15,17 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import Notices from '../../details/Notices'
 import { GenericError, ObjectNotFound } from '../../error-pages'
+import { Alert } from '../../../schema'
+import _ from 'lodash'
 
-const query = gql`
-  query alertmetrics(
-    $serviceID: ID!
-    $alertSearchInput: AlertSearchOptions!
-    $alertMetricsInput: AlertMetricsOptions!
-  ) {
-    service(id: $serviceID) {
-      id
-    }
-    alerts(input: $alertSearchInput) {
+const alertsQuery = gql`
+  query alerts($input: AlertSearchOptions!) {
+    alerts(input: $input) {
       nodes {
         id
         alertID
         summary
-        details
         status
         service {
           name
@@ -36,9 +35,20 @@ const query = gql`
       }
       pageInfo {
         hasNextPage
+        endCursor
       }
     }
-    alertMetrics(input: $alertMetricsInput) {
+  }
+`
+
+const metricsQuery = gql`
+  query alertmetrics($rInterval: ISORInterval!, $serviceID: ID!) {
+    service(id: $serviceID) {
+      id
+    }
+    alertMetrics(
+      input: { filterByServiceID: [$serviceID], rInterval: $rInterval }
+    ) {
       alertCount
       timestamp
     }
@@ -49,6 +59,106 @@ const QUERY_LIMIT = 100
 
 export type AlertMetricsProps = {
   serviceID: string
+}
+
+type AlertsData = {
+  alerts: Alert[]
+  loading: boolean
+  error: Error | undefined
+}
+
+function useAlerts(
+  serviceID: string,
+  since: string,
+  until: string,
+  isValidRange: boolean,
+): AlertsData {
+  const depKey = `${serviceID}-${since}-${until}`
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | undefined>()
+  const key = useRef(depKey)
+  key.current = depKey
+  const renderAlerts = useDeferredValue(alerts)
+
+  useEffect(() => {
+    return () => {
+      // cancel on unmount
+      key.current = ''
+    }
+  }, [])
+
+  const client = useClient()
+  const fetch = React.useCallback(async () => {
+    setAlerts([])
+    setLoading(true)
+    setError(undefined)
+    if (!isValidRange) {
+      return
+    }
+    async function fetchAlerts(
+      cursor: string,
+    ): Promise<[Alert[], boolean, string, Error | undefined]> {
+      const q = await client
+        .query(alertsQuery, {
+          input: {
+            filterByServiceID: [serviceID],
+            first: QUERY_LIMIT,
+            notCreatedBefore: since,
+            createdBefore: until,
+            filterByStatus: ['StatusClosed'],
+            after: cursor,
+          },
+        })
+        .toPromise()
+
+      if (q.error) {
+        return [[], false, '', q.error]
+      }
+
+      return [
+        q.data.alerts.nodes,
+        q.data.alerts.pageInfo.hasNextPage,
+        q.data.alerts.pageInfo.endCursor,
+        undefined,
+      ]
+    }
+
+    const throttledSetAlerts = _.throttle(setAlerts, 1000)
+
+    let [alerts, hasNextPage, endCursor, error] = await fetchAlerts('')
+    if (key.current !== depKey) return // abort if the key has changed
+    if (error) {
+      setError(error)
+      throttledSetAlerts.cancel()
+      return
+    }
+    let allAlerts = alerts
+    setAlerts(allAlerts)
+    while (hasNextPage) {
+      ;[alerts, hasNextPage, endCursor, error] = await fetchAlerts(endCursor)
+      if (key.current !== depKey) return // abort if the key has changed
+      if (error) {
+        setError(error)
+        throttledSetAlerts.cancel()
+        return
+      }
+      allAlerts = allAlerts.concat(alerts)
+      throttledSetAlerts(allAlerts)
+    }
+
+    setLoading(false)
+  }, [depKey])
+
+  useEffect(() => {
+    fetch()
+  }, [depKey])
+
+  return {
+    alerts: renderAlerts,
+    loading,
+    error,
+  }
 }
 
 export default function AlertMetrics({
@@ -73,23 +183,20 @@ export default function AlertMetrics({
     until <= maxDate &&
     since <= until
 
+  const alertsData = useAlerts(
+    serviceID,
+    since.toISO(),
+    until.toISO(),
+    isValidRange,
+  )
+
   const [q] = useQuery({
-    query,
+    query: metricsQuery,
     variables: {
       serviceID,
-      alertSearchInput: {
-        filterByServiceID: [serviceID],
-        first: QUERY_LIMIT,
-        notCreatedBefore: since.toISO(),
-        createdBefore: until.toISO(),
-        filterByStatus: ['StatusClosed'],
-      },
-      alertMetricsInput: {
-        rInterval: `R${Math.floor(
-          until.diff(since, 'days').days,
-        )}/${since.toISO()}/P1D`,
-        filterByServiceID: [serviceID],
-      },
+      rInterval: `R${Math.floor(
+        until.diff(since, 'days').days,
+      )}/${since.toISO()}/P1D`,
     },
     pause: !isValidRange,
   })
@@ -101,15 +208,15 @@ export default function AlertMetrics({
   if (q.error) {
     return <GenericError error={q.error.message} />
   }
+  if (alertsData.error) {
+    return <GenericError error={alertsData.error.message} />
+  }
   if (!q.fetching && !q.data?.service?.id) {
     return <ObjectNotFound type='service' />
   }
 
-  const hasNextPage = q.data?.alerts?.pageInfo?.hasNextPage ?? false
-  const alerts = q.data?.alerts?.nodes ?? []
   const alertMetrics = q.data?.alertMetrics ?? []
-
-  const data = alertMetrics.map(
+  const graphData = alertMetrics.map(
     (day: { timestamp: string; alertCount: number }) => {
       const timestamp = DateTime.fromISO(day.timestamp)
       const date = timestamp.toLocaleString({
@@ -134,19 +241,6 @@ export default function AlertMetrics({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        {hasNextPage && (
-          <Box sx={{ marginBottom: '1rem' }}>
-            <Notices
-              notices={[
-                {
-                  type: 'WARNING',
-                  message: 'Query limit reached',
-                  details: `More than ${QUERY_LIMIT} alerts were found, but only the first ${QUERY_LIMIT} are represented below.`,
-                },
-              ]}
-            />
-          </Box>
-        )}
         <Card>
           <CardHeader
             component='h2'
@@ -154,10 +248,10 @@ export default function AlertMetrics({
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
-            <AlertCountGraph data={data} />
+            <AlertCountGraph data={graphData} />
             <AlertMetricsTable
-              alerts={alerts}
-              loading={q.fetching || !q?.data?.alerts}
+              alerts={alertsData.alerts}
+              loading={alertsData.loading}
             />
           </CardContent>
         </Card>
