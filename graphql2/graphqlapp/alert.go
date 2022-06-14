@@ -338,6 +338,12 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		if opts.NotCreatedBefore != nil {
 			s.NotBefore = *opts.NotCreatedBefore
 		}
+		if opts.ClosedBefore != nil {
+			s.ClosedBefore = *opts.ClosedBefore
+		}
+		if opts.NotClosedBefore != nil {
+			s.NotClosedBefore = *opts.NotClosedBefore
+		}
 	}
 
 	s.Limit++

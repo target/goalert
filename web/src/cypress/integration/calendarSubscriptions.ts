@@ -100,7 +100,7 @@ function testSubs(screen: ScreenFormat): void {
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
-      cy.window().invoke('refetchAll')
+      cy.refetchAll()
 
       cy.get(subsribeBtn)
         .trigger('mouseover')
@@ -110,7 +110,7 @@ function testSubs(screen: ScreenFormat): void {
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
-      cy.window().invoke('refetchAll')
+      cy.refetchAll()
 
       cy.get(subsribeBtn)
         .trigger('mouseover')

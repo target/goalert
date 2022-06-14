@@ -72,7 +72,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite bin/pgmocktime node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
