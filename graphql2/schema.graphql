@@ -919,6 +919,7 @@ type Alert {
 
 type AlertMetric {
   escalated: Boolean!
+  closedAt: ISOTimestamp!
 }
 
 type AlertPendingNotification {

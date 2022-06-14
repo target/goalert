@@ -32,6 +32,9 @@ const alertsQuery = gql`
           id
         }
         createdAt
+        metrics {
+          closedAt
+        }
       }
       pageInfo {
         hasNextPage
@@ -198,7 +201,7 @@ export default function AlertMetrics({
       date,
       label,
       count: alertsData.alerts.filter((a) =>
-        i.contains(DateTime.fromISO(a.createdAt)),
+        i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
       ).length,
     }
   })
@@ -217,7 +220,10 @@ export default function AlertMetrics({
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={graphData} />
             <AlertMetricsTable
-              alerts={alertsData.alerts}
+              alerts={alertsData.alerts.map((a) => ({
+                ...a,
+                ...a.metrics,
+              }))}
               loading={alertsData.loading}
             />
           </CardContent>

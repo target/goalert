@@ -710,6 +710,7 @@ export interface Alert {
 
 export interface AlertMetric {
   escalated: boolean
+  closedAt: ISOTimestamp
 }
 
 export interface AlertPendingNotification {
