@@ -912,6 +912,13 @@ type Alert {
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 
   pendingNotifications: [AlertPendingNotification!]!
+
+  # metrics are only available for closed alerts
+  metrics: AlertMetric
+}
+
+type AlertMetric {
+  escalated: Boolean!
 }
 
 type AlertPendingNotification {

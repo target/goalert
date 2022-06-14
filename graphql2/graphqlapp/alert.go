@@ -402,6 +402,10 @@ func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
 }
 
+func (a *Alert) Metrics(ctx context.Context, raw *alert.Alert) (*alertmetrics.Metric, error) {
+	return (*App)(a).FindOneAlertMetric(ctx, raw.ID)
+}
+
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {
 	// An alert when created will always have triggered status
 	a := &alert.Alert{

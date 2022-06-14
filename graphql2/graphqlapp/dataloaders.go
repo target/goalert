@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -36,6 +37,7 @@ const (
 	dataLoaderKeyHeartbeatMonitor
 	dataLoaderKeyNotificationMessageStatus
 	dataLoaderKeyNC
+	dataLoaderAlertMetrics
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -52,6 +54,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses))
 	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))
+	ctx = context.WithValue(ctx, dataLoaderAlertMetrics, dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics))
 	return ctx
 }
 
@@ -100,6 +103,22 @@ func (app *App) FindOneUser(ctx context.Context, id string) (*user.User, error) 
 	loader, ok := ctx.Value(dataLoaderKeyUser).(*dataloader.Loader[string, user.User])
 	if !ok {
 		return app.UserStore.FindOne(ctx, id)
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.Metric, error) {
+	loader, ok := ctx.Value(dataLoaderAlertMetrics).(*dataloader.Loader[int, alertmetrics.Metric])
+	if !ok {
+		m, err := app.AlertMetricsStore.FindMetrics(ctx, []int{id})
+		if err != nil {
+			return nil, err
+		}
+		if len(m) == 0 {
+			return nil, nil
+		}
+		return &m[0], nil
 	}
 
 	return loader.FetchOne(ctx, id)
