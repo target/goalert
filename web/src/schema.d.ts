@@ -669,6 +669,8 @@ export interface AlertSearchOptions {
   sort?: null | AlertSearchSort
   createdBefore?: null | ISOTimestamp
   notCreatedBefore?: null | ISOTimestamp
+  closedBefore?: null | ISOTimestamp
+  notClosedBefore?: null | ISOTimestamp
 }
 
 export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'

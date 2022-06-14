@@ -22584,6 +22584,22 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "closedBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closedBefore"))
+			it.ClosedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notClosedBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notClosedBefore"))
+			it.NotClosedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 

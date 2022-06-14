@@ -104,8 +104,8 @@ function useAlerts(
           input: {
             filterByServiceID: [serviceID],
             first: QUERY_LIMIT,
-            notCreatedBefore: since,
-            createdBefore: until,
+            notClosedBefore: since,
+            closedBefore: until,
             filterByStatus: ['StatusClosed'],
             after: cursor,
           },
