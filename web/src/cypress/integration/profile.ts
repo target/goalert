@@ -59,7 +59,7 @@ function testProfile(): void {
             epID: svc.epID,
             targets: [{ type: 'user', id: profile.id }],
           })
-          .task('engine:trigger')
+          .engineTrigger()
           .then(() => svc.id)
       })
       .then((svcID: string) => {
