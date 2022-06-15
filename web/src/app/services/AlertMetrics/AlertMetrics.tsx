@@ -36,6 +36,8 @@ const alertsQuery = gql`
         createdAt
         metrics {
           closedAt
+          timeToClose
+          timeToAck
         }
       }
       pageInfo {
@@ -199,12 +201,31 @@ export default function AlertMetrics({
       year: 'numeric',
     })
 
+    const bucket = alertsData.alerts.filter((a) =>
+      i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
+    )
+
     return {
       date,
       label,
-      count: alertsData.alerts.filter((a) =>
-        i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
-      ).length,
+      count: bucket.length,
+
+      // get average of a.metrics.timeToClose values
+      avgTimeToClose: bucket.length
+        ? bucket.reduce((acc, a) => {
+            if (!a.metrics?.timeToClose) return acc
+            const timeToClose = Duration.fromISO(a.metrics.timeToClose)
+            return acc + Math.ceil(timeToClose.get('minutes'))
+          }, 0) / bucket.length
+        : 0,
+
+      avgTimeToAck: bucket.length
+        ? bucket.reduce((acc, a) => {
+            if (!a.metrics?.timeToAck) return acc
+            const timeToAck = Duration.fromISO(a.metrics.timeToAck)
+            return acc + Math.ceil(timeToAck.get('minutes'))
+          }, 0) / bucket.length
+        : 0,
     }
   })
 
