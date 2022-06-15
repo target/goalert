@@ -27,12 +27,9 @@ type SearchOptions struct {
 
 var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(search.Helpers()).Parse(`
 	SELECT
+		alert_id,
 		service_id,
-		(date(timezone('UTC'::text, closed_at))),
-		count(*),
-		EXTRACT(EPOCH FROM coalesce(avg(time_to_ack), avg(time_to_close))),
-		EXTRACT(EPOCH FROM avg(time_to_close)),
-		count(*) filter (WHERE escalated=TRUE)
+		closed_at
 	FROM alert_metrics
 	WHERE true
 	{{if .ServiceIDs}}
@@ -44,7 +41,6 @@ var searchTemplate = template.Must(template.New("alert-metrics-search").Funcs(se
 	{{ if not .Since.IsZero }}
 		AND (date(timezone('UTC'::text, closed_at))) >= :since
 	{{ end }}
-	GROUP BY service_id, (date(timezone('UTC'::text, closed_at)))
 	ORDER BY (date(timezone('UTC'::text, closed_at)))
 `))
 
@@ -92,17 +88,13 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Record, erro
 	defer rows.Close()
 
 	metrics := make([]Record, 0)
-	var timeToAck sql.NullFloat64
-	var timeToClose sql.NullFloat64
 	for rows.Next() {
-		var rec Record
-		err := rows.Scan(&rec.ServiceID, &rec.ClosedAt, &rec.AlertCount, &timeToAck, &timeToClose, &rec.EscalatedCount)
+		var dp Record
+		err := rows.Scan(&dp.AlertID, &dp.ServiceID, &dp.ClosedAt)
 		if err != nil {
 			return nil, err
 		}
-		rec.TimeToClose = time.Duration(timeToClose.Float64 * float64(time.Second))
-		rec.TimeToAck = time.Duration(timeToAck.Float64 * float64(time.Second))
-		metrics = append(metrics, rec)
+		metrics = append(metrics, dp)
 	}
 
 	return metrics, nil

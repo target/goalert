@@ -354,58 +354,44 @@ func (d *datagen) NewAlert(status alert.Status) {
 }
 
 // NewAlertLog will generate an alert log for the provided alert.
-func (d *datagen) NewAlertLogs(alrt alert.Alert) {
+func (d *datagen) NewAlertLogs(a alert.Alert) {
 	// Add 'created' event log
 	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   alrt.ID,
-		Timestamp: alrt.CreatedAt,
+		AlertID:   a.ID,
+		Timestamp: a.CreatedAt,
 		Event:     "created",
 		Message:   "",
 	})
 
-	switch alrt.Status {
+	t := a.CreatedAt
+	addEvent := func(event string) {
+		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
+		d.AlertLogs = append(d.AlertLogs, AlertLog{
+			AlertID:   a.ID,
+			Timestamp: t,
+			Event:     event,
+			Message:   "",
+		})
+	}
+
+	switch a.Status {
+	case alert.StatusTriggered:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
 	case alert.StatusActive:
-		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alrt.ID,
-			Timestamp: gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute)),
-			Event:     "acknowledged",
-			Message:   "",
-		})
-		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alrt.ID,
-			Timestamp: gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute)),
-			Event:     "escalated",
-			Message:   "",
-		})
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+		addEvent("acknowledged")
 	case alert.StatusClosed:
-		closeTime := gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute))
-
 		if gofakeit.Bool() {
-			// was acked
-			d.AlertLogs = append(d.AlertLogs, AlertLog{
-				AlertID:   alrt.ID,
-				Timestamp: gofakeit.DateRange(alrt.CreatedAt, closeTime),
-				Event:     "acknowledged",
-				Message:   "",
-			})
+			addEvent("escalated")
 		}
-
 		if gofakeit.Bool() {
-			// was escalated
-			d.AlertLogs = append(d.AlertLogs, AlertLog{
-				AlertID:   alrt.ID,
-				Timestamp: gofakeit.DateRange(alrt.CreatedAt, closeTime),
-				Event:     "escalated",
-				Message:   "",
-			})
+			addEvent("acknowledged")
 		}
-
-		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alrt.ID,
-			Timestamp: closeTime,
-			Event:     "closed",
-			Message:   "",
-		})
+		addEvent("closed")
 	}
 }
 

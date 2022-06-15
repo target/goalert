@@ -639,25 +639,27 @@ function testServices(screen: ScreenFormat): void {
   describe('Metrics', () => {
     let closedAlert: Alert
     let openAlert: Alert
-    let svc: Service
-    beforeEach(() => {
-      cy.createService({ ep: { stepCount: 1 } }).then((s: Service) => {
-        svc = s
-        cy.createAlert({ serviceID: svc.id })
-          .then((a: Alert) => {
-            closedAlert = a
-            cy.escalateAlert(a.id)
-            cy.ackAlert(a.id)
-            cy.closeAlert(a.id)
-            // non-closed alert
-            return cy.createAlert({ serviceID: svc.id })
-          })
-          .then((a: Alert) => {
-            openAlert = a
-            return cy.visit(`/services/${svc.id}/alert-metrics`)
-          })
-      })
-    })
+    beforeEach(() =>
+      cy
+        .setTimeSpeed(0)
+        .createAlert()
+        .then((a: Alert) => {
+          closedAlert = a
+          // cy.escalateAlert(a.id)
+          cy.fastForward('1m')
+          cy.ackAlert(a.id)
+          cy.fastForward('1m')
+          cy.closeAlert(a.id)
+          cy.fastForward('5m')
+          cy.setTimeSpeed(1) // resume the flow of time
+          // non-closed alert
+          return cy.createAlert({ serviceID: a.serviceID })
+        })
+        .then((a: Alert) => {
+          openAlert = a
+          return cy.visit(`/services/${a.serviceID}/alert-metrics`)
+        }),
+    )
 
     it('should display alert metrics', () => {
       const now = DateTime.local().toLocaleString({
@@ -668,8 +670,6 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.summary)
         .should('not.contain', openAlert.summary)
 
-      cy.fastForward('5 minutes')
-
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
@@ -677,18 +677,13 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', now)
         .should('contain', 'Alert Count: 1')
 
-      cy.get('path[name="Escalated Count"]')
-        .should('have.length', 1)
-        .trigger('mouseover')
-      cy.get('[data-cy=metrics-count-graph]')
-        .should('contain', now)
-        .should('contain', 'Escalated Count: 1')
-
-      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0)
+      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0, {
+        force: true,
+      })
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
-        .should('contain', 'Average Time To Acknowledge: 0 sec')
-        .should('contain', 'Average Time To Close: 0 sec')
+        .should('contain', 'Avg. Ack: 1 min')
+        .should('contain', 'Avg. Close: 2 min')
     })
   })
 }

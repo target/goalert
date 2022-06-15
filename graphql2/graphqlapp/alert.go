@@ -31,17 +31,27 @@ import (
 
 type (
 	Alert              App
+	AlertMetric        App
 	AlertLogEntry      App
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
+func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
 
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
+}
+
+func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+}
+
+func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
@@ -199,33 +209,21 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 		panic("duration must not be zero")
 	}
 
-	alertMetricsUntil := func(ts time.Time) graphql2.AlertDataPoint {
+	countAlertsUntil := func(ts time.Time) int {
 		var count int
-		var escalatedCount int
-		var avgTimeToAck time.Duration
-		var avgTimeToClose time.Duration
 		for len(metrics) > 0 {
 			if !metrics[0].ClosedAt.Before(ts) {
 				break
 			}
 
-			count = count + metrics[0].AlertCount
-			escalatedCount = escalatedCount + metrics[0].EscalatedCount
-			avgTimeToAck = metrics[0].TimeToAck
-			avgTimeToClose = metrics[0].TimeToClose
+			count++
 			metrics = metrics[1:]
 		}
-		return graphql2.AlertDataPoint{
-			Timestamp:      ts,
-			AlertCount:     count,
-			AvgTimeToAck:   &timeutil.ISODuration{TimePart: avgTimeToAck},
-			AvgTimeToClose: &timeutil.ISODuration{TimePart: avgTimeToClose},
-			EscalatedCount: escalatedCount,
-		}
+		return count
 	}
 
 	// trim alerts
-	alertMetricsUntil(r.Start)
+	countAlertsUntil(r.Start)
 
 	ts := r.Start
 	end := r.End()
@@ -234,7 +232,10 @@ func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record
 		if next.After(end) {
 			next = end
 		}
-		result = append(result, alertMetricsUntil(next))
+		result = append(result, graphql2.AlertDataPoint{
+			Timestamp:  ts,
+			AlertCount: countAlertsUntil(next),
+		})
 		ts = next
 	}
 
@@ -347,6 +348,12 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		if opts.NotCreatedBefore != nil {
 			s.NotBefore = *opts.NotCreatedBefore
 		}
+		if opts.ClosedBefore != nil {
+			s.ClosedBefore = *opts.ClosedBefore
+		}
+		if opts.NotClosedBefore != nil {
+			s.NotClosedBefore = *opts.NotClosedBefore
+		}
 	}
 
 	s.Limit++
@@ -403,6 +410,10 @@ func (a *Alert) State(ctx context.Context, raw *alert.Alert) (*alert.State, erro
 
 func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service, error) {
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
+}
+
+func (a *Alert) Metrics(ctx context.Context, raw *alert.Alert) (*alertmetrics.Metric, error) {
+	return (*App)(a).FindOneAlertMetric(ctx, raw.ID)
 }
 
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {

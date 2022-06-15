@@ -8,11 +8,11 @@ import (
 
 func TestLoader_FetchOne(t *testing.T) {
 	type example struct{ id string }
-	cfg := loaderConfig{
+	cfg := loaderConfig[string, example]{
 		Max:       10,
 		Delay:     time.Millisecond,
-		IDFunc:    func(v interface{}) string { return v.(*example).id },
-		FetchFunc: func(context.Context, []string) ([]interface{}, error) { return []interface{}{&example{id: "foo"}}, nil },
+		IDFunc:    func(v example) string { return v.id },
+		FetchFunc: func(context.Context, []string) ([]example, error) { return []example{{id: "foo"}}, nil },
 	}
 	l := newLoader(context.Background(), cfg)
 
@@ -21,22 +21,18 @@ func TestLoader_FetchOne(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if r, ok := res.(*example); ok {
-		if r.id != "foo" {
-			t.Errorf("got id=%s; want foo", r.id)
-		}
-	} else {
-		t.Errorf("got %T; want *example", res)
+	if res.id != "foo" {
+		t.Errorf("got id=%s; want foo", res.id)
 	}
 }
 
 func TestLoader_FetchOne_Missing(t *testing.T) {
 	type example struct{ id string }
-	cfg := loaderConfig{
+	cfg := loaderConfig[string, example]{
 		Max:       10,
 		Delay:     time.Millisecond,
-		IDFunc:    func(v interface{}) string { return v.(*example).id },
-		FetchFunc: func(context.Context, []string) ([]interface{}, error) { return []interface{}{&example{id: "bar"}}, nil },
+		IDFunc:    func(v example) string { return v.id },
+		FetchFunc: func(context.Context, []string) ([]example, error) { return []example{{id: "bar"}}, nil },
 	}
 	ctx, done := context.WithTimeout(context.Background(), time.Second)
 	defer done()

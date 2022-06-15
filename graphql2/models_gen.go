@@ -31,11 +31,8 @@ type AlertConnection struct {
 }
 
 type AlertDataPoint struct {
-	Timestamp      time.Time             `json:"timestamp"`
-	AlertCount     int                   `json:"alertCount"`
-	AvgTimeToAck   *timeutil.ISODuration `json:"avgTimeToAck"`
-	AvgTimeToClose *timeutil.ISODuration `json:"avgTimeToClose"`
-	EscalatedCount int                   `json:"escalatedCount"`
+	Timestamp  time.Time `json:"timestamp"`
+	AlertCount int       `json:"alertCount"`
 }
 
 type AlertLogEntryConnection struct {
@@ -69,6 +66,8 @@ type AlertSearchOptions struct {
 	Sort              *AlertSearchSort `json:"sort"`
 	CreatedBefore     *time.Time       `json:"createdBefore"`
 	NotCreatedBefore  *time.Time       `json:"notCreatedBefore"`
+	ClosedBefore      *time.Time       `json:"closedBefore"`
+	NotClosedBefore   *time.Time       `json:"notClosedBefore"`
 }
 
 type AuthSubjectConnection struct {

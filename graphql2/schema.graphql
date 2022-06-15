@@ -123,9 +123,6 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
-  avgTimeToAck: ISODuration # only null if alertCount is 0
-  avgTimeToClose: ISODuration # only null if alertCount is 0
-  escalatedCount: Int!
 }
 
 input DebugMessagesInput {
@@ -872,6 +869,8 @@ input AlertSearchOptions {
   sort: AlertSearchSort = statusID
   createdBefore: ISOTimestamp
   notCreatedBefore: ISOTimestamp
+  closedBefore: ISOTimestamp
+  notClosedBefore: ISOTimestamp
 }
 
 enum AlertSearchSort {
@@ -913,6 +912,16 @@ type Alert {
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 
   pendingNotifications: [AlertPendingNotification!]!
+
+  # metrics are only available for closed alerts
+  metrics: AlertMetric
+}
+
+type AlertMetric {
+  escalated: Boolean!
+  closedAt: ISOTimestamp!
+  timeToAck: ISODuration!
+  timeToClose: ISODuration!
 }
 
 type AlertPendingNotification {

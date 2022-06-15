@@ -9,6 +9,5 @@ func Defaults() Config {
 		MaxReqBodyBytes:   256 * 1024,
 		MaxReqHeaderBytes: 4096,
 		RegionName:        "default",
-		TraceProbability:  0.01,
 	}
 }
