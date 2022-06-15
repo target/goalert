@@ -666,9 +666,11 @@ function testServices(screen: ScreenFormat): void {
         month: 'short',
         day: 'numeric',
       })
+
+      // summary doesn't load by default on mobile (until scrolled to)
       cy.get('[data-cy=metrics-table]')
-        .should('contain', closedAlert.summary)
-        .should('not.contain', openAlert.summary)
+        .should('contain', closedAlert.id)
+        .should('not.contain', openAlert.id)
 
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
