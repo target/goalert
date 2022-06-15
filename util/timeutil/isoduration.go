@@ -3,6 +3,7 @@ package timeutil
 import (
 	"fmt"
 	"io"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -41,7 +42,7 @@ func (dur ISODuration) Equal(t time.Time, other ISODuration) bool {
 	return dur.AddTo(t).Equal(other.AddTo(t))
 }
 
-// String returns an ISO 8601 duration string.
+// String returns an ISO 8601 duration string, rounded to the nearest microsecond.
 func (dur ISODuration) String() string {
 	if dur == zeroDur {
 		return "P0D"
@@ -81,7 +82,10 @@ func (dur ISODuration) String() string {
 	}
 
 	if dur.TimePart.Seconds() > 0 {
-		fmt.Fprintf(&b, "%gS", dur.TimePart.Seconds())
+		sec := dur.TimePart.Seconds()
+		// round to microseconds
+		sec = math.Round(sec*1e6) / 1e6
+		fmt.Fprintf(&b, "%gS", sec)
 	}
 
 	return b.String()
