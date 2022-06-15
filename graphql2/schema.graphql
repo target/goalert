@@ -123,8 +123,6 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
-  avgTimeToAck: ISODuration # only null if alertCount is 0
-  avgTimeToClose: ISODuration # only null if alertCount is 0
 }
 
 input DebugMessagesInput {

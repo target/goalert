@@ -111,10 +111,8 @@ type ComplexityRoot struct {
 	}
 
 	AlertDataPoint struct {
-		AlertCount     func(childComplexity int) int
-		AvgTimeToAck   func(childComplexity int) int
-		AvgTimeToClose func(childComplexity int) int
-		Timestamp      func(childComplexity int) int
+		AlertCount func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
 	}
 
 	AlertLogEntry struct {
@@ -900,20 +898,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertDataPoint.AlertCount(childComplexity), true
-
-	case "AlertDataPoint.avgTimeToAck":
-		if e.complexity.AlertDataPoint.AvgTimeToAck == nil {
-			break
-		}
-
-		return e.complexity.AlertDataPoint.AvgTimeToAck(childComplexity), true
-
-	case "AlertDataPoint.avgTimeToClose":
-		if e.complexity.AlertDataPoint.AvgTimeToClose == nil {
-			break
-		}
-
-		return e.complexity.AlertDataPoint.AvgTimeToClose(childComplexity), true
 
 	case "AlertDataPoint.timestamp":
 		if e.complexity.AlertDataPoint.Timestamp == nil {
@@ -5579,88 +5563,6 @@ func (ec *executionContext) fieldContext_AlertDataPoint_alertCount(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertDataPoint_avgTimeToAck(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDataPoint_avgTimeToAck(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimeToAck, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*timeutil.ISODuration)
-	fc.Result = res
-	return ec.marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertDataPoint_avgTimeToAck(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertDataPoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISODuration does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertDataPoint_avgTimeToClose(ctx context.Context, field graphql.CollectedField, obj *AlertDataPoint) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertDataPoint_avgTimeToClose(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimeToClose, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*timeutil.ISODuration)
-	fc.Result = res
-	return ec.marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertDataPoint_avgTimeToClose(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertDataPoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISODuration does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13332,10 +13234,6 @@ func (ec *executionContext) fieldContext_Query_alertMetrics(ctx context.Context,
 				return ec.fieldContext_AlertDataPoint_timestamp(ctx, field)
 			case "alertCount":
 				return ec.fieldContext_AlertDataPoint_alertCount(ctx, field)
-			case "avgTimeToAck":
-				return ec.fieldContext_AlertDataPoint_avgTimeToAck(ctx, field)
-			case "avgTimeToClose":
-				return ec.fieldContext_AlertDataPoint_avgTimeToClose(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AlertDataPoint", field.Name)
 		},
@@ -26128,14 +26026,6 @@ func (ec *executionContext) _AlertDataPoint(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "avgTimeToAck":
-
-			out.Values[i] = ec._AlertDataPoint_avgTimeToAck(ctx, field, obj)
-
-		case "avgTimeToClose":
-
-			out.Values[i] = ec._AlertDataPoint_avgTimeToClose(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34173,22 +34063,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	}
 	res := graphql.MarshalID(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v interface{}) (*timeutil.ISODuration, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(timeutil.ISODuration)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, sel ast.SelectionSet, v *timeutil.ISODuration) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
