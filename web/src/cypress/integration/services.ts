@@ -677,6 +677,7 @@ function testServices(screen: ScreenFormat): void {
       cy.get('[data-cy=metrics-count-graph]')
         .should('contain', now)
         .should('contain', 'Alert Count: 1')
+        .should('contain', 'Escalated: 0') // no ep steps
 
       cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0, {
         force: true,

@@ -37,6 +37,7 @@ const alertsQuery = gql`
           closedAt
           timeToClose
           timeToAck
+          escalated
         }
       }
       pageInfo {
@@ -204,17 +205,21 @@ export default function AlertMetrics({
       i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
     )
 
+    const escalatedCount = bucket.filter((a) => a.metrics?.escalated).length
+
     return {
       date,
       label,
       count: bucket.length,
+      nonEscalatedCount: bucket.length - escalatedCount,
+      escalatedCount,
 
       // get average of a.metrics.timeToClose values
       avgTimeToClose: bucket.length
         ? bucket.reduce((acc, a) => {
             if (!a.metrics?.timeToClose) return acc
             const timeToClose = Duration.fromISO(a.metrics.timeToClose)
-            return acc + Math.ceil(timeToClose.get('minutes'))
+            return acc + Math.ceil(timeToClose.as('minutes'))
           }, 0) / bucket.length
         : 0,
 
@@ -222,7 +227,7 @@ export default function AlertMetrics({
         ? bucket.reduce((acc, a) => {
             if (!a.metrics?.timeToAck) return acc
             const timeToAck = Duration.fromISO(a.metrics.timeToAck)
-            return acc + Math.ceil(timeToAck.get('minutes'))
+            return acc + Math.ceil(timeToAck.as('minutes'))
           }, 0) / bucket.length
         : 0,
     }

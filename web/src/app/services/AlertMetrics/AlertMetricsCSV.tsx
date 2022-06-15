@@ -31,6 +31,7 @@ export default function AlertMetricsCSV(
       'hh:mm:ss',
     ),
     alertID: a.alertID,
+    escalated: (a.metrics?.escalated as boolean).toString(),
     status: a.status.replace('Status', ''),
     summary: a.summary,
     details: a.details,

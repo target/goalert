@@ -355,34 +355,38 @@ func (d *datagen) NewAlert(status alert.Status) {
 
 // NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(a alert.Alert) {
-	// Add 'created' event log
-	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   a.ID,
-		Timestamp: a.CreatedAt,
-		Event:     "created",
-		Message:   "",
-	})
-
 	t := a.CreatedAt
-
-	if a.Status == alert.StatusActive || (a.Status == alert.StatusClosed && gofakeit.Bool()) {
+	addEvent := func(event string) {
 		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
 			AlertID:   a.ID,
 			Timestamp: t,
-			Event:     "acknowledged",
-			Message:   "",
+			Event:     event,
 		})
 	}
 
-	// Add 'closed' event log
-	if a.Status == alert.StatusClosed {
-		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   a.ID,
-			Timestamp: gofakeit.DateRange(t, t.Add(30*time.Minute)),
-			Event:     "closed",
-			Message:   "",
-		})
+	// initial creation and escalation
+	addEvent("created")
+	addEvent("escalated")
+
+	switch a.Status {
+	case alert.StatusTriggered:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+	case alert.StatusActive:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+		addEvent("acknowledged")
+	case alert.StatusClosed:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+		if gofakeit.Bool() {
+			addEvent("acknowledged")
+		}
+		addEvent("closed")
 	}
 }
 
