@@ -205,10 +205,14 @@ export default function AlertMetrics({
       i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
     )
 
+    const escalatedCount = bucket.filter((a) => a.metrics?.escalated).length
+
     return {
       date,
       label,
       count: bucket.length,
+      nonEscalatedCount: bucket.length - escalatedCount,
+      escalatedCount,
 
       // get average of a.metrics.timeToClose values
       avgTimeToClose: bucket.length
