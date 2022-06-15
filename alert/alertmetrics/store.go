@@ -24,7 +24,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	return &Store{
 		db: db,
 
-		findMetrics: p.P(`select alert_id, coalesce(time_to_ack, time_to_close), time_to_close, escalated from alert_metrics where alert_id = any($1)`),
+		findMetrics: p.P(`select alert_id, coalesce(time_to_ack, time_to_close), time_to_close, escalated, closed_at from alert_metrics where alert_id = any($1)`),
 	}, p.Err
 }
 
@@ -32,6 +32,7 @@ type Metric struct {
 	ID          int
 	TimeToAck   time.Duration
 	TimeToClose time.Duration
+	ClosedAt    time.Time
 	Escalated   bool
 }
 
@@ -51,7 +52,7 @@ func (s *Store) FindMetrics(ctx context.Context, alertIDs []int) ([]Metric, erro
 	for rows.Next() {
 		var m Metric
 		var ack, cls pgtype.Interval
-		if err := rows.Scan(&m.ID, &ack, &cls, &m.Escalated); err != nil {
+		if err := rows.Scan(&m.ID, &ack, &cls, &m.Escalated, &m.ClosedAt); err != nil {
 			return nil, fmt.Errorf("scanning metric: %w", err)
 		}
 		err = ack.AssignTo(&m.TimeToAck)

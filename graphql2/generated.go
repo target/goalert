@@ -127,6 +127,7 @@ type ComplexityRoot struct {
 	}
 
 	AlertMetric struct {
+		ClosedAt  func(childComplexity int) int
 		Escalated func(childComplexity int) int
 	}
 
@@ -939,6 +940,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
+
+	case "AlertMetric.closedAt":
+		if e.complexity.AlertMetric.ClosedAt == nil {
+			break
+		}
+
+		return e.complexity.AlertMetric.ClosedAt(childComplexity), true
 
 	case "AlertMetric.escalated":
 		if e.complexity.AlertMetric.Escalated == nil {
@@ -5318,6 +5326,8 @@ func (ec *executionContext) fieldContext_Alert_metrics(ctx context.Context, fiel
 			switch field.Name {
 			case "escalated":
 				return ec.fieldContext_AlertMetric_escalated(ctx, field)
+			case "closedAt":
+				return ec.fieldContext_AlertMetric_closedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AlertMetric", field.Name)
 		},
@@ -5857,6 +5867,50 @@ func (ec *executionContext) fieldContext_AlertMetric_escalated(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertMetric_closedAt(ctx context.Context, field graphql.CollectedField, obj *alertmetrics.Metric) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertMetric_closedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClosedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertMetric_closedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertMetric",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -25990,6 +26044,13 @@ func (ec *executionContext) _AlertMetric(ctx context.Context, sel ast.SelectionS
 		case "escalated":
 
 			out.Values[i] = ec._AlertMetric_escalated(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "closedAt":
+
+			out.Values[i] = ec._AlertMetric_closedAt(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
