@@ -40,41 +40,29 @@ export default function AlertMetricsTable(
       field: 'createdAt',
       headerName: 'Created At',
       width: 250,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return `${DateTime.fromISO(params.value as string).toFormat(
-          'ccc, DD, t ZZZZ',
-        )}`
-      },
+      valueFormatter: (params: GridValueFormatterParams) =>
+        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
     },
     {
       field: 'closedAt',
       headerName: 'Closed At',
       width: 250,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return `${DateTime.fromISO(params.value as string).toFormat(
-          'ccc, DD, t ZZZZ',
-        )}`
-      },
+      valueFormatter: (params: GridValueFormatterParams) =>
+        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
     },
     {
       field: 'timeToAck',
       headerName: 'Ack Time',
       width: 100,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return `${Duration.fromISO(params.value as string).toFormat(
-          'hh:mm:ss',
-        )}`
-      },
+      valueFormatter: (params: GridValueFormatterParams) =>
+        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
     },
     {
       field: 'timeToClose',
       headerName: 'Close Time',
       width: 100,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return `${Duration.fromISO(params.value as string).toFormat(
-          'hh:mm:ss',
-        )}`
-      },
+      valueFormatter: (params: GridValueFormatterParams) =>
+        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
     },
     {
       field: 'alertID',
