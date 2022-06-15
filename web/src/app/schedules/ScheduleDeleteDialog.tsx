@@ -1,6 +1,6 @@
 import React from 'react'
-import { useQuery, useMutation, gql } from '@apollo/client'
-import p from 'prop-types'
+import { useMutation } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import { get } from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
@@ -19,11 +19,15 @@ const mutation = gql`
   }
 `
 
-export default function ScheduleDeleteDialog(props) {
-  const { data, loading: dataLoading } = useQuery(query, {
-    onClose: p.func,
+export default function ScheduleDeleteDialog(props: {
+  onClose?: () => void
+  scheduleID: string
+}): JSX.Element {
+  const [{ data, fetching }] = useQuery({
+    query,
     variables: { id: props.scheduleID },
   })
+
   const [deleteSchedule, deleteScheduleStatus] = useMutation(mutation, {
     variables: {
       input: [
@@ -35,7 +39,7 @@ export default function ScheduleDeleteDialog(props) {
     },
   })
 
-  if (!data && dataLoading) return <Spinner />
+  if (!data && fetching) return <Spinner />
 
   return (
     <FormDialog
@@ -49,9 +53,4 @@ export default function ScheduleDeleteDialog(props) {
       onSubmit={() => deleteSchedule()}
     />
   )
-}
-
-ScheduleDeleteDialog.propTypes = {
-  scheduleID: p.string.isRequired,
-  onClose: p.func,
 }
