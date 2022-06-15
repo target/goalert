@@ -14,7 +14,7 @@ import { Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
 import AlertMetricsCSV from './AlertMetricsCSV'
 
@@ -53,6 +53,26 @@ export default function AlertMetricsTable(
       valueFormatter: (params: GridValueFormatterParams) => {
         return `${DateTime.fromISO(params.value as string).toFormat(
           'ccc, DD, t ZZZZ',
+        )}`
+      },
+    },
+    {
+      field: 'timeToAck',
+      headerName: 'Ack Time',
+      width: 100,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return `${Duration.fromISO(params.value as string).toFormat(
+          'hh:mm:ss',
+        )}`
+      },
+    },
+    {
+      field: 'timeToClose',
+      headerName: 'Close Time',
+      width: 100,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return `${Duration.fromISO(params.value as string).toFormat(
+          'hh:mm:ss',
         )}`
       },
     },
