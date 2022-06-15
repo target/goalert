@@ -68,6 +68,8 @@ type AlertSearchOptions struct {
 	Sort              *AlertSearchSort `json:"sort"`
 	CreatedBefore     *time.Time       `json:"createdBefore"`
 	NotCreatedBefore  *time.Time       `json:"notCreatedBefore"`
+	ClosedBefore      *time.Time       `json:"closedBefore"`
+	NotClosedBefore   *time.Time       `json:"notClosedBefore"`
 }
 
 type AuthSubjectConnection struct {

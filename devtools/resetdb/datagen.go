@@ -25,10 +25,8 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
-var (
-	timeZones     = []string{"America/Chicago", "Europe/Berlin", "UTC"}
-	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
-)
+var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
+var rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
 
 type AlertLog struct {
 	AlertID   int
@@ -354,39 +352,21 @@ func (d *datagen) NewAlert(status alert.Status) {
 }
 
 // NewAlertLog will generate an alert log for the provided alert.
-func (d *datagen) NewAlertLogs(alrt alert.Alert) {
+func (d *datagen) NewAlertLogs(alert alert.Alert) {
+
 	// Add 'created' event log
 	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   alrt.ID,
-		Timestamp: alrt.CreatedAt,
+		AlertID:   alert.ID,
+		Timestamp: alert.CreatedAt,
 		Event:     "created",
 		Message:   "",
 	})
 
-	switch alrt.Status {
-	case alert.StatusActive:
+	// Add 'closed' event log
+	if alert.Status == "closed" {
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alrt.ID,
-			Timestamp: gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute)),
-			Event:     "acknowledged",
-			Message:   "",
-		})
-	case alert.StatusClosed:
-		closeTime := gofakeit.DateRange(alrt.CreatedAt, alrt.CreatedAt.Add(30*time.Minute))
-
-		if gofakeit.Bool() {
-			// was acked
-			d.AlertLogs = append(d.AlertLogs, AlertLog{
-				AlertID:   alrt.ID,
-				Timestamp: gofakeit.DateRange(alrt.CreatedAt, closeTime),
-				Event:     "acknowledged",
-				Message:   "",
-			})
-		}
-
-		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alrt.ID,
-			Timestamp: closeTime,
+			AlertID:   alert.ID,
+			Timestamp: gofakeit.DateRange(alert.CreatedAt, alert.CreatedAt.Add(30*time.Minute)),
 			Event:     "closed",
 			Message:   "",
 		})
@@ -417,6 +397,7 @@ func (d *datagen) NewFavorite(userID string) {
 
 // Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
+
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
 			return

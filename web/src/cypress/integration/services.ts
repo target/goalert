@@ -641,7 +641,7 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
-        .setTimeSpeed(0) // freeze time
+        .setTimeSpeed(0)
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
@@ -650,7 +650,7 @@ function testServices(screen: ScreenFormat): void {
           cy.fastForward('1m')
           cy.closeAlert(a.id)
           cy.fastForward('5m')
-          cy.setTimeSpeed(1) // unfreeze time
+          cy.setTimeSpeed(1) // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })

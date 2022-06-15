@@ -47,6 +47,16 @@ export default function AlertMetricsTable(
       },
     },
     {
+      field: 'closedAt',
+      headerName: 'Closed At',
+      width: 250,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return `${DateTime.fromISO(params.value as string).toFormat(
+          'ccc, DD, t ZZZZ',
+        )}`
+      },
+    },
+    {
       field: 'alertID',
       headerName: 'Alert ID',
       width: 90,

@@ -12,12 +12,18 @@ interface AlertMetricsCSVProps {
 export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
 ): JSX.Element {
-  const zoneAbbr = DateTime.local().toFormat('ZZZZ')
+  const zoneAbbr = DateTime.local().toFormat('ZZZZ Z')
+
   // Note: the data object is ordered
   const data = props.alerts.map((a) => ({
     [`createdAt (${zoneAbbr})`]: DateTime.fromISO(a.createdAt).toLocal().toSQL({
       includeOffset: false,
     }),
+    [`closedAt (${zoneAbbr})`]: DateTime.fromISO(a.metrics?.closedAt as string)
+      .toLocal()
+      .toSQL({
+        includeOffset: false,
+      }),
     alertID: a.alertID,
     status: a.status.replace('Status', ''),
     summary: a.summary,
