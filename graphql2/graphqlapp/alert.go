@@ -31,17 +31,27 @@ import (
 
 type (
 	Alert              App
+	AlertMetric        App
 	AlertLogEntry      App
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
+func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
 
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
+}
+
+func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+}
+
+func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
