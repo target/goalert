@@ -33,8 +33,7 @@ func TestSplitRangeByDurationAlertCounts(t *testing.T) {
 	for day := 0; day < 20; day++ {
 		for hour := 0; hour <= day; hour++ {
 			jan = append(jan, alertmetrics.Record{
-				ClosedAt:   time.Date(2000, time.January, day, hour, 0, 0, 0, loc),
-				AlertCount: 1,
+				ClosedAt: time.Date(2000, time.January, day, hour, 0, 0, 0, loc),
 			})
 		}
 	}
