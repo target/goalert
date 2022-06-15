@@ -219,7 +219,7 @@ export default function AlertMetrics({
         ? bucket.reduce((acc, a) => {
             if (!a.metrics?.timeToClose) return acc
             const timeToClose = Duration.fromISO(a.metrics.timeToClose)
-            return acc + Math.ceil(timeToClose.get('minutes'))
+            return acc + Math.ceil(timeToClose.as('minutes'))
           }, 0) / bucket.length
         : 0,
 
@@ -227,7 +227,7 @@ export default function AlertMetrics({
         ? bucket.reduce((acc, a) => {
             if (!a.metrics?.timeToAck) return acc
             const timeToAck = Duration.fromISO(a.metrics.timeToAck)
-            return acc + Math.ceil(timeToAck.get('minutes'))
+            return acc + Math.ceil(timeToAck.as('minutes'))
           }, 0) / bucket.length
         : 0,
     }
