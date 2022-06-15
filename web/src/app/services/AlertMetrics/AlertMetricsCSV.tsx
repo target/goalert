@@ -3,7 +3,7 @@ import { Button } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { CSVLink } from 'react-csv'
 import { Alert } from '../../../schema'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 
 interface AlertMetricsCSVProps {
   alerts: Alert[]
@@ -24,6 +24,12 @@ export default function AlertMetricsCSV(
       .toSQL({
         includeOffset: false,
       }),
+    timeToAck: Duration.fromISO(a.metrics?.timeToAck as string).toFormat(
+      'hh:mm:ss',
+    ),
+    timeToClose: Duration.fromISO(a.metrics?.timeToClose as string).toFormat(
+      'hh:mm:ss',
+    ),
     alertID: a.alertID,
     status: a.status.replace('Status', ''),
     summary: a.summary,
