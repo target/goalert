@@ -16,9 +16,8 @@ import AlertMetricsFilter, {
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import AlertAveragesGraph from './AlertAveragesGraph'
-import { AlertDataPoint } from '../../../schema'
-import { GenericError } from '../../error-pages'
 import { Alert } from '../../../schema'
+import { GenericError } from '../../error-pages'
 import _ from 'lodash'
 
 const alertsQuery = gql`
