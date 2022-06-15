@@ -73,6 +73,12 @@ export default function AlertMetricsTable(
       ),
     },
     {
+      field: 'escalated',
+      headerName: 'Escalated',
+      width: 90,
+    },
+
+    {
       field: 'status',
       headerName: 'Status',
       width: 160,
