@@ -681,7 +681,7 @@ function testServices(screen: ScreenFormat): void {
       })
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
-        .should('contain', 'Avg. Acknowledge: 1 min')
+        .should('contain', 'Avg. Ack: 1 min')
         .should('contain', 'Avg. Close: 2 min')
     })
   })
