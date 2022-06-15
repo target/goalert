@@ -25,8 +25,10 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
-var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
-var rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+var (
+	timeZones     = []string{"America/Chicago", "Europe/Berlin", "UTC"}
+	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+)
 
 type AlertLog struct {
 	AlertID   int
@@ -352,21 +354,32 @@ func (d *datagen) NewAlert(status alert.Status) {
 }
 
 // NewAlertLog will generate an alert log for the provided alert.
-func (d *datagen) NewAlertLogs(alert alert.Alert) {
-
+func (d *datagen) NewAlertLogs(a alert.Alert) {
 	// Add 'created' event log
 	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   alert.ID,
-		Timestamp: alert.CreatedAt,
+		AlertID:   a.ID,
+		Timestamp: a.CreatedAt,
 		Event:     "created",
 		Message:   "",
 	})
 
-	// Add 'closed' event log
-	if alert.Status == "closed" {
+	t := a.CreatedAt
+
+	if a.Status == alert.StatusActive || (a.Status == alert.StatusClosed && gofakeit.Bool()) {
+		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alert.ID,
-			Timestamp: gofakeit.DateRange(alert.CreatedAt, alert.CreatedAt.Add(30*time.Minute)),
+			AlertID:   a.ID,
+			Timestamp: t,
+			Event:     "acknowledged",
+			Message:   "",
+		})
+	}
+
+	// Add 'closed' event log
+	if a.Status == alert.StatusClosed {
+		d.AlertLogs = append(d.AlertLogs, AlertLog{
+			AlertID:   a.ID,
+			Timestamp: gofakeit.DateRange(t, t.Add(30*time.Minute)),
 			Event:     "closed",
 			Message:   "",
 		})
@@ -397,7 +410,6 @@ func (d *datagen) NewFavorite(userID string) {
 
 // Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
-
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
 			return

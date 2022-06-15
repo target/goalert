@@ -36,7 +36,7 @@ export default function AlertCountGraph(
   const theme = useTheme()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-graph'>
+      <Grid item xs={12} data-cy='metrics-count-graph'>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
             width={730}

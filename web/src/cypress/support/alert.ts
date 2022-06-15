@@ -10,6 +10,7 @@ declare global {
       createManyAlerts: typeof createManyAlerts
       closeAlert: typeof closeAlert
       createAlertLogs: typeof createAlertLogs
+      ackAlert: typeof ackAlert
     }
   }
 
@@ -233,6 +234,19 @@ function createManyAlerts(
   return cy.sql(query)
 }
 
+function ackAlert(id: number): Cypress.Chainable<void> {
+  const query = `
+    mutation ($id: Int!) {
+      updateAlerts(input: {
+        newStatus: StatusAcknowledged
+        alertIDs: [$id]
+      }) { id }
+    }
+  `
+
+  return cy.graphqlVoid(query, { id })
+}
+
 function closeAlert(id: number): Cypress.Chainable<void> {
   const query = `
     mutation ($id: Int!) {
@@ -250,3 +264,4 @@ Cypress.Commands.add('createAlert', createAlert)
 Cypress.Commands.add('createManyAlerts', createManyAlerts)
 Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)
+Cypress.Commands.add('ackAlert', ackAlert)

@@ -63,6 +63,7 @@ type Config struct {
 type ResolverRoot interface {
 	Alert() AlertResolver
 	AlertLogEntry() AlertLogEntryResolver
+	AlertMetric() AlertMetricResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
@@ -127,8 +128,10 @@ type ComplexityRoot struct {
 	}
 
 	AlertMetric struct {
-		ClosedAt  func(childComplexity int) int
-		Escalated func(childComplexity int) int
+		ClosedAt    func(childComplexity int) int
+		Escalated   func(childComplexity int) int
+		TimeToAck   func(childComplexity int) int
+		TimeToClose func(childComplexity int) int
 	}
 
 	AlertPendingNotification struct {
@@ -585,6 +588,10 @@ type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
+type AlertMetricResolver interface {
+	TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
+	TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
+}
 type EscalationPolicyResolver interface {
 	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -954,6 +961,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertMetric.Escalated(childComplexity), true
+
+	case "AlertMetric.timeToAck":
+		if e.complexity.AlertMetric.TimeToAck == nil {
+			break
+		}
+
+		return e.complexity.AlertMetric.TimeToAck(childComplexity), true
+
+	case "AlertMetric.timeToClose":
+		if e.complexity.AlertMetric.TimeToClose == nil {
+			break
+		}
+
+		return e.complexity.AlertMetric.TimeToClose(childComplexity), true
 
 	case "AlertPendingNotification.destination":
 		if e.complexity.AlertPendingNotification.Destination == nil {
@@ -5328,6 +5349,10 @@ func (ec *executionContext) fieldContext_Alert_metrics(ctx context.Context, fiel
 				return ec.fieldContext_AlertMetric_escalated(ctx, field)
 			case "closedAt":
 				return ec.fieldContext_AlertMetric_closedAt(ctx, field)
+			case "timeToAck":
+				return ec.fieldContext_AlertMetric_timeToAck(ctx, field)
+			case "timeToClose":
+				return ec.fieldContext_AlertMetric_timeToClose(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AlertMetric", field.Name)
 		},
@@ -5911,6 +5936,94 @@ func (ec *executionContext) fieldContext_AlertMetric_closedAt(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertMetric_timeToAck(ctx context.Context, field graphql.CollectedField, obj *alertmetrics.Metric) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertMetric_timeToAck(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertMetric().TimeToAck(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.ISODuration)
+	fc.Result = res
+	return ec.marshalNISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertMetric_timeToAck(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertMetric",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISODuration does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertMetric_timeToClose(ctx context.Context, field graphql.CollectedField, obj *alertmetrics.Metric) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertMetric_timeToClose(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertMetric().TimeToClose(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*timeutil.ISODuration)
+	fc.Result = res
+	return ec.marshalNISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertMetric_timeToClose(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertMetric",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISODuration does not have child fields")
 		},
 	}
 	return fc, nil
@@ -26046,15 +26159,55 @@ func (ec *executionContext) _AlertMetric(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._AlertMetric_escalated(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "closedAt":
 
 			out.Values[i] = ec._AlertMetric_closedAt(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "timeToAck":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertMetric_timeToAck(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "timeToClose":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertMetric_timeToClose(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31506,6 +31659,32 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v interface{}) (timeutil.ISODuration, error) {
+	var res timeutil.ISODuration
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, sel ast.SelectionSet, v timeutil.ISODuration) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v interface{}) (*timeutil.ISODuration, error) {
+	var res = new(timeutil.ISODuration)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, sel ast.SelectionSet, v *timeutil.ISODuration) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx context.Context, v interface{}) (timeutil.ISORInterval, error) {
