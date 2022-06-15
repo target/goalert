@@ -89,18 +89,20 @@ export default function AlertAveragesGraph(
             <Tooltip
               data-cy='metrics-tooltip'
               cursor={{ fill: theme.palette.background.default }}
-              content={(props) => {
-                const ackAvg = props.payload?.length
-                  ? `${props.payload[0].name}: ${props.payload[0].payload.formattedAckLabel}`
-                  : ''
-                const closeAvg = props.payload?.length
-                  ? `${props.payload[1].name}: ${props.payload[1].payload.formattedCloseLabel}`
-                  : ''
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+
+                const ackAvg = `${payload[0].name}: ${Math.round(
+                  payload[0].payload.avgTimeToAck,
+                )} min`
+                const closeAvg = `${payload[1].name}: ${Math.round(
+                  payload[1].payload.avgTimeToClose,
+                )} min`
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>
-                    <Typography variant='body2'>{props.label}</Typography>
-                    <Typography variant='body2'>{ackAvg}</Typography>
+                    <Typography variant='body2'>{label}</Typography>
                     <Typography variant='body2'>{closeAvg}</Typography>
+                    <Typography variant='body2'>{ackAvg}</Typography>
                   </Paper>
                 )
               }}
@@ -114,7 +116,7 @@ export default function AlertAveragesGraph(
               activeDot={{ r: 8 }}
               isAnimationActive={false}
               dot={CustomDot}
-              name='Avg. Acknowledge'
+              name='Avg. Ack'
             />
             <Line
               type='monotone'
