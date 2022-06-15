@@ -66,16 +66,16 @@ export default function AlertCountGraph(
             <Tooltip
               data-cy='metrics-tooltip'
               cursor={{ fill: theme.palette.background.default }}
-              content={(props) => {
-                const alertCountStr = props.payload?.length
-                  ? `${props.payload[0].name}: ${props.payload[0].value}`
-                  : ''
-                const escalatedCountStr = props.payload?.length
-                  ? `${props.payload[1].name}: ${props.payload[1].value}`
-                  : ''
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+
+                const alertCountStr = `${payload[1].name}: ${
+                  (payload[1].value as number) + (payload[0].value as number)
+                }`
+                const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>
-                    <Typography variant='body2'>{props.label}</Typography>
+                    <Typography variant='body2'>{label}</Typography>
                     <Typography variant='body2'>{alertCountStr}</Typography>
                     <Typography variant='body2'>{escalatedCountStr}</Typography>
                   </Paper>
@@ -84,20 +84,22 @@ export default function AlertCountGraph(
             />
             <Legend />
             <Bar
-              dataKey='count'
-              fill={theme.palette.primary.main}
-              className={classes.bar}
-              name='Alert Count'
-            />
-            <Bar
               dataKey='escalatedCount'
+              stackId='a'
               fill={
                 theme.palette.mode === 'light'
                   ? theme.palette.secondary.dark
                   : theme.palette.secondary.light
               }
               className={classes.bar}
-              name='Escalated Count'
+              name='Escalated'
+            />
+            <Bar
+              stackId='a'
+              dataKey='nonEscalatedCount'
+              fill={theme.palette.primary.main}
+              className={classes.bar}
+              name='Alert Count'
             />
           </BarChart>
         </ResponsiveContainer>
