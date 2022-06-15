@@ -355,14 +355,6 @@ func (d *datagen) NewAlert(status alert.Status) {
 
 // NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(a alert.Alert) {
-	// Add 'created' event log
-	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   a.ID,
-		Timestamp: a.CreatedAt,
-		Event:     "created",
-		Message:   "",
-	})
-
 	t := a.CreatedAt
 	addEvent := func(event string) {
 		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
@@ -370,9 +362,12 @@ func (d *datagen) NewAlertLogs(a alert.Alert) {
 			AlertID:   a.ID,
 			Timestamp: t,
 			Event:     event,
-			Message:   "",
 		})
 	}
+
+	// initial creation and escalation
+	addEvent("created")
+	addEvent("escalated")
 
 	switch a.Status {
 	case alert.StatusTriggered:
