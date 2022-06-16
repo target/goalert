@@ -45,22 +45,8 @@ type Config struct {
 	DBURL     string
 	DBURLNext string
 
-	JaegerEndpoint      string
-	JaegerAgentEndpoint string
-
-	StackdriverProjectID string
-
-	TracingClusterName   string
-	TracingPodNamespace  string
-	TracingPodName       string
-	TracingContainerName string
-	TracingNodeName      string
-
 	KubernetesCooldown time.Duration
 	StatusAddr         string
-
-	LogTraces        bool
-	TraceProbability float64
 
 	EncryptionKeys keyring.Keys
 

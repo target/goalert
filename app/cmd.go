@@ -33,7 +33,6 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
 	"github.com/target/goalert/web"
-	"go.opencensus.io/trace"
 	"golang.org/x/term"
 )
 
@@ -85,22 +84,6 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		exporters, err := configTracing(ctx, cfg)
-		if err != nil {
-			return errors.Wrap(err, "config tracing")
-		}
-
-		defer func() {
-			// flush exporters
-			type flusher interface {
-				Flush()
-			}
-			for _, e := range exporters {
-				if f, ok := e.(flusher); ok {
-					f.Flush()
-				}
-			}
-		}()
 
 		wrappedDriver := sqldrv.NewRetryDriver(&stdlib.Driver{}, 10)
 
@@ -197,18 +180,16 @@ func handleShutdown(ctx context.Context, fn func(ctx context.Context) error) {
 	log.Logf(ctx, "Application attempting graceful shutdown.")
 	sCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 	defer cancel()
-	sCtx, sp := trace.StartSpan(sCtx, "Shutdown")
-	defer sp.End()
+
 	go func() {
 		<-shutdownSignalCh
 		log.Logf(ctx, "Second signal received, terminating immediately")
-		sp.Annotate([]trace.Attribute{trace.BoolAttribute("shutdown.force", true)}, "Second signal received.")
 		cancel()
 	}()
 
 	err := fn(sCtx)
 	if err != nil {
-		sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, err.Error())
+		log.Log(ctx, err)
 	}
 }
 
@@ -666,18 +647,6 @@ func getConfig(ctx context.Context) (Config, error) {
 		DBURL:     viper.GetString("db-url"),
 		DBURLNext: viper.GetString("db-url-next"),
 
-		JaegerEndpoint:      viper.GetString("jaeger-endpoint"),
-		JaegerAgentEndpoint: viper.GetString("jaeger-agent-endpoint"),
-
-		StackdriverProjectID: viper.GetString("stackdriver-project-id"),
-
-		TracingClusterName:   viper.GetString("tracing-cluster-name"),
-		TracingPodNamespace:  viper.GetString("tracing-pod-namespace"),
-		TracingPodName:       viper.GetString("tracing-pod-name"),
-		TracingContainerName: viper.GetString("tracing-container-name"),
-		TracingNodeName:      viper.GetString("tracing-node-name"),
-		TraceProbability:     viper.GetFloat64("tracing-probability"),
-
 		KubernetesCooldown: viper.GetDuration("kubernetes-cooldown"),
 		StatusAddr:         viper.GetString("status-addr"),
 
@@ -760,15 +729,24 @@ func init() {
 	RootCmd.PersistentFlags().String("db-url", def.DBURL, "Connection string for Postgres.")
 	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switch-over mode).")
 
-	RootCmd.Flags().String("jaeger-endpoint", def.JaegerEndpoint, "Jaeger HTTP Thrift endpoint")
-	RootCmd.Flags().String("jaeger-agent-endpoint", def.JaegerAgentEndpoint, "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
-	RootCmd.Flags().String("stackdriver-project-id", def.StackdriverProjectID, "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
-	RootCmd.Flags().String("tracing-cluster-name", def.TracingClusterName, "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
-	RootCmd.Flags().String("tracing-pod-namespace", def.TracingPodNamespace, "Pod namespace to use for tracing.")
-	RootCmd.Flags().String("tracing-pod-name", def.TracingPodName, "Pod name to use for tracing.")
-	RootCmd.Flags().String("tracing-container-name", def.TracingContainerName, "Container name to use for tracing.")
-	RootCmd.Flags().String("tracing-node-name", def.TracingNodeName, "Node name to use for tracing.")
-	RootCmd.Flags().Float64("tracing-probability", def.TraceProbability, "Probability of a new trace to be recorded.")
+	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
+	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
+	RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
+	RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
+	RootCmd.Flags().String("stackdriver-project-id", "", "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
+	RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
+	RootCmd.Flags().String("tracing-cluster-name", "", "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
+	RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
+	RootCmd.Flags().String("tracing-pod-namespace", "", "Pod namespace to use for tracing.")
+	RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
+	RootCmd.Flags().String("tracing-pod-name", "", "Pod name to use for tracing.")
+	RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
+	RootCmd.Flags().String("tracing-container-name", "", "Container name to use for tracing.")
+	RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
+	RootCmd.Flags().String("tracing-node-name", "", "Node name to use for tracing.")
+	RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
+	RootCmd.Flags().Float64("tracing-probability", 0, "Probability of a new trace to be recorded.")
+	RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
 
 	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")

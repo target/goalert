@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Grid, Card } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
-import { useParams } from 'react-router-dom'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
@@ -13,8 +12,13 @@ import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificatio
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
-export default function ScheduleOnCallNotificationsList(): JSX.Element {
-  const { scheduleID = '' } = useParams()
+export type ScheduleOnCallNotificationsListProps = {
+  scheduleID: string
+}
+
+export default function ScheduleOnCallNotificationsList({
+  scheduleID,
+}: ScheduleOnCallNotificationsListProps): JSX.Element {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')

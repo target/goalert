@@ -1,3 +1,4 @@
+import { startCase } from 'lodash'
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -15,50 +16,42 @@ declare global {
  * screen: screen size
  * pageName: name of title when on main details page
  * targetName: name of schedule, service, etc when on an information card route
- * detailsName: name of route that is being viewed
+ * linkName: name of route that is being viewed
  * route: actual route to verify
  */
 function navigateToAndFrom(
   screen: string,
-  pageName: string, // details page title
-  targetName: string, // item name/title
-  detailsName: string, // sub page title
+  _pageName: string, // details page title
+  _targetName: string, // item name/title
+  _linkName: string, // sub page title
   route: string,
 ): void {
+  const pageName = startCase(_pageName)
+  const targetName = _targetName // target name formatting should be preserved
+  const linkName = startCase(_linkName).replace('On Call', 'On-Call')
+
   // navigate to extended details view
-  cy.get('[data-cy=app-bar]').should('contain', pageName)
-  cy.get('ul[data-cy="route-links"] li').contains(detailsName).click()
+  cy.get(`[data-cy=breadcrumb-0]`).should('include.text', pageName)
+  cy.get(`[data-cy=breadcrumb-1]`).should('include.text', targetName)
+  cy.get('ul[data-cy="route-links"] li').contains(linkName).click()
+  cy.get(`[data-cy=breadcrumb-2]`).should('include.text', linkName)
 
   // verify url
   cy.url().should('include', route)
 
   if (screen === 'widescreen') {
-    // verify on new view
-    cy.get('[data-cy=app-bar]')
-      .should('contain', targetName)
-      .should('contain', detailsName)
-
+    cy.get(`[data-cy=breadcrumb-1]`)
       // navigate back to details page
-      .contains(targetName)
       .click()
 
     // verify back on details page
-    cy.get('[data-cy=app-bar]').should('contain', pageName)
+    cy.get(`[data-cy=breadcrumb-2]`).should('not.exist')
   } else if (screen === 'mobile' || screen === 'tablet') {
-    // verify on new view
-    cy.get('[data-cy=app-bar]')
-      .should('contain', detailsName)
-      .should('not.contain', targetName)
+    cy.get(`[data-cy=breadcrumb-1]`).should('not.exist')
 
     // navigate back to details page
     cy.get('button[data-cy=nav-back-icon]').click()
-
-    // verify back on details page
-    cy.get('[data-cy=app-bar]').should('contain', pageName)
-
-    if (!route.includes('profile')) {
-      cy.get('[data-cy=app-bar]').should('not.contain', targetName)
-    }
+    cy.get(`[data-cy=breadcrumb-1]`).should('be.visible')
   }
 }
 

@@ -17,8 +17,6 @@ import (
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/util/log"
-	"go.opencensus.io/plugin/ochttp"
-	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
 )
 
@@ -50,9 +48,8 @@ func (p *Provider) provider(ctx context.Context) (*oidc.Provider, error) {
 	// oidc keeps the context and uses it after auto-discover is complete.
 	// Giving it context.Background is a workaround to allow fetching keys
 	// after init.
-	oidcCtx, sp := trace.StartSpanWithRemoteParent(log.FromContext(ctx).BackgroundContext(), "Auth.OIDC.NewProvider", trace.FromContext(ctx).SpanContext())
-	provider, err := oidc.NewProvider(oidc.ClientContext(oidcCtx, &http.Client{Transport: &ochttp.Transport{}}), cfg.OIDC.IssuerURL)
-	sp.End()
+	oidcCtx := log.FromContext(ctx).BackgroundContext()
+	provider, err := oidc.NewProvider(oidcCtx, cfg.OIDC.IssuerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +57,7 @@ func (p *Provider) provider(ctx context.Context) (*oidc.Provider, error) {
 	p.providers[cfg.OIDC.IssuerURL] = provider
 	return provider, nil
 }
+
 func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenVerifier, error) {
 	provider, err := p.provider(ctx)
 	if err != nil {

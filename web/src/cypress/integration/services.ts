@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -283,7 +284,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from metrics', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Metrics',
         `${svc.id}/alert-metrics`,
@@ -293,7 +294,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from metrics', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Alerts',
         `${svc.id}/alerts`,
@@ -303,7 +304,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from integration keys', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Integration Keys',
         `${svc.id}/integration-keys`,
@@ -313,7 +314,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from heartbeat monitors', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Heartbeat Monitors',
         `${svc.id}/heartbeat-monitors`,
@@ -323,7 +324,7 @@ function testServices(screen: ScreenFormat): void {
     it('should navigate to and from labels', () => {
       cy.navigateToAndFrom(
         screen,
-        'Service Details',
+        'Services',
         svc.name,
         'Labels',
         `${svc.id}/labels`,
@@ -640,10 +641,16 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
+        .setTimeSpeed(0)
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
+          cy.fastForward('1m')
+          cy.ackAlert(a.id)
+          cy.fastForward('1m')
           cy.closeAlert(a.id)
+          cy.fastForward('5m')
+          cy.setTimeSpeed(1) // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
@@ -654,16 +661,31 @@ function testServices(screen: ScreenFormat): void {
     )
 
     it('should display alert metrics', () => {
-      cy.get('[data-cy=metrics-table]')
-        .should('contain', closedAlert.summary)
-        .should('not.contain', openAlert.summary)
+      const now = DateTime.local().toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
 
-      cy.fastForward('5 minutes')
+      // summary doesn't load by default on mobile (until scrolled to)
+      cy.get('[data-cy=metrics-table]')
+        .should('contain', closedAlert.id)
+        .should('not.contain', openAlert.id)
 
       cy.get('path[name="Alert Count"]')
         .should('have.length', 1)
         .trigger('mouseover')
-      cy.get('[data-cy=metrics-graph]').should('contain', 'Alert Count: 1')
+      cy.get('[data-cy=metrics-count-graph]')
+        .should('contain', now)
+        .should('contain', 'Alert Count: 1')
+        .should('contain', 'Escalated: 0') // no ep steps
+
+      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0, {
+        force: true,
+      })
+      cy.get('[data-cy=metrics-averages-graph]')
+        .should('contain', now)
+        .should('contain', 'Avg. Ack: 1 min')
+        .should('contain', 'Avg. Close: 2 min')
     })
   })
 }

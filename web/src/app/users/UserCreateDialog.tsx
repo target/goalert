@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { useNavigate } from 'react-router-dom'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
 import { Checkbox, FormControlLabel, Grid, TextField } from '@mui/material'
 import { useConfigValue } from '../util/RequireConfig'
+import { useLocation } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateUserInput!) {
@@ -19,7 +19,7 @@ interface UserCreateDialogProps {
 }
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
-  const navigate = useNavigate()
+  const [, navigate] = useLocation()
   const [value, setValue] = useState({
     username: '',
     password: '',

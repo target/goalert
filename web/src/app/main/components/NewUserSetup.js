@@ -17,7 +17,7 @@ export default function NewUserSetup() {
   if (contactMethodID) {
     return (
       <UserContactMethodVerificationDialog
-        contactMethodID={contactMethodID.contactMethodID}
+        contactMethodID={contactMethodID}
         onClose={clearIsFirstLogin}
       />
     )
@@ -29,9 +29,9 @@ export default function NewUserSetup() {
       subtitle='To get started, please enter a contact method.'
       disclaimer={disclaimer}
       userID={userID}
-      onClose={(result) => {
-        if (result && result.contactMethodID) {
-          setContactMethodID(result)
+      onClose={(contactMethodID) => {
+        if (contactMethodID) {
+          setContactMethodID(contactMethodID)
         } else {
           clearIsFirstLogin()
         }
