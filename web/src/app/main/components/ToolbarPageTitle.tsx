@@ -148,7 +148,6 @@ export default function ToolbarPageTitle(): JSX.Element {
   const [title, crumbs] = useBreadcrumbs()
   const [applicationName] = useConfigValue('General.ApplicationName')
   const isMobile = useIsWidthDown('md')
-  console.log(crumbs)
 
   React.useLayoutEffect(() => {
     document.title = `${applicationName || appName} - ${title}`
