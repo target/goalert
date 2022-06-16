@@ -157,6 +157,16 @@ func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 // RequestURL returns the full URL for the given request based on the current public url.
 func RequestURL(req *http.Request) string {
 	cfg := FromContext(req.Context())
+	if !cfg.ShouldUsePublicURL() {
+		// fallback to old method
+		u, err := url.ParseRequestURI(req.RequestURI)
+		if err != nil {
+			panic(errors.Wrap(err, "parse RequestURI"))
+		}
+		u.Host = req.Host
+		u.Scheme = req.URL.Scheme
+		return u.String()
+	}
 
 	base, err := url.Parse(cfg.PublicURL())
 	if err != nil {

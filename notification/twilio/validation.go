@@ -3,7 +3,6 @@ package twilio
 import (
 	"crypto/hmac"
 	"net/http"
-	"net/url"
 	"regexp"
 
 	"github.com/target/goalert/config"
@@ -24,20 +23,7 @@ func validateRequest(req *http.Request) error {
 		return errors.New("missing X-Twilio-Signature")
 	}
 
-	var reqURL string
-	if cfg.ShouldUsePublicURL() {
-		reqURL = config.RequestURL(req)
-	} else {
-		u, err := url.ParseRequestURI(req.RequestURI)
-		if err != nil {
-			return err
-		}
-		u.Host = req.Host
-		u.Scheme = req.URL.Scheme
-		reqURL = u.String()
-	}
-
-	calcSig := Signature(cfg.Twilio.AuthToken, reqURL, req.PostForm)
+	calcSig := Signature(cfg.Twilio.AuthToken, config.RequestURL(req), req.PostForm)
 	if !hmac.Equal([]byte(sig), calcSig) {
 		return errors.New("invalid X-Twilio-Signature")
 	}
