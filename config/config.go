@@ -354,7 +354,7 @@ func (cfg Config) ApplicationName() string {
 func (cfg Config) PublicURL() string {
 	switch {
 	case cfg.explicitURL != "":
-		return strings.TrimSuffix(cfg.fallbackURL, "/")
+		return strings.TrimSuffix(cfg.explicitURL, "/")
 	case cfg.General.PublicURL != "":
 		return strings.TrimSuffix(cfg.General.PublicURL, "/")
 	}
