@@ -186,7 +186,10 @@ function testSchedules(screen: ScreenFormat): void {
         cy.visit(`/schedules/${s.id}/shifts?activeOnly=1`),
       )
 
-      cy.get('body').should('contain', 'From 12:00 AM to 8:00 PM EDT')
+      cy.get('[data-cy="shift-details"]').should(
+        'contain',
+        'From 12:00 AM to 8:00 PM EDT',
+      )
 
       cy.get('[data-cy="shift-details"]').trigger('mouseover')
       cy.get('[aria-label="local-timezone-tooltip"]').should(
