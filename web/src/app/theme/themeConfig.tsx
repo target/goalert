@@ -19,6 +19,7 @@ import {
   Scheme,
 } from '@material/material-color-utilities'
 import { blueGrey } from '@mui/material/colors'
+import { makeHighContrastTheme } from './highContrastTheme'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -29,6 +30,8 @@ interface ThemeContextParams {
   setThemeMode: (newMode: ThemeModeOption) => void
   sourceColor: string
   setSourceColor: (newColor: string) => void
+  highContrast: boolean
+  setHighContrast: (newContrastMode: boolean) => void
 }
 
 type MUIThemeMode = 'dark' | 'light'
@@ -39,6 +42,8 @@ export const ThemeContext = React.createContext<ThemeContextParams>({
   setThemeMode: (): void => {},
   sourceColor: '',
   setSourceColor: (): void => {},
+  highContrast: false,
+  setHighContrast: (): void => {},
 })
 ThemeContext.displayName = 'ThemeContext'
 
@@ -153,9 +158,18 @@ function loadThemeColor(): string {
   return validHexColor(savedColor) ? (savedColor as string) : blueGrey[500]
 }
 
+function saveHighContrastMode(highContrast: boolean): void {
+  if (!window.localStorage) return
+  window.localStorage.setItem('highContrast', highContrast.toString())
+}
+function loadHighContrastMode(): boolean {
+  return window?.localStorage?.getItem('highContrast') === 'true'
+}
+
 export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
   const [sourceColor, setSourceColor] = useState(loadThemeColor())
+  const [highContrast, setHighContrast] = useState(loadHighContrastMode())
 
   // used for watching if system theme mode changes
   const [systemThemeMode, setSystemThemeMode] = useState<MUIThemeMode>(
@@ -182,7 +196,11 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   // Use deferred and memoized values so we don't regenerate the entire theme on every render/change event
   const defMode = useDeferredValue(mode)
   const defSrc = useDeferredValue(sourceColor)
-  const theme = useMemo(() => makeTheme(defMode, defSrc), [defMode, defSrc])
+  let theme = useMemo(() => makeTheme(defMode, defSrc), [defMode, defSrc])
+
+  if (highContrast) {
+    theme = makeHighContrastTheme(mode)
+  }
 
   return (
     <ThemeContext.Provider
@@ -196,6 +214,11 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         setSourceColor: (newColor: string) => {
           setSourceColor(newColor)
           saveThemeColor(newColor)
+        },
+        highContrast,
+        setHighContrast: (isHighContrast: boolean) => {
+          setHighContrast(isHighContrast)
+          saveHighContrastMode(isHighContrast)
         },
       }}
     >
