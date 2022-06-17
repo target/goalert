@@ -35,7 +35,7 @@ export default function ScheduleAssignedToList(props: {
   }
 
   return (
-    <Card style={{ width: '100%' }}>
+    <Card sx={{ width: '100%' }}>
       <FlatList
         items={data.schedule.assignedTo.map(
           (t: { name: string; id: string }) => ({
