@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useMutation } from '@apollo/client'
 import { gql } from 'urql'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import { nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
 
@@ -53,7 +53,7 @@ const RotationAddUserDialog = (
       onSubmit={() => updateRotationMutation()}
       form={
         <UserForm
-          errors={fieldErrors(error)}
+          errors={nonFieldErrors(error)}
           disabled={loading}
           value={value}
           onChange={(value: Value) => setValue(value)}
