@@ -246,6 +246,9 @@ FormDialog.propTypes = {
 
   // make dialog fill vertical space
   fullHeight: p.bool,
+
+  // gets spread to material-ui
+  PaperProps: p.object,
 }
 
 FormDialog.defaultProps = {

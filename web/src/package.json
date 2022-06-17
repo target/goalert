@@ -74,7 +74,7 @@
     "@types/react-csv": "1.1.2",
     "@types/react-dom": "18.0.1",
     "chance": "1.1.7",
-    "cypress": "9.6.0",
+    "cypress": "9.7.0",
     "esbuild-jest": "0.5.0",
     "jest": "28.1.0",
     "prop-types": "15.8.0",
