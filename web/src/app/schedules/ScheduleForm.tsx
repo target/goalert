@@ -3,7 +3,7 @@ import { FormContainer, FormField } from '../forms'
 import { TextField, Grid } from '@mui/material'
 import { TimeZoneSelect } from '../selection'
 
-interface Value {
+export interface Value {
   name: string
   description: string
   timeZone: string
