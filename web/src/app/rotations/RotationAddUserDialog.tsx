@@ -4,7 +4,6 @@ import { gql } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
-import { GenericError } from '../error-pages'
 
 interface RotationAddUserDialogProps {
   rotationID: string
@@ -44,10 +43,6 @@ const RotationAddUserDialog = (
     },
     onCompleted: onClose,
   })
-
-  if (error) {
-    return <GenericError error={error.message} />
-  }
 
   return (
     <FormDialog
