@@ -268,14 +268,27 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+		cfg := config.FromContext(ctx)
 
 		var refU *url.URL
 		if req.Method == "POST" {
-			var ok bool
-			refU, ok = h.refererURL(w, req)
-			if !ok {
-				errutil.HTTPError(ctx, w, validation.NewFieldError("referer", "failed to resolve referer"))
-				return
+			if cfg.ShouldUsePublicURL() {
+				refU, _ = url.Parse(req.Header.Get("referer"))
+				if refU == nil || !cfg.ValidReferer("", req.Header.Get("referer")) {
+					// redirect with err
+					q := make(url.Values)
+					q.Set("login_error", "invalid referer")
+					http.Redirect(w, req, cfg.CallbackURL("", q), http.StatusTemporaryRedirect)
+					return
+				}
+			} else {
+				// fallback to old method
+				var ok bool
+				refU, ok = h.refererURL(w, req)
+				if !ok {
+					errutil.HTTPError(ctx, w, validation.NewFieldError("referer", "failed to resolve referer"))
+					return
+				}
 			}
 		} else {
 			c, err := req.Cookie("login_redir")

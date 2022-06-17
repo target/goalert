@@ -315,7 +315,7 @@ func (cfg Config) ShouldUsePublicURL() bool { return cfg.explicitURL != "" }
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
 	// --public-url flag takes precedence
 	if cfg.explicitURL != "" {
-		valid, _ := MatchURL(cfg.explicitURL, reqURL)
+		valid, _ := MatchURL(cfg.explicitURL, ref)
 		return valid
 	}
 

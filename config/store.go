@@ -127,6 +127,7 @@ func (s *Store) Reload(ctx context.Context) error {
 	}
 	rawCfg := *cfg
 	rawCfg.fallbackURL = s.fallbackURL
+	rawCfg.explicitURL = s.explicitURL
 
 	err = cfg.Validate()
 	if err != nil {
