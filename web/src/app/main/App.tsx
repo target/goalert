@@ -19,11 +19,12 @@ import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 import UserSettingsPopover from './components/UserSettingsPopover'
+import { Theme } from '@mui/material/styles'
 import AppRoutes from './AppRoutes'
 import { useURLKey } from '../actions'
 import NavBar from './NavBar'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     flexGrow: 1,
     zIndex: 1,
@@ -49,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function App() {
+export default function App(): JSX.Element {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')

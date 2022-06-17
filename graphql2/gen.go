@@ -2,7 +2,7 @@ package graphql2
 
 //go:generate rm -f mapconfig.go
 //go:generate rm -f maplimit.go
-//go:generate go run ../devtools/gqlgen/gqlgen.go -config gqlgen.yml
+//go:generate go run github.com/99designs/gqlgen -config gqlgen.yml
 //go:generate gofmt -s -w generated.go
 //go:generate gofmt -s -w models_gen.go
 //go:generate go run ../devtools/configparams -out mapconfig.go
