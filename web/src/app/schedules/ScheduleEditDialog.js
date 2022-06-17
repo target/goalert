@@ -4,7 +4,7 @@ import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
 import { Mutation } from '@apollo/client/react/components'
-import { nonFieldErrors, fieldErrors } from '../util/errutil'
+import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 
 const query = gql`
@@ -46,7 +46,6 @@ export default function ScheduleEditDialog(props) {
         form={
           <ScheduleForm
             disabled={status.loading}
-            errors={fieldErrors(status.error)}
             value={
               value || {
                 name: data.name,

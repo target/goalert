@@ -9,14 +9,8 @@ interface Value {
   timeZone: string
 }
 
-interface Error {
-  field: 'name' | 'description' | 'timeZone'
-  message: string
-}
-
 interface ScheduleFormProps {
   value: Value
-  errors?: Error[]
   onChange: () => void
 }
 
