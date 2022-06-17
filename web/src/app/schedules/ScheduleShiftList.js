@@ -103,29 +103,20 @@ function ScheduleShiftList({ scheduleID }) {
     const tzAbbr = DateTime.local({ zone: zone }).toFormat('ZZZZ')
     const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
-    let shiftDetails = ''
-    const startTime = s.start.toLocaleString({
+    const locale = {
       hour: 'numeric',
       minute: 'numeric',
-    })
-    const endTime = s.end.toLocaleString({
-      hour: 'numeric',
-      minute: 'numeric',
-    })
+    }
 
+    let shiftDetails = ''
+    const startTime = s.start.toLocaleString(locale)
+    const endTime = s.end.toLocaleString(locale)
     const localStartTime = DateTime.fromISO(s.start, {
       zone: 'local',
-    }).toLocaleString({
-      hour: 'numeric',
-      minute: 'numeric',
-    })
-
+    }).toLocaleString(locale)
     const localEndTime = DateTime.fromISO(s.end, {
       zone: 'local',
-    }).toLocaleString({
-      hour: 'numeric',
-      minute: 'numeric',
-    })
+    }).toLocaleString(locale)
 
     // shift (s.interval) spans all day
     if (s.interval.engulfs(day)) {
