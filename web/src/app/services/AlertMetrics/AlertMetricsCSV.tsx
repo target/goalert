@@ -3,7 +3,7 @@ import { Button } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { CSVLink } from 'react-csv'
 import { Alert } from '../../../schema'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 
 interface AlertMetricsCSVProps {
   alerts: Alert[]
@@ -12,13 +12,26 @@ interface AlertMetricsCSVProps {
 export default function AlertMetricsCSV(
   props: AlertMetricsCSVProps,
 ): JSX.Element {
-  const zoneAbbr = DateTime.local().toFormat('ZZZZ')
+  const zoneAbbr = DateTime.local().toFormat('ZZZZ Z')
+
   // Note: the data object is ordered
   const data = props.alerts.map((a) => ({
     [`createdAt (${zoneAbbr})`]: DateTime.fromISO(a.createdAt).toLocal().toSQL({
       includeOffset: false,
     }),
+    [`closedAt (${zoneAbbr})`]: DateTime.fromISO(a.metrics?.closedAt as string)
+      .toLocal()
+      .toSQL({
+        includeOffset: false,
+      }),
+    timeToAck: Duration.fromISO(a.metrics?.timeToAck as string).toFormat(
+      'hh:mm:ss',
+    ),
+    timeToClose: Duration.fromISO(a.metrics?.timeToClose as string).toFormat(
+      'hh:mm:ss',
+    ),
     alertID: a.alertID,
+    escalated: (a.metrics?.escalated as boolean).toString(),
     status: a.status.replace('Status', ''),
     summary: a.summary,
     details: a.details,

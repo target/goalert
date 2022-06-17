@@ -114,7 +114,7 @@ function testUsers(screen: ScreenFormat): void {
                 epID: svc.epID,
                 targets: [{ type: 'user', id: user.id }],
               })
-              .task('engine:trigger')
+              .engineTrigger()
               .then(() => svc.id)
           })
           .then((svcID: string) => {
