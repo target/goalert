@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
@@ -10,17 +10,20 @@ import {
   GridToolbarFilterButton,
   gridClasses,
 } from '@mui/x-data-grid'
-import { Grid } from '@mui/material'
+import { Button, Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
-import AlertMetricsCSV from './AlertMetricsCSV'
+import { useAlertCSV } from './useAlertCSV'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
   loading: boolean
+  serviceName: string
+  startTime: string
+  endTime: string
 }
 
 const useStyles = makeStyles(() => ({
@@ -33,7 +36,15 @@ export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { alerts } = props
+  const alerts = useMemo(
+    () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
+    [props.alerts],
+  )
+  const csvData = useAlertCSV(props.alerts)
+  const link = useMemo(
+    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
+    [csvData],
+  )
 
   const columns = [
     {
@@ -136,7 +147,20 @@ export default function AlertMetricsTable(
             <GridToolbarDensitySelector />
           </Grid>
           <Grid item>
-            <AlertMetricsCSV alerts={alerts} />
+            <AppLink
+              to={link}
+              download={`${props.serviceName.replace(
+                /[^a-z0-9]/gi,
+                '_',
+              )}-metrics-${props.startTime}-to-${props.endTime}.csv`}
+            >
+              <Button
+                size='small'
+                startIcon={<DownloadIcon fontSize='small' />}
+              >
+                Export
+              </Button>
+            </AppLink>
           </Grid>
         </Grid>
       </GridToolbarContainer>
