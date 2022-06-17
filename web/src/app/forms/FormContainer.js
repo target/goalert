@@ -113,7 +113,7 @@ export function FormContainer(props) {
             disabled: formDisabled || containerDisabled,
             errors: validationErrors.concat(props.errors),
             onChange: contextOnChange,
-            addField: addField,
+            addField,
             optionalLabels: optionalLabels,
           }}
         >
