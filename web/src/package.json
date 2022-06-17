@@ -36,7 +36,7 @@
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
-    "esbuild": "0.14.39",
+    "esbuild": "0.14.45",
     "fuse.js": "6.6.1",
     "graphiql": "1.9.2",
     "graphql": "16.5.0",
