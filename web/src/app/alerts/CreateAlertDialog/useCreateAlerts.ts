@@ -7,6 +7,7 @@ import {
 } from '@apollo/client'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
 import { GraphQLClientWithErrors } from '../../apollo'
+import { Value } from './CreateAlertDialog'
 
 interface Variable {
   summary: string
@@ -32,11 +33,9 @@ const getAliasedMutation = (
 
 // useCreateAlerts will return mutation, status and a function for mapping
 // field/paths from the response to the respective service ID.
-export const useCreateAlerts = (value: {
-  serviceIDs: string[]
-  summary: string
-  details: string
-}): [MutationFunction, MutationResult, (alias: string | number) => string] => {
+export const useCreateAlerts = (
+  value: Value,
+): [MutationFunction, MutationResult, (alias: string | number) => string] => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
   for (let i = 1; i < value.serviceIDs.length; i++) {

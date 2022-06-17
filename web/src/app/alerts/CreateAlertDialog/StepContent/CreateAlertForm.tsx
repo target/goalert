@@ -3,6 +3,7 @@ import { FormContainer, FormField } from '../../../forms'
 import { CreateAlertInfo } from './CreateAlertInfo'
 import { CreateAlertServiceSelect } from './CreateAlertServiceSelect'
 import { CreateAlertConfirm } from './CreateAlertConfirm'
+import { Value } from '../CreateAlertDialog'
 
 // TODO: extend FormContainer once that file has been converted to typescript
 interface CreateAlertFormProps {
@@ -20,12 +21,6 @@ interface CreateAlertFormProps {
   // Enables functionality to remove an incoming value at it's index from
   // an array field if the new value is falsey.
   removeFalseyIdxs?: boolean
-}
-
-interface Value {
-  summary: string
-  details: string
-  serviceIDs: Array<string>
 }
 
 interface Error {

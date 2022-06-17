@@ -19,10 +19,10 @@ import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
 import AppLink from '../../util/AppLink'
 
-interface Value {
+export interface Value {
   summary: string
   details: string
-  serviceIDs: Array<string>
+  serviceIDs: string[]
 }
 
 const pluralize = (num: number): string => (num !== 1 ? 's' : '')
