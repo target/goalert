@@ -23,6 +23,7 @@ interface CreateAlertFormProps {
   removeFalseyIdxs?: boolean
 }
 
+// TODO: remove this interface once FormContainer.js has been converted to TS
 interface Error {
   message: string
   field: string
