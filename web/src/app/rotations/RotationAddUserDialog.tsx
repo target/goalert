@@ -1,9 +1,19 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
-import p from 'prop-types'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import { useMutation } from '@apollo/client'
+import { gql } from 'urql'
+import { nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
+
+interface RotationAddUserDialogProps {
+  rotationID: string
+  userIDs: string[]
+  onClose: () => void
+}
+
+interface Value {
+  users: string[]
+}
 
 const mutation = gql`
   mutation ($input: UpdateRotationInput!) {
@@ -11,13 +21,15 @@ const mutation = gql`
   }
 `
 
-const RotationAddUserDialog = (props) => {
+const RotationAddUserDialog = (
+  props: RotationAddUserDialogProps,
+): JSX.Element => {
   const { rotationID, userIDs, onClose } = props
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<Value>({
     users: [],
   })
   // append to users array from selected users
-  const users = []
+  const users: string[] = []
   const uIDs = value.users
   userIDs.forEach((u) => users.push(u))
   uIDs.forEach((u) => users.push(u))
@@ -41,20 +53,14 @@ const RotationAddUserDialog = (props) => {
       onSubmit={() => updateRotationMutation()}
       form={
         <UserForm
-          errors={fieldErrors(error)}
+          errors={nonFieldErrors(error)}
           disabled={loading}
           value={value}
-          onChange={(value) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
   )
-}
-
-RotationAddUserDialog.propTypes = {
-  rotationID: p.string.isRequired,
-  userIDs: p.arrayOf(p.string).isRequired,
-  onClose: p.func.isRequired,
 }
 
 export default RotationAddUserDialog
