@@ -13,10 +13,7 @@ import {
   Scheme,
 } from '@material/material-color-utilities'
 import { blueGrey } from '@mui/material/colors'
-import {
-  highContrastDarkTheme,
-  highContrastLightTheme,
-} from './highContrastTheme'
+import { makeHighContrastTheme } from './highContrastTheme'
 
 interface ThemeProviderProps {
   children: ReactNode
@@ -174,10 +171,8 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
   const mode = savedThemeMode === 'system' ? systemThemeMode : savedThemeMode
   let theme = makeTheme(mode, sourceColor)
 
-  if (highContrast && mode === 'light') {
-    theme = highContrastLightTheme
-  } else if (highContrast && mode === 'dark') {
-    theme = highContrastDarkTheme
+  if (highContrast) {
+    theme = makeHighContrastTheme(mode)
   }
 
   return (
