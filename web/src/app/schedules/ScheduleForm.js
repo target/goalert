@@ -56,4 +56,5 @@ ScheduleForm.propTypes = {
   ),
 
   onChange: p.func.isRequired,
+  disabled: p.bool,
 }

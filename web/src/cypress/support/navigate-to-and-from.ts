@@ -27,7 +27,7 @@ function navigateToAndFrom(
   route: string,
 ): void {
   const pageName = startCase(_pageName)
-  const targetName = startCase(_targetName)
+  const targetName = _targetName // target name formatting should be preserved
   const linkName = startCase(_linkName).replace('On Call', 'On-Call')
 
   // navigate to extended details view
