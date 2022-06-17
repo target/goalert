@@ -11,14 +11,6 @@ interface ScheduleOverrideCreateDialogProps {
   variant: 'add' | 'remove' | 'replace'
   onClose?: () => void
   removeUserReadOnly?: boolean
-  defaultValue?: DefaultValue
-}
-
-interface DefaultValue {
-  addUserID?: string
-  removeUserID?: string
-  start?: string
-  end?: string
 }
 
 export const variantDetails = {
@@ -63,22 +55,17 @@ const mutation = gql`
     }
   }
 `
-export default function ScheduleOverrideCreateDialog(
-  props: ScheduleOverrideCreateDialogProps,
-): JSX.Element {
-  const {
-    scheduleID,
-    variant,
-    onClose,
-    removeUserReadOnly,
-    defaultValue = {},
-  } = props
+export default function ScheduleOverrideCreateDialog({
+  scheduleID,
+  variant,
+  onClose,
+  removeUserReadOnly,
+}: ScheduleOverrideCreateDialogProps): JSX.Element {
   const [value, setValue] = useState({
     addUserID: '',
     removeUserID: '',
     start: DateTime.local().startOf('hour').toISO(),
     end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
-    ...defaultValue,
   })
 
   const notices = useOverrideNotices(scheduleID, value)
