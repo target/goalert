@@ -2,16 +2,9 @@ import React, { useState } from 'react'
 import { useMutation } from '@apollo/client'
 import { gql } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
-import ScheduleForm from './ScheduleForm'
+import ScheduleForm, { Value } from './ScheduleForm'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import { Redirect } from 'wouter'
-
-interface Value {
-  name: string
-  description: string
-  timeZone: string
-  favorite: boolean
-}
 
 const mutation = gql`
   mutation ($input: CreateScheduleInput!) {
@@ -65,7 +58,7 @@ export default function ScheduleCreateDialog(props: {
           disabled={loading}
           errors={fieldErrors(error)}
           value={value}
-          onChange={(value) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
