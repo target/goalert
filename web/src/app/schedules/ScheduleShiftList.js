@@ -10,6 +10,7 @@ import {
   Switch,
   TextField,
   MenuItem,
+  Typography,
   Tooltip,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -136,7 +137,9 @@ function ScheduleShiftList({ scheduleID }) {
             'aria-label': 'local-timezone-tooltip',
           }}
         >
-          <span data-cy='shift-details'>{shiftDetails}</span>
+          <Typography tabIndex={0} data-cy='shift-details'>
+            {shiftDetails}
+          </Typography>
         </Tooltip>
       )
     }
@@ -157,7 +160,7 @@ function ScheduleShiftList({ scheduleID }) {
             'aria-label': 'local-timezone-tooltip',
           }}
         >
-          <span>{shiftDetails}</span>
+          <Typography tabIndex={0}>{shiftDetails}</Typography>
         </Tooltip>
       )
     }
@@ -174,7 +177,7 @@ function ScheduleShiftList({ scheduleID }) {
           'aria-label': 'local-timezone-tooltip',
         }}
       >
-        <span>{shiftDetails}</span>
+        <Typography tabIndex={0}>{shiftDetails}</Typography>
       </Tooltip>
     )
   }
