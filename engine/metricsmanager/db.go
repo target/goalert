@@ -19,7 +19,6 @@ type DB struct {
 
 	scanLogs      *sql.Stmt
 	insertMetrics *sql.Stmt
-
 }
 
 // Name returns the name of the module.
