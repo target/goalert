@@ -1410,13 +1410,6 @@
     "@types/prop-types" "*"
     "@types/react" "*"
 
-"@types/react-csv@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@types/react-csv/-/react-csv-1.1.2.tgz#a5694d7e5cbf4bc1d4baa178a3fa7ac3466ea8c5"
-  integrity sha512-hCtZyXAubxBtn3Oi3I9kNAx2liRTaMtl1eWpO2M98aYkHuoSTbYO8OcZEjyr9aJJ30Xnoxj+uES3G6L6O1qgtg==
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-dom@18.0.1":
   version "18.0.1"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.0.1.tgz#cb3cc10ea91141b12c71001fede1017acfbce4db"
@@ -6452,11 +6445,6 @@ react-countdown@2.3.2:
   integrity sha512-Q4SADotHtgOxNWhDdvgupmKVL0pMB9DvoFcxv5AzjsxVhzOVxnttMbAywgqeOdruwEAmnPhOhNv/awAgkwru2w==
   dependencies:
     prop-types "^15.7.2"
-
-react-csv@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-csv/-/react-csv-2.2.1.tgz#2ec723dd3ce8069269bffb3a95d968302fc87740"
-  integrity sha512-QdImVwsFQIUcOti2dJFTLnxZ8dW/q+DDpjTmD1m1UVBxh2OaEwIBg7PSGA71m7GQEEoz8M5BfvEc1rd7q8rgPw==
 
 react-dom@18.1.0:
   version "18.1.0"
