@@ -20,24 +20,8 @@ export const DATE_FORMAT = 'y-MM-dd'
 export default function AlertMetricsFilter({
   now,
 }: AlertMetricsFilterProps): JSX.Element {
-  const [since, setSince] = useURLParam<string>('since', '')
-
-  const dateRangeValue = since
-    ? Math.ceil(
-        now.diff(DateTime.fromFormat(since, DATE_FORMAT), 'weeks').weeks,
-      )
-    : MAX_DAY_COUNT / 7 // default
-
-  const handleDateRangeChange = (e: SelectChangeEvent<number>): void => {
-    const weeks = e.target.value as number
-    setSince(
-      now
-        .minus({ weeks })
-        .plus({ days: 1 })
-        .startOf('day')
-        .toFormat(DATE_FORMAT),
-    )
-  }
+  const [range, setRange] = useURLParam<string>('range', 'P1M')
+  const [ivl, setIvl] = useURLParam<string>('interval', 'P1D')
 
   return (
     <Grid container sx={{ marginLeft: '3rem' }}>
@@ -48,17 +32,33 @@ export default function AlertMetricsFilter({
           </InputLabel>
           <Select
             fullWidth
-            labelId='demo-simple-select-helper-label'
-            id='demo-simple-select-helper'
-            value={dateRangeValue}
+            value={range}
             label='Date Range'
             name='date-range'
-            onChange={handleDateRangeChange}
+            onChange={(e: SelectChangeEvent<string>) =>
+              setRange(e.target.value)
+            }
           >
-            <MenuItem value={1}>Past week</MenuItem>
-            <MenuItem value={2}>Past 2 weeks</MenuItem>
-            <MenuItem value={3}>Past 3 weeks</MenuItem>
-            <MenuItem value={4}>Past 4 weeks</MenuItem>
+            <MenuItem value='P1W'>Past week</MenuItem>
+            <MenuItem value='P2W'>Past 2 weeks</MenuItem>
+            <MenuItem value='P1M'>Past Month</MenuItem>
+            <MenuItem value='P3M'>Past 3 Months</MenuItem>
+            <MenuItem value='P6M'>Past 6 Months</MenuItem>
+            <MenuItem value='P1Y'>Past Year</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl sx={{ width: '100%' }}>
+          <InputLabel id='demo-simple-select-helper-label'>Interval</InputLabel>
+          <Select
+            fullWidth
+            value={ivl}
+            label='Interval'
+            name='interval'
+            onChange={(e: SelectChangeEvent<string>) => setIvl(e.target.value)}
+          >
+            <MenuItem value='P1D'>Day</MenuItem>
+            <MenuItem value='P1W'>Week</MenuItem>
+            <MenuItem value='P1M'>Month</MenuItem>
           </Select>
         </FormControl>
       </Grid>

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { DateTime, Duration, Interval } from 'luxon'
-import { useURLParams } from '../../actions/hooks'
+import { useURLParam, useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
   DATE_FORMAT,
   MAX_DAY_COUNT,
@@ -25,37 +25,20 @@ export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
-  const minDate = now.minus({ days: MAX_DAY_COUNT - 1 }).startOf('day')
-  const maxDate = now.endOf('day')
 
   const [svc] = useQuery({
     query: 'query Svc($id: ID!) {service(id:$id){id,name}}',
     variables: { id: serviceID },
   })
+  const [range] = useURLParam('range', 'P1M')
+  const [ivl] = useURLParam('interval', 'P1D')
 
-  const [params] = useURLParams({
-    since: minDate.toFormat(DATE_FORMAT),
-    until: maxDate.toFormat(DATE_FORMAT),
-  })
+  const since = now.minus(Duration.fromISO(range)).startOf('day')
+  const until = now.endOf('day')
 
-  const since = DateTime.fromFormat(params.since, DATE_FORMAT).startOf('day')
-  const until = DateTime.fromFormat(params.until, DATE_FORMAT).endOf('day')
-
-  const isValidRange =
-    since >= minDate &&
-    until >= minDate &&
-    since <= maxDate &&
-    until <= maxDate &&
-    since <= until
-
-  const alertsData = useAlerts(
-    serviceID,
-    since.toISO(),
-    until.toISO(),
-    isValidRange,
-  )
+  const alertsData = useAlerts(serviceID, since.toISO(), until.toISO(), true)
   const graphInterval = Interval.fromDateTimes(since, until).toISO()
-  const graphDur = Duration.fromObject({ days: 1 }).toISO()
+  const graphDur = Duration.fromISO(ivl).toISO()
 
   // useMemo to use same object reference
   const metricsOpts: AlertMetricsOpts = useMemo(
@@ -63,14 +46,10 @@ export default function AlertMetrics({
     [graphInterval, graphDur, alertsData.alerts],
   )
 
-  const useAlertMetricsFn = useWorker(useAlertMetrics)
-  const graphData = useAlertMetricsFn(metricsOpts)
+  const graphData = useWorker(useAlertMetrics, metricsOpts, [])
 
   if (svc.fetching) return <Spinner />
   if (!svc.data?.service?.name) return <ObjectNotFound />
-  if (!isValidRange) {
-    return <GenericError error='The requested date range is out-of-bounds' />
-  }
 
   if (alertsData.error) {
     return <GenericError error={alertsData.error.message} />
