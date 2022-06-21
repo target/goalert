@@ -294,7 +294,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
-		validate.Range("First", s.Limit, 1, 100),
+		validate.Range("First", s.Limit, 1, 1000),
 	)
 	if err != nil {
 		return nil, err

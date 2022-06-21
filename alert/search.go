@@ -171,7 +171,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 	err := validate.Many(
 		validate.Search("Search", opts.Search),
-		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
+		validate.Range("Limit", opts.Limit, 0, 1001),
 		validate.Range("Status", len(opts.Status), 0, 3),
 		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
