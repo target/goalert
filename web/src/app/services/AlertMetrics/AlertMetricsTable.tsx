@@ -34,6 +34,97 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+const columns = [
+  {
+    field: 'createdAt',
+    headerName: 'Created At',
+    width: 250,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+  },
+  {
+    field: 'closedAt',
+    headerName: 'Closed At',
+    width: 250,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+  },
+  {
+    field: 'timeToAck',
+    headerName: 'Ack Time',
+    width: 100,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+  },
+  {
+    field: 'timeToClose',
+    headerName: 'Close Time',
+    width: 100,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+  },
+  {
+    field: 'alertID',
+    headerName: 'Alert ID',
+    width: 90,
+    renderCell: (params: GridRenderCellParams<string>) => (
+      <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
+    ),
+  },
+  {
+    field: 'escalated',
+    headerName: 'Escalated',
+    width: 90,
+  },
+
+  {
+    field: 'status',
+    headerName: 'Status',
+    width: 160,
+    valueFormatter: (params: GridValueFormatterParams) => {
+      return (params.value as string).replace('Status', '')
+    },
+  },
+  {
+    field: 'summary',
+    headerName: 'Summary',
+    width: 200,
+  },
+  {
+    field: 'details',
+    headerName: 'Details',
+    width: 200,
+  },
+  {
+    field: 'serviceID',
+    headerName: 'Service ID',
+    valueGetter: (params: GridValueGetterParams) => {
+      return params.row.service?.id || ''
+    },
+    hide: true,
+    width: 300,
+  },
+  {
+    field: 'serviceName',
+    headerName: 'Service Name',
+    hide: true,
+    width: 200,
+    valueGetter: (params: GridValueGetterParams) => {
+      return params.row.service?.name || ''
+    },
+    renderCell: (params: GridRenderCellParams<string>) => {
+      if (params.row.service?.id && params.value) {
+        return (
+          <AppLink to={`/services/${params.row.service.id}`}>
+            {params.value}
+          </AppLink>
+        )
+      }
+      return ''
+    },
+  },
+]
+
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
@@ -55,97 +146,6 @@ export default function AlertMetricsTable(
     () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],
   )
-
-  const columns = [
-    {
-      field: 'createdAt',
-      headerName: 'Created At',
-      width: 250,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
-    },
-    {
-      field: 'closedAt',
-      headerName: 'Closed At',
-      width: 250,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
-    },
-    {
-      field: 'timeToAck',
-      headerName: 'Ack Time',
-      width: 100,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
-    },
-    {
-      field: 'timeToClose',
-      headerName: 'Close Time',
-      width: 100,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
-    },
-    {
-      field: 'alertID',
-      headerName: 'Alert ID',
-      width: 90,
-      renderCell: (params: GridRenderCellParams<string>) => (
-        <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
-      ),
-    },
-    {
-      field: 'escalated',
-      headerName: 'Escalated',
-      width: 90,
-    },
-
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 160,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return (params.value as string).replace('Status', '')
-      },
-    },
-    {
-      field: 'summary',
-      headerName: 'Summary',
-      width: 200,
-    },
-    {
-      field: 'details',
-      headerName: 'Details',
-      width: 200,
-    },
-    {
-      field: 'serviceID',
-      headerName: 'Service ID',
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.service?.id || ''
-      },
-      hide: true,
-      width: 300,
-    },
-    {
-      field: 'serviceName',
-      headerName: 'Service Name',
-      hide: true,
-      width: 200,
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.service?.name || ''
-      },
-      renderCell: (params: GridRenderCellParams<string>) => {
-        if (params.row.service?.id && params.value) {
-          return (
-            <AppLink to={`/services/${params.row.service.id}`}>
-              {params.value}
-            </AppLink>
-          )
-        }
-        return ''
-      },
-    },
-  ]
 
   function CustomToolbar(): JSX.Element {
     return (

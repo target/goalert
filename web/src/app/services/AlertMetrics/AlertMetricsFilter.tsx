@@ -47,6 +47,8 @@ export default function AlertMetricsFilter({
             <MenuItem value='P1Y'>Past Year</MenuItem>
           </Select>
         </FormControl>
+      </Grid>
+      <Grid item xs={5} paddingLeft={1}>
         <FormControl sx={{ width: '100%' }}>
           <InputLabel id='demo-simple-select-helper-label'>Interval</InputLabel>
           <Select
