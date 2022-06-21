@@ -258,6 +258,7 @@ export default function FlatList({
               [classes.secondaryText]: true,
               [classes.listItemDisabled]: item.disabled,
             }),
+            tabIndex: 0,
           }}
           inset={inset && !item.icon}
         />
