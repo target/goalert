@@ -920,6 +920,8 @@ type Alert {
 type AlertMetric {
   escalated: Boolean!
   closedAt: ISOTimestamp!
+  timeToAck: ISODuration!
+  timeToClose: ISODuration!
 }
 
 type AlertPendingNotification {

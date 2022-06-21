@@ -8,13 +8,35 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   Legend,
+  DotProps,
 } from 'recharts'
 
-interface AlertCountGraphProps {
-  data: typeof BarChart.defaultProps['data']
+interface CustomDotProps extends DotProps {
+  dataKey: string
+  payload: { date: string }
+}
+
+const CustomDot = (props: CustomDotProps): JSX.Element => {
+  const { cy, cx, fill, r, stroke, strokeWidth, dataKey, payload } = props
+  return (
+    <circle
+      cy={cy}
+      cx={cx}
+      fill={fill}
+      r={r}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      key={dataKey + '-' + payload.date}
+      data-cy={dataKey + '-' + payload.date}
+    />
+  )
+}
+
+interface AlertAveragesGraphProps {
+  data: typeof LineChart.defaultProps['data']
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -29,16 +51,16 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AlertCountGraph(
-  props: AlertCountGraphProps,
+export default function AlertAveragesGraph(
+  props: AlertAveragesGraphProps,
 ): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-count-graph'>
+      <Grid item xs={12} data-cy='metrics-averages-graph'>
         <ResponsiveContainer width='100%' height='100%'>
-          <BarChart
+          <LineChart
             width={730}
             height={250}
             data={props.data}
@@ -59,8 +81,9 @@ export default function AlertCountGraph(
               stroke={theme.palette.text.secondary}
             />
             <YAxis
+              type='number'
               allowDecimals={false}
-              dataKey='count'
+              interval='preserveStart'
               stroke={theme.palette.text.secondary}
             />
             <Tooltip
@@ -69,39 +92,47 @@ export default function AlertCountGraph(
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null
 
-                const alertCountStr = `${payload[1].name}: ${
-                  (payload[1].value as number) + (payload[0].value as number)
-                }`
-                const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
+                const ackAvg = `${payload[0].name}: ${Math.round(
+                  payload[0].payload.avgTimeToAck,
+                )} min`
+                const closeAvg = `${payload[1].name}: ${Math.round(
+                  payload[1].payload.avgTimeToClose,
+                )} min`
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>
                     <Typography variant='body2'>{label}</Typography>
-                    <Typography variant='body2'>{alertCountStr}</Typography>
-                    <Typography variant='body2'>{escalatedCountStr}</Typography>
+                    <Typography variant='body2'>{closeAvg}</Typography>
+                    <Typography variant='body2'>{ackAvg}</Typography>
                   </Paper>
                 )
               }}
             />
             <Legend />
-            <Bar
-              dataKey='escalatedCount'
-              stackId='a'
-              fill={theme.palette.primary.main}
-              className={classes.bar}
-              name='Escalated'
+            <Line
+              type='monotone'
+              dataKey='avgTimeToAck'
+              strokeWidth={2}
+              stroke={theme.palette.primary.main}
+              activeDot={{ r: 8 }}
+              isAnimationActive={false}
+              dot={CustomDot}
+              name='Avg. Ack'
             />
-            <Bar
-              stackId='a'
-              dataKey='nonEscalatedCount'
-              fill={
+            <Line
+              type='monotone'
+              strokeWidth={2}
+              dataKey='avgTimeToClose'
+              isAnimationActive={false}
+              stroke={
                 theme.palette.mode === 'light'
                   ? theme.palette.secondary.dark
                   : theme.palette.secondary.light
               }
-              className={classes.bar}
-              name='Alert Count'
+              activeDot={{ r: 8 }}
+              dot={CustomDot}
+              name='Avg. Close'
             />
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
       </Grid>
     </Grid>

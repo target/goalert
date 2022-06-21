@@ -59,7 +59,7 @@ const renderCrumb = (
         color: getContrastColor,
       }}
     >
-      {toTitleCase(title)}
+      {title}
     </Typography>
   )
 

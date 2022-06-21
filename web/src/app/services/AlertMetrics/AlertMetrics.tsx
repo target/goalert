@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
 import { gql, useClient } from 'urql'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import { useURLParams } from '../../actions/hooks'
 import AlertMetricsFilter, {
   DATE_FORMAT,
@@ -15,8 +15,9 @@ import AlertMetricsFilter, {
 } from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
-import { GenericError } from '../../error-pages'
+import AlertAveragesGraph from './AlertAveragesGraph'
 import { Alert } from '../../../schema'
+import { GenericError } from '../../error-pages'
 import _ from 'lodash'
 
 const alertsQuery = gql`
@@ -34,6 +35,9 @@ const alertsQuery = gql`
         createdAt
         metrics {
           closedAt
+          timeToClose
+          timeToAck
+          escalated
         }
       }
       pageInfo {
@@ -197,12 +201,35 @@ export default function AlertMetrics({
       year: 'numeric',
     })
 
+    const bucket = alertsData.alerts.filter((a) =>
+      i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
+    )
+
+    const escalatedCount = bucket.filter((a) => a.metrics?.escalated).length
+
     return {
       date,
       label,
-      count: alertsData.alerts.filter((a) =>
-        i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
-      ).length,
+      count: bucket.length,
+      nonEscalatedCount: bucket.length - escalatedCount,
+      escalatedCount,
+
+      // get average of a.metrics.timeToClose values
+      avgTimeToClose: bucket.length
+        ? bucket.reduce((acc, a) => {
+            if (!a.metrics?.timeToClose) return acc
+            const timeToClose = Duration.fromISO(a.metrics.timeToClose)
+            return acc + Math.ceil(timeToClose.as('minutes'))
+          }, 0) / bucket.length
+        : 0,
+
+      avgTimeToAck: bucket.length
+        ? bucket.reduce((acc, a) => {
+            if (!a.metrics?.timeToAck) return acc
+            const timeToAck = Duration.fromISO(a.metrics.timeToAck)
+            return acc + Math.ceil(timeToAck.as('minutes'))
+          }, 0) / bucket.length
+        : 0,
     }
   })
 
@@ -214,11 +241,12 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert counts over the past ${daycount} days`}
+            title={`Daily alert metrics over the past ${daycount} days`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
             <AlertCountGraph data={graphData} />
+            <AlertAveragesGraph data={graphData} />
             <AlertMetricsTable
               alerts={alertsData.alerts.map((a) => ({
                 ...a,

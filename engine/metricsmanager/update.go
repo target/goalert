@@ -14,7 +14,6 @@ import (
 
 type State struct {
 	V2 struct {
-
 		// LastLogTime is a cursor for processed alert_logs
 		LastLogTime time.Time
 
@@ -96,21 +95,18 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 		alertIDs = append(alertIDs, alertID)
 	}
 
-	if len(alertIDs) > 0 {
-		_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, sqlutil.IntArray(alertIDs))
-		if err != nil {
-			return fmt.Errorf("insert metrics: %w", err)
-		}
-
-		// update state
-		state.V2.LastLogTime = lastLogTime
-		state.V2.LastLogID = lastLogID
-
-	} else {
-		// update state
-		state.V2.LastLogTime = boundNow
-		state.V2.LastLogID = 0
+	if len(alertIDs) == 0 {
+		return nil
 	}
+
+	_, err = tx.StmtContext(ctx, db.insertMetrics).ExecContext(ctx, sqlutil.IntArray(alertIDs))
+	if err != nil {
+		return fmt.Errorf("insert metrics: %w", err)
+	}
+
+	// update state
+	state.V2.LastLogTime = lastLogTime
+	state.V2.LastLogID = lastLogID
 
 	// save state
 	err = lockState.Save(ctx, &state)
@@ -181,5 +177,4 @@ func (db *DB) UpdateDailyAlertMetrics(ctx context.Context) error {
 	}
 
 	return nil
-
 }
