@@ -1,6 +1,5 @@
 import { DateTime, Duration } from 'luxon'
 import { Alert } from '../../../schema'
-import { pathPrefix } from '../../env'
 
 function formatCSVField(data: string): string {
   if (!/[,"\r\n]/.test(data)) return data
@@ -8,7 +7,12 @@ function formatCSVField(data: string): string {
   return `"${data.replace(/"/g, '""')}"`
 }
 
-export function useAlertCSV(alerts: Alert[]): string {
+export type useAlertCSVOpts = {
+  alerts: Alert[]
+  urlPrefix: string
+}
+
+export function useAlertCSV({ urlPrefix, alerts }: useAlertCSVOpts): string {
   let data = ''
   const zoneAbbr = DateTime.local().toFormat('ZZZZ Z')
   const cols = [
@@ -45,7 +49,7 @@ export function useAlertCSV(alerts: Alert[]): string {
         a.summary,
         a.details,
         a.service?.name || '',
-        `${location.origin}${pathPrefix}/services/${a.service?.id}`,
+        `${urlPrefix}/services/${a.service?.id}`,
       ]
         .map(formatCSVField)
         .join(',') + '\r\n',

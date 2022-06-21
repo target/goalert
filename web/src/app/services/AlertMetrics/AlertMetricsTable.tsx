@@ -17,6 +17,8 @@ import { Alert } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
 import { useAlertCSV } from './useAlertCSV'
+import { useWorker } from '../../worker'
+import { pathPrefix } from '../../env'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
@@ -40,7 +42,15 @@ export default function AlertMetricsTable(
     () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
     [props.alerts],
   )
-  const csvData = useAlertCSV(props.alerts)
+
+  const csvOpts = useMemo(
+    () => ({
+      urlPrefix: location.origin + pathPrefix,
+      alerts: alerts,
+    }),
+    [props.alerts],
+  )
+  const csvData = useWorker(useAlertCSV, csvOpts, '')
   const link = useMemo(
     () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],

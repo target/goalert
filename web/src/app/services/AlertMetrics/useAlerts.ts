@@ -32,7 +32,7 @@ const alertsQuery = gql`
   }
 `
 
-const QUERY_LIMIT = 100
+const QUERY_LIMIT = 1000
 
 export type AlertsData = {
   alerts: Alert[]
@@ -96,10 +96,10 @@ export function useAlerts(
       ]
     }
 
-    const throttledSetAlerts = _.throttle(
-      (alerts) => setAlerts(_.sortBy(alerts, 'metrics.closedAt')),
-      1000,
-    )
+    const throttledSetAlerts = _.throttle((alerts, loading) => {
+      setAlerts(_.sortBy(alerts, 'metrics.closedAt'))
+      setLoading(loading)
+    }, 3000)
 
     let [alerts, hasNextPage, endCursor, error] = await fetchAlerts('')
     if (key.current !== depKey) return // abort if the key has changed
@@ -109,7 +109,7 @@ export function useAlerts(
       return
     }
     let allAlerts = alerts
-    throttledSetAlerts(allAlerts)
+    throttledSetAlerts(allAlerts, true)
     while (hasNextPage) {
       ;[alerts, hasNextPage, endCursor, error] = await fetchAlerts(endCursor)
       if (key.current !== depKey) return // abort if the key has changed
@@ -119,10 +119,10 @@ export function useAlerts(
         return
       }
       allAlerts = allAlerts.concat(alerts)
-      throttledSetAlerts(allAlerts)
+      throttledSetAlerts(allAlerts, true)
     }
 
-    setLoading(false)
+    throttledSetAlerts(allAlerts, false)
   }, [depKey])
 
   useEffect(() => {
