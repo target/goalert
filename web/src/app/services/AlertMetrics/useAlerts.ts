@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { gql, useClient } from 'urql'
 import { Alert } from '../../../schema'
@@ -44,7 +44,7 @@ export function useAlerts(
   serviceID: string,
   since: string,
   until: string,
-  isValidRange: boolean,
+  pause?: boolean,
 ): AlertsData {
   const depKey = `${serviceID}-${since}-${until}`
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -65,7 +65,7 @@ export function useAlerts(
     setAlerts([])
     setLoading(true)
     setError(undefined)
-    if (!isValidRange) {
+    if (pause) {
       return
     }
     async function fetchAlerts(
@@ -96,10 +96,14 @@ export function useAlerts(
       ]
     }
 
-    const throttledSetAlerts = _.throttle((alerts, loading) => {
-      setAlerts(_.sortBy(alerts, 'metrics.closedAt'))
-      setLoading(loading)
-    }, 3000)
+    const throttledSetAlerts = _.throttle(
+      (alerts, loading) => {
+        setAlerts(_.sortBy(alerts, 'metrics.closedAt'))
+        setLoading(loading)
+      },
+      3000,
+      { leading: true },
+    )
 
     let [alerts, hasNextPage, endCursor, error] = await fetchAlerts('')
     if (key.current !== depKey) return // abort if the key has changed
@@ -123,11 +127,11 @@ export function useAlerts(
     }
 
     throttledSetAlerts(allAlerts, false)
-  }, [depKey])
+  }, [depKey, pause])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     fetch()
-  }, [depKey])
+  }, [depKey, pause])
 
   return {
     alerts,

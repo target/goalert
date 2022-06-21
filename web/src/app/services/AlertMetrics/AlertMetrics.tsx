@@ -1,11 +1,8 @@
 import React, { useMemo } from 'react'
 import { Card, CardContent, CardHeader, Grid } from '@mui/material'
-import { DateTime, Duration, Interval } from 'luxon'
-import { useURLParam, useURLParams } from '../../actions/hooks'
-import AlertMetricsFilter, {
-  DATE_FORMAT,
-  MAX_DAY_COUNT,
-} from './AlertMetricsFilter'
+import { DateTime, DateTimeUnit, Duration, Interval } from 'luxon'
+import { useURLParam } from '../../actions/hooks'
+import AlertMetricsFilter from './AlertMetricsFilter'
 import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import AlertAveragesGraph from './AlertAveragesGraph'
@@ -21,6 +18,12 @@ export type AlertMetricsProps = {
   serviceID: string
 }
 
+const units: Record<string, DateTimeUnit> = {
+  P1D: 'day',
+  P1W: 'week',
+  P1M: 'month',
+}
+
 export default function AlertMetrics({
   serviceID,
 }: AlertMetricsProps): JSX.Element {
@@ -32,13 +35,14 @@ export default function AlertMetrics({
   })
   const [range] = useURLParam('range', 'P1M')
   const [ivl] = useURLParam('interval', 'P1D')
-
-  const since = now.minus(Duration.fromISO(range)).startOf('day')
-  const until = now.endOf('day')
-
-  const alertsData = useAlerts(serviceID, since.toISO(), until.toISO(), true)
-  const graphInterval = Interval.fromDateTimes(since, until).toISO()
   const graphDur = Duration.fromISO(ivl).toISO()
+
+  const unit = units[ivl]
+  const since = now.minus(Duration.fromISO(range)).startOf(unit)
+  const until = now.startOf(unit)
+
+  const alertsData = useAlerts(serviceID, since.toISO(), until.toISO())
+  const graphInterval = Interval.fromDateTimes(since, until).toISO()
 
   // useMemo to use same object reference
   const metricsOpts: AlertMetricsOpts = useMemo(
@@ -55,7 +59,7 @@ export default function AlertMetrics({
     return <GenericError error={alertsData.error.message} />
   }
 
-  const daycount = Math.floor(now.diff(since, 'days').plus({ day: 1 }).days)
+  const daycount = Math.ceil(until.diff(since, unit).as(unit))
 
   return (
     <Grid container spacing={2}>
@@ -63,7 +67,7 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert metrics over the past ${daycount} days`}
+            title={`Daily alert metrics over the past ${daycount} ${unit}s`}
           />
           <CardContent>
             <AlertMetricsFilter now={now} />
