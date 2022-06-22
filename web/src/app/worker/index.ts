@@ -30,7 +30,9 @@ class StubWorker<M extends WorkerMethod> {
   postMessage = (data: Post<M>): void => {
     this._timeout = setTimeout(() => {
       this.onmessage({
-        data: this.method(data.arg) as ReturnType<M>,
+        // typescript calculates the incorrect type for the method argument
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        data: this.method(data.arg as any) as ReturnType<M>,
       })
     })
   }
