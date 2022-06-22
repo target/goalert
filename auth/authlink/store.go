@@ -124,6 +124,6 @@ func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string) (
 
 	cfg := config.FromContext(ctx)
 	p := make(url.Values)
-	p.Set("link-token", token)
-	return cfg.CallbackURL("/profile/link", p), nil
+	p.Set("auth-link-token", token)
+	return cfg.CallbackURL("/profile", p), nil
 }
