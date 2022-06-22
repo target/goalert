@@ -115,6 +115,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           DateTime.fromISO(paginatedData[0].createdAt).endOf('day'),
         )
 
+  const intervalType = 'daily'
   const graphData = ivl
     ? ivl.splitBy({ days: 1 }).map((i) => {
         const date = i.start.toLocaleString({ month: 'short', day: 'numeric' })
@@ -135,8 +136,6 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         }
       })
     : []
-
-  console.log(graphData)
 
   return (
     <React.Fragment>
@@ -164,7 +163,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         </Grid>
         {params.search && paginatedData.length > 0 && (
           <Grid item xs={12}>
-            <DebugMessageGraph data={graphData} />
+            <DebugMessageGraph data={graphData} intervalType={intervalType} />
           </Grid>
         )}
         <Grid item xs={12}>
