@@ -23,6 +23,11 @@ func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string
 	return nr.r.SetSendResult(ctx, res)
 }
 
+// AuthLinkURL calls the underlying AuthLinkURL method.
+func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error) {
+	return nr.r.AuthLinkURL(ctx, providerID, subjectID)
+}
+
 // Start implements the Receiver interface by calling the underlying Receiver.Start method.
 func (nr *namedReceiver) Start(ctx context.Context, d Dest) error {
 	metricRecvTotal.WithLabelValues(d.Type.String(), "START")

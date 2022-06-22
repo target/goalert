@@ -343,6 +343,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
+  linkAccountToken(token: ID!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 

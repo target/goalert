@@ -35,6 +35,11 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	return true, nil
 }
 
+func (a *Mutation) LinkAccountToken(ctx context.Context, token string) (bool, error) {
+	err := a.AuthLinkStore.LinkAccount(ctx, token)
+	return err == nil, err
+}
+
 func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input graphql2.SetScheduleOnCallNotificationRulesInput) (bool, error) {
 	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
 	if err != nil {
@@ -104,6 +109,7 @@ func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetT
 
 	return err == nil, err
 }
+
 func (a *Mutation) ClearTemporarySchedules(ctx context.Context, input graphql2.ClearTemporarySchedulesInput) (bool, error) {
 	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
 	if err != nil {

@@ -153,6 +153,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error) {
+	return p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID)
+}
+
 func (p *Engine) processModule(ctx context.Context, m updater) {
 	defer recoverPanic(ctx, m.Name())
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)

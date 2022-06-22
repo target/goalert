@@ -10,6 +10,7 @@ type ResultReceiver interface {
 
 	Receive(ctx context.Context, callbackID string, result Result) error
 	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
+	AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error)
 	Start(context.Context, Dest) error
 	Stop(context.Context, Dest) error
 
