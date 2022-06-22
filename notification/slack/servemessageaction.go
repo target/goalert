@@ -120,13 +120,21 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 
 	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
 	if errors.Is(err, notification.ErrUnknownSubject) {
-		log.Log(ctx, fmt.Errorf("unknown provider/subject ID for Slack 'slack:%s/%s'", payload.User.TeamID, payload.User.ID))
+		linkURL, err := s.recv.AuthLinkURL(ctx, "slack:"+payload.User.TeamID, payload.User.ID)
+		if err != nil {
+			log.Log(ctx, err)
+		}
 		err = s.withClient(ctx, func(c *slack.Client) error {
+			var msg string
+			if linkURL == "" {
+				msg = "Your Slack account isn't currently linked to GoAlert, please try again later."
+			} else {
+				msg = "Please <" + linkURL + "|CLICK HERE> to link your Slack account with GoAlert, then try again."
+			}
+
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
-
-				// TODO: add user-link/OAUTH flow
-				slack.MsgOptionText("Your Slack account isn't currently linked to GoAlert, the admin will need to set this up for it to work.", false),
+				slack.MsgOptionText(msg, false),
 			)
 			return err
 		})
