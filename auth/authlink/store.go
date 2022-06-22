@@ -34,6 +34,7 @@ func NewStore(ctx context.Context, db *sql.DB, k keyring.Keyring) (*Store, error
 	}
 
 	return &Store{
+		db:         db,
 		k:          k,
 		newLink:    p.P(`insert into auth_link_requests (id, provider_id, subject_id, expires_at) values ($1, $2, $3, $4)`),
 		rmLink:     p.P(`delete from auth_link_requests where id = $1 and expires_at > now() returning provider_id, subject_id`),

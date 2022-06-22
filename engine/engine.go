@@ -153,8 +153,11 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
-func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error) {
-	return p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID)
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string) (url string, err error) {
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID)
+	})
+	return url, err
 }
 
 func (p *Engine) processModule(ctx context.Context, m updater) {
