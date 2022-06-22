@@ -8,7 +8,7 @@ import AlertMetricsTable from './AlertMetricsTable'
 import AlertAveragesGraph from './AlertAveragesGraph'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { useWorker } from '../../worker'
-import { AlertMetricsOpts, useAlertMetrics } from './useAlertMetrics'
+import { AlertMetricsOpts } from './useAlertMetrics'
 import { useAlerts } from './useAlerts'
 import { useQuery } from 'urql'
 import Spinner from '../../loading/components/Spinner'
@@ -49,7 +49,7 @@ export default function AlertMetrics({
     [graphInterval, graphDur, alertsData.alerts],
   )
 
-  const graphData = useWorker(useAlertMetrics, metricsOpts, [])
+  const graphData = useWorker('useAlertMetrics', metricsOpts, [])
 
   if (svc.fetching) return <Spinner />
   if (!svc.data?.service?.name) return <ObjectNotFound />

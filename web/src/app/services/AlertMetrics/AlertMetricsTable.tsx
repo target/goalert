@@ -16,7 +16,6 @@ import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
-import { useAlertCSV } from './useAlertCSV'
 import { useWorker } from '../../worker'
 import { pathPrefix } from '../../env'
 
@@ -141,7 +140,7 @@ export default function AlertMetricsTable(
     }),
     [props.alerts],
   )
-  const csvData = useWorker(useAlertCSV, csvOpts, '')
+  const csvData = useWorker('useAlertCSV', csvOpts, '')
   const link = useMemo(
     () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],

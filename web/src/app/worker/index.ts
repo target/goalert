@@ -1,38 +1,45 @@
 import { useEffect, useMemo, useState } from 'react'
 import { pathPrefix } from '../env'
-import methods, { WorkerMethod, WorkerParam } from './methods'
+import methods, {
+  WorkerMethod,
+  WorkerMethodName,
+  WorkerParam,
+  WorkerResult,
+} from './methods'
 
-type RecvMessage<M extends WorkerMethod> = {
-  data: ReturnType<M>
+type RecvMessage<N extends WorkerMethodName> = {
+  data: WorkerResult<N>
 }
 
-type NextRun<M extends WorkerMethod> = {
-  arg: WorkerParam<M>
+type NextRun<N extends WorkerMethodName> = {
+  arg: WorkerParam<N>
 }
 
-type ChangeCallback<M extends WorkerMethod> = (result: ReturnType<M>) => void
+type ChangeCallback<N extends WorkerMethodName> = (
+  result: WorkerResult<N>,
+) => void
 
-type Post<M extends WorkerMethod> = {
-  method: string
-  arg: WorkerParam<M>
+type Post<N extends WorkerMethodName> = {
+  method: N
+  arg: WorkerParam<N>
 }
 
 // StubWorker does work after a setTimeout, but in the main thread.
-class StubWorker<M extends WorkerMethod> {
-  constructor(method: M) {
-    this.method = method
+class StubWorker<N extends WorkerMethodName> {
+  constructor(methodName: N) {
+    this.method = methods[methodName]
   }
 
-  private method: M
+  private method: WorkerMethod<N>
   private _timeout: ReturnType<typeof setTimeout> | undefined
-  onmessage: (e: RecvMessage<M>) => void = (): void => {}
+  onmessage: (e: RecvMessage<N>) => void = (): void => {}
 
-  postMessage = (data: Post<M>): void => {
+  postMessage = (data: Post<N>): void => {
     this._timeout = setTimeout(() => {
       this.onmessage({
         // typescript calculates the incorrect type for the method argument
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        data: this.method(data.arg as any) as ReturnType<M>,
+        data: this.method(data.arg as any) as WorkerResult<N>,
       })
     })
   }
@@ -43,24 +50,24 @@ class StubWorker<M extends WorkerMethod> {
   }
 }
 
-class Runner<M extends WorkerMethod> {
-  constructor(method: M, onChange: ChangeCallback<M>) {
-    this.method = method
+class Runner<N extends WorkerMethodName> {
+  constructor(methodName: N, onChange: ChangeCallback<N>) {
+    this.methodName = methodName
     this.onChange = onChange
   }
 
-  private method: M
-  private worker: Worker | StubWorker<M> | null = null
-  private next: NextRun<M> | null = null
-  private onChange: ChangeCallback<M>
+  private methodName: N
+  private worker: Worker | StubWorker<N> | null = null
+  private next: NextRun<N> | null = null
+  private onChange: ChangeCallback<N>
   private isBusy = false
 
-  private _initWorker = (): Worker | StubWorker<M> => {
+  private _initWorker = (): Worker | StubWorker<N> => {
     const w = window.Worker
       ? new Worker(`${pathPrefix}/static/worker.js`)
-      : new StubWorker(this.method)
+      : new StubWorker(this.methodName)
 
-    w.onmessage = (e: RecvMessage<M>) => {
+    w.onmessage = (e: RecvMessage<N>) => {
       this.isBusy = false
       this.onChange(e.data)
       this._send()
@@ -75,12 +82,12 @@ class Runner<M extends WorkerMethod> {
       this.worker = this._initWorker()
     }
     if (this.isBusy) return
-    this.worker.postMessage({ method: this.method.name, arg: this.next.arg })
+    this.worker.postMessage({ method: this.methodName, arg: this.next.arg })
     this.isBusy = true
     this.next = null
   }
 
-  run = (arg: WorkerParam<M>): void => {
+  run = (arg: WorkerParam<N>): void => {
     this.next = { arg }
     this._send()
   }
@@ -92,20 +99,20 @@ class Runner<M extends WorkerMethod> {
   }
 }
 
-export function useWorker<M extends WorkerMethod>(
-  method: M,
-  arg: WorkerParam<M>,
-  def: ReturnType<M>,
-): ReturnType<M> {
-  if (!(method.name in methods)) {
+export function useWorker<N extends WorkerMethodName>(
+  methodName: N,
+  arg: WorkerParam<N>,
+  def: WorkerResult<N>,
+): WorkerResult<N> {
+  if (!(methodName in methods)) {
     throw new Error(`method must be a valid method from app/worker/methods.ts`)
   }
 
   const [result, setResult] = useState(def)
-  const [worker, setWorker] = useState<Runner<M> | null>(null)
+  const [worker, setWorker] = useState<Runner<N> | null>(null)
 
   useEffect(() => {
-    const w = new Runner<M>(method, setResult)
+    const w = new Runner<N>(methodName, setResult)
     setWorker(w)
     return w.shutdown
   }, [])
