@@ -1,68 +1,116 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import _ from 'lodash'
+import { useEffect, useMemo, useState } from 'react'
 import { pathPrefix } from '../env'
-import methods from './methods'
+import methods, { WorkerMethod, WorkerParam } from './methods'
 
-type NextRun = {
-  arg: any
-  method: string
+type RecvMessage<M extends WorkerMethod> = {
+  data: ReturnType<M>
 }
 
-class Runner<T, V> {
-  private worker: Worker | null = null
-  private next: NextRun | null = null
-  private onChange: (result: V) => void = () => {}
-  private isBusy: boolean = false
+type NextRun<M extends WorkerMethod> = {
+  arg: WorkerParam<M>
+}
 
-  private _send = () => {
+type ChangeCallback<M extends WorkerMethod> = (result: ReturnType<M>) => void
+
+type Post<M extends WorkerMethod> = {
+  method: string
+  arg: WorkerParam<M>
+}
+
+// StubWorker does work after a setTimeout, but in the main thread.
+class StubWorker<M extends WorkerMethod> {
+  constructor(method: M) {
+    this.method = method
+  }
+
+  private method: M
+  private _timeout: ReturnType<typeof setTimeout> | undefined
+  onmessage: (e: RecvMessage<M>) => void = (): void => {}
+
+  postMessage = (data: Post<M>): void => {
+    this._timeout = setTimeout(() => {
+      this.onmessage({
+        data: this.method(data.arg) as ReturnType<M>,
+      })
+    })
+  }
+
+  terminate = (): void => {
+    if (!this._timeout) return
+    clearTimeout(this._timeout)
+  }
+}
+
+class Runner<M extends WorkerMethod> {
+  constructor(method: M, onChange: ChangeCallback<M>) {
+    this.method = method
+    this.onChange = onChange
+  }
+
+  private method: M
+  private worker: Worker | StubWorker<M> | null = null
+  private next: NextRun<M> | null = null
+  private onChange: ChangeCallback<M>
+  private isBusy = false
+
+  private _initWorker = (): Worker | StubWorker<M> => {
+    const w = window.Worker
+      ? new Worker(`${pathPrefix}/static/worker.js`)
+      : new StubWorker(this.method)
+
+    w.onmessage = (e: RecvMessage<M>) => {
+      this.isBusy = false
+      this.onChange(e.data)
+      this._send()
+    }
+
+    return w
+  }
+
+  private _send = (): void => {
     if (!this.next) return
     if (!this.worker) {
-      this.worker = new Worker(`${pathPrefix}/static/worker.js`)
-      this.worker.onmessage = (e) => {
-        this.isBusy = false
-        this.onChange(e.data)
-        this._send()
-      }
+      this.worker = this._initWorker()
     }
     if (this.isBusy) return
-    this.worker.postMessage(this.next)
+    this.worker.postMessage({ method: this.method.name, arg: this.next.arg })
     this.isBusy = true
     this.next = null
   }
 
-  run = (method: string, arg: T, onChange: (result: V) => void) => {
-    this.onChange = onChange
-    this.next = { method, arg }
+  run = (arg: WorkerParam<M>): void => {
+    this.next = { arg }
     this._send()
   }
 
-  shutdown = () => {
+  shutdown = (): void => {
     if (!this.worker) return
     this.worker.terminate()
     this.worker = null
   }
 }
 
-export function useWorker<T, V>(method: (arg: T) => V, arg: T, def: V): V {
+export function useWorker<M extends WorkerMethod>(
+  method: M,
+  arg: WorkerParam<M>,
+  def: ReturnType<M>,
+): ReturnType<M> {
   if (!(method.name in methods)) {
     throw new Error(`method must be a valid method from app/worker/methods.ts`)
   }
 
-  // fallback to a simple memo if workers are unsupported
-  if (!window.Worker) return useMemo(() => method(arg), [arg])
-
   const [result, setResult] = useState(def)
-  const [worker, setWorker] = useState<Runner<T, V> | null>(null)
+  const [worker, setWorker] = useState<Runner<M> | null>(null)
 
   useEffect(() => {
-    const w = new Runner<T, V>()
+    const w = new Runner<M>(method, setResult)
     setWorker(w)
     return w.shutdown
   }, [])
 
   useMemo(() => {
     if (!worker) return
-    worker.run(method.name, arg, setResult)
+    worker.run(arg)
   }, [worker, arg])
 
   return result
