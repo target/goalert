@@ -174,8 +174,8 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 		}
 
 		// notifications that end up bundled are omitted
-		if m.MessageType == notification.MessageTypeAlertBundle {
-			return nil, nil
+		if m.MessageType == notification.MessageTypeAlert && m.LastStatus == notification.StateBundled {
+			continue
 		}
 
 		msg := graphql2.DebugMessage{
