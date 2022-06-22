@@ -5,7 +5,6 @@ import DatePicker from '@mui/lab/DatePicker'
 import DateTimePicker from '@mui/lab/DateTimePicker'
 import TimePicker from '@mui/lab/TimePicker'
 import { inputtypes } from 'modernizr-esm/feature/inputtypes'
-import { useURLParam } from '../actions'
 
 interface ISOPickerProps extends ISOTextFieldProps {
   Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
@@ -50,8 +49,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   } = props
 
   const native = hasInputSupport(type)
-  const [_zone] = useURLParam('tz', 'local')
-  const zone = timeZone || _zone
+  const zone = timeZone || 'local'
   const valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
