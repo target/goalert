@@ -1,8 +1,7 @@
-import _ from 'lodash'
-
 import methods from './methods'
 
 self.onmessage = (e) => {
-  const result = methods[e.data.method](e.data.arg)
+  const method = e.data.method as keyof typeof methods
+  const result = methods[method](e.data.arg)
   self.postMessage(result)
 }

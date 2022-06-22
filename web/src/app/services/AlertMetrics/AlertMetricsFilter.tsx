@@ -6,20 +6,10 @@ import {
   FormControl,
   SelectChangeEvent,
 } from '@mui/material'
-import { DateTime } from 'luxon'
 import React from 'react'
 import { useURLParam } from '../../actions/hooks'
 
-interface AlertMetricsFilterProps {
-  now: DateTime
-}
-
-export const MAX_DAY_COUNT = 28
-export const DATE_FORMAT = 'y-MM-dd'
-
-export default function AlertMetricsFilter({
-  now,
-}: AlertMetricsFilterProps): JSX.Element {
+export default function AlertMetricsFilter(): JSX.Element {
   const [range, setRange] = useURLParam<string>('range', 'P1M')
   const [ivl, setIvl] = useURLParam<string>('interval', 'P1D')
 

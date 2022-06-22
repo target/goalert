@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import React, { useLayoutEffect } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { gql, useClient } from 'urql'
 import { Alert } from '../../../schema'
 

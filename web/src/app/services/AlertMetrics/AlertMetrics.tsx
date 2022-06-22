@@ -7,7 +7,6 @@ import AlertCountGraph from './AlertCountGraph'
 import AlertMetricsTable from './AlertMetricsTable'
 import AlertAveragesGraph from './AlertAveragesGraph'
 import { GenericError, ObjectNotFound } from '../../error-pages'
-import _ from 'lodash'
 import { useWorker } from '../../worker'
 import { AlertMetricsOpts, useAlertMetrics } from './useAlertMetrics'
 import { useAlerts } from './useAlerts'
@@ -59,7 +58,7 @@ export default function AlertMetrics({
     return <GenericError error={alertsData.error.message} />
   }
 
-  const daycount = Math.ceil(until.diff(since, unit).as(unit))
+  const dayCount = Math.ceil(until.diff(since, unit).as(unit))
 
   return (
     <Grid container spacing={2}>
@@ -67,10 +66,10 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert metrics over the past ${daycount} ${unit}s`}
+            title={`Daily alert metrics over the past ${dayCount} ${unit}s`}
           />
           <CardContent>
-            <AlertMetricsFilter now={now} />
+            <AlertMetricsFilter />
             <AlertCountGraph data={graphData} />
             <AlertAveragesGraph data={graphData} />
             <AlertMetricsTable
