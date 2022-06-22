@@ -256,6 +256,7 @@ export interface SetScheduleShiftInput {
 }
 
 export interface Mutation {
+  linkAccountToken: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
   setScheduleOnCallNotificationRules: boolean
