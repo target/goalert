@@ -3,10 +3,9 @@ import { Box } from '@mui/system'
 import { DebugMessage } from '../../../schema'
 import DebugMessageCard from './DebugMessageCard'
 import { Typography, Button } from '@mui/material'
-import Fuse from 'fuse.js'
 
 interface Props {
-  debugMessages: Fuse.FuseResult<DebugMessage>[]
+  debugMessages: DebugMessage[]
   selectedLog: DebugMessage | null
   onSelect: (debugMessage: DebugMessage) => void
   onLoadMore: () => void
@@ -24,12 +23,12 @@ export default function DebugMessagesList(props: Props): JSX.Element {
       alignItems='stretch'
       width='full'
     >
-      {debugMessages.map(({ item: debugMessage }) => (
+      {debugMessages.map((msg) => (
         <DebugMessageCard
-          key={debugMessage.id}
-          debugMessage={debugMessage}
-          selected={selectedLog?.id === debugMessage.id}
-          onSelect={() => onSelect(debugMessage)}
+          key={msg.id}
+          debugMessage={msg}
+          selected={selectedLog?.id === msg.id}
+          onSelect={() => onSelect(msg)}
         />
       ))}
       {hasMore ? (

@@ -10,8 +10,8 @@ import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
-import { DateTime } from 'luxon'
-import { useFuse } from './useFuse'
+import { DateTime, Interval } from 'luxon'
+import DebugMessageGraph from './DebugMessageGraph'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
 const LOAD_AMOUNT = 50
@@ -83,44 +83,57 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     end: '',
   })
 
-  const results = useFuse<DebugMessage>({
-    data:
-      data?.debugMessages.map((d: DebugMessage) => ({
-        ...d,
-        additionalKeys: {
-          filteredDestination: d.destination.replace('-', ''),
-        },
-      })) || [],
-    keys: [
-      'destination',
-      'userName',
-      'serviceName',
-      'status',
-      'additionalKeys.filteredDestination',
-    ],
-    search: params.search,
-    options: {
-      shouldSort: false,
-      showResultsWhenNoSearchTerm: true,
-      ignoreLocation: true,
-      useExtendedSearch: true,
-    },
-  })
+  if (error) return <GenericError error={error.message} />
+  if (loading && !data) return <Spinner />
 
   const startDT = params.start ? DateTime.fromISO(params.start) : null
   const endDT = params.end ? DateTime.fromISO(params.end) : null
 
-  const filteredResults = results.filter((result) => {
-    const createdAtDT = DateTime.fromISO(result.item.createdAt)
+  const filteredData = data?.debugMessages.filter((msg: DebugMessage) => {
+    const createdAtDT = DateTime.fromISO(msg.createdAt)
+    if (params.search) {
+      if (
+        params.search === msg.alertID?.toString() ||
+        params.search === msg.createdAt ||
+        params.search === msg.destination ||
+        params.search === msg.serviceID ||
+        params.search === msg.serviceName ||
+        params.search === msg.userID ||
+        params.search === msg.userName
+      ) {
+        return true
+      }
+      return false
+    }
     if (startDT && startDT > createdAtDT) return false
     if (endDT && endDT < createdAtDT) return false
     return true
   })
 
-  const displayedResults = filteredResults.slice(0, numRendered)
+  const paginatedData = filteredData.slice(0, numRendered)
 
-  if (error) return <GenericError error={error.message} />
-  if (loading && !data) return <Spinner />
+  const ivl = startDT && endDT ? Interval.fromDateTimes(startDT, endDT) : null
+
+  const graphData = ivl
+    ? ivl.splitBy({ days: 1 }).map((i) => {
+        const date = i.start.toLocaleString({ month: 'short', day: 'numeric' })
+        const label = i.start.toLocaleString({
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+
+        const bucket = paginatedData.filter((msg: DebugMessage) =>
+          i.contains(DateTime.fromISO(msg.createdAt)),
+        )
+
+        return {
+          date,
+          label,
+          count: bucket.length,
+        }
+      })
+    : []
 
   return (
     <React.Fragment>
@@ -142,16 +155,21 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
               setParams(newParams)
               setNumRendered(LOAD_AMOUNT)
             }}
-            displayedCount={displayedResults.length}
-            resultsCount={filteredResults.length}
+            displayedCount={paginatedData.length}
+            resultsCount={filteredData.length}
           />
         </Grid>
+        {params.search && (
+          <Grid item xs={12}>
+            <DebugMessageGraph data={graphData} />
+          </Grid>
+        )}
         <Grid item xs={12}>
           <DebugMessagesList
-            debugMessages={displayedResults}
+            debugMessages={paginatedData}
             selectedLog={selectedLog}
             onSelect={setSelectedLog}
-            hasMore={numRendered < results.length}
+            hasMore={numRendered < filteredData.length}
             onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
           />
         </Grid>
