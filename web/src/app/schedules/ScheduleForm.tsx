@@ -7,11 +7,22 @@ export interface Value {
   name: string
   description: string
   timeZone: string
+  favorite?: boolean
 }
 
 interface ScheduleFormProps {
   value: Value
   onChange: (value: Value) => void
+
+  // These can be removed when we convert FormContainer.js to typescript.
+  errors?: Error[]
+  disabled?: boolean
+}
+
+interface Error {
+  message: string
+  field: string
+  helpLink?: string
 }
 
 export default function ScheduleForm(props: ScheduleFormProps): JSX.Element {
