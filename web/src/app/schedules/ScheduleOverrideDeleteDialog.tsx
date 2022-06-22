@@ -65,7 +65,12 @@ export default function ScheduleOverrideDeleteDialog(props: {
     return <Spinner />
   }
 
-  const { addUser, removeUser, start, end } = data.userOverride
+  const addUser =
+    data.userOverride === undefined ? null : data.userOverride.addUser
+  const removeUser =
+    data.userOverride === undefined ? null : data.userOverride.removeUser
+  const start = data.userOverride === undefined ? null : data.userOverride.start
+  const end = data.userOverride === undefined ? null : data.userOverride.end
 
   const isReplace = addUser && removeUser
   const verb = addUser ? 'Added' : 'Removed'
