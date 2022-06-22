@@ -49,21 +49,6 @@ const useStyles = makeStyles((theme: Theme) => ({
       transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
     },
   },
-  groupTitle: {
-    fontSize: '1.1rem',
-  },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  card: {
-    margin: theme.spacing(1),
-    cursor: 'pointer',
-  },
-  textField: {
-    backgroundColor: 'white',
-    borderRadius: '4px',
-    minWidth: 250,
-  },
 }))
 
 export default function AdminDebugMessagesLayout(): JSX.Element {
@@ -89,30 +74,46 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
   const startDT = params.start ? DateTime.fromISO(params.start) : null
   const endDT = params.end ? DateTime.fromISO(params.end) : null
 
-  const filteredData = data?.debugMessages.filter((msg: DebugMessage) => {
-    const createdAtDT = DateTime.fromISO(msg.createdAt)
-    if (params.search) {
-      if (
-        params.search === msg.alertID?.toString() ||
-        params.search === msg.createdAt ||
-        params.search === msg.destination ||
-        params.search === msg.serviceID ||
-        params.search === msg.serviceName ||
-        params.search === msg.userID ||
-        params.search === msg.userName
-      ) {
-        return true
+  const filteredData: DebugMessage[] = data?.debugMessages
+    .filter((msg: DebugMessage) => {
+      const createdAtDT = DateTime.fromISO(msg.createdAt)
+      if (params.search) {
+        if (
+          params.search === msg.alertID?.toString() ||
+          params.search === msg.createdAt ||
+          params.search === msg.destination ||
+          params.search === msg.serviceID ||
+          params.search === msg.serviceName ||
+          params.search === msg.userID ||
+          params.search === msg.userName
+        ) {
+          return true
+        }
+        return false
       }
-      return false
-    }
-    if (startDT && startDT > createdAtDT) return false
-    if (endDT && endDT < createdAtDT) return false
-    return true
-  })
+      if (startDT && startDT > createdAtDT) return false
+      if (endDT && endDT < createdAtDT) return false
+      return true
+    })
+    .sort((_a: DebugMessage, _b: DebugMessage) => {
+      const a = DateTime.fromISO(_a.createdAt)
+      const b = DateTime.fromISO(_b.createdAt)
+      if (a < b) return 1
+      if (a > b) return -1
+      return 0
+    })
 
   const paginatedData = filteredData.slice(0, numRendered)
 
-  const ivl = startDT && endDT ? Interval.fromDateTimes(startDT, endDT) : null
+  const ivl =
+    startDT && endDT && paginatedData.length
+      ? Interval.fromDateTimes(startDT, endDT)
+      : Interval.fromDateTimes(
+          DateTime.fromISO(
+            paginatedData[paginatedData.length - 1].createdAt,
+          ).startOf('day'),
+          DateTime.fromISO(paginatedData[0].createdAt).endOf('day'),
+        )
 
   const graphData = ivl
     ? ivl.splitBy({ days: 1 }).map((i) => {
@@ -123,17 +124,19 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           year: 'numeric',
         })
 
-        const bucket = paginatedData.filter((msg: DebugMessage) =>
+        const dayCount = paginatedData.filter((msg: DebugMessage) =>
           i.contains(DateTime.fromISO(msg.createdAt)),
         )
 
         return {
           date,
           label,
-          count: bucket.length,
+          count: dayCount.length,
         }
       })
     : []
+
+  console.log(graphData)
 
   return (
     <React.Fragment>
@@ -159,7 +162,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
             resultsCount={filteredData.length}
           />
         </Grid>
-        {params.search && (
+        {params.search && paginatedData.length > 0 && (
           <Grid item xs={12}>
             <DebugMessageGraph data={graphData} />
           </Grid>

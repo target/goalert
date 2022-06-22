@@ -11,6 +11,7 @@ import {
   Line,
   Legend,
 } from 'recharts'
+import _ from 'lodash'
 
 interface DebugMessageGraphProps {
   data: typeof LineChart.defaultProps['data']
@@ -47,7 +48,7 @@ export default function DebugMessageGraph(
               stroke={theme.palette.text.secondary}
             />
             <XAxis
-              dataKey='date'
+              dataKey='createdAt'
               type='category'
               stroke={theme.palette.text.secondary}
             />
@@ -81,12 +82,11 @@ export default function DebugMessageGraph(
             <Legend />
             <Line
               type='monotone'
-              dataKey='ivl-message-count'
               strokeWidth={2}
               stroke={theme.palette.primary.main}
               activeDot={{ r: 8 }}
               isAnimationActive={false}
-              dot={(props) => <circle {...props} />}
+              dot={(props) => <circle {..._.omit(props, 'dataKey')} />}
               name='Count'
             />
           </LineChart>
