@@ -173,6 +173,11 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 			return nil, fmt.Errorf("format dest: %w", err)
 		}
 
+		// notifications that end up bundled are omitted
+		if m.MessageType == notification.MessageTypeAlertBundle {
+			return nil, nil
+		}
+
 		msg := graphql2.DebugMessage{
 			ID:          m.ID,
 			CreatedAt:   m.CreatedAt,
