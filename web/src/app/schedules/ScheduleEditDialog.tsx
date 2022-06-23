@@ -2,15 +2,9 @@ import React, { useState } from 'react'
 import { gql, useQuery } from 'urql'
 import { useMutation } from '@apollo/client'
 import FormDialog from '../dialogs/FormDialog'
-import ScheduleForm from './ScheduleForm'
+import ScheduleForm, { Value } from './ScheduleForm'
 import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
-
-interface Value {
-  name: string
-  description: string
-  timeZone: string
-}
 
 const query = gql`
   query ($id: ID!) {
@@ -68,7 +62,6 @@ export default function ScheduleEditDialog(props: {
       }
       form={
         <ScheduleForm
-          disabled={fetching}
           value={
             value || {
               name: data.schedule.name,
@@ -76,7 +69,7 @@ export default function ScheduleEditDialog(props: {
               timeZone: data.schedule.timeZone,
             }
           }
-          onChange={(value) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
