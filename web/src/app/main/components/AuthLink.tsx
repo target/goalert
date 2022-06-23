@@ -30,7 +30,11 @@ export default function AuthLink() {
       subTitle='Click confirm to link this GoAlert account.'
       errors={linkAccountStatus.error ? [linkAccountStatus.error] : []}
       onClose={() => clearToken()}
-      onSubmit={() => linkAccount()}
+      onSubmit={() =>
+        linkAccount().then(() => {
+          clearToken()
+        })
+      }
     />
   )
 }
