@@ -109,7 +109,7 @@ func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string) (
 	c.ID = id.String()
 	c.Audience = jwt.ClaimStrings{"auth-link"}
 	c.Issuer = "goalert"
-	c.NotBefore = jwt.NewNumericDate(now.Add(-5 * time.Minute))
+	c.NotBefore = jwt.NewNumericDate(now.Add(-2 * time.Minute))
 	c.ExpiresAt = jwt.NewNumericDate(expires)
 	c.IssuedAt = jwt.NewNumericDate(now)
 
