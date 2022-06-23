@@ -1,8 +1,7 @@
 import React from 'react'
-import { Box } from '@mui/system'
 import { DebugMessage } from '../../../schema'
 import DebugMessageCard from './DebugMessageCard'
-import { Typography, Button } from '@mui/material'
+import { Button, Grid, Typography } from '@mui/material'
 
 interface Props {
   debugMessages: DebugMessage[]
@@ -16,20 +15,15 @@ export default function DebugMessagesList(props: Props): JSX.Element {
   const { debugMessages, selectedLog, onSelect, hasMore, onLoadMore } = props
 
   return (
-    <Box
-      data-cy='outgoing-message-list'
-      display='flex'
-      flexDirection='column'
-      alignItems='stretch'
-      width='full'
-    >
+    <Grid container direction='column' spacing={2}>
       {debugMessages.map((msg) => (
-        <DebugMessageCard
-          key={msg.id}
-          debugMessage={msg}
-          selected={selectedLog?.id === msg.id}
-          onSelect={() => onSelect(msg)}
-        />
+        <Grid key={msg.id} item xs={12}>
+          <DebugMessageCard
+            debugMessage={msg}
+            selected={selectedLog?.id === msg.id}
+            onSelect={() => onSelect(msg)}
+          />
+        </Grid>
       ))}
       {hasMore ? (
         // load more
@@ -59,6 +53,6 @@ export default function DebugMessagesList(props: Props): JSX.Element {
           Displaying all results.
         </Typography>
       )}
-    </Box>
+    </Grid>
   )
 }

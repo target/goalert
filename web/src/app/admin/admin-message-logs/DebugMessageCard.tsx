@@ -7,26 +7,9 @@ import {
   CardActions,
   Chip,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
 import toTitleCase from '../../util/toTitleCase'
-
-const useStyles = makeStyles((theme: Theme) => ({
-  card: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    cursor: 'pointer',
-  },
-  chip: {
-    padding: '2px 8px',
-    borderRadius: '15px',
-  },
-  msgType: {
-    fontSize: 14,
-  },
-}))
 
 interface Props {
   debugMessage: DebugMessage
@@ -36,7 +19,6 @@ interface Props {
 
 export default function DebugMessageCard(props: Props): JSX.Element {
   const { debugMessage, selected, onSelect } = props
-  const classes = useStyles()
 
   const type = debugMessage.type
   const status = toTitleCase(debugMessage.status)
@@ -71,8 +53,11 @@ export default function DebugMessageCard(props: Props): JSX.Element {
     <Card
       onClick={onSelect}
       key={debugMessage.id}
-      className={classes.card}
-      sx={selected ? { border: '2px solid green' } : { border: 'none' }}
+      sx={
+        selected
+          ? { border: '2px solid green', cursor: 'pointer' }
+          : { border: 'none', cursor: 'pointer' }
+      }
     >
       <CardHeader
         action={
@@ -82,9 +67,11 @@ export default function DebugMessageCard(props: Props): JSX.Element {
         }
         title={`${type} Notification`}
         titleTypographyProps={{
-          className: classes.msgType,
           color: 'textSecondary',
           gutterBottom: true,
+          sx: {
+            fontSize: 14,
+          },
         }}
         subheader={`Destination: ${debugMessage.destination}`}
         subheaderTypographyProps={{
@@ -109,7 +96,14 @@ export default function DebugMessageCard(props: Props): JSX.Element {
         </CardContent>
       )}
       <CardActions>
-        <Chip className={classes.chip} label={status} style={statusStyles} />
+        <Chip
+          label={status}
+          style={statusStyles}
+          sx={{
+            padding: '2px 8px',
+            borderRadius: '15px',
+          }}
+        />
       </CardActions>
     </Card>
   )
