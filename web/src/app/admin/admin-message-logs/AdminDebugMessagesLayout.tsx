@@ -62,7 +62,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
   })
 
-  const [params, setParams] = useURLParams({
+  const [params] = useURLParams({
     search: '',
     start: '',
     end: '',
@@ -104,9 +104,9 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     })
 
   const paginatedData = filteredData.slice(0, numRendered)
-
-  let ivl: Interval | null = null
   const hasData = paginatedData?.length > 0
+  let ivl: Interval | null = null
+
   if (startDT && endDT && hasData) {
     ivl = Interval.fromDateTimes(startDT, endDT)
   } else if (!startDT && !endDT && hasData) {
@@ -155,11 +155,9 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
       >
         <Grid item xs={12}>
           <DebugMessagesControls
-            value={params}
-            onChange={(newParams) => {
-              setParams(newParams)
-              setNumRendered(LOAD_AMOUNT)
-            }}
+            resetCount={
+              () => setNumRendered(LOAD_AMOUNT) // reset to # of first page results
+            }
             displayedCount={paginatedData.length}
             resultsCount={filteredData.length}
           />
