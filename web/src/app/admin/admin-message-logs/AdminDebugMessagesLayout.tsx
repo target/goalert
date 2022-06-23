@@ -105,15 +105,18 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
 
   const paginatedData = filteredData.slice(0, numRendered)
 
-  const ivl =
-    startDT && endDT && paginatedData.length
-      ? Interval.fromDateTimes(startDT, endDT)
-      : Interval.fromDateTimes(
-          DateTime.fromISO(
-            paginatedData[paginatedData.length - 1].createdAt,
-          ).startOf('day'),
-          DateTime.fromISO(paginatedData[0].createdAt).endOf('day'),
-        )
+  let ivl: Interval | null = null
+  const hasData = paginatedData?.length > 0
+  if (startDT && endDT && hasData) {
+    ivl = Interval.fromDateTimes(startDT, endDT)
+  } else if (!startDT && !endDT && hasData) {
+    ivl = Interval.fromDateTimes(
+      DateTime.fromISO(
+        paginatedData[paginatedData.length - 1].createdAt,
+      ).startOf('day'),
+      DateTime.fromISO(paginatedData[0].createdAt).endOf('day'),
+    )
+  }
 
   const intervalType = 'daily'
   const graphData = ivl
