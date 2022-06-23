@@ -25,34 +25,25 @@ export default function DebugMessagesList(props: Props): JSX.Element {
           />
         </Grid>
       ))}
-      {hasMore ? (
-        // load more
-        <div
-          style={{
-            marginTop: '0.5rem',
-            marginBottom: '0.5rem',
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
+
+      <Grid
+        item
+        xs={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        {hasMore ? (
           <Button variant='contained' onClick={onLoadMore}>
             Load more
           </Button>
-        </div>
-      ) : (
-        // done loading
-        <Typography
-          color='textSecondary'
-          variant='body2'
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '0.25em 0 0.25em 0',
-          }}
-        >
-          Displaying all results.
-        </Typography>
-      )}
+        ) : (
+          <Typography color='textSecondary' variant='body2'>
+            Displaying all results.
+          </Typography>
+        )}
+      </Grid>
     </Grid>
   )
 }

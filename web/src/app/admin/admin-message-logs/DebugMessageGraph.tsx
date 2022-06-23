@@ -49,9 +49,8 @@ export default function DebugMessageGraph(
                 height={250}
                 data={props.data}
                 margin={{
-                  top: 50,
-                  right: 30,
-                  bottom: 50,
+                  top: 30,
+                  right: 50,
                 }}
               >
                 <CartesianGrid
