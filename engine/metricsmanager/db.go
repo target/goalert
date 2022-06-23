@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/util"
 )
 
-const engineVersion = 2
+const engineVersion = 3
 
 // DB handles updating metrics
 type DB struct {
