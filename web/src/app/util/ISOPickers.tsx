@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
 import { TextField, TextFieldProps } from '@mui/material'
 import DatePicker from '@mui/lab/DatePicker'
@@ -56,8 +56,11 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
-    valueAsDT ? valueAsDT.toFormat(format) : '',
+    valueAsDT?.toFormat(format) ?? '',
   )
+  useEffect(() => {
+    setInputValue(valueAsDT?.toFormat(format) ?? '')
+  }, [valueAsDT])
 
   const dtToISO = (dt: DateTime): string => {
     return dt.startOf(truncateTo).setZone(zone).toISO()
