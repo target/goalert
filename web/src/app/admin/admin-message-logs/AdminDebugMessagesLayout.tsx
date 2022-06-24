@@ -102,20 +102,21 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
       if (a > b) return -1
       return 0
     })
-
   const paginatedData = filteredData.slice(0, numRendered)
-  const hasData = filteredData?.length > 0
-  let ivl: Interval | null = null
 
-  if (startDT && endDT && hasData) {
-    ivl = Interval.fromDateTimes(startDT, endDT)
-  } else if ((!startDT || !endDT) && hasData) {
-    ivl = Interval.fromDateTimes(
+  const hasData = filteredData?.length > 0
+  const s = hasData
+    ? startDT ||
       DateTime.fromISO(filteredData[filteredData.length - 1].createdAt).startOf(
         'day',
-      ),
-      DateTime.fromISO(filteredData[0].createdAt).endOf('day'),
-    )
+      )
+    : null
+  const e = hasData
+    ? endDT || DateTime.fromISO(filteredData[0].createdAt).endOf('day')
+    : null
+  let ivl: Interval | null = null
+  if (s && e && hasData) {
+    ivl = Interval.fromDateTimes(s, e)
   }
 
   const intervalType = 'daily'
