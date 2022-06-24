@@ -21,14 +21,13 @@ import {
 } from 'recharts'
 import _ from 'lodash'
 
-interface DebugMessageGraphProps {
+interface Props {
   data: typeof LineChart.defaultProps['data']
   intervalType: string
+  totalCount: number
 }
 
-export default function DebugMessageGraph(
-  props: DebugMessageGraphProps,
-): JSX.Element {
+export default function DebugMessageGraph(props: Props): JSX.Element {
   const theme = useTheme()
 
   function getName(): string {
@@ -44,7 +43,7 @@ export default function DebugMessageGraph(
     <Accordion defaultExpanded>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography variant='h6' component='h2' color='textSecondary'>
-          Total Count: x
+          Total Count: {props.totalCount}
         </Typography>
       </AccordionSummary>
       <AccordionDetails>

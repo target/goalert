@@ -109,7 +109,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
 
   if (startDT && endDT && hasData) {
     ivl = Interval.fromDateTimes(startDT, endDT)
-  } else if (!startDT && !endDT && hasData) {
+  } else if ((!startDT || !endDT) && hasData) {
     ivl = Interval.fromDateTimes(
       DateTime.fromISO(filteredData[filteredData.length - 1].createdAt).startOf(
         'day',
@@ -161,8 +161,12 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           />
         </Grid>
         {paginatedData.length > 0 && (
-            <DebugMessageGraph data={graphData} intervalType={intervalType} />
           <Grid item xs={12}>
+            <DebugMessageGraph
+              data={graphData}
+              intervalType={intervalType}
+              totalCount={filteredData.length}
+            />
           </Grid>
         )}
         <Grid item xs={12}>
