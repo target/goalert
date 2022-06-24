@@ -1,6 +1,14 @@
 import React from 'react'
-import { Card, CardContent, Grid, Paper, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Grid,
+  Paper,
+  Typography,
+} from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   XAxis,
   YAxis,
@@ -32,19 +40,22 @@ export default function DebugMessageGraph(
     }
   }
 
-  const fullHeight = { height: '100%' }
   return (
-    <Card sx={fullHeight}>
-      <CardContent sx={fullHeight}>
+    <Accordion defaultExpanded>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant='h6' component='h2' color='textSecondary'>
+          Total Count: x
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
         <Grid
           container
           sx={{
-            ...fullHeight,
             fontFamily: theme.typography.body2.fontFamily,
           }}
         >
           <Grid item xs={12} data-cy='metrics-averages-graph'>
-            <ResponsiveContainer>
+            <ResponsiveContainer height={500}>
               <LineChart
                 data={props.data}
                 margin={{
@@ -100,7 +111,7 @@ export default function DebugMessageGraph(
             </ResponsiveContainer>
           </Grid>
         </Grid>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }
