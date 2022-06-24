@@ -1,6 +1,7 @@
 import React from 'react'
-import { Button, Card, CardActions, CardContent, Grid } from '@mui/material'
+import { Button, Card, Grid } from '@mui/material'
 import ResetIcon from '@mui/icons-material/Replay'
+import FilterIcon from '@mui/icons-material/FilterAlt'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { useURLParams } from '../../actions'
@@ -9,72 +10,66 @@ interface Props {
   resetCount: () => void
 }
 
-export default function DebugMessagesControls({
-  resetCount,
-}: Props): JSX.Element {
+export default function DebugMessagesControls(props: Props): JSX.Element {
   const [params, setParams] = useURLParams({
     search: '',
     start: '',
     end: '',
   })
 
-  // const totalResultsCount =
-  //   resultsCount < MAX_QUERY_ITEMS_COUNT
-  //     ? resultsCount
-  //     : `${MAX_QUERY_ITEMS_COUNT}+`
-
   return (
     <Card>
-      <CardContent>
-        <Grid container direction='column' spacing={1}>
-          <Grid item>
-            <ISODateTimePicker
-              placeholder='Start'
-              name='startDate'
-              value={params.start}
-              onChange={(newStart) => {
-                setParams({ ...params, start: newStart as string })
-                resetCount()
-              }}
-              label='Created After'
-              margin='dense'
-              size='small'
-              variant='outlined'
-              fullWidth
-            />
-          </Grid>
-          <Grid item>
-            <ISODateTimePicker
-              placeholder='End'
-              name='endDate'
-              value={params.end}
-              label='Created Before'
-              onChange={(newEnd) => {
-                setParams({ ...params, end: newEnd as string })
-                resetCount()
-              }}
-              margin='dense'
-              size='small'
-              variant='outlined'
-              fullWidth
-            />
-          </Grid>
-          <Grid item sx={{ flex: 1 }} />
-          <Grid item>
-            <Search transition={false} fullWidth />
-          </Grid>
+      <Grid container spacing={1} sx={{ padding: 2 }}>
+        <Grid item sx={{ flex: 1 }}>
+          <Search transition={false} fullWidth endAdornment={<FilterIcon />} />
         </Grid>
-      </CardContent>
-      <CardActions sx={{ p: 2 }}>
-        <Button
-          aria-label='Reset Filters'
-          variant='outlined'
-          onClick={resetCount}
-          startIcon={<ResetIcon />}
-        >
-          Reset
-        </Button>
-      </CardActions>
+        <Grid item>
+          <ISODateTimePicker
+            placeholder='Start'
+            name='startDate'
+            value={params.start}
+            onChange={(newStart) => {
+              setParams({ ...params, start: newStart as string })
+              props.resetCount()
+            }}
+            label='Created After'
+            size='small'
+            variant='outlined'
+          />
+        </Grid>
+        <Grid item>
+          <ISODateTimePicker
+            placeholder='End'
+            name='endDate'
+            value={params.end}
+            label='Created Before'
+            onChange={(newEnd) => {
+              setParams({ ...params, end: newEnd as string })
+              props.resetCount()
+            }}
+            size='small'
+            variant='outlined'
+          />
+        </Grid>
+        <Grid item>
+          <Button
+            aria-label='Reset Filters'
+            variant='outlined'
+            onClick={() => {
+              setParams({
+                search: '',
+                start: '',
+                end: '',
+              })
+              props.resetCount()
+            }}
+            endIcon={<ResetIcon />}
+            sx={{ height: '100%' }}
+          >
+            Reset
+          </Button>
+        </Grid>
+      </Grid>
     </Card>
   )
 }
