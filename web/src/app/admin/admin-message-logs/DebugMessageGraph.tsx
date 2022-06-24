@@ -32,21 +32,20 @@ export default function DebugMessageGraph(
     }
   }
 
+  const fullHeight = { height: '100%' }
   return (
-    <Card>
-      <CardContent>
+    <Card sx={fullHeight}>
+      <CardContent sx={fullHeight}>
         <Grid
           container
           sx={{
-            height: '500px',
+            ...fullHeight,
             fontFamily: theme.typography.body2.fontFamily,
           }}
         >
           <Grid item xs={12} data-cy='metrics-averages-graph'>
-            <ResponsiveContainer width='100%' height='100%'>
+            <ResponsiveContainer>
               <LineChart
-                width={730}
-                height={250}
                 data={props.data}
                 margin={{
                   top: 30,

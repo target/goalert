@@ -153,17 +153,15 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           selectedLog ? classes.containerSelected : classes.containerDefault
         }
       >
-        <Grid item xs={12}>
+        <Grid item xs={4}>
           <DebugMessagesControls
             resetCount={
               () => setNumRendered(LOAD_AMOUNT) // reset to # of first page results
             }
-            displayedCount={paginatedData.length}
-            resultsCount={filteredData.length}
           />
         </Grid>
-        {params.search && paginatedData.length > 0 && (
-          <Grid item xs={12}>
+        {paginatedData.length > 0 && (
+          <Grid item xs={8}>
             <DebugMessageGraph data={graphData} intervalType={intervalType} />
           </Grid>
         )}
