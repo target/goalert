@@ -46,7 +46,7 @@ export default function DebugMessageGraph(props: Props): JSX.Element {
           Total Count: {props.totalCount}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails sx={{ overflowX: 'scroll' }}>
         <Grid
           container
           sx={{
