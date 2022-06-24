@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
-import { TextField, TextFieldProps } from '@mui/material'
+import { TextField, TextFieldProps, useTheme } from '@mui/material'
 import DatePicker from '@mui/lab/DatePicker'
 import DateTimePicker from '@mui/lab/DateTimePicker'
 import TimePicker from '@mui/lab/TimePicker'
@@ -49,6 +49,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     ...textFieldProps
   } = props
 
+  const theme = useTheme()
   const native = hasInputSupport(type)
   const [_zone] = useURLParam('tz', 'local')
   const zone = timeZone || _zone
@@ -137,6 +138,9 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
           max: max
             ? DateTime.fromISO(max, { zone }).toFormat(format)
             : undefined,
+          style: {
+            colorScheme: theme.palette.mode,
+          },
           ...textFieldProps?.inputProps,
         }}
       />
@@ -163,7 +167,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         // @ts-expect-error DOM attribute for testing
         'data-cy': props.name + '-picker-fallback',
       }}
-      style={{ width: 'fit-container' }}
+      style={{ width: 'fit-container', color: theme.palette.primary.main }}
     />
   )
 }
