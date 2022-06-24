@@ -104,17 +104,17 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     })
 
   const paginatedData = filteredData.slice(0, numRendered)
-  const hasData = paginatedData?.length > 0
+  const hasData = filteredData?.length > 0
   let ivl: Interval | null = null
 
   if (startDT && endDT && hasData) {
     ivl = Interval.fromDateTimes(startDT, endDT)
   } else if (!startDT && !endDT && hasData) {
     ivl = Interval.fromDateTimes(
-      DateTime.fromISO(
-        paginatedData[paginatedData.length - 1].createdAt,
-      ).startOf('day'),
-      DateTime.fromISO(paginatedData[0].createdAt).endOf('day'),
+      DateTime.fromISO(filteredData[filteredData.length - 1].createdAt).startOf(
+        'day',
+      ),
+      DateTime.fromISO(filteredData[0].createdAt).endOf('day'),
     )
   }
 
@@ -128,7 +128,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           year: 'numeric',
         })
 
-        const dayCount = paginatedData.filter((msg: DebugMessage) =>
+        const dayCount = filteredData.filter((msg: DebugMessage) =>
           i.contains(DateTime.fromISO(msg.createdAt)),
         )
 
