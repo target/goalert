@@ -61,7 +61,7 @@ export default function DebugMessageCard(props: Props): JSX.Element {
     >
       <CardHeader
         action={
-          <Typography color='textSecondary'>
+          <Typography color='textSecondary' sx={{ pr: 1 }}>
             {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
           </Typography>
         }
@@ -95,7 +95,7 @@ export default function DebugMessageCard(props: Props): JSX.Element {
           )}
         </CardContent>
       )}
-      <CardActions>
+      <CardActions sx={{ p: 2 }}>
         <Chip
           label={status}
           style={statusStyles}
