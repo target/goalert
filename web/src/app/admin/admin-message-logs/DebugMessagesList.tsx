@@ -36,7 +36,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
       >
         {hasMore ? (
           <Button variant='contained' onClick={onLoadMore}>
-            Load more
+            Show more
           </Button>
         ) : (
           <Typography color='textSecondary' variant='body2'>
