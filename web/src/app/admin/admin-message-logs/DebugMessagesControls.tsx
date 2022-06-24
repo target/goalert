@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button, Card, Grid } from '@mui/material'
 import ResetIcon from '@mui/icons-material/Replay'
 import FilterIcon from '@mui/icons-material/FilterAlt'
@@ -6,6 +6,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { useURLParams } from '../../actions'
 import FilterContainer from '../../util/FilterContainer'
+import { ServiceSelect, UserSelect } from '../../selection'
 
 interface Props {
   resetCount: () => void
@@ -18,6 +19,9 @@ export default function DebugMessagesControls(props: Props): JSX.Element {
     end: '',
   })
 
+  const [filterByUser, setFilterByUser] = useState('')
+  const [filterByService, setFilterByService] = useState('')
+
   return (
     <Card>
       <Grid container spacing={1} sx={{ padding: 2 }}>
@@ -26,7 +30,28 @@ export default function DebugMessagesControls(props: Props): JSX.Element {
             transition={false}
             fullWidth
             endAdornment={
-              <FilterContainer icon={<FilterIcon />}>Test</FilterContainer>
+              <FilterContainer icon={<FilterIcon />}>
+                <Grid item xs={12}>
+                  <UserSelect
+                    label='Select a user...'
+                    value={filterByUser}
+                    onChange={(val) => {
+                      setFilterByUser(val)
+                      setParams({ ...params, search: val })
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <ServiceSelect
+                    label='Select a service...'
+                    value={filterByService}
+                    onChange={(val) => {
+                      setFilterByService(val)
+                      setParams({ ...params, search: val })
+                    }}
+                  />
+                </Grid>
+              </FilterContainer>
             }
           />
         </Grid>
