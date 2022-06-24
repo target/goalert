@@ -5,6 +5,7 @@ import FilterIcon from '@mui/icons-material/FilterAlt'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { useURLParams } from '../../actions'
+import FilterContainer from '../../util/FilterContainer'
 
 interface Props {
   resetCount: () => void
@@ -21,7 +22,13 @@ export default function DebugMessagesControls(props: Props): JSX.Element {
     <Card>
       <Grid container spacing={1} sx={{ padding: 2 }}>
         <Grid item sx={{ flex: 1 }}>
-          <Search transition={false} fullWidth endAdornment={<FilterIcon />} />
+          <Search
+            transition={false}
+            fullWidth
+            endAdornment={
+              <FilterContainer icon={<FilterIcon />}>Test</FilterContainer>
+            }
+          />
         </Grid>
         <Grid item>
           <ISODateTimePicker
