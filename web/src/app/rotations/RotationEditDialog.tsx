@@ -1,12 +1,20 @@
 import React, { useState } from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useQuery, useMutation } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+
+interface Value {
+  name: string
+  description: string
+  timeZone: string
+  type: string
+  shiftLength: number
+  start: string
+}
 
 const query = gql`
   query ($id: ID!) {
@@ -29,19 +37,20 @@ const mutation = gql`
   }
 `
 
-export default function RotationEditDialog(props) {
-  const [value, setValue] = useState(null)
+export default function RotationEditDialog(props: {
+  rotationID: string
+  onClose: () => void
+}): JSX.Element {
+  const [value, setValue] = useState<Value | null>(null)
 
-  const { loading, error, data } = useQuery(query, {
+  const [{ fetching, error, data }] = useQuery({
+    query,
     variables: { id: props.rotationID },
-    pollInterval: 0,
   })
 
-  const [editRotation, editRotationStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [editRotationStatus, editRotation] = useMutation(mutation)
 
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   return (
@@ -51,18 +60,16 @@ export default function RotationEditDialog(props) {
       onClose={props.onClose}
       onSubmit={() =>
         editRotation({
-          variables: {
-            input: {
-              id: props.rotationID,
-              ...value,
-            },
+          input: {
+            id: props.rotationID,
+            ...value,
           },
-        })
+        }).then(() => props.onClose())
       }
       form={
         <RotationForm
           errors={fieldErrors(editRotationStatus.error)}
-          disabled={editRotationStatus.loading}
+          disabled={editRotationStatus.fetching}
           value={
             value || {
               name: data.rotation.name,
@@ -78,9 +85,4 @@ export default function RotationEditDialog(props) {
       }
     />
   )
-}
-
-RotationEditDialog.propTypes = {
-  rotationID: p.string.isRequired,
-  onClose: p.func,
 }
