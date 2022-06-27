@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import _ from 'lodash'
 import { Redirect } from 'wouter'
 import { Edit, Delete } from '@mui/icons-material'
@@ -37,23 +37,21 @@ const query = gql`
   }
 `
 
-export default function RotationDetails({ rotationID }) {
+export default function RotationDetails(props: {
+  rotationID: string
+}): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showAddUser, setShowAddUser] = useState(false)
 
-  const {
-    data: _data,
-    loading,
-    error,
-  } = useQuery(query, {
-    variables: { id: rotationID },
-    returnPartialData: true,
+  const [{ data: _data, fetching, error }] = useQuery({
+    query: query,
+    variables: { id: props.rotationID },
   })
 
   const data = _.get(_data, 'rotation', null)
 
-  if (loading && !data?.name) return <Spinner />
+  if (fetching && !data?.name) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data)
@@ -68,20 +66,20 @@ export default function RotationDetails({ rotationID }) {
       <CreateFAB title='Add User' onClick={() => setShowAddUser(true)} />
       {showAddUser && (
         <RotationAddUserDialog
-          rotationID={rotationID}
+          rotationID={props.rotationID}
           userIDs={data.userIDs}
           onClose={() => setShowAddUser(false)}
         />
       )}
       {showEdit && (
         <RotationEditDialog
-          rotationID={rotationID}
+          rotationID={props.rotationID}
           onClose={() => setShowEdit(false)}
         />
       )}
       {showDelete && (
         <RotationDeleteDialog
-          rotationID={rotationID}
+          rotationID={props.rotationID}
           onClose={() => setShowDelete(false)}
         />
       )}
@@ -90,7 +88,7 @@ export default function RotationDetails({ rotationID }) {
         title={data.name}
         subheader={handoffSummary(data)}
         details={data.description}
-        pageContent={<RotationUserList rotationID={rotationID} />}
+        pageContent={<RotationUserList rotationID={props.rotationID} />}
         secondaryActions={[
           {
             label: 'Edit',
@@ -104,7 +102,7 @@ export default function RotationDetails({ rotationID }) {
           },
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
-            id={rotationID}
+            id={props.rotationID}
             type='rotation'
           />,
         ]}
