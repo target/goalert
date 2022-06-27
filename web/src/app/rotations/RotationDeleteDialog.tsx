@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useQuery, useMutation } from 'urql'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 
@@ -24,20 +23,16 @@ const mutation = gql`
   }
 `
 
-export default function RotationDeleteDialog(props) {
-  const { data, loading: dataLoading } = useQuery(query, {
+export default function RotationDeleteDialog(props: {
+  rotationID: string
+  onClose: () => void
+}): JSX.Element {
+  const [{ data, fetching: dataLoading }] = useQuery({
+    query: query,
     variables: { id: props.rotationID },
   })
-  const [deleteRotation, deleteRotationStatus] = useMutation(mutation, {
-    variables: {
-      input: [
-        {
-          id: props.rotationID,
-          type: 'rotation',
-        },
-      ],
-    },
-  })
+
+  const [deleteRotationStatus, deleteRotation] = useMutation(mutation)
 
   if (!data && dataLoading) return <Spinner />
 
@@ -46,15 +41,19 @@ export default function RotationDeleteDialog(props) {
       title='Are you sure?'
       confirm
       subTitle={`This will delete the rotation: ${get(data, 'rotation.name')}`}
-      loading={deleteRotationStatus.loading}
+      loading={deleteRotationStatus.fetching}
       errors={deleteRotationStatus.error ? [deleteRotationStatus.error] : []}
       onClose={props.onClose}
-      onSubmit={() => deleteRotation()}
+      onSubmit={() =>
+        deleteRotation({
+          input: [
+            {
+              id: props.rotationID,
+              type: 'rotation',
+            },
+          ],
+        })
+      }
     />
   )
-}
-
-RotationDeleteDialog.propTypes = {
-  rotationID: p.string.isRequired,
-  onClose: p.func,
 }
