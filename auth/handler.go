@@ -25,7 +25,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"go.opencensus.io/trace"
 )
 
 // CookieName is the name of the auth session cookie.
@@ -268,10 +267,7 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		ctx, sp := trace.StartSpan(req.Context(), "Auth.Provider/"+id)
-		defer sp.End()
-
-		req = req.WithContext(ctx)
+		ctx := req.Context()
 
 		var refU *url.URL
 		if req.Method == "POST" {
@@ -298,7 +294,6 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 		if !info.Enabled {
 			err := Error(info.Title + " auth disabled")
 			q := refU.Query()
-			sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, "error: "+err.Error())
 			q.Set("login_error", err.Error())
 			refU.RawQuery = q.Encode()
 			http.Redirect(w, req, refU.String(), http.StatusFound)
@@ -351,7 +346,6 @@ func (h *Handler) canCreateUser(ctx context.Context, providerID string) bool {
 
 func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	sp := trace.FromContext(ctx)
 
 	var route RouteInfo
 	route.RelativePath = strings.TrimPrefix(req.URL.Path, "/v1/identity/providers/"+id)
@@ -367,7 +361,6 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	sub, err := p.ExtractIdentity(&route, w, req)
 	var r Redirector
 	if errors.As(err, &r) {
-		sp.Annotate([]trace.Attribute{trace.StringAttribute("auth.redirectURL", r.RedirectURL())}, "Redirected.")
 		http.Redirect(w, req, r.RedirectURL(), http.StatusFound)
 		return
 	}
@@ -375,7 +368,6 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 
 	errRedirect := func(err error) {
 		q := refU.Query()
-		sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, "error: "+err.Error())
 		old := err
 		_, err = errutil.ScrubError(err)
 		if err != old {
@@ -450,12 +442,6 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			errRedirect(err)
 			return
 		}
-		sp.Annotate([]trace.Attribute{
-			trace.BoolAttribute("user.new", true),
-			trace.StringAttribute("user.name", u.Name),
-			trace.StringAttribute("user.email", u.Email),
-			trace.StringAttribute("user.id", u.ID),
-		}, "Created new user.")
 	} else {
 		_, err = h.updateUser.ExecContext(ctx, userID, validate.SanitizeName(sub.Name),
 			validate.SanitizeEmail(sub.Email))
@@ -474,12 +460,6 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		errRedirect(err)
 		return
 	}
-
-	sp.Annotate([]trace.Attribute{
-		trace.BoolAttribute("auth.login", true),
-		trace.StringAttribute("auth.userID", userID),
-		trace.StringAttribute("auth.sessionID", tok.ID.String()),
-	}, "User authenticated.")
 
 	if noRedirect {
 		io.WriteString(w, tokStr)
@@ -693,6 +673,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 	refU.RawQuery = q.Encode()
 	return refU, true
 }
+
 func (h *Handler) serveProviderPost(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	SetCookie(w, req, "login_redir", refU.String())
 

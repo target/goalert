@@ -40,6 +40,8 @@ models:
     model: github.com/target/goalert/service.Service
   ISOTimestamp:
     model: github.com/target/goalert/graphql2.ISOTimestamp
+  ISODuration:
+    model: github.com/target/goalert/util/timeutil.ISODuration
   ISORInterval:
     model: github.com/target/goalert/util/timeutil.ISORInterval
   EscalationPolicy:
@@ -96,6 +98,8 @@ models:
     model: github.com/target/goalert/graphql2.OnCallNotificationRuleInput
   WeekdayFilter:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
+  AlertMetric:
+    model: github.com/target/goalert/alert/alertmetrics.Metric
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

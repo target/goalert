@@ -26,7 +26,6 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-	"go.opencensus.io/trace"
 )
 
 type updater interface {
@@ -43,11 +42,11 @@ type Engine struct {
 	b   *backend
 	mgr *lifecycle.Manager
 
-	shutdownCh  chan struct{}
-	triggerCh   chan chan struct{}
-	runLoopExit chan struct{}
+	*cycleMonitor
 
-	nextCycle chan chan struct{}
+	shutdownCh  chan struct{}
+	triggerCh   chan struct{}
+	runLoopExit chan struct{}
 
 	modules []updater
 	msg     *message.DB
@@ -75,10 +74,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p := &Engine{
 		cfg:            c,
 		shutdownCh:     make(chan struct{}),
-		triggerCh:      make(chan chan struct{}),
+		triggerCh:      make(chan struct{}),
 		triggerPauseCh: make(chan *pauseReq),
 		runLoopExit:    make(chan struct{}),
-		nextCycle:      make(chan chan struct{}),
+		cycleMonitor:   newCycleMonitor(),
 
 		a: c.AlertStore,
 	}
@@ -154,21 +153,6 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
-// WaitNextCycle will return after the next engine cycle starts and then finishes.
-func (p *Engine) WaitNextCycle(ctx context.Context) error {
-	select {
-	case ch := <-p.nextCycle:
-		select {
-		case <-ch:
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
 func (p *Engine) processModule(ctx context.Context, m updater) {
 	defer recoverPanic(ctx, m.Name())
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -192,8 +176,6 @@ func (p *Engine) processModule(ctx context.Context, m updater) {
 }
 
 func (p *Engine) processMessages(ctx context.Context) {
-	ctx, sp := trace.StartSpan(ctx, "Engine.MessageManager")
-	defer sp.End()
 	defer recoverPanic(ctx, "MessageManager")
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
@@ -224,36 +206,13 @@ func recoverPanic(ctx context.Context, name string) {
 }
 
 // Trigger will force notifications to be processed immediately.
-func (p *Engine) Trigger() {
-	<-p.triggerCh
-}
-
-// TriggerAndWaitNextCycle will force notifications to be processed immediately
-// and will return after the next engine cycle starts and then finishes.
-func (p *Engine) TriggerAndWaitNextCycle(ctx context.Context) error {
-	var waitCh chan struct{}
-	select {
-	case waitCh = <-p.triggerCh: // cause new trigger
-	case waitCh = <-p.nextCycle: // cycle started for some other reason
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-
-	select {
-	case <-waitCh:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
+func (p *Engine) Trigger() { <-p.triggerCh }
 
 // Pause will attempt to gracefully stop engine processing.
 func (p *Engine) Pause(ctx context.Context) error {
-	ctx, sp := trace.StartSpan(ctx, "Engine.Pause")
-	defer sp.End()
-
 	return p.mgr.Pause(ctx)
 }
+
 func (p *Engine) _pause(ctx context.Context) error {
 	ch := make(chan error, 1)
 
@@ -277,6 +236,7 @@ func (p *Engine) _pause(ctx context.Context) error {
 func (p *Engine) Resume(ctx context.Context) error {
 	return p.mgr.Resume(ctx)
 }
+
 func (p *Engine) _resume(ctx context.Context) error {
 	// nothing to be done `p.mgr.IsPaused` will already
 	// return false
@@ -293,11 +253,10 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 	if p == nil {
 		return nil
 	}
-	ctx, sp := trace.StartSpan(ctx, "Engine.Shutdown")
-	defer sp.End()
 
 	return p.mgr.Shutdown(ctx)
 }
+
 func (p *Engine) _shutdown(ctx context.Context) error {
 	close(p.shutdownCh)
 	<-p.runLoopExit
@@ -315,8 +274,6 @@ func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult
 
 // ReceiveSubject will process a notification result.
 func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) error {
-	ctx, sp := trace.StartSpan(ctx, "Engine.ReceiveSubject")
-	defer sp.End()
 	cb, err := p.b.FindOne(ctx, callbackID)
 	if err != nil {
 		return err
@@ -366,8 +323,6 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 
 // Receive will process a notification result.
 func (p *Engine) Receive(ctx context.Context, callbackID string, result notification.Result) error {
-	ctx, sp := trace.StartSpan(ctx, "Engine.Receive")
-	defer sp.End()
 	cb, err := p.b.FindOne(ctx, callbackID)
 	if err != nil {
 		return err
@@ -454,11 +409,10 @@ func (p *Engine) processAll(ctx context.Context) bool {
 		if p.mgr.IsPausing() {
 			return true
 		}
-		ctx, sp := trace.StartSpan(ctx, m.Name())
+
 		start := time.Now()
 		p.processModule(ctx, m)
 		metricModuleDuration.WithLabelValues(m.Name()).Observe(time.Since(start).Seconds())
-		sp.End()
 	}
 	return false
 }
@@ -496,25 +450,12 @@ func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 }
 
 func (p *Engine) cycle(ctx context.Context) {
-	ctx, sp := trace.StartSpan(ctx, "Engine.Cycle")
-	defer sp.End()
-
+	// track start of next cycle, and defer the call to the returned sfinish function
+	defer p.startNextCycle()()
 	ctx = p.cfg.ConfigSource.Config().Context(ctx)
-
-	ch := make(chan struct{})
-	defer close(ch)
-passSignals:
-	for {
-		select {
-		case p.nextCycle <- ch:
-		default:
-			break passSignals
-		}
-	}
 
 	if p.mgr.IsPausing() {
 		log.Logf(ctx, "Engine cycle disabled (paused or shutting down).")
-		sp.AddAttributes(trace.BoolAttribute("cycle.skip", true))
 		return
 	}
 
@@ -528,7 +469,6 @@ passSignals:
 
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
-		sp.Annotate([]trace.Attribute{trace.BoolAttribute("cycle.abort", true)}, "Cycle aborted.")
 		log.Logf(ctx, "Engine cycle aborted (paused or shutting down).")
 		return
 	}
@@ -538,6 +478,7 @@ passSignals:
 	metricModuleDuration.WithLabelValues("Engine").Observe(time.Since(startAll).Seconds())
 	metricCycleTotal.Inc()
 }
+
 func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 	// nothing special to do currently
 	respCh <- nil
@@ -558,7 +499,7 @@ func (p *Engine) _run(ctx context.Context) error {
 				return ctx.Err()
 			case <-p.shutdownCh:
 				return nil
-			case p.triggerCh <- ch:
+			case p.triggerCh <- struct{}{}:
 				log.Logf(ctx, "Ignoring engine trigger (API-only mode).")
 			}
 		}
@@ -587,13 +528,11 @@ func (p *Engine) _run(ctx context.Context) error {
 		default:
 		}
 
-		nextTrigger := make(chan struct{})
 		select {
 		case req := <-p.triggerPauseCh:
 			p.handlePause(req.ctx, req.ch)
-		case p.triggerCh <- nextTrigger:
+		case p.triggerCh <- struct{}{}:
 			p.cycle(log.WithField(ctx, "Trigger", "DIRECT"))
-			close(nextTrigger)
 		case <-alertTicker.C:
 			p.cycle(log.WithField(ctx, "Trigger", "INTERVAL"))
 		case <-ctx.Done():

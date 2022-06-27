@@ -236,4 +236,5 @@ RotationForm.propTypes = {
   ),
 
   onChange: p.func.isRequired,
+  disabled: p.bool,
 }

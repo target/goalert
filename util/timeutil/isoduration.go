@@ -2,10 +2,15 @@ package timeutil
 
 import (
 	"fmt"
+	"io"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/target/goalert/validation"
 )
 
 // ISODuration represents an ISO duration string.
@@ -37,7 +42,7 @@ func (dur ISODuration) Equal(t time.Time, other ISODuration) bool {
 	return dur.AddTo(t).Equal(other.AddTo(t))
 }
 
-// String returns an ISO 8601 duration string.
+// String returns an ISO 8601 duration string, rounded to the nearest microsecond.
 func (dur ISODuration) String() string {
 	if dur == zeroDur {
 		return "P0D"
@@ -77,7 +82,10 @@ func (dur ISODuration) String() string {
 	}
 
 	if dur.TimePart.Seconds() > 0 {
-		fmt.Fprintf(&b, "%gS", dur.TimePart.Seconds())
+		sec := dur.TimePart.Seconds()
+		// round to microseconds
+		sec = math.Round(sec*1e6) / 1e6
+		fmt.Fprintf(&b, "%gS", sec)
 	}
 
 	return b.String()
@@ -152,4 +160,29 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 	}
 
 	return d, err
+}
+
+func (dur ISODuration) MarshalGQL(w io.Writer) {
+	if dur == (ISODuration{}) {
+		io.WriteString(w, "null")
+		return
+	}
+
+	io.WriteString(w, `"`+dur.String()+`"`)
+}
+
+func (dur *ISODuration) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return errors.New("ISORIntervals must be strings")
+	}
+	str = strings.Trim(str, `"`)
+
+	t, err := ParseISODuration(str)
+	if err != nil {
+		return validation.WrapError(err)
+	}
+
+	*dur = t
+	return nil
 }

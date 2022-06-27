@@ -31,17 +31,27 @@ import (
 
 type (
 	Alert              App
+	AlertMetric        App
 	AlertLogEntry      App
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
+func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
 
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
+}
+
+func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+}
+
+func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
@@ -338,6 +348,12 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		if opts.NotCreatedBefore != nil {
 			s.NotBefore = *opts.NotCreatedBefore
 		}
+		if opts.ClosedBefore != nil {
+			s.ClosedBefore = *opts.ClosedBefore
+		}
+		if opts.NotClosedBefore != nil {
+			s.NotClosedBefore = *opts.NotClosedBefore
+		}
 	}
 
 	s.Limit++
@@ -394,6 +410,10 @@ func (a *Alert) State(ctx context.Context, raw *alert.Alert) (*alert.State, erro
 
 func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service, error) {
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
+}
+
+func (a *Alert) Metrics(ctx context.Context, raw *alert.Alert) (*alertmetrics.Metric, error) {
+	return (*App)(a).FindOneAlertMetric(ctx, raw.ID)
 }
 
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {

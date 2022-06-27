@@ -164,7 +164,7 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
-      cy.get('button[aria-label=Close]').click()
+      cy.get('button[aria-label=Close]').should('have.length', 1).click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
     })
 
