@@ -188,9 +188,11 @@ export default function FlatList({
 
   useEffect(() => {
     // show loading skeletons after 1 second to avoid load flickering
-    setTimeout(() => {
+    const t = setTimeout(() => {
       setDisplayLoading(true)
     }, 1000)
+
+    return () => clearTimeout(t)
   }, [])
 
   const classes = useStyles()
@@ -405,16 +407,9 @@ export default function FlatList({
     return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
-  function renderSkeletons(): ReactElement | ReactElement[] {
-    const renderedSkeletons: ReactElement[] = []
-    if (displayLoading) {
-      while (items.length > renderedSkeletons.length) {
-        renderedSkeletons.push(
-          <LoadingItem key={'list_' + renderedSkeletons.length} />,
-        )
-      }
-    }
-    return renderedSkeletons
+  function renderSkeletons(): ReactElement | ReactElement[] | null {
+    if (!displayLoading) return null
+    return items.map((_, idx) => <LoadingItem key={'list_' + idx} />)
   }
 
   // renderList handles rendering the list container as well as any
@@ -422,7 +417,7 @@ export default function FlatList({
   function renderList(): JSX.Element {
     let listContent
     if (isLoading) listContent = renderSkeletons()
-    else if (items.length <= 0) listContent = renderEmptyMessage()
+    else if (!items.length) listContent = renderEmptyMessage()
     else if (transition) listContent = renderTransitions()
     else listContent = renderItems()
 
