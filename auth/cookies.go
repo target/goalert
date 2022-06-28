@@ -28,7 +28,7 @@ func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, 
 	cookiePath := "/"
 	secure := req.URL.Scheme == "https"
 	if cfg.ShouldUsePublicURL() {
-		cookiePath = strings.TrimSuffix(u.Path, "/") + "/api/"
+		cookiePath = strings.TrimSuffix(u.Path, "/") + "/"
 		secure = u.Scheme == "https"
 	}
 
