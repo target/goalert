@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -24,29 +23,25 @@ const mutation = gql`
     updateRotation(input: $input)
   }
 `
-const RotationUserDeleteDialog = (props) => {
+const RotationUserDeleteDialog = (props: {
+  rotationID: string
+  userIndex: number
+  onClose: () => void
+}): JSX.Element => {
   const { rotationID, userIndex, onClose } = props
-  const { loading, data, error } = useQuery(query, {
-    pollInterval: 0,
+
+  const [, deleteUserMutation] = useMutation(mutation)
+  const [{ fetching, data, error }] = useQuery({
+    query: query,
     variables: {
       id: rotationID,
     },
   })
-  const { userIDs, users, activeUserIndex } = data.rotation
-  const [deleteUserMutation] = useMutation(mutation, {
-    onCompleted: onClose,
-    variables: {
-      input: {
-        id: rotationID,
-        activeUserIndex:
-          activeUserIndex > userIndex ? activeUserIndex - 1 : activeUserIndex,
-        userIDs: userIDs.filter((_, index) => index !== userIndex),
-      },
-    },
-  })
 
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
+
+  const { userIDs, users, activeUserIndex } = data.rotation
 
   return (
     <FormDialog
@@ -56,15 +51,22 @@ const RotationUserDeleteDialog = (props) => {
         users[userIndex] ? users[userIndex].name : null
       } from this rotation.`}
       onClose={onClose}
-      onSubmit={() => deleteUserMutation()}
+      onSubmit={() =>
+        deleteUserMutation({
+          input: {
+            id: rotationID,
+            activeUserIndex:
+              activeUserIndex > userIndex
+                ? activeUserIndex - 1
+                : activeUserIndex,
+            userIDs: userIDs.filter(
+              (_: string, index: number) => index !== userIndex,
+            ),
+          },
+        }).then(() => onClose())
+      }
     />
   )
-}
-
-RotationUserDeleteDialog.propTypes = {
-  rotationID: p.string.isRequired,
-  userIndex: p.number.isRequired,
-  onClose: p.func.isRequired,
 }
 
 export default RotationUserDeleteDialog
