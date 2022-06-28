@@ -191,7 +191,7 @@ function testSchedules(screen: ScreenFormat): void {
         'From 12:00 AM to 8:00 PM EDT',
       )
 
-      cy.get('[data-cy="shift-details"]').focus()
+      cy.get('[data-cy="shift-details"]').trigger('mouseover')
       cy.get('[aria-label="local-timezone-tooltip"]').should(
         'contain',
         'From 11:00 PM to 7:00 PM CDT',
