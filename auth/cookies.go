@@ -28,15 +28,6 @@ func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, 
 	cookiePath := "/"
 	secure := req.URL.Scheme == "https"
 	if cfg.ShouldUsePublicURL() {
-		// always clear old cookie, using old logic
-		http.SetCookie(w, &http.Cookie{
-			HttpOnly: true,
-			Secure:   req.URL.Scheme == "https",
-			Name:     name,
-			Path:     "/",
-			MaxAge:   -1,
-		})
-
 		cookiePath = strings.TrimSuffix(u.Path, "/") + "/api/"
 		secure = u.Scheme == "https"
 	}
