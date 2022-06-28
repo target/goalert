@@ -344,7 +344,7 @@ func (db *DB) commitNewKeyring(ctx context.Context, tx *sql.Tx) error {
 	if rowCount == 0 {
 		// failed to insert the new data, so scan old & refresh
 		var vKeysData, signKeyData, nextKeyData []byte
-		var rotateT time.Time
+		var rotateT sql.NullTime
 		err = db.fetchKeys.QueryRowContext(ctx, db.cfg.Name).Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &rotationCount)
 		if err != nil {
 			return err
