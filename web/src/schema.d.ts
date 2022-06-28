@@ -7,7 +7,6 @@ export interface Query {
   users: UserConnection
   alert?: null | Alert
   alerts: AlertConnection
-  alertMetrics: AlertDataPoint[]
   service?: null | Service
   integrationKey?: null | IntegrationKey
   heartbeatMonitor?: null | HeartbeatMonitor
@@ -698,6 +697,8 @@ export interface AlertSearchOptions {
   sort?: null | AlertSearchSort
   createdBefore?: null | ISOTimestamp
   notCreatedBefore?: null | ISOTimestamp
+  closedBefore?: null | ISOTimestamp
+  notClosedBefore?: null | ISOTimestamp
 }
 
 export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
@@ -732,6 +733,14 @@ export interface Alert {
   state?: null | AlertState
   recentEvents: AlertLogEntryConnection
   pendingNotifications: AlertPendingNotification[]
+  metrics?: null | AlertMetric
+}
+
+export interface AlertMetric {
+  escalated: boolean
+  closedAt: ISOTimestamp
+  timeToAck: ISODuration
+  timeToClose: ISODuration
 }
 
 export interface AlertPendingNotification {

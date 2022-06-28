@@ -16,7 +16,7 @@ const userVals = allUsers
   .join(',\n')
 
 const resetQuery = `
-truncate table escalation_policies, rotations, schedules, alert_metrics, users CASCADE;
+truncate table escalation_policies, rotations, schedules, alert_metrics, alert_logs, users CASCADE;
 select setval(pg_get_serial_sequence('alerts', 'id'), coalesce(max(id), 0)+10000 , false) from alerts;
 delete from users where id in (${ids});
 

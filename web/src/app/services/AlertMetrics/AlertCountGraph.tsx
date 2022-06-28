@@ -36,7 +36,7 @@ export default function AlertCountGraph(
   const theme = useTheme()
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-graph'>
+      <Grid item xs={12} data-cy='metrics-count-graph'>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
             width={730}
@@ -66,22 +66,38 @@ export default function AlertCountGraph(
             <Tooltip
               data-cy='metrics-tooltip'
               cursor={{ fill: theme.palette.background.default }}
-              content={(props) => {
-                const dataStr = props.payload?.length
-                  ? `${props.payload[0].name}: ${props.payload[0].value}`
-                  : ''
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+
+                const alertCountStr = `${payload[1].name}: ${
+                  (payload[1].value as number) + (payload[0].value as number)
+                }`
+                const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
                 return (
                   <Paper variant='outlined' sx={{ p: 1 }}>
-                    <Typography variant='body2'>{props.label}</Typography>
-                    <Typography variant='body2'>{dataStr}</Typography>
+                    <Typography variant='body2'>{label}</Typography>
+                    <Typography variant='body2'>{alertCountStr}</Typography>
+                    <Typography variant='body2'>{escalatedCountStr}</Typography>
                   </Paper>
                 )
               }}
             />
             <Legend />
             <Bar
-              dataKey='count'
+              dataKey='escalatedCount'
+              stackId='a'
               fill={theme.palette.primary.main}
+              className={classes.bar}
+              name='Escalated'
+            />
+            <Bar
+              stackId='a'
+              dataKey='nonEscalatedCount'
+              fill={
+                theme.palette.mode === 'light'
+                  ? theme.palette.secondary.dark
+                  : theme.palette.secondary.light
+              }
               className={classes.bar}
               name='Alert Count'
             />

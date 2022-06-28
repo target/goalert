@@ -83,6 +83,7 @@ func main() {
 				"procwrap",
 				"simpleproxy",
 				"waitfor",
+				"pgmocktime",
 			},
 		},
 	}
