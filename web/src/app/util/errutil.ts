@@ -86,7 +86,7 @@ export function fieldErrors(err?: ApolloError): FieldError[] {
 }
 
 // allErrors will return a flat list of all errors in the graphQL error.
-export function allErrors(err?: ApolloError): Error[] {
+export function allErrors(err?: ApolloError): (FieldError | Error)[] {
   if (!err) return []
   return nonFieldErrors(err).concat(fieldErrors(err))
 }

@@ -7,7 +7,6 @@ export interface Query {
   users: UserConnection
   alert?: null | Alert
   alerts: AlertConnection
-  alertMetrics: AlertDataPoint[]
   service?: null | Service
   integrationKey?: null | IntegrationKey
   heartbeatMonitor?: null | HeartbeatMonitor
