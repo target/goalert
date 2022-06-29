@@ -57,6 +57,7 @@ var detailsTmpl = template.Must(template.New("details").Funcs(template.FuncMap{
 
 {{if .SlienceURL}}Silence: {{ .SlienceURL }}{{end}}
 
+{{if .ImageURL}}![Panel Snapshot]({{ .ImageURL }}){{end}}
 
 {{codeBlock .ValueString }}
 `))
@@ -78,6 +79,7 @@ func alertsFromLegacy(ctx context.Context, req *http.Request, serviceID string, 
 		State    string
 		Title    string
 		RuleURL  string
+		ImageURL string
 	}
 	err := json.Unmarshal(data, &g)
 	if err != nil {
@@ -103,7 +105,11 @@ func alertsFromLegacy(ctx context.Context, req *http.Request, serviceID string, 
 	}
 	body := strings.TrimSpace(urlStr + "\n\n" + g.Message)
 
-	//dedupe is description, source, and serviceID
+	if validate.AbsoluteURL("ImageURL", g.ImageURL) == nil {
+		body += "\n\n![Panel Snapshot](" + g.ImageURL + ")"
+	}
+
+	// dedupe is description, source, and serviceID
 	return []alert.Alert{{
 		Summary:   validate.SanitizeText(g.RuleName, alert.MaxSummaryLength),
 		Details:   validate.SanitizeText(body, alert.MaxDetailsLength),
@@ -123,6 +129,7 @@ func alertsFromV1(ctx context.Context, serviceID string, data []byte) ([]alert.A
 			Fingerprint         string
 			GeneratorURL        string
 			SlienceURL          string
+			ImageURL            string
 		}
 	}
 	err := json.Unmarshal(data, &g)
@@ -166,9 +173,7 @@ func alertsFromV1(ctx context.Context, serviceID string, data []byte) ([]alert.A
 }
 
 func GrafanaToEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		ctx := r.Context()
 
 		err := permission.LimitCheckAny(ctx, permission.Service)
