@@ -90,7 +90,7 @@ resetPoll()
 // handle re-fetching Apollo queries on urql mutation
 //
 // TODO: remove this once apollo is no longer used
-const apolloRefetchExchange: Exchange = ({ client, forward }) => {
+const apolloRefetchExchange: Exchange = ({ forward }) => {
   return (operations$) => {
     const operationResult$ = forward(operations$)
     return pipe(
