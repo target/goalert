@@ -1,10 +1,31 @@
 import React from 'react'
-import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TextField, Grid } from '@mui/material'
 import { TimeZoneSelect } from '../selection'
 
-export default function ScheduleForm(props) {
+export interface Value {
+  name: string
+  description: string
+  timeZone: string
+  favorite?: boolean
+}
+
+interface ScheduleFormProps {
+  value: Value
+  onChange: (value: Value) => void
+
+  // These can be removed when we convert FormContainer.js to typescript.
+  errors?: Error[]
+  disabled?: boolean
+}
+
+interface Error {
+  message: string
+  field: string
+  helpLink?: string
+}
+
+export default function ScheduleForm(props: ScheduleFormProps): JSX.Element {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
@@ -39,21 +60,4 @@ export default function ScheduleForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-ScheduleForm.propTypes = {
-  value: p.shape({
-    name: p.string.isRequired,
-    description: p.string.isRequired,
-    timeZone: p.string.isRequired,
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['name', 'description', 'timeZone']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func.isRequired,
 }

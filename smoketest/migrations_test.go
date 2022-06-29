@@ -200,6 +200,7 @@ func enumOK(got, want string) bool {
 
 	return true
 }
+
 func TestEnumOK(t *testing.T) {
 	const got = `CREATE TYPE enum_alert_log_event AS ENUM (
 'created',
@@ -241,7 +242,7 @@ func processIgnoreRules(ignoreRules []ignoreRule, name, body string) string {
 		}
 		lines := strings.Split(body, "\n")
 		pref, cols, suf := getCols(lines[0])
-		var index = -1
+		index := -1
 		for i, v := range cols {
 			if v == r.ColumnName {
 				index = i
@@ -266,6 +267,7 @@ func processIgnoreRules(ignoreRules []ignoreRule, name, body string) string {
 	}
 	return body
 }
+
 func TestProcessIgnoreRules(t *testing.T) {
 	t.Parallel()
 	const input = `COPY public.my_table (foo, bar, baz) FROM stdin;
@@ -283,7 +285,6 @@ a	c
 	if result != expected {
 		t.Errorf("got\n%s\n\nwant\n%s", result, expected)
 	}
-
 }
 
 func getCols(line string) (prefix string, cols []string, suffix string) {
@@ -329,6 +330,7 @@ func alphabetizeCopy(body string) string {
 	sort.Strings(lines[1:])
 	return strings.Join(lines, "\n")
 }
+
 func TestAlphabetizeCopy(t *testing.T) {
 	t.Parallel()
 	const input = `COPY foobar (a, e, f, b, c) FROM stdin;
@@ -429,6 +431,7 @@ func parsePGDump(data []byte, name string) []pgDumpEntry {
 
 	return entries
 }
+
 func indent(str string) string {
 	return "    " + strings.Replace(str, "\n", "\n    ", -1)
 }
@@ -524,6 +527,7 @@ func (e pgDumpEntry) matchesBody(migrationName string, body string) bool {
 
 	return false
 }
+
 func TestMigrations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrations tests for short mode")
@@ -564,7 +568,7 @@ func TestMigrations(t *testing.T) {
 		start = env
 		skipTo = true
 	} else {
-		start = "add-rotation-favorite" // default skip_to
+		start = "add-alert-metrics" // default skip_to
 		skipTo = true
 	}
 	var idx int

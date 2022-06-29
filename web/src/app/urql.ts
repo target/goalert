@@ -8,7 +8,7 @@ import {
   Operation,
 } from 'urql'
 import { pipe, tap } from 'wonka'
-import { pathPrefix } from './env'
+import { pathPrefix, isCypress } from './env'
 
 const refetch: Array<(force: boolean) => void> = []
 export function refetchAll(force = false): void {
@@ -65,10 +65,11 @@ const refetchExchange = (): Exchange => {
     }
 }
 
-// refetch every 15 sec or on refocus
+// refetch every 15 sec or on refocus, every 10 sec for Cypress
 let poll: NodeJS.Timer
 function resetPoll(): void {
-  if (new URLSearchParams(location.search).get('poll') === '0') return
+  if (new URLSearchParams(location.search).get('poll') === '0' || isCypress)
+    return
   clearInterval(poll)
   poll = setInterval(refetchAll, 15000)
 }

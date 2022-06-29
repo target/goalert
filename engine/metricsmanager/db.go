@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/util"
 )
 
-const engineVersion = 2
+const engineVersion = 3
 
 // DB handles updating metrics
 type DB struct {
@@ -19,9 +19,6 @@ type DB struct {
 
 	scanLogs      *sql.Stmt
 	insertMetrics *sql.Stmt
-
-	nextDailyMetricsDate *sql.Stmt
-	insertDailyMetrics   *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -64,29 +61,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				(select timestamp                from alert_logs where alert_id = a.id and event = 'closed'       order by timestamp limit 1)
 			from alerts a
 			where a.id = any($1) and a.service_id is not null
-			on conflict do nothing
-		`),
-
-		nextDailyMetricsDate: p.P(`
-			select (date(timezone('UTC'::text, closed_at))) from alert_metrics 
-			where  (date(timezone('UTC'::text, closed_at))) > $1::date 
-			and    (date(timezone('UTC'::text, closed_at))) < $2::date
-			order by (date(timezone('UTC'::text, closed_at)))
-			limit 1;
-		`),
-
-		insertDailyMetrics: p.P(`
-			insert into daily_alert_metrics (date, service_id, alert_count, avg_time_to_ack, avg_time_to_close, escalated_count)
-			select 
-				$1::date, 
-				service_id, 
-				count(*), 
-				avg(time_to_ack), 
-				avg(time_to_close), 
-				count(*) filter (where escalated=true)
-			from alert_metrics
-			where (date(timezone('UTC'::text, closed_at))) = $1
-			group by service_id
 			on conflict do nothing
 		`),
 	}, p.Err

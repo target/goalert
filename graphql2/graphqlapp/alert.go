@@ -24,24 +24,33 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"gorm.io/gorm"
 )
 
 type (
 	Alert              App
+	AlertMetric        App
 	AlertLogEntry      App
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
+func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
 
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
+}
+
+func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+}
+
+func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
+	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
@@ -190,77 +199,6 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 	return svcs, nil
 }
 
-// splitRangeByDuration maps each interval of r to an AlertDataPoint based on the given alert metrics.
-// The given metrics are required to be sorted by their ClosedAt field.
-func splitRangeByDuration(r timeutil.ISORInterval, metrics []alertmetrics.Record) (result []graphql2.AlertDataPoint) {
-	if r.Period.IsZero() {
-		// should be handled by ISORInterval parsing/validation, but just in case
-		// prefer panic to infinite loop
-		panic("duration must not be zero")
-	}
-
-	countAlertsUntil := func(ts time.Time) int {
-		var count int
-		for len(metrics) > 0 {
-			if !metrics[0].ClosedAt.Before(ts) {
-				break
-			}
-
-			count++
-			metrics = metrics[1:]
-		}
-		return count
-	}
-
-	// trim alerts
-	countAlertsUntil(r.Start)
-
-	ts := r.Start
-	end := r.End()
-	for ts.Before(end) {
-		next := r.Period.AddTo(ts)
-		if next.After(end) {
-			next = end
-		}
-		result = append(result, graphql2.AlertDataPoint{
-			Timestamp:  ts,
-			AlertCount: countAlertsUntil(next),
-		})
-		ts = next
-	}
-
-	return result
-}
-
-func (q *Query) AlertMetrics(ctx context.Context, opts graphql2.AlertMetricsOptions) (result []graphql2.AlertDataPoint, err error) {
-	err = validate.Many(
-		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 1, 1),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// only daily supported for now
-	if opts.RInterval.Period != (timeutil.ISODuration{Days: 1}) {
-		return nil, validation.NewFieldError("rInterval", "only daily currently supported")
-	}
-
-	if opts.RInterval.Repeat > 30 {
-		return nil, validation.NewFieldError("rInterval", "repeat count must be <= 30")
-	}
-
-	data, err := q.AlertMetricsStore.Search(ctx, &alertmetrics.SearchOptions{
-		ServiceIDs: opts.FilterByServiceID,
-		Since:      opts.RInterval.Start,
-		Until:      opts.RInterval.End(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return splitRangeByDuration(opts.RInterval, data), nil
-}
-
 func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (conn *graphql2.AlertConnection, err error) {
 	if opts == nil {
 		opts = new(graphql2.AlertSearchOptions)
@@ -284,7 +222,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
-		validate.Range("First", s.Limit, 1, 100),
+		validate.Range("First", s.Limit, 1, 1000),
 	)
 	if err != nil {
 		return nil, err
@@ -337,6 +275,12 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		}
 		if opts.NotCreatedBefore != nil {
 			s.NotBefore = *opts.NotCreatedBefore
+		}
+		if opts.ClosedBefore != nil {
+			s.ClosedBefore = *opts.ClosedBefore
+		}
+		if opts.NotClosedBefore != nil {
+			s.NotClosedBefore = *opts.NotClosedBefore
 		}
 	}
 
@@ -394,6 +338,10 @@ func (a *Alert) State(ctx context.Context, raw *alert.Alert) (*alert.State, erro
 
 func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service, error) {
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
+}
+
+func (a *Alert) Metrics(ctx context.Context, raw *alert.Alert) (*alertmetrics.Metric, error) {
+	return (*App)(a).FindOneAlertMetric(ctx, raw.ID)
 }
 
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {

@@ -1,7 +1,19 @@
-import { gql, useMutation } from '@apollo/client'
-
+import {
+  DocumentNode,
+  gql,
+  MutationFunction,
+  MutationResult,
+  useMutation,
+} from '@apollo/client'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
 import { GraphQLClientWithErrors } from '../../apollo'
+import { Value } from './CreateAlertDialog'
+
+interface Variable {
+  summary: string
+  details: string
+  serviceID: string
+}
 
 const baseMutation = gql`
   mutation CreateAlertMutation($input: CreateAlertInput!) {
@@ -11,14 +23,19 @@ const baseMutation = gql`
   }
 `
 
-const getAliasedMutation = (mutation, index) =>
+const getAliasedMutation = (
+  mutation: DocumentNode,
+  index: string | number,
+): DocumentNode =>
   mapInputVars(fieldAlias(mutation, 'alias' + index), {
     input: 'input' + index,
   })
 
 // useCreateAlerts will return mutation, status and a function for mapping
 // field/paths from the response to the respective service ID.
-export const useCreateAlerts = (value) => {
+export const useCreateAlerts = (
+  value: Value,
+): [MutationFunction, MutationResult, (alias: string | number) => string] => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
   for (let i = 1; i < value.serviceIDs.length; i++) {
@@ -26,8 +43,8 @@ export const useCreateAlerts = (value) => {
   }
 
   // 2. build variables, alias -> service ID map
-  const variables = {}
-  const aliasIDMap = {}
+  const variables: { [key: string]: Variable } = {}
+  const aliasIDMap: { [key: string]: string } = {}
   value.serviceIDs.forEach((svcID, i) => {
     aliasIDMap['alias' + i] = svcID
     variables[`input${i}`] = {
@@ -43,5 +60,5 @@ export const useCreateAlerts = (value) => {
     client: GraphQLClientWithErrors,
   })
 
-  return [mutate, status, (alias) => aliasIDMap[alias]]
+  return [mutate, status, (alias: string | number) => aliasIDMap[alias]]
 }

@@ -41,7 +41,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
       other.rel = 'noopener noreferrer'
     }
 
-    const external = /^(tel:|mailto:|https?:\/\/)/.test(to)
+    const external = /^(tel:|mailto:|blob:|https?:\/\/)/.test(to)
 
     // handle relative URLs
     if (!external && !to.startsWith('/')) {
