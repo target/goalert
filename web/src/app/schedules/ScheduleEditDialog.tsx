@@ -50,12 +50,15 @@ export default function ScheduleEditDialog(props: {
       onClose={props.onClose}
       title='Edit Schedule'
       onSubmit={() =>
-        editSchedule({
-          input: {
-            id: props.scheduleID,
-            ...value,
+        editSchedule(
+          {
+            input: {
+              id: props.scheduleID,
+              ...value,
+            },
           },
-        }).then(() => props.onClose())
+          { additionalTypenames: ['Schedule'] },
+        ).then(() => props.onClose())
       }
       form={
         <ScheduleForm
