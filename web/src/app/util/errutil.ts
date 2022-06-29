@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { ApolloError } from '@apollo/client'
 import { GraphQLError } from 'graphql/error'
+import { CombinedError } from 'urql'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -22,7 +23,7 @@ const parseDetails = (msg: string): { [x: string]: string } => {
 // nonFieldErrors will return a flat list of non-field errors (if any) from a graphQL error.
 //
 // All returned errors should have a `message` property.
-export function nonFieldErrors(err?: ApolloError): Error[] {
+export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
   if (!err) return []
   if (!err.graphQLErrors || !err.graphQLErrors.length) return [err]
 
@@ -49,7 +50,7 @@ interface RawFieldError extends Error {
 // fieldErrors will return a flat list of field errors (if any) from a graphQL error.
 //
 // All returned errors will be of the format {field, message}
-export function fieldErrors(err?: ApolloError): FieldError[] {
+export function fieldErrors(err?: ApolloError | CombinedError): FieldError[] {
   if (!err) return []
   if (!err.graphQLErrors) return []
 
