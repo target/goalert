@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql } from 'urql'
-import { useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
@@ -19,31 +18,34 @@ export default function HeartbeatMonitorCreateDialog(props: {
   onClose: () => void
 }): JSX.Element {
   const [value, setValue] = useState<Value>({ name: '', timeoutMinutes: 15 })
-  const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
-    variables: {
-      input: {
-        name: value.name,
-        timeoutMinutes: value.timeoutMinutes,
-        serviceID: props.serviceID,
-      },
-    },
-  })
+  const [createHeartbeatStatus, createHeartbeat] = useMutation(createMutation)
 
   return (
     <FormDialog
       maxWidth='sm'
       title='Create New Heartbeat Monitor'
-      loading={loading}
-      errors={nonFieldErrors(error)}
+      loading={createHeartbeatStatus.fetching}
+      errors={nonFieldErrors(createHeartbeatStatus.error)}
       onClose={props.onClose}
-      onSubmit={() => createHeartbeat().then(props.onClose)}
+      onSubmit={() =>
+        createHeartbeat(
+          {
+            input: {
+              name: value.name,
+              timeoutMinutes: value.timeoutMinutes,
+              serviceID: props.serviceID,
+            },
+          },
+          { additionalTypenames: ['HeartbeatMonitor'] },
+        ).then(props.onClose)
+      }
       form={
         <HeartbeatMonitorForm
-          errors={fieldErrors(error).map((f) => ({
+          errors={fieldErrors(createHeartbeatStatus.error).map((f) => ({
             ...f,
             field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
           }))}
-          disabled={loading}
+          disabled={createHeartbeatStatus.fetching}
           value={value}
           onChange={(value: Value) => setValue(value)}
         />
