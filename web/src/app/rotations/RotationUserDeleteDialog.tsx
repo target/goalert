@@ -1,5 +1,6 @@
 import React from 'react'
-import { gql, useMutation, useQuery } from 'urql'
+import { gql, useQuery } from 'urql'
+import { useMutation } from '@apollo/client'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -29,8 +30,9 @@ const RotationUserDeleteDialog = (props: {
   onClose: () => void
 }): JSX.Element => {
   const { rotationID, userIndex, onClose } = props
-
-  const [, deleteUserMutation] = useMutation(mutation)
+  const [deleteUserMutation] = useMutation(mutation, {
+    onCompleted: onClose,
+  })
   const [{ fetching, data, error }] = useQuery({
     query: query,
     variables: {
@@ -53,17 +55,19 @@ const RotationUserDeleteDialog = (props: {
       onClose={onClose}
       onSubmit={() =>
         deleteUserMutation({
-          input: {
-            id: rotationID,
-            activeUserIndex:
-              activeUserIndex > userIndex
-                ? activeUserIndex - 1
-                : activeUserIndex,
-            userIDs: userIDs.filter(
-              (_: string, index: number) => index !== userIndex,
-            ),
+          variables: {
+            input: {
+              id: rotationID,
+              activeUserIndex:
+                activeUserIndex > userIndex
+                  ? activeUserIndex - 1
+                  : activeUserIndex,
+              userIDs: userIDs.filter(
+                (_: string, index: number) => index !== userIndex,
+              ),
+            },
           },
-        }).then(() => onClose())
+        })
       }
     />
   )
