@@ -169,19 +169,20 @@ function testAlerts(screen: ScreenFormat): void {
     })
 
     it('should update some alerts', () => {
+      const prefix = new URL(Cypress.config().baseUrl || '').pathname
       // prep
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get('button[aria-label=Acknowledge]').click()
       cy.get('button[aria-label=Acknowledge]').should('not.exist')
 
       cy.get(
-        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+        `[href="${prefix}/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+        `[href="${prefix}/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
       ).should('contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+        `[href="${prefix}/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
       ).should('contain', 'UNACKNOWLEDGED')
 
       cy.reload()
@@ -192,17 +193,18 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('button[aria-label=Acknowledge]').click()
       cy.get('[role="alert"]').should('contain', '2 of 3 alerts updated')
       cy.get(
-        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+        `[href="${prefix}/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+        `[href="${prefix}/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+        `[href="${prefix}/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
     })
 
     it('should not acknowledge acknowledged alerts', () => {
+      const prefix = new URL(Cypress.config().baseUrl || '').pathname
       // ack first two
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
@@ -212,13 +214,13 @@ function testAlerts(screen: ScreenFormat): void {
       // ack
       // unack
       cy.get(
-        `[href="/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
+        `[href="${prefix}/services/${alert1.serviceID}/alerts/${alert1.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
+        `[href="${prefix}/services/${alert2.serviceID}/alerts/${alert2.id}"]`,
       ).should('not.contain', 'UNACKNOWLEDGED')
       cy.get(
-        `[href="/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
+        `[href="${prefix}/services/${alert3.serviceID}/alerts/${alert3.id}"]`,
       ).should('contain', 'UNACKNOWLEDGED')
 
       // ack first two again (noop)
