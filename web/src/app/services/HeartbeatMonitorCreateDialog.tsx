@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { useMutation, gql } from '@apollo/client'
-import p from 'prop-types'
+import { gql } from 'urql'
+import { useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
-import HeartbeatMonitorForm from './HeartbeatMonitorForm'
+import HeartbeatMonitorForm, { Value } from './HeartbeatMonitorForm'
 
 const createMutation = gql`
   mutation ($input: CreateHeartbeatMonitorInput!) {
@@ -14,8 +14,11 @@ const createMutation = gql`
   }
 `
 
-export default function HeartbeatMonitorCreateDialog(props) {
-  const [value, setValue] = useState({ name: '', timeoutMinutes: 15 })
+export default function HeartbeatMonitorCreateDialog(props: {
+  serviceID: string
+  onClose: () => void
+}): JSX.Element {
+  const [value, setValue] = useState<Value>({ name: '', timeoutMinutes: 15 })
   const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
     variables: {
       input: {
@@ -42,14 +45,9 @@ export default function HeartbeatMonitorCreateDialog(props) {
           }))}
           disabled={loading}
           value={value}
-          onChange={(value) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
   )
-}
-
-HeartbeatMonitorCreateDialog.propTypes = {
-  serviceID: p.string.isRequired,
-  onClose: p.func,
 }
