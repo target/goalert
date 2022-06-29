@@ -8,6 +8,7 @@ import {
   Operation,
 } from 'urql'
 import { pipe, tap } from 'wonka'
+import { GraphQLClient, GraphQLClientWithErrors } from './apollo'
 import { pathPrefix, isCypress } from './env'
 
 const refetch: Array<(force: boolean) => void> = []
@@ -86,12 +87,31 @@ window.addEventListener('visibilitychange', () => {
 })
 resetPoll()
 
+// handle re-fetching Apollo queries on urql mutation
+//
+// TODO: remove this once apollo is no longer used
+const apolloRefetchExchange: Exchange = ({ client, forward }) => {
+  return (operations$) => {
+    const operationResult$ = forward(operations$)
+    return pipe(
+      operationResult$,
+      tap((result) => {
+        if (result.error) return
+        if (result.operation.kind !== 'mutation') return
+        GraphQLClient.reFetchObservableQueries(true)
+        GraphQLClientWithErrors.reFetchObservableQueries(true)
+      }),
+    )
+  }
+}
+
 export const client = createClient({
   url: pathPrefix + '/api/graphql',
   exchanges: [
     dedupExchange,
     refetchExchange(),
     cacheExchange,
+    apolloRefetchExchange,
     retryExchange({}),
     fetchExchange,
   ],
