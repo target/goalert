@@ -1,12 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { testScreen } from '../support'
+import { pathPrefix, testScreen } from '../support'
 const c = new Chance()
-
-function basePrefix(): string {
-  const u = new URL(Cypress.config('baseUrl') as string)
-  return u.pathname.replace(/\/$/, '')
-}
 
 function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
@@ -243,7 +238,7 @@ function testServices(screen: ScreenFormat): void {
         .should(
           'have.attr',
           'href',
-          basePrefix() + `/escalation-policies/${svc.ep.id}`,
+          pathPrefix() + `/escalation-policies/${svc.ep.id}`,
         )
     })
 
@@ -276,7 +271,7 @@ function testServices(screen: ScreenFormat): void {
           .should(
             'have.attr',
             'href',
-            basePrefix() + `/escalation-policies/${ep.id}`,
+            pathPrefix() + `/escalation-policies/${ep.id}`,
           )
       })
     })

@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
-import { testScreen, Config } from '../support'
+import { testScreen, Config, pathPrefix } from '../support'
 const c = new Chance()
 
 function testAdmin(): void {
@@ -276,9 +276,7 @@ function testAdmin(): void {
         .should(
           'have.attr',
           'href',
-          new URL(Cypress.config().baseUrl || '').pathname +
-            '/users/' +
-            debugMessage.userID,
+          pathPrefix() + '/users/' + debugMessage.userID,
         )
         .should('have.attr', 'target', '_blank')
         .should('have.attr', 'rel', 'noopener noreferrer')
@@ -292,9 +290,7 @@ function testAdmin(): void {
         .should(
           'have.attr',
           'href',
-          new URL(Cypress.config().baseUrl || '').pathname +
-            '/services/' +
-            debugMessage.serviceID,
+          pathPrefix() + '/services/' + debugMessage.serviceID,
         )
         .should('have.attr', 'target', '_blank')
         .should('have.attr', 'rel', 'noopener noreferrer')
