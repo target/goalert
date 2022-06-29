@@ -59,12 +59,15 @@ export default function RotationEditDialog(props: {
       errors={nonFieldErrors(editRotationStatus.error)}
       onClose={props.onClose}
       onSubmit={() =>
-        editRotation({
-          input: {
-            id: props.rotationID,
-            ...value,
+        editRotation(
+          {
+            input: {
+              id: props.rotationID,
+              ...value,
+            },
           },
-        }).then(() => props.onClose())
+          { additionalTypenames: ['Rotation'] },
+        ).then(() => props.onClose())
       }
       form={
         <RotationForm
