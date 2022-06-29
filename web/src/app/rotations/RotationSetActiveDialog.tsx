@@ -1,5 +1,6 @@
 import React from 'react'
-import { gql, useMutation, useQuery } from 'urql'
+import { gql, useQuery } from 'urql'
+import { useMutation } from '@apollo/client'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -34,7 +35,15 @@ const RotationSetActiveDialog = (props: {
       id: rotationID,
     },
   })
-  const [, setActiveMutation] = useMutation(mutation)
+  const [setActiveMutation] = useMutation(mutation, {
+    onCompleted: onClose,
+    variables: {
+      input: {
+        id: rotationID,
+        activeUserIndex: userIndex,
+      },
+    },
+  })
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -46,14 +55,7 @@ const RotationSetActiveDialog = (props: {
       confirm
       subTitle={`This will set ${users[userIndex].name} active on this rotation.`}
       onClose={onClose}
-      onSubmit={() =>
-        setActiveMutation({
-          input: {
-            id: rotationID,
-            activeUserIndex: userIndex,
-          },
-        }).then(() => onClose())
-      }
+      onSubmit={() => setActiveMutation()}
     />
   )
 }
