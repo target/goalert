@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from 'urql'
-import { useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -49,9 +48,7 @@ export default function RotationEditDialog(props: {
     variables: { id: props.rotationID },
   })
 
-  const [editRotation, editRotationStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [editRotationStatus, editRotation] = useMutation(mutation)
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -63,18 +60,16 @@ export default function RotationEditDialog(props: {
       onClose={props.onClose}
       onSubmit={() =>
         editRotation({
-          variables: {
-            input: {
-              id: props.rotationID,
-              ...value,
-            },
+          input: {
+            id: props.rotationID,
+            ...value,
           },
-        })
+        }).then(() => props.onClose())
       }
       form={
         <RotationForm
           errors={fieldErrors(editRotationStatus.error)}
-          disabled={editRotationStatus.loading}
+          disabled={editRotationStatus.fetching}
           value={
             value || {
               name: data.rotation.name,
