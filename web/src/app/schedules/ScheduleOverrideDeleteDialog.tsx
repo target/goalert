@@ -1,7 +1,6 @@
 import React from 'react'
 
-import { gql, useQuery } from 'urql'
-import { useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import { nonFieldErrors } from '../util/errutil'
 import { Typography } from '@mui/material'
 import FormDialog from '../dialogs/FormDialog'
@@ -45,17 +44,7 @@ export default function ScheduleOverrideDeleteDialog(props: {
     variables: { id: props.overrideID },
   })
 
-  const [deleteOverride, deleteOverrideStatus] = useMutation(mutation, {
-    variables: {
-      input: [
-        {
-          type: 'userOverride',
-          id: props.overrideID,
-        },
-      ],
-    },
-    onCompleted: props.onClose,
-  })
+  const [deleteOverrideStatus, deleteOverride] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -87,10 +76,22 @@ export default function ScheduleOverrideDeleteDialog(props: {
       subTitle={`This will delete the override for: ${
         addUser ? addUser.name : removeUser.name
       }`}
-      loading={deleteOverrideStatus.loading}
+      loading={deleteOverrideStatus.fetching}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => deleteOverride()}
+      onSubmit={() =>
+        deleteOverride(
+          {
+            input: [
+              {
+                type: 'userOverride',
+                id: props.overrideID,
+              },
+            ],
+          },
+          { additionalTypenames: ['UserOverride'] },
+        ).then(() => props.onClose())
+      }
       form={<Typography variant='caption'>{caption}</Typography>}
     />
   )
