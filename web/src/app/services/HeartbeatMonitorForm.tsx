@@ -3,6 +3,7 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import NumberField from '../util/NumberField'
+import { FieldError } from '../util/errutil'
 
 function clampTimeout(val: string): number | string {
   if (!val) return ''
@@ -12,19 +13,19 @@ function clampTimeout(val: string): number | string {
   // need to have the min be 1 here so you can type `10`
   return Math.min(Math.max(1, num), 9000)
 }
-interface Value {
+export interface Value {
   name: string
-  timeoutMinutes: [number, string]
+  timeoutMinutes: [number, string] | number
 }
 interface HeartbeatMonitorFormProps {
   value: Value
 
-  errors: {
-    field: 'name' | 'timeoutMinutes'
-    message: string
-  }[]
+  errors: FieldError[]
 
   onChange: (val: Value) => void
+
+  // can be deleted when FormContainer.js is converted to ts
+  disabled: boolean
 }
 
 export default function HeartbeatMonitorForm(
