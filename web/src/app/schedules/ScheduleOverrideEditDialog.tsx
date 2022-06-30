@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from 'urql'
-import { useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -50,9 +49,7 @@ export default function ScheduleOverrideEditDialog(props: {
     requestPolicy: 'network-only',
   })
 
-  const [updateOverride, updateOverrideStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [updateOverrideStatus, updateOverride] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -85,21 +82,22 @@ export default function ScheduleOverrideEditDialog(props: {
           return
         }
 
-        updateOverride({
-          variables: {
+        updateOverride(
+          {
             input: {
               ...value,
               id: props.overrideID,
             },
           },
-        })
+          { additionalTypenames: ['UserOverride'] },
+        ).then(props.onClose)
       }}
       form={
         <ScheduleOverrideForm
           add={Boolean(data.userOverride.addUser)}
           remove={Boolean(data.userOverride.removeUser)}
           scheduleID={data.userOverride.target.id}
-          disabled={updateOverrideStatus.loading}
+          disabled={updateOverrideStatus.fetching}
           errors={fieldErrors(error)}
           value={getValue(data.userOverride)}
           onChange={(value) => setValue(value)}
