@@ -20,7 +20,6 @@ const useStyles = makeStyles((theme) => {
         flex: 1,
       },
       [theme.breakpoints.up('md')]: {
-        minWidth: 250,
         '& input:focus': {
           minWidth: 275,
         },
@@ -100,6 +99,7 @@ export default function Search(props) {
         fullWidth={props.fullWidth}
         className={props.transition ? classes.transition : null}
         sx={(theme) => ({
+          minWidth: 250,
           backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
           borderRadius: '4px',
         })}
