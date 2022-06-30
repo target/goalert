@@ -5,6 +5,7 @@ import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { useSortable } from '@dnd-kit/sortable'
 import { useTheme } from '@mui/material'
+import DragHandleIcon from '@mui/icons-material/DragHandle'
 
 export function getAnnouncements(
   items: string[],
@@ -54,12 +55,14 @@ interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
+  canReorder: boolean
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
+  canReorder,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
   const {
@@ -77,13 +80,26 @@ export function DraggableListItem({
     transform: CSS.Transform.toString(transform),
     transition,
     backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
-    cursor: 'pointer',
     zIndex: isDragging ? 9001 : 1,
   }
 
+  const draggableItem = {
+    ...item,
+    icon: (
+      <DragHandleIcon
+        {...listeners}
+        sx={{ cursor: 'pointer', paddingLeft: '8px' }}
+      />
+    ),
+  }
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <FlatListItem index={index} item={item} />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <FlatListItem
+        index={index}
+        item={canReorder ? draggableItem : item}
+        canEdit={canReorder}
+      />
     </div>
   )
 }

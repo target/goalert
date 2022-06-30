@@ -1,5 +1,6 @@
 import React, { useRef, useState, MouseEvent } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
+import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
@@ -10,6 +11,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
 import { AlertColor } from '@mui/material/Alert'
+import EditIcon from '@mui/icons-material/Edit'
 import {
   closestCenter,
   DndContext,
@@ -118,6 +120,9 @@ export interface FlatListProps extends ListProps {
 
   // will render transition in list
   transition?: boolean
+
+  // renders an edit button that hides the options buttons until toggled on
+  toggleEdit?: boolean
 }
 
 const severityMap: { [K in NoticeType]: AlertColor } = {
@@ -135,6 +140,7 @@ export default function FlatList({
   items,
   inset,
   transition,
+  toggleEdit,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
@@ -150,6 +156,7 @@ export default function FlatList({
     // use IDs to sort, fallback to index
     items.map((i, idx) => (i.id ? i.id : idx.toString())),
   )
+  const [canEdit, setCanEdit] = useState(false)
   const isFirstAnnouncement = useRef(false)
   const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
   function handleDragStart(): void {
@@ -274,7 +281,11 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          <FlatListItem index={idx} item={item} />
+          <FlatListItem
+            index={idx}
+            item={item}
+            canEdit={toggleEdit ? canEdit : true}
+          />
         </CSSTransition>
       )
     })
@@ -299,11 +310,19 @@ export default function FlatList({
             index={idx}
             item={item}
             id={item.id ?? idx.toString()}
+            canReorder={toggleEdit ? canEdit : true}
           />
         )
       }
 
-      return <FlatListItem key={`${idx}-${item.id}`} index={idx} item={item} />
+      return (
+        <FlatListItem
+          key={`${idx}-${item.id}`}
+          index={idx}
+          item={item}
+          canEdit={toggleEdit ? canEdit : true}
+        />
+      )
     })
   }
 
@@ -318,7 +337,7 @@ export default function FlatList({
 
     return (
       <List {...listProps} sx={sx}>
-        {(headerNote || headerAction) && (
+        {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
             {headerNote && (
               <ListItemText
@@ -328,6 +347,12 @@ export default function FlatList({
                 }
                 className={classes.listItemText}
               />
+            )}
+            <div style={{ flex: 1 }} />
+            {toggleEdit && (
+              <IconButton onClick={() => setCanEdit(!canEdit)}>
+                <EditIcon />
+              </IconButton>
             )}
             {headerAction && (
               <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>

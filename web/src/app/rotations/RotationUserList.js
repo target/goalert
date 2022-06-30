@@ -140,9 +140,8 @@ function RotationUserList({ rotationID }) {
         <FlatList
           data-cy='users'
           emptyMessage='No users currently assigned to this rotation'
-          headerNote={
-            users.length ? "Click and drag on a user's name to re-order" : ''
-          }
+          headerNote={users.length ? 'Enable editing to configure users' : ''}
+          toggleEdit
           items={users.map((u, index) => ({
             title: u.name,
             id: String(listIDs[index]),
