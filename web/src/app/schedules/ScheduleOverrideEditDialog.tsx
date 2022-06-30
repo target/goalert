@@ -81,7 +81,6 @@ export default function ScheduleOverrideEditDialog(props: {
           props.onClose()
           return
         }
-
         updateOverride(
           {
             input: {
