@@ -93,6 +93,8 @@ export default function DebugMessagesControls(props: Props): JSX.Element {
                 start: '',
                 end: '',
               })
+              setFilterByUser('')
+              setFilterByService('')
               props.resetCount()
             }}
             endIcon={<ResetIcon />}
