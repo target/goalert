@@ -204,21 +204,36 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows RowSet) {
 		}
 	}
 
-	for tableName, p := range pendingByTable {
-		if len(p.inserts) > 0 {
-			b.Queue(insertRowsQuery(c.table(tableName)), p.inserts)
+	// insert, then update, then reverse delete
+	for _, t := range c.tables {
+		p := pendingByTable[t.Name()]
+		if p == nil || len(p.inserts) == 0 {
+			continue
 		}
-		if len(p.updates) > 0 {
-			b.Queue(updateQuery(c.table(tableName)), p.updates)
+		b.Queue(insertRowsQuery(t), p.inserts)
+	}
+
+	for _, t := range c.tables {
+		p := pendingByTable[t.Name()]
+		if p == nil || len(p.updates) == 0 {
+			continue
 		}
-		if len(p.deletes) > 0 {
-			arg, cast := castIDs(c.table(tableName), p.deletes)
-			b.Queue(fmt.Sprintf(`delete from %s where id%s = any($1)`, sqlutil.QuoteID(tableName), cast), arg)
+		b.Queue(updateRowsQuery(t), p.updates)
+	}
+
+	for i := range c.tables {
+		// reverse-order tables
+		t := c.tables[len(c.tables)-i-1]
+		p := pendingByTable[t.Name()]
+		if p == nil || len(p.deletes) == 0 {
+			continue
 		}
+		arg, cast := castIDs(t, p.deletes)
+		b.Queue(fmt.Sprintf(`delete from %s where id%s = any($1)`, sqlutil.QuoteID(t.Name()), cast), arg)
 	}
 }
 
-func updateQuery(t swoinfo.Table) string {
+func updateRowsQuery(t swoinfo.Table) string {
 	var s strings.Builder
 	fmt.Fprintf(&s, "update %s dst\n", sqlutil.QuoteID(t.Name()))
 	fmt.Fprintf(&s, "set ")
