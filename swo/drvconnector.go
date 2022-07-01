@@ -3,18 +3,16 @@ package swo
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"sync"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
-	"github.com/target/goalert/swo/swogrp"
 )
 
 type Connector struct {
 	dbcOld, dbcNew driver.Connector
 
 	isDone bool
-	id     int
 	mx     sync.Mutex
 }
 
@@ -43,19 +41,30 @@ func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 		return nil, err
 	}
 
-	drv.id++
 	conn := c.(*stdlib.Conn)
+	var b pgx.Batch
+	b.Queue("select pg_advisory_lock_shared(4369)")
+	b.Queue("select current_state = 'use_next_db' FROM switchover_state")
 
-	err = SessionLock(ctx, conn)
-	if errors.Is(err, swogrp.ErrDone) {
+	res := conn.Conn().SendBatch(ctx, &b)
+	if _, err := res.Exec(); err != nil {
+		conn.Close()
+		return nil, err
+	}
+	defer res.Close()
+
+	var useNext bool
+	if err := res.QueryRow().Scan(&useNext); err != nil {
+		conn.Close()
+		return nil, err
+	}
+
+	if useNext {
+		conn.Close()
 		drv.mx.Lock()
 		drv.isDone = true
 		drv.mx.Unlock()
 		return drv.dbcNew.Connect(ctx)
-	}
-	if err != nil {
-		conn.Close()
-		return nil, err
 	}
 
 	return conn, nil

@@ -96,7 +96,7 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
-	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo
+	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres

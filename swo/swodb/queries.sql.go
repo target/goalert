@@ -24,79 +24,29 @@ func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64
 	return count, err
 }
 
-const changes = `-- name: Changes :many
-SELECT id,
-    table_name,
-    row_id
-FROM change_log
+const disableChangeLogTriggers = `-- name: DisableChangeLogTriggers :exec
+UPDATE switchover_state
+SET current_state = 'idle'
+WHERE current_state = 'in_progress'
 `
 
-func (q *Queries) Changes(ctx context.Context) ([]ChangeLog, error) {
-	rows, err := q.db.Query(ctx, changes)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ChangeLog
-	for rows.Next() {
-		var i ChangeLog
-		if err := rows.Scan(&i.ID, &i.TableName, &i.RowID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const currentSwitchoverState = `-- name: CurrentSwitchoverState :one
-SELECT current_state
-FROM switchover_state
-`
-
-func (q *Queries) CurrentSwitchoverState(ctx context.Context) (EnumSwitchoverState, error) {
-	row := q.db.QueryRow(ctx, currentSwitchoverState)
-	var current_state EnumSwitchoverState
-	err := row.Scan(&current_state)
-	return current_state, err
-}
-
-const currentSwitchoverStateNoWait = `-- name: CurrentSwitchoverStateNoWait :one
-SELECT current_state
-FROM switchover_state NOWAIT
-`
-
-func (q *Queries) CurrentSwitchoverStateNoWait(ctx context.Context) (EnumSwitchoverState, error) {
-	row := q.db.QueryRow(ctx, currentSwitchoverStateNoWait)
-	var current_state EnumSwitchoverState
-	err := row.Scan(&current_state)
-	return current_state, err
-}
-
-const currentTime = `-- name: CurrentTime :one
-SELECT now()::timestamptz
-`
-
-func (q *Queries) CurrentTime(ctx context.Context) (time.Time, error) {
-	row := q.db.QueryRow(ctx, currentTime)
-	var column_1 time.Time
-	err := row.Scan(&column_1)
-	return column_1, err
-}
-
-const deleteChanges = `-- name: DeleteChanges :exec
-DELETE FROM change_log
-WHERE id = ANY($1)
-`
-
-func (q *Queries) DeleteChanges(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteChanges, id)
+func (q *Queries) DisableChangeLogTriggers(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, disableChangeLogTriggers)
 	return err
 }
 
-const foreignKeys = `-- name: ForeignKeys :many
+const enableChangeLogTriggers = `-- name: EnableChangeLogTriggers :exec
+UPDATE switchover_state
+SET current_state = 'in_progress'
+WHERE current_state = 'idle'
+`
+
+func (q *Queries) EnableChangeLogTriggers(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, enableChangeLogTriggers)
+	return err
+}
+
+const foreignKeyRefs = `-- name: ForeignKeyRefs :many
 SELECT src.relname::text,
     dst.relname::text
 FROM pg_catalog.pg_constraint con
@@ -108,20 +58,20 @@ WHERE con.contype = 'f'
     AND NOT con.condeferrable
 `
 
-type ForeignKeysRow struct {
+type ForeignKeyRefsRow struct {
 	SrcRelname string
 	DstRelname string
 }
 
-func (q *Queries) ForeignKeys(ctx context.Context) ([]ForeignKeysRow, error) {
-	rows, err := q.db.Query(ctx, foreignKeys)
+func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, error) {
+	rows, err := q.db.Query(ctx, foreignKeyRefs)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ForeignKeysRow
+	var items []ForeignKeyRefsRow
 	for rows.Next() {
-		var i ForeignKeysRow
+		var i ForeignKeyRefsRow
 		if err := rows.Scan(&i.SrcRelname, &i.DstRelname); err != nil {
 			return nil, err
 		}
@@ -131,37 +81,6 @@ func (q *Queries) ForeignKeys(ctx context.Context) ([]ForeignKeysRow, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const globalSwitchoverExecLock = `-- name: GlobalSwitchoverExecLock :one
-SELECT pg_try_advisory_lock(4370)
-FROM switchover_state
-WHERE current_state != 'use_next_db'
-`
-
-func (q *Queries) GlobalSwitchoverExecLock(ctx context.Context) (bool, error) {
-	row := q.db.QueryRow(ctx, globalSwitchoverExecLock)
-	var pg_try_advisory_lock bool
-	err := row.Scan(&pg_try_advisory_lock)
-	return pg_try_advisory_lock, err
-}
-
-const globalSwitchoverSharedConnLock = `-- name: GlobalSwitchoverSharedConnLock :exec
-SELECT pg_advisory_lock_shared(4369)
-`
-
-func (q *Queries) GlobalSwitchoverSharedConnLock(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, globalSwitchoverSharedConnLock)
-	return err
-}
-
-const globalSwitchoverTxExclusiveConnLock = `-- name: GlobalSwitchoverTxExclusiveConnLock :exec
-SELECT pg_advisory_xact_lock(4369)
-`
-
-func (q *Queries) GlobalSwitchoverTxExclusiveConnLock(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, globalSwitchoverTxExclusiveConnLock)
-	return err
 }
 
 const lastLogID = `-- name: LastLogID :one
@@ -204,6 +123,17 @@ func (q *Queries) LogEvents(ctx context.Context, id int64) ([]SwitchoverLog, err
 		return nil, err
 	}
 	return items, nil
+}
+
+const now = `-- name: Now :one
+SELECT now()::timestamptz
+`
+
+func (q *Queries) Now(ctx context.Context) (time.Time, error) {
+	row := q.db.QueryRow(ctx, now)
+	var column_1 time.Time
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const sequenceNames = `-- name: SequenceNames :many
@@ -271,13 +201,4 @@ func (q *Queries) TableColumns(ctx context.Context) ([]InformationSchemaColumn, 
 		return nil, err
 	}
 	return items, nil
-}
-
-const unlockAll = `-- name: UnlockAll :exec
-SELECT pg_advisory_unlock_all()
-`
-
-func (q *Queries) UnlockAll(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, unlockAll)
-	return err
 }

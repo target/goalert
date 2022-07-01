@@ -1,11 +1,14 @@
 version: '2'
 sql:
   - schema:
-      - swo/pgtables.sql
-      - swo/changelog.sql
+      - swo/swoinfo/pgtables.sql
+      - swo/swosync/changelog.sql
       - migrate/migrations/20180816094955-switchover-state.sql
-      - migrate/migrations/20220405163538-switchover-mk2.sql
-    queries: [swo/queries.sql]
+      - migrate/migrations/20220628125954-switchover-mk2.sql
+    queries:
+      - swo/swosync/queries.sql
+      - swo/swoinfo/queries.sql
+      - swo/swomsg/queries.sql
     engine: postgresql
     gen:
       go:

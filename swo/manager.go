@@ -10,8 +10,10 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/swo/swogrp"
 	"github.com/target/goalert/swo/swomsg"
+	"github.com/target/goalert/swo/swosync"
 	"github.com/target/goalert/util/log"
 )
 
@@ -78,6 +80,17 @@ func NewManager(cfg Config) (*Manager, error) {
 	return m, nil
 }
 
+func (m *Manager) DoReset(ctx context.Context) error {
+	return m.withConnFromOld(ctx, func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, swosync.ConnLockQuery)
+		if err != nil {
+			return err
+		}
+
+		return swodb.New(conn).DisableChangeLogTriggers(ctx)
+	})
+}
+
 func (m *Manager) DoPause(ctx context.Context) error {
 	if m.pauseResume == nil {
 		return errors.New("not initialized")
@@ -128,12 +141,7 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
-		err := SwitchOverExecLock(ctx, conn)
-		if err != nil {
-			return err
-		}
 		defer conn.Close(context.Background())
-		defer UnlockConn(context.Background(), conn)
 
 		return runFunc(ctx, conn)
 	})
