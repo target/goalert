@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
@@ -39,8 +38,10 @@ const (
 	colorAcked   = "#867321"
 )
 
-var _ notification.Sender = &ChannelSender{}
-var _ notification.ReceiverSetter = &ChannelSender{}
+var (
+	_ notification.Sender         = &ChannelSender{}
+	_ notification.ReceiverSetter = &ChannelSender{}
+)
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
@@ -248,7 +249,7 @@ const (
 )
 
 // alertMsgOption will return the slack.MsgOption for an alert-type message (e.g., notification or status update).
-func alertMsgOption(ctx context.Context, callbackID string, id int, summary, details, logEntry string, state notification.AlertState) slack.MsgOption {
+func alertMsgOption(ctx context.Context, callbackID string, id int, summary, logEntry string, state notification.AlertState) slack.MsgOption {
 	blocks := []slack.Block{
 		slack.NewSectionBlock(
 			slack.NewTextBlockObject("mrkdwn", alertLink(ctx, id, summary), false, false), nil, nil),
@@ -276,19 +277,6 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		}
 	case notification.AlertStateClosed:
 		color = colorClosed
-		details = ""
-	}
-	if details != "" {
-		escaped, err := util.RenderSize(3000, details, func(s string) (string, error) {
-			return slackutilsx.EscapeMessage(s), nil
-		})
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("slack: render alert details: %w", err))
-			escaped = ""
-		}
-		blocks = append(blocks, slack.NewSectionBlock(
-			slack.NewTextBlockObject("mrkdwn", escaped, false, false), nil, nil),
-		)
 	}
 
 	blocks = append(blocks,
@@ -309,7 +297,6 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 }
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
-
 	cfg := config.FromContext(ctx)
 
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
@@ -328,12 +315,12 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, t.Details, "Unacknowledged", notification.AlertStateUnacknowledged))
+		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		isUpdate = true
 		opts = append(opts,
 			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
-			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.Details, t.LogEntry, t.NewAlertState),
+			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.LogEntry, t.NewAlertState),
 		)
 	case notification.AlertBundle:
 		opts = append(opts, slack.MsgOptionText(
@@ -381,7 +368,6 @@ func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) 
 
 		return nil
 	})
-
 	if err != nil {
 		return "", err
 	}
