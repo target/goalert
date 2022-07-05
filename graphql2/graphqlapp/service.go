@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
@@ -94,6 +95,11 @@ func (s *Service) EscalationPolicy(ctx context.Context, raw *service.Service) (*
 func (s *Service) IsFavorite(ctx context.Context, raw *service.Service) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }
+
+func (s *Service) MaintenanceExpiresAt(ctx context.Context, raw *service.Service) (*time.Time, error) {
+	return raw.MaintenanceExpiresAt(), nil
+}
+
 func (s *Service) OnCallUsers(ctx context.Context, raw *service.Service) ([]oncall.ServiceOnCallUser, error) {
 	return s.OnCallStore.OnCallUsersByService(ctx, raw.ID)
 }
@@ -213,7 +219,12 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 		svc.EscalationPolicyID = *input.EscalationPolicyID
 	}
 
-	err = a.ServiceStore.UpdateTx(ctx, tx, svc)
+	var maintExpAt time.Time
+	if input.MaintenanceExpiresAt != nil {
+		maintExpAt = *input.MaintenanceExpiresAt
+	}
+
+	err = a.ServiceStore.UpdateTx(ctx, tx, svc, maintExpAt)
 	if err != nil {
 		return false, err
 	}

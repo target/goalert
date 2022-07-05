@@ -1,6 +1,10 @@
 package service
 
-import "github.com/target/goalert/validation/validate"
+import (
+	"time"
+
+	"github.com/target/goalert/validation/validate"
+)
 
 type Service struct {
 	ID                 string `json:"id"`
@@ -8,8 +12,9 @@ type Service struct {
 	Description        string `json:"description"`
 	EscalationPolicyID string `json:"escalation_policy_id"`
 
-	epName         string
-	isUserFavorite bool
+	maintenanceExpiresAt time.Time
+	epName               string
+	isUserFavorite       bool
 }
 
 func (s Service) EscalationPolicyName() string {
@@ -19,6 +24,11 @@ func (s Service) EscalationPolicyName() string {
 // IsUserFavorite returns a boolean value based on if the service is a favorite of the user or not.
 func (s Service) IsUserFavorite() bool {
 	return s.isUserFavorite
+}
+
+// MaintenanceExpiresAt returns a time value based on if the service is in maintenance mode or not.
+func (s Service) MaintenanceExpiresAt() *time.Time {
+	return &s.maintenanceExpiresAt
 }
 
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case

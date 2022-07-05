@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -37,7 +39,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			s.description,
 			s.escalation_policy_id,
 			e.name,
-			fav	is distinct from null
+			fav	is distinct from null,
+			s.maintenance_expires_at
 		FROM
 			services s
 		JOIN escalation_policies e ON e.id = s.escalation_policy_id
@@ -62,7 +65,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			s.description,
 			s.escalation_policy_id,
 			e.name,
-			fav	is distinct from null
+			fav	is distinct from null,
+			s.maintenance_expires_at
 		FROM
 			services s
 		JOIN escalation_policies e ON e.id = s.escalation_policy_id
@@ -101,7 +105,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			e.id = s.escalation_policy_id
 	`)
 	s.insert = p(`INSERT INTO services (id,name,description,escalation_policy_id) VALUES ($1,$2,$3,$4)`)
-	s.update = p(`UPDATE services SET name = $2, description = $3, escalation_policy_id = $4 WHERE id = $1`)
+	s.update = p(`UPDATE services SET name = $2, description = $3, escalation_policy_id = $4, maintenance_expires_at = $5 WHERE id = $1`)
 	s.delete = p(`DELETE FROM services WHERE id = any($1)`)
 
 	return s, prep.Err
@@ -205,10 +209,10 @@ func wrap(tx *sql.Tx, s *sql.Stmt) *sql.Stmt {
 }
 
 // Update implements the ServiceStore interface.
-func (s *Store) Update(ctx context.Context, svc *Service) error {
-	return s.UpdateTx(ctx, nil, svc)
+func (s *Store) Update(ctx context.Context, svc *Service, maintExpAt time.Time) error {
+	return s.UpdateTx(ctx, nil, svc, maintExpAt)
 }
-func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
+func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service, maintExpAt time.Time) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -224,7 +228,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
 		return err
 	}
 
-	_, err = wrap(tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID)
+	_, err = wrap(tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID, maintExpAt)
 	return err
 }
 
@@ -268,7 +272,13 @@ func (s *Store) FindOne(ctx context.Context, id string) (*Service, error) {
 }
 
 func scanFrom(s *Service, f func(args ...interface{}) error) error {
-	return f(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.epName, &s.isUserFavorite)
+	var maintExpiresAt sql.NullTime
+	err := f(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.epName, &s.isUserFavorite, &maintExpiresAt)
+	if err != nil {
+		return err
+	}
+	s.maintenanceExpiresAt = maintExpiresAt.Time
+	return nil
 }
 
 func scanAllFrom(rows *sql.Rows) (services []Service, err error) {
