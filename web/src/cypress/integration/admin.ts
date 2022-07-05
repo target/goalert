@@ -208,14 +208,11 @@ function testAdmin(): void {
     })
 
     it('should view the logs list with one log', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').as('list')
+      cy.get('[aria-label="Message Logs List"]').children('div').as('list')
 
-      cy.get('@list').should('have.length', 1)
-      cy.get('body').should('contain.text', 'Showing 1 of 1 results')
-      cy.get('[data-cy="outgoing-message-list"]').should(
-        'contain.text',
-        'Displaying all results.',
-      )
+      cy.get('@list').should('have.length', 2) // all results card included
+      cy.get('@list').should('contain.text', 'Displaying all results') // all results card included
+      cy.get('body').should('contain.text', 'Total Count: 1')
 
       cy.get('@list')
         .eq(0)
@@ -238,7 +235,7 @@ function testAdmin(): void {
     })
 
     it('should select and view a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
       // todo: not asserting updatedAt, destination, or providerID
@@ -268,7 +265,7 @@ function testAdmin(): void {
     })
 
     it('should verify user link from a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
@@ -278,7 +275,7 @@ function testAdmin(): void {
     })
 
     it('should verify service link from a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')

@@ -15,7 +15,12 @@ export default function DebugMessagesList(props: Props): JSX.Element {
   const { debugMessages, selectedLog, onSelect, hasMore, onLoadMore } = props
 
   return (
-    <Grid container direction='column' spacing={2}>
+    <Grid
+      aria-label='Message Logs List'
+      container
+      direction='column'
+      spacing={2}
+    >
       {debugMessages.map((msg) => (
         <Grid key={msg.id} item xs={12}>
           <DebugMessageCard
