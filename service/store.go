@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/target/goalert/permission"
