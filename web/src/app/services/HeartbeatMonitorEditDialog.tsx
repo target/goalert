@@ -27,20 +27,20 @@ export default function HeartbeatMonitorEditDialog(props: {
 }): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data: qData, error: qError, fetching: qFetching }] = useQuery({
     query,
     variables: { id: props.monitorID },
   })
-  const [updateStatus, update] = useMutation(mutation)
+  const [{ error, fetching }, update] = useMutation(mutation)
 
-  if (fetching && !data) return <Spinner />
-  if (error) return <GenericError error={error.message} />
+  if (qFetching && !qData) return <Spinner />
+  if (qError) return <GenericError error={qError.message} />
 
   return (
     <FormDialog
       maxWidth='sm'
       title='Edit Heartbeat Monitor'
-      loading={updateStatus.fetching}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       onSubmit={() =>
@@ -55,11 +55,11 @@ export default function HeartbeatMonitorEditDialog(props: {
             ...f,
             field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
           }))}
-          disabled={updateStatus.fetching}
+          disabled={fetching}
           value={
             value || {
-              name: data.heartbeatMonitor.name,
-              timeoutMinutes: data.heartbeatMonitor.timeoutMinutes,
+              name: qData.heartbeatMonitor.name,
+              timeoutMinutes: qData.heartbeatMonitor.timeoutMinutes,
             }
           }
           onChange={(value) => setValue(value)}
