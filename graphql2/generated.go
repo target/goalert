@@ -431,16 +431,17 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
-		Description        func(childComplexity int) int
-		EscalationPolicy   func(childComplexity int) int
-		EscalationPolicyID func(childComplexity int) int
-		HeartbeatMonitors  func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		IntegrationKeys    func(childComplexity int) int
-		IsFavorite         func(childComplexity int) int
-		Labels             func(childComplexity int) int
-		Name               func(childComplexity int) int
-		OnCallUsers        func(childComplexity int) int
+		Description          func(childComplexity int) int
+		EscalationPolicy     func(childComplexity int) int
+		EscalationPolicyID   func(childComplexity int) int
+		HeartbeatMonitors    func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		IntegrationKeys      func(childComplexity int) int
+		IsFavorite           func(childComplexity int) int
+		Labels               func(childComplexity int) int
+		MaintenanceExpiresAt func(childComplexity int) int
+		Name                 func(childComplexity int) int
+		OnCallUsers          func(childComplexity int) int
 	}
 
 	ServiceConnection struct {
@@ -723,6 +724,7 @@ type ScheduleRuleResolver interface {
 type ServiceResolver interface {
 	EscalationPolicy(ctx context.Context, obj *service.Service) (*escalation.Policy, error)
 	IsFavorite(ctx context.Context, obj *service.Service) (bool, error)
+	MaintenanceExpiresAt(ctx context.Context, obj *service.Service) (*time.Time, error)
 	OnCallUsers(ctx context.Context, obj *service.Service) ([]oncall.ServiceOnCallUser, error)
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
@@ -2825,6 +2827,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Labels(childComplexity), true
+
+	case "Service.maintenanceExpiresAt":
+		if e.complexity.Service.MaintenanceExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.Service.MaintenanceExpiresAt(childComplexity), true
 
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
@@ -5107,6 +5116,8 @@ func (ec *executionContext) fieldContext_Alert_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_escalationPolicy(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_Service_isFavorite(ctx, field)
+			case "maintenanceExpiresAt":
+				return ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
 			case "onCallUsers":
 				return ec.fieldContext_Service_onCallUsers(ctx, field)
 			case "integrationKeys":
@@ -10243,6 +10254,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 				return ec.fieldContext_Service_escalationPolicy(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_Service_isFavorite(ctx, field)
+			case "maintenanceExpiresAt":
+				return ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
 			case "onCallUsers":
 				return ec.fieldContext_Service_onCallUsers(ctx, field)
 			case "integrationKeys":
@@ -13210,6 +13223,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_escalationPolicy(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_Service_isFavorite(ctx, field)
+			case "maintenanceExpiresAt":
+				return ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
 			case "onCallUsers":
 				return ec.fieldContext_Service_onCallUsers(ctx, field)
 			case "integrationKeys":
@@ -17056,6 +17071,47 @@ func (ec *executionContext) fieldContext_Service_isFavorite(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_maintenanceExpiresAt(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().MaintenanceExpiresAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_maintenanceExpiresAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Service_onCallUsers(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_onCallUsers(ctx, field)
 	if err != nil {
@@ -17325,6 +17381,8 @@ func (ec *executionContext) fieldContext_ServiceConnection_nodes(ctx context.Con
 				return ec.fieldContext_Service_escalationPolicy(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_Service_isFavorite(ctx, field)
+			case "maintenanceExpiresAt":
+				return ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
 			case "onCallUsers":
 				return ec.fieldContext_Service_onCallUsers(ctx, field)
 			case "integrationKeys":
@@ -25244,6 +25302,14 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "maintenanceExpiresAt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maintenanceExpiresAt"))
+			it.MaintenanceExpiresAt, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -29135,6 +29201,23 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "maintenanceExpiresAt":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_maintenanceExpiresAt(ctx, field, obj)
 				return res
 			}
 

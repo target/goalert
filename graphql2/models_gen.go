@@ -504,10 +504,11 @@ type UpdateScheduleInput struct {
 }
 
 type UpdateServiceInput struct {
-	ID                 string  `json:"id"`
-	Name               *string `json:"name"`
-	Description        *string `json:"description"`
-	EscalationPolicyID *string `json:"escalationPolicyID"`
+	ID                   string     `json:"id"`
+	Name                 *string    `json:"name"`
+	Description          *string    `json:"description"`
+	EscalationPolicyID   *string    `json:"escalationPolicyID"`
+	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {
