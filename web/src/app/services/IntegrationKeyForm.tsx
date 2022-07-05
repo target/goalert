@@ -5,8 +5,9 @@ import MenuItem from '@mui/material/MenuItem'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
 import { IntegrationKeyType } from '../../schema'
+import { FieldError } from '../util/errutil'
 
-interface Value {
+export interface Value {
   name: string
   type: IntegrationKeyType
 }
@@ -14,12 +15,12 @@ interface Value {
 interface IntegrationKeyFormProps {
   value: Value
 
-  errors: {
-    field: 'name' | 'type'
-    message: string
-  }[]
+  errors: FieldError[]
 
   onChange: (val: Value) => void
+
+  // can be deleted when FormContainer.js is converted to ts
+  disabled: boolean
 }
 
 export default function IntegrationKeyForm(
