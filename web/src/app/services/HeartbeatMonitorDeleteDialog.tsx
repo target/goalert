@@ -40,7 +40,7 @@ export default function HeartbeatMonitorDeleteDialog(props: {
       confirm
       subTitle={`This will delete the heartbeat monitor: ${data.heartbeatMonitor.name}`}
       loading={deleteHeartbeatStatus.fetching}
-      errors={nonFieldErrors(error)}
+      errors={nonFieldErrors(deleteHeartbeatStatus.error)}
       onClose={props.onClose}
       onSubmit={() =>
         deleteHeartbeat(
