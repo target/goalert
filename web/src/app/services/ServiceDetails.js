@@ -2,11 +2,16 @@ import React, { useState } from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
-import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import Select from '@mui/material/Select'
 import { Edit, Delete } from '@mui/icons-material'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Grow from '@mui/material/Grow'
+import Paper from '@mui/material/Paper'
+import Popper from '@mui/material/Popper'
+import MenuList from '@mui/material/MenuList'
 
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
@@ -80,13 +85,39 @@ const alertStatus = (a) => {
   return 'warn'
 }
 
+const options = ['1 hour', '2 hours', '4 hours']
+
 export default function ServiceDetails({ serviceID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [open, setOpen] = useState(false)
+  const anchorRef = React.useRef(null)
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const { data, loading, error } = useQuery(query, {
     variables: { serviceID },
     returnPartialData: true,
   })
+
+  const handleClick = () => {
+    console.info(`You clicked ${options[selectedIndex]}`)
+  }
+
+  const handleMenuItemClick = (event, index) => {
+    setSelectedIndex(index)
+    setOpen(false)
+  }
+
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen)
+  }
+
+  const handleClose = (event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+      return
+    }
+
+    setOpen(false)
+  }
 
   const [setMaintenanceMode, setMaintenanceModeStatus] = useMutation(mutation)
 
@@ -120,29 +151,60 @@ export default function ServiceDetails({ serviceID }) {
         details={data.service.description}
         pageContent={<ServiceOnCallList serviceID={serviceID} />}
         primaryActions={[
-          <FormControl key='maintenance-expires-at' fullWidth>
-            <InputLabel id='maintenance-expires-at-label'>
-              Maintenance Mode
-            </InputLabel>
-            <Select
-              labelId='maintenance-expires-at-label'
-              id='maintenance-expires-at'
-              label={mm ? 'Extend Maintenance Mode' : 'Start Maintenance Mode'}
-              onChange={(val) => {
-                const expireDate = DateTime.now().plus({ hours: val }).toISO()
-                setMaintenanceMode({
-                  variables: {
-                    id: serviceID,
-                    maintenanceExpiresAt: expireDate,
-                  },
-                })
-              }}
+          <div key='maint-mode-key'>
+            <ButtonGroup
+              variant='contained'
+              ref={anchorRef}
+              aria-label='split button'
             >
-              <MenuItem value={1}>1 hour from now</MenuItem>
-              <MenuItem value={2}>2 hours from now</MenuItem>
-              <MenuItem value={4}>4 hours from now</MenuItem>
-            </Select>
-          </FormControl>,
+              <Button onClick={handleClick}>Maintenance Mode</Button>
+              <Button
+                size='small'
+                aria-controls={open ? 'split-button-menu' : undefined}
+                aria-expanded={open ? 'true' : undefined}
+                aria-label='select merge strategy'
+                aria-haspopup='menu'
+                onClick={handleToggle}
+              >
+                <ArrowDropDownIcon />
+              </Button>
+            </ButtonGroup>
+            <Popper
+              open={open}
+              anchorEl={anchorRef.current}
+              role={undefined}
+              transition
+              disablePortal
+              placement='bottom'
+            >
+              {({ TransitionProps }) => (
+                <Grow
+                  {...TransitionProps}
+                  style={{
+                    transformOrigin: 'center top',
+                  }}
+                >
+                  <Paper>
+                    <ClickAwayListener onClickAway={handleClose}>
+                      <MenuList id='split-button-menu' autoFocusItem>
+                        {options.map((option, index) => (
+                          <MenuItem
+                            key={option}
+                            selected={index === selectedIndex}
+                            onClick={(event) =>
+                              handleMenuItemClick(event, index)
+                            }
+                          >
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </MenuList>
+                    </ClickAwayListener>
+                  </Paper>
+                </Grow>
+              )}
+            </Popper>
+          </div>,
         ]}
         secondaryActions={[
           {
