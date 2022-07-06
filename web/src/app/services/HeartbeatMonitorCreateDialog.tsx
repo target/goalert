@@ -18,14 +18,14 @@ export default function HeartbeatMonitorCreateDialog(props: {
   onClose: () => void
 }): JSX.Element {
   const [value, setValue] = useState<Value>({ name: '', timeoutMinutes: 15 })
-  const [{ error, fetching }, createHeartbeat] = useMutation(createMutation)
+  const [createHeartbeatStatus, createHeartbeat] = useMutation(createMutation)
 
   return (
     <FormDialog
       maxWidth='sm'
       title='Create New Heartbeat Monitor'
-      loading={fetching}
-      errors={nonFieldErrors(error)}
+      loading={createHeartbeatStatus.fetching}
+      errors={nonFieldErrors(createHeartbeatStatus.error)}
       onClose={props.onClose}
       onSubmit={() =>
         createHeartbeat(
@@ -37,19 +37,19 @@ export default function HeartbeatMonitorCreateDialog(props: {
             },
           },
           { additionalTypenames: ['HeartbeatMonitor'] },
-        )
-          .then((result) => {
-            console.log(result)
-          })
-          .then(props.onClose)
+        ).then((result) => {
+          if (!result.error) {
+            props.onClose()
+          }
+        })
       }
       form={
         <HeartbeatMonitorForm
-          errors={fieldErrors(error).map((f) => ({
+          errors={fieldErrors(createHeartbeatStatus.error).map((f) => ({
             ...f,
             field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
           }))}
-          disabled={fetching}
+          disabled={createHeartbeatStatus.fetching}
           value={value}
           onChange={(value: Value) => setValue(value)}
         />
