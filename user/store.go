@@ -38,6 +38,7 @@ type Store struct {
 	deleteRotationPart *sql.Stmt
 	rotActiveIndex     *sql.Stmt
 	rotSetActive       *sql.Stmt
+	lockRotTables      *sql.Stmt
 
 	findOneForUpdate *sql.Stmt
 
@@ -89,6 +90,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		rotActiveIndex: p.P(`SELECT position FROM rotation_state WHERE rotation_id = $1 FOR UPDATE`),
 		rotSetActive:   p.P(`UPDATE rotation_state SET position = $2, rotation_participant_id = $3 WHERE rotation_id = $1`),
+		lockRotTables:  p.P(`LOCK TABLE rotation_participants, rotation_state IN EXCLUSIVE MODE`),
 
 		setUserRole: p.P(`UPDATE users SET role = $2 WHERE id = $1`),
 		findAuthSubjects: p.P(`
@@ -408,6 +410,11 @@ func (s *Store) retryDeleteTx(ctx context.Context, tx *sql.Tx, id string) error 
 }
 
 func (s *Store) _deleteTx(ctx context.Context, tx *sql.Tx, id string) error {
+	_, err := tx.StmtContext(ctx, s.lockRotTables).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	// cleanup rotations first
 	rows, err := tx.StmtContext(ctx, s.userRotations).QueryContext(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -488,6 +495,9 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 				return fmt.Errorf("update participant %d to user '%s': %w", curIndex, p.UserID, err)
 			}
 		}
+	}
+	if activeIndex > curIndex {
+		activeIndex = 0
 	}
 
 	// delete in reverse order from the end
