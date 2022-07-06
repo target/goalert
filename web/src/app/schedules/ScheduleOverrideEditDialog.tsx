@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
@@ -51,6 +51,11 @@ export default function ScheduleOverrideEditDialog(props: {
 
   const [updateOverrideStatus, updateOverride] = useMutation(mutation)
 
+  useEffect(() => {
+    if (!updateOverrideStatus.data) return
+    props.onClose()
+  }, [updateOverrideStatus.data])
+
   if (error) {
     return <GenericError error={error.message} />
   }
@@ -75,7 +80,7 @@ export default function ScheduleOverrideEditDialog(props: {
     <FormDialog
       onClose={props.onClose}
       title='Edit Schedule Override'
-      errors={nonFieldErrors(error)}
+      errors={nonFieldErrors(updateOverrideStatus.error)}
       onSubmit={() => {
         if (value === null) {
           props.onClose()
@@ -89,7 +94,7 @@ export default function ScheduleOverrideEditDialog(props: {
             },
           },
           { additionalTypenames: ['UserOverride'] },
-        ).then(props.onClose)
+        )
       }}
       form={
         <ScheduleOverrideForm
@@ -97,7 +102,7 @@ export default function ScheduleOverrideEditDialog(props: {
           remove={Boolean(data.userOverride.removeUser)}
           scheduleID={data.userOverride.target.id}
           disabled={updateOverrideStatus.fetching}
-          errors={fieldErrors(error)}
+          errors={fieldErrors(updateOverrideStatus.error)}
           value={getValue(data.userOverride)}
           onChange={(value) => setValue(value)}
         />
