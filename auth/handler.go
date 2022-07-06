@@ -213,7 +213,10 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 	ClearCookie(w, req, CookieName)
 	var sessionIDs []string
 	for _, c := range req.Cookies() {
-		if c.Name != CookieName && c.Name != v1CookieName {
+		switch c.Name {
+		case CookieName, v1CookieName:
+		default:
+			// only interested in cookies with one of the names above
 			continue
 		}
 
@@ -655,7 +658,10 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 		}
 
 		for _, c := range req.Cookies() {
-			if c.Name != CookieName && c.Name != v1CookieName {
+			switch c.Name {
+			case CookieName, v1CookieName:
+			default:
+				// only interested in cookies with one of the names above
 				continue
 			}
 
