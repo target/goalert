@@ -14,7 +14,7 @@ import {
   BoolInput,
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
-import { Alert, AlertTitle } from '@mui/material'
+import { Alert } from '@mui/material'
 
 const components = {
   string: StringInput,
@@ -91,9 +91,12 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
                 secondary={
                   f.deprecated ? (
                     <React.Fragment>
-                      <Alert severity='warning' sx={{ pb: 1 }}>
-                        <AlertTitle>Deprecated</AlertTitle>
-                        {f.deprecated}
+                      <Alert
+                        severity='warning'
+                        sx={{ pb: 1 }}
+                        style={{ margin: '1em' }}
+                      >
+                        Deprecated: {f.deprecated}
                       </Alert>
                       {f.description}
                     </React.Fragment>
