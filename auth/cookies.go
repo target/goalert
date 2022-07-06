@@ -21,9 +21,6 @@ func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, 
 	if err != nil {
 		panic(err)
 	}
-	if u.Path == "/" {
-		u.Path = "/"
-	}
 
 	cookiePath := "/"
 	secure := req.URL.Scheme == "https"
