@@ -60,7 +60,7 @@ export default function HeartbeatMonitorEditDialog(props: {
             ...f,
             field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
           }))}
-          disabled={fetching}
+          disabled={updateStatus.fetching}
           value={
             value || {
               name: data.heartbeatMonitor.name,
