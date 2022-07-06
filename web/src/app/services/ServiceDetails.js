@@ -1,7 +1,11 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
 import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage from '../details/DetailsPage'
@@ -13,6 +17,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
+import { DateTime } from 'luxon'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -24,6 +29,7 @@ const query = gql`
   query serviceDetailsQuery($serviceID: ID!) {
     service(id: $serviceID) {
       ...ServiceTitleQuery
+      maintenanceExpiresAt
       ep: escalationPolicy {
         id
         name
@@ -54,6 +60,12 @@ const query = gql`
   }
 `
 
+const mutation = gql`
+  mutation updateService($input: UpdateServiceInput!) {
+    updateService(input: $input)
+  }
+`
+
 const hbStatus = (h) => {
   if (!h || !h.length) return null
   if (h.every((m) => m.lastState === 'healthy')) return 'ok'
@@ -76,6 +88,8 @@ export default function ServiceDetails({ serviceID }) {
     returnPartialData: true,
   })
 
+  const [setMaintenanceMode, setMaintenanceModeStatus] = useMutation(mutation)
+
   if (loading && !_.get(data, 'service.id')) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
@@ -83,8 +97,11 @@ export default function ServiceDetails({ serviceID }) {
     return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
+  const mm = data.service.maintenanceExpiresAt // maintenance mode
+
   return (
     <React.Fragment>
+      Maintenance Expires At: {data.service.maintenanceExpiresAt}
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
@@ -102,6 +119,31 @@ export default function ServiceDetails({ serviceID }) {
         }
         details={data.service.description}
         pageContent={<ServiceOnCallList serviceID={serviceID} />}
+        primaryActions={[
+          <FormControl key='maintenance-expires-at' fullWidth>
+            <InputLabel id='maintenance-expires-at-label'>
+              Maintenance Mode
+            </InputLabel>
+            <Select
+              labelId='maintenance-expires-at-label'
+              id='maintenance-expires-at'
+              label={mm ? 'Extend Maintenance Mode' : 'Start Maintenance Mode'}
+              onChange={(val) => {
+                const expireDate = DateTime.now().plus({ hours: val }).toISO()
+                setMaintenanceMode({
+                  variables: {
+                    id: serviceID,
+                    maintenanceExpiresAt: expireDate,
+                  },
+                })
+              }}
+            >
+              <MenuItem value={1}>1 hour from now</MenuItem>
+              <MenuItem value={2}>2 hours from now</MenuItem>
+              <MenuItem value={4}>4 hours from now</MenuItem>
+            </Select>
+          </FormControl>,
+        ]}
         secondaryActions={[
           {
             label: 'Edit',
