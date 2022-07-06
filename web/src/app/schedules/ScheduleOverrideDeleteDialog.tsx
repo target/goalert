@@ -77,7 +77,7 @@ export default function ScheduleOverrideDeleteDialog(props: {
         addUser ? addUser.name : removeUser.name
       }`}
       loading={deleteOverrideStatus.fetching}
-      errors={nonFieldErrors(error)}
+      errors={nonFieldErrors(deleteOverrideStatus.error)}
       onClose={props.onClose}
       onSubmit={() =>
         deleteOverride(
