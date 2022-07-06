@@ -496,6 +496,9 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 			}
 		}
 	}
+	if activeIndex > curIndex {
+		activeIndex = 0
+	}
 
 	// delete in reverse order from the end
 	deletePart := tx.StmtContext(ctx, s.deleteRotationPart)
