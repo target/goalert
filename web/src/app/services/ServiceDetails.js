@@ -14,7 +14,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
-import ServiceMaintenanceMode from './ServiceMaintenanceMode'
+import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
 import { Button } from '@mui/material'
 
 const query = gql`
@@ -81,6 +81,7 @@ const alertStatus = (a) => {
 export default function ServiceDetails({ serviceID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [showMaintMode, setShowMaintMode] = useState(false)
   const { data, loading, error } = useQuery(query, {
     variables: { serviceID },
     returnPartialData: true,
@@ -150,11 +151,14 @@ export default function ServiceDetails({ serviceID }) {
         details={data.service.description}
         pageContent={<ServiceOnCallList serviceID={serviceID} />}
         primaryActions={[
-          <ServiceMaintenanceMode
-            key='maintenance-mode'
-            serviceID={serviceID}
-            expiresAt={data.service.maintenanceExpiresAt}
-          />,
+          <Button
+            color='primary'
+            variant='contained'
+            key='maintence-mode'
+            onClick={() => setShowMaintMode(true)}
+          >
+            Set Maintenance Mode
+          </Button>,
         ]}
         secondaryActions={[
           {
@@ -213,6 +217,13 @@ export default function ServiceDetails({ serviceID }) {
         <ServiceDeleteDialog
           onClose={() => setShowDelete(false)}
           serviceID={serviceID}
+        />
+      )}
+      {showMaintMode && (
+        <ServiceMaintenanceModeDialog
+          onClose={() => setShowMaintMode(false)}
+          serviceID={serviceID}
+          expiresAt={data.service.maintenanceExpiresAt}
         />
       )}
     </React.Fragment>
