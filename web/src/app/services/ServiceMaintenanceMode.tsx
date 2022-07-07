@@ -3,10 +3,7 @@ import { gql, useMutation } from '@apollo/client'
 import {
   ButtonGroup,
   Button,
-  Popper,
-  Grow,
-  Paper,
-  ClickAwayListener,
+  Popover,
   MenuList,
   MenuItem,
   Tooltip,
@@ -35,24 +32,25 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
   const anchorRef = useRef<HTMLDivElement>(null)
   const [updateService] = useMutation(mutation)
 
-  function handleStartMaintenance(): void {
-    let expiresAt
-    switch (selectedIndex) {
+  function calcExp(index: number = selectedIndex): string {
+    switch (index) {
       case 0:
-        expiresAt = DateTime.now().plus({ hours: 1 })
-        break
+        return DateTime.now().plus({ hours: 1 }).toISO()
       case 1:
-        expiresAt = DateTime.now().plus({ hours: 2 })
-        break
+        return DateTime.now().plus({ hours: 2 }).toISO()
       case 2:
-        expiresAt = DateTime.now().plus({ hours: 4 })
+        return DateTime.now().plus({ hours: 4 }).toISO()
+      default:
+        return ''
     }
+  }
 
+  function handleStartMaintenance(): void {
     updateService({
       variables: {
         input: {
           id: p.serviceID,
-          maintenanceExpiresAt: expiresAt,
+          maintenanceExpiresAt: calcExp(selectedIndex),
         },
       },
     })
@@ -66,8 +64,8 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
     setOpen(false)
   }
 
-  function handleToggle(): void {
-    setOpen((prevOpen) => !prevOpen)
+  function handleOpen(): void {
+    setOpen(true)
   }
 
   function handleClose(): void {
@@ -93,7 +91,7 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
           aria-expanded={open ? 'true' : undefined}
           aria-label='select merge strategy'
           aria-haspopup='menu'
-          onClick={handleToggle}
+          onClick={handleOpen}
         >
           <ArrowDropDown />
         </Button>
@@ -103,46 +101,46 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
           <Typography variant='body2'>
             Pause all outgoing notifications and escalations for{' '}
             {options[selectedIndex]}. Alerts may still be created and will
-            continue as normal after maintenance mode expires.
+            continue as normal after maintenance mode ends.
           </Typography>
         }
         sx={{ pl: 1 }}
       >
         <Info color='secondary' />
       </Tooltip>
-      <Popper
-        open={open}
+      <Popover
         anchorEl={anchorRef.current}
-        role={undefined}
-        transition
-        disablePortal
-        placement='bottom'
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
       >
-        {({ TransitionProps }) => (
-          <Grow
-            {...TransitionProps}
-            style={{
-              transformOrigin: 'center top',
-            }}
-          >
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList id='split-button-menu' autoFocusItem>
-                  {options.map((option, index) => (
-                    <MenuItem
-                      key={option}
-                      selected={index === selectedIndex}
-                      onClick={(event) => handleMenuItemClick(event, index)}
-                    >
-                      {option}
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
+        <MenuList
+          id='split-button-menu'
+          autoFocusItem
+          sx={{ width: anchorRef.current?.offsetWidth }}
+        >
+          {options.map((option, index) => (
+            <MenuItem
+              key={option}
+              selected={index === selectedIndex}
+              onClick={(event) => handleMenuItemClick(event, index)}
+              sx={{ display: 'block', lineHeight: 1 }}
+            >
+              <Typography variant='body2'>Ends in {option}</Typography>
+              <Typography variant='caption' color='textSecondary'>
+                At {DateTime.fromISO(calcExp(index)).toFormat('t ZZZZ')}
+              </Typography>
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Popover>
     </div>
   )
 }
