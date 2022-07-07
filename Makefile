@@ -21,6 +21,12 @@ export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
+PROD_CY_PROC = Procfile.cypress.prod
+
+ifeq ($(CI), 1)
+PROD_CY_PROC = Procfile.cypress.ci
+endif
+
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
@@ -66,7 +72,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite bin/pgmocktime node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
@@ -74,15 +80,15 @@ cy-wide: cypress
 cy-mobile: cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-mobile-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f Procfile.cypress.prod
+	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
@@ -160,9 +166,16 @@ node_modules/.yarn-integrity: yarn.lock Makefile
 node_modules: yarn.lock node_modules/.yarn-integrity
 	touch -c $@
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
+web/src/build/static/explore.js: web/src/build/static
+
+web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
 	rm -rf web/src/build/static
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web webpack --config webpack.prod.config.js
+	mkdir -p web/src/build/static
+	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
+	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
+
+web/src/build/static/app.js: web/src/build/static
+	
 
 notification/desttype_string.go: notification/desttype.go
 	go generate ./notification

@@ -15,8 +15,8 @@ import toTitleCase from '../../util/toTitleCase'
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
-    marginTop: theme.spacing(0.5),
-    marginBottom: theme.spacing(0.5),
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
     cursor: 'pointer',
   },
   chip: {

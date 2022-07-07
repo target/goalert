@@ -10,11 +10,19 @@ import (
 func (app *App) LogBackgroundContext() context.Context { return app.cfg.Logger.BackgroundContext() }
 
 func (app *App) Pause(ctx context.Context) error {
-	return app.mgr.Pause(log.WithLogger(ctx, app.cfg.Logger))
+	ctx = log.WithLogger(ctx, app.cfg.Logger)
+
+	err := app.mgr.Pause(ctx)
+	if err != nil {
+		return err
+	}
+	app.db.SetMaxIdleConns(0)
+	return nil
 }
 
-func (app *App) Resume(ctx context.Context) error {
-	return app.mgr.Resume(log.WithLogger(ctx, app.cfg.Logger))
+func (app *App) Resume() {
+	app.db.SetMaxIdleConns(app.cfg.DBMaxIdle)
+	app.mgr.Resume(app.LogBackgroundContext())
 }
 
 func (app *App) _pause(ctx context.Context) error {

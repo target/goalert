@@ -14,7 +14,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
-	"go.opencensus.io/trace"
 )
 
 const maxBatch = 500
@@ -497,19 +496,13 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	trace.FromContext(ctx).Annotate(
-		[]trace.Attribute{
-			trace.StringAttribute("service.id", n.ServiceID),
-			trace.Int64Attribute("alert.id", int64(n.ID)),
-		},
-		"Alert created.",
-	)
 	ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 	log.Logf(ctx, "Alert created.")
 	metricCreatedTotal.Inc()
 
 	return n, nil
 }
+
 func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
 	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
@@ -641,13 +634,6 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, nil
 	}
 	if isNew {
-		trace.FromContext(ctx).Annotate(
-			[]trace.Attribute{
-				trace.StringAttribute("service.id", n.ServiceID),
-				trace.Int64Attribute("alert.id", int64(n.ID)),
-			},
-			"Alert created.",
-		)
 		ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 		log.Logf(ctx, "Alert created.")
 		metricCreatedTotal.Inc()
@@ -823,7 +809,7 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	list := make([]State, 0, len(alertIDs))
 	for rows.Next() {
 		var s State
-		err = rows.Scan(&s.AlertID, &t, &s.RepeatCount, &s.StepNumber)
+		err = rows.Scan(&s.ID, &t, &s.RepeatCount, &s.StepNumber)
 		if t.Valid {
 			s.LastEscalation = t.Time
 		}

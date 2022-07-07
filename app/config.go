@@ -44,22 +44,8 @@ type Config struct {
 	DBURL     string
 	DBURLNext string
 
-	JaegerEndpoint      string
-	JaegerAgentEndpoint string
-
-	StackdriverProjectID string
-
-	TracingClusterName   string
-	TracingPodNamespace  string
-	TracingPodName       string
-	TracingContainerName string
-	TracingNodeName      string
-
 	KubernetesCooldown time.Duration
 	StatusAddr         string
-
-	LogTraces        bool
-	TraceProbability float64
 
 	EncryptionKeys keyring.Keys
 
@@ -67,7 +53,7 @@ type Config struct {
 
 	StubNotifiers bool
 
-	UIURL string
+	UIDir string
 
 	// InitialConfig will be pushed into the config store
 	// if specified before the engine is started.

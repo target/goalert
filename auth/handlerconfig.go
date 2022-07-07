@@ -12,6 +12,6 @@ type HandlerConfig struct {
 	UserStore      *user.Store
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
-	IntKeyStore    integrationkey.Store
+	IntKeyStore    *integrationkey.Store
 	CalSubStore    *calsub.Store
 }

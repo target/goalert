@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import users from '../fixtures/users.json'
 const c = new Chance()
 
 const keys = [
@@ -23,16 +24,10 @@ function testWizard(): void {
 
     // used for setting users on regular and fts rotations
     const setUsers = (name: string): void => {
-      cy.fixture('users').then((users) => {
-        cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
-        cy.get(`input[name="${name}"]`)
-          .parent()
-          .should('contain', users[0].name)
-        cy.get(`input[name="${name}"]`).selectByLabel(users[1].name)
-        cy.get(`input[name="${name}"]`)
-          .parent()
-          .should('contain', users[1].name)
-      })
+      cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
+      cy.get(`input[name="${name}"]`).parent().should('contain', users[0].name)
+      cy.get(`input[name="${name}"]`).selectByLabel(users[1].name)
+      cy.get(`input[name="${name}"]`).parent().should('contain', users[1].name)
     }
 
     // used for setting primary and secondary schedule fields

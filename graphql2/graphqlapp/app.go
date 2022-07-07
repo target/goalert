@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
@@ -46,34 +47,34 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"go.opencensus.io/trace"
 )
 
 type App struct {
-	DB             *sql.DB
-	AuthBasicStore *basic.Store
-	UserStore      *user.Store
-	CMStore        *contactmethod.Store
-	NRStore        notificationrule.Store
-	NCStore        *notificationchannel.Store
-	AlertStore     *alert.Store
-	AlertLogStore  *alertlog.Store
-	ServiceStore   service.Store
-	FavoriteStore  favorite.Store
-	PolicyStore    *escalation.Store
-	ScheduleStore  *schedule.Store
-	CalSubStore    *calsub.Store
-	RotationStore  rotation.Store
-	OnCallStore    oncall.Store
-	IntKeyStore    integrationkey.Store
-	LabelStore     label.Store
-	RuleStore      rule.Store
-	OverrideStore  override.Store
-	ConfigStore    *config.Store
-	LimitStore     *limit.Store
-	SlackStore     *slack.ChannelSender
-	HeartbeatStore *heartbeat.Store
-	NoticeStore    notice.Store
+	DB                *sql.DB
+	AuthBasicStore    *basic.Store
+	UserStore         *user.Store
+	CMStore           *contactmethod.Store
+	NRStore           *notificationrule.Store
+	NCStore           *notificationchannel.Store
+	AlertStore        *alert.Store
+	AlertMetricsStore *alertmetrics.Store
+	AlertLogStore     *alertlog.Store
+	ServiceStore      *service.Store
+	FavoriteStore     *favorite.Store
+	PolicyStore       *escalation.Store
+	ScheduleStore     *schedule.Store
+	CalSubStore       *calsub.Store
+	RotationStore     *rotation.Store
+	OnCallStore       *oncall.Store
+	IntKeyStore       *integrationkey.Store
+	LabelStore        *label.Store
+	RuleStore         *rule.Store
+	OverrideStore     *override.Store
+	ConfigStore       *config.Store
+	LimitStore        *limit.Store
+	SlackStore        *slack.ChannelSender
+	HeartbeatStore    *heartbeat.Store
+	NoticeStore       notice.Store
 
 	NotificationManager notification.Manager
 
@@ -85,32 +86,6 @@ type App struct {
 	TimeZoneStore *timezone.Store
 
 	FormatDestFunc func(context.Context, notification.DestType, string) string
-}
-
-func (a *App) PlayHandler(w http.ResponseWriter, req *http.Request) {
-	var data struct {
-		ApplicationName string
-		Version         string
-		PackageName     string
-	}
-
-	ctx := req.Context()
-
-	err := permission.LimitCheckAny(ctx)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-
-	cfg := config.FromContext(ctx)
-
-	data.ApplicationName = cfg.ApplicationName()
-	data.Version = playVersion
-	data.PackageName = playPackageName
-
-	err = playTmpl.Execute(w, data)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
 }
 
 type fieldErr struct {
@@ -130,6 +105,7 @@ func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver)
 
 	return a.Tracer.InterceptField(ctx, next)
 }
+
 func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	if !a.shouldTrace(ctx) {
 		return next(ctx)
@@ -180,12 +156,6 @@ func (a *App) Handler() http.Handler {
 		}()
 		fieldCtx := graphql.GetFieldContext(ctx)
 
-		ctx, sp := trace.StartSpan(ctx, "GQL."+fieldCtx.Object+"."+fieldCtx.Field.Name, trace.WithSpanKind(trace.SpanKindServer))
-		defer sp.End()
-		sp.AddAttributes(
-			trace.StringAttribute("graphql.object", fieldCtx.Object),
-			trace.StringAttribute("graphql.field.name", fieldCtx.Field.Name),
-		)
 		start := time.Now()
 		res, err = next(ctx)
 		errVal := "0"
@@ -197,11 +167,7 @@ func (a *App) Handler() http.Handler {
 				WithLabelValues(fmt.Sprintf("%s.%s", fieldCtx.Object, fieldCtx.Field.Name), errVal).
 				Observe(time.Since(start).Seconds())
 		}
-		if err != nil {
-			sp.Annotate([]trace.Attribute{
-				trace.BoolAttribute("error", true),
-			}, err.Error())
-		} else if fieldCtx.Object == "Mutation" {
+		if err == nil && fieldCtx.Object == "Mutation" {
 			ctx = log.WithFields(ctx, log.Fields{
 				"MutationName": fieldCtx.Field.Name,
 			})

@@ -1,10 +1,4 @@
-import React, {
-  ReactNode,
-  useContext,
-  useState,
-  MouseEvent,
-  KeyboardEvent,
-} from 'react'
+import React, { useContext, useState, MouseEvent, KeyboardEvent } from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -29,15 +23,6 @@ const useStyles = makeStyles({
   cardActionContainer: {
     width: '100%',
   },
-  button: {
-    padding: '4px',
-    minHeight: 0,
-    fontSize: 12,
-  },
-  buttonContainer: {
-    display: 'flex',
-    alignItems: 'center',
-  },
   flexGrow: {
     flexGrow: 1,
   },
@@ -48,14 +33,14 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  event: ScheduleCalendarEvent
   children: JSX.Element
+  event: ScheduleCalendarEvent
 }
 
 export default function ScheduleCalendarEventWrapper({
   event,
   children,
-}: ScheduleCalendarEventWrapperProps): ReactNode {
+}: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -253,7 +238,6 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  if (!children) return null
   return (
     <React.Fragment>
       <Popover

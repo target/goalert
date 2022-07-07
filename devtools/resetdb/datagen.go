@@ -25,8 +25,10 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
-var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
-var rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+var (
+	timeZones     = []string{"America/Chicago", "Europe/Berlin", "UTC"}
+	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+)
 
 type AlertLog struct {
 	AlertID   int
@@ -342,7 +344,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	}
 	d.Alerts = append(d.Alerts, alert.Alert{
 		ID:        len(d.Alerts) + 1,
-		CreatedAt: gofakeit.DateRange(time.Now().Add(-2*time.Hour), time.Now().Add(-1*time.Hour)),
+		CreatedAt: gofakeit.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
 		Summary:   d.ids.Gen(func() string { return gofakeit.Sentence(rand.Intn(10) + 3) }, serviceID),
@@ -352,24 +354,39 @@ func (d *datagen) NewAlert(status alert.Status) {
 }
 
 // NewAlertLog will generate an alert log for the provided alert.
-func (d *datagen) NewAlertLogs(alert alert.Alert) {
-
-	// Add 'created' event log
-	d.AlertLogs = append(d.AlertLogs, AlertLog{
-		AlertID:   alert.ID,
-		Timestamp: alert.CreatedAt,
-		Event:     "created",
-		Message:   "",
-	})
-
-	// Add 'closed' event log
-	if alert.Status == "closed" {
+func (d *datagen) NewAlertLogs(a alert.Alert) {
+	t := a.CreatedAt
+	addEvent := func(event string) {
+		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
-			AlertID:   alert.ID,
-			Timestamp: gofakeit.DateRange(alert.CreatedAt, alert.CreatedAt.Add(30*time.Minute)),
-			Event:     "closed",
-			Message:   "",
+			AlertID:   a.ID,
+			Timestamp: t,
+			Event:     event,
 		})
+	}
+
+	// initial creation and escalation
+	addEvent("created")
+	addEvent("escalated")
+
+	switch a.Status {
+	case alert.StatusTriggered:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+	case alert.StatusActive:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+		addEvent("acknowledged")
+	case alert.StatusClosed:
+		if gofakeit.Bool() {
+			addEvent("escalated")
+		}
+		if gofakeit.Bool() {
+			addEvent("acknowledged")
+		}
+		addEvent("closed")
 	}
 }
 
@@ -397,7 +414,6 @@ func (d *datagen) NewFavorite(userID string) {
 
 // Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
-
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
 			return

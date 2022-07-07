@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
-	"go.opencensus.io/trace"
 )
 
 func (app *App) initStartup(ctx context.Context, label string, fn func(context.Context) error) {
@@ -20,19 +19,13 @@ func (app *App) initStartup(ctx context.Context, label string, fn func(context.C
 		return
 	}
 
-	ctx, sp := trace.StartSpan(ctx, label)
-	defer sp.End()
 	err := fn(ctx)
 	if err != nil {
-		sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, err.Error())
 		app.startupErr = errors.Wrap(err, label)
 	}
 }
 
 func (app *App) startup(ctx context.Context) error {
-	ctx, sp := trace.StartSpan(ctx, "Startup")
-	defer sp.End()
-
 	app.initStartup(ctx, "Startup.TestDBConn", func(ctx context.Context) error {
 		err := app.db.PingContext(ctx)
 		if err == nil {

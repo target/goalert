@@ -74,7 +74,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		cleanupAlertLogs: p.P(`
 			with
-				scope as (select id from alert_logs where id > $1 order by id limit 1000),
+				scope as (select id from alert_logs where id > $1 order by id limit 100),
 				id_range as (select min(id), max(id) from scope),
 				_delete as (
 					delete from alert_logs where id = any(
@@ -85,7 +85,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 						for update skip locked
 					)
 				)
-			select id from scope offset 999
+			select id from scope offset 99
 		`),
 
 		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),

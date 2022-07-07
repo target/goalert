@@ -93,11 +93,13 @@ func (p *Process) logError(err error) {
 	defer logMx.Unlock()
 	color.New(color.Reset, color.FgRed).Fprintln(p.p, err.Error())
 }
+
 func (p *Process) logAction(s string) {
 	logMx.Lock()
 	defer logMx.Unlock()
 	color.New(color.Reset, color.Bold).Fprintln(p.p, s)
 }
+
 func (p *Process) Stop() {
 	s := <-p.state
 	if s != ProcessStateRunning {
@@ -213,7 +215,7 @@ func (p *Process) Start() {
 func (p *Process) Wait() bool {
 	<-p.exited
 
-	return p.result
+	return p.result && p.OneShot
 }
 
 func (p *Process) Done() bool {

@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
-	"go.opencensus.io/trace"
 )
 
 // UpdateAll will update and cleanup the rotation state for all rotations.
@@ -38,6 +37,7 @@ func (db *DB) UpdateOneRotation(ctx context.Context, rotID string) error {
 	ctx = log.WithField(ctx, "RotationID", rotID)
 	return db.update(ctx, false, &rotID)
 }
+
 func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
@@ -46,11 +46,16 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	log.Debugf(ctx, "Updating rotations.")
 
 	// process rotation advancement
-	tx, err := db.lock.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
 	defer tx.Rollback()
+
+	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "lock rotation participants")
+	}
 
 	needsAdvance, err := db.calcAdvances(ctx, tx, all, rotID)
 	if err != nil {
@@ -97,8 +102,6 @@ func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *str
 	var loc *time.Location
 	var needsAdvance []advance
 
-	_, sp := trace.StartSpan(ctx, "Engine.RotationManager.ScanRows")
-	defer sp.End()
 	for rows.Next() {
 		err = rows.Scan(
 			&rot.ID,

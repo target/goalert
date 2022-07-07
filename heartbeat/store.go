@@ -199,7 +199,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*Monitor,
 // FindMany returns the heartbeat monitors with the given IDs.
 //
 // The order and number of returned monitors is not guaranteed.
-func (s *Store) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
+func (s *Store) FindMany(ctx context.Context, ids []string) ([]Monitor, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return nil, err
