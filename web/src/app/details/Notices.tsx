@@ -34,7 +34,8 @@ const useStyles = makeStyles({
 export interface Notice {
   type: NoticeType
   message: string | JSX.Element
-  details: string | JSX.Element
+  details?: string | JSX.Element
+  action?: JSX.Element
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
@@ -53,21 +54,25 @@ export default function Notices({
     return null
   }
 
-  function renderShowAllToggle(): ReactNode {
+  function renderWithShowAllToggle(action?: JSX.Element): ReactNode {
     if (notices.length <= 1) return null
     return (
-      <Badge
-        color='primary'
-        badgeContent={notices.length - 1}
-        invisible={noticesExpanded}
-      >
-        <IconButton
-          onClick={() => setNoticesExpanded(!noticesExpanded)}
-          size='large'
+      <React.Fragment>
+        {action}
+        <Badge
+          color='primary'
+          badgeContent={notices.length - 1}
+          invisible={noticesExpanded}
         >
-          {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
-        </IconButton>
-      </Badge>
+          <IconButton
+            onClick={() => setNoticesExpanded(!noticesExpanded)}
+            size='large'
+            sx={{ pl: 1 }}
+          >
+            {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
+          </IconButton>
+        </Badge>
+      </React.Fragment>
     )
   }
 
@@ -89,6 +94,7 @@ export default function Notices({
   }
 
   function renderNotice(notice: Notice, index: number): JSX.Element {
+    console.log(notices.length)
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
@@ -98,7 +104,15 @@ export default function Notices({
             action: classes.alertAction,
           }}
           elevation={1}
-          action={index === 0 ? renderShowAllToggle() : null}
+          action={
+            <div
+              style={{ display: 'flex', alignItems: 'center', height: '100%' }}
+            >
+              {index === 0 && notices.length > 1
+                ? renderWithShowAllToggle(notice.action)
+                : notice.action}
+            </div>
+          }
         >
           <AlertTitle>
             {toTitleCase(notice.type)}: {notice.message}

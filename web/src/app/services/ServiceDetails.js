@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
@@ -15,6 +15,7 @@ import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceMode from './ServiceMaintenanceMode'
+import { Button } from '@mui/material'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -57,6 +58,12 @@ const query = gql`
   }
 `
 
+const mutation = gql`
+  mutation updateService($input: UpdateServiceInput!) {
+    updateService(input: $input)
+  }
+`
+
 const hbStatus = (h) => {
   if (!h || !h.length) return null
   if (h.every((m) => m.lastState === 'healthy')) return 'ok'
@@ -78,6 +85,8 @@ export default function ServiceDetails({ serviceID }) {
     variables: { serviceID },
     returnPartialData: true,
   })
+
+  const [updateService] = useMutation(mutation)
 
   if (loading && !_.get(data, 'service.id')) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -102,6 +111,26 @@ export default function ServiceDetails({ serviceID }) {
                   type: 'WARNING',
                   message: 'In Maintenance Mode',
                   details: `Ends at ${dateFmtd}`,
+                  action: (
+                    <Button
+                      onClick={() => {
+                        updateService({
+                          variables: {
+                            input: {
+                              id: serviceID,
+                              maintenanceExpiresAt: DateTime.local()
+                                .minus({
+                                  years: 1,
+                                })
+                                .toISO(),
+                            },
+                          },
+                        })
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  ),
                 },
               ]
             : []
