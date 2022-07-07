@@ -1,30 +1,40 @@
 import http from 'k6/http'
-import Chance from 'https://chancejs.com/chance.min.js'
+import Chance from 'chance'
+import { genTZ } from './util'
+import {
+  ScheduleTarget,
+  ScheduleTargetInput,
+  TargetInput,
+} from '../../../web/src/schema'
 
 // Instantiate Chance so it can be used
 var gen = new Chance()
 
 class IDFetchType {
-  constructor(c, id, queryName) {
+  constructor(c: Client, id: string, queryName: string) {
     this.c = c
     this.id = id
     this.queryName = queryName
   }
 
-  simpleField(fieldName) {
+  public c: Client
+  public id: string
+  private queryName: string
+
+  simpleField(fieldName: string, suffix?: string) {
     return this.c.query(
-      `query($id: ID!){${this.queryName}(id: $id){${fieldName}}}`,
+      `query($id: ID!){${this.queryName}(id: $id){${fieldName}${
+        suffix || ''
+      }}}`,
       { id: this.id },
     ).data[this.queryName][fieldName]
   }
-  simpleFieldMap(fieldName, Type) {
-    return this.c
-      .query(`query($id: ID!){${this.queryName}(id: $id){${fieldName}{id}}}`, {
-        id: this.id,
-      })
-      .data[this.queryName][fieldName].map((obj) => new Type(this.c, obj.id))
+  simpleFieldMap<T>(fieldName: string, Type: T): Array<T> {
+    return this.simpleField(fieldName, '{id}').map(
+      (obj) => new Type(this.c, obj.id),
+    )
   }
-  simpleUpdateField(fieldName, typeName, value) {
+  simpleUpdateField(fieldName: string, typeName: string, value: any) {
     const name = this.queryName[0].toUpperCase() + this.queryName.slice(1)
     return this.c.query(
       `mutation($id: ID!, $value: ${typeName}){
@@ -45,14 +55,14 @@ class IDFetchType {
 }
 
 class UserContactMethod extends IDFetchType {
-  constructor(c, id) {
+  constructor(c: Client, id: string) {
     super(c, id, 'userContactMethod')
   }
 
-  get name() {
+  get name(): string {
     return this.simpleField('name')
   }
-  set name(newName) {
+  set name(newName: string) {
     this.simpleUpdateField('name', 'String!', newName)
   }
 
@@ -73,8 +83,79 @@ class UserContactMethod extends IDFetchType {
   }
 }
 
+class Schedule extends IDFetchType {
+  constructor(c: Client, id: string) {
+    super(c, id, 'schedule')
+  }
+
+  get name() {
+    return this.simpleField('name')
+  }
+  set name(newName) {
+    this.simpleUpdateField('name', 'String!', newName)
+  }
+
+  get description() {
+    return this.simpleField('description')
+  }
+  set description(newDescription) {
+    this.simpleUpdateField('description', 'String', newDescription)
+  }
+
+  get timeZone() {
+    return this.simpleField('timeZone')
+  }
+  set timeZone(newTimeZone) {
+    this.simpleUpdateField('timeZone', 'String!', newTimeZone)
+  }
+
+  get targets(): Array<TargetInput> {
+    return this.simpleField('targets', '{target{id, type}}').map(
+      (t: ScheduleTarget) => t.target,
+    )
+  }
+
+  setTarget(target: TargetInput) {
+    this.c.query(
+      `mutation ($id: ID!, $type: TargetType!, $scheduleID: ID!) {
+        updateScheduleTarget(
+          input: {
+            target: {id: $id, type: $type}, 
+            scheduleID: $scheduleID, 
+            rules: [{weekdayFilter:[true,true,true,true,true,true,true]}]
+          }
+        )
+      }`,
+      {
+        id: target.id,
+        type: target.type,
+        scheduleID: this.id,
+      },
+    )
+  }
+
+  clearTarget(target: TargetInput) {
+    this.c.query(
+      `mutation ($id: ID!, $type: TargetType!, $scheduleID: ID!) {
+        updateScheduleTarget(
+          input: {
+            target: {id: $id, type: $type}, 
+            scheduleID: $scheduleID, 
+            rules: []
+          }
+        )
+      }`,
+      {
+        id: target.id,
+        type: target.type,
+        scheduleID: this.id,
+      },
+    )
+  }
+}
+
 class Service extends IDFetchType {
-  constructor(c, id) {
+  constructor(c: Client, id: string) {
     super(c, id, 'service')
   }
   get name() {
@@ -86,7 +167,7 @@ class Service extends IDFetchType {
 }
 
 class EP extends IDFetchType {
-  constructor(c, id) {
+  constructor(c: Client, id: string) {
     super(c, id, 'escalationPolicy')
   }
 
@@ -106,7 +187,7 @@ class EP extends IDFetchType {
 }
 
 class Rotation extends IDFetchType {
-  constructor(c, id) {
+  constructor(c: Client, id: string) {
     super(c, id, 'rotation')
   }
   get name() {
@@ -122,7 +203,7 @@ class Rotation extends IDFetchType {
   get users() {
     return this.userIDs.map((id) => new User(this.c, id))
   }
-  get userIDs() {
+  get userIDs(): Array<string> {
     return this.simpleField('userIDs')
   }
   set userIDs(ids) {
@@ -138,7 +219,7 @@ class Rotation extends IDFetchType {
 }
 
 class User extends IDFetchType {
-  constructor(c, id) {
+  constructor(c: Client, id: string) {
     super(c, id, 'user')
   }
 
@@ -157,21 +238,27 @@ class User extends IDFetchType {
   get isFavorite() {
     return this.simpleField('isFavorite')
   }
-  get contactMethods() {
+  get contactMethods(): Array<UserContactMethod> {
     return this.simpleFieldMap('contactMethods', UserContactMethod)
   }
 }
 
+interface IDNode {
+  id: string
+}
+
 export class Client {
-  constructor(baseURL) {
+  constructor(baseURL: string) {
     this.baseURL = baseURL
     this.login()
   }
 
+  private baseURL: string
+
   login(user = 'admin', pass = 'admin123') {
     let resp = http.get(this.baseURL + '/api/v2/identity/providers')
     let providers = JSON.parse(resp.body)
-    let loginURL = providers.find((p) => p.ID === 'basic').URL
+    let loginURL = providers.find((p: { ID: string }) => p.ID === 'basic').URL
 
     http.post(
       this.baseURL + loginURL,
@@ -191,27 +278,55 @@ export class Client {
     http.get(this.baseURL + '/api/v2/identity/logout')
   }
 
-  service(id) {
-    return new Service(this, id)
+  schedule(id: string): Schedule {
+    return new Schedule(this, id)
   }
-  services() {
-    return this.query(`query{services{nodes{id}}}`).data.services.nodes.map(
-      (u) => this.service(u.id),
+  schedules(): Array<Schedule> {
+    return this.query(`query{schedules{nodes{id}}}`).data.schedules.nodes.map(
+      (obj: IDNode) => this.schedule(obj.id),
     )
   }
-  randService() {
+  randSchedule(): Schedule {
+    return gen.pickone(this.schedules())
+  }
+  newSchedule(): Schedule {
+    const q = this.query(
+      `mutation($input: CreateScheduleInput!){createSchedule(input:$input){id}}`,
+      {
+        input: {
+          name: 'K6 ' + gen.string({ alpha: true, length: 20 }),
+          description: gen.sentence(),
+          timeZone: genTZ(),
+        },
+      },
+    )
+    const id = q.data.createSchedule.id
+    return this.schedule(id)
+  }
+
+  service(id: string): Service {
+    return new Service(this, id)
+  }
+  services(): Array<Service> {
+    return this.query(`query{services{nodes{id}}}`).data.services.nodes.map(
+      (u: IDNode) => this.service(u.id),
+    )
+  }
+  randService(): Service {
     return gen.pickone(this.services())
   }
 
-  escalationPolicy(id) {
+  escalationPolicy(id: string): EP {
     return new EP(this, id)
   }
-  escalationPolicies() {
+  escalationPolicies(): Array<EP> {
     return this.query(
       `query{escalationPolicies{nodes{id}}}`,
-    ).data.escalationPolicies.nodes.map((u) => this.escalationPolicy(u.id))
+    ).data.escalationPolicies.nodes.map((u: IDNode) =>
+      this.escalationPolicy(u.id),
+    )
   }
-  randEP() {
+  randEP(): EP {
     return gen.pickone(this.escalationPolicies())
   }
 
@@ -247,7 +362,7 @@ export class Client {
     return new User(this, id)
   }
 
-  newService(epID) {
+  newService(epID?: string): Service {
     if (!epID) {
       epID = this.randEP().id
     }
@@ -267,19 +382,13 @@ export class Client {
   }
 
   newRotation() {
-    let tz = gen.timezone()
-    if (!tz.utc) {
-      tz = 'Etc/UTC'
-    } else {
-      tz = tz.utc[0]
-    }
     const q = this.query(
       `mutation($input: CreateRotationInput!){createRotation(input:$input){id}}`,
       {
         input: {
           name: 'K6 ' + gen.string({ alpha: true, length: 20 }),
           description: gen.sentence(),
-          timeZone: tz,
+          timeZone: genTZ(),
           start: gen.date().toISOString(),
           type: gen.pickone(['hourly', 'weekly']),
           shiftLength: gen.integer({ min: 1, max: 20 }),
@@ -290,13 +399,13 @@ export class Client {
     return new Rotation(this, id)
   }
 
-  user(id) {
+  user(id?: string) {
     if (!id) {
-      id = this.query(`query{user{id}}`).data.user.id
+      id = this.query(`query{user{id}}`).data.user.id as string
     }
     return new User(this, id)
   }
-  rotation(id) {
+  rotation(id: string) {
     return new Rotation(this, id)
   }
 
@@ -313,22 +422,22 @@ export class Client {
       return new User(this, u.id)
     }
   }
-  users() {
-    return this.query(`query{users{nodes{id}}}`).data.users.nodes.map((u) =>
-      this.user(u.id),
+  users(): Array<User> {
+    return this.query(`query{users{nodes{id}}}`).data.users.nodes.map(
+      (u: IDNode) => this.user(u.id),
     )
   }
 
   randRotation() {
     return gen.pickone(this.rotations())
   }
-  rotations() {
+  rotations(): Array<Rotation> {
     return this.query(`query{rotations{nodes{id}}}`).data.rotations.nodes.map(
-      (u) => this.rotation(u.id),
+      (u: IDNode) => this.rotation(u.id),
     )
   }
 
-  query(query, variables = {}) {
+  query(query: string, variables = {}) {
     const resp = http.post(
       this.baseURL + '/api/graphql',
       JSON.stringify({
@@ -351,5 +460,3 @@ export class Client {
     return res
   }
 }
-
-export function newClient(url) {}
