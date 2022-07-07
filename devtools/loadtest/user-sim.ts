@@ -56,6 +56,21 @@ function updateSchedule(c: Client) {
   s.description = gen.sentence()
   s.timeZone = genTZ()
 }
+function createUserOverride(c: Client) {
+  c.newUserOverride()
+}
+function deleteUserOverride(c: Client) {
+  c.randUserOverride().delete()
+}
+function updateUserOverride(c: Client) {
+  const u = c.randUserOverride()
+  if (u.addUserID) {
+    u.addUserID = c.randUser().id
+  }
+  if (u.removeUserID) {
+    u.removeUserID = c.randUser().id
+  }
+}
 
 function addScheduleTarget(c: Client) {
   const s = c.randSchedule()
@@ -95,6 +110,9 @@ export default function LoginLogout() {
       updateSchedule,
       addScheduleTarget,
       deleteScheduleTarget,
+      createUserOverride,
+      updateUserOverride,
+      deleteUserOverride,
     ])
     action(c)
   }

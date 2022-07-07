@@ -2,8 +2,8 @@ import http from 'k6/http'
 import Chance from 'chance'
 import { genTZ } from './util'
 import {
+  CreateUserOverrideInput,
   ScheduleTarget,
-  ScheduleTargetInput,
   TargetInput,
 } from '../../../web/src/schema'
 
@@ -247,6 +247,41 @@ interface IDNode {
   id: string
 }
 
+class UserOverride extends IDFetchType {
+  constructor(c: Client, id: string) {
+    super(c, id, 'userOverride')
+  }
+
+  get addUserID() {
+    return this.simpleField('addUserID')
+  }
+  set addUserID(id: string) {
+    this.simpleUpdateField('addUserID', 'ID!', id)
+  }
+
+  get removeUserID() {
+    return this.simpleField('removeUserID')
+  }
+  set removeUserID(id: string) {
+    this.simpleUpdateField('removeUserID', 'ID!', id)
+  }
+
+  get start() {
+    return this.simpleField('start')
+  }
+  set start(date: string) {
+    this.simpleUpdateField('start', 'ISOTimestamp!', date)
+  }
+
+  get end() {
+    return this.simpleField('end')
+  }
+
+  set end(date: string) {
+    this.simpleUpdateField('end', 'ISOTimestamp!', date)
+  }
+}
+
 export class Client {
   constructor(baseURL: string) {
     this.baseURL = baseURL
@@ -276,6 +311,57 @@ export class Client {
 
   logout() {
     http.get(this.baseURL + '/api/v2/identity/logout')
+  }
+
+  userOverride(id: string): UserOverride {
+    return new UserOverride(this, id)
+  }
+  userOverrides(): Array<UserOverride> {
+    return this.query(
+      `query{userOverrides{nodes{id}}}`,
+    ).data.userOverrides.nodes.map((obj: IDNode) => this.userOverride(obj.id))
+  }
+  randUserOverride(): UserOverride {
+    return gen.pickone(this.userOverrides())
+  }
+  newUserOverride(scheduleID?: string): UserOverride {
+    if (!scheduleID) {
+      return this.newUserOverride(this.randSchedule().id)
+    }
+
+    const startUnix = Date.now() + gen.integer({ min: 30000, max: 1000000 })
+    const endUnix = startUnix + gen.integer({ min: 60000, max: 1000000 })
+
+    let addUser, removeUser
+    switch (gen.integer({ min: 0, max: 2 })) {
+      case 0: // both add and remove
+        addUser = this.randUser().id
+        removeUser = this.randUser().id
+        break
+      case 1: // add
+        addUser = this.randUser().id
+        removeUser = null
+        break
+      case 2: // remove
+        addUser = null
+        removeUser = this.randUser().id
+        break
+    }
+
+    const q = this.query(
+      `mutation($input: CreateUserOverrideInput!){createUserOverride(input:$input){id}}`,
+      {
+        input: {
+          scheduleID,
+          start: new Date(startUnix).toISOString(),
+          end: new Date(endUnix).toISOString(),
+          addUserID: addUser,
+          removeUserID: removeUser,
+        } as CreateUserOverrideInput,
+      },
+    )
+
+    return this.userOverride(q.data.createUserOverride.id)
   }
 
   schedule(id: string): Schedule {
