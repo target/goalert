@@ -81,7 +81,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			s.description,
 			s.escalation_policy_id,
 			e.name,
-			false
+			false,
+			s.maintenance_expires_at
 		FROM
 			services s,
 			escalation_policies e
@@ -95,7 +96,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			s.description,
 			s.escalation_policy_id,
 			e.name,
-			false
+			false,
+			s.maintenance_expires_at
 		FROM
 			services s,
 			escalation_policies e
