@@ -3,6 +3,7 @@ import { gql, useMutation } from '@apollo/client'
 import {
   ButtonGroup,
   Button,
+  FormHelperText,
   Popover,
   MenuList,
   MenuItem,
@@ -50,7 +51,7 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
       variables: {
         input: {
           id: p.serviceID,
-          maintenanceExpiresAt: calcExp(selectedIndex),
+          maintenanceExpiresAt: calcExp(),
         },
       },
     })
@@ -73,41 +74,46 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <ButtonGroup
-        variant='contained'
-        ref={anchorRef}
-        aria-label='split button'
+    <React.Fragment>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+        }}
       >
-        <Button onClick={handleStartMaintenance}>Start Maintenance Mode</Button>
-        <Button
-          size='small'
-          aria-controls={open ? 'split-button-menu' : undefined}
-          aria-expanded={open ? 'true' : undefined}
-          aria-label='select merge strategy'
-          aria-haspopup='menu'
-          onClick={handleOpen}
+        <ButtonGroup
+          variant='contained'
+          ref={anchorRef}
+          aria-label='split button'
         >
-          <ArrowDropDown />
-        </Button>
-      </ButtonGroup>
-      <Tooltip
-        title={
-          <Typography variant='body2'>
-            Pause all outgoing notifications and escalations for{' '}
-            {options[selectedIndex]}. Alerts may still be created and will
-            continue as normal after maintenance mode ends.
-          </Typography>
-        }
-        sx={{ pl: 1 }}
-      >
-        <Info color='secondary' />
-      </Tooltip>
+          <Button onClick={handleStartMaintenance}>Set Maintenance Mode</Button>
+          <Button
+            size='small'
+            aria-controls={open ? 'split-button-menu' : undefined}
+            aria-expanded={open ? 'true' : undefined}
+            aria-label='select merge strategy'
+            aria-haspopup='menu'
+            onClick={handleOpen}
+          >
+            <ArrowDropDown />
+          </Button>
+        </ButtonGroup>
+        <Tooltip
+          title={
+            <Typography variant='body2'>
+              Pause all outgoing notifications and escalations for{' '}
+              {options[selectedIndex]}. Alerts may still be created and will
+              continue as normal after maintenance mode ends.
+            </Typography>
+          }
+          sx={{ pl: 1 }}
+        >
+          <Info color='secondary' />
+        </Tooltip>
+      </div>
+      <FormHelperText>
+        Until {DateTime.fromISO(calcExp()).toFormat('t ZZZZ')}
+      </FormHelperText>
       <Popover
         anchorEl={anchorRef.current}
         open={open}
@@ -135,12 +141,12 @@ export default function ServiceMaintenanceMode(p: Props): JSX.Element {
             >
               <Typography variant='body2'>Ends in {option}</Typography>
               <Typography variant='caption' color='textSecondary'>
-                At {DateTime.fromISO(calcExp(index)).toFormat('t ZZZZ')}
+                at {DateTime.fromISO(calcExp(index)).toFormat('t ZZZZ')}
               </Typography>
             </MenuItem>
           ))}
         </MenuList>
       </Popover>
-    </div>
+    </React.Fragment>
   )
 }
