@@ -1,11 +1,6 @@
 import { Client } from './lib/graphql'
 import Chance from 'chance'
 import { genTZ } from './lib/util'
-import {
-  ScheduleTarget,
-  ScheduleTargetInput,
-  TargetInput,
-} from '../../web/src/schema'
 
 // Instantiate Chance so it can be used
 var gen = new Chance()
