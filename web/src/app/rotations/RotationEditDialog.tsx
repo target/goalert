@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -50,6 +50,11 @@ export default function RotationEditDialog(props: {
 
   const [editRotationStatus, editRotation] = useMutation(mutation)
 
+  useEffect(() => {
+    if (!editRotationStatus.data) return
+    props.onClose()
+  }, [editRotationStatus.data])
+
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
@@ -67,7 +72,7 @@ export default function RotationEditDialog(props: {
             },
           },
           { additionalTypenames: ['Rotation'] },
-        ).then(() => props.onClose())
+        )
       }
       form={
         <RotationForm
