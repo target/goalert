@@ -3,6 +3,7 @@ import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
+import { DateTime } from 'luxon'
 
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
@@ -85,12 +86,26 @@ export default function ServiceDetails({ serviceID }) {
     return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
+  const exp = DateTime.fromISO(data.service.maintenanceExpiresAt)
+  const isMaintMode = exp.isValid && exp > DateTime.local()
+  const dateFmtd = DateTime.fromISO(exp).toFormat('FFF')
+
   return (
     <React.Fragment>
-      Maintenance Expires At: {data.service.maintenanceExpiresAt}
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
+        notices={
+          isMaintMode
+            ? [
+                {
+                  type: 'WARNING',
+                  message: 'In Maintenance Mode',
+                  details: `Ends at ${dateFmtd}`,
+                },
+              ]
+            : []
+        }
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}
