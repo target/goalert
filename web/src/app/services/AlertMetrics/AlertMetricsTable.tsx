@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
@@ -10,17 +10,21 @@ import {
   GridToolbarFilterButton,
   gridClasses,
 } from '@mui/x-data-grid'
-import { Grid } from '@mui/material'
+import { Button, Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { makeStyles } from '@mui/styles'
 import { Alert } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
-import AlertMetricsCSV from './AlertMetricsCSV'
+import { useWorker } from '../../worker'
+import { pathPrefix } from '../../env'
 
 interface AlertMetricsTableProps {
   alerts: Alert[]
   loading: boolean
+  serviceName: string
+  startTime: string
+  endTime: string
 }
 
 const useStyles = makeStyles(() => ({
@@ -29,102 +33,118 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+const columns = [
+  {
+    field: 'createdAt',
+    headerName: 'Created At',
+    width: 250,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+  },
+  {
+    field: 'closedAt',
+    headerName: 'Closed At',
+    width: 250,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+  },
+  {
+    field: 'timeToAck',
+    headerName: 'Ack Time',
+    width: 100,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+  },
+  {
+    field: 'timeToClose',
+    headerName: 'Close Time',
+    width: 100,
+    valueFormatter: (params: GridValueFormatterParams) =>
+      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+  },
+  {
+    field: 'alertID',
+    headerName: 'Alert ID',
+    width: 90,
+    renderCell: (params: GridRenderCellParams<string>) => (
+      <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
+    ),
+  },
+  {
+    field: 'escalated',
+    headerName: 'Escalated',
+    width: 90,
+  },
+
+  {
+    field: 'status',
+    headerName: 'Status',
+    width: 160,
+    valueFormatter: (params: GridValueFormatterParams) => {
+      return (params.value as string).replace('Status', '')
+    },
+  },
+  {
+    field: 'summary',
+    headerName: 'Summary',
+    width: 200,
+  },
+  {
+    field: 'details',
+    headerName: 'Details',
+    width: 200,
+  },
+  {
+    field: 'serviceID',
+    headerName: 'Service ID',
+    valueGetter: (params: GridValueGetterParams) => {
+      return params.row.service?.id || ''
+    },
+    hide: true,
+    width: 300,
+  },
+  {
+    field: 'serviceName',
+    headerName: 'Service Name',
+    hide: true,
+    width: 200,
+    valueGetter: (params: GridValueGetterParams) => {
+      return params.row.service?.name || ''
+    },
+    renderCell: (params: GridRenderCellParams<string>) => {
+      if (params.row.service?.id && params.value) {
+        return (
+          <AppLink to={`/services/${params.row.service.id}`}>
+            {params.value}
+          </AppLink>
+        )
+      }
+      return ''
+    },
+  },
+]
+
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { alerts } = props
+  const alerts = useMemo(
+    () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
+    [props.alerts],
+  )
 
-  const columns = [
-    {
-      field: 'createdAt',
-      headerName: 'Created At',
-      width: 250,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
-    },
-    {
-      field: 'closedAt',
-      headerName: 'Closed At',
-      width: 250,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
-    },
-    {
-      field: 'timeToAck',
-      headerName: 'Ack Time',
-      width: 100,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
-    },
-    {
-      field: 'timeToClose',
-      headerName: 'Close Time',
-      width: 100,
-      valueFormatter: (params: GridValueFormatterParams) =>
-        Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
-    },
-    {
-      field: 'alertID',
-      headerName: 'Alert ID',
-      width: 90,
-      renderCell: (params: GridRenderCellParams<string>) => (
-        <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
-      ),
-    },
-    {
-      field: 'escalated',
-      headerName: 'Escalated',
-      width: 90,
-    },
-
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 160,
-      valueFormatter: (params: GridValueFormatterParams) => {
-        return (params.value as string).replace('Status', '')
-      },
-    },
-    {
-      field: 'summary',
-      headerName: 'Summary',
-      width: 200,
-    },
-    {
-      field: 'details',
-      headerName: 'Details',
-      width: 200,
-    },
-    {
-      field: 'serviceID',
-      headerName: 'Service ID',
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.service?.id || ''
-      },
-      hide: true,
-      width: 300,
-    },
-    {
-      field: 'serviceName',
-      headerName: 'Service Name',
-      hide: true,
-      width: 200,
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.service?.name || ''
-      },
-      renderCell: (params: GridRenderCellParams<string>) => {
-        if (params.row.service?.id && params.value) {
-          return (
-            <AppLink to={`/services/${params.row.service.id}`}>
-              {params.value}
-            </AppLink>
-          )
-        }
-        return ''
-      },
-    },
-  ]
+  const csvOpts = useMemo(
+    () => ({
+      urlPrefix: location.origin + pathPrefix,
+      alerts: alerts,
+    }),
+    [props.alerts],
+  )
+  const csvData = useWorker('useAlertCSV', csvOpts, '')
+  const link = useMemo(
+    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
+    [csvData],
+  )
 
   function CustomToolbar(): JSX.Element {
     return (
@@ -136,7 +156,20 @@ export default function AlertMetricsTable(
             <GridToolbarDensitySelector />
           </Grid>
           <Grid item>
-            <AlertMetricsCSV alerts={alerts} />
+            <AppLink
+              to={link}
+              download={`${props.serviceName.replace(
+                /[^a-z0-9]/gi,
+                '_',
+              )}-metrics-${props.startTime}-to-${props.endTime}.csv`}
+            >
+              <Button
+                size='small'
+                startIcon={<DownloadIcon fontSize='small' />}
+              >
+                Export
+              </Button>
+            </AppLink>
           </Grid>
         </Grid>
       </GridToolbarContainer>
