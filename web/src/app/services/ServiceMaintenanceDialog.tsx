@@ -16,12 +16,6 @@ interface Props {
 
 const options = ['1 hour', '2 hours', '4 hours']
 
-const mutation = gql`
-  mutation updateService($input: UpdateServiceInput!) {
-    updateService(input: $input)
-  }
-`
-
 function calcExp(index: number): string {
   switch (index) {
     case 0:
@@ -33,6 +27,10 @@ function calcExp(index: number): string {
     default:
       return ''
   }
+}
+
+function label(index: number): string {
+  return `Until ${DateTime.fromISO(calcExp(index)).toFormat('t ZZZZ')}`
 }
 
 function ServiceMaintenanceForm(props: {
@@ -47,31 +45,24 @@ function ServiceMaintenanceForm(props: {
         continue as normal after maintenance mode ends.
       </FormLabel>
       <RadioGroup onChange={(e) => props.onChange(parseInt(e.target.value))}>
-        <FormControlLabel
-          value={0}
-          control={<Radio />}
-          label={`Until ${DateTime.fromISO(calcExp(0)).toFormat('t ZZZZ')}`}
-        />
-        <FormControlLabel
-          value={1}
-          control={<Radio />}
-          label={`Until ${DateTime.fromISO(calcExp(1)).toFormat('t ZZZZ')}`}
-        />
-        <FormControlLabel
-          value={2}
-          control={<Radio />}
-          label={`Until ${DateTime.fromISO(calcExp(2)).toFormat('t ZZZZ')}`}
-        />
+        <FormControlLabel value={0} control={<Radio />} label={label(0)} />
+        <FormControlLabel value={1} control={<Radio />} label={label(1)} />
+        <FormControlLabel value={2} control={<Radio />} label={label(2)} />
       </RadioGroup>
     </FormControl>
   )
 }
 
+const mutation = gql`
+  mutation updateService($input: UpdateServiceInput!) {
+    updateService(input: $input)
+  }
+`
+
 export default function ServiceMaintenanceModeDialog(
   props: Props,
 ): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState(0)
-
   const [updateServiceStatus, updateService] = useMutation(mutation)
 
   useEffect(() => {
@@ -92,7 +83,7 @@ export default function ServiceMaintenanceModeDialog(
             id: props.serviceID,
             maintenanceExpiresAt: calcExp(selectedIndex),
           },
-        }).then((result) => console.log(result))
+        })
       }
       form={
         <ServiceMaintenanceForm

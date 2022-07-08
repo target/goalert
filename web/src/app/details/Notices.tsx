@@ -94,7 +94,6 @@ export default function Notices({
   }
 
   function renderNotice(notice: Notice, index: number): JSX.Element {
-    console.log(notices.length)
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
