@@ -14,23 +14,12 @@ interface Props {
   onClose: () => void
 }
 
-const options = ['1 hour', '2 hours', '4 hours']
-
-function calcExp(index: number): string {
-  switch (index) {
-    case 0:
-      return DateTime.now().plus({ hours: 1 }).toISO()
-    case 1:
-      return DateTime.now().plus({ hours: 2 }).toISO()
-    case 2:
-      return DateTime.now().plus({ hours: 4 }).toISO()
-    default:
-      return ''
-  }
+function calcExp(hours: number): string {
+  return DateTime.now().plus({ hours }).toISO()
 }
 
-function label(index: number): string {
-  return `Until ${DateTime.fromISO(calcExp(index)).toFormat('t ZZZZ')}`
+function label(hours: number): string {
+  return `Until ${DateTime.fromISO(calcExp(hours)).toFormat('t ZZZZ')}`
 }
 
 function ServiceMaintenanceForm(props: {
@@ -43,9 +32,9 @@ function ServiceMaintenanceForm(props: {
         value={props.selectedIndex}
         onChange={(e) => props.onChange(parseInt(e.target.value))}
       >
-        <FormControlLabel value={0} control={<Radio />} label={label(0)} />
         <FormControlLabel value={1} control={<Radio />} label={label(1)} />
         <FormControlLabel value={2} control={<Radio />} label={label(2)} />
+        <FormControlLabel value={4} control={<Radio />} label={label(4)} />
       </RadioGroup>
     </FormControl>
   )
@@ -60,7 +49,7 @@ const mutation = gql`
 export default function ServiceMaintenanceModeDialog(
   props: Props,
 ): JSX.Element {
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedHours, setSelectedHours] = useState(1)
   const [updateServiceStatus, updateService] = useMutation(mutation)
 
   useEffect(() => {
@@ -73,7 +62,9 @@ export default function ServiceMaintenanceModeDialog(
       maxWidth='sm'
       title='Set Maintenance Mode'
       subTitle={`Pause all outgoing notifications and escalations for${' '}
-      ${options[selectedIndex]}. Incoming alerts will still be created
+      ${selectedHours} hour${
+        selectedHours > 1 ? 's' : ''
+      }. Incoming alerts will still be created
       and will continue as normal after maintenance mode ends.`}
       loading={updateServiceStatus.fetching}
       errors={nonFieldErrors(updateServiceStatus.error)}
@@ -82,14 +73,14 @@ export default function ServiceMaintenanceModeDialog(
         updateService({
           input: {
             id: props.serviceID,
-            maintenanceExpiresAt: calcExp(selectedIndex),
+            maintenanceExpiresAt: calcExp(selectedHours),
           },
         })
       }
       form={
         <ServiceMaintenanceForm
-          onChange={(value) => setSelectedIndex(value)}
-          selectedIndex={selectedIndex}
+          onChange={(value) => setSelectedHours(value)}
+          selectedIndex={selectedHours}
         />
       }
     />
