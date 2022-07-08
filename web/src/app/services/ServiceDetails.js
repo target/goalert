@@ -157,7 +157,7 @@ export default function ServiceDetails({ serviceID }) {
             key='maintence-mode'
             onClick={() => setShowMaintMode(true)}
           >
-            Set Maintenance Mode
+            Maintenance Mode
           </Button>,
         ]}
         secondaryActions={[

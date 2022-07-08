@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { gql, useMutation } from 'urql'
-import { FormLabel, RadioGroup, Radio } from '@mui/material'
+import { RadioGroup, Radio } from '@mui/material'
 
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
@@ -39,12 +39,10 @@ function ServiceMaintenanceForm(props: {
 }): JSX.Element {
   return (
     <FormControl>
-      <FormLabel>
-        Pause all outgoing notifications and escalations for{' '}
-        {options[props.selectedIndex]}. Alerts may still be created and will
-        continue as normal after maintenance mode ends.
-      </FormLabel>
-      <RadioGroup onChange={(e) => props.onChange(parseInt(e.target.value))}>
+      <RadioGroup
+        value={props.selectedIndex}
+        onChange={(e) => props.onChange(parseInt(e.target.value))}
+      >
         <FormControlLabel value={0} control={<Radio />} label={label(0)} />
         <FormControlLabel value={1} control={<Radio />} label={label(1)} />
         <FormControlLabel value={2} control={<Radio />} label={label(2)} />
@@ -74,6 +72,9 @@ export default function ServiceMaintenanceModeDialog(
     <FormDialog
       maxWidth='sm'
       title='Set Maintenance Mode'
+      subTitle={`Pause all outgoing notifications and escalations for${' '}
+      ${options[selectedIndex]}. Incoming alerts will still be created
+      and will continue as normal after maintenance mode ends.`}
       loading={updateServiceStatus.fetching}
       errors={nonFieldErrors(updateServiceStatus.error)}
       onClose={props.onClose}
