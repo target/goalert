@@ -47,7 +47,10 @@ class IDFetchType {
   delete() {
     return this.c.query(
       `mutation($id: ID!){
-        deleteAll(input:[{id: $id, type: ${this.queryName}}])
+        deleteAll(input:[{id: $id, type: ${this.queryName.replace(
+          'userContactMethod',
+          'contactMethod',
+        )}}])
       }`,
       { id: this.id },
     )
@@ -240,6 +243,22 @@ class User extends IDFetchType {
   }
   get contactMethods(): Array<UserContactMethod> {
     return this.simpleFieldMap('contactMethods', UserContactMethod)
+  }
+
+  newContactMethod() {
+    const q = this.c.query(
+      `mutation($input: CreateUserContactMethodInput!){createUserContactMethod(input:$input){id}}`,
+      {
+        input: {
+          userID: this.id,
+          name: 'K6 ' + gen.string({ alpha: true, length: 20 }),
+          type: 'SMS',
+          value: '+1763555' + gen.string({ numeric: true, length: 4 }),
+        },
+      },
+    )
+    const id = q.data.createUserContactMethod.id
+    return new UserContactMethod(this.c, id)
   }
 }
 

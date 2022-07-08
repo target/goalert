@@ -8,6 +8,16 @@ var gen = new Chance()
 function updateContactMethodName(c: Client) {
   gen.pickone(c.user().contactMethods).name = gen.name()
 }
+function createCM(c: Client) {
+  c.user().newContactMethod()
+}
+function deleteCM(c: Client) {
+  gen
+    .pickone(
+      c.user().contactMethods.filter((cm) => cm.value.includes('763555')),
+    )
+    .delete()
+}
 
 function createNewRotation(c: Client) {
   c.newRotation()
@@ -108,6 +118,8 @@ export default function LoginLogout() {
       createUserOverride,
       updateUserOverride,
       deleteUserOverride,
+      createCM,
+      deleteCM,
     ])
     action(c)
   }
