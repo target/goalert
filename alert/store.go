@@ -3,6 +3,7 @@ package alert
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
@@ -46,9 +47,10 @@ type Store struct {
 
 	epID *sql.Stmt
 
-	escalate *sql.Stmt
-	epState  *sql.Stmt
-	svcInfo  *sql.Stmt
+	escalate        *sql.Stmt
+	maintenanceMode *sql.Stmt
+	epState         *sql.Stmt
+	svcInfo         *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -203,6 +205,12 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 			RETURNING state.alert_id
 		`),
 
+		maintenanceMode: p(`
+			SELECT maintenance_expires_at
+			FROM services
+			WHERE id = $1
+		`),
+
 		epState: p(`
 			SELECT alert_id, last_escalation, loop_count, escalation_policy_step_number 
 			FROM escalation_policy_state
@@ -293,18 +301,36 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		return nil, nil
 	}
 
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	for _, alertID := range alertIDs {
+		var maintExpiresAt time.Time
+		var svcID string
+		err := tx.StmtContext(ctx, s.getServiceID).QueryRowContext(ctx, alertID).Scan(&svcID)
+		if err != nil {
+			return nil, err
+		}
+
+		err = tx.StmtContext(ctx, s.maintenanceMode).QueryRowContext(ctx, svcID).Scan(&maintExpiresAt)
+		if err != nil {
+			return nil, err
+		}
+
+		if time.Now().Before(maintExpiresAt) {
+			return nil, fmt.Errorf("escalate alert: in maintenance mode")
+		}
+	}
+
 	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
 	if err != nil {
 		return nil, err
 	}
 
 	ids := sqlutil.IntArray(alertIDs)
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
 
 	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {

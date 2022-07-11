@@ -362,9 +362,9 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         icon: <EscalateIcon />,
         label: 'Escalate',
         handleOnClick: () => escalate(),
-        ButtonProps: {
-          disabled: isMaintMode,
-        },
+        // ButtonProps: {
+        //   disabled: isMaintMode,
+        // },
       },
     ]
   }
