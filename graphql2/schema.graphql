@@ -126,6 +126,9 @@ type SWOStatus {
   nodes: [SWONode!]!
 
   connections: [SWOConnection!]!
+
+  mainDBVersion: String!
+  nextDBVersion: String!
 }
 
 type SWOConnection {

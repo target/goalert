@@ -96,5 +96,8 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		Nodes:       nodes,
 		Errors:      errs,
 		Connections: conns,
+
+		NextDBVersion: s.NextDBVersion,
+		MainDBVersion: s.MainDBVersion,
 	}, nil
 }

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -28,6 +29,9 @@ type Manager struct {
 	Config
 
 	grp *swogrp.Group
+
+	MainDBVersion string
+	NextDBVersion string
 }
 
 type Node struct {
@@ -62,6 +66,22 @@ func NewManager(cfg Config) (*Manager, error) {
 	nextLog, err := swomsg.NewLog(ctx, m.dbNext)
 	if err != nil {
 		return nil, err
+	}
+
+	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		var err error
+		m.MainDBVersion, err = swodb.New(oldConn).ServerVersion(ctx)
+		if err != nil {
+			return err
+		}
+		m.NextDBVersion, err = swodb.New(newConn).ServerVersion(ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get server version: %w", err)
 	}
 
 	m.grp = swogrp.NewGroup(swogrp.Config{
@@ -148,7 +168,13 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 }
 
 // Status will return the current switchover status.
-func (m *Manager) Status() swogrp.Status { return m.grp.Status() }
+func (m *Manager) Status() Status {
+	return Status{
+		MainDBVersion: m.MainDBVersion,
+		NextDBVersion: m.NextDBVersion,
+		Status:        m.grp.Status(),
+	}
+}
 
 // SendPing will ping all nodes in the cluster.
 func (m *Manager) SendPing(ctx context.Context) error { return m.grp.Ping(ctx) }
@@ -162,6 +188,8 @@ func (m *Manager) SendExecute(ctx context.Context) error { return m.grp.Execute(
 func (m *Manager) DB() *sql.DB { return m.dbApp }
 
 type Status struct {
-	Details string
-	Nodes   []Node
+	swogrp.Status
+
+	MainDBVersion string
+	NextDBVersion string
 }

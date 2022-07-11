@@ -164,6 +164,17 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const serverVersion = `-- name: ServerVersion :one
+SELECT version()
+`
+
+func (q *Queries) ServerVersion(ctx context.Context) (string, error) {
+	row := q.db.QueryRow(ctx, serverVersion)
+	var version string
+	err := row.Scan(&version)
+	return version, err
+}
+
 const tableColumns = `-- name: TableColumns :many
 SELECT col.table_name,
     col.column_name,

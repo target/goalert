@@ -348,14 +348,16 @@ type SWONode struct {
 }
 
 type SWOStatus struct {
-	IsIdle      bool            `json:"isIdle"`
-	IsDone      bool            `json:"isDone"`
-	IsResetting bool            `json:"isResetting"`
-	IsExecuting bool            `json:"isExecuting"`
-	Details     string          `json:"details"`
-	Errors      []string        `json:"errors"`
-	Nodes       []SWONode       `json:"nodes"`
-	Connections []SWOConnection `json:"connections"`
+	IsIdle        bool            `json:"isIdle"`
+	IsDone        bool            `json:"isDone"`
+	IsResetting   bool            `json:"isResetting"`
+	IsExecuting   bool            `json:"isExecuting"`
+	Details       string          `json:"details"`
+	Errors        []string        `json:"errors"`
+	Nodes         []SWONode       `json:"nodes"`
+	Connections   []SWOConnection `json:"connections"`
+	MainDBVersion string          `json:"mainDBVersion"`
+	NextDBVersion string          `json:"nextDBVersion"`
 }
 
 type ScheduleConnection struct {
