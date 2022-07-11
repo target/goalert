@@ -1,7 +1,7 @@
 import React, { ReactElement, useState } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Alert, Hidden, ListItemText } from '@mui/material'
+import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
 import makeStyles from '@mui/styles/makeStyles'
 import {
@@ -20,6 +20,7 @@ import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
+import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
 
 interface AlertsListProps {
   serviceID: string
@@ -261,46 +262,53 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   // render
   return (
     <React.Fragment>
-      <QueryList
-        query={alertsListQuery}
-        infiniteScroll
-        headerNote={getHeaderNote()}
-        mapDataNode={(a) => ({
-          id: a.id,
-          status: getListItemStatus(a.status),
-          title: `${a.alertID}: ${a.status
-            .toUpperCase()
-            .replace('STATUS', '')}`,
-          subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: (
-            <ListItemText
-              className={classes.alertTimeContainer}
-              secondary={
-                fullTime
-                  ? DateTime.fromISO(a.createdAt).toLocaleString(
-                      DateTime.DATETIME_MED,
-                    )
-                  : formatTimeSince(a.createdAt)
-              }
-            />
-          ),
-          url: `/services/${a.service.id}/alerts/${a.id}`,
-          selectable: a.status !== 'StatusClosed',
-        })}
-        variables={variables}
-        secondaryActions={
-          props?.secondaryActions ?? (
-            <AlertsListFilter serviceID={props.serviceID} />
-          )
-        }
-        cardHeader={
-          <Hidden lgDown>
-            <AlertsListControls />
-          </Hidden>
-        }
-        checkboxActions={getActions()}
-      />
-
+      <Grid container direction='column' spacing={2}>
+        <Grid item>
+          <ServiceMaintenanceNotice serviceID={props.serviceID} />
+        </Grid>
+        <Grid item>
+          <QueryList
+            query={alertsListQuery}
+            infiniteScroll
+            headerNote={getHeaderNote()}
+            mapDataNode={(a) => ({
+              id: a.id,
+              status: getListItemStatus(a.status),
+              title: `${a.alertID}: ${a.status
+                .toUpperCase()
+                .replace('STATUS', '')}`,
+              subText:
+                (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+              action: (
+                <ListItemText
+                  className={classes.alertTimeContainer}
+                  secondary={
+                    fullTime
+                      ? DateTime.fromISO(a.createdAt).toLocaleString(
+                          DateTime.DATETIME_MED,
+                        )
+                      : formatTimeSince(a.createdAt)
+                  }
+                />
+              ),
+              url: `/services/${a.service.id}/alerts/${a.id}`,
+              selectable: a.status !== 'StatusClosed',
+            })}
+            variables={variables}
+            secondaryActions={
+              props?.secondaryActions ?? (
+                <AlertsListFilter serviceID={props.serviceID} />
+              )
+            }
+            cardHeader={
+              <Hidden lgDown>
+                <AlertsListControls />
+              </Hidden>
+            }
+            checkboxActions={getActions()}
+          />
+        </Grid>
+      </Grid>
       <CreateFAB
         title='Create Alert'
         transition={isXs && showAlertActionSnackbar}

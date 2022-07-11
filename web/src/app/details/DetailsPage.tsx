@@ -24,7 +24,7 @@ interface DetailsPageProps {
   avatar?: JSX.Element // placement for an icon or image
   subheader?: string | JSX.Element
   details?: string
-  notices?: Array<Notice>
+  notices?: Array<Notice> | JSX.Element
   links?: Array<Link>
   pageContent?: JSX.Element
   primaryActions?: Array<Action | JSX.Element>
@@ -93,14 +93,15 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     }
   }
 
+  // console.log('notices: ', p.notices)
+  // console.log('notices type: ', typeof p.notices)
+
   return (
     <Grid container spacing={2}>
       {/* Notices */}
-      {Boolean(p.notices?.length) && (
-        <Grid item xs={12}>
-          <Notices notices={p.notices} />
-        </Grid>
-      )}
+      <Grid item xs={12}>
+        {Array.isArray(p.notices) ? <Notices notices={p.notices} /> : p.notices}
+      </Grid>
 
       {/* Header card */}
       <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>

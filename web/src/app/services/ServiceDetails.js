@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
+import { Button } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
-import { DateTime } from 'luxon'
 
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
@@ -15,7 +15,7 @@ import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
-import { Button } from '@mui/material'
+import ServiceMaintenanceNotice from './ServiceMaintenanceNotice'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -58,12 +58,6 @@ const query = gql`
   }
 `
 
-const mutation = gql`
-  mutation updateService($input: UpdateServiceInput!) {
-    updateService(input: $input)
-  }
-`
-
 const hbStatus = (h) => {
   if (!h || !h.length) return null
   if (h.every((m) => m.lastState === 'healthy')) return 'ok'
@@ -87,8 +81,6 @@ export default function ServiceDetails({ serviceID }) {
     returnPartialData: true,
   })
 
-  const [updateService] = useMutation(mutation)
-
   if (loading && !_.get(data, 'service.id')) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
@@ -96,46 +88,12 @@ export default function ServiceDetails({ serviceID }) {
     return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
-  const exp = DateTime.fromISO(data.service.maintenanceExpiresAt)
-  const isMaintMode = exp.isValid && exp > DateTime.local()
-  const dateFmtd = DateTime.fromISO(exp).toFormat('FFF')
-
   return (
     <React.Fragment>
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
-        notices={
-          isMaintMode
-            ? [
-                {
-                  type: 'WARNING',
-                  message: 'In Maintenance Mode',
-                  details: `Ends at ${dateFmtd}`,
-                  action: (
-                    <Button
-                      onClick={() => {
-                        updateService({
-                          variables: {
-                            input: {
-                              id: serviceID,
-                              maintenanceExpiresAt: DateTime.local()
-                                .minus({
-                                  years: 1,
-                                })
-                                .toISO(),
-                            },
-                          },
-                        })
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  ),
-                },
-              ]
-            : []
-        }
+        notices={<ServiceMaintenanceNotice serviceID={serviceID} />}
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}

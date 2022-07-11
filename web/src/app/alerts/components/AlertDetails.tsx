@@ -43,6 +43,7 @@ import {
   Notice,
   AlertStatus,
 } from '../../../schema'
+import ServiceMaintenanceNotice from '../../services/ServiceMaintenanceNotice'
 
 interface AlertDetailsProps {
   data: Alert
@@ -369,18 +370,18 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   }
 
   const { data: alert } = props
-
-  const notices: Notice[] = alert.pendingNotifications.map((n) => ({
-    type: 'WARNING',
-    message: `Notification Pending for ${n.destination}`,
-    details:
-      'This could be due to rate-limiting, processing, or network delays.',
-  }))
-
   return (
     <Grid container spacing={2} justifyContent='center'>
       <Grid item className={getCardClassName()}>
-        <Notices notices={notices} />
+        <ServiceMaintenanceNotice
+          serviceID={props.data?.service.id ?? ''}
+          extraNotices={alert.pendingNotifications.map((n) => ({
+            type: 'WARNING',
+            message: `Notification Pending for ${n.destination}`,
+            details:
+              'This could be due to rate-limiting, processing, or network delays.',
+          }))}
+        />
       </Grid>
 
       {/* Main Alert Info */}
