@@ -1,14 +1,21 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
   GridValueGetterParams,
+  GridToolbarContainer,
+  GridToolbarColumnsButton,
+  GridToolbarDensitySelector,
+  GridToolbarFilterButton,
+  gridClasses,
 } from '@mui/x-data-grid'
-import { Grid } from '@mui/material'
+import { Button, Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
 import DownloadIcon from '@mui/icons-material/Download'
 import AppLink from '../../util/AppLink'
 import { AlertCountSeries } from './useAdminAlertCounts'
+import { useWorker } from '../../worker'
+import { pathPrefix } from '../../env'
 
 interface AlertCountTableProps {
   alertCounts: AlertCountSeries[]
@@ -94,47 +101,47 @@ export default function AlertCountTable(
   props: AlertCountTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  // const alertCounts = useMemo(() => props.alertCounts, [props.alertCounts])
+  const alertCounts = useMemo(() => props.alertCounts, [props.alertCounts])
 
-  // const csvOpts = useMemo(
-  //   () => ({
-  //     urlPrefix: location.origin + pathPrefix,
-  //     alertCounts: alertCounts,
-  //   }),
-  //   [props.alertCounts],
-  // )
-  // const csvData = useWorker('useAlertCSV', csvOpts, '')
-  // const link = useMemo(
-  //   () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
-  //   [csvData],
-  // )
+  const csvOpts = useMemo(
+    () => ({
+      urlPrefix: location.origin + pathPrefix,
+      alertCounts: alertCounts,
+    }),
+    [props.alertCounts],
+  )
+  const csvData = useWorker('useAlertCountCSV', csvOpts, '')
+  const link = useMemo(
+    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
+    [csvData],
+  )
 
-  // function CustomToolbar(): JSX.Element {
-  //   return (
-  //     <GridToolbarContainer className={gridClasses.toolbarContainer}>
-  //       <Grid container justifyContent='space-between'>
-  //         <Grid item>
-  //           <GridToolbarColumnsButton />
-  //           <GridToolbarFilterButton />
-  //           <GridToolbarDensitySelector />
-  //         </Grid>
-  //         <Grid item>
-  //           <AppLink
-  //             to={link}
-  //             download={`all-services-alert-counts-${props.startTime}-to-${props.endTime}.csv`}
-  //           >
-  //             <Button
-  //               size='small'
-  //               startIcon={<DownloadIcon fontSize='small' />}
-  //             >
-  //               Export
-  //             </Button>
-  //           </AppLink>
-  //         </Grid>
-  //       </Grid>
-  //     </GridToolbarContainer>
-  //   )
-  // }
+  function CustomToolbar(): JSX.Element {
+    return (
+      <GridToolbarContainer className={gridClasses.toolbarContainer}>
+        <Grid container justifyContent='space-between'>
+          <Grid item>
+            <GridToolbarColumnsButton />
+            <GridToolbarFilterButton />
+            <GridToolbarDensitySelector />
+          </Grid>
+          <Grid item>
+            <AppLink
+              to={link}
+              download={`all-services-alert-counts-${props.startTime}-to-${props.endTime}.csv`}
+            >
+              <Button
+                size='small'
+                startIcon={<DownloadIcon fontSize='small' />}
+              >
+                Export
+              </Button>
+            </AppLink>
+          </Grid>
+        </Grid>
+      </GridToolbarContainer>
+    )
+  }
 
   return (
     <Grid container className={classes.tableContent}>
@@ -146,7 +153,7 @@ export default function AlertCountTable(
           disableSelectionOnClick
           components={{
             ExportIcon: DownloadIcon,
-            // Toolbar: CustomToolbar,
+            Toolbar: CustomToolbar,
           }}
         />
       </Grid>
