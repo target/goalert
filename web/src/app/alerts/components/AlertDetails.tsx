@@ -33,7 +33,6 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import { useIsWidthDown } from '../../util/useWidth'
 import CardActions, { Action } from '../../details/CardActions'
 import {
   Alert,
@@ -80,7 +79,6 @@ const updateStatusMutation = gql`
 
 export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
-  const fullScreen = useIsWidthDown('md')
 
   const [ack] = useMutation(updateStatusMutation, {
     variables: {
@@ -131,10 +129,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     const newVal = !showExactTimes
     setShowExactTimes(newVal)
     localStorage.setItem(exactTimesKey, newVal.toString())
-  }
-
-  function getCardClassName(): string {
-    return fullScreen ? classes.cardFull : classes.card
   }
 
   function renderTargets(targets: Target[], stepID: string): ReactElement[] {
@@ -318,7 +312,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         data-cy='alert-details'
         className={classes.cardContainer}
       >
-        <Card className={getCardClassName()}>
+        <Card>
           <CardContent>
             <Typography component='h3' variant='h5'>
               Details
@@ -351,6 +345,11 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       ]
     }
 
+    const maintExp = DateTime.fromISO(
+      props.data?.service?.maintenanceExpiresAt ?? '',
+    )
+    const isMaintMode = maintExp.isValid && maintExp > DateTime.local()
+
     // only remaining status is acknowledged, show remaining buttons
     return [
       ...options,
@@ -363,28 +362,29 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         icon: <EscalateIcon />,
         label: 'Escalate',
         handleOnClick: () => escalate(),
+        ButtonProps: {
+          disabled: isMaintMode,
+        },
       },
     ]
   }
 
   const { data: alert } = props
   return (
-    <Grid container spacing={2} justifyContent='center'>
-      <Grid item className={getCardClassName()}>
-        <ServiceMaintenanceNotice
-          serviceID={props.data?.service?.id ?? ''}
-          extraNotices={alert.pendingNotifications.map((n) => ({
-            type: 'WARNING',
-            message: `Notification Pending for ${n.destination}`,
-            details:
-              'This could be due to rate-limiting, processing, or network delays.',
-          }))}
-        />
-      </Grid>
+    <Grid container spacing={2}>
+      <ServiceMaintenanceNotice
+        serviceID={props.data?.service?.id ?? ''}
+        extraNotices={alert.pendingNotifications.map((n) => ({
+          type: 'WARNING',
+          message: `Notification Pending for ${n.destination}`,
+          details:
+            'This could be due to rate-limiting, processing, or network delays.',
+        }))}
+      />
 
       {/* Main Alert Info */}
       <Grid item xs={12} className={classes.cardContainer}>
-        <Card className={getCardClassName()}>
+        <Card sx={{ width: '100%' }}>
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
               <Grid item xs={12}>
@@ -411,7 +411,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
       {/* Escalation Policy Info */}
       <Grid item xs={12} className={classes.cardContainer}>
-        <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
+        <Card style={{ width: '100%', overflowX: 'auto' }}>
           <CardContent>
             <Typography
               className={classes.epHeader}
@@ -458,7 +458,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
       {/* Alert Logs */}
       <Grid item xs={12} className={classes.cardContainer}>
-        <Card className={getCardClassName()}>
+        <Card sx={{ width: '100%' }}>
           <div style={{ display: 'flex' }}>
             <CardContent style={{ flex: 1, paddingBottom: 0 }}>
               <Typography component='h3' variant='h5'>

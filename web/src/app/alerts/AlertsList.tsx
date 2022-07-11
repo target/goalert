@@ -263,9 +263,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
-        <Grid item>
-          <ServiceMaintenanceNotice serviceID={props.serviceID} />
-        </Grid>
+        <ServiceMaintenanceNotice serviceID={props.serviceID} />
         <Grid item>
           <QueryList
             query={alertsListQuery}

@@ -1,6 +1,6 @@
 import React, { MouseEventHandler } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
-import Button from '@mui/material/Button'
+import Button, { ButtonProps } from '@mui/material/Button'
 import MUICardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
@@ -18,8 +18,8 @@ interface ActionProps {
 export type Action = {
   label: string // primary button text, use for a tooltip if secondary action
   handleOnClick: MouseEventHandler<HTMLButtonElement>
-
   icon?: JSX.Element // if true, adds a start icon to a button with text
+  ButtonProps?: ButtonProps
 }
 
 const useStyles = makeStyles({
@@ -79,9 +79,15 @@ function Action(p: ActionProps): JSX.Element {
   if (secondary && action.icon) {
     return (
       <Tooltip title={action.label} placement='top'>
-        <IconButton onClick={action.handleOnClick} size='large'>
-          {action.icon}
-        </IconButton>
+        <div>
+          <IconButton
+            onClick={action.handleOnClick}
+            size='large'
+            {...action.ButtonProps}
+          >
+            {action.icon}
+          </IconButton>
+        </div>
       </Tooltip>
     )
   }
@@ -91,6 +97,7 @@ function Action(p: ActionProps): JSX.Element {
       onClick={action.handleOnClick}
       startIcon={action.icon}
       variant='contained'
+      {...action.ButtonProps}
     >
       {action.label}
     </Button>

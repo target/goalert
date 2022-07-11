@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
-import { Button } from '@mui/material'
+import { Button, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import Notices, { Notice } from '../details/Notices'
 
@@ -24,6 +24,7 @@ interface ServiceMaintenanceNoticeProps {
 }
 
 // todo: add error handling
+// assumed that this is rendered within a Grid container
 export default function ServiceMaintenanceNotice({
   serviceID,
   extraNotices = [],
@@ -46,33 +47,35 @@ export default function ServiceMaintenanceNotice({
   if (!isMaintMode) return <Fragment />
 
   return (
-    <Notices
-      notices={[
-        {
-          type: 'WARNING',
-          message: 'In Maintenance Mode',
-          details: `Ends at ${exp.toFormat('FFF')}`,
-          action: (
-            <Button
-              onClick={() => {
-                updateService({
-                  input: {
-                    id: serviceID,
-                    maintenanceExpiresAt: DateTime.local()
-                      .minus({
-                        years: 1,
-                      })
-                      .toISO(),
-                  },
-                })
-              }}
-            >
-              Cancel
-            </Button>
-          ),
-        },
-        ...extraNotices,
-      ]}
-    />
+    <Grid item sx={{ width: '100%' }}>
+      <Notices
+        notices={[
+          {
+            type: 'WARNING',
+            message: 'In Maintenance Mode',
+            details: `Ends at ${exp.toFormat('FFF')}`,
+            action: (
+              <Button
+                onClick={() => {
+                  updateService({
+                    input: {
+                      id: serviceID,
+                      maintenanceExpiresAt: DateTime.local()
+                        .minus({
+                          years: 1,
+                        })
+                        .toISO(),
+                    },
+                  })
+                }}
+              >
+                Cancel
+              </Button>
+            ),
+          },
+          ...extraNotices,
+        ]}
+      />
+    </Grid>
   )
 }
