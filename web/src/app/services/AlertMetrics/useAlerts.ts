@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { gql, useClient } from 'urql'
-import { Alert } from '../../../schema'
+import { Alert, AlertSearchOptions } from '../../../schema'
 
 const alertsQuery = gql`
   query alerts($input: AlertSearchOptions!) {
@@ -40,12 +40,18 @@ export type AlertsData = {
 }
 
 export function useAlerts(
-  serviceID: string,
-  since: string,
-  until: string,
+  options: AlertSearchOptions,
+  depKey: string,
   pause?: boolean,
 ): AlertsData {
-  const depKey = `${serviceID}-${since}-${until}`
+  const {
+    filterByServiceID,
+    filterByStatus,
+    notClosedBefore,
+    notCreatedBefore,
+    closedBefore,
+    createdBefore,
+  } = options
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | undefined>()
@@ -73,11 +79,13 @@ export function useAlerts(
       const q = await client
         .query(alertsQuery, {
           input: {
-            filterByServiceID: [serviceID],
+            filterByServiceID: filterByServiceID,
             first: QUERY_LIMIT,
-            notClosedBefore: since,
-            closedBefore: until,
-            filterByStatus: ['StatusClosed'],
+            notClosedBefore: notClosedBefore,
+            closedBefore: closedBefore,
+            notCreatedBefore: notCreatedBefore,
+            createdBefore: createdBefore,
+            filterByStatus: filterByStatus,
             after: cursor,
           },
         })
@@ -105,6 +113,7 @@ export function useAlerts(
     )
 
     let [alerts, hasNextPage, endCursor, error] = await fetchAlerts('')
+
     if (key.current !== depKey) return // abort if the key has changed
     if (error) {
       setError(error)
