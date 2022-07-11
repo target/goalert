@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/target/goalert/util/log"
 )
@@ -19,13 +20,14 @@ func (app *App) Resume(ctx context.Context) error {
 
 func (app *App) _pause(ctx context.Context) error {
 	app.db.SetMaxIdleConns(0)
+	app.db.SetConnMaxLifetime(time.Second)
 	app.events.Stop()
-
 	return nil
 }
 
 func (app *App) _resume(ctx context.Context) error {
 	app.db.SetMaxIdleConns(app.cfg.DBMaxIdle)
+	app.db.SetConnMaxLifetime(0)
 	app.events.Start()
 
 	return nil
