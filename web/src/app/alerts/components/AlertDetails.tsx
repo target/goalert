@@ -35,12 +35,10 @@ import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import { useIsWidthDown } from '../../util/useWidth'
 import CardActions, { Action } from '../../details/CardActions'
-import Notices from '../../details/Notices'
 import {
   Alert,
   Target,
   EscalationPolicyStep,
-  Notice,
   AlertStatus,
 } from '../../../schema'
 import ServiceMaintenanceNotice from '../../services/ServiceMaintenanceNotice'
@@ -374,7 +372,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     <Grid container spacing={2} justifyContent='center'>
       <Grid item className={getCardClassName()}>
         <ServiceMaintenanceNotice
-          serviceID={props.data?.service.id ?? ''}
+          serviceID={props.data?.service?.id ?? ''}
           extraNotices={alert.pendingNotifications.map((n) => ({
             type: 'WARNING',
             message: `Notification Pending for ${n.destination}`,

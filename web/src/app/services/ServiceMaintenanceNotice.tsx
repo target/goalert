@@ -31,7 +31,7 @@ export default function ServiceMaintenanceNotice({
   const [{ fetching, data }] = useQuery({
     query,
     variables: { serviceID },
-    skip: !serviceID,
+    pause: !serviceID,
   })
   const [updateServiceStatus, updateService] = useMutation(mutation)
   if (
