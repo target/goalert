@@ -121,13 +121,13 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	applyChanges.Queue("set constraints all deferred")
 	seqSync.AddBatchWrites(&applyChanges)
 	tblSync.AddBatchWrites(&applyChanges, l.dstRows)
+	applyChanges.Queue("commit")
 	if final {
 		// re-enable triggers in destination DB
 		for _, t := range l.tables {
 			applyChanges.Queue(fmt.Sprintf(`alter table %s enable trigger user`, sqlutil.QuoteID(t.Name())))
 		}
 	}
-	applyChanges.Queue("commit")
 	err = l.dstConn.SendBatch(ctx, &applyChanges).Close()
 	if err != nil {
 		l.dstConn.Exec(ctx, `rollback`)
