@@ -1,26 +1,10 @@
 import { DateTime, Duration, Interval } from 'luxon'
 import _ from 'lodash'
-import { Alert, Service } from '../../../schema'
-
-export type ServiceCounts = {
-  service: Service
-  total: number
-}
-
-export type AlertMetricPoint = {
-  date: string
-  label: string
-  serviceCounts: ServiceCounts[]
-}
-
-export type AlertMetricsOpts = {
-  int: string // iso-formatted interval
-  dur: string // iso-formatted duration
-  alerts: Alert[]
-}
+import { Alert } from '../../../schema'
 
 export type AlertCountSeries = {
   serviceName: string
+  id: string
   data: AlertCountDataPoint[]
 }
 export type AlertCountDataPoint = {
@@ -28,10 +12,13 @@ export type AlertCountDataPoint = {
   label: string
   total: number
 }
+export type AlertCountOpts = {
+  int: string // iso-formatted interval
+  dur: string // iso-formatted duration
+  alerts: Alert[]
+}
 
-export function useAdminAlertCounts(
-  opts: AlertMetricsOpts,
-): AlertCountSeries[] {
+export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
   const alerts = opts.alerts
   const groupBySvcTest = _.groupBy(alerts, 'service.id')
   return Object.values(groupBySvcTest).map((alerts) => {
@@ -60,6 +47,7 @@ export function useAdminAlertCounts(
       })
     return {
       serviceName: alerts[0].service?.name as string,
+      id: alerts[0].service?.id as string,
       data: alertCounts,
     }
   })

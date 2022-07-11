@@ -6,9 +6,10 @@ import { DateTime, Duration, Interval } from 'luxon'
 import { AlertSearchOptions } from '../../../schema'
 import { useAlerts } from '../../services/AlertMetrics/useAlerts'
 import { GenericError } from '../../error-pages'
-import { AlertMetricsOpts } from '../../services/AlertMetrics/useAlertMetrics'
 import { useWorker } from '../../worker'
 import AlertCountLineGraph from './AlertCountLineGraph'
+import AlertCountTable from './AlertCountTable'
+import { AlertCountOpts } from './useAdminAlertCounts'
 
 export default function AdminAlertCounts(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
@@ -31,11 +32,11 @@ export default function AdminAlertCounts(): JSX.Element {
   const depKey = `${params.since}-${params.until}`
   const alertsData = useAlerts(alertOptions, depKey)
 
-  const metricsOpts: AlertMetricsOpts = useMemo(
+  const alertCountOpts: AlertCountOpts = useMemo(
     () => ({ int: graphInterval, dur: graphDur, alerts: alertsData.alerts }),
     [graphInterval, graphDur, alertsData.alerts],
   )
-  const graphData = useWorker('useAdminAlertCounts', metricsOpts, [])
+  const alertCounts = useWorker('useAdminAlertCounts', alertCountOpts, [])
 
   if (alertsData.error) {
     return <GenericError error={alertsData.error.message} />
@@ -47,7 +48,13 @@ export default function AdminAlertCounts(): JSX.Element {
         <AlertCountControls />
         <Card sx={{ marginTop: '15px' }}>
           <CardContent>
-            <AlertCountLineGraph data={graphData.slice(0, 5)} />
+            <AlertCountLineGraph data={alertCounts.slice(0, 5)} />
+            <AlertCountTable
+              alertCounts={alertCounts}
+              startTime={DateTime.fromISO(params.since).toFormat('yyyy-MM-dd')}
+              endTime={DateTime.fromISO(params.until).toFormat('yyyy-MM-dd')}
+              loading={alertsData.loading}
+            />
           </CardContent>
         </Card>
       </Grid>
