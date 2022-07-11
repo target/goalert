@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 import { Button, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
@@ -29,12 +29,21 @@ export default function ServiceMaintenanceNotice({
   serviceID,
   extraNotices = [],
 }: ServiceMaintenanceNoticeProps): JSX.Element {
+  const [showNotice, setShowNotice] = useState(false)
   const [{ fetching, data }] = useQuery({
     query,
     variables: { serviceID },
     pause: !serviceID,
   })
   const [updateServiceStatus, updateService] = useMutation(mutation)
+
+  // TODO: optimistic response for starting maintenance mode
+  const exp = DateTime.fromISO(data?.service?.maintenanceExpiresAt ?? '')
+  const isMaintMode = exp.isValid && exp > DateTime.local()
+  useEffect(() => {
+    setShowNotice(isMaintMode)
+  }, [isMaintMode])
+
   if (
     (!data && fetching) ||
     (!updateServiceStatus.data && updateServiceStatus.fetching)
@@ -42,9 +51,7 @@ export default function ServiceMaintenanceNotice({
     return <Fragment />
   }
 
-  const exp = DateTime.fromISO(data.service.maintenanceExpiresAt)
-  const isMaintMode = exp.isValid && exp > DateTime.local()
-  if (!isMaintMode) return <Fragment />
+  if (!showNotice) return <Fragment />
 
   return (
     <Grid item sx={{ width: '100%' }}>
@@ -57,15 +64,22 @@ export default function ServiceMaintenanceNotice({
             action: (
               <Button
                 onClick={() => {
-                  updateService({
-                    input: {
-                      id: serviceID,
-                      maintenanceExpiresAt: DateTime.local()
-                        .minus({
-                          years: 1,
-                        })
-                        .toISO(),
+                  updateService(
+                    {
+                      input: {
+                        id: serviceID,
+                        maintenanceExpiresAt: DateTime.local()
+                          .minus({
+                            years: 1,
+                          })
+                          .toISO(),
+                      },
                     },
+                    { additionalTypenames: ['Services'] },
+                  ).then((result) => {
+                    if (!result.error) {
+                      setShowNotice(false)
+                    }
                   })
                 }}
               >
