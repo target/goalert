@@ -414,7 +414,7 @@ func (g *Group) processMessage(ctx context.Context, msg swomsg.Message) error {
 		}
 		g.resumeNow = make(chan struct{})
 		err := g.startTask(ctx, "resume-after", func(ctx context.Context) error {
-			t := time.NewTimer(15 * time.Second)
+			t := time.NewTimer(30 * time.Second)
 			defer t.Stop()
 			select {
 			case <-ctx.Done():
