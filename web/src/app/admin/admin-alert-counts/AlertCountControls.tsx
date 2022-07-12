@@ -55,9 +55,7 @@ export default function AlertCountControls(): JSX.Element {
         </Grid>
         <Grid item sx={{ flex: 1 }}>
           <FormControl sx={{ width: '100%' }}>
-            <InputLabel id='demo-simple-select-helper-label'>
-              Interval
-            </InputLabel>
+            <InputLabel>Interval</InputLabel>
             <Select
               fullWidth
               value={params.interval}
@@ -68,7 +66,8 @@ export default function AlertCountControls(): JSX.Element {
                 setParams({ ...params, interval: newInterval.target.value })
               }
             >
-              <MenuItem value='P1H'>Hour</MenuItem>
+              <MenuItem value='PT1M'>Minute</MenuItem>
+              <MenuItem value='PT1H'>Hour</MenuItem>
               <MenuItem value='P1D'>Day</MenuItem>
               <MenuItem value='P1W'>Week</MenuItem>
               <MenuItem value='P1M'>Month</MenuItem>

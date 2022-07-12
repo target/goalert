@@ -29,11 +29,15 @@ export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
         const date = i.start.toLocaleString({
           month: 'short',
           day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
         })
         const label = i.start.toLocaleString({
           month: 'short',
           day: 'numeric',
           year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
         })
 
         const bucket = alerts.filter((a) => {
