@@ -83,7 +83,7 @@ const columns = [
       for (let i = 0; i < data.length; i++) {
         total += data[i].total
       }
-      return total / data.length
+      return Math.round(total / data.length)
     },
   },
   {
@@ -149,6 +149,8 @@ export default function AlertCountTable(
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
+          pageSize={5}
+          rowsPerPageOptions={[5, 25, 100]}
           columns={columns}
           disableSelectionOnClick
           components={{
