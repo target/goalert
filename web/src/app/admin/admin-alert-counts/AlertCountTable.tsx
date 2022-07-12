@@ -54,40 +54,19 @@ const columns = [
     field: 'total',
     headerName: 'Total',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => {
-      const data = params.row.data
-      let total = 0
-      for (let i = 0; i < data.length; i++) {
-        total += data[i].total
-      }
-      return total
-    },
+    valueGetter: (params: GridValueGetterParams) => params.row.total,
   },
   {
     field: 'max',
     headerName: 'Max',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => {
-      const data = params.row.data
-      let max = 0
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].total > max) max = data[i].total
-      }
-      return max
-    },
+    valueGetter: (params: GridValueGetterParams) => params.row.max,
   },
   {
     field: 'avg',
     headerName: 'Average',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => {
-      const data = params.row.data
-      let total = 0
-      for (let i = 0; i < data.length; i++) {
-        total += data[i].total
-      }
-      return Math.round(total / data.length)
-    },
+    valueGetter: (params: GridValueGetterParams) => params.row.avg,
   },
   {
     field: 'serviceID',
@@ -122,17 +101,19 @@ export default function AlertCountTable(
 
   function CustomToolbar(): JSX.Element {
     const apiRef = useGridApiContext()
-    const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(apiRef)
-    const mappedPage = currentPage.map((page) => {
-      return {
-        serviceName: page.model.serviceName,
-        data: page.model.data,
-        id: page.model.id,
-      }
-    })
     useEffect(() => {
-      props.setGraphData(mappedPage)
-    }, [mappedPage])
+      const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(
+        apiRef,
+      ).map((page) => ({
+        serviceName: page.model.serviceName,
+        dailyCounts: page.model.dailyCounts,
+        id: page.model.id,
+        total: page.model.total,
+        max: page.model.max,
+        avg: page.model.avg,
+      }))
+      props.setGraphData(currentPage)
+    }, [props.setGraphData])
 
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>

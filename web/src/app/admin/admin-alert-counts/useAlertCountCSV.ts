@@ -20,19 +20,13 @@ export function useAlertCountCSV({
   data += cols.map(formatCSVField).join(',') + '\r\n'
 
   const rows = alertCounts.map((svc) => {
-    let max = 0
-    let total = 0
-    for (let i = 0; i < svc.data.length; i++) {
-      if (svc.data[i].total > max) max = svc.data[i].total
-      total += svc.data[i].total
-    }
     return (
       [
         svc.serviceName || '',
         `${urlPrefix}/services/${svc.id}`,
-        `${total}`,
-        `${max}`,
-        `${total / svc.data.length}`,
+        `${svc.total}`,
+        `${svc.max}`,
+        `${svc.avg}`,
       ]
         .map(formatCSVField)
         .join(',') + '\r\n'

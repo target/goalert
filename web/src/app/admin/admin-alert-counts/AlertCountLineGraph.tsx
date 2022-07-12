@@ -95,8 +95,8 @@ export default function AlertCountLineGraph(
             />
             {props.data?.map((series, idx) => (
               <Line
-                dataKey='total'
-                data={series.data}
+                dataKey='dayTotal'
+                data={series.dailyCounts}
                 strokeWidth={active === series.serviceName ? 3 : 1}
                 name={series.serviceName}
                 stroke={

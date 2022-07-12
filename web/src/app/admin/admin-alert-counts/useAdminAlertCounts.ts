@@ -4,13 +4,16 @@ import { Alert } from '../../../schema'
 
 export type AlertCountSeries = {
   serviceName: string
+  dailyCounts: AlertCountDataPoint[]
   id: string
-  data: AlertCountDataPoint[]
+  total: number
+  max: number
+  avg: number
 }
 export type AlertCountDataPoint = {
   date: string
   label: string
-  total: number
+  dayTotal: number
 }
 export type AlertCountOpts = {
   int: string // iso-formatted interval
@@ -23,6 +26,8 @@ export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
   const groupBySvcTest = _.groupBy(alerts, 'service.id')
   return Object.values(groupBySvcTest).map((alerts) => {
     const alertCounts: AlertCountDataPoint[] = []
+    let svcTotal = 0
+    let svcMax = 0
     Interval.fromISO(opts.int)
       .splitBy(Duration.fromISO(opts.dur))
       .map((i) => {
@@ -46,13 +51,18 @@ export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
         alertCounts.push({
           date,
           label,
-          total: bucket.length,
+          dayTotal: bucket.length,
         })
+        svcTotal += bucket.length
+        if (bucket.length > svcMax) svcMax = bucket.length
       })
     return {
       serviceName: alerts[0].service?.name as string,
       id: alerts[0].service?.id as string,
-      data: alertCounts,
+      dailyCounts: alertCounts,
+      total: svcTotal,
+      max: svcMax,
+      avg: Math.round(svcTotal / alertCounts.length),
     }
   })
 }
