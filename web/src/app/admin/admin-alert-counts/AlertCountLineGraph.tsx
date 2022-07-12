@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
@@ -32,6 +32,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
 ): JSX.Element {
+  const [active, setActive] = useState('')
   const classes = useStyles()
   const theme = useTheme()
   return (
@@ -84,12 +85,27 @@ export default function AlertCountLineGraph(
                 )
               }}
             />
-            <Legend />
+            <Legend
+              onMouseEnter={(e) => {
+                setActive(e.value)
+              }}
+              onMouseLeave={() => {
+                setActive('')
+              }}
+            />
             {props.data?.map((series, idx) => (
               <Line
                 dataKey='total'
                 data={series.data}
+                strokeWidth={active === series.serviceName ? 3 : 1}
                 name={series.serviceName}
+                stroke={
+                  active === series.serviceName
+                    ? theme.palette.primary.main
+                    : theme.palette.mode === 'light'
+                    ? theme.palette.secondary.light
+                    : theme.palette.secondary.light
+                }
                 key={idx}
               />
             ))}
