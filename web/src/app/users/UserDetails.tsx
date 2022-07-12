@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from 'urql'
-import p from 'prop-types'
 import Delete from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import DetailsPage from '../details/DetailsPage'
@@ -21,6 +20,7 @@ import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import { EscalationPolicyStep } from '../../schema'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -73,10 +73,10 @@ const profileQuery = gql`
   }
 `
 
-function serviceCount(onCallSteps = []) {
-  const svcs = {}
+function serviceCount(onCallSteps: EscalationPolicyStep[] = []): number {
+  const svcs: { [Key: string]: boolean } = {}
   ;(onCallSteps || []).forEach((s) =>
-    (s.escalationPolicy.assignedTo || []).forEach(
+    (s?.escalationPolicy?.assignedTo || []).forEach(
       (svc) => (svcs[svc.id] = true),
     ),
   )
@@ -84,7 +84,10 @@ function serviceCount(onCallSteps = []) {
   return Object.keys(svcs).length
 }
 
-export default function UserDetails(props) {
+export default function UserDetails(props: {
+  userID: string
+  readOnly: boolean
+}): JSX.Element {
   const userID = props.userID
   const {
     userID: currentUserID,
@@ -95,7 +98,9 @@ export default function UserDetails(props) {
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
-  const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
+  const [showVerifyDialogByID, setShowVerifyDialogByID] = useState<
+    string | null | undefined
+  >(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
 
   const [{ data, fetching: isQueryLoading, error }] = useQuery({
@@ -142,7 +147,7 @@ export default function UserDetails(props) {
       }`,
     })
   }
-
+  console.log(disclaimer)
   return (
     <React.Fragment>
       {showEdit && (
@@ -179,7 +184,7 @@ export default function UserDetails(props) {
       {createCM && (
         <UserContactMethodCreateDialog
           userID={userID}
-          disclaimer={disclaimer}
+          disclaimer={disclaimer?.toString()}
           onClose={(contactMethodID) => {
             setCreateCM(false)
             setShowVerifyDialogByID(contactMethodID)
@@ -252,9 +257,4 @@ export default function UserDetails(props) {
       />
     </React.Fragment>
   )
-}
-
-UserDetails.propTypes = {
-  userID: p.string,
-  readOnly: p.bool,
 }
