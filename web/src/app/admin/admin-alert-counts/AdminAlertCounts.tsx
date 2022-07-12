@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react'
 import { Grid, Card, CardContent } from '@mui/material'
+import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
 import AlertCountControls from './AlertCountControls'
 import { useURLParams } from '../../actions'
 import { DateTime, Duration, Interval } from 'luxon'
@@ -11,7 +13,14 @@ import AlertCountLineGraph from './AlertCountLineGraph'
 import AlertCountTable from './AlertCountTable'
 import { AlertCountOpts } from './useAdminAlertCounts'
 
+const useStyles = makeStyles((theme: Theme) => ({
+  card: {
+    marginTop: theme.spacing(1),
+  },
+}))
+
 export default function AdminAlertCounts(): JSX.Element {
+  const styles = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const [params] = useURLParams({
     since: now.minus({ months: 1 }).toISO(),
@@ -46,7 +55,7 @@ export default function AdminAlertCounts(): JSX.Element {
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <AlertCountControls />
-        <Card sx={{ marginTop: '15px' }}>
+        <Card className={styles.card}>
           <CardContent>
             <AlertCountLineGraph data={alertCounts.slice(0, 5)} />
             <AlertCountTable
