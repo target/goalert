@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Grid, Card, CardContent } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
@@ -11,7 +11,7 @@ import { GenericError } from '../../error-pages'
 import { useWorker } from '../../worker'
 import AlertCountLineGraph from './AlertCountLineGraph'
 import AlertCountTable from './AlertCountTable'
-import { AlertCountOpts } from './useAdminAlertCounts'
+import { AlertCountOpts, AlertCountSeries } from './useAdminAlertCounts'
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 export default function AdminAlertCounts(): JSX.Element {
+  const [graphData, setGraphData] = useState<AlertCountSeries[]>([])
   const styles = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const [params] = useURLParams({
@@ -57,9 +58,10 @@ export default function AdminAlertCounts(): JSX.Element {
         <AlertCountControls />
         <Card className={styles.card}>
           <CardContent>
-            <AlertCountLineGraph data={alertCounts.slice(0, 5)} />
+            <AlertCountLineGraph data={graphData} />
             <AlertCountTable
               alertCounts={alertCounts}
+              setGraphData={setGraphData}
               startTime={DateTime.fromISO(params.since).toFormat('yyyy-MM-dd')}
               endTime={DateTime.fromISO(params.until).toFormat('yyyy-MM-dd')}
               loading={alertsData.loading}

@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
   GridValueGetterParams,
+  gridPaginatedVisibleSortedGridRowEntriesSelector,
   GridToolbarContainer,
-  GridToolbarColumnsButton,
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
+  GridToolbarColumnsButton,
+  useGridApiContext,
   gridClasses,
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
@@ -22,6 +24,7 @@ interface AlertCountTableProps {
   loading: boolean
   startTime: string
   endTime: string
+  setGraphData: (data: AlertCountSeries[]) => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -101,6 +104,7 @@ export default function AlertCountTable(
   props: AlertCountTableProps,
 ): JSX.Element {
   const classes = useStyles()
+  const [pageSize, setPageSize] = useState(5)
   const alertCounts = useMemo(() => props.alertCounts, [props.alertCounts])
 
   const csvOpts = useMemo(
@@ -117,6 +121,19 @@ export default function AlertCountTable(
   )
 
   function CustomToolbar(): JSX.Element {
+    const apiRef = useGridApiContext()
+    const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(apiRef)
+    const mappedPage = currentPage.map((page) => {
+      return {
+        serviceName: page.model.serviceName,
+        data: page.model.data,
+        id: page.model.id,
+      }
+    })
+    useEffect(() => {
+      props.setGraphData(mappedPage)
+    }, [mappedPage])
+
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>
@@ -149,8 +166,9 @@ export default function AlertCountTable(
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
-          pageSize={5}
-          rowsPerPageOptions={[5, 25, 100]}
+          pageSize={pageSize}
+          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          rowsPerPageOptions={[5, 10, 20]}
           columns={columns}
           disableSelectionOnClick
           components={{
