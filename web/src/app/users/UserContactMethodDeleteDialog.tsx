@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useMutation } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 
@@ -9,33 +8,33 @@ const mutation = gql`
     deleteAll(input: [{ id: $id, type: contactMethod }])
   }
 `
-function UserContactMethodDeleteDialog(props) {
+function UserContactMethodDeleteDialog(props: {
+  contactMethodID: string
+  onClose: () => void
+}): JSX.Element {
   const { contactMethodID, ...rest } = props
 
-  const [deleteCM, deleteCMStatus] = useMutation(mutation, {
-    variables: {
-      id: contactMethodID,
-    },
-    onCompleted: props.onClose,
-  })
+  const [deleteCMStatus, deleteCM] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Are you sure?'
       confirm
-      loading={deleteCMStatus.loading}
+      loading={deleteCMStatus.fetching}
       errors={nonFieldErrors(deleteCMStatus.error)}
       subTitle='This will delete the contact method.'
       caption='This will also delete any notification rules associated with this contact method.'
-      onSubmit={() => deleteCM()}
+      onSubmit={() =>
+        deleteCM(
+          {
+            id: contactMethodID,
+          },
+          { additionalTypenames: ['UserContactMethod'] },
+        ).then(props.onClose)
+      }
       {...rest}
     />
   )
-}
-
-UserContactMethodDeleteDialog.propTypes = {
-  contactMethodID: p.string.isRequired,
-  onClose: p.func.isRequired, // passed to FormDialog
 }
 
 export default UserContactMethodDeleteDialog
