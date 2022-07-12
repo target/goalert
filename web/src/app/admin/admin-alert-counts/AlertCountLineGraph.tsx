@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid } from '@mui/material'
+import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
 import {
@@ -10,6 +10,7 @@ import {
   LineChart,
   Line,
   Legend,
+  Tooltip,
 } from 'recharts'
 
 interface AlertCountLineGraphProps {
@@ -63,6 +64,25 @@ export default function AlertCountLineGraph(
               allowDecimals={false}
               interval='preserveStart'
               stroke={theme.palette.text.secondary}
+            />
+            <Tooltip
+              data-cy='alert-count-tooltip'
+              cursor={{ fill: theme.palette.background.default }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+                return (
+                  <Paper variant='outlined' sx={{ p: 1 }}>
+                    <Typography variant='body2'>{label}</Typography>
+                    {payload.map((svc, idx) => {
+                      return (
+                        <React.Fragment key={idx}>
+                          <Typography>{`${svc.name}: ${svc.value}`}</Typography>
+                        </React.Fragment>
+                      )
+                    })}
+                  </Paper>
+                )
+              }}
             />
             <Legend />
             {props.data?.map((series, idx) => (
