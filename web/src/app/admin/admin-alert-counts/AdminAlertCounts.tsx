@@ -24,7 +24,7 @@ export default function AdminAlertCounts(): JSX.Element {
   const styles = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const [params] = useURLParams({
-    since: now.minus({ months: 1 }).toISO(),
+    since: now.minus({ days: 1 }).toISO(),
     until: now.toISO(),
     interval: 'P1D',
   })
