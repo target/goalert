@@ -147,7 +147,7 @@ export default function UserDetails(props: {
       }`,
     })
   }
-  console.log(disclaimer)
+
   return (
     <React.Fragment>
       {showEdit && (
