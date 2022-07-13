@@ -17,12 +17,16 @@ import { DateTime } from 'luxon'
 export default function AlertCountControls(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
   const [params, setParams] = useURLParams({
-    since: now.minus({ days: 1 }).toISO(),
-    until: now.toISO(),
-    interval: 'P1D',
+    createdAfter: now.minus({ days: 1 }).toISO(),
+    createdBefore: '',
+    interval: 'PT1H',
   })
 
-  const handleFilterReset = useResetURLParams('since', 'until', 'interval')
+  const handleFilterReset = useResetURLParams(
+    'createdAfter',
+    'createdBefore',
+    'interval',
+  )
 
   return (
     <Card>
@@ -31,10 +35,10 @@ export default function AlertCountControls(): JSX.Element {
           <ISODateTimePicker
             placeholder='Start'
             name='startDate'
-            value={params.since}
+            value={params.createdAfter}
             size='small'
             onChange={(newStart) => {
-              setParams({ ...params, since: newStart as string })
+              setParams({ ...params, createdAfter: newStart as string })
             }}
             label='Created After'
             variant='outlined'
@@ -44,11 +48,11 @@ export default function AlertCountControls(): JSX.Element {
           <ISODateTimePicker
             placeholder='End'
             name='endDate'
-            value={params.until}
+            value={params.createdBefore}
             label='Created Before'
             size='small'
             onChange={(newEnd) => {
-              setParams({ ...params, until: newEnd as string })
+              setParams({ ...params, createdBefore: newEnd as string })
             }}
             variant='outlined'
           />

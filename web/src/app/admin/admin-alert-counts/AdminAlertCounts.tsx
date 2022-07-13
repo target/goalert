@@ -4,7 +4,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import AlertCountControls from './AlertCountControls'
 import { useURLParams } from '../../actions'
-import { DateTime, Duration, Interval } from 'luxon'
+import { DateTime, Duration, Interval, DateTimeUnit } from 'luxon'
 import { AlertSearchOptions } from '../../../schema'
 import { useAlerts } from '../../services/AlertMetrics/useAlerts'
 import { GenericError } from '../../error-pages'
@@ -19,27 +19,40 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+const units: Record<string, DateTimeUnit> = {
+  PT1M: 'minute',
+  PT1H: 'hour',
+  P1D: 'day',
+  P1W: 'week',
+  P1M: 'month',
+}
+
 export default function AdminAlertCounts(): JSX.Element {
   const [graphData, setGraphData] = useState<AlertCountSeries[]>([])
   const styles = useStyles()
   const now = useMemo(() => DateTime.now(), [])
   const [params] = useURLParams({
-    since: now.minus({ days: 1 }).toISO(),
-    until: now.toISO(),
-    interval: 'P1D',
+    createdAfter: now.minus({ days: 1 }).toISO(),
+    createdBefore: '',
+    interval: 'PT1H',
   })
+  const until = params.createdBefore
+    ? DateTime.fromISO(params.createdBefore)
+    : now.startOf(units[params.interval])
 
   const graphDur = Duration.fromISO(params.interval).toISO()
   const graphInterval = Interval.fromDateTimes(
-    DateTime.fromISO(params.since),
-    DateTime.fromISO(params.until),
+    DateTime.fromISO(params.createdAfter),
+    until,
   ).toISO()
 
   const alertOptions: AlertSearchOptions = {
-    createdBefore: params.until,
-    notCreatedBefore: params.since,
+    notCreatedBefore: params.createdAfter,
   }
-  const depKey = `${params.since}-${params.until}`
+  if (params.createdBefore) {
+    alertOptions.createdBefore = params.createdBefore
+  }
+  const depKey = `${params.createdAfter}-${until.toISO()}`
   const alertsData = useAlerts(alertOptions, depKey)
 
   const alertCountOpts: AlertCountOpts = useMemo(
@@ -62,8 +75,10 @@ export default function AdminAlertCounts(): JSX.Element {
             <AlertCountTable
               alertCounts={alertCounts}
               setGraphData={setGraphData}
-              startTime={DateTime.fromISO(params.since).toFormat('yyyy-MM-dd')}
-              endTime={DateTime.fromISO(params.until).toFormat('yyyy-MM-dd')}
+              startTime={DateTime.fromISO(params.createdAfter).toFormat(
+                'yyyy-MM-dd',
+              )}
+              endTime={until.toFormat('yyyy-MM-dd')}
               loading={alertsData.loading}
             />
           </CardContent>
