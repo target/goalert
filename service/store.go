@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -210,10 +209,10 @@ func wrap(tx *sql.Tx, s *sql.Stmt) *sql.Stmt {
 }
 
 // Update implements the ServiceStore interface.
-func (s *Store) Update(ctx context.Context, svc *Service, maintExpAt time.Time) error {
-	return s.UpdateTx(ctx, nil, svc, maintExpAt)
+func (s *Store) Update(ctx context.Context, svc *Service) error {
+	return s.UpdateTx(ctx, nil, svc)
 }
-func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service, maintExpAt time.Time) error {
+func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -229,7 +228,12 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service, maintExp
 		return err
 	}
 
-	_, err = wrap(tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID, maintExpAt)
+	mExp := sql.NullTime{
+		Time:  n.MaintenanceExpiresAt,
+		Valid: !n.MaintenanceExpiresAt.IsZero(),
+	}
+
+	_, err = wrap(tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.EscalationPolicyID, mExp)
 	return err
 }
 
@@ -278,7 +282,7 @@ func scanFrom(s *Service, f func(args ...interface{}) error) error {
 	if err != nil {
 		return err
 	}
-	s.maintenanceExpiresAt = maintExpiresAt.Time
+	s.MaintenanceExpiresAt = maintExpiresAt.Time
 	return nil
 }
 

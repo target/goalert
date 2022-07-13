@@ -1,8 +1,9 @@
-import React, { Fragment, useState, useEffect } from 'react'
+import React from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 import { Button, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import Notices, { Notice } from '../details/Notices'
+import CountDown from '../util/CountDown'
 
 const query = gql`
   query serviceMaintenanceQuery($serviceID: ID!) {
@@ -23,35 +24,22 @@ interface ServiceMaintenanceNoticeProps {
   extraNotices?: Array<Notice>
 }
 
-// todo: add error handling
 // assumed that this is rendered within a Grid container
 export default function ServiceMaintenanceNotice({
   serviceID,
   extraNotices = [],
-}: ServiceMaintenanceNoticeProps): JSX.Element {
-  const [showNotice, setShowNotice] = useState(false)
+}: ServiceMaintenanceNoticeProps): JSX.Element | null {
+  const [, updateService] = useMutation(mutation)
   const [{ fetching, data }] = useQuery({
     query,
     variables: { serviceID },
     pause: !serviceID,
   })
-  const [updateServiceStatus, updateService] = useMutation(mutation)
 
-  // TODO: optimistic response for starting maintenance mode
-  const exp = DateTime.fromISO(data?.service?.maintenanceExpiresAt ?? '')
-  const isMaintMode = exp.isValid && exp > DateTime.local()
-  useEffect(() => {
-    setShowNotice(isMaintMode)
-  }, [isMaintMode])
-
-  if (
-    (!data && fetching) ||
-    (!updateServiceStatus.data && updateServiceStatus.fetching)
-  ) {
-    return <Fragment />
+  const maintMode = data?.service?.maintenanceExpiresAt
+  if ((!data && fetching) || !maintMode) {
+    return null
   }
-
-  if (!showNotice) return <Fragment />
 
   return (
     <Grid item sx={{ width: '100%' }}>
@@ -60,7 +48,12 @@ export default function ServiceMaintenanceNotice({
           {
             type: 'WARNING',
             message: 'In Maintenance Mode',
-            details: `Ends at ${exp.toFormat('FFF')}`,
+            details: (
+              <React.Fragment>
+                Ends at {DateTime.fromISO(maintMode).toFormat('FFF')} (
+                <CountDown end={maintMode} hours minutes /> remaining)
+              </React.Fragment>
+            ),
             action: (
               <Button
                 onClick={() => {
@@ -76,11 +69,7 @@ export default function ServiceMaintenanceNotice({
                       },
                     },
                     { additionalTypenames: ['Service'] },
-                  ).then((result) => {
-                    if (!result.error) {
-                      setShowNotice(false)
-                    }
-                  })
+                  )
                 }}
               >
                 Cancel

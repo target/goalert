@@ -13,7 +13,8 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	cleanupNoSteps *sql.Stmt
+	cleanupMaintenanceMode *sql.Stmt
+	cleanupNoSteps         *sql.Stmt
 
 	lockStmt     *sql.Stmt
 	updateOnCall *sql.Stmt
@@ -31,7 +32,7 @@ func (db *DB) Name() string { return "Engine.EscalationManager" }
 // NewDB creates a new DB.
 func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
-		Version: 3,
+		Version: 4,
 		Type:    processinglock.TypeEscalation,
 	})
 	if err != nil {
@@ -80,6 +81,12 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 			from on_call
 			on conflict do nothing
 			returning ep_step_id, user_id
+		`),
+
+		cleanupMaintenanceMode: p.P(`
+				update services s
+				set maintenance_expires_at = null
+				where s.maintenance_expires_at notnull and now() > s.maintenance_expires_at
 		`),
 
 		cleanupNoSteps: p.P(`
