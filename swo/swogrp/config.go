@@ -10,9 +10,8 @@ import (
 type Config struct {
 	CanExec bool
 
-	Logger  *log.Logger
-	MainLog *swomsg.Log
-	NextLog *swomsg.Log
+	Logger *log.Logger
+	Msgs   *swomsg.Log
 
 	ResetFunc   func(context.Context) error
 	ExecuteFunc func(context.Context) error

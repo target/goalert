@@ -29,5 +29,7 @@ WHERE sequence_catalog = current_database()
     AND sequence_schema = 'public'
     AND sequence_name != 'change_log_id_seq';
 
--- name: ServerVersion :one
-SELECT version();
+-- name: DatabaseInfo :one
+SELECT db_id AS id,
+    version()
+FROM switchover_state;

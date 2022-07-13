@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/swo/swogrp"
+	"github.com/target/goalert/swo/swoinfo"
 	"github.com/target/goalert/swo/swomsg"
 	"github.com/target/goalert/swo/swosync"
 	"github.com/target/goalert/util/log"
@@ -30,8 +31,8 @@ type Manager struct {
 
 	grp *swogrp.Group
 
-	MainDBVersion string
-	NextDBVersion string
+	MainDBInfo *swoinfo.DB
+	NextDBInfo *swoinfo.DB
 }
 
 type Node struct {
@@ -59,22 +60,18 @@ func NewManager(cfg Config) (*Manager, error) {
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
-	mainLog, err := swomsg.NewLog(ctx, m.dbMain)
-	if err != nil {
-		return nil, err
-	}
-	nextLog, err := swomsg.NewLog(ctx, m.dbNext)
+	messages, err := swomsg.NewLog(ctx, m.dbMain)
 	if err != nil {
 		return nil, err
 	}
 
 	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
 		var err error
-		m.MainDBVersion, err = swodb.New(oldConn).ServerVersion(ctx)
+		m.MainDBInfo, err = swoinfo.DBInfo(ctx, oldConn)
 		if err != nil {
 			return err
 		}
-		m.NextDBVersion, err = swodb.New(newConn).ServerVersion(ctx)
+		m.NextDBInfo, err = swoinfo.DBInfo(ctx, newConn)
 		if err != nil {
 			return err
 		}
@@ -87,9 +84,8 @@ func NewManager(cfg Config) (*Manager, error) {
 	m.grp = swogrp.NewGroup(swogrp.Config{
 		CanExec: cfg.CanExec,
 
-		Logger:  cfg.Logger,
-		MainLog: mainLog,
-		NextLog: nextLog,
+		Logger: cfg.Logger,
+		Msgs:   messages,
 
 		ResetFunc:   m.DoReset,
 		ExecuteFunc: m.DoExecute,
@@ -134,25 +130,25 @@ func (m *Manager) Init(app lifecycle.PauseResumer) {
 
 // withConnFromOld allows performing operations with a raw connection to the old database.
 func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithLockedConn(ctx, m.dbMain, f)
+	return WithPGXConn(ctx, m.dbMain, f)
 }
 
 // withConnFromNew allows performing operations with a raw connection to the new database.
 func (m *Manager) withConnFromNew(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithLockedConn(ctx, m.dbNext, f)
+	return WithPGXConn(ctx, m.dbNext, f)
 }
 
 // withConnFromBoth allows performing operations with a raw connection to both databases database.
 func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Context, oldConn, newConn *pgx.Conn) error) error {
 	// grab lock with old DB first
-	return WithLockedConn(ctx, m.dbMain, func(ctx context.Context, connMain *pgx.Conn) error {
-		return WithLockedConn(ctx, m.dbNext, func(ctx context.Context, connNext *pgx.Conn) error {
+	return WithPGXConn(ctx, m.dbMain, func(ctx context.Context, connMain *pgx.Conn) error {
+		return WithPGXConn(ctx, m.dbNext, func(ctx context.Context, connNext *pgx.Conn) error {
 			return f(ctx, connMain, connNext)
 		})
 	})
 }
 
-func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
+func WithPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
 	conn, err := db.Conn(ctx)
 	if err != nil {
 		return err
@@ -170,14 +166,11 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 // Status will return the current switchover status.
 func (m *Manager) Status() Status {
 	return Status{
-		MainDBVersion: m.MainDBVersion,
-		NextDBVersion: m.NextDBVersion,
+		MainDBVersion: m.MainDBInfo.Version,
+		NextDBVersion: m.NextDBInfo.Version,
 		Status:        m.grp.Status(),
 	}
 }
-
-// SendPing will ping all nodes in the cluster.
-func (m *Manager) SendPing(ctx context.Context) error { return m.grp.Ping(ctx) }
 
 // SendReset will trigger a reset of the switchover.
 func (m *Manager) SendReset(ctx context.Context) error { return m.grp.Reset(ctx) }

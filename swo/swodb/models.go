@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
 
@@ -66,4 +67,5 @@ type SwitchoverLog struct {
 type SwitchoverState struct {
 	Ok           bool
 	CurrentState EnumSwitchoverState
+	DbID         uuid.UUID
 }

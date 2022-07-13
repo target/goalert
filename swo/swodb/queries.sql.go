@@ -8,6 +8,8 @@ package swodb
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const activeTxCount = `-- name: ActiveTxCount :one
@@ -22,6 +24,24 @@ func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const databaseInfo = `-- name: DatabaseInfo :one
+SELECT db_id AS id,
+    version()
+FROM switchover_state
+`
+
+type DatabaseInfoRow struct {
+	ID      uuid.UUID
+	Version string
+}
+
+func (q *Queries) DatabaseInfo(ctx context.Context) (DatabaseInfoRow, error) {
+	row := q.db.QueryRow(ctx, databaseInfo)
+	var i DatabaseInfoRow
+	err := row.Scan(&i.ID, &i.Version)
+	return i, err
 }
 
 const disableChangeLogTriggers = `-- name: DisableChangeLogTriggers :exec
@@ -162,17 +182,6 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const serverVersion = `-- name: ServerVersion :one
-SELECT version()
-`
-
-func (q *Queries) ServerVersion(ctx context.Context) (string, error) {
-	row := q.db.QueryRow(ctx, serverVersion)
-	var version string
-	err := row.Scan(&version)
-	return version, err
 }
 
 const tableColumns = `-- name: TableColumns :many
