@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -7,7 +7,6 @@ import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import { Fade, SvgIconProps, Zoom } from '@mui/material'
-import PingIcon from 'mdi-material-ui/DatabaseMarker'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
 import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
@@ -15,7 +14,7 @@ import ExecuteIcon from 'mdi-material-ui/DatabaseExport'
 import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
 import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
-import { gql, useMutation, useQuery } from '@apollo/client'
+import { gql, useMutation, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 import { SWONode as SWONodeType, SWOStatus } from '../../../schema'
 import Notices, { Notice } from '../../details/Notices'
@@ -40,6 +39,8 @@ const query = gql`
       isExecuting
       details
       errors
+      mainDBVersion
+      nextDBVersion
       connections {
         name
         count
@@ -84,13 +85,20 @@ function cptlz(s: string): string {
 }
 
 export default function AdminSwitchover(): JSX.Element {
-  const { loading, error, data: _data } = useQuery(query, { pollInterval: 250 })
+  const [{ fetching, error, data: _data }, refetch] = useQuery({
+    query,
+  })
   const data = _data?.swoStatus as SWOStatus
   const [lastAction, setLastAction] = useState('')
   const [_statusNotices, setStatusNotices] = useState<Notice[]>([])
-  const [commit, mutationStatus] = useMutation(mutation)
+  const [mutationStatus, commit] = useMutation(mutation)
 
-  if (loading) {
+  useEffect(() => {
+    const t = setInterval(refetch, 250)
+    return () => clearInterval(t)
+  }, [])
+
+  if (fetching) {
     return <Spinner />
   }
 
@@ -142,40 +150,35 @@ export default function AdminSwitchover(): JSX.Element {
     )
   }
 
-  function actionHandler(action: 'ping' | 'reset' | 'execute'): () => void {
+  function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
       setLastAction(action)
-      commit({
-        variables: {
-          action,
-        },
-        onError: (error) => {
-          setStatusNotices([
-            ..._statusNotices,
-            {
-              type: 'error',
-              message: 'Failed to ' + action,
-              details: cptlz(error.message),
-              endNote: DateTime.local().toFormat('fff'),
-            },
-          ])
-        },
-      })
+      commit({ action })
     }
   }
-
-  const statusNotices = _statusNotices.concat(
-    (data?.errors ?? []).map((message: string) => ({
+  const statusNotices = []
+  if (mutationStatus.error) {
+    console.log(mutationStatus)
+    statusNotices.push({
       type: 'error',
-      message,
-    })),
-  )
+      message: 'Failed to ' + mutationStatus.operation?.variables?.action,
+      details: cptlz(mutationStatus.error.message),
+      endNote: DateTime.local().toFormat('fff'),
+    })
+  }
+  if (data?.errors) {
+    data?.errors.forEach((message: string) => {
+      statusNotices.push({
+        type: 'error',
+        message,
+      })
+    })
+  }
 
-  const pingLoad = lastAction === 'ping' && mutationStatus.loading
   const resetLoad =
-    data?.isResetting || (lastAction === 'reset' && mutationStatus.loading)
+    data?.isResetting || (lastAction === 'reset' && mutationStatus.fetching)
   const executeLoad =
-    data?.isExecuting || (lastAction === 'execute' && mutationStatus.loading)
+    data?.isExecuting || (lastAction === 'execute' && mutationStatus.fetching)
 
   function getIcon(): React.ReactNode {
     const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -183,7 +186,7 @@ export default function AdminSwitchover(): JSX.Element {
     if (error) {
       return <ErrorIcon {...i} color='error' />
     }
-    if (loading && !data) {
+    if (fetching && !data) {
       return (
         <Skeleton variant='circular'>
           <InProgressIcon {...i} />
@@ -243,24 +246,13 @@ export default function AdminSwitchover(): JSX.Element {
                 {getDetails()}
                 <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
                   <LoadingButton
-                    startIcon={<PingIcon />}
-                    variant='outlined'
-                    size='large'
-                    disabled={mutationStatus.loading}
-                    loading={pingLoad}
-                    loadingPosition='start'
-                    onClick={actionHandler('ping')}
-                  >
-                    {pingLoad ? 'Sending ping...' : 'Ping'}
-                  </LoadingButton>
-                  <LoadingButton
                     startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
-                    disabled={data?.isDone || mutationStatus.loading}
+                    disabled={data?.isDone || mutationStatus.fetching}
                     variant='outlined'
                     size='large'
                     loading={
                       data?.isResetting ||
-                      (lastAction === 'reset' && mutationStatus.loading)
+                      (lastAction === 'reset' && mutationStatus.fetching)
                     }
                     loadingPosition='start'
                     onClick={actionHandler('reset')}
@@ -271,12 +263,12 @@ export default function AdminSwitchover(): JSX.Element {
                     startIcon={
                       !data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />
                     }
-                    disabled={!data?.isIdle || mutationStatus.loading}
+                    disabled={!data?.isIdle || mutationStatus.fetching}
                     variant='outlined'
                     size='large'
                     loading={
                       data?.isExecuting ||
-                      (lastAction === 'execute' && mutationStatus.loading)
+                      (lastAction === 'execute' && mutationStatus.fetching)
                     }
                     loadingPosition='start'
                     onClick={actionHandler('execute')}
@@ -291,6 +283,10 @@ export default function AdminSwitchover(): JSX.Element {
           <Grid item sx={{ flexGrow: 1 }}>
             <Card sx={{ height: '100%' }}>
               <CardHeader title='Database Connections' />
+              Main DB Version: {data?.mainDBVersion}
+              <br />
+              Next DB Version: {data?.nextDBVersion}
+              <hr />
               <Table size='small'>
                 <TableHead>
                   <TableRow>
@@ -302,6 +298,13 @@ export default function AdminSwitchover(): JSX.Element {
                   {data?.connections?.map((row) => (
                     <TableRow
                       key={row.name || '(no name)'}
+                      style={{
+                        backgroundColor:
+                          row.name.includes('GoAlert') &&
+                          !row.name.includes('SWO')
+                            ? 'red'
+                            : '',
+                      }}
                       sx={{
                         '&:last-child td, &:last-child th': { border: 0 },
                       }}
