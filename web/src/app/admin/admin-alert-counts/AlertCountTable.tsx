@@ -24,6 +24,7 @@ interface AlertCountTableProps {
   loading: boolean
   startTime: string
   endTime: string
+  graphData: AlertCountSeries[]
   setGraphData: (data: AlertCountSeries[]) => void
 }
 
@@ -101,19 +102,23 @@ export default function AlertCountTable(
 
   function CustomToolbar(): JSX.Element {
     const apiRef = useGridApiContext()
+    const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(
+      apiRef,
+    ).map((page) => ({
+      serviceName: page.model.serviceName,
+      dailyCounts: page.model.dailyCounts,
+      id: page.model.id,
+      total: page.model.total,
+      max: page.model.max,
+      avg: page.model.avg,
+    }))
+
     useEffect(() => {
-      const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(
-        apiRef,
-      ).map((page) => ({
-        serviceName: page.model.serviceName,
-        dailyCounts: page.model.dailyCounts,
-        id: page.model.id,
-        total: page.model.total,
-        max: page.model.max,
-        avg: page.model.avg,
-      }))
-      props.setGraphData(currentPage)
-    }, [props.setGraphData])
+      // only set graphData if currentPage changes
+      if (JSON.stringify(props.graphData) !== JSON.stringify(currentPage)) {
+        props.setGraphData(currentPage)
+      }
+    }, [currentPage])
 
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>

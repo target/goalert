@@ -74,6 +74,7 @@ export default function AdminAlertCounts(): JSX.Element {
             <AlertCountLineGraph data={graphData} />
             <AlertCountTable
               alertCounts={alertCounts}
+              graphData={graphData}
               setGraphData={setGraphData}
               startTime={DateTime.fromISO(params.createdAfter).toFormat(
                 'yyyy-MM-dd',
