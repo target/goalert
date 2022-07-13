@@ -689,6 +689,48 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', 'Avg. Close: 2 min')
     })
   })
+
+  describe('Maintenance Mode', () => {
+    let svc: Service
+    let openAlert: Alert
+    beforeEach(() =>
+      cy.createService().then((s: Service) => {
+        svc = s
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
+          openAlert = a
+        })
+        return cy.visit(`/services/${s.id}`)
+      }),
+    )
+
+    it('should start maintenance mode, display banners, and cancel', () => {
+      cy.get('button[aria-label="Maintenance Mode"').click()
+      cy.dialogFinish('Submit')
+
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts/${openAlert.id}`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+
+      // verify escalate button is disabled
+      cy.get(
+        'div[aria-label="Escalate disabled. In maintenance mode."]',
+      ).trigger('mouseover')
+      cy.get('body').should(
+        'contain',
+        'Escalate disabled. In maintenance mode.',
+      )
+
+      // cancel maintenance mode
+      cy.get('button[aria-label="Cancel Maintenance Mode"').click()
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+    })
+  })
 }
 
 testScreen('Services', testServices)

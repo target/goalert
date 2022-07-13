@@ -114,6 +114,7 @@ export default function ServiceDetails({ serviceID }) {
             variant='contained'
             key='maintence-mode'
             onClick={() => setShowMaintMode(true)}
+            aria-label='Maintenance Mode'
           >
             Maintenance Mode
           </Button>,

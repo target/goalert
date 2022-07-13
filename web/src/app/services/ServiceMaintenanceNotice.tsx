@@ -56,6 +56,7 @@ export default function ServiceMaintenanceNotice({
             ),
             action: (
               <Button
+                aria-label='Cancel Maintenance Mode'
                 onClick={() => {
                   updateService(
                     {
