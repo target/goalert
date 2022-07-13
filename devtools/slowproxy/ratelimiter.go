@@ -7,44 +7,53 @@ import (
 )
 
 type rateLimiter struct {
-	bucket   chan int
-	overflow chan int
-	rate     bool
-	latency  time.Duration
-	jitter   time.Duration
+	bucket  chan int
+	rate    bool
+	latency time.Duration
+	jitter  time.Duration
 }
 
 func newRateLimiter(bps int, latency, jitter time.Duration) *rateLimiter {
 	ch := make(chan int)
+
+	bpMs := float64(bps) / 1000
 	go func() {
-		t := time.NewTicker(time.Second)
-		for range t.C {
-			ch <- bps
+		t := time.NewTicker(time.Millisecond)
+		var count float64
+		for {
+			if count >= bpMs {
+				<-t.C
+				count -= bpMs
+				if count < 0 {
+					count = 0
+				}
+				continue
+			}
+
+			select {
+			case <-t.C:
+				count -= bpMs
+				if count < 0 {
+					count = 0
+				}
+			case val := <-ch:
+				count += float64(val)
+			}
 		}
 	}()
+
 	return &rateLimiter{
-		rate:     bps > 0,
-		bucket:   ch,
-		overflow: make(chan int, 1000),
-		latency:  latency,
-		jitter:   jitter,
+		rate:    bps > 0,
+		bucket:  ch,
+		latency: latency,
+		jitter:  jitter,
 	}
 }
 
 func (r *rateLimiter) WaitFor(count int) time.Duration {
-	var n int
-	for r.rate && n < count {
-		select {
-		case val := <-r.bucket:
-			n += val
-		case val := <-r.overflow:
-			n += val
-		}
-	}
-	if n > count {
-		r.overflow <- n - count
-	}
-	return (r.latency - (r.jitter / 2) + time.Duration(rand.Float64()*float64(r.jitter))) / 2
+	waitUntil := time.Now().Add((r.latency - (r.jitter / 2) + time.Duration(rand.Float64()*float64(r.jitter))))
+	r.bucket <- count
+	return time.Until(waitUntil) / 2
 }
 
 func (r *rateLimiter) NewWriter(w io.Writer) io.Writer {
