@@ -70,12 +70,17 @@ export default function ServiceMaintenanceModeDialog(
       errors={nonFieldErrors(updateServiceStatus.error)}
       onClose={props.onClose}
       onSubmit={() =>
-        updateService({
-          input: {
-            id: props.serviceID,
-            maintenanceExpiresAt: calcExp(selectedHours),
+        updateService(
+          {
+            input: {
+              id: props.serviceID,
+              maintenanceExpiresAt: calcExp(selectedHours),
+            },
           },
-        })
+          {
+            additionalTypenames: ['Service'],
+          },
+        )
       }
       form={
         <ServiceMaintenanceForm

@@ -75,7 +75,7 @@ export default function ServiceMaintenanceNotice({
                           .toISO(),
                       },
                     },
-                    { additionalTypenames: ['Services'] },
+                    { additionalTypenames: ['Service'] },
                   ).then((result) => {
                     if (!result.error) {
                       setShowNotice(false)

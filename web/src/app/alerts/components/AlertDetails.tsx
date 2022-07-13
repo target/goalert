@@ -345,10 +345,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       ]
     }
 
-    const maintExp = DateTime.fromISO(
-      props.data?.service?.maintenanceExpiresAt ?? '',
-    )
-    const isMaintMode = maintExp.isValid && maintExp > DateTime.local()
+    const isMaintMode = Boolean(props.data?.service?.maintenanceExpiresAt)
 
     // only remaining status is acknowledged, show remaining buttons
     return [
@@ -360,11 +357,13 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       },
       {
         icon: <EscalateIcon />,
-        label: 'Escalate',
+        label: isMaintMode
+          ? 'Escalate disabled. In maintenance mode.'
+          : 'Escalate',
         handleOnClick: () => escalate(),
-        // ButtonProps: {
-        //   disabled: isMaintMode,
-        // },
+        ButtonProps: {
+          disabled: isMaintMode,
+        },
       },
     ]
   }

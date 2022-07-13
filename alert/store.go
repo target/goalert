@@ -3,7 +3,6 @@ package alert
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
@@ -307,8 +306,9 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	}
 	defer tx.Rollback()
 
+	// return error if any services for each alert are in maintenance mode
 	for _, alertID := range alertIDs {
-		var maintExpiresAt time.Time
+		var maintExpiresAt sql.NullTime
 		var svcID string
 		err := tx.StmtContext(ctx, s.getServiceID).QueryRowContext(ctx, alertID).Scan(&svcID)
 		if err != nil {
@@ -320,8 +320,8 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 			return nil, err
 		}
 
-		if time.Now().Before(maintExpiresAt) {
-			return nil, fmt.Errorf("escalate alert: in maintenance mode")
+		if maintExpiresAt.Valid {
+			return nil, validation.NewGenericError("escalate alert: in maintenance mode")
 		}
 	}
 
