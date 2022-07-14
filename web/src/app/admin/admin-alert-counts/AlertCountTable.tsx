@@ -54,18 +54,21 @@ const columns = [
   {
     field: 'total',
     headerName: 'Total',
+    type: 'number',
     width: 150,
     valueGetter: (params: GridValueGetterParams) => params.row.total,
   },
   {
     field: 'max',
     headerName: 'Max',
+    type: 'number',
     width: 150,
     valueGetter: (params: GridValueGetterParams) => params.row.max,
   },
   {
     field: 'avg',
     headerName: 'Average',
+    type: 'number',
     width: 150,
     valueGetter: (params: GridValueGetterParams) => params.row.avg,
   },
