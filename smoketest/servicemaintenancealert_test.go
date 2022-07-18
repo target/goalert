@@ -18,7 +18,7 @@ func TestServiceMaintenanceAlert(t *testing.T) {
 
 	const initSQL = `
 	insert into users (id, name, email)
-	values ({{uuid "user"}}, 'bob', 'joe');
+	values ({{uuid "user"}}, 'bob', 'bobby@domain.com');
 
 	insert into user_contact_methods (id, user_id, name, type, value)
 	values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
@@ -36,8 +36,7 @@ func TestServiceMaintenanceAlert(t *testing.T) {
 	values ({{uuid "es1"}}, {{uuid "user"}});
 
 	insert into services (id, escalation_policy_id, name)
-	values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
-	`
+	values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');`
 
 	h := harness.NewHarness(t, initSQL, "add-service-maintenance-expires-at")
 	defer h.Close()

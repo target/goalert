@@ -2,20 +2,31 @@ package smoketest
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/target/goalert/smoketest/harness"
 )
 
-func DoGQL(t *testing.T, h *harness.Harness, query string, res interface{}) {
+func contains(expectedErrors []string, err string) bool {
+	for _, expectedErr := range expectedErrors {
+		if strings.Contains(err, expectedErr) {
+			return true
+		}
+	}
+	return false
+}
+
+func DoGQL(t *testing.T, h *harness.Harness, query string, res interface{}, expectedErrs ...string) {
 	t.Helper()
 	g := h.GraphQLQuery2(query)
-	for _, err := range g.Errors {
-		t.Error("GraphQL Error:", err.Message)
-	}
 
 	if len(g.Errors) > 0 {
-		t.Fatal("errors returned from GraphQL")
+		for _, err := range g.Errors {
+			if !contains(expectedErrs, err.Message) {
+				t.Fatalf("unexpected graphql error: %s", err.Message)
+			}
+		}
 	}
 
 	t.Log("Response:", string(g.Data))
