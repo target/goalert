@@ -93,9 +93,6 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     }
   }
 
-  // console.log('notices: ', p.notices)
-  // console.log('notices type: ', typeof p.notices)
-
   return (
     <Grid container spacing={2}>
       {/* Notices */}

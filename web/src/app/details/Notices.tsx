@@ -54,7 +54,7 @@ export default function Notices({
     return null
   }
 
-  function renderWithShowAllToggle(action?: JSX.Element): ReactNode {
+  function renderShowAllToggle(action?: JSX.Element): ReactNode {
     if (notices.length <= 1) return null
     return (
       <React.Fragment>
@@ -108,7 +108,7 @@ export default function Notices({
               style={{ display: 'flex', alignItems: 'center', height: '100%' }}
             >
               {index === 0 && notices.length > 1
-                ? renderWithShowAllToggle(notice.action)
+                ? renderShowAllToggle(notice.action)
                 : notice.action}
             </div>
           }

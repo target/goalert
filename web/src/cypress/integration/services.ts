@@ -737,7 +737,7 @@ function testServices(screen: ScreenFormat): void {
       cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
     })
 
-    it.only('should not escalate to step 1 when alert created in maintenance mode', () => {
+    it('should not escalate to step 1 when alert created in maintenance mode', () => {
       cy.get('button[aria-label="Maintenance Mode"').click()
       cy.dialogFinish('Submit')
 
