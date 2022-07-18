@@ -49,7 +49,7 @@ func (srv *Server) AuthSubjects(req *sysapi.AuthSubjectsRequest, rSrv sysapi.Sys
 
 func (srv *Server) DeleteUser(ctx context.Context, req *sysapi.DeleteUserRequest) (*sysapi.DeleteUserResponse, error) {
 	ctx = permission.SystemContext(ctx, "SystemAPI")
-	err := srv.UserStore.Delete(ctx, req.UserId)
+	err := srv.UserStore.DeleteManyTx(ctx, nil, []string{req.UserId})
 	if err != nil {
 		return nil, err
 	}
