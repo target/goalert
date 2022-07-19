@@ -55,7 +55,10 @@ const RotationSetActiveDialog = (props: {
             },
           },
           { additionalTypenames: ['Rotation'] },
-        ).then(() => onClose())
+        ).then((res) => {
+          if (res.error) return
+          onClose()
+        })
       }
     />
   )
