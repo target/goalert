@@ -30,7 +30,11 @@ function UserContactMethodDeleteDialog(props: {
             id: contactMethodID,
           },
           { additionalTypenames: ['UserContactMethod'] },
-        ).then(props.onClose)
+        ).then((res) => {
+          if (res.error) return
+
+          props.onClose()
+        })
       }
       {...rest}
     />
