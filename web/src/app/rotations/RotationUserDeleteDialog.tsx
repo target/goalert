@@ -65,7 +65,10 @@ const RotationUserDeleteDialog = (props: {
             },
           },
           { additionalTypenames: ['Rotation'] },
-        )
+        ).then((res) => {
+          if (res.error) return
+          onClose()
+        })
       }
     />
   )
