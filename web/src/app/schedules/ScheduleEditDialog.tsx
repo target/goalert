@@ -36,7 +36,7 @@ export default function ScheduleEditDialog(props: {
     },
   })
 
-  const [, editSchedule] = useMutation(mutation)
+  const [editScheduleStatus, editSchedule] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
