@@ -34,7 +34,6 @@ export interface Value {
   type: RotationType
   shiftLength: number
   start: string
-  favorite: boolean
 }
 
 const query = gql`
