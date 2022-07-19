@@ -46,7 +46,11 @@ export default function HeartbeatMonitorDeleteDialog(props: {
         deleteHeartbeat(
           { id: props.monitorID },
           { additionalTypenames: ['HeartbeatMonitor'] },
-        ).then(props.onClose)
+        ).then((res) => {
+          if (!res.error) {
+            props.onClose()
+          }
+        })
       }
     />
   )
