@@ -296,6 +296,11 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		return nil, err
 	}
 
+	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(alertIDs) == 0 {
 		return nil, nil
 	}
@@ -305,6 +310,12 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		return nil, err
 	}
 	defer tx.Rollback()
+
+	ids := sqlutil.IntArray(alertIDs)
+	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
 
 	// return error if any services for each alert are in maintenance mode
 	for _, alertID := range alertIDs {
@@ -323,18 +334,6 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		if maintExpiresAt.Valid {
 			return nil, validation.NewGenericError("escalate alert: in maintenance mode")
 		}
-	}
-
-	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
-	if err != nil {
-		return nil, err
-	}
-
-	ids := sqlutil.IntArray(alertIDs)
-
-	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
-	if err != nil {
-		return nil, err
 	}
 
 	rows, err := tx.StmtContext(ctx, s.escalate).QueryContext(ctx, ids)

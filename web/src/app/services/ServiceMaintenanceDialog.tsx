@@ -19,7 +19,9 @@ function calcExp(hours: number): string {
 }
 
 function label(hours: number): string {
-  return `Until ${DateTime.fromISO(calcExp(hours)).toFormat('t ZZZZ')}`
+  return `Until ${DateTime.fromISO(calcExp(hours)).toLocaleString(
+    DateTime.DATETIME_MED,
+  )}`
 }
 
 function ServiceMaintenanceForm(props: {

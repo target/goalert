@@ -13,8 +13,8 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	cleanupMaintenanceMode *sql.Stmt
-	cleanupNoSteps         *sql.Stmt
+	clearMaintExpiredSvc *sql.Stmt
+	cleanupNoSteps       *sql.Stmt
 
 	lockStmt     *sql.Stmt
 	updateOnCall *sql.Stmt
@@ -83,7 +83,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 			returning ep_step_id, user_id
 		`),
 
-		cleanupMaintenanceMode: p.P(`
+		clearMaintExpiredSvc: p.P(`
 				update services s
 				set maintenance_expires_at = null
 				where s.maintenance_expires_at notnull and now() > s.maintenance_expires_at

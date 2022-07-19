@@ -43,7 +43,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 		return errors.Wrap(err, "commit on-call update")
 	}
 
-	_, err = db.lock.Exec(ctx, db.cleanupMaintenanceMode)
+	_, err = db.lock.Exec(ctx, db.clearMaintExpiredSvc)
 	if err != nil {
 		return errors.Wrap(err, "set maintenance_expires_at to null where expired")
 	}
