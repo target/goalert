@@ -2,19 +2,9 @@ import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import RotationForm from './RotationForm'
+import RotationForm, { Value } from './RotationForm'
 import { DateTime } from 'luxon'
 import { Redirect } from 'wouter'
-
-interface Value {
-  name: string
-  description: string
-  timeZone: string
-  type: string
-  start: string
-  shiftLength: number
-  favorite: boolean
-}
 
 const mutation = gql`
   mutation ($input: CreateRotationInput!) {

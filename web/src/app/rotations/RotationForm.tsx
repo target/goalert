@@ -18,6 +18,7 @@ import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 import { FieldError } from '../util/errutil'
+import { RotationType } from '../../schema'
 
 interface RotationFormProps {
   value: Value
@@ -26,11 +27,11 @@ interface RotationFormProps {
   disabled?: boolean
 }
 
-interface Value {
+export interface Value {
   name: string
   description: string
   timeZone: string
-  type: string
+  type: RotationType
   shiftLength: number
   start: string
   favorite: boolean
@@ -65,8 +66,8 @@ const useStyles = makeStyles({
 
 // getHours converts a count and one of ['hourly', 'daily', 'weekly']
 // into length in hours e.g. (2, daily) => 48
-function getHours(count: number, unit: string): number {
-  const lookup: { [unit: string]: number } = {
+function getHours(count: number, unit: RotationType): number {
+  const lookup = {
     hourly: 1,
     daily: 24,
     weekly: 24 * 7,
