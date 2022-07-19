@@ -183,7 +183,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				where
 					state.last_escalation notnull and
 					escalation_policy_step_id isnull and
-					(s.maintenance_expires_at isnull or s.maintenance_expires_at < now())
+					(s.maintenance_expires_at isnull)
 				for update skip locked
 				limit 100
 			), _step_cycles as (
