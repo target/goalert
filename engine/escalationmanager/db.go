@@ -108,7 +108,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
 				join services s on a.service_id = s.id
 				where state.last_escalation isnull and
-				(s.maintenance_expires_at isnull or s.maintenance_expires_at < now())
+				(s.maintenance_expires_at isnull)
 				for update skip locked
 				limit 1000
 			), _step_cycles as (
