@@ -33,12 +33,6 @@ export function getSchedule(key, value, secondary) {
 
   if (secondary) {
     name = key.includes('primary') ? name + ' Primary' : name + ' Secondary'
-
-    if (name.length > CHAR_LIMIT) {
-      throw new Error(
-        `cannot be more than ${CHAR_LIMIT - SECONDARY_CHAR_COUNT} characters`,
-      )
-    }
   }
 
   return {
@@ -75,19 +69,15 @@ export function getScheduleTargets(key, value, secondary) {
     type === 'daily' ? { day: 1 } : type === 'weekly' ? { week: 1 } : null
 
   const target = (isFTS) => {
-    let tzText = isFTS ? s.followTheSunRotation.timeZone : s.timeZone
+    let tzText = isFTS ? s.followTheSunRotation.timeZone : ''
     if (isFTS && s.followTheSunRotation.timeZone === s.timeZone) {
-      tzText = s.followTheSunRotation.timeZone + ' FTS'
+      tzText = tzText + ' FTS'
     }
 
     const name =
       value.teamName +
-      (secondary
-        ? key.includes('primary')
-          ? ' Primary '
-          : ' Secondary '
-        : ' ') +
-      tzText
+      (secondary ? (key.includes('primary') ? ' Primary' : ' Secondary') : '') +
+      (tzText ? ` ${tzText}` : '')
 
     // name length validation
     if (name.length > CHAR_LIMIT) {
@@ -95,7 +85,7 @@ export function getScheduleTargets(key, value, secondary) {
         `cannot be more than ${
           CHAR_LIMIT -
           (secondary ? SECONDARY_CHAR_COUNT : 0) -
-          (isFTS ? s.followTheSunRotation.timeZone.length : s.timeZone.length) -
+          (isFTS ? s.followTheSunRotation.timeZone.length : 0) -
           (isFTS && s.followTheSunRotation.timeZone === s.timeZone
             ? FTS_CHAR_COUNT
             : 0)
