@@ -266,7 +266,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					state.last_escalation notnull and
 					escalation_policy_step_id notnull and
 					(next_escalation < now() or force_escalation) and
-					(s.maintenance_expires_at isnull or s.maintenance_expires_at < now())
+					(s.maintenance_expires_at isnull)
 				order by next_escalation - now()
 				for update skip locked
 				limit 500
