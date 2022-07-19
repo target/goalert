@@ -90,7 +90,10 @@ export default function ScheduleOverrideDeleteDialog(props: {
             ],
           },
           { additionalTypenames: ['UserOverride'] },
-        ).then(() => props.onClose())
+        ).then((res) => {
+          if (res.error) return
+          props.onClose()
+        })
       }
       form={<Typography variant='caption'>{caption}</Typography>}
     />
