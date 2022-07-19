@@ -86,7 +86,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 		clearMaintExpiredSvc: p.P(`
 				update services s
 				set maintenance_expires_at = null
-				where s.maintenance_expires_at notnull and now() > s.maintenance_expires_at
+				where s.maintenance_expires_at <= now()
 		`),
 
 		cleanupNoSteps: p.P(`
