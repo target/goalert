@@ -4,6 +4,7 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm, { Value } from './ScheduleForm'
 import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
+import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 const query = gql`
   query ($id: ID!) {
@@ -49,6 +50,7 @@ export default function ScheduleEditDialog(props: {
     <FormDialog
       onClose={props.onClose}
       title='Edit Schedule'
+      errors={nonFieldErrors(editScheduleStatus.error)}
       onSubmit={() =>
         editSchedule(
           {
@@ -65,6 +67,7 @@ export default function ScheduleEditDialog(props: {
       }
       form={
         <ScheduleForm
+          errors={fieldErrors(editScheduleStatus.error)}
           value={
             value || {
               name: data.schedule.name,
