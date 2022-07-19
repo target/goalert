@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/url"
 
 	"github.com/target/goalert/config"
@@ -52,6 +53,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 
 	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
+
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
 	t := obj.LastTestVerifyAt()
 	if t.IsZero() {
@@ -114,9 +116,11 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
-
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewFieldError("id", "contact method not found")
+		}
 		if err != nil {
 			return err
 		}

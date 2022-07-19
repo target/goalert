@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -23,25 +22,21 @@ const mutation = gql`
     updateRotation(input: $input)
   }
 `
-const RotationSetActiveDialog = (props) => {
+const RotationSetActiveDialog = (props: {
+  rotationID: string
+  userIndex: number
+  onClose: () => void
+}): JSX.Element => {
   const { rotationID, userIndex, onClose } = props
-  const { loading, data, error } = useQuery(query, {
-    pollInterval: 0,
+  const [{ fetching, data, error }] = useQuery({
+    query,
     variables: {
       id: rotationID,
     },
   })
-  const [setActiveMutation] = useMutation(mutation, {
-    onCompleted: onClose,
-    variables: {
-      input: {
-        id: rotationID,
-        activeUserIndex: userIndex,
-      },
-    },
-  })
+  const [, setActiveMutation] = useMutation(mutation)
 
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
   const { users } = data.rotation
 
@@ -51,15 +46,22 @@ const RotationSetActiveDialog = (props) => {
       confirm
       subTitle={`This will set ${users[userIndex].name} active on this rotation.`}
       onClose={onClose}
-      onSubmit={() => setActiveMutation()}
+      onSubmit={() =>
+        setActiveMutation(
+          {
+            input: {
+              id: rotationID,
+              activeUserIndex: userIndex,
+            },
+          },
+          { additionalTypenames: ['Rotation'] },
+        ).then((res) => {
+          if (res.error) return
+          onClose()
+        })
+      }
     />
   )
-}
-
-RotationSetActiveDialog.propTypes = {
-  rotationID: p.string.isRequired,
-  userIndex: p.number.isRequired,
-  onClose: p.func.isRequired,
 }
 
 export default RotationSetActiveDialog
