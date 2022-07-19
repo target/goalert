@@ -751,8 +751,7 @@ function testServices(screen: ScreenFormat): void {
       cy.dialogClick('Submit')
       cy.dialogFinish('Done')
       cy.get('p').contains(summary).click()
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(5000)
+      cy.fastforward('30m')
       cy.get('body').should('not.contain', 'Escalated to step #1')
     })
   })
