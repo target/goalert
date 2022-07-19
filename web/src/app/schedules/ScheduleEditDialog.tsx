@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from 'urql'
-import { useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm, { Value } from './ScheduleForm'
 import { GenericError } from '../error-pages'
@@ -37,9 +36,7 @@ export default function ScheduleEditDialog(props: {
     },
   })
 
-  const [editSchedule, editScheduleStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [editScheduleStatus, editSchedule] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -55,13 +52,17 @@ export default function ScheduleEditDialog(props: {
       title='Edit Schedule'
       errors={nonFieldErrors(editScheduleStatus.error)}
       onSubmit={() =>
-        editSchedule({
-          variables: {
+        editSchedule(
+          {
             input: {
               id: props.scheduleID,
               ...value,
             },
           },
+          { additionalTypenames: ['Schedule'] },
+        ).then((res) => {
+          if (res.error) return
+          props.onClose()
         })
       }
       form={
