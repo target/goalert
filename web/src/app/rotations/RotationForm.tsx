@@ -18,22 +18,13 @@ import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 import { FieldError } from '../util/errutil'
-import { RotationType } from '../../schema'
+import { RotationType, CreateRotationInput } from '../../schema'
 
 interface RotationFormProps {
-  value: Value
+  value: CreateRotationInput
   errors: FieldError[]
-  onChange: (value: Value) => void
+  onChange: (value: CreateRotationInput) => void
   disabled?: boolean
-}
-
-export interface Value {
-  name: string
-  description: string
-  timeZone: string
-  type: RotationType
-  shiftLength: number
-  start: string
 }
 
 const query = gql`
@@ -87,7 +78,7 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
         handoff: value.start,
         from: value.start,
         timeZone: value.timeZone,
-        shiftLengthHours: getHours(value.shiftLength, value.type),
+        shiftLengthHours: getHours(value.shiftLength as number, value.type),
         count: 3,
       },
     },
