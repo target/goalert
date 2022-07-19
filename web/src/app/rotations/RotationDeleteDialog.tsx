@@ -2,6 +2,7 @@ import React from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
+import { useLocation } from 'wouter'
 
 import { get } from 'lodash'
 
@@ -27,6 +28,7 @@ export default function RotationDeleteDialog(props: {
   rotationID: string
   onClose: () => void
 }): JSX.Element {
+  const [, navigate] = useLocation()
   const [{ data, fetching: dataLoading }] = useQuery({
     query: query,
     variables: { id: props.rotationID },
@@ -55,7 +57,11 @@ export default function RotationDeleteDialog(props: {
             ],
           },
           { additionalTypenames: ['Rotation'] },
-        )
+        ).then((res) => {
+          if (!res.error) {
+            navigate('/rotations')
+          }
+        })
       }
     />
   )
