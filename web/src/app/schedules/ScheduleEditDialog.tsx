@@ -58,7 +58,10 @@ export default function ScheduleEditDialog(props: {
             },
           },
           { additionalTypenames: ['Schedule'] },
-        ).then(() => props.onClose())
+        ).then((res) => {
+          if (res.error) return
+          props.onClose()
+        })
       }
       form={
         <ScheduleForm
