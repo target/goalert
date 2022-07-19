@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DateTime } from 'luxon'
-import { CreateRotationInput } from '../../schema'
+import { CreateRotationInput, RotationType } from '../../schema'
 
 // calcNewActiveIndex returns the newActiveIndex for a swap operation
 // -1 will be returned if there was no change
@@ -81,8 +80,14 @@ export function formatWeeklySummary(
   return details
 }
 
+export interface HandoffSummaryInput extends Partial<CreateRotationInput> {
+  start: string
+  shiftLength: number
+  type: RotationType
+}
+
 // handoffSummary returns the summary description for the rotation
-export function handoffSummary(rotation: Partial<CreateRotationInput>): string {
+export function handoffSummary(rotation: HandoffSummaryInput): string {
   const tz = rotation.timeZone
 
   if (!tz) return 'Loading handoff information...'
@@ -90,7 +95,7 @@ export function handoffSummary(rotation: Partial<CreateRotationInput>): string {
   let details = ''
   switch (rotation.type) {
     case 'hourly':
-      details += 'First hand off time at ' + formatTime(rotation.start!, tz)
+      details += 'First hand off time at ' + formatTime(rotation.start, tz)
       details +=
         ', hands off every ' +
         (rotation.shiftLength === 1
@@ -104,10 +109,10 @@ export function handoffSummary(rotation: Partial<CreateRotationInput>): string {
         rotation.shiftLength === 1
           ? 'daily at'
           : `every ${rotation.shiftLength} days at`
-      details += ' ' + formatTime(rotation.start!, tz) + '.'
+      details += ' ' + formatTime(rotation.start, tz) + '.'
       break
     case 'weekly':
-      details += formatWeeklySummary(rotation.shiftLength!, rotation.start!, tz)
+      details += formatWeeklySummary(rotation.shiftLength, rotation.start, tz)
       break
   }
 
