@@ -27,32 +27,32 @@ export function formatTimeRemaining(
   let timeString = ''
 
   if (weeks) {
-    const numWeeks = parseInt(`${timing / 604800}`, 10) // There are 604800s in a week
+    const numWeeks = timing / 604800 // There are 604800s in a week
     timing = timing - numWeeks * 604800
     if (numWeeks) timeString += numWeeks + ' Week' + (numWeeks > 1 ? 's ' : ' ')
   }
 
   if (days) {
-    const numDays = parseInt(`${timing / 86400}`, 10) // There are 86400s in a day
+    const numDays = timing / 86400 // There are 86400s in a day
     timing = timing - numDays * 86400
     if (numDays) timeString += numDays + ' Day' + (numDays > 1 ? 's ' : ' ')
   }
 
   if (hours) {
-    const numHours = parseInt(`${timing / 3600}`, 10) // There are 3600s in a hour
+    const numHours = timing / 3600 // There are 3600s in a hour
     timing = timing - numHours * 3600
     if (numHours) timeString += numHours + ' Hour' + (numHours > 1 ? 's ' : ' ')
   }
 
   if (minutes) {
-    const numMinutes = parseInt(`${timing / 60}`, 10) // There are 60s in a minute
+    const numMinutes = timing / 60 // There are 60s in a minute
     timing = timing - numMinutes * 60
     if (numMinutes)
       timeString += numMinutes + ' Minute' + (numMinutes > 1 ? 's ' : ' ')
   }
 
   if (seconds) {
-    const numSeconds = parseInt(`${timing / 1}`, 10) // There are 1s in a second
+    const numSeconds = timing / 1 // There are 1s in a second
     if (numSeconds)
       timeString += numSeconds + ' Second' + (numSeconds > 1 ? 's ' : ' ')
   }
@@ -110,11 +110,7 @@ function CountDown(props: CountDownProps): JSX.Element | string {
   const WrapComponent = props.WrapComponent
 
   if (WrapComponent) {
-    return (
-      <WrapComponent {...props} style={props.style}>
-        {formatTime()}
-      </WrapComponent>
-    )
+    return <WrapComponent style={props.style}>{formatTime()}</WrapComponent>
   }
   return formatTime()
 }
