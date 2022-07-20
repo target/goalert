@@ -15,7 +15,7 @@ function clampTimeout(val: string): number | string {
 }
 export interface Value {
   name: string
-  timeoutMinutes: [number, string] | number
+  timeoutMinutes: number
 }
 interface HeartbeatMonitorFormProps {
   value: Value
