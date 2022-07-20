@@ -181,11 +181,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		doneCh: make(chan struct{}),
 	}
 
-	if c.SWO != nil {
-		c.SWO.Init(app)
-		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
-	}
-
 	gCfg := &gorm.Config{
 		PrepareStmt: true,
 		NowFunc:     app.Now,

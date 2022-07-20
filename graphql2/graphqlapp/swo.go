@@ -2,10 +2,11 @@ package graphqlapp
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/swo/swogrp"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 )
@@ -21,12 +22,10 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 	}
 
 	switch action {
-	case graphql2.SWOActionPing:
-		err = m.SWO.SendPing(ctx)
 	case graphql2.SWOActionReset:
-		err = m.SWO.SendReset(ctx)
+		err = m.SWO.Reset(ctx)
 	case graphql2.SWOActionExecute:
-		err = m.SWO.SendExecute(ctx)
+		err = m.SWO.StartExecute(ctx)
 	default:
 		return false, validation.NewGenericError("invalid SWO action")
 	}
@@ -57,44 +56,42 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 
 	s := a.SWO.Status()
 	var nodes []graphql2.SWONode
-	var prog string
 	for _, n := range s.Nodes {
-		var tasks []string
-		for _, t := range n.Tasks {
-			tasks = append(tasks, t.Name)
-			if t.Name == "reset-db" || t.Name == "exec" {
-				prog = t.Status
-			}
-		}
-
 		nodes = append(nodes, graphql2.SWONode{
 			ID:       n.ID.String(),
-			OldValid: n.OldDBValid(),
-			NewValid: n.NewDBValid(),
-			IsLeader: n.IsLeader,
+			OldValid: n.OldID == s.MainDBID,
+			NewValid: n.NewID == s.NextDBID,
 			CanExec:  n.CanExec,
-			Status:   strings.Join(tasks, ","),
+			IsLeader: n.ID == s.LeaderID,
 		})
 	}
 
-	status := string(s.State)
-	if prog != "" {
-		status += ": " + prog
-	}
-
-	var errs []string
-	for _, t := range s.Errors {
-		errs = append(errs, t.Name+": "+t.Error)
+	var state graphql2.SWOState
+	switch s.State {
+	case swogrp.ClusterStateUnknown:
+		state = graphql2.SWOStateUnknown
+	case swogrp.ClusterStateResetting:
+		state = graphql2.SWOStateResetting
+	case swogrp.ClusterStateIdle:
+		state = graphql2.SWOStateIdle
+	case swogrp.ClusterStateSyncing:
+		state = graphql2.SWOStateSyncing
+	case swogrp.ClusterStatePausing:
+		state = graphql2.SWOStatePausing
+	case swogrp.ClusterStateExecuting:
+		state = graphql2.SWOStateExecuting
+	case swogrp.ClusterStateDone:
+		state = graphql2.SWOStateDone
+	default:
+		return nil, fmt.Errorf("unknown state: %d", s.State)
 	}
 
 	return &graphql2.SWOStatus{
-		IsIdle:      s.State == "idle",
-		IsDone:      s.State == "done",
-		Details:     status,
-		IsExecuting: strings.HasPrefix(string(s.State), "exec"),
-		IsResetting: strings.HasPrefix(string(s.State), "reset"),
-		Nodes:       nodes,
-		Errors:      errs,
+		State: state,
+
+		LastStatus: s.LastStatus,
+		LastError:  s.LastError,
+
 		Connections: conns,
 
 		NextDBVersion: s.NextDBVersion,

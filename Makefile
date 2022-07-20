@@ -94,7 +94,7 @@ web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
-	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; drop database if exists goalert2; create database goalert2;"
+	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 

@@ -409,20 +409,16 @@ type ComplexityRoot struct {
 		IsLeader func(childComplexity int) int
 		NewValid func(childComplexity int) int
 		OldValid func(childComplexity int) int
-		Status   func(childComplexity int) int
 	}
 
 	SWOStatus struct {
 		Connections   func(childComplexity int) int
-		Details       func(childComplexity int) int
-		Errors        func(childComplexity int) int
-		IsDone        func(childComplexity int) int
-		IsExecuting   func(childComplexity int) int
-		IsIdle        func(childComplexity int) int
-		IsResetting   func(childComplexity int) int
+		LastError     func(childComplexity int) int
+		LastStatus    func(childComplexity int) int
 		MainDBVersion func(childComplexity int) int
 		NextDBVersion func(childComplexity int) int
 		Nodes         func(childComplexity int) int
+		State         func(childComplexity int) int
 	}
 
 	Schedule struct {
@@ -2705,13 +2701,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.OldValid(childComplexity), true
 
-	case "SWONode.status":
-		if e.complexity.SWONode.Status == nil {
-			break
-		}
-
-		return e.complexity.SWONode.Status(childComplexity), true
-
 	case "SWOStatus.connections":
 		if e.complexity.SWOStatus.Connections == nil {
 			break
@@ -2719,47 +2708,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWOStatus.Connections(childComplexity), true
 
-	case "SWOStatus.details":
-		if e.complexity.SWOStatus.Details == nil {
+	case "SWOStatus.lastError":
+		if e.complexity.SWOStatus.LastError == nil {
 			break
 		}
 
-		return e.complexity.SWOStatus.Details(childComplexity), true
+		return e.complexity.SWOStatus.LastError(childComplexity), true
 
-	case "SWOStatus.errors":
-		if e.complexity.SWOStatus.Errors == nil {
+	case "SWOStatus.lastStatus":
+		if e.complexity.SWOStatus.LastStatus == nil {
 			break
 		}
 
-		return e.complexity.SWOStatus.Errors(childComplexity), true
-
-	case "SWOStatus.isDone":
-		if e.complexity.SWOStatus.IsDone == nil {
-			break
-		}
-
-		return e.complexity.SWOStatus.IsDone(childComplexity), true
-
-	case "SWOStatus.isExecuting":
-		if e.complexity.SWOStatus.IsExecuting == nil {
-			break
-		}
-
-		return e.complexity.SWOStatus.IsExecuting(childComplexity), true
-
-	case "SWOStatus.isIdle":
-		if e.complexity.SWOStatus.IsIdle == nil {
-			break
-		}
-
-		return e.complexity.SWOStatus.IsIdle(childComplexity), true
-
-	case "SWOStatus.isResetting":
-		if e.complexity.SWOStatus.IsResetting == nil {
-			break
-		}
-
-		return e.complexity.SWOStatus.IsResetting(childComplexity), true
+		return e.complexity.SWOStatus.LastStatus(childComplexity), true
 
 	case "SWOStatus.mainDBVersion":
 		if e.complexity.SWOStatus.MainDBVersion == nil {
@@ -2781,6 +2742,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SWOStatus.Nodes(childComplexity), true
+
+	case "SWOStatus.state":
+		if e.complexity.SWOStatus.State == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.State(childComplexity), true
 
 	case "Schedule.assignedTo":
 		if e.complexity.Schedule.AssignedTo == nil {
@@ -15147,18 +15115,12 @@ func (ec *executionContext) fieldContext_Query_swoStatus(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "isIdle":
-				return ec.fieldContext_SWOStatus_isIdle(ctx, field)
-			case "isDone":
-				return ec.fieldContext_SWOStatus_isDone(ctx, field)
-			case "isResetting":
-				return ec.fieldContext_SWOStatus_isResetting(ctx, field)
-			case "isExecuting":
-				return ec.fieldContext_SWOStatus_isExecuting(ctx, field)
-			case "details":
-				return ec.fieldContext_SWOStatus_details(ctx, field)
-			case "errors":
-				return ec.fieldContext_SWOStatus_errors(ctx, field)
+			case "state":
+				return ec.fieldContext_SWOStatus_state(ctx, field)
+			case "lastStatus":
+				return ec.fieldContext_SWOStatus_lastStatus(ctx, field)
+			case "lastError":
+				return ec.fieldContext_SWOStatus_lastError(ctx, field)
 			case "nodes":
 				return ec.fieldContext_SWOStatus_nodes(ctx, field)
 			case "connections":
@@ -16296,8 +16258,8 @@ func (ec *executionContext) fieldContext_SWONode_isLeader(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _SWONode_status(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWONode_status(ctx, field)
+func (ec *executionContext) _SWOStatus_state(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_state(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16310,7 +16272,51 @@ func (ec *executionContext) _SWONode_status(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(SWOState)
+	fc.Result = res
+	return ec.marshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_state(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SWOState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_lastStatus(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_lastStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastStatus, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16327,9 +16333,9 @@ func (ec *executionContext) _SWONode_status(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SWONode_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SWOStatus_lastStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "SWONode",
+		Object:     "SWOStatus",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -16340,8 +16346,8 @@ func (ec *executionContext) fieldContext_SWONode_status(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _SWOStatus_isIdle(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_isIdle(ctx, field)
+func (ec *executionContext) _SWOStatus_lastError(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_lastError(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16354,183 +16360,7 @@ func (ec *executionContext) _SWOStatus_isIdle(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsIdle, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_isIdle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_isDone(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_isDone(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsDone, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_isDone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_isResetting(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_isResetting(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsResetting, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_isResetting(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_isExecuting(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_isExecuting(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsExecuting, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_isExecuting(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_details(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_details(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
+		return obj.LastError, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16547,51 +16377,7 @@ func (ec *executionContext) _SWOStatus_details(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SWOStatus_details(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_errors(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_errors(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Errors, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SWOStatus_lastError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SWOStatus",
 		Field:      field,
@@ -16653,8 +16439,6 @@ func (ec *executionContext) fieldContext_SWOStatus_nodes(ctx context.Context, fi
 				return ec.fieldContext_SWONode_canExec(ctx, field)
 			case "isLeader":
 				return ec.fieldContext_SWONode_isLeader(ctx, field)
-			case "status":
-				return ec.fieldContext_SWONode_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SWONode", field.Name)
 		},
@@ -29951,13 +29735,6 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "status":
-
-			out.Values[i] = ec._SWONode_status(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -29979,44 +29756,23 @@ func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SWOStatus")
-		case "isIdle":
+		case "state":
 
-			out.Values[i] = ec._SWOStatus_isIdle(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "isDone":
-
-			out.Values[i] = ec._SWOStatus_isDone(ctx, field, obj)
+			out.Values[i] = ec._SWOStatus_state(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "isResetting":
+		case "lastStatus":
 
-			out.Values[i] = ec._SWOStatus_isResetting(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "isExecuting":
-
-			out.Values[i] = ec._SWOStatus_isExecuting(ctx, field, obj)
+			out.Values[i] = ec._SWOStatus_lastStatus(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "details":
+		case "lastError":
 
-			out.Values[i] = ec._SWOStatus_details(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "errors":
-
-			out.Values[i] = ec._SWOStatus_errors(ctx, field, obj)
+			out.Values[i] = ec._SWOStatus_lastError(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -33462,6 +33218,16 @@ func (ec *executionContext) marshalNSWONode2ᚕgithubᚗcomᚋtargetᚋgoalert�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx context.Context, v interface{}) (SWOState, error) {
+	var res SWOState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx context.Context, sel ast.SelectionSet, v SWOState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSWOStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOStatus(ctx context.Context, sel ast.SelectionSet, v SWOStatus) graphql.Marshaler {

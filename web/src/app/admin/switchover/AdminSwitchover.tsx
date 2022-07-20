@@ -33,12 +33,9 @@ import Spinner from '../../loading/components/Spinner'
 const query = gql`
   query {
     swoStatus {
-      isDone
-      isIdle
-      isResetting
-      isExecuting
-      details
-      errors
+      state
+      lastError
+      lastStatus
       mainDBVersion
       nextDBVersion
       connections {
@@ -47,7 +44,6 @@ const query = gql`
       }
       nodes {
         id
-        status
         canExec
         oldValid
         newValid
@@ -126,7 +122,7 @@ export default function AdminSwitchover(): JSX.Element {
     )
   }
 
-  if (data?.isDone) {
+  if (data?.state === 'done') {
     return (
       <TransitionGroup appear={false}>
         <Zoom in timeout={500}>
@@ -158,7 +154,6 @@ export default function AdminSwitchover(): JSX.Element {
   }
   const statusNotices = []
   if (mutationStatus.error) {
-    console.log(mutationStatus)
     statusNotices.push({
       type: 'error',
       message: 'Failed to ' + mutationStatus.operation?.variables?.action,
@@ -166,19 +161,19 @@ export default function AdminSwitchover(): JSX.Element {
       endNote: DateTime.local().toFormat('fff'),
     })
   }
-  if (data?.errors) {
-    data?.errors.forEach((message: string) => {
-      statusNotices.push({
-        type: 'error',
-        message,
-      })
+  if (data?.state === 'unknown' && data?.lastError) {
+    statusNotices.push({
+      type: 'error',
+      message: data.lastError,
     })
   }
 
   const resetLoad =
-    data?.isResetting || (lastAction === 'reset' && mutationStatus.fetching)
+    data?.state === 'resetting' ||
+    (lastAction === 'reset' && mutationStatus.fetching)
   const executeLoad =
-    data?.isExecuting || (lastAction === 'execute' && mutationStatus.fetching)
+    ['syncing', 'pausing', 'executing'].includes(data?.state) ||
+    (lastAction === 'execute' && mutationStatus.fetching)
 
   function getIcon(): React.ReactNode {
     const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -193,10 +188,10 @@ export default function AdminSwitchover(): JSX.Element {
         </Skeleton>
       )
     }
-    if (!data.isIdle && !data.isDone) {
+    if (!['unknown', 'idle', 'done'].includes(data.state)) {
       return <InProgressIcon {...i} />
     }
-    if (data.isIdle) {
+    if (data.state === 'idle') {
       return <IdleIcon {...i} />
     }
   }
@@ -204,9 +199,9 @@ export default function AdminSwitchover(): JSX.Element {
   function getSubheader(): React.ReactNode {
     if (error) return 'Error'
     if (!data) return 'Loading...'
-    if (data.isDone) return 'Complete'
-    if (data.isIdle) return 'Ready'
-    if (!data.isExecuting && !data.isResetting) return 'Needs Reset'
+    if (data.state === 'done') return 'Complete'
+    if (data.state === 'idle') return 'Ready'
+    if (data.state === 'unknown') return 'Needs Reset'
     return 'Busy'
   }
 
@@ -218,8 +213,8 @@ export default function AdminSwitchover(): JSX.Element {
         </Typography>
       )
     }
-    if (data?.details) {
-      return <Typography sx={{ pb: 2 }}>{cptlz(data.details)}</Typography>
+    if (data.state !== 'unknown' && data.lastStatus) {
+      return <Typography sx={{ pb: 2 }}>{cptlz(data.lastStatus)}</Typography>
     }
     return <Typography>&nbsp;</Typography> // reserves whitespace
   }
@@ -246,14 +241,13 @@ export default function AdminSwitchover(): JSX.Element {
                 {getDetails()}
                 <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
                   <LoadingButton
-                    startIcon={data?.isDone ? <NoResetIcon /> : <ResetIcon />}
-                    disabled={data?.isDone || mutationStatus.fetching}
+                    startIcon={
+                      data?.state === 'done' ? <NoResetIcon /> : <ResetIcon />
+                    }
+                    disabled={data?.state === 'done' || mutationStatus.fetching}
                     variant='outlined'
                     size='large'
-                    loading={
-                      data?.isResetting ||
-                      (lastAction === 'reset' && mutationStatus.fetching)
-                    }
+                    loading={resetLoad}
                     loadingPosition='start'
                     onClick={actionHandler('reset')}
                   >
@@ -261,15 +255,16 @@ export default function AdminSwitchover(): JSX.Element {
                   </LoadingButton>
                   <LoadingButton
                     startIcon={
-                      !data?.isIdle ? <NoExecuteIcon /> : <ExecuteIcon />
+                      data.state !== 'idle' ? (
+                        <NoExecuteIcon />
+                      ) : (
+                        <ExecuteIcon />
+                      )
                     }
-                    disabled={!data?.isIdle || mutationStatus.fetching}
+                    disabled={data.state !== 'idle' || mutationStatus.fetching}
                     variant='outlined'
                     size='large'
-                    loading={
-                      data?.isExecuting ||
-                      (lastAction === 'execute' && mutationStatus.fetching)
-                    }
+                    loading={executeLoad}
                     loadingPosition='start'
                     onClick={actionHandler('execute')}
                   >

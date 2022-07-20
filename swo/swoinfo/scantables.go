@@ -8,7 +8,6 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/swo/swodb"
-	"github.com/target/goalert/swo/swogrp"
 )
 
 // ScanTables scans the database for tables returning them in insert-safe-order,
@@ -16,8 +15,6 @@ import (
 //
 // Tables with migrate-only data, or those used by switchover code will be omitted.
 func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
-	swogrp.Progressf(ctx, "scanning tables...")
-
 	columns, err := swodb.New(conn).TableColumns(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("scan table columns: %w", err)

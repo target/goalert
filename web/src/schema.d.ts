@@ -38,17 +38,23 @@ export interface Query {
 }
 
 export interface SWOStatus {
-  isIdle: boolean
-  isDone: boolean
-  isResetting: boolean
-  isExecuting: boolean
-  details: string
-  errors: string[]
+  state: SWOState
+  lastStatus: string
+  lastError: string
   nodes: SWONode[]
   connections: SWOConnection[]
   mainDBVersion: string
   nextDBVersion: string
 }
+
+export type SWOState =
+  | 'unknown'
+  | 'resetting'
+  | 'idle'
+  | 'syncing'
+  | 'pausing'
+  | 'executing'
+  | 'done'
 
 export interface SWOConnection {
   name: string
@@ -61,7 +67,6 @@ export interface SWONode {
   newValid: boolean
   canExec: boolean
   isLeader: boolean
-  status: string
 }
 
 export interface AlertMetricsOptions {
@@ -282,7 +287,7 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
-export type SWOAction = 'ping' | 'reset' | 'execute'
+export type SWOAction = 'reset' | 'execute'
 
 export interface Mutation {
   swoAction: boolean

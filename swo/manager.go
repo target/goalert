@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -29,7 +28,7 @@ type Manager struct {
 
 	Config
 
-	grp *swogrp.Group
+	taskMgr *swogrp.TaskMan
 
 	MainDBInfo *swoinfo.DB
 	NextDBInfo *swoinfo.DB
@@ -78,47 +77,24 @@ func NewManager(cfg Config) (*Manager, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get server version: %w", err)
+		return nil, fmt.Errorf("et server version: %w", err)
 	}
 
-	m.grp = swogrp.NewGroup(swogrp.Config{
+	m.taskMgr, err = swogrp.NewTaskMan(ctx, swogrp.Config{
 		CanExec: cfg.CanExec,
 
-		Logger: cfg.Logger,
-		Msgs:   messages,
+		Logger:   cfg.Logger,
+		Messages: messages,
 
-		ResetFunc:   m.DoReset,
-		ExecuteFunc: m.DoExecute,
-		PauseFunc:   m.DoPause,
-		ResumeFunc:  m.DoResume,
+		Executor:   &Executor{mgr: m},
+		PauseFunc:  func(ctx context.Context) error { return m.pauseResume.Pause(ctx) },
+		ResumeFunc: func(ctx context.Context) error { return m.pauseResume.Resume(ctx) },
 	})
+	if err != nil {
+		return nil, fmt.Errorf("init task manager: %w", err)
+	}
 
 	return m, nil
-}
-
-func (m *Manager) DoReset(ctx context.Context) error {
-	return m.withConnFromOld(ctx, func(ctx context.Context, conn *pgx.Conn) error {
-		_, err := conn.Exec(ctx, swosync.ConnLockQuery)
-		if err != nil {
-			return err
-		}
-
-		return swodb.New(conn).DisableChangeLogTriggers(ctx)
-	})
-}
-
-func (m *Manager) DoPause(ctx context.Context) error {
-	if m.pauseResume == nil {
-		return errors.New("not initialized")
-	}
-	return m.pauseResume.Pause(ctx)
-}
-
-func (m *Manager) DoResume(ctx context.Context) error {
-	if m.pauseResume == nil {
-		return errors.New("not initialized")
-	}
-	return m.pauseResume.Resume(ctx)
 }
 
 func (m *Manager) Init(app lifecycle.PauseResumer) {
@@ -126,16 +102,12 @@ func (m *Manager) Init(app lifecycle.PauseResumer) {
 		panic("already set")
 	}
 	m.pauseResume = app
+	m.taskMgr.Init()
 }
 
 // withConnFromOld allows performing operations with a raw connection to the old database.
 func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
 	return WithPGXConn(ctx, m.dbMain, f)
-}
-
-// withConnFromNew allows performing operations with a raw connection to the new database.
-func (m *Manager) withConnFromNew(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithPGXConn(ctx, m.dbNext, f)
 }
 
 // withConnFromBoth allows performing operations with a raw connection to both databases database.
@@ -154,6 +126,7 @@ func WithPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, 
 		return err
 	}
 	defer conn.Close()
+	defer conn.ExecContext(context.Background(), "select pg_advisory_unlock_all()")
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
@@ -166,23 +139,40 @@ func WithPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, 
 // Status will return the current switchover status.
 func (m *Manager) Status() Status {
 	return Status{
+		Status:        m.taskMgr.Status(),
 		MainDBVersion: m.MainDBInfo.Version,
 		NextDBVersion: m.NextDBInfo.Version,
-		Status:        m.grp.Status(),
 	}
 }
 
-// SendReset will trigger a reset of the switchover.
-func (m *Manager) SendReset(ctx context.Context) error { return m.grp.Reset(ctx) }
+// Reset will disable the changelog and reset the cluster state.
+func (m *Manager) Reset(ctx context.Context) error {
+	err := m.taskMgr.Cancel(ctx)
+	if err != nil {
+		return fmt.Errorf("cancel task: %w", err)
+	}
 
-// SendExecute will trigger the switchover to begin.
-func (m *Manager) SendExecute(ctx context.Context) error { return m.grp.Execute(ctx) }
+	err = m.withConnFromOld(ctx, func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, swosync.ConnWaitLockQuery)
+		if err != nil {
+			return err
+		}
+
+		return swodb.New(conn).DisableChangeLogTriggers(ctx)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to disable change log triggers: %w", err)
+	}
+
+	err = m.taskMgr.Reset(ctx)
+	if err != nil {
+		return fmt.Errorf("reset cluster state: %w", err)
+	}
+
+	return nil
+}
+
+// StartExecute will trigger the switchover to begin.
+func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Execute(ctx) }
 
 func (m *Manager) DB() *sql.DB { return m.dbApp }
-
-type Status struct {
-	swogrp.Status
-
-	MainDBVersion string
-	NextDBVersion string
-}

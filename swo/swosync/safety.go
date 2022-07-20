@@ -15,7 +15,8 @@ declare
 begin
 	set local idle_in_transaction_session_timeout = 60000;
 	set local lock_timeout = 60000;
-	assert (select pg_try_advisory_xact_lock(4919)), 'failed to get migration lock';
+	assert (select pg_try_advisory_xact_lock_shared(4919)), 'failed to get shared migration lock';
+	assert (select pg_try_advisory_xact_lock(4370)), 'failed to get exec lock';
 	assert (select current_state = 'in_progress' from switchover_state), 'switchover state is not in_progress';
 end $$;
 `
@@ -27,6 +28,7 @@ declare
 begin
 	set local idle_in_transaction_session_timeout = 3000;
 	set local lock_timeout = 3000;
+	assert (select pg_try_advisory_xact_lock_shared(4919)), 'failed to get shared migration lock';
 	perform pg_advisory_xact_lock(4369);
 	assert (select current_state = 'in_progress' from switchover_state), 'switchover state is not in_progress';
 end $$;
@@ -40,7 +42,22 @@ declare
 begin
 	set idle_in_transaction_session_timeout = 60000;
 	set lock_timeout = 60000;
-	assert (select pg_try_advisory_lock(4919)), 'failed to get migration lock';
+	assert (select pg_try_advisory_lock_shared(4919)), 'failed to get shared migration lock';
+	assert (select pg_try_advisory_lock(4370)), 'failed to get exec lock';
+	assert (select current_state != 'use_next_db' from switchover_state), 'switchover state is use_next_db';
+end $$;
+`
+
+// ConnLockQuery will result in a failed assertion if it is unable to get the exec lock
+// or switchover state is use_next_db
+const ConnWaitLockQuery = `
+do $$
+declare
+begin
+	set idle_in_transaction_session_timeout = 60000;
+	set lock_timeout = 60000;
+	assert (select pg_try_advisory_lock_shared(4919)), 'failed to get shared migration lock';
+	perform pg_advisory_lock(4370);
 	assert (select current_state != 'use_next_db' from switchover_state), 'switchover state is use_next_db';
 end $$;
 `

@@ -114,14 +114,9 @@ type Query {
 }
 
 type SWOStatus {
-  isIdle: Boolean!
-  isDone: Boolean!
-
-  isResetting: Boolean!
-  isExecuting: Boolean!
-
-  details: String!
-  errors: [String!]!
+  state: SWOState!
+  lastStatus: String!
+  lastError: String!
 
   nodes: [SWONode!]!
 
@@ -129,6 +124,16 @@ type SWOStatus {
 
   mainDBVersion: String!
   nextDBVersion: String!
+}
+
+enum SWOState {
+  unknown
+  resetting
+  idle
+  syncing
+  pausing
+  executing
+  done
 }
 
 type SWOConnection {
@@ -142,7 +147,6 @@ type SWONode {
   newValid: Boolean!
   canExec: Boolean!
   isLeader: Boolean!
-  status: String!
 }
 
 input AlertMetricsOptions {
@@ -374,7 +378,6 @@ input SetScheduleShiftInput {
 }
 
 enum SWOAction {
-  ping
   reset
   execute
 }

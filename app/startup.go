@@ -73,8 +73,18 @@ func (app *App) startup(ctx context.Context) error {
 		return app.startupErr
 	}
 
-	return app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
+	err := app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
 		app.Engine,
 		lifecycle.PauseResumerFunc(app._pause, app._resume),
 	))
+	if err != nil {
+		return err
+	}
+
+	if app.cfg.SWO != nil {
+		app.cfg.SWO.Init(app)
+		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
+	}
+
+	return nil
 }

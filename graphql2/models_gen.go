@@ -344,16 +344,12 @@ type SWONode struct {
 	NewValid bool   `json:"newValid"`
 	CanExec  bool   `json:"canExec"`
 	IsLeader bool   `json:"isLeader"`
-	Status   string `json:"status"`
 }
 
 type SWOStatus struct {
-	IsIdle        bool            `json:"isIdle"`
-	IsDone        bool            `json:"isDone"`
-	IsResetting   bool            `json:"isResetting"`
-	IsExecuting   bool            `json:"isExecuting"`
-	Details       string          `json:"details"`
-	Errors        []string        `json:"errors"`
+	State         SWOState        `json:"state"`
+	LastStatus    string          `json:"lastStatus"`
+	LastError     string          `json:"lastError"`
 	Nodes         []SWONode       `json:"nodes"`
 	Connections   []SWOConnection `json:"connections"`
 	MainDBVersion string          `json:"mainDBVersion"`
@@ -828,20 +824,18 @@ func (e NotificationStatus) MarshalGQL(w io.Writer) {
 type SWOAction string
 
 const (
-	SWOActionPing    SWOAction = "ping"
 	SWOActionReset   SWOAction = "reset"
 	SWOActionExecute SWOAction = "execute"
 )
 
 var AllSWOAction = []SWOAction{
-	SWOActionPing,
 	SWOActionReset,
 	SWOActionExecute,
 }
 
 func (e SWOAction) IsValid() bool {
 	switch e {
-	case SWOActionPing, SWOActionReset, SWOActionExecute:
+	case SWOActionReset, SWOActionExecute:
 		return true
 	}
 	return false
@@ -865,6 +859,57 @@ func (e *SWOAction) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SWOAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SWOState string
+
+const (
+	SWOStateUnknown   SWOState = "unknown"
+	SWOStateResetting SWOState = "resetting"
+	SWOStateIdle      SWOState = "idle"
+	SWOStateSyncing   SWOState = "syncing"
+	SWOStatePausing   SWOState = "pausing"
+	SWOStateExecuting SWOState = "executing"
+	SWOStateDone      SWOState = "done"
+)
+
+var AllSWOState = []SWOState{
+	SWOStateUnknown,
+	SWOStateResetting,
+	SWOStateIdle,
+	SWOStateSyncing,
+	SWOStatePausing,
+	SWOStateExecuting,
+	SWOStateDone,
+}
+
+func (e SWOState) IsValid() bool {
+	switch e {
+	case SWOStateUnknown, SWOStateResetting, SWOStateIdle, SWOStateSyncing, SWOStatePausing, SWOStateExecuting, SWOStateDone:
+		return true
+	}
+	return false
+}
+
+func (e SWOState) String() string {
+	return string(e)
+}
+
+func (e *SWOState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOState", str)
+	}
+	return nil
+}
+
+func (e SWOState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

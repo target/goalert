@@ -3,18 +3,29 @@ package swogrp
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/swo/swomsg"
 	"github.com/target/goalert/util/log"
 )
 
+type TaskFn func(context.Context) error
+
 type Config struct {
-	CanExec bool
+	CanExec      bool
+	OldID, NewID uuid.UUID
 
-	Logger *log.Logger
-	Msgs   *swomsg.Log
+	Logger   *log.Logger
+	Messages *swomsg.Log
 
-	ResetFunc   func(context.Context) error
-	ExecuteFunc func(context.Context) error
-	PauseFunc   func(context.Context) error
-	ResumeFunc  func(context.Context) error
+	PauseFunc  TaskFn
+	ResumeFunc TaskFn
+
+	Executor Executor
+}
+
+type Executor interface {
+	Sync(context.Context) error
+	Exec(context.Context) error
+
+	Cancel()
 }
