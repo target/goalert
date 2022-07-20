@@ -86,11 +86,12 @@ export default function AdminSwitchover(): JSX.Element {
   })
   const data = _data?.swoStatus as SWOStatus
   const [lastAction, setLastAction] = useState('')
-  const [_statusNotices, setStatusNotices] = useState<Notice[]>([])
   const [mutationStatus, commit] = useMutation(mutation)
 
   useEffect(() => {
-    const t = setInterval(refetch, 250)
+    const t = setInterval(() => {
+      if (!fetching) refetch()
+    }, 1000)
     return () => clearInterval(t)
   }, [])
 
