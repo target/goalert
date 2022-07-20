@@ -720,9 +720,9 @@ function testServices(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'Warning: In Maintenance Mode')
 
       // verify escalate button is disabled
-      cy.get(
-        'div[aria-label="Escalate disabled. In maintenance mode."]',
-      ).trigger('mouseover')
+      cy.get('button[aria-label="Escalate disabled. In maintenance mode."]')
+        .parent() // go 1 level up to focusable span
+        .trigger('mouseover')
       cy.get('body').should(
         'contain',
         'Escalate disabled. In maintenance mode.',
@@ -751,7 +751,6 @@ function testServices(screen: ScreenFormat): void {
       cy.dialogClick('Submit')
       cy.dialogFinish('Done')
       cy.get('p').contains(summary).click()
-      cy.fastforward('30m')
       cy.get('body').should('not.contain', 'Escalated to step #1')
     })
   })

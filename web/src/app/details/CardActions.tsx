@@ -77,17 +77,20 @@ export default function CardActions(p: CardActionProps): JSX.Element {
 function Action(p: ActionProps): JSX.Element {
   const { action, secondary } = p
   if (secondary && action.icon) {
+    // wrapping button in span so tooltip can still
+    // render when hovering over disabled buttons
     return (
       <Tooltip title={action.label} placement='top'>
-        <div>
+        <span aria-label={undefined}>
           <IconButton
+            aria-label={action.label}
             onClick={action.handleOnClick}
             size='large'
             {...action.ButtonProps}
           >
             {action.icon}
           </IconButton>
-        </div>
+        </span>
       </Tooltip>
     )
   }
