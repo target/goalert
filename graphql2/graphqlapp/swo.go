@@ -91,6 +91,7 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 
 		LastStatus: s.LastStatus,
 		LastError:  s.LastError,
+		Nodes:      nodes,
 
 		Connections: conns,
 

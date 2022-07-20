@@ -27,17 +27,7 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
         <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
           {name}
         </Typography>
-        <List
-          subheader={
-            <React.Fragment>
-              <Divider />
-              <Typography color={theme.palette.secondary.main} sx={{ p: 2 }}>
-                Status: {node.status || 'Unknown'}
-              </Typography>
-              <Divider />
-            </React.Fragment>
-          }
-        >
+        <List>
           <ListItem>
             <ListItemText primary='Executable?' />
             <ListItemSecondaryAction>
