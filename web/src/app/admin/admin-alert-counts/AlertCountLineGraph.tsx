@@ -35,6 +35,26 @@ export default function AlertCountLineGraph(
   const [active, setActive] = useState('')
   const classes = useStyles()
   const theme = useTheme()
+
+  const chooseColor = (idx: number): string => {
+    switch (idx) {
+      case 1:
+        return '#3f8e98'
+      case 2:
+        return '#209e90'
+      case 3:
+        return '#41ab74'
+      case 4:
+        return '#79b34a'
+      case 5:
+        return '#b9b218'
+      case 6:
+        return '#ffa600'
+      default:
+        return '#607d8b'
+    }
+  }
+
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-averages-graph'>
@@ -77,7 +97,10 @@ export default function AlertCountLineGraph(
                     {payload.map((svc, idx) => {
                       return (
                         <React.Fragment key={idx}>
-                          <Typography>{`${svc.name}: ${svc.value}`}</Typography>
+                          <Typography
+                            variant='body2'
+                            color={chooseColor(idx)}
+                          >{`${svc.name}: ${svc.value}`}</Typography>
                         </React.Fragment>
                       )
                     })}
@@ -97,15 +120,9 @@ export default function AlertCountLineGraph(
               <Line
                 dataKey='dayTotal'
                 data={series.dailyCounts}
-                strokeWidth={active === series.serviceName ? 3 : 1}
+                strokeWidth={active === series.serviceName ? 4 : 1}
                 name={series.serviceName}
-                stroke={
-                  active === series.serviceName
-                    ? theme.palette.primary.main
-                    : theme.palette.mode === 'light'
-                    ? theme.palette.secondary.light
-                    : theme.palette.secondary.light
-                }
+                stroke={chooseColor(idx)}
                 key={idx}
               />
             ))}

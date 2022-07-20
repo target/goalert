@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
@@ -87,7 +87,6 @@ export default function AlertCountTable(
   props: AlertCountTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  const [pageSize, setPageSize] = useState(5)
   const alertCounts = useMemo(() => props.alertCounts, [props.alertCounts])
 
   const csvOpts = useMemo(
@@ -155,9 +154,7 @@ export default function AlertCountTable(
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
-          pageSize={pageSize}
-          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-          rowsPerPageOptions={[5, 10, 20]}
+          pageSize={7}
           columns={columns}
           disableSelectionOnClick
           components={{
