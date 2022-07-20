@@ -26,8 +26,8 @@ const txStopTheWorld = `
 do $$
 declare
 begin
-	set local idle_in_transaction_session_timeout = 3000;
-	set local lock_timeout = 3000;
+	set local idle_in_transaction_session_timeout = 5000;
+	set local lock_timeout = 5000;
 	assert (select pg_try_advisory_xact_lock_shared(4919)), 'failed to get shared migration lock';
 	perform pg_advisory_xact_lock(4369);
 	assert (select current_state = 'in_progress' from switchover_state), 'switchover state is not in_progress';
