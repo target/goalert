@@ -150,7 +150,7 @@ export default function AdminSwitchover(): JSX.Element {
   function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
       setLastAction(action)
-      commit({ action })
+      commit({ action }, { additionalTypenames: ['SWOStatus'] })
     }
   }
   const statusNotices = []

@@ -28,7 +28,7 @@ type Manager struct {
 
 	Config
 
-	taskMgr *swogrp.TaskMan
+	taskMgr *swogrp.TaskMgr
 
 	MainDBInfo *swoinfo.DB
 	NextDBInfo *swoinfo.DB
@@ -80,7 +80,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		return nil, fmt.Errorf("et server version: %w", err)
 	}
 
-	m.taskMgr, err = swogrp.NewTaskMan(ctx, swogrp.Config{
+	m.taskMgr, err = swogrp.NewTaskMgr(ctx, swogrp.Config{
 		CanExec: cfg.CanExec,
 
 		Logger:   cfg.Logger,

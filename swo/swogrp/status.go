@@ -10,7 +10,7 @@ type Status struct {
 	LastError  string
 }
 
-func (t *TaskMan) Status() Status {
+func (t *TaskMgr) Status() Status {
 	t.mx.Lock()
 	defer t.mx.Unlock()
 

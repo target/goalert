@@ -11,13 +11,14 @@ import (
 	"github.com/target/goalert/swo/swomsg"
 )
 
-type TaskMan struct {
+type TaskMgr struct {
 	local Node
 
-	cfg    Config
-	nodes  map[uuid.UUID]Node
-	paused map[uuid.UUID]struct{}
-	state  ClusterState
+	cfg     Config
+	nodes   map[uuid.UUID]Node
+	paused  map[uuid.UUID]struct{}
+	waitMsg map[uuid.UUID]chan struct{}
+	state   ClusterState
 
 	cancelTask func()
 	lastMsgID  uuid.UUID
@@ -29,8 +30,8 @@ type TaskMan struct {
 	mx            sync.Mutex
 }
 
-func NewTaskMan(ctx context.Context, cfg Config) (*TaskMan, error) {
-	t := &TaskMan{
+func NewTaskMgr(ctx context.Context, cfg Config) (*TaskMgr, error) {
+	t := &TaskMgr{
 		cfg: cfg,
 		local: Node{
 			ID:    uuid.New(),
@@ -39,21 +40,22 @@ func NewTaskMan(ctx context.Context, cfg Config) (*TaskMan, error) {
 
 			CanExec: cfg.CanExec,
 		},
-		nodes:  make(map[uuid.UUID]Node),
-		paused: make(map[uuid.UUID]struct{}),
+		nodes:   make(map[uuid.UUID]Node),
+		paused:  make(map[uuid.UUID]struct{}),
+		waitMsg: make(map[uuid.UUID]chan struct{}),
 	}
 
-	t.send(ctx, "hello", t.local)
+	t.sendAck(ctx, "hello", t.local, uuid.Nil)
 
 	return t, nil
 }
 
-func (t *TaskMan) Init() {
+func (t *TaskMgr) Init() {
 	go t.statusLoop()
 	go t.messageLoop()
 }
 
-func (t *TaskMan) allNodesPaused() bool {
+func (t *TaskMgr) allNodesPaused() bool {
 	for _, n := range t.nodes {
 		_, ok := t.paused[n.ID]
 		if !ok {
@@ -64,7 +66,7 @@ func (t *TaskMan) allNodesPaused() bool {
 	return true
 }
 
-func (t *TaskMan) statusLoop() {
+func (t *TaskMgr) statusLoop() {
 	ctx := t.cfg.Logger.BackgroundContext()
 	// debounce/throttle status messages
 	var lastStatus string
@@ -73,18 +75,23 @@ func (t *TaskMan) statusLoop() {
 		status := t.pendingStatus
 		id := t.lastMsgID
 		t.mx.Unlock()
-		if status == lastStatus {
+		if status == lastStatus || status == "" {
 			continue
 		}
 
+		lastStatus = status
 		t.sendAck(ctx, "status", status, id)
 	}
 }
 
-func (t *TaskMan) messageLoop() {
+func (t *TaskMgr) messageLoop() {
 	ctx := t.cfg.Logger.BackgroundContext()
 	for msg := range t.cfg.Messages.Events() {
 		t.mx.Lock()
+		if ch, ok := t.waitMsg[msg.ID]; ok {
+			close(ch)
+			delete(t.waitMsg, msg.ID)
+		}
 		switch {
 		case msg.Type == "reset":
 			t.state = ClusterStateResetting
@@ -103,7 +110,7 @@ func (t *TaskMan) messageLoop() {
 			var n Node
 			err := json.Unmarshal(msg.Data, &n)
 			if err != nil {
-				t.send(ctx, "error", fmt.Sprintf("unmarshal hello: %v", err))
+				t.sendAck(ctx, "error", fmt.Sprintf("unmarshal hello: %v", err), msg.ID)
 				continue
 			}
 			t.nodes[msg.Node] = n
@@ -182,7 +189,7 @@ func (t *TaskMan) messageLoop() {
 	}
 }
 
-func (t *TaskMan) parseString(data json.RawMessage) string {
+func (t *TaskMgr) parseString(data json.RawMessage) string {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
@@ -203,11 +210,35 @@ func resetDelay(ctx context.Context) error {
 	}
 }
 
-func (t *TaskMan) send(ctx context.Context, msgType string, v interface{}) {
-	t.sendAck(ctx, msgType, v, uuid.Nil)
+func (t *TaskMgr) sendAckWait(ctx context.Context, msgType string, v interface{}, ackID uuid.UUID) <-chan struct{} {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(fmt.Errorf("marshal %s: %w", msgType, err))
+	}
+
+	ch := make(chan struct{})
+	id := uuid.New()
+	t.mx.Lock()
+	t.waitMsg[id] = ch
+	t.mx.Unlock()
+
+	err = t.cfg.Messages.Append(ctx, swomsg.Message{
+		ID:    id,
+		Node:  t.local.ID,
+		AckID: ackID,
+
+		Type: msgType,
+		Data: data,
+	})
+	if err != nil {
+		close(ch)
+		t.cfg.Logger.Error(ctx, fmt.Errorf("append %s: %w", msgType, err))
+	}
+
+	return ch
 }
 
-func (t *TaskMan) sendAck(ctx context.Context, msgType string, v interface{}, ackID uuid.UUID) {
+func (t *TaskMgr) sendAck(ctx context.Context, msgType string, v interface{}, ackID uuid.UUID) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		panic(fmt.Errorf("marshal %s: %w", msgType, err))
@@ -233,7 +264,7 @@ func withMsgID(ctx context.Context, id uuid.UUID) context.Context {
 }
 func msgID(ctx context.Context) uuid.UUID { return ctx.Value(taskCtx("msgID")).(uuid.UUID) }
 
-func (t *TaskMan) Statusf(ctx context.Context, format string, args ...interface{}) {
+func (t *TaskMgr) Statusf(ctx context.Context, format string, args ...interface{}) {
 	t.mx.Lock()
 	if t.lastMsgID == msgID(ctx) {
 		t.pendingStatus = fmt.Sprintf(format, args...)
@@ -241,15 +272,45 @@ func (t *TaskMan) Statusf(ctx context.Context, format string, args ...interface{
 	t.mx.Unlock()
 }
 
-func (mgr *TaskMan) Cancel(ctx context.Context) error { mgr.send(ctx, "cancel", nil); return nil }
-func (mgr *TaskMan) Reset(ctx context.Context) error  { mgr.send(ctx, "reset", nil); return nil }
-func (mgr *TaskMan) Execute(ctx context.Context) error {
-	mgr.mx.Lock()
-	defer mgr.mx.Unlock()
-	if mgr.state != ClusterStateIdle {
+func (t *TaskMgr) Cancel(ctx context.Context) error {
+	ch := t.sendAckWait(ctx, "cancel", nil, uuid.Nil)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-ch:
+	}
+
+	return nil
+}
+
+func (t *TaskMgr) Reset(ctx context.Context) error {
+	ch := t.sendAckWait(ctx, "reset", nil, uuid.Nil)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-ch:
+	}
+
+	return nil
+}
+
+func (t *TaskMgr) Execute(ctx context.Context) error {
+	t.mx.Lock()
+	state := t.state
+	t.mx.Unlock()
+	if state != ClusterStateIdle {
 		return fmt.Errorf("cannot execute unless idle")
 	}
 
-	mgr.sendAck(ctx, "execute", nil, mgr.lastMsgID)
+	ch := t.sendAckWait(ctx, "execute", nil, t.lastMsgID)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-ch:
+	}
+
 	return nil
 }

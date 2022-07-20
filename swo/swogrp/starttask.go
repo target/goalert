@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func (t *TaskMan) startTask(fn func(context.Context) error, successMsg string) {
+func (t *TaskMgr) startTask(fn func(context.Context) error, successMsg string) {
 	if t.cancelTask != nil {
 		panic("already running a task")
 	}
@@ -32,7 +32,7 @@ func (t *TaskMan) startTask(fn func(context.Context) error, successMsg string) {
 	}()
 }
 
-func (t *TaskMan) cancel() {
+func (t *TaskMgr) cancel() {
 	if t.cancelTask != nil {
 		t.cancelTask()
 	}
