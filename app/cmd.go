@@ -91,11 +91,7 @@ var RootCmd = &cobra.Command{
 			return errors.Wrap(err, "parse old URL")
 		}
 		q := u.Query()
-		if cfg.DBURLNext != "" {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (SWO Mode)", version.GitVersion()))
-		} else {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
-		}
+		q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
 		q.Set("enable_seqscan", "off")
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()

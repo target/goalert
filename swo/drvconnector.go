@@ -3,10 +3,12 @@ package swo
 import (
 	"context"
 	"database/sql/driver"
+	"fmt"
 	"sync"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/target/goalert/version"
 )
 
 type Connector struct {
@@ -42,11 +44,22 @@ func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	}
 
 	conn := c.(*stdlib.Conn)
+	str, err := conn.Conn().PgConn().EscapeString(fmt.Sprintf("GoAlert %s (SWO Node)", version.GitVersion()))
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+
 	var b pgx.Batch
+	b.Queue(fmt.Sprintf("set application_name = '%s'", str))
 	b.Queue("select pg_advisory_lock_shared(4369)")
 	b.Queue("select current_state = 'use_next_db' FROM switchover_state")
 
 	res := conn.Conn().SendBatch(ctx, &b)
+	if _, err := res.Exec(); err != nil {
+		conn.Close()
+		return nil, err
+	}
 	if _, err := res.Exec(); err != nil {
 		conn.Close()
 		return nil, err

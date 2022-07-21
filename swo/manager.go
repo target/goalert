@@ -54,8 +54,8 @@ func NewManager(cfg Config) (*Manager, error) {
 	m := &Manager{
 		Config: cfg,
 		dbApp:  sql.OpenDB(NewConnector(cfg.OldDBC, cfg.NewDBC)),
-		dbMain: sql.OpenDB(cfg.OldDBC),
-		dbNext: sql.OpenDB(cfg.NewDBC),
+		dbMain: sql.OpenDB(newMgrConnector(cfg.OldDBC)),
+		dbNext: sql.OpenDB(newMgrConnector(cfg.NewDBC)),
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
