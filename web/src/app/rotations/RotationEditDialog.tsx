@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -6,15 +6,7 @@ import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
-
-interface Value {
-  name: string
-  description: string
-  timeZone: string
-  type: string
-  shiftLength: number
-  start: string
-}
+import { CreateRotationInput } from '../../schema'
 
 const query = gql`
   query ($id: ID!) {
@@ -41,7 +33,7 @@ export default function RotationEditDialog(props: {
   rotationID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
+  const [value, setValue] = useState<CreateRotationInput | null>(null)
 
   const [{ fetching, error, data }] = useQuery({
     query,
@@ -49,6 +41,11 @@ export default function RotationEditDialog(props: {
   })
 
   const [editRotationStatus, editRotation] = useMutation(mutation)
+
+  useEffect(() => {
+    if (!editRotationStatus.data) return
+    props.onClose()
+  }, [editRotationStatus.data])
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -67,7 +64,7 @@ export default function RotationEditDialog(props: {
             },
           },
           { additionalTypenames: ['Rotation'] },
-        ).then(() => props.onClose())
+        )
       }
       form={
         <RotationForm

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
 import {
   TextField,
   Grid,
@@ -18,6 +17,15 @@ import { TimeZoneSelect } from '../selection'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
+import { FieldError } from '../util/errutil'
+import { RotationType, CreateRotationInput } from '../../schema'
+
+interface RotationFormProps {
+  value: CreateRotationInput
+  errors: FieldError[]
+  onChange: (value: CreateRotationInput) => void
+  disabled?: boolean
+}
 
 const query = gql`
   query calcRotationHandoffTimes($input: CalcRotationHandoffTimesInput) {
@@ -48,7 +56,7 @@ const useStyles = makeStyles({
 
 // getHours converts a count and one of ['hourly', 'daily', 'weekly']
 // into length in hours e.g. (2, daily) => 48
-function getHours(count, unit) {
+function getHours(count: number, unit: RotationType): number {
   const lookup = {
     hourly: 1,
     daily: 24,
@@ -57,7 +65,7 @@ function getHours(count, unit) {
   return lookup[unit] * count
 }
 
-export default function RotationForm(props) {
+export default function RotationForm(props: RotationFormProps): JSX.Element {
   const { value } = props
   const classes = useStyles()
   const localZone = DateTime.local().zone.name
@@ -70,7 +78,7 @@ export default function RotationForm(props) {
         handoff: value.start,
         from: value.start,
         timeZone: value.timeZone,
-        shiftLengthHours: getHours(value.shiftLength, value.type),
+        shiftLengthHours: getHours(value.shiftLength as number, value.type),
         count: 3,
       },
     },
@@ -81,7 +89,7 @@ export default function RotationForm(props) {
   const isHandoffValid = DateTime.fromISO(value.start).isValid
   const nextHandoffs = isCalculating
     ? []
-    : data.calcRotationHandoffTimes.map((iso) =>
+    : data.calcRotationHandoffTimes.map((iso: string) =>
         DateTime.fromISO(iso)
           .setZone(configZone)
           .toLocaleString(DateTime.DATETIME_FULL),
@@ -182,7 +190,7 @@ export default function RotationForm(props) {
           </Typography>
           {isHandoffValid ? (
             <ol className={classes.handoffsList}>
-              {nextHandoffs.map((text, i) => (
+              {nextHandoffs.map((text: string, i: number) => (
                 <Typography
                   key={i}
                   component='li'
@@ -209,32 +217,4 @@ export default function RotationForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-RotationForm.propTypes = {
-  value: p.shape({
-    name: p.string.isRequired,
-    description: p.string.isRequired,
-    timeZone: p.string.isRequired,
-    type: p.oneOf(rotationTypes).isRequired,
-    shiftLength: p.number.isRequired,
-    start: p.string.isRequired,
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf([
-        'name',
-        'description',
-        'timeZone',
-        'type',
-        'start',
-        'shiftLength',
-      ]).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func.isRequired,
-  disabled: p.bool,
 }
