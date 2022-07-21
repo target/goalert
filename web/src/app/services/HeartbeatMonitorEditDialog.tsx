@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, gql } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -33,11 +33,6 @@ export default function HeartbeatMonitorEditDialog(props: {
   })
   const [updateStatus, update] = useMutation(mutation)
 
-  useEffect(() => {
-    if (!updateStatus.data) return
-    props.onClose()
-  }, [updateStatus.data])
-
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
@@ -52,7 +47,9 @@ export default function HeartbeatMonitorEditDialog(props: {
         update(
           { input: { id: props.monitorID, ...value } },
           { additionalTypenames: ['HeartbeatMonitor'] },
-        )
+        ).then((result) => {
+          if (!result.error) props.onClose()
+        })
       }
       form={
         <HeartbeatMonitorForm
