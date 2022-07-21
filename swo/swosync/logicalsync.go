@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -145,10 +146,14 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 		return fmt.Errorf("commit sync read: %w", err)
 	}
 
-	if final {
-		// no cleanup/err check for final
-		return nil
-	}
 	_, err = tblSync.ExecDeleteChanges(ctx, l.srcConn)
-	return err
+	if !final {
+		return err
+	}
+
+	if err != nil {
+		// log but don't return error in final since switchover is complete
+		log.Log(ctx, err)
+	}
+	return nil
 }
