@@ -138,6 +138,9 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 
 	db := sqlutil.FromContext(ctx).Table("outgoing_messages")
 
+	// omit outgoing alert notifications that end up bundled into a single message
+	db.Where("not(message_type = 'alert_notification' and last_status = 'bundled')")
+
 	if input.CreatedAfter != nil {
 		db = db.Where("created_at >= ?", *input.CreatedAfter)
 	}
@@ -171,11 +174,6 @@ func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessages
 		destStr, err := a.formatDest(ctx, dst)
 		if err != nil {
 			return nil, fmt.Errorf("format dest: %w", err)
-		}
-
-		// notifications that end up bundled are omitted
-		if m.MessageType == notification.MessageTypeAlert && m.LastStatus == notification.StateBundled {
-			continue
 		}
 
 		msg := graphql2.DebugMessage{
