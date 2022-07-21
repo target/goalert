@@ -15,10 +15,16 @@ function valueCheck(props, ...args) {
   return p.string(props, ...args)
 }
 
-const defaultMapNode = ({ name: label, id: value, isFavorite }) => ({
+const defaultMapNode = ({
+  name: label,
+  id: value,
+  isFavorite,
+  email: subText,
+}) => ({
   label,
   value,
   isFavorite,
+  subText,
 })
 
 const asArray = (value) => {
@@ -238,6 +244,7 @@ export function makeQuerySelect(displayName, options) {
           .map((opt) => ({
             ...opt,
             icon: opt.isFavorite ? <FavoriteIcon /> : null,
+            subText: opt.subText || null,
           }))
           .map(cachify)}
         placeholder={

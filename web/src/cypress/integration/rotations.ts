@@ -99,6 +99,25 @@ function testRotations(): void {
         .should('contain', rot.users[1].name)
     })
 
+    it('should display users with the same name correctly when selecting users to add', () => {
+      const name = 'John Smith'
+      const email = 'johnSmith@test.com'
+      const dupEmail = 'johnSmith2@test.com'
+      cy.createUser({ name, email: email })
+      cy.createUser({ name, email: dupEmail })
+
+      cy.pageFab()
+      cy.dialogTitle('Add User')
+      cy.get('input').click().type(name)
+
+      cy.get('body').should('contain', email)
+      cy.get('body').should('contain', dupEmail)
+
+      cy.get('p').contains(email).click()
+      cy.dialogFinish('Submit')
+      cy.get('ul[data-cy=users]').find('li').should('contain', name)
+    })
+
     it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)

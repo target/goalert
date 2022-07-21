@@ -7,6 +7,7 @@ const query = gql`
       nodes {
         id
         name
+        email
         isFavorite
       }
     }
@@ -18,6 +19,7 @@ const valueQuery = gql`
     user(id: $id) {
       id
       name
+      email
       isFavorite
     }
   }
