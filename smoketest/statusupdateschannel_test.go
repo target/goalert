@@ -34,20 +34,22 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	defer h.Close()
 
 	a := h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
-	msg := h.Slack().Channel("test").ExpectMessage("testing", "details")
+	msg := h.Slack().Channel("test").ExpectMessage("testing")
 	msg.AssertColor("#862421")
 	msg.AssertActions()
 	a.Ack()
 
 	updated := msg.ExpectUpdate()
-	updated.AssertText("Ack", "testing", "details")
+	updated.AssertText("Ack", "testing")
+	updated.AssertNotText("details")
 	updated.AssertColor("#867321")
 	updated.AssertActions()
 
 	a.Escalate()
 
 	updated = msg.ExpectUpdate()
-	updated.AssertText("Escalated", "testing", "details")
+	updated.AssertText("Escalated", "testing")
+	updated.AssertNotText("details")
 	updated.AssertColor("#862421")
 	updated.AssertActions()
 	msg.ExpectBroadcastReply("testing")
@@ -60,5 +62,4 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	updated.AssertColor("#218626")
 
 	updated.AssertActions() // no actions
-
 }

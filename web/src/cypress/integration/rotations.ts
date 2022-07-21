@@ -178,6 +178,7 @@ function testRotations(): void {
           const newName = c.word({ length: 15 })
           const newDesc = c.sentence({ words: 3 })
           const newTz = 'Africa/Accra'
+          const invalidName = 'a'
 
           cy.visit(`/rotations/${r.id}`)
           cy.get('[data-cy="card-actions"]')
@@ -185,6 +186,13 @@ function testRotations(): void {
             .click()
 
           cy.dialogTitle('Edit Rotation')
+
+          cy.dialogForm({
+            name: invalidName,
+          })
+          cy.dialogClick('Submit')
+          cy.get('body').should('contain', 'Must be at least 2 characters')
+
           cy.dialogForm({
             name: newName,
             description: newDesc,
@@ -192,7 +200,7 @@ function testRotations(): void {
             type: 'Weekly',
             shiftLength: '5',
           })
-          cy.dialogFinish('Submit')
+          cy.dialogFinish('Retry')
 
           cy.get('body')
             .should('contain', newName)
