@@ -81,11 +81,11 @@ export function useAlerts(
           input: {
             filterByServiceID,
             first: QUERY_LIMIT,
-            notClosedBefore: notClosedBefore,
-            closedBefore: closedBefore,
-            notCreatedBefore: notCreatedBefore,
-            createdBefore: createdBefore,
-            filterByStatus: filterByStatus,
+            notClosedBefore,
+            closedBefore,
+            notCreatedBefore,
+            createdBefore,
+            filterByStatus,
             after: cursor,
           },
         })
