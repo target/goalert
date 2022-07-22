@@ -79,7 +79,7 @@ export function useAlerts(
       const q = await client
         .query(alertsQuery, {
           input: {
-            filterByServiceID: filterByServiceID,
+            filterByServiceID,
             first: QUERY_LIMIT,
             notClosedBefore: notClosedBefore,
             closedBefore: closedBefore,
