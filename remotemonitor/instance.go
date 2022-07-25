@@ -19,6 +19,11 @@ type Instance struct {
 	// before escalating to a human. It should send initial notifications to the monitor via SMS.
 	GenericAPIKey string
 
+	// EmailAPIKey is used to create test alerts.
+	// The service it points to should have an escalation policy that allows at least 60 seconds
+	// before escalating to a human. It should send initial notifications to the monitor via SMS.
+	EmailAPIKey string
+
 	// ErrorAPIKey is the key used to create new alerts for encountered errors.
 	ErrorAPIKey string
 
