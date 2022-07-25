@@ -27,34 +27,39 @@ export function formatTimeRemaining(
   let timeString = ''
 
   if (weeks) {
-    const numWeeks = timing / 604800 // There are 604800s in a week
+    const numWeeks = Math.trunc(timing / 604800) // There are 604800s in a week
     timing = timing - numWeeks * 604800
-    if (numWeeks) timeString += numWeeks + ' Week' + (numWeeks > 1 ? 's ' : ' ')
+    if (numWeeks)
+      timeString += Math.trunc(numWeeks) + ' Week' + (numWeeks > 1 ? 's ' : ' ')
   }
 
   if (days) {
-    const numDays = timing / 86400 // There are 86400s in a day
+    const numDays = Math.trunc(timing / 86400) // There are 86400s in a day
     timing = timing - numDays * 86400
-    if (numDays) timeString += numDays + ' Day' + (numDays > 1 ? 's ' : ' ')
+    if (numDays)
+      timeString += Math.trunc(numDays) + ' Day' + (numDays > 1 ? 's ' : ' ')
   }
 
   if (hours) {
-    const numHours = timing / 3600 // There are 3600s in a hour
+    const numHours = Math.trunc(timing / 3600) // There are 3600s in a hour
     timing = timing - numHours * 3600
-    if (numHours) timeString += numHours + ' Hour' + (numHours > 1 ? 's ' : ' ')
+    if (numHours)
+      timeString += Math.trunc(numHours) + ' Hour' + (numHours > 1 ? 's ' : ' ')
   }
 
   if (minutes) {
-    const numMinutes = timing / 60 // There are 60s in a minute
+    const numMinutes = Math.trunc(timing / 60) // There are 60s in a minute
     timing = timing - numMinutes * 60
     if (numMinutes)
-      timeString += numMinutes + ' Minute' + (numMinutes > 1 ? 's ' : ' ')
+      timeString +=
+        Math.trunc(numMinutes) + ' Minute' + (numMinutes > 1 ? 's ' : ' ')
   }
 
   if (seconds) {
-    const numSeconds = timing / 1 // There are 1s in a second
+    const numSeconds = Math.trunc(timing / 1) // There are 1s in a second
     if (numSeconds)
-      timeString += numSeconds + ' Second' + (numSeconds > 1 ? 's ' : ' ')
+      timeString +=
+        Math.trunc(numSeconds) + ' Second' + (numSeconds > 1 ? 's ' : ' ')
   }
 
   return timeString
