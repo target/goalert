@@ -46,10 +46,9 @@ type Store struct {
 
 	epID *sql.Stmt
 
-	escalate        *sql.Stmt
-	maintenanceMode *sql.Stmt
-	epState         *sql.Stmt
-	svcInfo         *sql.Stmt
+	escalate *sql.Stmt
+	epState  *sql.Stmt
+	svcInfo  *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -198,16 +197,14 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		escalate: p(`
 			UPDATE escalation_policy_state state
 			SET force_escalation = true
+			FROM alerts as a, services as svc
 			WHERE
 				state.alert_id = ANY($1) AND
-				state.force_escalation = false
+				state.force_escalation = false AND
+				a.id = state.alert_id AND
+				svc.id = a.service_id AND
+				svc.maintenance_expires_at ISNULL
 			RETURNING state.alert_id
-		`),
-
-		maintenanceMode: p(`
-			SELECT maintenance_expires_at
-			FROM services
-			WHERE id = $1
 		`),
 
 		epState: p(`
@@ -296,14 +293,16 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		return nil, err
 	}
 
+	if len(alertIDs) == 0 {
+		return nil, nil
+	}
+
 	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(alertIDs) == 0 {
-		return nil, nil
-	}
+	ids := sqlutil.IntArray(alertIDs)
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -311,29 +310,9 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	}
 	defer tx.Rollback()
 
-	ids := sqlutil.IntArray(alertIDs)
 	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
 		return nil, err
-	}
-
-	// return error if any services for each alert are in maintenance mode
-	for _, alertID := range alertIDs {
-		var maintExpiresAt sql.NullTime
-		var svcID string
-		err := tx.StmtContext(ctx, s.getServiceID).QueryRowContext(ctx, alertID).Scan(&svcID)
-		if err != nil {
-			return nil, err
-		}
-
-		err = tx.StmtContext(ctx, s.maintenanceMode).QueryRowContext(ctx, svcID).Scan(&maintExpiresAt)
-		if err != nil {
-			return nil, err
-		}
-
-		if maintExpiresAt.Valid {
-			return nil, validation.NewGenericError("escalate alert: in maintenance mode")
-		}
 	}
 
 	rows, err := tx.StmtContext(ctx, s.escalate).QueryContext(ctx, ids)
