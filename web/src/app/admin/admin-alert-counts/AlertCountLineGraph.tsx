@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  DotProps,
   Legend,
   Tooltip,
 } from 'recharts'
@@ -28,6 +29,26 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 }))
+
+interface CustomDotProps extends DotProps {
+  payload: { date: string }
+}
+
+const CustomDot = (props: CustomDotProps): JSX.Element => {
+  const { cy, cx, fill, r, stroke, strokeWidth, name, payload } = props
+  return (
+    <circle
+      cy={cy}
+      cx={cx}
+      fill={fill}
+      r={r}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      key={name + '-' + payload.date}
+      data-cy={name + '-' + payload.date}
+    />
+  )
+}
 
 export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
@@ -57,7 +78,7 @@ export default function AlertCountLineGraph(
 
   return (
     <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-averages-graph'>
+      <Grid item xs={12} data-cy='alert-count-graph'>
         <ResponsiveContainer width='100%' height='100%'>
           <LineChart
             width={730}
@@ -123,6 +144,7 @@ export default function AlertCountLineGraph(
                 strokeWidth={active === series.serviceName ? 4 : 1}
                 name={series.serviceName}
                 stroke={chooseColor(idx)}
+                dot={CustomDot}
                 key={idx}
               />
             ))}
