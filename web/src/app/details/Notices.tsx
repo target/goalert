@@ -12,6 +12,10 @@ import makeStyles from '@mui/styles/makeStyles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
 import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
 import toTitleCase from '../util/toTitleCase'
+import {
+  NoticeType as SchemaNoticeType,
+  NotificationStatus,
+} from '../../schema'
 
 const useStyles = makeStyles({
   alertAction: {
@@ -31,8 +35,28 @@ const useStyles = makeStyles({
   },
 })
 
+export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
+
+export function toSeverity(notice: NoticeType): AlertColor {
+  switch (notice.toLowerCase()) {
+    case 'success':
+      return 'success'
+    case 'info':
+      return 'info'
+    case 'warning':
+    case 'warn':
+      return 'warning'
+    case 'error':
+      return 'error'
+    case 'info':
+      return 'info'
+    default:
+      throw new Error('Unknown notice type: ' + notice)
+  }
+}
+
 export interface Notice {
-  type: AlertColor
+  type: NoticeType
   message: string | JSX.Element
   details?: string | JSX.Element
   endNote?: string | JSX.Element
@@ -90,7 +114,7 @@ export default function Notices({
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
-          severity={notice.type}
+          severity={toSeverity(notice.type)}
           classes={{
             message: classes.alertMessage,
             action: classes.alertAction,

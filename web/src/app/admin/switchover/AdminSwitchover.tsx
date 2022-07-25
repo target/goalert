@@ -16,7 +16,7 @@ import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from 'urql'
 import { DateTime } from 'luxon'
-import { SWONode as SWONodeType, SWOStatus } from '../../../schema'
+import { SWOAction, SWONode as SWONodeType, SWOStatus } from '../../../schema'
 import Notices, { Notice } from '../../details/Notices'
 import SWONode from './SWONode'
 import LoadingButton from '@mui/lab/LoadingButton'
@@ -104,7 +104,7 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item container alignItems='center' justifyContent='center'>
         <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
         <Grid item>
-          <center>
+          <div style={{ textAlign: 'center' }}>
             <Typography
               color='secondary'
               variant='h6'
@@ -117,7 +117,7 @@ export default function AdminSwitchover(): JSX.Element {
                 GOALERT_DB_URL_NEXT
               </code> or <code>--db-url-next</code> to perform a switchover.
             </Typography>
-          </center>
+          </div>
         </Grid>
       </Grid>
     )
@@ -153,11 +153,15 @@ export default function AdminSwitchover(): JSX.Element {
       commit({ action }, { additionalTypenames: ['SWOStatus'] })
     }
   }
-  const statusNotices = []
+  const statusNotices: Notice[] = []
   if (mutationStatus.error) {
+    const vars: { action?: SWOAction } = mutationStatus.operation
+      ?.variables || {
+      action: '',
+    }
     statusNotices.push({
       type: 'error',
-      message: 'Failed to ' + mutationStatus.operation?.variables?.action,
+      message: 'Failed to ' + vars.action,
       details: cptlz(mutationStatus.error.message),
       endNote: DateTime.local().toFormat('fff'),
     })

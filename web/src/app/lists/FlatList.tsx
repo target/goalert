@@ -22,7 +22,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
 import classnames from 'classnames'
-import { Notice } from '../details/Notices'
+import { Notice, toSeverity } from '../details/Notices'
 
 const useStyles = makeStyles((theme: Theme) => ({
   alert: {
@@ -182,7 +182,7 @@ export default function FlatList({
           <Alert
             className={classes.alertAsButton}
             key={idx}
-            severity={item.type}
+            severity={toSeverity(item.type)}
             icon={item.icon}
           >
             {item.message && <AlertTitle>{item.message}</AlertTitle>}
@@ -196,7 +196,7 @@ export default function FlatList({
       <Alert
         key={idx}
         className={classes.alert}
-        severity={item.type}
+        severity={toSeverity(item.type)}
         icon={item.icon}
       >
         {item.message && <AlertTitle>{item.message}</AlertTitle>}
