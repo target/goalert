@@ -352,11 +352,16 @@ function testServices(screen: ScreenFormat): void {
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
       const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+      const invalidName = 'a'
 
       cy.pageFab()
 
+      cy.dialogForm({ name: invalidName, timeoutMinutes })
+      cy.dialogClick('Submit')
+      cy.get('body').should('contain', 'Must be at least 2 characters')
+
       cy.dialogForm({ name, timeoutMinutes })
-      cy.dialogFinish('Submit')
+      cy.dialogFinish('Retry')
 
       cy.get('li').should('contain', name).should('contain', timeoutMinutes)
     })

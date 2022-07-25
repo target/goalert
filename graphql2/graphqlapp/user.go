@@ -19,8 +19,10 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 )
 
-type User App
-type UserSession App
+type (
+	User        App
+	UserSession App
+)
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
 
@@ -29,6 +31,7 @@ func (a *App) UserSession() graphql2.UserSessionResolver { return (*UserSession)
 func (a *User) Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error) {
 	return a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
 }
+
 func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool, error) {
 	src := permission.Source(ctx)
 	if src == nil {
@@ -44,6 +47,7 @@ func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool,
 func (a *User) AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error) {
 	return a.UserStore.FindAllAuthSubjectsForUser(ctx, obj.ID)
 }
+
 func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, error) {
 	return graphql2.UserRole(usr.Role), nil
 }
@@ -51,9 +55,11 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
 	return a.CMStore.FindAll(ctx, obj.ID)
 }
+
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
 	return a.NRStore.FindAll(ctx, obj.ID)
 }
+
 func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calsub.Subscription, error) {
 	return a.CalSubStore.FindAllByUser(ctx, obj.ID)
 }
@@ -112,13 +118,6 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 	return newUser, err
 }
 
-func (a *Mutation) DeleteUser(ctx context.Context, id string) (bool, error) {
-	err := a.UserStore.Delete(ctx, id)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
 func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInput) (bool, error) {
 	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		usr, err := a.UserStore.FindOneTx(ctx, tx, input.ID, true)
