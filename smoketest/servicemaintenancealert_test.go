@@ -57,7 +57,7 @@ func TestServiceMaintenanceAlert(t *testing.T) {
 		})
   	}
 	`, h.UUID("sid"), time.Now().Add(2*time.Hour).Format(time.RFC3339))
-	DoGQL(t, h, setMM, nil)
+	h.GraphQLQuery2(setMM)
 
 	// current impl, user should still get notified from 2nd notification rule
 	h.FastForward(5 * time.Minute)

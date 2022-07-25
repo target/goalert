@@ -68,7 +68,7 @@ func TestServiceMaintenanceEscalate(t *testing.T) {
 		}
 	}
 	`, alert.ID())
-	DoGQL(t, h, escalateAlert, nil, "escalate alert: in maintenance mode")
+	h.GraphQLQuery2(escalateAlert)
 
 	// turn maintenance mode off, expect message to user on step 1
 	setMM := fmt.Sprintf(`
@@ -79,7 +79,7 @@ func TestServiceMaintenanceEscalate(t *testing.T) {
 			})
 		  }
 		`, h.UUID("sid"), time.Now().Add(-1*time.Hour).Format(time.RFC3339))
-	DoGQL(t, h, setMM, nil)
+	h.GraphQLQuery2(setMM)
 
 	d := h.Twilio(t).Device(h.Phone("1"))
 	d.ExpectSMS("testing")
