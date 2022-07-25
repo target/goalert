@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/mail"
 	"net/smtp"
 	"net/url"
 	"strings"
@@ -152,9 +153,20 @@ func (m *Monitor) waitLoop() {
 }
 
 func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) error {
+	addr, err := mail.ParseAddress(i.EmailAPIKey)
+	if err != nil {
+		return err
+	}
+	key, domain, found := strings.Cut(addr.Address, "@")
+	if !found {
+		return fmt.Errorf("invalid email address: %s", i.EmailAPIKey)
+	}
+	key += "+" + strings.ReplaceAll(dedup, ":", "_")
+	addr.Address = key + "@" + domain
+
 	msg := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\r\n"
 	msg += fmt.Sprintf("From: %s\r\n", m.cfg.SMTP.From)
-	msg += fmt.Sprintf("To: %s\r\n", i.EmailAPIKey)
+	msg += fmt.Sprintf("To: %s\r\n", addr.String())
 	msg += fmt.Sprintf("Subject: %s\r\n", summary)
 	msg += fmt.Sprintf("\r\n%s\r\n", details)
 
@@ -168,7 +180,7 @@ func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) e
 		auth = smtp.PlainAuth("", m.cfg.SMTP.User, m.cfg.SMTP.Pass, host)
 	}
 
-	err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{i.EmailAPIKey}, []byte(msg))
+	err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
 	if err != nil {
 		return fmt.Errorf("send email: %w", err)
 	}
@@ -233,10 +245,17 @@ func (m *Monitor) context() context.Context {
 func (m *Monitor) Shutdown(ctx context.Context) error {
 	log.Println("Beginning shutdown...")
 	close(m.shutdownCh)
-	for n := range m.pendingCh {
-		if n == 0 {
-			// wait for all pending operations to finish or timeout
-			break
+
+wait:
+	for {
+		select {
+		case n := <-m.pendingCh:
+			if n == 0 {
+				// wait for all pending operations to finish or timeout
+				break wait
+			}
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 
