@@ -238,7 +238,6 @@ export function makeQuerySelect(displayName, options) {
           .map((opt) => ({
             ...opt,
             icon: opt.isFavorite ? <FavoriteIcon /> : null,
-            subText: opt.subText || null,
           }))
           .map(cachify)}
         placeholder={
