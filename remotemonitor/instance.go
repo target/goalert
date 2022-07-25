@@ -14,10 +14,10 @@ type Instance struct {
 	// Location must be unique.
 	Location string
 
-	// TestAPIKey is used to create test alerts.
+	// GenericAPIKey is used to create test alerts.
 	// The service it points to should have an escalation policy that allows at least 60 seconds
 	// before escalating to a human. It should send initial notifications to the monitor via SMS.
-	TestAPIKey string
+	GenericAPIKey string
 
 	// ErrorAPIKey is the key used to create new alerts for encountered errors.
 	ErrorAPIKey string
@@ -61,6 +61,7 @@ func (i *Instance) createAlert(key, dedup, summary, details string) error {
 	v.Set("dedup", dedup)
 	return i.doReq("/api/v2/generic/incoming", v)
 }
+
 func (i *Instance) heartbeat() []error {
 	errCh := make(chan error, len(i.HeartbeatURLs))
 	var wg sync.WaitGroup

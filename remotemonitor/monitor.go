@@ -32,7 +32,6 @@ type Monitor struct {
 
 func setRequestScheme(scheme string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
 		// required for Twilio sig validation to work
 		req.URL.Host = req.Host
 		req.URL.Scheme = scheme
@@ -51,7 +50,8 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := &Monitor{cfg: cfg,
+	m := &Monitor{
+		cfg:        cfg,
 		tw:         twilio.Config{},
 		shutdownCh: make(chan struct{}),
 		startCh:    make(chan string),
@@ -98,6 +98,7 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 
 	return m, nil
 }
+
 func (m *Monitor) serve(l net.Listener) {
 	err := m.srv.Serve(l)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -120,6 +121,7 @@ func (m *Monitor) reportErr(i Instance, err error, action string) {
 	}
 	log.Println("ERROR:", summary)
 }
+
 func (m *Monitor) waitLoop() {
 	t := time.NewTicker(100 * time.Millisecond)
 	for {
@@ -142,6 +144,7 @@ func (m *Monitor) waitLoop() {
 		}
 	}
 }
+
 func (m *Monitor) loop() {
 	delay := time.Duration(m.cfg.CheckMinutes) * time.Minute
 	t := time.NewTicker(delay)
@@ -162,7 +165,7 @@ If it is not automatically closed within a minute, there may be a problem with S
 			}
 			m.startCh <- i.Location
 			go func(i Instance) {
-				err := i.createAlert(i.TestAPIKey, dedup, summary, details)
+				err := i.createAlert(i.GenericAPIKey, dedup, summary, details)
 				if err != nil {
 					m.reportErr(i, err, "create new alert")
 				}
