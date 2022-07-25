@@ -1,6 +1,5 @@
 import React from 'react'
 import Card from '@mui/material/Card'
-import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
