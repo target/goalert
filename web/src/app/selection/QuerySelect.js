@@ -15,16 +15,10 @@ function valueCheck(props, ...args) {
   return p.string(props, ...args)
 }
 
-const defaultMapNode = ({
-  name: label,
-  id: value,
-  isFavorite,
-  email: subText,
-}) => ({
+const defaultMapNode = ({ name: label, id: value, isFavorite }) => ({
   label,
   value,
   isFavorite,
-  subText,
 })
 
 const asArray = (value) => {

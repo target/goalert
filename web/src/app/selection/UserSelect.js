@@ -30,4 +30,10 @@ export const UserSelect = makeQuerySelect('UserSelect', {
   defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
+  mapDataNode: (u) => ({
+    value: u.id,
+    label: u.name,
+    subText: u.email,
+    isFavorite: u.isFavorite,
+  }),
 })
