@@ -3,6 +3,7 @@ package remotemonitor
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 )
 
@@ -30,6 +31,7 @@ type Config struct {
 	SMTP struct {
 		From string
 
+		// ServerAddr is the address of the SMTP server, including port.
 		ServerAddr string
 		User, Pass string
 	}
@@ -68,10 +70,28 @@ func (cfg Config) Validate() error {
 		return errors.New("twilio from number is required")
 	}
 
+	var hasEmail bool
 	for idx, i := range cfg.Instances {
 		if err := i.Validate(); err != nil {
 			return fmt.Errorf("instance[%d] %q: %v", idx, i.Location, err)
 		}
+		if i.EmailAPIKey != "" {
+			hasEmail = true
+		}
+	}
+
+	if !hasEmail {
+		return nil
+	}
+
+	if cfg.SMTP.ServerAddr == "" {
+		return errors.New("SMTP server address is required")
+	}
+	if _, _, err := net.SplitHostPort(cfg.SMTP.ServerAddr); err != nil {
+		return fmt.Errorf("parse SMTP server address: %v", err)
+	}
+	if cfg.SMTP.From == "" {
+		return errors.New("SMTP from address is required")
 	}
 
 	return nil
