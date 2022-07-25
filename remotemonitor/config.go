@@ -28,7 +28,9 @@ type Config struct {
 	}
 
 	SMTP struct {
-		Address    string
+		From string
+
+		ServerAddr string
 		User, Pass string
 	}
 

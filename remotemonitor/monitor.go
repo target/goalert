@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"strings"
 	"time"
@@ -122,7 +123,7 @@ func (m *Monitor) reportErr(i Instance, err error, action string) {
 			log.Println("No ErrorAPIKey for", ins.Location)
 			continue
 		}
-		go ins.createAlert(ins.ErrorAPIKey, "", summary, details)
+		go ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details)
 	}
 	log.Println("ERROR:", summary)
 }
@@ -150,6 +151,31 @@ func (m *Monitor) waitLoop() {
 	}
 }
 
+func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) error {
+	msg := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\r\n"
+	msg += fmt.Sprintf("From: %s\r\n", m.cfg.SMTP.From)
+	msg += fmt.Sprintf("To: %s\r\n", i.EmailAPIKey)
+	msg += fmt.Sprintf("Subject: %s\r\n", summary)
+	msg += fmt.Sprintf("\r\n%s\r\n", details)
+
+	host, _, err := net.SplitHostPort(m.cfg.SMTP.ServerAddr)
+	if err != nil {
+		return err
+	}
+
+	var auth smtp.Auth
+	if m.cfg.SMTP.User != "" || m.cfg.SMTP.Pass != "" {
+		auth = smtp.PlainAuth("", m.cfg.SMTP.User, m.cfg.SMTP.Pass, host)
+	}
+
+	err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{i.EmailAPIKey}, []byte(msg))
+	if err != nil {
+		return fmt.Errorf("send email: %w", err)
+	}
+
+	return nil
+}
+
 func (m *Monitor) loop() {
 	delay := time.Duration(m.cfg.CheckMinutes) * time.Minute
 	t := time.NewTicker(delay)
@@ -163,27 +189,37 @@ These alerts are generated periodically to monitor actual system functionality a
 If it is not automatically closed within a minute, there may be a problem with SMS or network connectivity.
 `, m.cfg.Location)
 
-	doCheck := func() {
+	doCheck := func(preferEmail bool) {
 		for _, i := range m.cfg.Instances {
 			if i.ErrorsOnly {
 				continue
 			}
 			m.startCh <- i.Location
 			go func(i Instance) {
-				err := i.createAlert(i.GenericAPIKey, dedup, summary, details)
+				var err error
+				switch {
+				case i.EmailAPIKey != "" && (i.GenericAPIKey == "" || preferEmail):
+					err = m.createEmailAlert(i, dedup, summary, details)
+				case i.GenericAPIKey != "" && (i.EmailAPIKey == "" || !preferEmail):
+					err = i.createGenericAlert(i.GenericAPIKey, dedup, summary, details)
+				}
+
 				if err != nil {
 					m.reportErr(i, err, "create new alert")
 				}
 			}(i)
 		}
 	}
-	doCheck()
+
+	var preferEmail bool
+	doCheck(preferEmail)
 	for {
 		select {
 		case <-m.shutdownCh:
 			return
 		case <-t.C:
-			doCheck()
+			preferEmail = !preferEmail
+			doCheck(preferEmail)
 		}
 	}
 }

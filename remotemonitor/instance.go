@@ -84,7 +84,7 @@ func (i *Instance) doReq(path string, v url.Values) error {
 	return nil
 }
 
-func (i *Instance) createAlert(key, dedup, summary, details string) error {
+func (i *Instance) createGenericAlert(key, dedup, summary, details string) error {
 	v := make(url.Values)
 	v.Set("token", key)
 	v.Set("summary", summary)
