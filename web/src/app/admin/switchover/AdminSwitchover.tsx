@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { useTheme, SvgIconProps, Zoom } from '@mui/material'
+import Alert from '@mui/material/Alert'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -6,7 +8,6 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
-import { Fade, SvgIconProps, Zoom } from '@mui/material'
 import NoResetIcon from 'mdi-material-ui/DatabaseRefreshOutline'
 import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
 import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
@@ -27,6 +28,10 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import Tooltip from '@mui/material/Tooltip'
+import RemoveIcon from '@mui/icons-material/PlaylistRemove'
+import AddIcon from '@mui/icons-material/PlaylistAdd'
+import DownIcon from '@mui/icons-material/ArrowDownward'
 import { TransitionGroup } from 'react-transition-group'
 import Spinner from '../../loading/components/Spinner'
 
@@ -87,6 +92,10 @@ export default function AdminSwitchover(): JSX.Element {
   const data = _data?.swoStatus as SWOStatus
   const [lastAction, setLastAction] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
+  const theme = useTheme()
+
+  const curVer = data?.mainDBVersion.split(' on ')
+  const nextVer = data?.mainDBVersion.split(' on ')
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -224,123 +233,155 @@ export default function AdminSwitchover(): JSX.Element {
     return <Typography>&nbsp;</Typography> // reserves whitespace
   }
 
+  const headerSize = { titleTypographyProps: { sx: { fontSize: '1.25rem' } } }
+
   return (
-    <TransitionGroup appear={false}>
-      <Fade in={false}>
-        <Grid container spacing={3}>
-          {statusNotices.length > 0 && (
-            <Grid item xs={12}>
-              <Notices notices={statusNotices.reverse()} />
-            </Grid>
-          )}
-          <Grid item>
-            <Card sx={{ width: '350px' }}>
-              <CardHeader
-                title='Switchover Status'
-                titleTypographyProps={{ sx: { fontSize: '1.25rem' } }}
-                avatar={getIcon()}
-                subheader={getSubheader()}
-                sx={{ pb: 0 }}
-              />
-              <CardContent>
-                {getDetails()}
-                <ButtonGroup orientation='vertical' sx={{ width: '100%' }}>
-                  <LoadingButton
-                    startIcon={
-                      data?.state === 'done' ? <NoResetIcon /> : <ResetIcon />
-                    }
-                    disabled={data?.state === 'done' || mutationStatus.fetching}
-                    variant='outlined'
-                    size='large'
-                    loading={resetLoad}
-                    loadingPosition='start'
-                    onClick={actionHandler('reset')}
-                  >
-                    {resetLoad ? 'Resetting...' : 'Reset'}
-                  </LoadingButton>
-                  <LoadingButton
-                    startIcon={
-                      data?.state !== 'idle' ? (
-                        <NoExecuteIcon />
-                      ) : (
-                        <ExecuteIcon />
-                      )
-                    }
-                    disabled={data?.state !== 'idle' || mutationStatus.fetching}
-                    variant='outlined'
-                    size='large'
-                    loading={executeLoad}
-                    loadingPosition='start'
-                    onClick={actionHandler('execute')}
-                  >
-                    {executeLoad ? 'Executing...' : 'Execute'}
-                  </LoadingButton>
-                </ButtonGroup>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item sx={{ flexGrow: 1 }}>
-            <Card sx={{ height: '100%' }}>
-              <CardHeader title='Database Connections' />
-              Main DB Version: {data?.mainDBVersion}
-              <br />
-              Next DB Version: {data?.nextDBVersion}
-              <hr />
-              <Table size='small'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Application Name</TableCell>
-                    <TableCell align='right'>Count</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data?.connections?.map((row) => (
-                    <TableRow
-                      key={row.name || '(no name)'}
-                      style={{
-                        backgroundColor:
-                          row.name.includes('GoAlert') &&
-                          !row.name.includes('SWO')
-                            ? 'red'
-                            : '',
-                      }}
-                      sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
-                      }}
-                    >
-                      <TableCell component='th' scope='row'>
-                        {row.name || '(no name)'}
-                      </TableCell>
-                      <TableCell align='right'>{row.count}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} container spacing={1}>
-            {data?.nodes.length > 0 &&
-              data.nodes
-                .slice()
-                .sort((a: SWONodeType, b: SWONodeType) => {
-                  const aName = friendlyName(a.id)
-                  const bName = friendlyName(b.id)
-                  if (aName < bName) return -1
-                  if (aName > bName) return 1
-                  return 0
-                })
-                .map((node: SWONodeType) => (
-                  <SWONode
-                    key={node.id}
-                    node={node}
-                    name={friendlyName(node.id)}
-                  />
-                ))}
-          </Grid>
+    <Grid container spacing={2}>
+      {statusNotices.length > 0 && (
+        <Grid item xs={12}>
+          <Notices notices={statusNotices.reverse()} />
         </Grid>
-      </Fade>
-    </TransitionGroup>
+      )}
+      <Grid item xs={12} sm={12} md={12} lg={4} xl={4}>
+        <Card sx={{ height: '100%' }}>
+          <CardContent
+            sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+          >
+            <CardHeader
+              title='Switchover Status'
+              avatar={getIcon()}
+              subheader={getSubheader()}
+              {...headerSize}
+              sx={{ p: 0 }}
+            />
+            {getDetails()}
+            <div style={{ flexGrow: 1 }} />
+            <ButtonGroup
+              orientation={
+                theme.breakpoints.up('md') ? 'vertical' : 'horizontal'
+              }
+              sx={{ width: '100%', pb: '32px' }}
+            >
+              <LoadingButton
+                startIcon={
+                  data?.state === 'done' ? <NoResetIcon /> : <ResetIcon />
+                }
+                disabled={data?.state === 'done' || mutationStatus.fetching}
+                variant='outlined'
+                size='large'
+                loading={resetLoad}
+                loadingPosition='start'
+                onClick={actionHandler('reset')}
+              >
+                {resetLoad ? 'Resetting...' : 'Reset'}
+              </LoadingButton>
+              <LoadingButton
+                startIcon={
+                  data?.state !== 'idle' ? <NoExecuteIcon /> : <ExecuteIcon />
+                }
+                disabled={data?.state !== 'idle' || mutationStatus.fetching}
+                variant='outlined'
+                size='large'
+                loading={executeLoad}
+                loadingPosition='start'
+                onClick={actionHandler('execute')}
+              >
+                {executeLoad ? 'Executing...' : 'Execute'}
+              </LoadingButton>
+            </ButtonGroup>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} sm={12} md={12} lg={8} xl={8}>
+        <Card sx={{ height: '100%' }}>
+          <CardHeader title='Database Connections' {...headerSize} />
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Application</TableCell>
+                <TableCell>Info</TableCell>
+                <TableCell align='right'>Count</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data?.connections?.map((row) => (
+                <TableRow
+                  key={row.name || '(no name)'}
+                  selected={
+                    row.name.includes('GoAlert') && !row.name.includes('SWO')
+                  }
+                  sx={{
+                    '&:last-child td, &:last-child th': { border: 0 },
+                  }}
+                >
+                  <TableCell component='th' scope='row'>
+                    {row?.name?.split('(')[0].replace(/[)(]/g, '') ??
+                      '(no name)'}
+                  </TableCell>
+                  <TableCell component='th' scope='row'>
+                    {row?.name?.split('(')[1]?.replace(/[)(]/g, '') ?? '-'}
+                  </TableCell>
+                  <TableCell align='right'>{row.count}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} container spacing={2} justifyContent='space-between'>
+        <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
+          <Card sx={{ height: '100%' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '0 16px 0 16px',
+                marginBottom: '16px',
+                height: '100%',
+              }}
+            >
+              <CardHeader title='DB Diff' {...headerSize} />
+              <Tooltip title={curVer[1]}>
+                <Alert icon={<RemoveIcon />} severity='error'>
+                  From {curVer[0]}
+                </Alert>
+              </Tooltip>
+              <DownIcon
+                style={{ flexGrow: 1 }}
+                sx={{
+                  alignSelf: 'center',
+                  color: (theme) => theme.palette.primary.main,
+                }}
+              />
+              <Tooltip title={nextVer[1]}>
+                <Alert
+                  icon={<AddIcon />}
+                  severity='success'
+                  sx={{ mb: '16px' }}
+                >
+                  To {nextVer[0]}
+                </Alert>
+              </Tooltip>
+            </div>
+          </Card>
+        </Grid>
+
+        {data?.nodes.length > 0 &&
+          data.nodes
+            .slice()
+            .sort((a: SWONodeType, b: SWONodeType) => {
+              const aName = friendlyName(a.id)
+              const bName = friendlyName(b.id)
+              if (aName < bName) return -1
+              if (aName > bName) return 1
+              return 0
+            })
+            .map((node: SWONodeType) => (
+              <SWONode key={node.id} node={node} name={friendlyName(node.id)} />
+            ))}
+      </Grid>
+    </Grid>
   )
 }
