@@ -1,6 +1,7 @@
 package remotemonitor
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -40,6 +41,31 @@ type Instance struct {
 	// ErrorsOnly, if set, will disable creating test alerts for the instance. Any error-alerts will
 	// still be generated, however.
 	ErrorsOnly bool
+}
+
+func (i Instance) Validate() error {
+	if i.Location == "" {
+		return errors.New("location is required")
+	}
+	if i.PublicURL == "" {
+		return errors.New("public URL is required")
+	}
+	_, err := url.Parse(i.PublicURL)
+	if err != nil {
+		return fmt.Errorf("parse public URL: %v", err)
+	}
+	if i.Phone == "" {
+		return errors.New("phone is required")
+	}
+	if i.ErrorAPIKey == "" {
+		return errors.New("error API key is required")
+	}
+
+	if i.GenericAPIKey == "" && i.EmailAPIKey == "" {
+		return errors.New("at least one of Email or Generic API key is required")
+	}
+
+	return nil
 }
 
 func (i *Instance) doReq(path string, v url.Values) error {

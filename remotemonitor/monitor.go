@@ -42,6 +42,11 @@ func setRequestScheme(scheme string, h http.Handler) http.Handler {
 
 // NewMonitor creates and starts a new Monitor with the given Config.
 func NewMonitor(cfg Config) (*Monitor, error) {
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
+
 	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
 	http.DefaultTransport = &requestIDTransport{
 		RoundTripper: http.DefaultTransport,
