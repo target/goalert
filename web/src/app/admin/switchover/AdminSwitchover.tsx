@@ -99,7 +99,7 @@ export default function AdminSwitchover(): JSX.Element {
     return <Spinner />
   }
 
-  if (error && error.message === 'not in SWO mode') {
+  if (error && error.message === '[GraphQL] not in SWO mode') {
     return (
       <Grid item container alignItems='center' justifyContent='center'>
         <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
@@ -214,7 +214,7 @@ export default function AdminSwitchover(): JSX.Element {
         </Typography>
       )
     }
-    if (data.state !== 'unknown' && data.lastStatus) {
+    if (data?.state !== 'unknown' && data.lastStatus) {
       return <Typography sx={{ pb: 2 }}>{cptlz(data.lastStatus)}</Typography>
     }
     return <Typography>&nbsp;</Typography> // reserves whitespace
@@ -256,13 +256,13 @@ export default function AdminSwitchover(): JSX.Element {
                   </LoadingButton>
                   <LoadingButton
                     startIcon={
-                      data.state !== 'idle' ? (
+                      data?.state !== 'idle' ? (
                         <NoExecuteIcon />
                       ) : (
                         <ExecuteIcon />
                       )
                     }
-                    disabled={data.state !== 'idle' || mutationStatus.fetching}
+                    disabled={data?.state !== 'idle' || mutationStatus.fetching}
                     variant='outlined'
                     size='large'
                     loading={executeLoad}
