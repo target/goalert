@@ -21,6 +21,11 @@ type Config struct {
 		FromNumber string
 	}
 
+	SMTP struct {
+		Address    string
+		User, Pass string
+	}
+
 	// Instances determine what remote GoAlert instances will be monitored and send potential errors.
 	Instances []Instance
 }
