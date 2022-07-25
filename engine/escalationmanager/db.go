@@ -100,15 +100,14 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 
 		newPolicies: p.P(`
 			with to_escalate as (
-				select alert_id, step.id ep_step_id, step.delay, step.escalation_policy_id, a.service_id, s.maintenance_expires_at
+				select alert_id, step.id ep_step_id, step.delay, step.escalation_policy_id, a.service_id
 				from escalation_policy_state state
 				join escalation_policy_steps step on
 					step.escalation_policy_id = state.escalation_policy_id and
 					step.step_number = 0
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
-				join services s on a.service_id = s.id
-				where state.last_escalation isnull and
-				(s.maintenance_expires_at isnull)
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
+				where state.last_escalation isnull
 				for update skip locked
 				limit 1000
 			), _step_cycles as (
@@ -168,8 +167,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					step.delay,
 					state.escalation_policy_step_number >= ep.step_count repeated,
 					a.service_id,
-					step.escalation_policy_id,
-					s.maintenance_expires_at
+					step.escalation_policy_id
 				from escalation_policy_state state
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
 				join escalation_policies ep on ep.id = state.escalation_policy_id
@@ -179,11 +177,10 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 						WHEN state.escalation_policy_step_number >= ep.step_count THEN 0
 						ELSE state.escalation_policy_step_number
 						END
-				join services s on a.service_id = s.id
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
 				where
 					state.last_escalation notnull and
-					escalation_policy_step_id isnull and
-					(s.maintenance_expires_at isnull)
+					escalation_policy_step_id isnull
 				for update skip locked
 				limit 100
 			), _step_cycles as (
@@ -246,8 +243,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					oldStep.delay old_delay,
 					oldStep.step_number + 1 >= ep.step_count repeated,
 					nextStep.escalation_policy_id,
-					a.service_id,
-					s.maintenance_expires_at
+					a.service_id
 				from escalation_policy_state state
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
 				join escalation_policies ep on ep.id = state.escalation_policy_id
@@ -261,12 +257,11 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 						WHEN state.loop_count < ep.repeat THEN 0
 						ELSE -1
 					END
-				join services s on a.service_id = s.id
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
 				where
 					state.last_escalation notnull and
 					escalation_policy_step_id notnull and
-					(next_escalation < now() or force_escalation) and
-					(s.maintenance_expires_at isnull)
+					(next_escalation < now() or force_escalation)
 				order by next_escalation - now()
 				for update skip locked
 				limit 500
