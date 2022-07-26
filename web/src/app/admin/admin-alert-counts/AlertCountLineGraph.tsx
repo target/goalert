@@ -3,6 +3,15 @@ import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
 import {
+  blueGrey,
+  teal,
+  green,
+  cyan,
+  amber,
+  pink,
+  brown,
+} from '@mui/material/colors'
+import {
   XAxis,
   YAxis,
   CartesianGrid,
@@ -58,21 +67,23 @@ export default function AlertCountLineGraph(
   const theme = useTheme()
 
   const chooseColor = (idx: number): string => {
+    const shade = theme.palette.mode === 'light' ? 'A700' : 'A400'
+
     switch (idx) {
       case 1:
-        return '#3f8e98'
+        return teal[shade]
       case 2:
-        return '#209e90'
+        return brown[shade]
       case 3:
-        return '#41ab74'
+        return green[shade]
       case 4:
-        return '#79b34a'
+        return cyan[shade]
       case 5:
-        return '#b9b218'
+        return amber[shade]
       case 6:
-        return '#ffa600'
+        return pink[shade]
       default:
-        return '#607d8b'
+        return blueGrey[shade]
     }
   }
 
