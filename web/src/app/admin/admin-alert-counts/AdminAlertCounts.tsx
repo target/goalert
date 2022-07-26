@@ -79,7 +79,8 @@ export default function AdminAlertCounts(): JSX.Element {
         <AlertCountControls />
         <Card className={styles.card}>
           <CardHeader
-            title={`Service alert counts over the past ${dayCount} ${unit}s`}
+            title='Alert Counts'
+            subheader={`Number of alerts created by services over the past ${dayCount} ${unit}s`}
           />
           <CardContent>
             <AlertCountLineGraph data={graphData} />
