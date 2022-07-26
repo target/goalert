@@ -352,11 +352,16 @@ function testServices(screen: ScreenFormat): void {
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
       const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+      const invalidName = 'a'
 
       cy.pageFab()
 
+      cy.dialogForm({ name: invalidName, timeoutMinutes })
+      cy.dialogClick('Submit')
+      cy.get('body').should('contain', 'Must be at least 2 characters')
+
       cy.dialogForm({ name, timeoutMinutes })
-      cy.dialogFinish('Submit')
+      cy.dialogFinish('Retry')
 
       cy.get('li').should('contain', name).should('contain', timeoutMinutes)
     })
@@ -642,6 +647,7 @@ function testServices(screen: ScreenFormat): void {
     beforeEach(() =>
       cy
         .setTimeSpeed(0)
+        .fastForward('-25h')
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
@@ -649,7 +655,7 @@ function testServices(screen: ScreenFormat): void {
           cy.ackAlert(a.id)
           cy.fastForward('1m')
           cy.closeAlert(a.id)
-          cy.fastForward('5m')
+          cy.fastForward('25h')
           cy.setTimeSpeed(1) // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
@@ -661,7 +667,7 @@ function testServices(screen: ScreenFormat): void {
     )
 
     it('should display alert metrics', () => {
-      const now = DateTime.local().toLocaleString({
+      const now = DateTime.local().minus({ day: 1 }).toLocaleString({
         month: 'short',
         day: 'numeric',
       })
