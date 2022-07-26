@@ -11,11 +11,11 @@ import {
   pink,
   brown,
 } from '@mui/material/colors'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
   LineChart,
   Line,
   DotProps,
@@ -90,77 +90,79 @@ export default function AlertCountLineGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='alert-count-graph'>
-        <ResponsiveContainer width='100%' height='100%'>
-          <LineChart
-            width={730}
-            height={250}
-            data={props.data}
-            margin={{
-              top: 50,
-              right: 30,
-              bottom: 50,
-            }}
-          >
-            <CartesianGrid
-              strokeDasharray='4'
-              vertical={false}
-              stroke={theme.palette.text.secondary}
-            />
-            <XAxis
-              dataKey='date'
-              type='category'
-              allowDuplicatedCategory={false}
-              stroke={theme.palette.text.secondary}
-            />
-            <YAxis
-              type='number'
-              allowDecimals={false}
-              interval='preserveStart'
-              stroke={theme.palette.text.secondary}
-            />
-            <Tooltip
-              data-cy='alert-count-tooltip'
-              cursor={{ fill: theme.palette.background.default }}
-              content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null
-                return (
-                  <Paper variant='outlined' sx={{ p: 1 }}>
-                    <Typography variant='body2'>{label}</Typography>
-                    {payload.map((svc, idx) => {
-                      return (
-                        <React.Fragment key={idx}>
-                          <Typography
-                            variant='body2'
-                            color={chooseColor(idx)}
-                          >{`${svc.name}: ${svc.value}`}</Typography>
-                        </React.Fragment>
-                      )
-                    })}
-                  </Paper>
-                )
+        <AutoSizer>
+          {({ width, height }) => (
+            <LineChart
+              width={width}
+              height={height}
+              data={props.data}
+              margin={{
+                top: 50,
+                right: 30,
+                bottom: 50,
               }}
-            />
-            <Legend
-              onMouseEnter={(e) => {
-                setActive(e.value)
-              }}
-              onMouseLeave={() => {
-                setActive('')
-              }}
-            />
-            {props.data?.map((series, idx) => (
-              <Line
-                dataKey='dayTotal'
-                data={series.dailyCounts}
-                strokeWidth={active === series.serviceName ? 4 : 1}
-                name={series.serviceName}
-                stroke={chooseColor(idx)}
-                dot={CustomDot}
-                key={idx}
+            >
+              <CartesianGrid
+                strokeDasharray='4'
+                vertical={false}
+                stroke={theme.palette.text.secondary}
               />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+              <XAxis
+                dataKey='date'
+                type='category'
+                allowDuplicatedCategory={false}
+                stroke={theme.palette.text.secondary}
+              />
+              <YAxis
+                type='number'
+                allowDecimals={false}
+                interval='preserveStart'
+                stroke={theme.palette.text.secondary}
+              />
+              <Tooltip
+                data-cy='alert-count-tooltip'
+                cursor={{ fill: theme.palette.background.default }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  return (
+                    <Paper variant='outlined' sx={{ p: 1 }}>
+                      <Typography variant='body2'>{label}</Typography>
+                      {payload.map((svc, idx) => {
+                        return (
+                          <React.Fragment key={idx}>
+                            <Typography
+                              variant='body2'
+                              color={chooseColor(idx)}
+                            >{`${svc.name}: ${svc.value}`}</Typography>
+                          </React.Fragment>
+                        )
+                      })}
+                    </Paper>
+                  )
+                }}
+              />
+              <Legend
+                onMouseEnter={(e) => {
+                  setActive(e.value)
+                }}
+                onMouseLeave={() => {
+                  setActive('')
+                }}
+              />
+              {props.data?.map((series, idx) => (
+                <Line
+                  dataKey='dayTotal'
+                  data={series.dailyCounts}
+                  strokeWidth={active === series.serviceName ? 4 : 1}
+                  name={series.serviceName}
+                  stroke={chooseColor(idx)}
+                  dot={CustomDot}
+                  key={idx}
+                />
+              ))}
+            </LineChart>
+          )}
+        </AutoSizer>
       </Grid>
     </Grid>
   )
