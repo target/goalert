@@ -1,6 +1,10 @@
-import { calcNewActiveIndex, handoffSummary, reorderList } from './util'
+import {
+  calcNewActiveIndex,
+  handoffSummary,
+  HandoffSummaryInput,
+  reorderList,
+} from './util'
 import { Settings, Zone } from 'luxon'
-import { CreateRotationInput } from '../../schema'
 
 let oldZone: Zone
 beforeAll(() => {
@@ -45,7 +49,7 @@ describe('calcNewActiveIndex', () => {
 })
 
 describe('handoffSummary', () => {
-  const check = (rotation: Partial<CreateRotationInput>, exp: string): void => {
+  const check = (rotation: HandoffSummaryInput, exp: string): void => {
     expect(handoffSummary(rotation)).toBe(exp)
   }
 

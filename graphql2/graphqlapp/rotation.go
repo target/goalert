@@ -303,12 +303,14 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 		return err
 	}
 	return nil
-
 }
 
 func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRotationInput) (res bool, err error) {
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		result, err := m.RotationStore.FindRotationForUpdateTx(ctx, tx, input.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewFieldError("id", "Rotation not found")
+		}
 		if err != nil {
 			return err
 		}
@@ -346,7 +348,6 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 		if update {
 			err = m.RotationStore.UpdateRotationTx(ctx, tx, result)
 			if err != nil {
-
 				return err
 			}
 		}
