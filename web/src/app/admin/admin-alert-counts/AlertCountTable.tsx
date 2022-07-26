@@ -155,6 +155,7 @@ export default function AlertCountTable(
           rows={props.alertCounts ?? []}
           loading={props.loading}
           pageSize={7}
+          rowsPerPageOptions={[7]}
           columns={columns}
           disableSelectionOnClick
           components={{
