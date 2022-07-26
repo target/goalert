@@ -33,6 +33,7 @@ export default function AlertCountControls(): JSX.Element {
       <Grid container spacing={1} sx={{ padding: 2 }}>
         <Grid item>
           <ISODateTimePicker
+            sx={{ minWidth: '325px' }}
             placeholder='Start'
             name='startDate'
             value={params.createdAfter}
@@ -46,6 +47,7 @@ export default function AlertCountControls(): JSX.Element {
         </Grid>
         <Grid item>
           <ISODateTimePicker
+            sx={{ minWidth: '325px' }}
             placeholder='End'
             name='endDate'
             value={params.createdBefore}
@@ -58,7 +60,7 @@ export default function AlertCountControls(): JSX.Element {
           />
         </Grid>
         <Grid item sx={{ flex: 1 }}>
-          <FormControl sx={{ width: '100%' }}>
+          <FormControl sx={{ width: '100%', minWidth: '150px' }}>
             <InputLabel>Interval</InputLabel>
             <Select
               fullWidth
