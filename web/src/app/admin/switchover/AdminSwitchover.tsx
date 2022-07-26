@@ -344,7 +344,7 @@ export default function AdminSwitchover(): JSX.Element {
             >
               <CardHeader title='DB Diff' {...headerSize} />
               <Tooltip title={curVer[1]}>
-                <Alert icon={<RemoveIcon />} severity='error'>
+                <Alert icon={<RemoveIcon />} severity='warning'>
                   From {curVer[0]}
                 </Alert>
               </Tooltip>
