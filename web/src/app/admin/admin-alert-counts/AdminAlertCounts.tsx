@@ -83,7 +83,10 @@ export default function AdminAlertCounts(): JSX.Element {
             subheader={`Number of alerts created by services over the past ${dayCount} ${unit}s`}
           />
           <CardContent>
-            <AlertCountLineGraph data={graphData} />
+            <AlertCountLineGraph
+              data={graphData}
+              loading={alertsData.loading}
+            />
             <AlertCountTable
               alertCounts={alertCounts}
               graphData={graphData}

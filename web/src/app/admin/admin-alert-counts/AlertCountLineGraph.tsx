@@ -22,9 +22,11 @@ import {
   Legend,
   Tooltip,
 } from 'recharts'
+import Spinner from '../../loading/components/Spinner'
 
 interface AlertCountLineGraphProps {
   data: typeof LineChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -90,6 +92,7 @@ export default function AlertCountLineGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='alert-count-graph'>
+        {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }) => (
             <LineChart
