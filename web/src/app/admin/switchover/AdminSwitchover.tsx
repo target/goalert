@@ -263,10 +263,8 @@ export default function AdminSwitchover(): JSX.Element {
               sx={{ width: '100%', pb: '32px' }}
             >
               <LoadingButton
-                startIcon={
-                  data?.state === 'done' ? <NoResetIcon /> : <ResetIcon />
-                }
-                disabled={data?.state === 'done' || mutationStatus.fetching}
+                startIcon={<ResetIcon />}
+                disabled={mutationStatus.fetching}
                 variant='outlined'
                 size='large'
                 loading={resetLoad}
