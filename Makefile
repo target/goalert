@@ -88,6 +88,9 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
+swo/swodb/queries.sql.go: bin/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql
+	./bin/tools/sqlc generate
+
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
