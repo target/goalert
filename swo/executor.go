@@ -35,14 +35,14 @@ func (e *Executor) init() {
 
 	go func() {
 		defer e.Cancel()
-		e.errCh <- e.mgr.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		e.errCh <- e.mgr.withConnFromBoth(ctx, func(_ context.Context, oldConn, newConn *pgx.Conn) error {
 			rep := swosync.NewLogicalReplicator()
 			rep.SetSourceDB(oldConn)
 			rep.SetDestinationDB(newConn)
 			rep.SetProgressFunc(e.mgr.taskMgr.Statusf)
 
 			// sync
-			ctx = <-e.ctxCh
+			ctx := <-e.ctxCh
 			err := rep.Reset(ctx)
 			if err != nil {
 				return fmt.Errorf("reset: %w", err)
