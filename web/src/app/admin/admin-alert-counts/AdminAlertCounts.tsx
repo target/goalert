@@ -86,6 +86,7 @@ export default function AdminAlertCounts(): JSX.Element {
             <AlertCountLineGraph
               data={graphData}
               loading={alertsData.loading}
+              unit={unit}
             />
             <AlertCountTable
               alertCounts={alertCounts}

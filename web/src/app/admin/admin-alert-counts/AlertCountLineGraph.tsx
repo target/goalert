@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
+import { DateTime, DateTimeUnit } from 'luxon'
 import {
   blueGrey,
   teal,
@@ -27,6 +28,7 @@ import Spinner from '../../loading/components/Spinner'
 interface AlertCountLineGraphProps {
   data: typeof LineChart.defaultProps['data']
   loading: boolean
+  unit: DateTimeUnit
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -42,7 +44,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 interface CustomDotProps extends DotProps {
-  payload: { date: string }
+  payload: {
+    date: string
+    dayTotal: number
+  }
 }
 
 const CustomDot = (props: CustomDotProps): JSX.Element => {
@@ -52,7 +57,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
       cy={cy}
       cx={cx}
       fill={fill}
-      r={r}
+      r={payload.dayTotal ? r : 0}
       stroke={stroke}
       strokeWidth={strokeWidth}
       key={name + '-' + payload.date}
@@ -89,6 +94,19 @@ export default function AlertCountLineGraph(
     }
   }
 
+  const formatTick = (label: string): string => {
+    // check for default bounds
+    if (label.toString() !== '0' && label !== 'auto') {
+      const dateTime = DateTime.fromFormat(label, 'MMM d, t')
+      if (props.unit === 'month') return dateTime.toFormat('MMM')
+      if (props.unit === 'week' || props.unit === 'day')
+        return dateTime.toFormat('MMM d')
+      if (props.unit === 'hour' || props.unit === 'minute')
+        return dateTime.toFormat('t')
+    }
+    return ''
+  }
+
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='alert-count-graph'>
@@ -112,12 +130,13 @@ export default function AlertCountLineGraph(
               />
               <XAxis
                 dataKey='date'
-                type='category'
                 allowDuplicatedCategory={false}
+                minTickGap={15}
                 stroke={theme.palette.text.secondary}
+                interval='preserveStartEnd'
+                tickFormatter={formatTick}
               />
               <YAxis
-                type='number'
                 allowDecimals={false}
                 interval='preserveStart'
                 stroke={theme.palette.text.secondary}
