@@ -18,20 +18,12 @@ const PollInterval = time.Second / 3
 type Log struct {
 	db *sql.DB
 
-	readID int64
-
 	lastLoad time.Time
 
 	eventCh chan Message
 }
 
 var ErrStaleLog = fmt.Errorf("cannot append until log is read")
-
-type logEvent struct {
-	ID        int64
-	Timestamp time.Time
-	Data      []byte
-}
 
 func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	conn, err := stdlib.AcquireConn(db)

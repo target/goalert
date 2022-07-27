@@ -23,31 +23,6 @@ import (
 	- 1 for all updates to new DB
 */
 
-// bgTx will start a transaction in the background, returning a function that will
-// wait for and return the transaction (so multiple can be started simultaneously).
-func bgTx(ctx context.Context, conn *pgx.Conn, opts pgx.TxOptions) func() (pgx.Tx, error) {
-	ch := make(chan struct{})
-	var err error
-	var tx pgx.Tx
-	go func() {
-		tx, err = conn.BeginTx(ctx, opts)
-		close(ch)
-	}()
-
-	return func() (pgx.Tx, error) {
-		<-ch
-		return tx, err
-	}
-}
-
-func cancelTx(ctx context.Context, fn func() (pgx.Tx, error)) {
-	tx, err := fn()
-	if err != nil {
-		return
-	}
-	tx.Rollback(ctx)
-}
-
 // LogicalSync will sync the source database to the destination database as fast as possible.
 func (l *LogicalReplicator) LogicalSync(ctx context.Context) error { return l.doSync(ctx, false) }
 

@@ -27,8 +27,6 @@ type changeEntry struct {
 	RowID
 }
 
-type changeData struct{}
-
 func NewTableSync(tables []swoinfo.Table) *TableSync {
 	return &TableSync{
 		tables:      tables,
@@ -112,17 +110,6 @@ func castIDs(t swoinfo.Table, rowIDs []string) (interface{}, string) {
 	case "text":
 		return sqlutil.StringArray(rowIDs), cast
 	}
-}
-
-func (c *TableSync) table(name string) swoinfo.Table {
-	for _, table := range c.tables {
-		if table.Name() != name {
-			continue
-		}
-
-		return table
-	}
-	panic(fmt.Sprintf("unknown table %s", name))
 }
 
 // ScanBatchRowReads scans the results of the row read queries.
