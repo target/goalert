@@ -51,7 +51,13 @@ export default function ServiceMaintenanceNotice({
             details: (
               <React.Fragment>
                 Ends at {DateTime.fromISO(maintMode).toFormat('FFF')} (
-                <CountDown end={maintMode} hours minutes /> remaining)
+                <CountDown
+                  end={maintMode}
+                  hours
+                  minutes
+                  expiredMessage='less than 1 minute'
+                />{' '}
+                remaining)
               </React.Fragment>
             ),
             action: (

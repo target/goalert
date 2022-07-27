@@ -95,6 +95,7 @@ function CountDown(props: CountDownProps): JSX.Element | string {
       minutes,
       seconds,
     )
+    if (!timeString) return expiredMessage || 'Time expired'
     if (prefix) timeString = prefix + timeString
 
     return timeString
