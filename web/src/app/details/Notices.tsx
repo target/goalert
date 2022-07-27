@@ -41,8 +41,6 @@ export function toSeverity(notice: NoticeType): AlertColor {
   switch (notice.toLowerCase()) {
     case 'success':
       return 'success'
-    case 'info':
-      return 'info'
     case 'warning':
     case 'warn':
       return 'warning'
