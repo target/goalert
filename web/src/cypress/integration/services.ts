@@ -694,6 +694,71 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', 'Avg. Close: 2 min')
     })
   })
+
+  describe('Maintenance Mode', () => {
+    let svc: Service
+    let openAlert: Alert
+    beforeEach(() => {
+      cy.createUser().then((user: Profile) => {
+        return cy.createService().then((s: Service) => {
+          svc = s
+          cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
+            openAlert = a
+          })
+          cy.createEPStep({
+            epID: s.epID,
+            targets: [{ type: 'user', id: user.id }],
+          }).then(() => s.id)
+          return cy.visit(`/services/${s.id}`)
+        })
+      })
+    })
+
+    it('should start maintenance mode, display banners, and cancel', () => {
+      cy.get('button[aria-label="Maintenance Mode"').click()
+      cy.dialogFinish('Submit')
+
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts/${openAlert.id}`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+
+      // verify escalate button is disabled
+      cy.get('button[aria-label="Escalate disabled. In maintenance mode."]')
+        .parent() // go 1 level up to focusable span
+        .trigger('mouseover')
+      cy.get('body').should(
+        'contain',
+        'Escalate disabled. In maintenance mode.',
+      )
+
+      // cancel maintenance mode
+      cy.get('button[aria-label="Cancel Maintenance Mode"').click()
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+    })
+
+    it('should not escalate to step 1 when alert created in maintenance mode', () => {
+      cy.get('button[aria-label="Maintenance Mode"').click()
+      cy.dialogFinish('Submit')
+
+      const summary = 'test alert'
+      cy.get('[data-cy=route-links] li').contains('Alerts').click()
+      cy.get('button[aria-label="Create Alert"').click()
+      cy.dialogForm({
+        summary,
+      })
+      cy.dialogClick('Next')
+      cy.dialogClick('Submit')
+      cy.dialogFinish('Done')
+      cy.get('p').contains(summary).click()
+      cy.get('body').should('not.contain', 'Escalated to step #1')
+    })
+  })
 }
 
 testScreen('Services', testServices)
