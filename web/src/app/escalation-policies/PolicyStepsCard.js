@@ -11,7 +11,7 @@ import { gql, useMutation } from '@apollo/client'
 import PolicyStep from './PolicyStep'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { policyStepsQuery } from './PolicyStepsQuery'
+import PolicyStepsQuery from './PolicyStepsQuery'
 import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles((theme) => ({
@@ -64,7 +64,7 @@ function PolicyStepsCard(props) {
 
     // get the current state of the steps in the cache
     const { escalationPolicy } = cache.readQuery({
-      query: policyStepsQuery,
+      query: PolicyStepsQuery,
       variables,
     })
 
@@ -79,7 +79,7 @@ function PolicyStepsCard(props) {
 
     // write new steps order to cache
     cache.writeQuery({
-      query: policyStepsQuery,
+      query: PolicyStepsQuery,
       variables,
       data: {
         escalationPolicy: {
