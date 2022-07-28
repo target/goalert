@@ -1,7 +1,7 @@
 import React, { JSXElementConstructor, useLayoutEffect } from 'react'
 import { gql, useQuery } from 'urql'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
-import AdminDebugMessagesLayout from '../admin/admin-message-logs/AdminDebugMessagesLayout'
+import AdminMessageLogsLayout from '../admin/admin-message-logs/AdminMessageLogsLayout'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
@@ -109,7 +109,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/config': AdminConfig,
   '/admin/limits': AdminLimits,
   '/admin/toolbox': AdminToolbox,
-  '/admin/message-logs': AdminDebugMessagesLayout,
+  '/admin/message-logs': AdminMessageLogsLayout,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,

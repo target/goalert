@@ -1,6 +1,6 @@
 import React from 'react'
 import { DebugMessage } from '../../../schema'
-import DebugMessageCard from './DebugMessageCard'
+import AdminMessageLogCard from './AdminMessageLogCard'
 import { Button, Grid, Typography } from '@mui/material'
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   hasMore: boolean
 }
 
-export default function DebugMessagesList(props: Props): JSX.Element {
+export default function AdminMessageLogsList(props: Props): JSX.Element {
   const { debugMessages, selectedLog, onSelect, hasMore, onLoadMore } = props
 
   return (
@@ -23,7 +23,7 @@ export default function DebugMessagesList(props: Props): JSX.Element {
     >
       {debugMessages.map((msg) => (
         <Grid key={msg.id} item xs={12}>
-          <DebugMessageCard
+          <AdminMessageLogCard
             debugMessage={msg}
             selected={selectedLog?.id === msg.id}
             onSelect={() => onSelect(msg)}

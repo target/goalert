@@ -27,7 +27,7 @@ interface Props {
   totalCount: number
 }
 
-export default function DebugMessageGraph(props: Props): JSX.Element {
+export default function AdminMessageLogsGraph(props: Props): JSX.Element {
   const theme = useTheme()
 
   function getName(): string {

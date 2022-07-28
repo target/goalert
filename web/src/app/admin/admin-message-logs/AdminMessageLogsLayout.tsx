@@ -5,13 +5,13 @@ import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import DebugMessagesList from './DebugMessagesList'
-import DebugMessagesControls from './DebugMessagesControls'
-import DebugMessageDetails from './DebugMessageDetails'
+import AdminMessageLogsList from './AdminMessageLogsList'
+import AdminMessageLogsControls from './AdminMessageLogsControls'
+import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import DebugMessageGraph from './DebugMessageGraph'
+import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
 const LOAD_AMOUNT = 50
@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminDebugMessagesLayout(): JSX.Element {
+export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
 
   // all data is fetched on page load, but the number of logs rendered is limited
@@ -143,7 +143,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
 
   return (
     <React.Fragment>
-      <DebugMessageDetails
+      <AdminMessageLogDrawer
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
       />
@@ -155,7 +155,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         }
       >
         <Grid item xs={12}>
-          <DebugMessagesControls
+          <AdminMessageLogsControls
             resetCount={
               () => setNumRendered(LOAD_AMOUNT) // reset to # of first page results
             }
@@ -163,7 +163,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         </Grid>
         {paginatedData.length > 0 && (
           <Grid item xs={12}>
-            <DebugMessageGraph
+            <AdminMessageLogsGraph
               data={graphData}
               intervalType={intervalType}
               totalCount={filteredData.length}
@@ -171,7 +171,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           </Grid>
         )}
         <Grid item xs={12}>
-          <DebugMessagesList
+          <AdminMessageLogsList
             debugMessages={paginatedData}
             selectedLog={selectedLog}
             onSelect={setSelectedLog}

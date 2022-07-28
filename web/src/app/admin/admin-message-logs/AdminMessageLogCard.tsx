@@ -17,7 +17,7 @@ interface Props {
   onSelect: () => void
 }
 
-export default function DebugMessageCard(props: Props): JSX.Element {
+export default function AdminMessageLogCard(props: Props): JSX.Element {
   const { debugMessage, selected, onSelect } = props
 
   const type = debugMessage.type

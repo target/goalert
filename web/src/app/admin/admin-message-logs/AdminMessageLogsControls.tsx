@@ -12,7 +12,7 @@ interface Props {
   resetCount: () => void
 }
 
-export default function DebugMessagesControls(props: Props): JSX.Element {
+export default function AdminMessageLogsControls(props: Props): JSX.Element {
   const [params, setParams] = useURLParams({
     search: '',
     start: '',
