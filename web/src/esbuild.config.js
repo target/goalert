@@ -33,7 +33,11 @@ const dynamicPublicPathPlugin = {
 
 require('esbuild')
   .build({
-    entryPoints: { explore: 'explore/explore.tsx', app: 'app/index.tsx' },
+    entryPoints: {
+      explore: 'explore/explore.tsx',
+      app: 'app/index.tsx',
+      worker: 'app/worker/worker.ts',
+    },
     outdir: 'build/static/',
     logLevel: 'info',
     bundle: true,

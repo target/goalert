@@ -22,9 +22,6 @@ type Query {
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
 
-  # Returns an array of alert metric data points
-  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]!
-
   # Returns a single service with the given ID.
   service(id: ID!): Service
 
@@ -603,6 +600,7 @@ input UpdateServiceInput {
   name: String
   description: String
   escalationPolicyID: ID
+  maintenanceExpiresAt: ISOTimestamp
 }
 
 input UpdateEscalationPolicyInput {
@@ -971,6 +969,7 @@ type Service {
   escalationPolicyID: ID!
   escalationPolicy: EscalationPolicy
   isFavorite: Boolean!
+  maintenanceExpiresAt: ISOTimestamp
 
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!

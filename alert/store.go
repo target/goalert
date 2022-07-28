@@ -197,9 +197,13 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		escalate: p(`
 			UPDATE escalation_policy_state state
 			SET force_escalation = true
+			FROM alerts as a, services as svc
 			WHERE
 				state.alert_id = ANY($1) AND
-				state.force_escalation = false
+				state.force_escalation = false AND
+				a.id = state.alert_id AND
+				svc.id = a.service_id AND
+				svc.maintenance_expires_at ISNULL
 			RETURNING state.alert_id
 		`),
 
