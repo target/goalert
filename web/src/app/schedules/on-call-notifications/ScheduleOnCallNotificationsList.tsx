@@ -36,6 +36,7 @@ export default function ScheduleOnCallNotificationsList({
                   ? 'Loading notification rules...'
                   : 'No notification rules.'
               }
+              isLoading={q.loading}
               items={rules.map((rule) => {
                 return {
                   icon:

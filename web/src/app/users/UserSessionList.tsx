@@ -100,7 +100,10 @@ export default function UserSessionList({
   if (userID) {
     options.variables = { userID }
   }
-  const { data } = useQuery(userID ? byUserQuery : profileQuery, options)
+  const { data, loading } = useQuery(
+    userID ? byUserQuery : profileQuery,
+    options,
+  )
 
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
@@ -133,6 +136,7 @@ export default function UserSessionList({
           <Card>
             <FlatList
               emptyMessage='No active sessions'
+              isLoading={loading}
               items={sessions.map((s) => ({
                 title: friendlyUAString(s.userAgent),
                 highlight: s.current,

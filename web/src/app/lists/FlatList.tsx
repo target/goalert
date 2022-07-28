@@ -30,6 +30,11 @@ import { Alert, AlertTitle, Skeleton } from '@mui/material'
 import { AlertColor } from '@mui/material/Alert'
 import classnames from 'classnames'
 import { Notice, NoticeType } from '../details/Notices'
+import {
+  FLATLIST_ITEMS_PER_PAGE,
+  DEFAULT_SPIN_DELAY_MS,
+  DEFAULT_SPIN_WAIT_MS,
+} from '../config'
 
 const useStyles = makeStyles((theme: Theme) => ({
   alert: {
@@ -184,13 +189,16 @@ export default function FlatList({
   isLoading,
   ...listProps
 }: FlatListProps): JSX.Element {
-  const [displayLoading, setDisplayLoading] = useState(false)
+  const [displaySkeletons, setDisplaySkeletons] = useState(true)
 
   useEffect(() => {
-    // show loading skeletons after 1 second to avoid load flickering
-    const t = setTimeout(() => {
-      setDisplayLoading(true)
-    }, 1000)
+    let t = setTimeout(() => {
+      t = setTimeout(() => {
+        if (!isLoading) {
+          setDisplaySkeletons(false)
+        }
+      }, DEFAULT_SPIN_WAIT_MS)
+    }, DEFAULT_SPIN_DELAY_MS)
 
     return () => clearTimeout(t)
   }, [])
@@ -408,15 +416,19 @@ export default function FlatList({
   }
 
   function renderSkeletons(): ReactElement | ReactElement[] | null {
-    if (!displayLoading) return null
-    return items.map((_, idx) => <LoadingItem key={'list_' + idx} />)
+    if (!displaySkeletons) {
+      return null
+    }
+    return Array.from(Array(FLATLIST_ITEMS_PER_PAGE)).map((_, idx) => (
+      <LoadingItem key={'list_' + idx} />
+    ))
   }
 
   // renderList handles rendering the list container as well as any
   // header elements provided
   function renderList(): JSX.Element {
     let listContent
-    if (isLoading) listContent = renderSkeletons()
+    if (isLoading && displaySkeletons) listContent = renderSkeletons()
     else if (!items.length) listContent = renderEmptyMessage()
     else if (transition) listContent = renderTransitions()
     else listContent = renderItems()

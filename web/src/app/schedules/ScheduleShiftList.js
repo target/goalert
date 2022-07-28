@@ -90,7 +90,7 @@ function ScheduleShiftList({ scheduleID }) {
     'duration',
   )
 
-  const { data } = useQuery(query, {
+  const { data, loading } = useQuery(query, {
     variables: {
       id: scheduleID,
       start,
@@ -245,6 +245,7 @@ function ScheduleShiftList({ scheduleID }) {
       <Card style={{ width: '100%' }}>
         <FlatList
           headerNote={note}
+          isLoading={loading}
           items={items()}
           headerAction={
             <FilterContainer

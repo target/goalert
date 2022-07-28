@@ -1,7 +1,6 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import PolicyServicesCard from './PolicyServicesCard'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 
 const query = gql`
@@ -21,20 +20,19 @@ function PolicyServicesQuery({ policyID }) {
     variables: { id: policyID },
   })
 
-  if (!data && loading) {
-    return <Spinner />
-  }
-
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (!data.escalationPolicy) {
+  if (!loading && !data?.escalationPolicy) {
     return <ObjectNotFound />
   }
 
   return (
-    <PolicyServicesCard services={data.escalationPolicy.assignedTo || []} />
+    <PolicyServicesCard
+      services={data?.escalationPolicy?.assignedTo ?? []}
+      isLoading={loading}
+    />
   )
 }
 

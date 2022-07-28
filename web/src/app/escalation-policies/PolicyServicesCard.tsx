@@ -12,6 +12,7 @@ const useStyles = makeStyles(() => ({
 
 interface PolicyServicesCardProps {
   services: { id: string; name: string }[]
+  isLoading: boolean
 }
 
 function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
@@ -32,6 +33,7 @@ function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
       <FlatList
         emptyMessage='No services are associated with this Escalation Policy.'
         items={getServicesItems()}
+        isLoading={props.isLoading}
       />
     </Card>
   )

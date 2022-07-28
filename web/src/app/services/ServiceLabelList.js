@@ -3,11 +3,11 @@ import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import makeStyles from '@mui/styles/makeStyles'
-import { gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import Query from '../util/Query'
 import OtherActions from '../util/OtherActions'
+import { GenericError } from '../error-pages'
 
 import ServiceLabelSetDialog from './ServiceLabelCreateDialog'
 import ServiceLabelEditDialog from './ServiceLabelEditDialog'
@@ -41,6 +41,13 @@ export default function ServiceLabelList({ serviceID }) {
   const [deleteKey, setDeleteKey] = useState(null)
   const classes = useStyles()
 
+  const [{ data, error, fetching }] = useQuery({
+    query,
+    variables: { serviceID: serviceID },
+  })
+
+  if (error) return <GenericError error={error.message} />
+
   function renderList(labels) {
     const items = (labels || [])
       .slice()
@@ -68,17 +75,8 @@ export default function ServiceLabelList({ serviceID }) {
       <FlatList
         data-cy='label-list'
         emptyMessage='No labels exist for this service.'
+        isLoading={fetching}
         items={items}
-      />
-    )
-  }
-
-  function renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ serviceID }}
-        render={({ data }) => renderList(data.service.labels)}
       />
     )
   }
@@ -87,7 +85,7 @@ export default function ServiceLabelList({ serviceID }) {
     <React.Fragment>
       <Grid item xs={12} className={classes.spacing}>
         <Card>
-          <CardContent>{renderQuery()}</CardContent>
+          <CardContent>{renderList(data?.service?.labels)}</CardContent>
         </Card>
       </Grid>
       <CreateFAB onClick={() => setCreate(true)} title='Add Label' />

@@ -13,7 +13,6 @@ import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { UserAvatar } from '../util/avatars'
 import { styles as globalStyles } from '../styles/materialStyles'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 
 const query = gql`
@@ -65,21 +64,20 @@ function RotationUserList({ rotationID }) {
     setLastSwap([])
   }, [data?.rotation?.users?.length])
 
-  if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
   if (qError || mError)
     return <GenericError error={qError.message || mError.message} />
 
-  const { users, activeUserIndex, nextHandoffTimes } = data.rotation
+  const { users, activeUserIndex, nextHandoffTimes } = data?.rotation || {}
 
   // duplicate first entry
   const _nextHandoffTimes = (nextHandoffTimes || [])
     .slice(0, 1)
     .concat(nextHandoffTimes)
 
-  const handoff = users.map((u, index) => {
+  const handoff = users?.map((u, index) => {
     const handoffIndex =
-      (index + (users.length - activeUserIndex)) % users.length
+      (index + (users?.length - activeUserIndex)) % users?.length
     const time = _nextHandoffTimes[handoffIndex]
     if (!time) {
       return null
@@ -109,7 +107,7 @@ function RotationUserList({ rotationID }) {
   })
 
   // re-enact swap history to get unique identier per list item
-  let listIDs = users.map((_, idx) => idx)
+  let listIDs = users?.map((_, idx) => idx)
   lastSwap.forEach((s) => {
     listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
   })
@@ -141,9 +139,10 @@ function RotationUserList({ rotationID }) {
           data-cy='users'
           emptyMessage='No users currently assigned to this rotation'
           headerNote={
-            users.length ? "Click and drag on a user's name to re-order" : ''
+            users?.length ? "Click and drag on a user's name to re-order" : ''
           }
-          items={users.map((u, index) => ({
+          isLoading={qLoading}
+          items={users?.map((u, index) => ({
             title: u.name,
             id: String(listIDs[index]),
             highlight: index === activeUserIndex,
@@ -168,7 +167,7 @@ function RotationUserList({ rotationID }) {
             setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
             const updatedUsers = reorderList(
-              users.map((u) => u.id),
+              users?.map((u) => u.id),
               oldIndex,
               newIndex,
             )
@@ -195,7 +194,7 @@ function RotationUserList({ rotationID }) {
                 })
 
                 const users = reorderList(
-                  data.rotation.users,
+                  data?.rotation?.users,
                   oldIndex,
                   newIndex,
                 )
@@ -206,10 +205,10 @@ function RotationUserList({ rotationID }) {
                   data: {
                     ...data,
                     rotation: {
-                      ...data.rotation,
+                      ...data?.rotation,
                       activeUserIndex:
                         newActiveIndex === -1
-                          ? data.rotation.activeUserIndex
+                          ? data?.rotation.activeUserIndex
                           : newActiveIndex,
                       users,
                     },

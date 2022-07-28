@@ -15,7 +15,6 @@ import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 
 import makeStyles from '@mui/styles/makeStyles'
-import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
 const query = gql`
@@ -101,10 +100,9 @@ export default function IntegrationKeyList({ serviceID }) {
     email: 'Email Address',
     prometheusAlertmanager: 'Alertmanager Webhook URL',
   }
-  if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const items = (data.service.integrationKeys || [])
+  const items = (data?.service?.integrationKeys || [])
     .slice()
     .sort(sortItems)
     .map((key) => ({
@@ -138,6 +136,7 @@ export default function IntegrationKeyList({ serviceID }) {
                 </React.Fragment>
               }
               emptyMessage='No integration keys exist for this service.'
+              isLoading={loading}
               items={items}
             />
           </CardContent>

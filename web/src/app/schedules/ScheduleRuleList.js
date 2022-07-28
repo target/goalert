@@ -13,7 +13,6 @@ import { ruleSummary } from './util'
 import ScheduleRuleEditDialog from './ScheduleRuleEditDialog'
 import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
 import { GenericError } from '../error-pages'
-import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 
@@ -52,10 +51,6 @@ export default function ScheduleRuleList({ scheduleID }) {
 
   if (error) {
     return <GenericError error={error.message} />
-  }
-
-  if (loading && !data) {
-    return <Spinner />
   }
 
   function renderSubText(rules, timeZone) {
@@ -136,7 +131,8 @@ export default function ScheduleRuleList({ scheduleID }) {
         />
         <Card style={{ width: '100%', marginBottom: 64 }}>
           <FlatList
-            headerNote={`Showing times in ${data.schedule.timeZone}.`}
+            headerNote={`Showing times in ${data?.schedule?.timeZone}.`}
+            isLoading={loading}
             items={items}
           />
         </Card>
@@ -166,5 +162,5 @@ export default function ScheduleRuleList({ scheduleID }) {
     )
   }
 
-  return renderList(data.schedule.targets, data.schedule.timeZone)
+  return renderList(data?.schedule?.targets, data?.schedule?.timeZone)
 }

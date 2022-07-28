@@ -2,6 +2,7 @@ import { isCypress } from '../env'
 import { Duration } from 'luxon'
 
 export const ITEMS_PER_PAGE = 15
+export const FLATLIST_ITEMS_PER_PAGE = 5
 export const POLL_INTERVAL = isCypress ? 1000 : 3500
 export const POLL_ERROR_INTERVAL = isCypress ? 1000 : 30000
 

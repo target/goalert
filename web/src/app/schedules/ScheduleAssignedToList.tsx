@@ -2,7 +2,6 @@ import React from 'react'
 import { useQuery, gql } from 'urql'
 import FlatList from '../lists/FlatList'
 import Card from '@mui/material/Card'
-import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
 const query = gql`
@@ -30,14 +29,11 @@ export default function ScheduleAssignedToList(props: {
     return <GenericError error={error.message} />
   }
 
-  if (fetching && !data) {
-    return <Spinner />
-  }
-
   return (
     <Card sx={{ width: '100%' }}>
       <FlatList
-        items={data.schedule.assignedTo.map(
+        isLoading={fetching}
+        items={data?.schedule?.assignedTo.map(
           (t: { name: string; id: string }) => ({
             title: t.name,
             url: `/escalation-policies/${t.id}`,

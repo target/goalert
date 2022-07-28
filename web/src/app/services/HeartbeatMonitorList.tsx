@@ -12,7 +12,6 @@ import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import HeartbeatMonitorStatus from './HeartbeatMonitorStatus'
 import CopyText from '../util/CopyText'
-import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { HeartbeatMonitor } from '../../schema'
 
@@ -72,11 +71,10 @@ export default function HeartbeatMonitorList(props: {
     variables: { serviceID: props.serviceID },
   })
 
-  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   function renderList(monitors: HeartbeatMonitor[]): ReactElement {
-    const items = (monitors || [])
+    const items = monitors
       .slice()
       .sort(sortItems)
       .map((monitor) => ({
@@ -118,6 +116,7 @@ export default function HeartbeatMonitorList(props: {
         emptyMessage='No heartbeat monitors exist for this service.'
         headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
+        isLoading={fetching}
       />
     )
   }
@@ -127,7 +126,7 @@ export default function HeartbeatMonitorList(props: {
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
-            {renderList(data.service.heartbeatMonitors)}
+            {renderList(data?.service?.heartbeatMonitors ?? [])}
           </CardContent>
         </Card>
       </Grid>

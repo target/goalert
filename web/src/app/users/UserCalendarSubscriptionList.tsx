@@ -10,7 +10,6 @@ import CalendarSubscribeDeleteDialog from '../schedules/calendar-subscribe/Calen
 import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/CalendarSubscribeEditDialog'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash'
-import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
@@ -57,10 +56,10 @@ export default function UserCalendarSubscriptionList(props: {
   })
 
   if (error) return <GenericError error={error.message} />
-  if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
+  if (!loading && !_.get(data, 'user.id')) return <ObjectNotFound />
 
   // sort by schedule names, then subscription names
-  const subs: UserCalendarSubscription[] = data.user.calendarSubscriptions
+  const subs: UserCalendarSubscription[] = data?.user?.calendarSubscriptions
     .slice()
     .sort((a: UserCalendarSubscription, b: UserCalendarSubscription) => {
       if ((a?.schedule?.name ?? '') < (b?.schedule?.name ?? '')) return -1
@@ -91,7 +90,7 @@ export default function UserCalendarSubscriptionList(props: {
   }
 
   // push schedule names as subheaders now that the array is sorted
-  subs.forEach((sub: UserCalendarSubscription) => {
+  subs?.forEach((sub: UserCalendarSubscription) => {
     if (!subheaderDict[sub?.schedule?.name ?? '']) {
       subheaderDict[sub?.schedule?.name ?? ''] = true
       items.push({
@@ -128,6 +127,7 @@ export default function UserCalendarSubscriptionList(props: {
           data-cy='calendar-subscriptions'
           headerNote='Showing your current on-call subscriptions for all schedules'
           emptyMessage='You are not subscribed to any schedules.'
+          isLoading={loading}
           items={items}
           inset
         />
