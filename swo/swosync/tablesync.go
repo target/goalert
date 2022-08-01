@@ -13,24 +13,26 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
+// TableSync is a helper for syncing tables from the source database to the target database.
 type TableSync struct {
 	tables []swoinfo.Table
 
 	changes []changeEntry
 
 	changedTables []string
-	changedData   map[RowID]json.RawMessage
+	changedData   map[changeID]json.RawMessage
 }
 
 type changeEntry struct {
 	id int64
-	RowID
+	changeID
 }
 
+// NewTableSync creates a new TableSync for the given tables.
 func NewTableSync(tables []swoinfo.Table) *TableSync {
 	return &TableSync{
 		tables:      tables,
-		changedData: make(map[RowID]json.RawMessage),
+		changedData: make(map[changeID]json.RawMessage),
 	}
 }
 
@@ -55,7 +57,7 @@ func (c *TableSync) ScanBatchChangeRead(res pgx.BatchResults) error {
 			return err
 		}
 
-		c.changes = append(c.changes, changeEntry{id: id, RowID: RowID{table, rowID}})
+		c.changes = append(c.changes, changeEntry{id: id, changeID: changeID{table, rowID}})
 	}
 
 	return rows.Err()
@@ -135,7 +137,7 @@ func (c *TableSync) ScanBatchRowReads(res pgx.BatchResults) error {
 				return fmt.Errorf("scan changed rows from %s: %w", tableName, err)
 			}
 
-			c.changedData[RowID{tableName, id}] = row
+			c.changedData[changeID{tableName, id}] = row
 		}
 	}
 
@@ -160,7 +162,7 @@ func (c *TableSync) ExecDeleteChanges(ctx context.Context, srcConn *pgx.Conn) (i
 	return int64(len(ids)), nil
 }
 
-func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows RowSet) {
+func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows rowSet) {
 	type pending struct {
 		inserts []json.RawMessage
 		updates []json.RawMessage
@@ -173,20 +175,20 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows RowSet) {
 			p = &pending{}
 			pendingByTable[chg.Table] = p
 		}
-		newRowData := c.changedData[chg.RowID]
+		newRowData := c.changedData[chg.changeID]
 		if newRowData == nil {
 			// row was deleted
-			dstRows.Delete(chg.RowID)
+			dstRows.Delete(chg.changeID)
 			p.deletes = append(p.deletes, chg.Row)
 			continue
 		}
 
-		if dstRows.Has(chg.RowID) {
+		if dstRows.Has(chg.changeID) {
 			// row was updated
 			p.updates = append(p.updates, newRowData)
 		} else {
 			// row was inserted
-			dstRows.Set(chg.RowID)
+			dstRows.Set(chg.changeID)
 			p.inserts = append(p.inserts, newRowData)
 		}
 	}

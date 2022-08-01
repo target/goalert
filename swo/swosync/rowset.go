@@ -1,14 +1,14 @@
 package swosync
 
 type (
-	RowSet map[RowID]struct{}
-	RowID  struct{ Table, Row string }
+	rowSet   map[changeID]struct{}
+	changeID struct{ Table, Row string }
 )
 
-func (r RowSet) Set(id RowID)    { r[id] = struct{}{} }
-func (r RowSet) Delete(id RowID) { delete(r, id) }
+func (r rowSet) Set(id changeID)    { r[id] = struct{}{} }
+func (r rowSet) Delete(id changeID) { delete(r, id) }
 
-func (r RowSet) Has(id RowID) bool {
+func (r rowSet) Has(id changeID) bool {
 	_, ok := r[id]
 	return ok
 }

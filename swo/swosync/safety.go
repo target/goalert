@@ -1,11 +1,11 @@
+package swosync
+
 /*
 	Locks:
 	- 4919: migration lock, used to ensure only a single instance is performing migrations (or any sync operations)
 	- 4369: global switchover lock, in SWO mode, all instances must acquire this lock before performing any queries
 			during the switchover, an exclusive lock is acquired by the executing node (stop-the-world).
 */
-
-package swosync
 
 // txInProgressLock will cause the transaction to abort if it's unable to get
 // the exec lock and/or switchover state is not currently in_progress

@@ -7,12 +7,14 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
+// SequenceSync is a helper for synchronizing sequences.
 type SequenceSync struct {
 	names     []string
 	lastValue []int64
 	isCalled  []bool
 }
 
+// NewSequenceSync creates a new SequenceSync for the given sequence names.
 func NewSequenceSync(names []string) *SequenceSync {
 	return &SequenceSync{names: names}
 }
