@@ -495,6 +495,7 @@ export interface UpdateServiceInput {
   name?: null | string
   description?: null | string
   escalationPolicyID?: null | string
+  maintenanceExpiresAt?: null | ISOTimestamp
 }
 
 export interface UpdateEscalationPolicyInput {
@@ -792,6 +793,7 @@ export interface Service {
   escalationPolicyID: string
   escalationPolicy?: null | EscalationPolicy
   isFavorite: boolean
+  maintenanceExpiresAt?: null | ISOTimestamp
   onCallUsers: ServiceOnCallUser[]
   integrationKeys: IntegrationKey[]
   labels: Label[]

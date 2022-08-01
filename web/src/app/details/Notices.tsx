@@ -58,6 +58,7 @@ export interface Notice {
   message: string | JSX.Element
   details?: string | JSX.Element
   endNote?: string | JSX.Element
+  action?: JSX.Element
 }
 interface NoticesProps {
   notices?: Notice[]
@@ -73,21 +74,25 @@ export default function Notices({
     return null
   }
 
-  function renderShowAllToggle(): ReactNode {
+  function renderShowAllToggle(action?: JSX.Element): ReactNode {
     if (notices.length <= 1) return null
     return (
-      <Badge
-        color='primary'
-        badgeContent={notices.length - 1}
-        invisible={noticesExpanded}
-      >
-        <IconButton
-          onClick={() => setNoticesExpanded(!noticesExpanded)}
-          size='large'
+      <React.Fragment>
+        {action}
+        <Badge
+          color='primary'
+          badgeContent={notices.length - 1}
+          invisible={noticesExpanded}
         >
-          {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
-        </IconButton>
-      </Badge>
+          <IconButton
+            onClick={() => setNoticesExpanded(!noticesExpanded)}
+            size='large'
+            sx={{ pl: 1 }}
+          >
+            {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
+          </IconButton>
+        </Badge>
+      </React.Fragment>
     )
   }
 
@@ -117,7 +122,16 @@ export default function Notices({
             message: classes.alertMessage,
             action: classes.alertAction,
           }}
-          action={index === 0 ? renderShowAllToggle() : null}
+          elevation={1}
+          action={
+            <div
+              style={{ display: 'flex', alignItems: 'center', height: '100%' }}
+            >
+              {index === 0 && notices.length > 1
+                ? renderShowAllToggle(notice.action)
+                : notice.action}
+            </div>
+          }
         >
           <AlertTitle>
             {toTitleCase(notice.type)}: {notice.message}

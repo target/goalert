@@ -645,6 +645,7 @@ input UpdateServiceInput {
   name: String
   description: String
   escalationPolicyID: ID
+  maintenanceExpiresAt: ISOTimestamp
 }
 
 input UpdateEscalationPolicyInput {
@@ -1013,6 +1014,7 @@ type Service {
   escalationPolicyID: ID!
   escalationPolicy: EscalationPolicy
   isFavorite: Boolean!
+  maintenanceExpiresAt: ISOTimestamp
 
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
