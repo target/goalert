@@ -102,6 +102,8 @@ func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverL
 	return swodb.New(conn).LogEvents(ctx, lastID)
 }
 
+// Append will append a message to the end of the log. Using an exclusive lock on the table, it ensures that each message will increment the log ID
+// by exactly 1 with no gaps. All observers will see the messages in the same order.
 func (l *Log) Append(ctx context.Context, msg Message) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
