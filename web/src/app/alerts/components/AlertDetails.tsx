@@ -312,7 +312,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         data-cy='alert-details'
         className={classes.cardContainer}
       >
-        <Card>
+        <Card sx={{ width: '100%' }}>
           <CardContent>
             <Typography component='h3' variant='h5'>
               Details
