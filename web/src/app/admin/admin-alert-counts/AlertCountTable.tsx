@@ -87,12 +87,11 @@ export default function AlertCountTable(
   props: AlertCountTableProps,
 ): JSX.Element {
   const classes = useStyles()
-  const alertCounts = useMemo(() => props.alertCounts, [props.alertCounts])
 
   const csvOpts = useMemo(
     () => ({
       urlPrefix: location.origin + pathPrefix,
-      alertCounts: alertCounts,
+      alertCounts: props.alertCounts,
     }),
     [props.alertCounts],
   )
