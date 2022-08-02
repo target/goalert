@@ -84,7 +84,6 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   const messageLogData = useWorker('useMessageLogs', opts, {
     graphData: [],
     filteredData: [],
-    totalCount: 0,
   })
 
   if (error) return <GenericError error={error.message} />

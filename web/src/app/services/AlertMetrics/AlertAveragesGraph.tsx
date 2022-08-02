@@ -1,6 +1,5 @@
 import React from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 
