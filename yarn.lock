@@ -1099,12 +1099,12 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@mui/x-data-grid@5.13.0":
-  version "5.13.0"
-  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-5.13.0.tgz#7659d771e2726a76500e1a49c72868401711c94f"
-  integrity sha512-x310qsOJFIT0JuqnDusM6DC4hlX6eeL9biEveb/y+hdeLa+VHSwrclS0M7e9UUwmh1MPza6VT4ceEWJjbySf3A==
+"@mui/x-data-grid@5.15.0":
+  version "5.15.0"
+  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-5.15.0.tgz#400cbf2025d3d0bd138da7b2ef88695b16884431"
+  integrity sha512-O3mgNA7iKk1MDM97YFW12k/69ClEwsOn972ZQrHOMgomB7yCyXklOtUYcOUSIeKadONSD//u7PL2jecBbMc/7w==
   dependencies:
-    "@babel/runtime" "^7.17.2"
+    "@babel/runtime" "^7.18.6"
     "@mui/utils" "^5.4.1"
     clsx "^1.2.1"
     prop-types "^15.8.1"
