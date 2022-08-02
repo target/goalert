@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { Grid } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -9,12 +9,13 @@ import AdminMessageLogsList from './AdminMessageLogsList'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
 import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
-import { useURLParams } from '../../actions'
-import { DateTime, Interval } from 'luxon'
+
 import AdminMessageLogsGraph from './AdminMessageLogsGraph'
+import { useWorker } from '../../worker'
+import { Options } from './useMessageLogs'
+import { useURLParams } from '../../actions'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
-const LOAD_AMOUNT = 50
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery($first: Int!) {
@@ -51,16 +52,10 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+const LOAD_AMOUNT = 50 // todo: render_amount and renderMore
+
 export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
-
-  // all data is fetched on page load, but the number of logs rendered is limited
-  const [numRendered, setNumRendered] = useState(LOAD_AMOUNT)
-  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
-
-  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
-    variables: { first: MAX_QUERY_ITEMS_COUNT },
-  })
 
   const [params] = useURLParams({
     search: '',
@@ -68,78 +63,36 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     end: '',
   })
 
+  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
+
+  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
+    variables: { first: MAX_QUERY_ITEMS_COUNT },
+  })
+
+  // useMemo to use same object reference
+  const defaultData: Options = useMemo(
+    () => ({
+      data: (data?.debugMessages as DebugMessage[]) ?? [],
+      start: params.start,
+      end: params.end,
+      search: params.search,
+    }),
+    [data?.debugMessages, params.start, params.end, params.search],
+  )
+
+  const messageLogData = useWorker('useMessageLogs', defaultData, {
+    graphData: [],
+    filteredData: [],
+    totalCount: 0,
+  })
+
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
 
-  const startDT = params.start ? DateTime.fromISO(params.start) : null
-  const endDT = params.end ? DateTime.fromISO(params.end) : null
+  const { graphData, filteredData, totalCount } = messageLogData
 
-  const filteredData: DebugMessage[] = data?.debugMessages
-    .filter((msg: DebugMessage) => {
-      const createdAtDT = DateTime.fromISO(msg.createdAt)
-      if (params.search) {
-        if (
-          params.search === msg.alertID?.toString() ||
-          params.search === msg.createdAt ||
-          params.search === msg.destination ||
-          params.search === msg.serviceID ||
-          params.search === msg.serviceName ||
-          params.search === msg.userID ||
-          params.search === msg.userName
-        ) {
-          return true
-        }
-        return false
-      }
-      if (startDT && startDT > createdAtDT) return false
-      if (endDT && endDT < createdAtDT) return false
-      return true
-    })
-    .sort((_a: DebugMessage, _b: DebugMessage) => {
-      const a = DateTime.fromISO(_a.createdAt)
-      const b = DateTime.fromISO(_b.createdAt)
-      if (a < b) return 1
-      if (a > b) return -1
-      return 0
-    })
-  const paginatedData = filteredData.slice(0, numRendered)
-
-  const hasData = filteredData?.length > 0
-  const s = hasData
-    ? startDT ||
-      DateTime.fromISO(filteredData[filteredData.length - 1].createdAt).startOf(
-        'day',
-      )
-    : null
-  const e = hasData
-    ? endDT || DateTime.fromISO(filteredData[0].createdAt).endOf('day')
-    : null
-  let ivl: Interval | null = null
-  if (s && e && hasData) {
-    ivl = Interval.fromDateTimes(s, e)
-  }
-
-  const intervalType = 'daily'
-  const graphData = ivl
-    ? ivl.splitBy({ days: 1 }).map((i) => {
-        const date = i.start.toLocaleString({ month: 'short', day: 'numeric' })
-        const label = i.start.toLocaleString({
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        })
-
-        const dayCount = filteredData.filter((msg: DebugMessage) =>
-          i.contains(DateTime.fromISO(msg.createdAt)),
-        )
-
-        return {
-          date,
-          label,
-          count: dayCount.length,
-        }
-      })
-    : []
+  // todo
+  const hasMore = false
 
   return (
     <React.Fragment>
@@ -156,27 +109,31 @@ export default function AdminMessageLogsLayout(): JSX.Element {
       >
         <Grid item xs={12}>
           <AdminMessageLogsControls
-            resetCount={
-              () => setNumRendered(LOAD_AMOUNT) // reset to # of first page results
-            }
+            resetCount={() => {
+              // todo
+              // reset()
+            }}
           />
         </Grid>
-        {paginatedData.length > 0 && (
+        {graphData.length > 0 && (
           <Grid item xs={12}>
             <AdminMessageLogsGraph
               data={graphData}
-              intervalType={intervalType}
-              totalCount={filteredData.length}
+              intervalType='daily'
+              totalCount={totalCount}
             />
           </Grid>
         )}
         <Grid item xs={12}>
           <AdminMessageLogsList
-            debugMessages={paginatedData}
+            debugMessages={filteredData}
             selectedLog={selectedLog}
             onSelect={setSelectedLog}
-            hasMore={numRendered < filteredData.length}
-            onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
+            hasMore={hasMore}
+            onLoadMore={() => {
+              // todo
+              // onLoadMore
+            }}
           />
         </Grid>
       </Grid>
