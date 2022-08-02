@@ -369,6 +369,7 @@ func (h *Harness) CreateAlert(serviceID string, summary string) TestAlert {
 }
 
 type TestAlert interface {
+	ID() int
 	Ack()
 	Escalate()
 	Close()
@@ -397,8 +398,9 @@ func (t testAlert) setStatus(stat alert.Status) {
 	})
 }
 
-func (t testAlert) Close() { t.setStatus(alert.StatusClosed) }
-func (t testAlert) Ack()   { t.setStatus(alert.StatusActive) }
+func (t testAlert) ID() int { return t.a.ID }
+func (t testAlert) Close()  { t.setStatus(alert.StatusClosed) }
+func (t testAlert) Ack()    { t.setStatus(alert.StatusActive) }
 func (t testAlert) Escalate() {
 	t.h.t.Helper()
 	permission.SudoContext(context.Background(), func(ctx context.Context) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { FunctionComponent, useEffect, useState } from 'react'
 import { DateTime } from 'luxon'
 
 interface CountDownProps {
@@ -95,6 +95,7 @@ function CountDown(props: CountDownProps): JSX.Element | string {
       minutes,
       seconds,
     )
+    if (!timeString) return expiredMessage || 'Time expired'
     if (prefix) timeString = prefix + timeString
 
     return timeString
@@ -120,4 +121,4 @@ function CountDown(props: CountDownProps): JSX.Element | string {
   return formatTime()
 }
 
-export default CountDown
+export default CountDown as FunctionComponent<CountDownProps>
