@@ -4,7 +4,6 @@ import { DebugMessage } from '../../../schema'
 interface MessageLogData {
   filteredData: DebugMessage[]
   graphData: { date: string; label: string; count: number }[]
-  totalCount: number
 }
 
 export type Options = {
@@ -86,6 +85,5 @@ export function useMessageLogs(opts: Options): MessageLogData {
   return {
     graphData,
     filteredData,
-    totalCount: filteredData.length,
   }
 }

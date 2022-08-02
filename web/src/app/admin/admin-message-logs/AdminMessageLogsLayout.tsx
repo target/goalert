@@ -16,6 +16,7 @@ import { Options } from './useMessageLogs'
 import { useURLParams } from '../../actions'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
+const RENDER_AMOUNT = 50
 
 const debugMessageLogsQuery = gql`
   query debugMessageLogsQuery($first: Int!) {
@@ -52,10 +53,16 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-const LOAD_AMOUNT = 50 // todo: render_amount and renderMore
-
 export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
+
+  // all data is fetched on page load, but the number of logs rendered is limited
+  const [numRendered, setNumRendered] = useState(RENDER_AMOUNT)
+  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
+
+  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
+    variables: { first: MAX_QUERY_ITEMS_COUNT },
+  })
 
   const [params] = useURLParams({
     search: '',
@@ -63,14 +70,8 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     end: '',
   })
 
-  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
-
-  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
-    variables: { first: MAX_QUERY_ITEMS_COUNT },
-  })
-
   // useMemo to use same object reference
-  const defaultData: Options = useMemo(
+  const opts: Options = useMemo(
     () => ({
       data: (data?.debugMessages as DebugMessage[]) ?? [],
       start: params.start,
@@ -80,7 +81,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     [data?.debugMessages, params.start, params.end, params.search],
   )
 
-  const messageLogData = useWorker('useMessageLogs', defaultData, {
+  const messageLogData = useWorker('useMessageLogs', opts, {
     graphData: [],
     filteredData: [],
     totalCount: 0,
@@ -89,10 +90,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
 
-  const { graphData, filteredData, totalCount } = messageLogData
-
-  // todo
-  const hasMore = false
+  const { graphData, filteredData } = messageLogData
 
   return (
     <React.Fragment>
@@ -109,10 +107,9 @@ export default function AdminMessageLogsLayout(): JSX.Element {
       >
         <Grid item xs={12}>
           <AdminMessageLogsControls
-            resetCount={() => {
-              // todo
-              // reset()
-            }}
+            resetCount={
+              () => setNumRendered(RENDER_AMOUNT) // reset to # of first page results
+            }
           />
         </Grid>
         {graphData.length > 0 && (
@@ -120,7 +117,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
             <AdminMessageLogsGraph
               data={graphData}
               intervalType='daily'
-              totalCount={totalCount}
+              totalCount={filteredData.length}
             />
           </Grid>
         )}
@@ -129,11 +126,8 @@ export default function AdminMessageLogsLayout(): JSX.Element {
             debugMessages={filteredData}
             selectedLog={selectedLog}
             onSelect={setSelectedLog}
-            hasMore={hasMore}
-            onLoadMore={() => {
-              // todo
-              // onLoadMore
-            }}
+            hasMore={numRendered < filteredData.length}
+            onLoadMore={() => setNumRendered(numRendered + RENDER_AMOUNT)}
           />
         </Grid>
       </Grid>
