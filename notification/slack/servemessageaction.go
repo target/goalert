@@ -113,6 +113,15 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		res = notification.ResultAcknowledge
 	case alertCloseActionID:
 		res = notification.ResultResolve
+	case linkActActionID:
+		s.withClient(ctx, func(c *slack.Client) error {
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL), slack.MsgOptionDeleteOriginal(payload.ResponseURL))
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		return
 	default:
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "unknown action ID '%s'", act.ActionID))
 		return
@@ -132,7 +141,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				msg = "Please link your Slack account with GoAlert then try again."
 			}
 
-			linkBtn := slack.NewButtonBlockElement(alertAckActionID, linkURL, slack.NewTextBlockObject("plain_text", "Link Account", false, false))
+			linkBtn := slack.NewButtonBlockElement(linkActActionID, linkURL, slack.NewTextBlockObject("plain_text", "Link Account", false, false))
 			linkBtn.URL = linkURL
 
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
@@ -140,7 +149,11 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				slack.MsgOptionText(msg, false),
 				slack.MsgOptionBlocks(slack.NewActionBlock(alertResponseBlockID, linkBtn)),
 			)
-			return err
+
+			if err != nil {
+				return err
+			}
+			return nil
 		})
 	}
 	if alert.IsAlreadyAcknowledged(err) || alert.IsAlreadyClosed(err) {
