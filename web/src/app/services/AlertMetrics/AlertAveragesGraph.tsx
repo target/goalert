@@ -17,7 +17,10 @@ import {
 
 interface CustomDotProps extends DotProps {
   dataKey: string
-  payload: { date: string }
+  payload: {
+    date: string
+    count: number
+  }
 }
 
 const CustomDot = (props: CustomDotProps): JSX.Element => {
@@ -27,7 +30,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
       cy={cy}
       cx={cx}
       fill={fill}
-      r={r}
+      r={payload.count ? r : 0}
       stroke={stroke}
       strokeWidth={strokeWidth}
       key={dataKey + '-' + payload.date}
@@ -115,6 +118,7 @@ export default function AlertAveragesGraph(
               <Line
                 type='monotone'
                 dataKey='avgTimeToAck'
+                strokeOpacity={props.loading ? 0.5 : 1}
                 strokeWidth={2}
                 stroke={theme.palette.primary.main}
                 activeDot={{ r: 8 }}
@@ -127,6 +131,7 @@ export default function AlertAveragesGraph(
                 strokeWidth={2}
                 dataKey='avgTimeToClose'
                 isAnimationActive={false}
+                strokeOpacity={props.loading ? 0.5 : 1}
                 stroke={
                   theme.palette.mode === 'light'
                     ? theme.palette.secondary.dark

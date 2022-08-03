@@ -92,6 +92,7 @@ export default function AlertCountGraph(
               <Bar
                 dataKey='escalatedCount'
                 stackId='a'
+                fillOpacity={props.loading ? 0.5 : 1}
                 fill={theme.palette.primary.main}
                 className={classes.bar}
                 name='Escalated'
@@ -99,6 +100,7 @@ export default function AlertCountGraph(
               <Bar
                 stackId='a'
                 dataKey='nonEscalatedCount'
+                fillOpacity={props.loading ? 0.5 : 1}
                 fill={
                   theme.palette.mode === 'light'
                     ? theme.palette.secondary.dark
