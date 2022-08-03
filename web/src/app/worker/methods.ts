@@ -1,9 +1,13 @@
 import { useAlertCSV } from '../services/AlertMetrics/useAlertCSV'
+import { useAlertCountCSV } from '../admin/admin-alert-counts/useAlertCountCSV'
 import { useAlertMetrics } from '../services/AlertMetrics/useAlertMetrics'
+import { useAdminAlertCounts } from '../admin/admin-alert-counts/useAdminAlertCounts'
 
 const methods = {
+  useAdminAlertCounts,
   useAlertMetrics,
   useAlertCSV,
+  useAlertCountCSV,
 }
 export default methods
 
