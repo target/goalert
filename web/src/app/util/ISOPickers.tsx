@@ -53,7 +53,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   const native = hasInputSupport(type)
   const [_zone] = useURLParam('tz', 'local')
   const zone = timeZone || _zone
-  const valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+  let valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
@@ -62,6 +62,12 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   useEffect(() => {
     setInputValue(valueAsDT?.toFormat(format) ?? '')
   }, [valueAsDT])
+
+  // update isopickers render on reset
+  useEffect(() => {
+    valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+    setInputValue(valueAsDT ? valueAsDT.toFormat(format) : '')
+  }, [props.value])
 
   const dtToISO = (dt: DateTime): string => {
     return dt.startOf(truncateTo).setZone(zone).toISO()

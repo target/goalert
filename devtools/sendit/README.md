@@ -16,7 +16,7 @@ Usage: `sendit -token <TOKEN> <SERVER_URL>/<DESIRED_PREFIX> <LOCAL_URL>`
 
 Example: `sendit -token xxxxxx https://example.com/foobar http://localhost:3030`
 
-Make sure GoAlert is started with the appropriate prefix. For the above example: `make start GOALERT_HTTP_PREFIX=/foobar`
+Make sure GoAlert is started with the appropriate prefix. For the above example: `make start HTTP_PREFIX=/foobar`
 
 If you are testing Twilio functionality, you will also need to set your `General.PublicURL` config to the source URL (example above: `https://example.com/foobar`). Don't forget to update configuration within Twilio, GitHub, etc... to match.
 

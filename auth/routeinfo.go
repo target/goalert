@@ -6,7 +6,7 @@ type RouteInfo struct {
 	// identity provider.
 	RelativePath string
 
-	// CurrentURL is calculated using the AuthRefererURLs and
+	// CurrentURL is calculated using the --public-url or AuthRefererURLs and
 	// the current auth attempt's referer. It does not include
 	// query parameters of the current request.
 	CurrentURL string

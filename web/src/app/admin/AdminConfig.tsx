@@ -34,6 +34,7 @@ const query = gql`
       password
       type
       value
+      deprecated
     }
     configHints {
       id
@@ -230,6 +231,7 @@ export default function AdminConfig(): JSX.Element {
                       password: f.password,
                       type: f.type,
                       value: f.value,
+                      deprecated: f.deprecated,
                     }))}
                 />
               </Form>

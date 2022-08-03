@@ -161,6 +161,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigValue struct {
+		Deprecated  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Password    func(childComplexity int) int
@@ -1052,6 +1053,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHint.Value(childComplexity), true
+
+	case "ConfigValue.deprecated":
+		if e.complexity.ConfigValue.Deprecated == nil {
+			break
+		}
+
+		return e.complexity.ConfigValue.Deprecated(childComplexity), true
 
 	case "ConfigValue.description":
 		if e.complexity.ConfigValue.Description == nil {
@@ -6724,6 +6732,50 @@ func (ec *executionContext) fieldContext_ConfigValue_password(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigValue_deprecated(ctx context.Context, field graphql.CollectedField, obj *ConfigValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigValue_deprecated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deprecated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigValue_deprecated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14461,6 +14513,8 @@ func (ec *executionContext) fieldContext_Query_config(ctx context.Context, field
 				return ec.fieldContext_ConfigValue_type(ctx, field)
 			case "password":
 				return ec.fieldContext_ConfigValue_password(ctx, field)
+			case "deprecated":
+				return ec.fieldContext_ConfigValue_deprecated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigValue", field.Name)
 		},
@@ -26418,6 +26472,13 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 		case "password":
 
 			out.Values[i] = ec._ConfigValue_password(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deprecated":
+
+			out.Values[i] = ec._ConfigValue_deprecated(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -2,7 +2,7 @@ import React, { forwardRef, ForwardRefRenderFunction } from 'react'
 import { LinkProps } from '@mui/material'
 import MUILink from '@mui/material/Link'
 
-import { Link, LinkProps as WLinkProps } from 'wouter'
+import { Link, LinkProps as WLinkProps, useLocation } from 'wouter'
 import joinURL from './joinURL'
 
 type MergedLinkProps = Omit<LinkProps & WLinkProps, 'to' | 'href'>
@@ -35,6 +35,7 @@ const WrapLink = forwardRef(function WrapLink(
 const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   function AppLink(props, ref): JSX.Element {
     let { to, newTab, ...other } = props
+    const [location] = useLocation()
 
     if (newTab) {
       other.target = '_blank'
@@ -45,7 +46,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
 
     // handle relative URLs
     if (!external && !to.startsWith('/')) {
-      to = joinURL(window.location.pathname, to)
+      to = joinURL(location, to)
     }
 
     return (
