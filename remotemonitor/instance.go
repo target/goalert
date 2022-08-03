@@ -3,7 +3,9 @@ package remotemonitor
 import (
 	"fmt"
 	"net/http"
+	"net/mail"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -63,6 +65,20 @@ func (i Instance) Validate() error {
 
 	if i.GenericAPIKey == "" && i.EmailAPIKey == "" {
 		return errors.New("at least one of Email or Generic API key is required")
+	}
+
+	if i.EmailAPIKey != "" {
+		if _, err := mail.ParseAddress(i.EmailAPIKey); err != nil {
+			return fmt.Errorf("parse email API key: %v", err)
+		}
+		addr, domain, _ := strings.Cut(i.EmailAPIKey, "@")
+		if len(domain) > 255 {
+			return fmt.Errorf("email domain is too long")
+		}
+
+		if len(i.Location)+len(addr)+len("+rm-") > 64 {
+			return fmt.Errorf("location + email address is too long")
+		}
 	}
 
 	return nil
