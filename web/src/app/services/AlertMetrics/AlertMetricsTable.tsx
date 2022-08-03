@@ -142,7 +142,7 @@ export default function AlertMetricsTable(
   )
   const csvData = useWorker('useAlertCSV', csvOpts, '')
   const link = useMemo(
-    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
+    () => URL.createObjectURL(new Blob([csvData.result], { type: 'text/csv' })),
     [csvData],
   )
 

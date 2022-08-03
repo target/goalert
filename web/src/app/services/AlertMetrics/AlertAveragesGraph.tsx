@@ -3,6 +3,7 @@ import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
+import Spinner from '../../loading/components/Spinner'
 import {
   XAxis,
   YAxis,
@@ -37,6 +38,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 
 interface AlertAveragesGraphProps {
   data: typeof LineChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -59,6 +61,7 @@ export default function AlertAveragesGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-averages-graph'>
+        {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }) => (
             <LineChart

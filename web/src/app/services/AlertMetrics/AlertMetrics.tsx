@@ -70,14 +70,20 @@ export default function AlertMetrics({
           />
           <CardContent>
             <AlertMetricsFilter />
-            <AlertCountGraph data={graphData} />
-            <AlertAveragesGraph data={graphData} />
+            <AlertCountGraph
+              data={graphData.result}
+              loading={graphData.loading || alertsData.loading}
+            />
+            <AlertAveragesGraph
+              data={graphData.result}
+              loading={graphData.loading || alertsData.loading}
+            />
             <AlertMetricsTable
               alerts={alertsData.alerts}
               serviceName={svc.data.service.name}
               startTime={since.toFormat('yyyy-MM-dd')}
               endTime={until.toFormat('yyyy-MM-dd')}
-              loading={alertsData.loading}
+              loading={graphData.loading || alertsData.loading}
             />
           </CardContent>
         </Card>
