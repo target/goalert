@@ -100,6 +100,7 @@ type ConfigValue struct {
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
 	Password    bool       `json:"password"`
+	Deprecated  string     `json:"deprecated"`
 }
 
 type ConfigValueInput struct {
@@ -504,10 +505,11 @@ type UpdateScheduleInput struct {
 }
 
 type UpdateServiceInput struct {
-	ID                 string  `json:"id"`
-	Name               *string `json:"name"`
-	Description        *string `json:"description"`
-	EscalationPolicyID *string `json:"escalationPolicyID"`
+	ID                   string     `json:"id"`
+	Name                 *string    `json:"name"`
+	Description          *string    `json:"description"`
+	EscalationPolicyID   *string    `json:"escalationPolicyID"`
+	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {

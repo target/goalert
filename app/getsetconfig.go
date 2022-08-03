@@ -41,7 +41,7 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	}
 	defer tx.Rollback()
 
-	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "")
+	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "", "")
 	if err != nil {
 		return errors.Wrap(err, "init config store")
 	}

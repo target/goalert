@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
-import { testScreen, Config } from '../support'
+import { testScreen, Config, pathPrefix } from '../support'
 const c = new Chance()
 
 function testAdmin(): void {
@@ -269,10 +269,15 @@ function testAdmin(): void {
 
     it('should verify user link from a logs details', () => {
       cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
-        .should('have.attr', 'href', '/users/' + debugMessage.userID)
+        .should(
+          'have.attr',
+          'href',
+          pathPrefix() + '/users/' + debugMessage.userID,
+        )
         .should('have.attr', 'target', '_blank')
         .should('have.attr', 'rel', 'noopener noreferrer')
     })
@@ -282,7 +287,11 @@ function testAdmin(): void {
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')
-        .should('have.attr', 'href', '/services/' + debugMessage.serviceID)
+        .should(
+          'have.attr',
+          'href',
+          pathPrefix() + '/services/' + debugMessage.serviceID,
+        )
         .should('have.attr', 'target', '_blank')
         .should('have.attr', 'rel', 'noopener noreferrer')
     })

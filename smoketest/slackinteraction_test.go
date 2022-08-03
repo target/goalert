@@ -38,7 +38,7 @@ func TestSlackInteraction(t *testing.T) {
 	a := h.CreateAlertWithDetails(h.UUID("sid"), "testing", "details")
 
 	ch := h.Slack().Channel("test")
-	msg := ch.ExpectMessage("testing", "details")
+	msg := ch.ExpectMessage("testing")
 	msg.AssertColor("#862421")
 	msg.AssertActions("Acknowledge", "Close")
 
@@ -50,14 +50,14 @@ func TestSlackInteraction(t *testing.T) {
 	msg.Action("Acknowledge").Click()
 
 	updated := msg.ExpectUpdate()
-	updated.AssertText("Ack", "testing", "details")
+	updated.AssertText("Ack", "testing")
 	updated.AssertColor("#867321")
 	updated.AssertActions("Close")
 
 	a.Escalate()
 
 	updated = msg.ExpectUpdate()
-	updated.AssertText("Escalated", "testing", "details")
+	updated.AssertText("Escalated", "testing")
 	updated.AssertColor("#862421")
 	updated.AssertActions("Acknowledge", "Close")
 	msg.ExpectBroadcastReply("testing")

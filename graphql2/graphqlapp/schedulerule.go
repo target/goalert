@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
+	"github.com/target/goalert/validation"
 
 	"github.com/pkg/errors"
 )
@@ -19,6 +20,7 @@ func (r *ScheduleRule) Target(ctx context.Context, raw *rule.Rule) (*assignment.
 	tgt := assignment.NewRawTarget(raw.Target)
 	return &tgt, nil
 }
+
 func (r *ScheduleRule) WeekdayFilter(ctx context.Context, raw *rule.Rule) ([]bool, error) {
 	var f [7]bool
 	for i, v := range raw.WeekdayFilter {
@@ -37,6 +39,9 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 	}
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		_, err := m.ScheduleStore.FindOneForUpdate(ctx, tx, schedID) // lock schedule
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewFieldError("scheduleID", "schedule not found")
+		}
 		if err != nil {
 			return errors.Wrap(err, "lock schedule")
 		}

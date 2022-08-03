@@ -7,7 +7,6 @@ export interface Query {
   users: UserConnection
   alert?: null | Alert
   alerts: AlertConnection
-  alertMetrics: AlertDataPoint[]
   service?: null | Service
   integrationKey?: null | IntegrationKey
   heartbeatMonitor?: null | HeartbeatMonitor
@@ -104,6 +103,7 @@ export interface ConfigValue {
   value: string
   type: ConfigType
   password: boolean
+  deprecated: string
 }
 
 export interface ConfigHint {
@@ -461,6 +461,7 @@ export interface UpdateServiceInput {
   name?: null | string
   description?: null | string
   escalationPolicyID?: null | string
+  maintenanceExpiresAt?: null | ISOTimestamp
 }
 
 export interface UpdateEscalationPolicyInput {
@@ -758,6 +759,7 @@ export interface Service {
   escalationPolicyID: string
   escalationPolicy?: null | EscalationPolicy
   isFavorite: boolean
+  maintenanceExpiresAt?: null | ISOTimestamp
   onCallUsers: ServiceOnCallUser[]
   integrationKeys: IntegrationKey[]
   labels: Label[]
