@@ -85,18 +85,18 @@ export default function AdminAlertCounts(): JSX.Element {
           <CardContent>
             <AlertCountLineGraph
               data={graphData}
-              loading={alertsData.loading}
+              loading={alertCounts.loading || alertsData.loading}
               unit={unit}
             />
             <AlertCountTable
-              alertCounts={alertCounts}
+              alertCounts={alertCounts.result}
               graphData={graphData}
               setGraphData={setGraphData}
               startTime={DateTime.fromISO(params.createdAfter).toFormat(
                 'yyyy-MM-dd',
               )}
               endTime={until.toFormat('yyyy-MM-dd')}
-              loading={alertsData.loading}
+              loading={alertCounts.loading || alertsData.loading}
             />
           </CardContent>
         </Card>

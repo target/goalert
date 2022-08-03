@@ -175,6 +175,7 @@ export default function AlertCountLineGraph(
                 <Line
                   dataKey='dayTotal'
                   data={series.dailyCounts}
+                  strokeOpacity={props.loading ? 0.5 : 1}
                   strokeWidth={active === series.serviceName ? 4 : 1}
                   name={series.serviceName}
                   stroke={chooseColor(idx)}
