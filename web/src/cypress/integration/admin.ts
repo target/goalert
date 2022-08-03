@@ -197,6 +197,52 @@ function testAdmin(): void {
     })
   })
 
+  describe('Admin Alert Count Page', () => {
+    let svc1: Service
+    let svc2: Service
+
+    beforeEach(() => {
+      cy.setTimeSpeed(0)
+      cy.fastForward('-21h')
+
+      cy.createService().then((s1: Service) => {
+        svc1 = s1
+        cy.createAlert({ serviceID: s1.id })
+      })
+      cy.createService().then((s2: Service) => {
+        svc2 = s2
+        cy.createAlert({ serviceID: s2.id })
+        cy.createAlert({ serviceID: s2.id })
+      })
+
+      cy.fastForward('21h')
+      cy.setTimeSpeed(1) // resume the flow of time
+
+      return cy.visit('/admin/alert-counts')
+    })
+
+    it('should display alert counts', () => {
+      const now = DateTime.local().minus({ hours: 22 }).toLocaleString({
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+      })
+
+      cy.get(`[data-cy="${svc1.name}-${now}"]`).trigger('mouseover', 0, 0, {
+        force: true,
+      })
+      cy.get('[data-cy=alert-count-graph]')
+        .should('contain', now)
+        .should('contain', `${svc1.name}: 1`)
+        .should('contain', `${svc2.name}: 2`)
+
+      cy.get('[data-cy=alert-count-table]')
+        .should('contain', svc1.name)
+        .should('contain', svc2.name)
+    })
+  })
+
   describe('Admin Outgoing Logs Page', () => {
     let debugMessage: DebugMessage
 
