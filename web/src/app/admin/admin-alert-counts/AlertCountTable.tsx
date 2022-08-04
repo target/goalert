@@ -97,7 +97,7 @@ export default function AlertCountTable(
   )
   const csvData = useWorker('useAlertCountCSV', csvOpts, '')
   const link = useMemo(
-    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
+    () => URL.createObjectURL(new Blob([csvData.result], { type: 'text/csv' })),
     [csvData],
   )
 
@@ -152,7 +152,7 @@ export default function AlertCountTable(
       <Grid item xs={12} data-cy='alert-count-table'>
         <DataGrid
           rows={props.alertCounts ?? []}
-          loading={props.loading}
+          loading={csvData.loading || props.loading}
           pageSize={7}
           rowsPerPageOptions={[7]}
           columns={columns}

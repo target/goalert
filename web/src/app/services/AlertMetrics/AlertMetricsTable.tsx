@@ -181,7 +181,7 @@ export default function AlertMetricsTable(
       <Grid item xs={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}
-          loading={props.loading}
+          loading={csvData.loading || props.loading}
           columns={columns}
           disableSelectionOnClick
           components={{
