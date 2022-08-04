@@ -140,7 +140,7 @@ export default function AlertMetricsTable(
     }),
     [props.alerts],
   )
-  const [csvData, csvDataStatus] = useWorker('useAlertCSV', csvOpts, '')
+  const [csvData] = useWorker('useAlertCSV', csvOpts, '')
   const link = useMemo(
     () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],
@@ -181,7 +181,7 @@ export default function AlertMetricsTable(
       <Grid item xs={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}
-          loading={csvDataStatus.loading || props.loading}
+          loading={props.loading}
           columns={columns}
           disableSelectionOnClick
           components={{
