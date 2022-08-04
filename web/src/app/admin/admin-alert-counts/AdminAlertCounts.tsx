@@ -63,7 +63,11 @@ export default function AdminAlertCounts(): JSX.Element {
     () => ({ int: graphInterval, dur: graphDur, alerts: alertsData.alerts }),
     [graphInterval, graphDur, alertsData.alerts],
   )
-  const alertCounts = useWorker('useAdminAlertCounts', alertCountOpts, [])
+  const [alertCounts, alertCountStatus] = useWorker(
+    'useAdminAlertCounts',
+    alertCountOpts,
+    [],
+  )
 
   if (alertsData.error) {
     return <GenericError error={alertsData.error.message} />
@@ -85,18 +89,18 @@ export default function AdminAlertCounts(): JSX.Element {
           <CardContent>
             <AlertCountLineGraph
               data={graphData}
-              loading={alertCounts.loading || alertsData.loading}
+              loading={alertCountStatus.loading || alertsData.loading}
               unit={unit}
             />
             <AlertCountTable
-              alertCounts={alertCounts.result}
+              alertCounts={alertCounts}
               graphData={graphData}
               setGraphData={setGraphData}
               startTime={DateTime.fromISO(params.createdAfter).toFormat(
                 'yyyy-MM-dd',
               )}
               endTime={until.toFormat('yyyy-MM-dd')}
-              loading={alertCounts.loading || alertsData.loading}
+              loading={alertCountStatus.loading || alertsData.loading}
             />
           </CardContent>
         </Card>

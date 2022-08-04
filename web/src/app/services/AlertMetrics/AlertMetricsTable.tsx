@@ -140,9 +140,9 @@ export default function AlertMetricsTable(
     }),
     [props.alerts],
   )
-  const csvData = useWorker('useAlertCSV', csvOpts, '')
+  const [csvData, csvDataStatus] = useWorker('useAlertCSV', csvOpts, '')
   const link = useMemo(
-    () => URL.createObjectURL(new Blob([csvData.result], { type: 'text/csv' })),
+    () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],
   )
 
@@ -181,7 +181,7 @@ export default function AlertMetricsTable(
       <Grid item xs={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}
-          loading={csvData.loading || props.loading}
+          loading={csvDataStatus.loading || props.loading}
           columns={columns}
           disableSelectionOnClick
           components={{

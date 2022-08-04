@@ -58,7 +58,11 @@ export default function AlertMetrics({
     [graphInterval, graphDur, alertsData.alerts],
   )
 
-  const graphData = useWorker('useAlertMetrics', metricsOpts, [])
+  const [graphData, graphDataStatus] = useWorker(
+    'useAlertMetrics',
+    metricsOpts,
+    [],
+  )
 
   if (svc.fetching) return <Spinner />
   if (!svc.data?.service?.name) return <ObjectNotFound />
@@ -80,19 +84,19 @@ export default function AlertMetrics({
           <CardContent>
             <AlertMetricsFilter />
             <AlertCountGraph
-              data={graphData.result}
-              loading={graphData.loading || alertsData.loading}
+              data={graphData}
+              loading={graphDataStatus.loading || alertsData.loading}
             />
             <AlertAveragesGraph
-              data={graphData.result}
-              loading={graphData.loading || alertsData.loading}
+              data={graphData}
+              loading={graphDataStatus.loading || alertsData.loading}
             />
             <AlertMetricsTable
               alerts={alertsData.alerts}
               serviceName={svc.data.service.name}
               startTime={since.toFormat('yyyy-MM-dd')}
               endTime={until.toFormat('yyyy-MM-dd')}
-              loading={graphData.loading || alertsData.loading}
+              loading={graphDataStatus.loading || alertsData.loading}
             />
           </CardContent>
         </Card>

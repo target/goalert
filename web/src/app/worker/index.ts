@@ -132,8 +132,7 @@ export function useWorker<N extends WorkerMethodName>(
     worker.run(arg)
   }, [worker, arg])
 
-  return {
-    result,
-    loading: worker?.isLoading() || false,
-  }
+  const loadingStatus = worker?.isLoading() || false
+
+  return [result, { loading: loadingStatus }]
 }
