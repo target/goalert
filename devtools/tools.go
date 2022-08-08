@@ -6,6 +6,7 @@ package devtools
 import (
 	_ "github.com/99designs/gqlgen"
 	_ "github.com/gordonklaus/ineffassign"
+	_ "github.com/kffl/speedbump"
 	_ "github.com/kyleconroy/sqlc/cmd/sqlc"
 	_ "github.com/mailhog/MailHog"
 	_ "golang.org/x/tools/cmd/goimports"
