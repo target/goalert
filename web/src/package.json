@@ -26,7 +26,7 @@
     "@apollo/client": "3.6.2",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
-    "@material/material-color-utilities": "0.1.1",
+    "@material/material-color-utilities": "0.2.0",
     "@mui/icons-material": "5.8.0",
     "@mui/lab": "5.0.0-alpha.59",
     "@mui/material": "5.8.0",
