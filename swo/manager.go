@@ -135,20 +135,20 @@ func (m *Manager) ConnInfo(ctx context.Context) (counts []swoinfo.ConnCount, err
 
 // withConnFromOld allows performing operations with a raw connection to the old database.
 func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithPGXConn(ctx, m.dbMain, f)
+	return withPGXConn(ctx, m.dbMain, f)
 }
 
 // withConnFromBoth allows performing operations with a raw connection to both databases database.
 func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Context, oldConn, newConn *pgx.Conn) error) error {
 	// grab lock with old DB first
-	return WithPGXConn(ctx, m.dbMain, func(ctx context.Context, connMain *pgx.Conn) error {
-		return WithPGXConn(ctx, m.dbNext, func(ctx context.Context, connNext *pgx.Conn) error {
+	return withPGXConn(ctx, m.dbMain, func(ctx context.Context, connMain *pgx.Conn) error {
+		return withPGXConn(ctx, m.dbNext, func(ctx context.Context, connNext *pgx.Conn) error {
 			return f(ctx, connMain, connNext)
 		})
 	})
 }
 
-func WithPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
+func withPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
 	conn, err := db.Conn(ctx)
 	if err != nil {
 		return err
