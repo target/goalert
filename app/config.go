@@ -20,6 +20,8 @@ type Config struct {
 	APIOnly     bool
 	LogEngine   bool
 
+	PublicURL string
+
 	TLSListenAddr string
 	TLSConfig     *tls.Config
 

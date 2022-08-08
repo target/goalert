@@ -217,6 +217,7 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+  deprecated: String!
 }
 type ConfigHint {
   id: String!
