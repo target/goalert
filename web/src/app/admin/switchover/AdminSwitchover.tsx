@@ -33,6 +33,7 @@ import AddIcon from '@mui/icons-material/PlaylistAdd'
 import DownIcon from '@mui/icons-material/ArrowDownward'
 import { TransitionGroup } from 'react-transition-group'
 import Spinner from '../../loading/components/Spinner'
+import { darken, lighten } from '@mui/system'
 
 const query = gql`
   query {
@@ -92,6 +93,8 @@ export default function AdminSwitchover(): JSX.Element {
   const [lastAction, setLastAction] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
   const theme = useTheme()
+  const getColor = theme.palette.mode === 'light' ? darken : lighten
+  const getBackgroundColor = theme.palette.mode === 'light' ? lighten : darken
 
   const curVer = data?.mainDBVersion.split(' on ')
   const nextVer = data?.mainDBVersion.split(' on ')
@@ -305,11 +308,16 @@ export default function AdminSwitchover(): JSX.Element {
               {data?.connections?.map((row) => (
                 <TableRow
                   key={row.name || '(no name)'}
-                  selected={
-                    row.name.includes('GoAlert') && !row.name.includes('SWO')
-                  }
                   sx={{
                     '&:last-child td, &:last-child th': { border: 0 },
+                    backgroundColor: (theme) =>
+                      row.name.includes('GoAlert') && !row.name.includes('SWO')
+                        ? getBackgroundColor(theme.palette.error.light, 0.9)
+                        : 'inherit',
+                    color: (theme) =>
+                      row.name.includes('GoAlert') && !row.name.includes('SWO')
+                        ? getColor(theme.palette.error.light, 0.6)
+                        : 'inherit',
                   }}
                 >
                   <TableCell component='th' scope='row'>
