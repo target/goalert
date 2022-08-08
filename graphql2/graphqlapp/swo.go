@@ -7,7 +7,6 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/swo/swogrp"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 )
 
@@ -43,15 +42,17 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		return nil, err
 	}
 
-	var conns []graphql2.SWOConnection
-	err = sqlutil.FromContext(ctx).
-		Table("pg_stat_activity").
-		Select("application_name as name, count(*)").
-		Where("datname = current_database()").
-		Group("name").
-		Find(&conns).Error
+	_conns, err := a.SWO.ConnInfo(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	var conns []graphql2.SWOConnection
+	for _, c := range _conns {
+		conns = append(conns, graphql2.SWOConnection{
+			Name:  c.Name,
+			Count: c.Count,
+		})
 	}
 
 	s := a.SWO.Status()

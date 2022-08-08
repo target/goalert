@@ -3,7 +3,6 @@ package swo
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -16,6 +15,8 @@ import (
 	"github.com/target/goalert/swo/swomsg"
 	"github.com/target/goalert/swo/swosync"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqldrv"
+	"github.com/target/goalert/version"
 )
 
 type Manager struct {
@@ -45,17 +46,35 @@ type Node struct {
 }
 
 type Config struct {
-	OldDBC, NewDBC driver.Connector
-	CanExec        bool
-	Logger         *log.Logger
+	OldDBURL, NewDBURL string
+	CanExec            bool
+	Logger             *log.Logger
 }
 
 func NewManager(cfg Config) (*Manager, error) {
+	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, fmt.Sprintf("GoAlert %s (SWO Manager - Main)", version.GitVersion()))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, fmt.Sprintf("GoAlert %s (SWO Manager - Next)", version.GitVersion()))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+
+	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, fmt.Sprintf("GoAlert %s (SWO Node - Main)", version.GitVersion()))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, fmt.Sprintf("GoAlert %s (SWO Node - Next)", version.GitVersion()))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+
 	m := &Manager{
 		Config: cfg,
-		dbApp:  sql.OpenDB(NewConnector(cfg.OldDBC, cfg.NewDBC)),
-		dbMain: sql.OpenDB(newMgrConnector(cfg.OldDBC)),
-		dbNext: sql.OpenDB(newMgrConnector(cfg.NewDBC)),
+		dbApp:  sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
+		dbMain: mainDB,
+		dbNext: nextDB,
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
@@ -103,6 +122,15 @@ func (m *Manager) Init(app lifecycle.PauseResumer) {
 	}
 	m.pauseResume = app
 	m.taskMgr.Init()
+}
+
+func (m *Manager) ConnInfo(ctx context.Context) (counts []swoinfo.ConnCount, err error) {
+	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		counts, err = swoinfo.ConnInfo(ctx, oldConn, newConn)
+		return err
+	})
+
+	return
 }
 
 // withConnFromOld allows performing operations with a raw connection to the old database.

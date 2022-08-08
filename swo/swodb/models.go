@@ -54,8 +54,9 @@ type InformationSchemaTable struct {
 }
 
 type PgStatActivity struct {
-	State     sql.NullString
-	XactStart time.Time
+	State           sql.NullString
+	XactStart       time.Time
+	ApplicationName sql.NullString
 }
 
 type SwitchoverLog struct {

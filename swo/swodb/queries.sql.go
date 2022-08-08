@@ -7,6 +7,7 @@ package swodb
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,6 +25,39 @@ func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const connectionInfo = `-- name: ConnectionInfo :many
+SELECT application_name AS NAME,
+    COUNT(*)
+FROM pg_stat_activity
+WHERE datname = current_database()
+GROUP BY NAME
+`
+
+type ConnectionInfoRow struct {
+	Name  sql.NullString
+	Count int64
+}
+
+func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, error) {
+	rows, err := q.db.Query(ctx, connectionInfo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ConnectionInfoRow
+	for rows.Next() {
+		var i ConnectionInfoRow
+		if err := rows.Scan(&i.Name, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const databaseInfo = `-- name: DatabaseInfo :one

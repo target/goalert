@@ -33,3 +33,10 @@ WHERE sequence_catalog = current_database()
 SELECT db_id AS id,
     version()
 FROM switchover_state;
+
+-- name: ConnectionInfo :many
+SELECT application_name AS NAME,
+    COUNT(*)
+FROM pg_stat_activity
+WHERE datname = current_database()
+GROUP BY NAME;

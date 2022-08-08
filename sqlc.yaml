@@ -4,7 +4,7 @@ sql:
       - swo/swoinfo/pgtables.sql
       - swo/swosync/changelog.sql
       - migrate/migrations/20180816094955-switchover-state.sql
-      - migrate/migrations/20220628125954-switchover-mk2.sql
+      - migrate/migrations/20220808103727-switchover-mk2.sql
     queries:
       - swo/swosync/queries.sql
       - swo/swoinfo/queries.sql

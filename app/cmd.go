@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -84,18 +83,6 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 
-		wrappedDriver := sqldrv.NewRetryDriver(&stdlib.Driver{}, 10)
-
-		u, err := url.Parse(cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "parse old URL")
-		}
-		q := u.Query()
-		q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
-		q.Set("enable_seqscan", "off")
-		u.RawQuery = q.Encode()
-		cfg.DBURL = u.String()
-
 		doMigrations := func(url string) error {
 			if cfg.APIOnly {
 				err = migrate.VerifyAll(log.WithDebug(ctx), url)
@@ -129,36 +116,19 @@ var RootCmd = &cobra.Command{
 			}
 		}
 
-		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "connect to postgres")
-		}
-
 		var db *sql.DB
 		if cfg.DBURLNext != "" {
-			u, err := url.Parse(cfg.DBURLNext)
-			if err != nil {
-				return errors.Wrap(err, "parse next URL")
-			}
-			q := u.Query()
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (SWO Mode)", version.GitVersion()))
-			q.Set("enable_seqscan", "off")
-			u.RawQuery = q.Encode()
-			cfg.DBURLNext = u.String()
-
-			dbcNext, err := wrappedDriver.OpenConnector(cfg.DBURLNext)
-			if err != nil {
-				return errors.Wrap(err, "connect to postres (next)")
-			}
-
-			mgr, err := swo.NewManager(swo.Config{OldDBC: dbc, NewDBC: dbcNext, CanExec: !cfg.APIOnly})
+			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
 			db = mgr.DB()
 			cfg.SWO = mgr
 		} else {
-			db = sql.OpenDB(dbc)
+			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
 		}
 
 		app, err := NewApp(cfg, db)
