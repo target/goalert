@@ -1,4 +1,4 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import { DebugMessage } from '../../../schema'
 
 interface MessageLogData {
@@ -11,6 +11,7 @@ export type Options = {
   start?: string
   end?: string
   search?: string
+  duration: string
 }
 
 export function useMessageLogs(opts: Options): MessageLogData {
@@ -56,31 +57,43 @@ export function useMessageLogs(opts: Options): MessageLogData {
   const e = hasData
     ? endDT || DateTime.fromISO(filteredData[0].createdAt).endOf('day')
     : null
-  let ivl: Interval | null = null
+  let ttlInterval: Interval | null = null
   if (s && e && hasData) {
-    ivl = Interval.fromDateTimes(s, e)
+    ttlInterval = Interval.fromDateTimes(s, e)
   }
 
-  const graphData = ivl
-    ? ivl.splitBy({ days: 1 }).map((i) => {
-        const date = i.start.toLocaleString({ month: 'short', day: 'numeric' })
-        const label = i.start.toLocaleString({
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        })
+  const logs = opts.data
+  const intervals = ttlInterval?.splitBy(Duration.fromISO(opts.duration)) ?? []
 
-        const dayCount = filteredData.filter((msg: DebugMessage) =>
-          i.contains(DateTime.fromISO(msg.createdAt)),
-        )
+  const graphData = intervals.map((interval) => {
+    const locale: DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    }
+    const date = interval.start.toLocaleString({
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    })
+    const label =
+      interval.start.toLocaleString(locale) +
+      ' - ' +
+      interval.end.toLocaleString(locale)
 
-        return {
-          date,
-          label,
-          count: dayCount.length,
-        }
-      })
-    : []
+    const intervalLogs = logs.filter((log) => {
+      return interval.contains(DateTime.fromISO(log.createdAt))
+    })
+
+    return {
+      date,
+      label,
+      count: intervalLogs.length,
+    }
+  })
 
   return {
     graphData,

@@ -13,7 +13,7 @@ import { DebugMessage } from '../../../schema'
 import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 import { useWorker } from '../../worker'
 import { Options } from './useMessageLogs'
-import { useURLParams } from '../../actions'
+import { useURLParam, useURLParams } from '../../actions'
 
 export const MAX_QUERY_ITEMS_COUNT = 1000
 const RENDER_AMOUNT = 50
@@ -60,6 +60,9 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   const [numRendered, setNumRendered] = useState(RENDER_AMOUNT)
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
+  // graph duration set with ISO duration values, e.g. P1D for a daily duration
+  const [duration] = useURLParam<string>('interval', 'P1D')
+
   const { data, loading, error } = useQuery(debugMessageLogsQuery, {
     variables: { first: MAX_QUERY_ITEMS_COUNT },
   })
@@ -77,8 +80,9 @@ export default function AdminMessageLogsLayout(): JSX.Element {
       start: params.start,
       end: params.end,
       search: params.search,
+      duration,
     }),
-    [data?.debugMessages, params.start, params.end, params.search],
+    [data?.debugMessages, params.start, params.end, params.search, duration],
   )
 
   const messageLogData = useWorker('useMessageLogs', opts, {
@@ -115,7 +119,6 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           <Grid item xs={12}>
             <AdminMessageLogsGraph
               data={graphData}
-              intervalType='daily'
               totalCount={filteredData.length}
             />
           </Grid>
