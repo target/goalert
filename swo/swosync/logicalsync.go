@@ -19,7 +19,7 @@ func (l *LogicalReplicator) FinalSync(ctx context.Context) error { return l.doSy
 func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	b := new(pgx.Batch)
 	if final {
-		b.Queue(`begin isolation level serializable`)
+		b.Queue(`begin`)
 	} else {
 		b.Queue(`begin isolation level serializable read only deferrable`)
 	}
