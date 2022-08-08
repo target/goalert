@@ -126,11 +126,11 @@ func WithPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, 
 		return err
 	}
 	defer conn.Close()
-	defer conn.ExecContext(context.Background(), "select pg_advisory_unlock_all()")
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
 		defer conn.Close(context.Background())
+		defer conn.PgConn().Close(context.Background())
 
 		return runFunc(ctx, conn)
 	})
