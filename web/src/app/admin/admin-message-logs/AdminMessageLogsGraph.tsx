@@ -110,7 +110,6 @@ export default function AdminMessageLogsGraph(props: Props): JSX.Element {
                     dataKey='date'
                     type='category'
                     stroke={theme.palette.text.secondary}
-                    interval='preserveStartEnd'
                     tickFormatter={formatIntervals}
                     minTickGap={15}
                   />
