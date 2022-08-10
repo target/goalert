@@ -160,6 +160,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			}
 			return nil
 		})
+		return
 	}
 	if alert.IsAlreadyAcknowledged(err) || alert.IsAlreadyClosed(err) {
 		// ignore errors from duplicate requests
