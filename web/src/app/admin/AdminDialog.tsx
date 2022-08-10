@@ -9,10 +9,11 @@ import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
 import { ConfigValue } from '../../schema'
 import { gql, useMutation, useQuery } from 'urql'
+import { DocumentNode } from 'graphql'
 
 const query = gql`
   query {
-    config(all: true) {
+    values: config(all: true) {
       id
       value
     }
@@ -26,16 +27,20 @@ const mutation = gql`
 `
 
 interface AdminDialogProps {
+  query?: DocumentNode
+  mutation?: DocumentNode
   value: { [id: string]: string }
   onClose: () => void
   onComplete?: () => void
 }
 
 function AdminDialog(props: AdminDialogProps): JSX.Element {
-  const [{ data, fetching, error: readError }] = useQuery({ query })
-  const [{ error }, commit] = useMutation(mutation)
+  const [{ data, fetching, error: readError }] = useQuery({
+    query: props.query || query,
+  })
+  const [{ error }, commit] = useMutation(props.mutation || mutation)
 
-  const currentConfig: ConfigValue[] = data?.config || []
+  const currentConfig: ConfigValue[] = data?.values || []
 
   const changeKeys = Object.keys(props.value)
   const changes = currentConfig
