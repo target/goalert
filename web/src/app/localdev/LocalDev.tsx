@@ -76,15 +76,20 @@ export default function LocalDev(): JSX.Element {
         />
 
         <DevTool
+          name='Prometheus'
+          desc='Prometheus UI for viewing app metrics.'
+          url='http://localhost:9090/graph?g0.expr=go_memstats_alloc_bytes&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=1h'
+        />
+
+        <DevTool
           name='gRPC'
           desc='UI for interacting with the gRPC server interface (sysapi).'
           url='http://localhost:8234'
         />
-
         <DevTool
-          name='Prometheus'
-          desc='Prometheus UI for viewing app metrics.'
-          url='http://localhost:9090/graph?g0.expr=go_memstats_alloc_bytes&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=1h'
+          name='GraqphiQL'
+          desc='UI for interacting with the GraphQL API.'
+          url='/api/graphql/explore'
         />
       </Grid>
 
