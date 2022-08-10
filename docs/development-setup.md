@@ -23,6 +23,20 @@ podman machine ssh sudo rpm-ostree install qemu-user-static
 podman machine ssh sudo systemctl reboot
 ```
 
+## External Traffic
+
+To do local development with external traffic you will need a publicly-routable URL and can start localdev with `PUBLIC_URL` set. For example:
+
+```bash
+make start PUBLIC_URL=http://localdev.example.com
+```
+
+You may add additional startup commands to the `Procfile.local` file to have them automatically run with `make start` and similar commands.
+
+```bash
+ngrok: ngrok http -subdomain=localdev 3030
+```
+
 ## Database (PostgreSQL)
 
 GoAlert is built and tested against Postgres 11. Version 9.6 should still work as of this writing, but is not recommended as future versions may begin using newer features.
