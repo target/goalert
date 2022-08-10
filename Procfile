@@ -8,3 +8,5 @@ prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/pr
 
 @watch-file=./web/src/esbuild.config.js
 ui: yarn workspace goalert-web run esbuild --watch
+
+grpcui: go run github.com/fullstorydev/grpcui/cmd/grpcui -plaintext -open-browser=false -port 8234 localhost:1234
