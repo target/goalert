@@ -28,7 +28,6 @@ import AddIcon from '@mui/icons-material/PlaylistAdd'
 import DownIcon from '@mui/icons-material/ArrowDownward'
 import { TransitionGroup } from 'react-transition-group'
 import Spinner from '../../loading/components/Spinner'
-import { darken, lighten } from '@mui/system'
 
 const query = gql`
   query {
@@ -92,8 +91,6 @@ export default function AdminSwitchover(): JSX.Element {
   const [lastAction, setLastAction] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
   const theme = useTheme()
-  const getColor = theme.palette.mode === 'light' ? darken : lighten
-  const getBackgroundColor = theme.palette.mode === 'light' ? lighten : darken
 
   const curVer = data?.mainDBVersion.split(' on ')
   const nextVer = data?.mainDBVersion.split(' on ')
