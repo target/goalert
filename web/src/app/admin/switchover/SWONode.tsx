@@ -20,6 +20,32 @@ interface SWONodeProps {
 export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
   const theme = useTheme()
 
+  if (node.id.startsWith('unknown-')) {
+    return (
+      <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
+        <Card>
+          <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
+            {name}
+          </Typography>
+          <List>
+            <ListItem>
+              <ListItemText
+                primary='Application'
+                secondary={node.id.substring(8) || '(No name given)'}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary='Connections' />
+              <ListItemSecondaryAction>
+                {node.connections?.reduce((acc, cur) => acc + cur.count, 0)}
+              </ListItemSecondaryAction>
+            </ListItem>
+          </List>
+        </Card>
+      </Grid>
+    )
+  }
+
   return (
     <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
       <Card raised={node.isLeader}>
@@ -38,9 +64,9 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
             </ListItemSecondaryAction>
           </ListItem>
           <ListItem>
-            <ListItemText primary='Old DB connection valid?' />
+            <ListItemText primary='Config valid?' />
             <ListItemSecondaryAction>
-              {node.oldValid ? (
+              {node.isConfigValid ? (
                 <TrueIcon color='success' />
               ) : (
                 <FalseIcon color='error' />
@@ -48,13 +74,9 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
             </ListItemSecondaryAction>
           </ListItem>
           <ListItem>
-            <ListItemText primary='New DB connection valid?' />
+            <ListItemText primary='Connections' />
             <ListItemSecondaryAction>
-              {node.newValid ? (
-                <TrueIcon color='success' />
-              ) : (
-                <FalseIcon color='error' />
-              )}
+              {node.connections?.reduce((acc, cur) => acc + cur.count, 0)}
             </ListItemSecondaryAction>
           </ListItem>
         </List>

@@ -120,8 +120,6 @@ type SWOStatus {
 
   nodes: [SWONode!]!
 
-  connections: [SWOConnection!]!
-
   mainDBVersion: String!
   nextDBVersion: String!
 }
@@ -136,17 +134,21 @@ enum SWOState {
   done
 }
 
-type SWOConnection {
-  name: String!
-  count: Int!
-}
-
 type SWONode {
   id: ID!
-  oldValid: Boolean!
-  newValid: Boolean!
+
   canExec: Boolean!
   isLeader: Boolean!
+
+  isConfigValid: Boolean!
+  connections: [SWOConnection!]
+}
+type SWOConnection {
+  name: String!
+  version: String!
+  type: String!
+  isNext: Boolean!
+  count: Int!
 }
 
 input AlertMetricsOptions {

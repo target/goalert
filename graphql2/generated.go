@@ -400,20 +400,22 @@ type ComplexityRoot struct {
 	}
 
 	SWOConnection struct {
-		Count func(childComplexity int) int
-		Name  func(childComplexity int) int
+		Count   func(childComplexity int) int
+		IsNext  func(childComplexity int) int
+		Name    func(childComplexity int) int
+		Type    func(childComplexity int) int
+		Version func(childComplexity int) int
 	}
 
 	SWONode struct {
-		CanExec  func(childComplexity int) int
-		ID       func(childComplexity int) int
-		IsLeader func(childComplexity int) int
-		NewValid func(childComplexity int) int
-		OldValid func(childComplexity int) int
+		CanExec       func(childComplexity int) int
+		Connections   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		IsConfigValid func(childComplexity int) int
+		IsLeader      func(childComplexity int) int
 	}
 
 	SWOStatus struct {
-		Connections   func(childComplexity int) int
 		LastError     func(childComplexity int) int
 		LastStatus    func(childComplexity int) int
 		MainDBVersion func(childComplexity int) int
@@ -2669,12 +2671,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWOConnection.Count(childComplexity), true
 
+	case "SWOConnection.isNext":
+		if e.complexity.SWOConnection.IsNext == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.IsNext(childComplexity), true
+
 	case "SWOConnection.name":
 		if e.complexity.SWOConnection.Name == nil {
 			break
 		}
 
 		return e.complexity.SWOConnection.Name(childComplexity), true
+
+	case "SWOConnection.type":
+		if e.complexity.SWOConnection.Type == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Type(childComplexity), true
+
+	case "SWOConnection.version":
+		if e.complexity.SWOConnection.Version == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Version(childComplexity), true
 
 	case "SWONode.canExec":
 		if e.complexity.SWONode.CanExec == nil {
@@ -2683,6 +2706,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.CanExec(childComplexity), true
 
+	case "SWONode.connections":
+		if e.complexity.SWONode.Connections == nil {
+			break
+		}
+
+		return e.complexity.SWONode.Connections(childComplexity), true
+
 	case "SWONode.id":
 		if e.complexity.SWONode.ID == nil {
 			break
@@ -2690,33 +2720,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.ID(childComplexity), true
 
+	case "SWONode.isConfigValid":
+		if e.complexity.SWONode.IsConfigValid == nil {
+			break
+		}
+
+		return e.complexity.SWONode.IsConfigValid(childComplexity), true
+
 	case "SWONode.isLeader":
 		if e.complexity.SWONode.IsLeader == nil {
 			break
 		}
 
 		return e.complexity.SWONode.IsLeader(childComplexity), true
-
-	case "SWONode.newValid":
-		if e.complexity.SWONode.NewValid == nil {
-			break
-		}
-
-		return e.complexity.SWONode.NewValid(childComplexity), true
-
-	case "SWONode.oldValid":
-		if e.complexity.SWONode.OldValid == nil {
-			break
-		}
-
-		return e.complexity.SWONode.OldValid(childComplexity), true
-
-	case "SWOStatus.connections":
-		if e.complexity.SWOStatus.Connections == nil {
-			break
-		}
-
-		return e.complexity.SWOStatus.Connections(childComplexity), true
 
 	case "SWOStatus.lastError":
 		if e.complexity.SWOStatus.LastError == nil {
@@ -15192,8 +15208,6 @@ func (ec *executionContext) fieldContext_Query_swoStatus(ctx context.Context, fi
 				return ec.fieldContext_SWOStatus_lastError(ctx, field)
 			case "nodes":
 				return ec.fieldContext_SWOStatus_nodes(ctx, field)
-			case "connections":
-				return ec.fieldContext_SWOStatus_connections(ctx, field)
 			case "mainDBVersion":
 				return ec.fieldContext_SWOStatus_mainDBVersion(ctx, field)
 			case "nextDBVersion":
@@ -16063,6 +16077,138 @@ func (ec *executionContext) fieldContext_SWOConnection_name(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _SWOConnection_version(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_type(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_isNext(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_isNext(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsNext, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_isNext(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SWOConnection_count(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SWOConnection_count(ctx, field)
 	if err != nil {
@@ -16151,94 +16297,6 @@ func (ec *executionContext) fieldContext_SWONode_id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _SWONode_oldValid(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWONode_oldValid(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OldValid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWONode_oldValid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWONode",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWONode_newValid(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWONode_newValid(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NewValid, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWONode_newValid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWONode",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _SWONode_canExec(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SWONode_canExec(ctx, field)
 	if err != nil {
@@ -16322,6 +16380,103 @@ func (ec *executionContext) fieldContext_SWONode_isLeader(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_isConfigValid(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_isConfigValid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsConfigValid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_isConfigValid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_connections(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_connections(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Connections, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]SWOConnection)
+	fc.Result = res
+	return ec.marshalOSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_connections(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SWOConnection_name(ctx, field)
+			case "version":
+				return ec.fieldContext_SWOConnection_version(ctx, field)
+			case "type":
+				return ec.fieldContext_SWOConnection_type(ctx, field)
+			case "isNext":
+				return ec.fieldContext_SWOConnection_isNext(ctx, field)
+			case "count":
+				return ec.fieldContext_SWOConnection_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SWOConnection", field.Name)
 		},
 	}
 	return fc, nil
@@ -16500,66 +16655,16 @@ func (ec *executionContext) fieldContext_SWOStatus_nodes(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_SWONode_id(ctx, field)
-			case "oldValid":
-				return ec.fieldContext_SWONode_oldValid(ctx, field)
-			case "newValid":
-				return ec.fieldContext_SWONode_newValid(ctx, field)
 			case "canExec":
 				return ec.fieldContext_SWONode_canExec(ctx, field)
 			case "isLeader":
 				return ec.fieldContext_SWONode_isLeader(ctx, field)
+			case "isConfigValid":
+				return ec.fieldContext_SWONode_isConfigValid(ctx, field)
+			case "connections":
+				return ec.fieldContext_SWONode_connections(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SWONode", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SWOStatus_connections(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWOStatus_connections(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Connections, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]SWOConnection)
-	fc.Result = res
-	return ec.marshalNSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SWOStatus_connections(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SWOStatus",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_SWOConnection_name(ctx, field)
-			case "count":
-				return ec.fieldContext_SWOConnection_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SWOConnection", field.Name)
 		},
 	}
 	return fc, nil
@@ -29799,6 +29904,27 @@ func (ec *executionContext) _SWOConnection(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "version":
+
+			out.Values[i] = ec._SWOConnection_version(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._SWOConnection_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isNext":
+
+			out.Values[i] = ec._SWOConnection_isNext(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "count":
 
 			out.Values[i] = ec._SWOConnection_count(ctx, field, obj)
@@ -29834,20 +29960,6 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "oldValid":
-
-			out.Values[i] = ec._SWONode_oldValid(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "newValid":
-
-			out.Values[i] = ec._SWONode_newValid(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "canExec":
 
 			out.Values[i] = ec._SWONode_canExec(ctx, field, obj)
@@ -29862,6 +29974,17 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "isConfigValid":
+
+			out.Values[i] = ec._SWONode_isConfigValid(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "connections":
+
+			out.Values[i] = ec._SWONode_connections(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -29907,13 +30030,6 @@ func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet
 		case "nodes":
 
 			out.Values[i] = ec._SWOStatus_nodes(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "connections":
-
-			out.Values[i] = ec._SWOStatus_connections(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -33259,50 +33375,6 @@ func (ec *executionContext) marshalNSWOConnection2githubᚗcomᚋtargetᚋgoaler
 	return ec._SWOConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx context.Context, sel ast.SelectionSet, v []SWOConnection) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNSWONode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONode(ctx context.Context, sel ast.SelectionSet, v SWONode) graphql.Marshaler {
 	return ec._SWONode(ctx, sel, &v)
 }
@@ -35431,6 +35503,53 @@ func (ec *executionContext) marshalORotationType2ᚖgithubᚗcomᚋtargetᚋgoal
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx context.Context, sel ast.SelectionSet, v []SWOConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx context.Context, sel ast.SelectionSet, v *schedule.Schedule) graphql.Marshaler {

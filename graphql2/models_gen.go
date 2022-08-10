@@ -335,26 +335,28 @@ type RotationSearchOptions struct {
 }
 
 type SWOConnection struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Type    string `json:"type"`
+	IsNext  bool   `json:"isNext"`
+	Count   int    `json:"count"`
 }
 
 type SWONode struct {
-	ID       string `json:"id"`
-	OldValid bool   `json:"oldValid"`
-	NewValid bool   `json:"newValid"`
-	CanExec  bool   `json:"canExec"`
-	IsLeader bool   `json:"isLeader"`
+	ID            string          `json:"id"`
+	CanExec       bool            `json:"canExec"`
+	IsLeader      bool            `json:"isLeader"`
+	IsConfigValid bool            `json:"isConfigValid"`
+	Connections   []SWOConnection `json:"connections"`
 }
 
 type SWOStatus struct {
-	State         SWOState        `json:"state"`
-	LastStatus    string          `json:"lastStatus"`
-	LastError     string          `json:"lastError"`
-	Nodes         []SWONode       `json:"nodes"`
-	Connections   []SWOConnection `json:"connections"`
-	MainDBVersion string          `json:"mainDBVersion"`
-	NextDBVersion string          `json:"nextDBVersion"`
+	State         SWOState  `json:"state"`
+	LastStatus    string    `json:"lastStatus"`
+	LastError     string    `json:"lastError"`
+	Nodes         []SWONode `json:"nodes"`
+	MainDBVersion string    `json:"mainDBVersion"`
+	NextDBVersion string    `json:"nextDBVersion"`
 }
 
 type ScheduleConnection struct {

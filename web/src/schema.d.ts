@@ -42,7 +42,6 @@ export interface SWOStatus {
   lastStatus: string
   lastError: string
   nodes: SWONode[]
-  connections: SWOConnection[]
   mainDBVersion: string
   nextDBVersion: string
 }
@@ -56,17 +55,20 @@ export type SWOState =
   | 'executing'
   | 'done'
 
-export interface SWOConnection {
-  name: string
-  count: number
-}
-
 export interface SWONode {
   id: string
-  oldValid: boolean
-  newValid: boolean
   canExec: boolean
   isLeader: boolean
+  isConfigValid: boolean
+  connections?: null | SWOConnection[]
+}
+
+export interface SWOConnection {
+  name: string
+  version: string
+  type: string
+  isNext: boolean
+  count: number
 }
 
 export interface AlertMetricsOptions {

@@ -2,8 +2,12 @@ package graphqlapp
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"regexp"
+	"sort"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/swo/swogrp"
@@ -32,6 +36,8 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 	return err == nil, err
 }
 
+var swoRx = regexp.MustCompile(`^GoAlert ([^ ]+)(?: SWO:([A-D]):(.{24}))?$`)
+
 func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	if a.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")
@@ -42,29 +48,80 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		return nil, err
 	}
 
-	_conns, err := a.SWO.ConnInfo(ctx)
+	conns, err := a.SWO.ConnInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var conns []graphql2.SWOConnection
-	for _, c := range _conns {
-		conns = append(conns, graphql2.SWOConnection{
-			Name:  c.Name,
-			Count: c.Count,
+	nodes := make(map[string]*graphql2.SWONode)
+	for _, conn := range conns {
+		m := swoRx.FindStringSubmatch(conn.Name)
+		var connType, version string
+		idStr := "unknown-" + conn.Name
+		if len(m) == 4 {
+			version = m[1]
+			connType = m[2]
+			id, err := base64.URLEncoding.DecodeString(m[3])
+			if err == nil && len(id) == 16 {
+				var u uuid.UUID
+				copy(u[:], id)
+				idStr = u.String()
+			}
+		}
+		n := nodes[idStr]
+		if n == nil {
+			n = &graphql2.SWONode{ID: idStr}
+			nodes[idStr] = n
+		}
+		n.Connections = append(n.Connections, graphql2.SWOConnection{
+			Name:    conn.Name,
+			IsNext:  conn.IsNext,
+			Version: version,
+			Type:    string(connType),
+			Count:   conn.Count,
 		})
 	}
 
 	s := a.SWO.Status()
-	var nodes []graphql2.SWONode
-	for _, n := range s.Nodes {
-		nodes = append(nodes, graphql2.SWONode{
-			ID:       n.ID.String(),
-			OldValid: n.OldID == s.MainDBID,
-			NewValid: n.NewID == s.NextDBID,
-			CanExec:  n.CanExec,
-			IsLeader: n.ID == s.LeaderID,
-		})
+validateNodes:
+	for _, node := range s.Nodes {
+		n := nodes[node.ID.String()]
+		if n == nil {
+			n = &graphql2.SWONode{ID: n.ID}
+			nodes[node.ID.String()] = n
+		}
+		n.IsLeader = node.ID == s.LeaderID
+		n.CanExec = node.CanExec
+
+		if node.NewID != s.NextDBID {
+			continue
+		}
+		if node.OldID != s.MainDBID {
+			continue
+		}
+
+		if len(n.Connections) == 0 {
+			fmt.Println("no connections")
+			continue
+		}
+
+		version := n.Connections[0].Version
+		for _, conn := range n.Connections {
+			if conn.Version != version {
+				fmt.Println("invalid version")
+				continue validateNodes
+			}
+			if !conn.IsNext && (conn.Type != "A" && conn.Type != "B") {
+				fmt.Println("invalid type old")
+				continue validateNodes
+			}
+			if conn.IsNext && (conn.Type != "C" && conn.Type != "D") {
+				fmt.Println("invalid type new")
+				continue validateNodes
+			}
+		}
+
+		n.IsConfigValid = true
 	}
 
 	var state graphql2.SWOState
@@ -87,14 +144,20 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		return nil, fmt.Errorf("unknown state: %d", s.State)
 	}
 
+	var nodeList []graphql2.SWONode
+	for _, n := range nodes {
+		nodeList = append(nodeList, *n)
+	}
+	sort.Slice(nodeList, func(i, j int) bool {
+		return nodeList[i].ID < nodeList[j].ID
+	})
+
 	return &graphql2.SWOStatus{
 		State: state,
 
 		LastStatus: s.LastStatus,
 		LastError:  s.LastError,
-		Nodes:      nodes,
-
-		Connections: conns,
+		Nodes:      nodeList,
 
 		NextDBVersion: s.NextDBVersion,
 		MainDBVersion: s.MainDBVersion,

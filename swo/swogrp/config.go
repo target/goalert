@@ -11,6 +11,8 @@ import (
 type TaskFn func(context.Context) error
 
 type Config struct {
+	NodeID uuid.UUID
+
 	CanExec      bool
 	OldID, NewID uuid.UUID
 

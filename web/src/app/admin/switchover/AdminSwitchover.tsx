@@ -43,22 +43,25 @@ const query = gql`
       lastStatus
       mainDBVersion
       nextDBVersion
-      connections {
-        name
-        count
-      }
       nodes {
         id
         canExec
-        oldValid
-        newValid
         isLeader
+        isConfigValid
+        connections {
+          name
+          version
+          type
+          isNext
+          count
+        }
       }
     }
   }
 `
 
 let n = 1
+let u = 1
 const names: { [key: string]: string } = {}
 
 // friendlyName will assign a persistant "friendly" name to the node.
@@ -70,7 +73,8 @@ const names: { [key: string]: string } = {}
 // on another browser tab.
 function friendlyName(id: string): string {
   if (!names[id]) {
-    names[id] = `Node ${n++}`
+    if (id.startsWith('unknown')) return (names[id] = 'Unknown ' + u++)
+    return (names[id] = 'Node ' + n++)
   }
   return names[id]
 }
@@ -295,84 +299,38 @@ export default function AdminSwitchover(): JSX.Element {
 
       <Grid item xs={12} sm={12} md={12} lg={8} xl={8}>
         <Card sx={{ height: '100%' }}>
-          <CardHeader title='Database Connections' {...headerSize} />
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Application</TableCell>
-                <TableCell>Info</TableCell>
-                <TableCell align='right'>Count</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data?.connections?.map((row) => (
-                <TableRow
-                  key={row.name || '(no name)'}
-                  sx={{
-                    '&:last-child td, &:last-child th': { border: 0 },
-                    backgroundColor: (theme) =>
-                      row.name.includes('GoAlert') && !row.name.includes('SWO')
-                        ? getBackgroundColor(theme.palette.error.light, 0.9)
-                        : 'inherit',
-                    color: (theme) =>
-                      row.name.includes('GoAlert') && !row.name.includes('SWO')
-                        ? getColor(theme.palette.error.light, 0.6)
-                        : 'inherit',
-                  }}
-                >
-                  <TableCell component='th' scope='row'>
-                    {row?.name?.split('(')[0].replace(/[)(]/g, '') ??
-                      '(no name)'}
-                  </TableCell>
-                  <TableCell component='th' scope='row'>
-                    {row?.name?.split('(')[1]?.replace(/[)(]/g, '') ?? '-'}
-                  </TableCell>
-                  <TableCell align='right'>{row.count}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '0 16px 0 16px',
+              marginBottom: '16px',
+              height: '100%',
+            }}
+          >
+            <CardHeader title='DB Diff' {...headerSize} />
+            <Tooltip title={curVer[1]}>
+              <Alert icon={<RemoveIcon />} severity='warning'>
+                From {curVer[0]}
+              </Alert>
+            </Tooltip>
+            <DownIcon
+              style={{ flexGrow: 1 }}
+              sx={{
+                alignSelf: 'center',
+                color: (theme) => theme.palette.primary.main,
+              }}
+            />
+            <Tooltip title={nextVer[1]}>
+              <Alert icon={<AddIcon />} severity='success' sx={{ mb: '16px' }}>
+                To {nextVer[0]}
+              </Alert>
+            </Tooltip>
+          </div>
         </Card>
       </Grid>
 
       <Grid item xs={12} container spacing={2} justifyContent='space-between'>
-        <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
-          <Card sx={{ height: '100%' }}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '0 16px 0 16px',
-                marginBottom: '16px',
-                height: '100%',
-              }}
-            >
-              <CardHeader title='DB Diff' {...headerSize} />
-              <Tooltip title={curVer[1]}>
-                <Alert icon={<RemoveIcon />} severity='warning'>
-                  From {curVer[0]}
-                </Alert>
-              </Tooltip>
-              <DownIcon
-                style={{ flexGrow: 1 }}
-                sx={{
-                  alignSelf: 'center',
-                  color: (theme) => theme.palette.primary.main,
-                }}
-              />
-              <Tooltip title={nextVer[1]}>
-                <Alert
-                  icon={<AddIcon />}
-                  severity='success'
-                  sx={{ mb: '16px' }}
-                >
-                  To {nextVer[0]}
-                </Alert>
-              </Tooltip>
-            </div>
-          </Card>
-        </Grid>
-
         {data?.nodes.length > 0 &&
           data.nodes
             .slice()

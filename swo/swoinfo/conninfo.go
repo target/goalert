@@ -8,8 +8,9 @@ import (
 )
 
 type ConnCount struct {
-	Name  string
-	Count int
+	Name   string
+	IsNext bool
+	Count  int
 }
 
 // ConnInfo provides information about the connections to both old and new databases.
@@ -23,17 +24,21 @@ func ConnInfo(ctx context.Context, oldConn, newConn *pgx.Conn) ([]ConnCount, err
 		return nil, err
 	}
 
-	counts := make(map[string]int)
+	type connType struct {
+		Name   string
+		IsNext bool
+	}
+	counts := make(map[connType]int)
 	for _, oldConn := range oldConns {
-		counts[oldConn.Name.String] += int(oldConn.Count)
+		counts[connType{Name: oldConn.Name.String}] += int(oldConn.Count)
 	}
 	for _, newConn := range newConns {
-		counts[newConn.Name.String] += int(newConn.Count)
+		counts[connType{Name: newConn.Name.String, IsNext: true}] += int(newConn.Count)
 	}
 
 	var result []ConnCount
-	for name, count := range counts {
-		result = append(result, ConnCount{Name: name, Count: count})
+	for t, count := range counts {
+		result = append(result, ConnCount{Name: t.Name, IsNext: t.IsNext, Count: count})
 	}
 
 	return result, nil

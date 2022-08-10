@@ -34,7 +34,7 @@ func NewTaskMgr(ctx context.Context, cfg Config) (*TaskMgr, error) {
 	t := &TaskMgr{
 		cfg: cfg,
 		local: Node{
-			ID:    uuid.New(),
+			ID:    cfg.NodeID,
 			OldID: cfg.OldID,
 			NewID: cfg.NewID,
 

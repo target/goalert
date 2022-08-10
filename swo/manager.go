@@ -3,6 +3,7 @@ package swo
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -51,21 +52,33 @@ type Config struct {
 	Logger             *log.Logger
 }
 
+// GoAlert v0.28.0-3141-g8a7b7d852-dirty
 func NewManager(cfg Config) (*Manager, error) {
-	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, fmt.Sprintf("GoAlert %s (SWO Manager - Main)", version.GitVersion()))
+	id := uuid.New()
+
+	appStr := func(typ byte) string {
+		vers := version.GitVersion()
+		id := base64.URLEncoding.EncodeToString(id[:])
+		if len(vers) > 24 {
+			vers = vers[:24]
+		}
+
+		return fmt.Sprintf("GoAlert %s SWO:%c:%s", vers, typ, id)
+	}
+
+	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, appStr('A'))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, fmt.Sprintf("GoAlert %s (SWO Manager - Next)", version.GitVersion()))
+	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr('B'))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, appStr('C'))
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
-
-	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, fmt.Sprintf("GoAlert %s (SWO Node - Main)", version.GitVersion()))
-	if err != nil {
-		return nil, fmt.Errorf("connect to old db: %w", err)
-	}
-	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, fmt.Sprintf("GoAlert %s (SWO Node - Next)", version.GitVersion()))
+	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr('D'))
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
@@ -100,10 +113,14 @@ func NewManager(cfg Config) (*Manager, error) {
 	}
 
 	m.taskMgr, err = swogrp.NewTaskMgr(ctx, swogrp.Config{
+		NodeID:  id,
 		CanExec: cfg.CanExec,
 
 		Logger:   cfg.Logger,
 		Messages: messages,
+
+		OldID: m.MainDBInfo.ID,
+		NewID: m.NextDBInfo.ID,
 
 		Executor:   &Executor{mgr: m},
 		PauseFunc:  func(ctx context.Context) error { return m.pauseResume.Pause(ctx) },
@@ -168,6 +185,8 @@ func withPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, 
 func (m *Manager) Status() Status {
 	return Status{
 		Status:        m.taskMgr.Status(),
+		MainDBID:      m.MainDBInfo.ID,
+		NextDBID:      m.NextDBInfo.ID,
 		MainDBVersion: m.MainDBInfo.Version,
 		NextDBVersion: m.NextDBInfo.Version,
 	}
