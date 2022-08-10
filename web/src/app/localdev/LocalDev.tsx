@@ -12,7 +12,7 @@ import { OpenInNew } from 'mdi-material-ui'
 import { ConfigID } from '../../schema'
 import AdminDialog from '../admin/AdminDialog'
 
-export default function LocalDev() {
+export default function LocalDev(): JSX.Element {
   const [updateConfig, setUpdateConfig] = useState<Partial<
     Record<ConfigID, string>
   > | null>(null)
