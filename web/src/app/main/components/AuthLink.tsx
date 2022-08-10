@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { useSessionInfo } from '../../util/RequireConfig'
 import { useResetURLParams, useURLParam } from '../../actions'
 import { gql, useMutation } from '@apollo/client'
@@ -10,9 +10,11 @@ const mutation = gql`
   }
 `
 
-export default function AuthLink() {
+export default function AuthLink(): ReactNode {
   const [token] = useURLParam('authLinkToken', '')
+  const [username] = useURLParam('username', '')
   const clearToken = useResetURLParams('authLinkToken')
+  const clearUsername = useResetURLParams('username')
   const { ready } = useSessionInfo()
 
   const [linkAccount, linkAccountStatus] = useMutation(mutation, {
@@ -27,12 +29,16 @@ export default function AuthLink() {
     <FormDialog
       title='Link Account?'
       confirm
-      subTitle='Click confirm to link this GoAlert account.'
+      subTitle={`Click confirm to link this GoAlert account to slack user ${username}.`}
       errors={linkAccountStatus.error ? [linkAccountStatus.error] : []}
-      onClose={() => clearToken()}
+      onClose={() => {
+        clearToken()
+        clearUsername()
+      }}
       onSubmit={() =>
         linkAccount().then(() => {
           clearToken()
+          clearUsername()
         })
       }
     />

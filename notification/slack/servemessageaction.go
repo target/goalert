@@ -82,8 +82,9 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			ID string
 		}
 		User struct {
-			ID     string `json:"id"`
-			TeamID string `json:"team_id"`
+			ID       string `json:"id"`
+			TeamID   string `json:"team_id"`
+			Username string `json:"username"`
 		}
 		Actions []struct {
 			ActionID string `json:"action_id"`
@@ -133,6 +134,10 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		if err != nil {
 			log.Log(ctx, err)
 		}
+
+		// add slack username to url
+		linkURL = fmt.Sprintf("%s&username=%s", linkURL, payload.User.Username)
+
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			var msg string
 			if linkURL == "" {
