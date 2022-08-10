@@ -6474,10 +6474,10 @@ react-big-calendar@1.5.0:
     react-overlays "^5.2.0"
     uncontrollable "^7.2.1"
 
-react-colorful@5.5.1:
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.5.1.tgz#29d9c4e496f2ca784dd2bb5053a3a4340cfaf784"
-  integrity sha512-M1TJH2X3RXEt12sWkpa6hLc/bbYS0H6F4rIqjQZ+RxNBstpY67d9TrFXtqdZwhpmBXcCwEi7stKqFue3ZRkiOg==
+react-colorful@5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.6.0.tgz#1394165de401265d36a809a7ac87c910fad36837"
+  integrity sha512-2/sW7msvdPWYc6uKFteTOztlX8ujoKImv6k2TVSlqbGNbR3bsQMfTyHcca+kk8dDUe/bsfVkI3M2WOl1bKL+Lg==
 
 react-countdown@2.3.2:
   version "2.3.2"
