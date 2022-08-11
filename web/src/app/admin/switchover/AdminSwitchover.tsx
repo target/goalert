@@ -96,11 +96,13 @@ export default function AdminSwitchover(): JSX.Element {
   const nextVer = data?.mainDBVersion.split(' on ')
 
   useEffect(() => {
+    if (data?.state === 'done') return
+
     const t = setInterval(() => {
       if (!fetching) refetch()
     }, 1000)
     return () => clearInterval(t)
-  }, [])
+  }, [fetching, refetch, data?.state])
 
   if (fetching) {
     return <Spinner />
