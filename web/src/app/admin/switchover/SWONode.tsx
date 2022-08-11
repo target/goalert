@@ -33,6 +33,12 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
                 primary='Application'
                 secondary={node.id.substring(8) || '(No name given)'}
               />
+
+              {node.id.includes('GoAlert') && (
+                <ListItemSecondaryAction title='All GoAlert instances must be in switchover mode or dataloss could occur.'>
+                  <FalseIcon color='error' />
+                </ListItemSecondaryAction>
+              )}
             </ListItem>
             <ListItem>
               <ListItemText primary='Connections' />
