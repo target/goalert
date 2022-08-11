@@ -23,6 +23,9 @@ export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 PROD_CY_PROC = Procfile.cypress.prod
 
+PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
+export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
