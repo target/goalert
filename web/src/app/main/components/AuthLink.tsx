@@ -14,19 +14,20 @@ const mutation = gql`
 export default function AuthLink(): ReactNode {
   const [params] = useURLParams({
     authLinkToken: '',
-    username: '',
+    details: '',
     alertID: '',
+    action: '',
   })
   const [, navigate] = useLocation()
 
-  const resetParams = useResetURLParams('authLinkToken', 'username')
+  const resetParams = useResetURLParams('authLinkToken', 'details')
   const { ready } = useSessionInfo()
 
   const [linkAccount, linkAccountStatus] = useMutation(mutation, {
     variables: { token: params.authLinkToken },
   })
 
-  if (!params.username || !params.authLinkToken || !ready) {
+  if (!params.details || !params.authLinkToken || !ready) {
     return null
   }
 
@@ -34,14 +35,22 @@ export default function AuthLink(): ReactNode {
     <FormDialog
       title='Link Account?'
       confirm
-      subTitle={`Click confirm to link this GoAlert account to slack user @${params.username}. You will be able to update alerts from slack when your account has been linked.`}
+      subTitle={`Click confirm to link this account to ${params.details}.`}
       errors={linkAccountStatus.error ? [linkAccountStatus.error] : []}
       onClose={() => {
         resetParams()
       }}
       onSubmit={() =>
         linkAccount().then(() => {
-          navigate(`/alerts/${params.alertID}`)
+          if (params.alertID) {
+            navigate(`/alerts/${params.alertID}`)
+          }
+          if (params.action) {
+            // make request to close/ack here
+            // if fail trigger toast
+          }
+
+          // always call
           resetParams()
         })
       }

@@ -88,7 +88,7 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 	return tx.Commit()
 }
 
-func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error) {
+func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string, params url.Values) (string, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return "", err
@@ -126,5 +126,5 @@ func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string) (
 	cfg := config.FromContext(ctx)
 	p := make(url.Values)
 	p.Set("authLinkToken", token)
-	return cfg.CallbackURL("/profile", p), nil
+	return cfg.CallbackURL("/profile", p, params), nil
 }

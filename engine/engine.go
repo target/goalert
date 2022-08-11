@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -153,9 +154,9 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
-func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string) (url string, err error) {
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, params url.Values) (url string, err error) {
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID)
+		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID, params)
 	})
 	return url, err
 }
@@ -280,10 +281,10 @@ func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult
 }
 
 // ReceiveSubject will process a notification result.
-func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) (int, error) {
+func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) error {
 	cb, err := p.b.FindOne(ctx, callbackID)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	if cb.ServiceID != "" {
 		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
@@ -297,10 +298,12 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		usr, err = p.cfg.UserStore.FindOneBySubject(ctx, providerID, subjectID)
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to find user: %w", err)
+		return fmt.Errorf("failed to find user: %w", err)
 	}
 	if usr == nil {
-		return cb.AlertID, notification.ErrUnknownSubject
+		return &notification.UnknownSubjectError{
+			AlertID: cb.AlertID,
+		}
 	}
 
 	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
@@ -315,17 +318,17 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
 	default:
-		return 0, errors.New("unknown result type")
+		return errors.New("unknown result type")
 	}
 
 	if cb.AlertID != 0 {
-		return 0, errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return 0, errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
-	return 0, errors.New("unknown callback type")
+	return errors.New("unknown callback type")
 }
 
 // Receive will process a notification result.

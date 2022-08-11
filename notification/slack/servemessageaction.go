@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -127,16 +128,21 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "unknown action ID '%s'", act.ActionID))
 		return
 	}
-	alertID := 0
-	alertID, err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
-	if errors.Is(err, notification.ErrUnknownSubject) {
-		linkURL, err := s.recv.AuthLinkURL(ctx, "slack:"+payload.User.TeamID, payload.User.ID)
+
+	var e *notification.UnknownSubjectError
+	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
+
+	if errors.As(err, &e) {
+		v := make(url.Values)
+		v.Set("details", fmt.Sprintf("slack:%s", payload.User.Username))
+		v.Set("alertID", strconv.Itoa(e.AlertID))
+		v.Set("action", res.String())
+
+		linkURL, err := s.recv.AuthLinkURL(ctx, "slack:"+payload.User.TeamID, payload.User.ID, v)
 		if err != nil {
 			log.Log(ctx, err)
 		}
 
-		// add slack username and alertID to url
-		linkURL = fmt.Sprintf("%s&username=%s&alertID=%d", linkURL, payload.User.Username, alertID)
 
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			var msg string

@@ -1,6 +1,9 @@
 package notification
 
-import "context"
+import (
+	"context"
+	"net/url"
+)
 
 type namedReceiver struct {
 	r  ResultReceiver
@@ -24,8 +27,8 @@ func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string
 }
 
 // AuthLinkURL calls the underlying AuthLinkURL method.
-func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error) {
-	return nr.r.AuthLinkURL(ctx, providerID, subjectID)
+func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID string, params url.Values) (string, error) {
+	return nr.r.AuthLinkURL(ctx, providerID, subjectID, params)
 }
 
 // Start implements the Receiver interface by calling the underlying Receiver.Start method.
@@ -47,7 +50,7 @@ func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result 
 }
 
 // Receive implements the Receiver interface by calling the underlying Receiver.ReceiveSubject method.
-func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) (int, error) {
+func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error {
 	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
 	return nr.r.ReceiveSubject(ctx, providerID, subjectID, callbackID, result)
 }
