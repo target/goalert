@@ -34,7 +34,7 @@ export default function AuthLink(): JSX.Element {
   const { ready } = useSessionInfo()
 
   const [linkAccountStatus, linkAccount] = useMutation(mutation)
-  const [_, updateAlertStatus] = useMutation(updateStatusMutation)
+  const [, updateAlertStatus] = useMutation(updateStatusMutation)
 
   if (!params.details || !params.authLinkToken || !ready) {
     return <div>{undefined}</div>
@@ -74,9 +74,7 @@ export default function AuthLink(): JSX.Element {
       onSubmit={() =>
         linkAccount({ token: params.authLinkToken }).then((result) => {
           if (result.error) return
-
           if (params.alertID) navigate(`/alerts/${params.alertID}`)
-
           if (params.action) {
             updateAlertStatus({
               input: {
