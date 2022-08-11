@@ -94,34 +94,34 @@ validateNodes:
 		n.CanExec = node.CanExec
 
 		if node.NewID != s.NextDBID {
+			n.ConfigError = "next-db-url is invalid"
 			continue
 		}
 		if node.OldID != s.MainDBID {
+			n.ConfigError = "db-url is invalid"
 			continue
 		}
 
 		if len(n.Connections) == 0 {
-			fmt.Println("no connections")
+			n.ConfigError = "node is not connected to any DB"
 			continue
 		}
 
 		version := n.Connections[0].Version
 		for _, conn := range n.Connections {
 			if conn.Version != version {
-				fmt.Println("invalid version")
+				n.ConfigError = "node is connected with multiple versions of GoAlert"
 				continue validateNodes
 			}
 			if !conn.IsNext && (conn.Type != "A" && conn.Type != "B") {
-				fmt.Println("invalid type old")
+				n.ConfigError = fmt.Sprintf("connected to db-url (main) with invalid type %s (expected A or B)", conn.Type)
 				continue validateNodes
 			}
 			if conn.IsNext && (conn.Type != "C" && conn.Type != "D") {
-				fmt.Println("invalid type new")
+				n.ConfigError = fmt.Sprintf("connected to next-db-url (next) with invalid type %s (expected C or D)", conn.Type)
 				continue validateNodes
 			}
 		}
-
-		n.IsConfigValid = true
 	}
 
 	var state graphql2.SWOState

@@ -71,8 +71,8 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
           </ListItem>
           <ListItem>
             <ListItemText primary='Config valid?' />
-            <ListItemSecondaryAction>
-              {node.isConfigValid ? (
+            <ListItemSecondaryAction title={node.configError}>
+              {!node.configError ? (
                 <TrueIcon color='success' />
               ) : (
                 <FalseIcon color='error' />

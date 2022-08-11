@@ -140,7 +140,7 @@ type SWONode {
   canExec: Boolean!
   isLeader: Boolean!
 
-  isConfigValid: Boolean!
+  configError: String!
   connections: [SWOConnection!]
 }
 type SWOConnection {

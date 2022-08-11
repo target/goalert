@@ -41,7 +41,7 @@ const query = gql`
         id
         canExec
         isLeader
-        isConfigValid
+        configError
         connections {
           name
           version

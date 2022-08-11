@@ -408,11 +408,11 @@ type ComplexityRoot struct {
 	}
 
 	SWONode struct {
-		CanExec       func(childComplexity int) int
-		Connections   func(childComplexity int) int
-		ID            func(childComplexity int) int
-		IsConfigValid func(childComplexity int) int
-		IsLeader      func(childComplexity int) int
+		CanExec     func(childComplexity int) int
+		ConfigError func(childComplexity int) int
+		Connections func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsLeader    func(childComplexity int) int
 	}
 
 	SWOStatus struct {
@@ -2706,6 +2706,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SWONode.CanExec(childComplexity), true
 
+	case "SWONode.configError":
+		if e.complexity.SWONode.ConfigError == nil {
+			break
+		}
+
+		return e.complexity.SWONode.ConfigError(childComplexity), true
+
 	case "SWONode.connections":
 		if e.complexity.SWONode.Connections == nil {
 			break
@@ -2719,13 +2726,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SWONode.ID(childComplexity), true
-
-	case "SWONode.isConfigValid":
-		if e.complexity.SWONode.IsConfigValid == nil {
-			break
-		}
-
-		return e.complexity.SWONode.IsConfigValid(childComplexity), true
 
 	case "SWONode.isLeader":
 		if e.complexity.SWONode.IsLeader == nil {
@@ -16385,8 +16385,8 @@ func (ec *executionContext) fieldContext_SWONode_isLeader(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _SWONode_isConfigValid(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SWONode_isConfigValid(ctx, field)
+func (ec *executionContext) _SWONode_configError(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_configError(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16399,7 +16399,7 @@ func (ec *executionContext) _SWONode_isConfigValid(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsConfigValid, nil
+		return obj.ConfigError, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16411,19 +16411,19 @@ func (ec *executionContext) _SWONode_isConfigValid(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SWONode_isConfigValid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SWONode_configError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SWONode",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -16659,8 +16659,8 @@ func (ec *executionContext) fieldContext_SWOStatus_nodes(ctx context.Context, fi
 				return ec.fieldContext_SWONode_canExec(ctx, field)
 			case "isLeader":
 				return ec.fieldContext_SWONode_isLeader(ctx, field)
-			case "isConfigValid":
-				return ec.fieldContext_SWONode_isConfigValid(ctx, field)
+			case "configError":
+				return ec.fieldContext_SWONode_configError(ctx, field)
 			case "connections":
 				return ec.fieldContext_SWONode_connections(ctx, field)
 			}
@@ -29974,9 +29974,9 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "isConfigValid":
+		case "configError":
 
-			out.Values[i] = ec._SWONode_isConfigValid(ctx, field, obj)
+			out.Values[i] = ec._SWONode_configError(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

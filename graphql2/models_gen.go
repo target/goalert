@@ -343,11 +343,11 @@ type SWOConnection struct {
 }
 
 type SWONode struct {
-	ID            string          `json:"id"`
-	CanExec       bool            `json:"canExec"`
-	IsLeader      bool            `json:"isLeader"`
-	IsConfigValid bool            `json:"isConfigValid"`
-	Connections   []SWOConnection `json:"connections"`
+	ID          string          `json:"id"`
+	CanExec     bool            `json:"canExec"`
+	IsLeader    bool            `json:"isLeader"`
+	ConfigError string          `json:"configError"`
+	Connections []SWOConnection `json:"connections"`
 }
 
 type SWOStatus struct {
