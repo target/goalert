@@ -14,7 +14,7 @@ type Receiver interface {
 	Receive(ctx context.Context, callbackID string, result Result) error
 
 	// ReceiveSubject records a response to a previously sent message from a provider/subject (e.g. Slack user).
-	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
+	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) (int, error)
 
 	// AuthLinkURL will generate a URL to link a provider and subject to a GoAlert user.
 	AuthLinkURL(ctx context.Context, providerID, subjectID string) (string, error)

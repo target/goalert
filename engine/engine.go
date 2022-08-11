@@ -280,10 +280,10 @@ func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult
 }
 
 // ReceiveSubject will process a notification result.
-func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) error {
+func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result notification.Result) (int, error) {
 	cb, err := p.b.FindOne(ctx, callbackID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if cb.ServiceID != "" {
 		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
@@ -297,10 +297,10 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		usr, err = p.cfg.UserStore.FindOneBySubject(ctx, providerID, subjectID)
 	})
 	if err != nil {
-		return fmt.Errorf("failed to find user: %w", err)
+		return 0, fmt.Errorf("failed to find user: %w", err)
 	}
 	if usr == nil {
-		return notification.ErrUnknownSubject
+		return cb.AlertID, notification.ErrUnknownSubject
 	}
 
 	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
@@ -315,17 +315,17 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
 	default:
-		return errors.New("unknown result type")
+		return 0, errors.New("unknown result type")
 	}
 
 	if cb.AlertID != 0 {
-		return errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+		return 0, errors.Wrap(p.a.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
 	}
 	if cb.ServiceID != "" {
-		return errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+		return 0, errors.Wrap(p.a.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
 	}
 
-	return errors.New("unknown callback type")
+	return 0, errors.New("unknown callback type")
 }
 
 // Receive will process a notification result.

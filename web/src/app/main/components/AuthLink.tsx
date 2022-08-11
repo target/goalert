@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react'
 import { useSessionInfo } from '../../util/RequireConfig'
-import { useResetURLParams, useURLParam } from '../../actions'
+import { useResetURLParams, useURLParams } from '../../actions'
 import { gql, useMutation } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
+import { useLocation } from 'wouter'
 
 const mutation = gql`
   mutation ($token: ID!) {
@@ -11,17 +12,21 @@ const mutation = gql`
 `
 
 export default function AuthLink(): ReactNode {
-  const [token] = useURLParam('authLinkToken', '')
-  const [username] = useURLParam('username', '')
-  const clearToken = useResetURLParams('authLinkToken')
-  const clearUsername = useResetURLParams('username')
+  const [params] = useURLParams({
+    authLinkToken: '',
+    username: '',
+    alertID: '',
+  })
+  const [, navigate] = useLocation()
+
+  const resetParams = useResetURLParams('authLinkToken', 'username')
   const { ready } = useSessionInfo()
 
   const [linkAccount, linkAccountStatus] = useMutation(mutation, {
-    variables: { token },
+    variables: { token: params.authLinkToken },
   })
 
-  if (!token || !ready) {
+  if (!params.username || !params.authLinkToken || !ready) {
     return null
   }
 
@@ -29,16 +34,15 @@ export default function AuthLink(): ReactNode {
     <FormDialog
       title='Link Account?'
       confirm
-      subTitle={`Click confirm to link this GoAlert account to slack user ${username}.`}
+      subTitle={`Click confirm to link this GoAlert account to slack user @${params.username}. You will be able to update alerts from slack when your account has been linked.`}
       errors={linkAccountStatus.error ? [linkAccountStatus.error] : []}
       onClose={() => {
-        clearToken()
-        clearUsername()
+        resetParams()
       }}
       onSubmit={() =>
         linkAccount().then(() => {
-          clearToken()
-          clearUsername()
+          navigate(`/alerts/${params.alertID}`)
+          resetParams()
         })
       }
     />
