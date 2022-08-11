@@ -1,9 +1,11 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import { useSessionInfo } from '../../util/RequireConfig'
 import { useResetURLParams, useURLParams } from '../../actions'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { useLocation } from 'wouter'
+import Snackbar from '@mui/material/Snackbar'
+import { Alert } from '@mui/material'
 
 const mutation = gql`
   mutation ($token: ID!) {
@@ -11,7 +13,15 @@ const mutation = gql`
   }
 `
 
-export default function AuthLink(): ReactNode {
+const updateStatusMutation = gql`
+  mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
+    updateAlerts(input: $input) {
+      id
+    }
+  }
+`
+
+export default function AuthLink(): JSX.Element {
   const [params] = useURLParams({
     authLinkToken: '',
     details: '',
@@ -23,12 +33,33 @@ export default function AuthLink(): ReactNode {
   const resetParams = useResetURLParams('authLinkToken', 'details')
   const { ready } = useSessionInfo()
 
-  const [linkAccount, linkAccountStatus] = useMutation(mutation, {
-    variables: { token: params.authLinkToken },
-  })
+  const [linkAccountStatus, linkAccount] = useMutation(mutation)
+  const [_, updateAlertStatus] = useMutation(updateStatusMutation)
 
   if (!params.details || !params.authLinkToken || !ready) {
-    return null
+    return <div>{undefined}</div>
+  }
+
+  const authTokenExpired = linkAccountStatus?.error?.message.includes('expired')
+
+  if (linkAccountStatus.error) {
+    return (
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        autoHideDuration={6000}
+        onClose={() => console.log('hello')}
+        open={authTokenExpired || Boolean(linkAccountStatus?.error)}
+      >
+        <Alert severity='error'>
+          {authTokenExpired
+            ? 'The auth link token has expired. Please try again later.'
+            : 'An unexpected error has occurred. Please try again later.'}
+        </Alert>
+      </Snackbar>
+    )
   }
 
   return (
@@ -41,16 +72,23 @@ export default function AuthLink(): ReactNode {
         resetParams()
       }}
       onSubmit={() =>
-        linkAccount().then(() => {
-          if (params.alertID) {
-            navigate(`/alerts/${params.alertID}`)
-          }
+        linkAccount({ token: params.authLinkToken }).then((result) => {
+          if (result.error) return
+
+          if (params.alertID) navigate(`/alerts/${params.alertID}`)
+
           if (params.action) {
-            // make request to close/ack here
-            // if fail trigger toast
+            updateAlertStatus({
+              input: {
+                alertIDs: [params.alertID],
+                newStatus:
+                  params.action === 'ResultAcknowledge'
+                    ? 'StatusAcknowledged'
+                    : 'StatusClosed',
+              },
+            })
           }
 
-          // always call
           resetParams()
         })
       }
