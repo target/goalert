@@ -1,0 +1,85 @@
+.flex-grid {
+    display: flex;
+}
+
+.col {
+    flex: 1;
+}
+
+.row {
+    flex: 0;
+}
+
+form {
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.msg code {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: #f5f5f5;
+    text-align: left;
+}
+
+a {
+    text-decoration: none;
+}
+
+td {
+    padding: 8px;
+}
+
+tr.rejected {
+    background-color: #ffa5a5;
+}
+
+.icon {
+    display: none;
+}
+
+td.out {
+    text-align: right;
+    padding-left: 4em;
+}
+
+td.in {
+    text-align: left;
+    padding-right: 4em;
+}
+
+.out code {
+    margin-left: 4em;
+    /* blue message bubble */
+    background-color: #d9edf7;
+}
+
+/* red circle */
+.rejected .icon {
+    background-color: #ffa5a5;
+}
+
+.convo {
+    padding: 10px;
+    color: #222;
+}
+
+.convo .number {
+    font-size: large;
+}
+
+.convo.unread {
+    font-weight: bold;
+    color: #000;
+}
+
+.convo.unread .summary {
+    color: #000;
+}
+
+.convo .summary {
+    color: #444;
+}
+

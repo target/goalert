@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mocktwilio</title>
+    <link rel="stylesheet" href="/ui/assets/main.css" />
+    <link rel="stylesheet" href="/ui/assets/index.css" />
+  </head>
+
+  <body>
+    <script src="/ui/assets/liveupdate.js"></script>
+    <div class="flex-grid">
+      <div class="col">
+        <table>
+          <tbody>
+            <tr>
+              <td>Account SID</td>
+              <td><code>{{.AccountSID}}</code></td>
+            </tr>
+            <tr>
+              <td>Auth Token</td>
+              <td><code>{{.AuthToken}}</code></td>
+            </tr>
+            <tr>
+              <td>Message SID</td>
+              <td><code>{{.MessageSID}}</code></td>
+            </tr>
+            <tr>
+              <td>Twilio Number</td>
+              <td><code>{{.FromNumber}}</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <form action="/ui/action/send" method="post">
+          <input
+            type="text"
+            name="from"
+            placeholder="From Number"
+            value="{{.LastSent}}"
+          />
+          <input type="text" name="body" placeholder="Message Body" />
+          <input
+            type="submit"
+            value="Send SMS"
+            title="Send SMS from the provided number to the Twilio number."
+          />
+        </form>
+        <form action="/ui/action/call" method="post">
+          <input
+            type="text"
+            name="from"
+            placeholder="From Number"
+            value="{{.LastCall}}"
+          />
+          <input
+            type="submit"
+            value="Place Call"
+            title="Initiate a phone call from the provided number to the Twilio number."
+          />
+        </form>
+      </div>
+    </div>
+
+    <div class="flex-grid">
+      <div class="col" id="sms">
+        <h1>SMS Conversations</h1>
+
+        {{range .Conversations}}
+        <a href="/ui/sms?dev={{.ID}}">
+          <div class="convo {{if .Unread}}unread{{end}}">
+            <div class="flex-grid">
+              <span class="col number">{{.Name}}</span>
+              <span class="since">{{.Since}}</span>
+            </div>
+            <div>
+              <div class="summary">{{.LastMessage}}</div>
+            </div>
+          </div>
+        </a>
+        {{else}} None {{end}}
+      </div>
+
+      <div class="col">
+        <h1>Phone Calls</h1>
+      </div>
+    </div>
+    <script>
+      liveUpdate('#sms')
+    </script>
+  </body>
+</html>

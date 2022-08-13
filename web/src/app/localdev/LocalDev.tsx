@@ -91,6 +91,18 @@ export default function LocalDev(): JSX.Element {
           desc='UI for interacting with the GraphQL API.'
           url='/api/graphql/explore'
         />
+
+        <DevTool
+          name='mocktwilio'
+          desc='UI for interacting with the mocktwilio server.'
+          config={{
+            'Twilio.AccountSID': 'AC00000000000000000000000000000000',
+            'Twilio.AuthToken': '00000000000000000000000000000000',
+            'Twilio.FromNumber': '+17635555555',
+            'Twilio.MessagingServiceSID': 'MG00000000000000000000000000000000',
+          }}
+          url='http://localhost:3099/ui'
+        />
       </Grid>
 
       {updateConfig && (

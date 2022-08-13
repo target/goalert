@@ -60,12 +60,15 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ui/", s.renderUI)
 	mux.HandleFunc("/ui", s.renderUI)
+	mux.Handle("/ui/assets/", http.StripPrefix("/ui/", http.FileServer(http.FS(assets))))
 	mux.Handle("/", srv)
 
 	go s.loop()
 
 	err = http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		log.Println(req.Method, req.URL.Path)
+		if req.Method != "GET" {
+			log.Println(req.Method, req.URL.Path)
+		}
 		mux.ServeHTTP(w, req)
 	}))
 	if err != nil {

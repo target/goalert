@@ -5,58 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mocktwilio - SMS - {{.Name}}</title>
-    <style>
-      .flex-grid {
-        display: flex;
-      }
-
-      .col {
-        flex: 1;
-      }
-
-      .actions form {
-        display: inline;
-      }
-      .actions input[type='submit'] {
-        cursor: pointer;
-        border: none;
-        background: none;
-        height: 100%;
-        text-decoration: underline;
-        color: #44c;
-      }
-
-      .thread {
-        max-width: 600px;
-      }
-      .msg {
-        margin: 0.5em;
-        margin-bottom: 1em;
-      }
-      .msg .body {
-        border-radius: 0.5em;
-        padding: 0.5em;
-        max-width: 400px;
-      }
-
-      .msg.out {
-        text-align: right;
-      }
-
-      .msg.in .body {
-        background-color: #aaa;
-      }
-      .msg.out .body {
-        text-align: left;
-        background-color: #ddf;
-      }
-    </style>
+    <link rel="stylesheet" href="/ui/assets/main.css" />
+    <link rel="stylesheet" href="/ui/assets/sms.css" />
   </head>
 
   <body>
+    <script src="/ui/assets/liveupdate.js"></script>
     <a href="/ui">&lt;--</a> {{.Name}} TODO: Phone Call Button
 
-    <div class="thread">
+    <div class="thread" id="convo">
       {{range .Messages}} {{if .TimeHeader}}
       <div class="time">{{.TimeHeader}}</div>
       {{end}}
@@ -97,5 +54,9 @@
       <input name="body" value="" />
       <input type="submit" value="Send" title="Send SMS response." />
     </form>
+
+    <script>
+      liveUpdate('#convo')
+    </script>
   </body>
 </html>

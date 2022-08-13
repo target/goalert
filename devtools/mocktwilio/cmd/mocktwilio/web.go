@@ -1,12 +1,18 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
 )
+
+//go:embed assets
+var assets embed.FS
+
+var tmpl = template.Must(template.New("").ParseFS(assets, "assets/*.html"))
 
 // replace all nondigits
 var rx = regexp.MustCompile(`[^0-9]+`)
@@ -81,12 +87,6 @@ func (s *State) renderUI(w http.ResponseWriter, req *http.Request) {
 	case "/ui/action/call":
 		log.Println("ERROR: starting voice calls not yet supported")
 	case "/ui/sms":
-		tmpl, err := template.New("sms.html").ParseFiles("./devtools/mocktwilio/cmd/mocktwilio/sms.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		type msgWrap struct {
 			Message
 			TimeHeader string
@@ -108,20 +108,15 @@ func (s *State) renderUI(w http.ResponseWriter, req *http.Request) {
 			data.Messages = append(data.Messages, msgWrap{Message: msg})
 		}
 
-		err = tmpl.Execute(w, data)
+		err := tmpl.ExecuteTemplate(w, "sms.html", data)
 		if err != nil {
 			// print error to output
 			fmt.Fprintf(w, `"><hr style="color:red"><code>%v</code>`, err)
 		}
 		return
 	case "/ui":
-		tmpl, err := template.New("index.html").ParseFiles("./devtools/mocktwilio/cmd/mocktwilio/index.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
-		err = tmpl.Execute(w, s)
+		err := tmpl.ExecuteTemplate(w, "index.html", s)
 		if err != nil {
 			// print error to output
 			fmt.Fprintf(w, `"><hr style="color:red"><code>%v</code>`, err)
