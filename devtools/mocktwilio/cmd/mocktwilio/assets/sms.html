@@ -21,7 +21,7 @@
         {{if .Sent}}
         <div class="col"></div>
         {{end}}
-        <span class="body">{{.Body}}</span>
+        <span class="body" title="{{.FriendlyTime}}">{{.Body}}</span>
         {{if .Active}}
         <div class="col actions">
           <form action="/ui/action/sms" method="post">

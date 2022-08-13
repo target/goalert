@@ -6,6 +6,10 @@
     flex: 1;
   }
 
+  .time {
+    text-align: center;
+  }
+
   .actions form {
     display: inline;
   }

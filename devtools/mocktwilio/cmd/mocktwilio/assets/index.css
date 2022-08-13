@@ -83,3 +83,6 @@ td.in {
     color: #444;
 }
 
+.section:first-child {
+    margin-right: 3em;
+}
