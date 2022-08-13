@@ -27,6 +27,9 @@ type SMS struct {
 
 	acceptCh chan bool
 	doneCh   chan struct{}
+
+	action sync.Once
+	state  int
 }
 
 func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, error) {
@@ -157,6 +160,7 @@ func (sms *SMS) updateStatus(stat twilio.MessageStatus) {
 		sms.s.errs <- err
 	}
 }
+
 func (sms *SMS) cloneMessage() *twilio.Message {
 	sms.mx.Lock()
 	defer sms.mx.Unlock()
@@ -278,14 +282,45 @@ func (sms *SMS) Body() string {
 	return sms.body
 }
 
+func (sms *SMS) IsActive() bool {
+	sms.mx.Lock()
+	defer sms.mx.Unlock()
+
+	return sms.state == 0
+}
+
+func (sms *SMS) IsAccepted() bool {
+	sms.mx.Lock()
+	defer sms.mx.Unlock()
+
+	return sms.state == 1
+}
+
+func (sms *SMS) IsRejected() bool {
+	sms.mx.Lock()
+	defer sms.mx.Unlock()
+
+	return sms.state == 2
+}
+
 // Accept will cause the SMS to be marked as delivered.
 func (sms *SMS) Accept() {
-	sms.acceptCh <- true
-	close(sms.acceptCh)
+	sms.action.Do(func() {
+		sms.acceptCh <- true
+		close(sms.acceptCh)
+		sms.mx.Lock()
+		sms.state = 1
+		sms.mx.Unlock()
+	})
 }
 
 // Reject will cause the SMS to be marked as failed.
 func (sms *SMS) Reject() {
-	sms.acceptCh <- false
-	close(sms.acceptCh)
+	sms.action.Do(func() {
+		sms.acceptCh <- false
+		close(sms.acceptCh)
+		sms.mx.Lock()
+		sms.state = 2
+		sms.mx.Unlock()
+	})
 }

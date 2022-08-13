@@ -2,6 +2,7 @@
 /setup.cfg
 /setup.pid
 /config.json.bak
+/messages.txt
 
 *.pem
 *.key

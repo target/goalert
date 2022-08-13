@@ -19,7 +19,6 @@ import (
 
 // Config is used to configure the mock server.
 type Config struct {
-
 	// The SID and token should match values given to the backend
 	// as the mock server will send and validate signatures.
 	AccountSID string
@@ -219,14 +218,19 @@ func (s *Server) getFromNumber(id string) string {
 
 // NewMessagingService registers a new Messaging SID for the given numbers.
 func (s *Server) NewMessagingService(url string, numbers ...string) (string, error) {
+	id := s.id("MG")
+	return id, s.RegisterMessagingService(id, url, numbers...)
+}
+
+// RegisterMessagingService registers a Messaging SID for the given numbers.
+func (s *Server) RegisterMessagingService(svcID, url string, numbers ...string) error {
 	err := validate.URL("URL", url)
 	for i, n := range numbers {
 		err = validate.Many(err, validate.Phone(fmt.Sprintf("Number[%d]", i), n))
 	}
 	if err != nil {
-		return "", err
+		return err
 	}
-	svcID := s.id("MG")
 
 	s.mx.Lock()
 	defer s.mx.Unlock()
@@ -235,7 +239,7 @@ func (s *Server) NewMessagingService(url string, numbers ...string) (string, err
 	}
 	s.msgSvc[svcID] = numbers
 
-	return svcID, nil
+	return nil
 }
 
 // RegisterSMSCallback will set/update a callback URL for SMS calls made to the given number.

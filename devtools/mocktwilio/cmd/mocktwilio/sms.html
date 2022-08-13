@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mocktwilio - SMS - {{.Name}}</title>
+    <style>
+      .flex-grid {
+        display: flex;
+      }
+
+      .col {
+        flex: 1;
+      }
+
+      .actions form {
+        display: inline;
+      }
+      .actions input[type='submit'] {
+        cursor: pointer;
+        border: none;
+        background: none;
+        height: 100%;
+        text-decoration: underline;
+        color: #44c;
+      }
+
+      .thread {
+        max-width: 600px;
+      }
+      .msg {
+        margin: 0.5em;
+        margin-bottom: 1em;
+      }
+      .msg .body {
+        border-radius: 0.5em;
+        padding: 0.5em;
+        max-width: 400px;
+      }
+
+      .msg.out {
+        text-align: right;
+      }
+
+      .msg.in .body {
+        background-color: #aaa;
+      }
+      .msg.out .body {
+        text-align: left;
+        background-color: #ddf;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a href="/ui">&lt;--</a> {{.Name}} TODO: Phone Call Button
+
+    <div class="thread">
+      {{range .Messages}} {{if .TimeHeader}}
+      <div class="time">{{.TimeHeader}}</div>
+      {{end}}
+      <div class="msg {{if .Sent}}out{{else}}in{{end}} flex-grid">
+        {{if .Sent}}
+        <div class="col"></div>
+        {{end}}
+        <span class="body">{{.Body}}</span>
+        {{if .Active}}
+        <div class="col actions">
+          <form action="/ui/action/sms" method="post">
+            <input type="hidden" name="action" value="accept" />
+            <input type="hidden" name="id" value="{{.SMS.ID}}" />
+            <input
+              type="submit"
+              value="Accept"
+              title="Mark this SMS message as delivered."
+            />
+          </form>
+
+          <form action="/ui/action/sms" method="post">
+            <input type="hidden" name="action" value="reject" />
+            <input type="hidden" name="id" value="{{.SMS.ID}}" />
+            <input
+              type="submit"
+              value="Reject"
+              title="Mark this SMS message as failed."
+            />
+          </form>
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+
+    <form action="/ui/action/send" method="post">
+      <input type="hidden" name="from" value="{{.Device}}" />
+      <input name="body" value="" />
+      <input type="submit" value="Send" title="Send SMS response." />
+    </form>
+  </body>
+</html>
