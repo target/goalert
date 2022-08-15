@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
@@ -270,6 +271,18 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit"`
 	FavoritesOnly  *bool    `json:"favoritesOnly"`
 	FavoritesFirst *bool    `json:"favoritesFirst"`
+}
+
+type IntegrationKeyConnection struct {
+	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
+	PageInfo *PageInfo                       `json:"pageInfo"`
+}
+
+type IntegrationKeySearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
 }
 
 type LabelConnection struct {
