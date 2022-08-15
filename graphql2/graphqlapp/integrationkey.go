@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/search"
 )
 
 type IntegrationKey App
@@ -57,4 +58,52 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 	}
 
 	return "", nil
+}
+
+func (q *Query) IntegrationKeys(ctx context.Context, input *graphql2.IntegrationKeySearchOptions) (conn *graphql2.IntegrationKeyConnection, err error) {
+	if input == nil {
+		input = &graphql2.IntegrationKeySearchOptions{}
+	}
+
+	var opts integrationkey.InKeySearchOptions
+	if input.Search != nil {
+		opts.Search = *input.Search
+	}
+	opts.Omit = input.Omit
+	if input.After != nil && *input.After != "" {
+		err = search.ParseCursor(*input.After, &opts)
+		if err != nil {
+			return conn, err
+		}
+	}
+	if input.First != nil {
+		opts.Limit = *input.First
+	}
+	if opts.Limit == 0 {
+		opts.Limit = 15
+	}
+
+	opts.Limit++
+	intKeys, err := q.IntKeyStore.Search(ctx, &opts)
+	if err != nil {
+		return nil, err
+	}
+	conn = new(graphql2.IntegrationKeyConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
+	if len(intKeys) == opts.Limit {
+		intKeys = intKeys[:len(intKeys)-1]
+		conn.PageInfo.HasNextPage = true
+	}
+	if len(intKeys) > 0 {
+		lastKey := intKeys[len(intKeys)-1]
+		opts.After = lastKey.Name
+
+		cur, err := search.Cursor(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn.PageInfo.EndCursor = &cur
+	}
+	conn.Nodes = intKeys
+	return conn, err
 }

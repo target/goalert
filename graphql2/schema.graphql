@@ -80,6 +80,9 @@ type Query {
   # Allows searching for label values.
   labelValues(input: LabelValueSearchOptions): StringConnection!
 
+  # Allows searching for integration keys.
+  integrationKeys(input: IntegrationKeySearchOptions): IntegrationKeyConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -223,6 +226,12 @@ type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
 }
+
+type IntegrationKeyConnection {
+  nodes: [IntegrationKey!]!
+  pageInfo: PageInfo!
+}
+
 type UserOverride {
   id: ID!
 
@@ -254,6 +263,13 @@ input LabelKeySearchOptions {
 
 input LabelValueSearchOptions {
   key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input IntegrationKeySearchOptions {
   first: Int = 15
   after: String = ""
   search: String = ""
