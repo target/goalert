@@ -4,48 +4,36 @@ Package `swosync` handles the logical replication from the source DB to the dest
 
 ## Theory of operation
 
-All changes (INSERT, UPDATE, DELETE) are recorded by triggers in the change_log table as
-table/row_id pairs, only tracking a set of changed rows (but not their point-in-time data).
-The changes are then read in and applied in batches, by reading the CURRENT state of the row
-from the source database and writing it to the destination database, at the time of sync.
+Triggers record all changes (INSERT, UPDATE, DELETE) in the `change_log` table as `table, row_id` pairs, only tracking a set of changed rows but not their point-in-time data. The changes are then read in and applied in batches by reading the CURRENT state of the row from the source database and writing it to the destination database at the time of sync.
 
-This avoids the need to attempt to find a sequential solution to concurrent updates, as well as
-intermediate row states, by only syncing the final result. It also avoids the need to record
-intermediate updates.
+Replicating point-in-time differences between "snapshots" avoids the need for a sequential solution for concurrent updates and intermediate row states by only syncing the final result. It also becomes more efficient because each row must be replicated at most once, even when multiple updates occur between sync points.
 
-As an example, if a row is inserted and then updated multiple times, the next sync will result in
-a single insert.
-
-The process depends on having a valid & consistent view of the source database which can be
-obtained by by a serializable transaction. Since only the final state of data is used, dependency
-solving/ordering for concurrent updates is not necessary.
+The process depends on having a consistent view of the source database, which a serializable transaction can obtain, or during a stop-the-world lock (during the final sync).
 
 ### Basic strategy
 
-1. Read all changes as table and row ids
+1. Read all changes (table and row ids)
 2. Fetch row data for each changed row
 3. Insert rows from old DB that are missing in new DB, in fkey-dependency order
 4. Update rows from old DB that exist in both, in fkey-dependency order
-5. Delete rows missing from old DB that exist in new DB, in reverse-fkey-dependency order
-6. Delete synced entries from change_log table
+5. Delete rows missing from the old DB that exist in the new DB, in reverse-fkey-dependency order
+6. Delete synced entries from the `change_log` table
+7. Repeat until both DBs are close in sync
+8. Obtain a stop-the-world lock
+9. Perform final sync, and update the `use_next_db` pointer
+10. Release the stop-the-world lock
+11. New DB is used for all future transactions
 
 ## Further Notes
 
-It is important to keep the sync loop as tight as is possible, particularly in "final sync" mode.
-When performing the final sync, the database will be locked for the full duration so no additional
-changes can be made. This is necessary to ensure that the database is in a consistent state with no
-leftover changes before switchover state is updated to `use_next_db`.
-
-A commit to the source DB ensures the Serializable state of the transaction is maintained, and is
-done AFTER sending changes to the new DB as the final sync also points to the new one.
+It is essential to keep the sync loop as tight as possible, particularly in "final sync" mode. The final sync will pause all transactions during its synchronization process; this is necessary to ensure that the database is in a consistent state with no leftover changes before setting the `use_next_db` pointer.
 
 ### Round Trips
 
 - 1 to start tx, read all change ids & sequences (also stop-the-world lock in final mode)
 - 1 to fetch row data from each table (single batch, 1 query per table)
-- 1 to apply all updates to new DB
-- 1 to commit src tx (also switches over to new DB in final mode)
+- 1 to apply all updates to the new DB
+- 1 to commit src tx (also updates `use_next_db` in final mode)
 - 1 to delete all synced change rows from the DB
 
-There is an extra round-trip for last delete as a tradoff to favor shorter stop-the-world time,
-since deleting the last set of changes isn't necessary to wait for after the switchover has been made.
+An extra round-trip for the last delete is a trade-off to favor a shorter stop-the-world time since deleting the previous change records isn't necessary after the switchover.
