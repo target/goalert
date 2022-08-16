@@ -24,7 +24,7 @@ func (h *Handler) initNewDBListen(name string) error {
 		return err
 	}
 	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
-	l, err := sqlutil.NewListener(context.Background(), h.logger, h.old.db, DBIDChannel, StateChannel)
+	l, err := sqlutil.NewListener(context.Background(), h.logger, h.new.db, DBIDChannel, StateChannel)
 	if err != nil {
 		return err
 	}
