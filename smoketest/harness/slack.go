@@ -2,7 +2,6 @@ package harness
 
 import (
 	"context"
-	"fmt"
 	"net/http/httptest"
 	"sort"
 	"strings"
