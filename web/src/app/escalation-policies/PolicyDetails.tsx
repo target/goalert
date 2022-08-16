@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -32,27 +32,26 @@ const query = gql`
   }
 `
 
-export default function PolicyDetails({ policyID }) {
+export default function PolicyDetails(props: {
+  policyID: string
+}): JSX.Element {
   const stepNumParam = 'createStep'
-  const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
+  const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const {
-    loading,
-    error,
-    data: _data,
-  } = useQuery(query, {
+  const [{ fetching, error, data: _data }] = useQuery({
+    query,
     variables: {
-      id: policyID,
+      id: props.policyID,
     },
   })
 
   const data = _.get(_data, 'escalationPolicy', null)
 
-  if (!data && loading) return <Spinner />
+  if (!data && fetching) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {

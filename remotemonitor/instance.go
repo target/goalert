@@ -1,8 +1,11 @@
 package remotemonitor
 
 import (
+	"fmt"
 	"net/http"
+	"net/mail"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -14,10 +17,15 @@ type Instance struct {
 	// Location must be unique.
 	Location string
 
-	// TestAPIKey is used to create test alerts.
+	// GenericAPIKey is used to create test alerts.
 	// The service it points to should have an escalation policy that allows at least 60 seconds
 	// before escalating to a human. It should send initial notifications to the monitor via SMS.
-	TestAPIKey string
+	GenericAPIKey string
+
+	// EmailAPIKey is used to create test alerts.
+	// The service it points to should have an escalation policy that allows at least 60 seconds
+	// before escalating to a human. It should send initial notifications to the monitor via SMS.
+	EmailAPIKey string
 
 	// ErrorAPIKey is the key used to create new alerts for encountered errors.
 	ErrorAPIKey string
@@ -37,6 +45,45 @@ type Instance struct {
 	ErrorsOnly bool
 }
 
+func (i Instance) Validate() error {
+	if i.Location == "" {
+		return errors.New("location is required")
+	}
+	if i.PublicURL == "" {
+		return errors.New("public URL is required")
+	}
+	_, err := url.Parse(i.PublicURL)
+	if err != nil {
+		return fmt.Errorf("parse public URL: %v", err)
+	}
+	if i.Phone == "" {
+		return errors.New("phone is required")
+	}
+	if i.ErrorAPIKey == "" {
+		return errors.New("error API key is required")
+	}
+
+	if i.GenericAPIKey == "" && i.EmailAPIKey == "" {
+		return errors.New("at least one of Email or Generic API key is required")
+	}
+
+	if i.EmailAPIKey != "" {
+		if _, err := mail.ParseAddress(i.EmailAPIKey); err != nil {
+			return fmt.Errorf("parse email API key: %v", err)
+		}
+		addr, domain, _ := strings.Cut(i.EmailAPIKey, "@")
+		if len(domain) > 255 {
+			return fmt.Errorf("email domain is too long")
+		}
+
+		if len(i.Location)+len(addr)+len("+rm-") > 64 {
+			return fmt.Errorf("location + email address is too long")
+		}
+	}
+
+	return nil
+}
+
 func (i *Instance) doReq(path string, v url.Values) error {
 	u, err := util.JoinURL(i.PublicURL, path)
 	if err != nil {
@@ -53,7 +100,7 @@ func (i *Instance) doReq(path string, v url.Values) error {
 	return nil
 }
 
-func (i *Instance) createAlert(key, dedup, summary, details string) error {
+func (i *Instance) createGenericAlert(key, dedup, summary, details string) error {
 	v := make(url.Values)
 	v.Set("token", key)
 	v.Set("summary", summary)
@@ -61,6 +108,7 @@ func (i *Instance) createAlert(key, dedup, summary, details string) error {
 	v.Set("dedup", dedup)
 	return i.doReq("/api/v2/generic/incoming", v)
 }
+
 func (i *Instance) heartbeat() []error {
 	errCh := make(chan error, len(i.HeartbeatURLs))
 	var wg sync.WaitGroup

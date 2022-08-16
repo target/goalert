@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import PolicyServicesCard from './PolicyServicesCard'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
@@ -16,12 +16,13 @@ const query = gql`
   }
 `
 
-function PolicyServicesQuery({ policyID }) {
-  const { data, loading, error } = useQuery(query, {
-    variables: { id: policyID },
+function PolicyServicesQuery(props: { policyID: string }): JSX.Element {
+  const [{ data, fetching, error }] = useQuery({
+    query,
+    variables: { id: props.policyID },
   })
 
-  if (!data && loading) {
+  if (!data && fetching) {
     return <Spinner />
   }
 
