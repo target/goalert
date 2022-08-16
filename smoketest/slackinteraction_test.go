@@ -47,8 +47,7 @@ func TestSlackInteraction(t *testing.T) {
 	h.IgnoreErrorsWith("unknown provider/subject")
 	msg.Action("Acknowledge").Click() // expect ephemeral
 
-	msg = ch.ExpectEphemeralMessage("link", "Slack", "account")
-	urlStr := msg.Action("link").URL()
+	urlStr := ch.ExpectEphemeralMessage("link", "Slack", "account").Action("Link Account").URL()
 
 	u, err := url.Parse(urlStr)
 	if err != nil {
