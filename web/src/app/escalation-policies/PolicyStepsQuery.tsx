@@ -1,10 +1,10 @@
 import React from 'react'
-import { gql, useQuery } from 'urql'
+import { gql, useQuery } from '@apollo/client'
 import PolicyStepsCard from './PolicyStepsCard'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 
-export const query = gql`
+export const policyStepsQuery = gql`
   query stepsQuery($id: ID!) {
     escalationPolicy(id: $id) {
       id
@@ -23,12 +23,11 @@ export const query = gql`
 `
 
 function PolicyStepsQuery(props: { escalationPolicyID: string }): JSX.Element {
-  const [{ data, error, fetching }] = useQuery({
-    query,
+  const { data, loading, error } = useQuery(policyStepsQuery, {
     variables: { id: props.escalationPolicyID },
   })
 
-  if (!data && fetching) {
+  if (!data && loading) {
     return <Spinner />
   }
   if (error) {
