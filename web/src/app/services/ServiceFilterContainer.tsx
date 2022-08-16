@@ -5,11 +5,13 @@ import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 
 import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { LabelValueSelect } from '../selection/LabelValueSelect'
+import { IntegrationKeySelect } from '../selection/IntegrationKeySelect'
 import FilterContainer from '../util/FilterContainer'
 
 interface Value {
   labelKey: string
   labelValue: string
+  integrationKey: string
 }
 
 interface ServiceFilterContainerProps {
@@ -24,7 +26,7 @@ interface ServiceFilterContainerProps {
 export default function ServiceFilterContainer(
   props: ServiceFilterContainerProps,
 ): JSX.Element {
-  const { labelKey, labelValue } = props.value
+  const { labelKey, labelValue, integrationKey } = props.value
   return (
     <FilterContainer
       icon={<LabelFilterIcon />}
@@ -38,6 +40,21 @@ export default function ServiceFilterContainer(
       onReset={props.onReset}
       anchorRef={props.anchorRef}
     >
+      <Grid item xs={12}>
+        <Typography color='textSecondary'>
+          <i>Search by Integration Key</i>
+        </Typography>
+      </Grid>
+      <Grid data-cy='integration-key-container' item xs={12}>
+        <IntegrationKeySelect
+          name='integration-key'
+          label='Select Integration Key'
+          value={integrationKey}
+          onChange={(integrationKey) =>
+            props.onChange({ ...props.value, integrationKey })
+          }
+        />
+      </Grid>
       <Grid item xs={12}>
         <Typography color='textSecondary'>
           <i>Search by Label</i>
