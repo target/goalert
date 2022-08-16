@@ -1,5 +1,4 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { Ref } from 'react'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
@@ -8,7 +7,23 @@ import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { LabelValueSelect } from '../selection/LabelValueSelect'
 import FilterContainer from '../util/FilterContainer'
 
-export default function ServiceFilterContainer(props) {
+interface Value {
+  labelKey: string
+  labelValue: string
+}
+
+interface ServiceFilterContainerProps {
+  value: Value
+  onChange: (val: Value) => void
+  onReset: () => void
+
+  // optionally anchors the popover to a specified element's ref
+  anchorRef?: Ref<HTMLElement>
+}
+
+export default function ServiceFilterContainer(
+  props: ServiceFilterContainerProps,
+): JSX.Element {
   const { labelKey, labelValue } = props.value
   return (
     <FilterContainer
@@ -50,13 +65,4 @@ export default function ServiceFilterContainer(props) {
       </Grid>
     </FilterContainer>
   )
-}
-
-ServiceFilterContainer.propTypes = {
-  value: p.shape({ labelKey: p.string, labelValue: p.string }),
-  onChange: p.func,
-  onReset: p.func,
-
-  // optionally anchors the popover to a specified element's ref
-  anchorRef: p.object,
 }
