@@ -118,8 +118,8 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	case linkActActionID:
 		s.withClient(ctx, func(c *slack.Client) error {
 			// remove ephemeral 'Link Account' button
-			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, 
-				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL), 
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL),
 				slack.MsgOptionDeleteOriginal(payload.ResponseURL))
 			if err != nil {
 				return err
@@ -154,27 +154,19 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				msg = "Please link your Slack account with GoAlert then try again."
 			}
 
-			linkBtnBlock := slack.NewButtonBlockElement(linkActActionID, linkURL, 
+			linkBtnBlock := slack.NewButtonBlockElement(linkActActionID, linkURL,
 				slack.NewTextBlockObject("plain_text", "Link Account", false, false))
 			linkBtnBlock.URL = linkURL
 
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
-				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
-				slack.MsgOptionText(msg, false),
-				slack.MsgOptionAttachments(
-					slack.Attachment{
-						Color: "#862421",
-						Fallback: msg,
-						Blocks: slack.Blocks{
-							BlockSet: []slack.Block{
-								slack.NewActionBlock(alertResponseBlockID, linkBtnBlock),
-							},
-						},
-					},
+				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),	
+				slack.MsgOptionBlocks(
+					slack.NewTextBlockObject("plain_text", msg, false, false),
+					slack.NewActionBlock(alertResponseBlockID, linkBtnBlock),
 				),
 			)
-
 			if err != nil {
+				fmt.Printf("\n\n error: %v", err)
 				return err
 			}
 			return nil

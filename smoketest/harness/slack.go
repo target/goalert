@@ -2,6 +2,7 @@ package harness
 
 import (
 	"context"
+	"fmt"
 	"net/http/httptest"
 	"sort"
 	"strings"
@@ -50,6 +51,7 @@ type SlackMessageState interface {
 
 type SlackAction interface {
 	Click()
+	URL() string
 }
 
 type SlackMessage interface {
@@ -118,6 +120,11 @@ func (msg *slackMessage) Action(text string) SlackAction {
 		slackMessage: msg,
 		Action:       *a,
 	}
+}
+
+func (a *slackAction) URL() string {
+	a.h.t.Helper()
+	return a.Action.URL
 }
 
 func (a *slackAction) Click() {
