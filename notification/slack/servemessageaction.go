@@ -159,14 +159,16 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			linkBtnBlock.URL = linkURL
 
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
-				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),	
+				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
 				slack.MsgOptionBlocks(
-					slack.NewTextBlockObject("plain_text", msg, false, false),
+					slack.NewSectionBlock(
+						slack.NewTextBlockObject("plain_text", msg, false, false),
+						nil, nil,
+					),
 					slack.NewActionBlock(alertResponseBlockID, linkBtnBlock),
 				),
 			)
 			if err != nil {
-				fmt.Printf("\n\n error: %v", err)
 				return err
 			}
 			return nil
