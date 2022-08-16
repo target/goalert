@@ -172,7 +172,6 @@ function PolicyStep(props: PolicyStepProps): JSX.Element {
                 onClick: () => setDeleteStep(true),
               },
             ]}
-            // positionRelative
           />
         </ListItemSecondaryAction>
       </ListItem>
