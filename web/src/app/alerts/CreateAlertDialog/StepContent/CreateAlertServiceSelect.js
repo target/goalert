@@ -17,7 +17,7 @@ import {
   Box,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
+import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
 import { Search as SearchIcon } from '@mui/icons-material'
 import { FavoriteIcon } from '../../../util/SetFavoriteButton'
 import { ServiceChip } from '../../../util/Chips'

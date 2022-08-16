@@ -4,7 +4,7 @@ import { useURLParam } from '../actions'
 import SimpleListPage from '../lists/SimpleListPage'
 import getServiceLabel from '../util/getServiceLabel'
 import ServiceCreateDialog from './ServiceCreateDialog'
-import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
+import ServiceFilterContainer from './ServiceFilterContainer'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -40,7 +40,7 @@ export default function ServiceList(): JSX.Element {
       createForm={<ServiceCreateDialog />}
       createLabel='Service'
       searchAdornment={
-        <ServiceLabelFilterContainer
+        <ServiceFilterContainer
           value={{ labelKey, labelValue }}
           onChange={({ labelKey, labelValue }) =>
             setSearchParam(labelKey ? labelKey + '=' + labelValue : '')

@@ -8,7 +8,7 @@ import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { LabelValueSelect } from '../selection/LabelValueSelect'
 import FilterContainer from '../util/FilterContainer'
 
-export default function ServiceLabelFilterContainer(props) {
+export default function ServiceFilterContainer(props) {
   const { labelKey, labelValue } = props.value
   return (
     <FilterContainer
@@ -52,7 +52,7 @@ export default function ServiceLabelFilterContainer(props) {
   )
 }
 
-ServiceLabelFilterContainer.propTypes = {
+ServiceFilterContainer.propTypes = {
   value: p.shape({ labelKey: p.string, labelValue: p.string }),
   onChange: p.func,
   onReset: p.func,
