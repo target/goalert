@@ -117,7 +117,10 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		res = notification.ResultResolve
 	case linkActActionID:
 		s.withClient(ctx, func(c *slack.Client) error {
-			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL), slack.MsgOptionDeleteOriginal(payload.ResponseURL))
+			// remove ephemeral 'Link Account' button
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, 
+				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL), 
+				slack.MsgOptionDeleteOriginal(payload.ResponseURL))
 			if err != nil {
 				return err
 			}
@@ -143,7 +146,6 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			log.Log(ctx, err)
 		}
 
-
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			var msg string
 			if linkURL == "" {
@@ -152,13 +154,24 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				msg = "Please link your Slack account with GoAlert then try again."
 			}
 
-			linkBtn := slack.NewButtonBlockElement(linkActActionID, linkURL, slack.NewTextBlockObject("plain_text", "Link Account", false, false))
-			linkBtn.URL = linkURL
+			linkBtnBlock := slack.NewButtonBlockElement(linkActActionID, linkURL, 
+				slack.NewTextBlockObject("plain_text", "Link Account", false, false))
+			linkBtnBlock.URL = linkURL
 
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
 				slack.MsgOptionText(msg, false),
-				slack.MsgOptionBlocks(slack.NewActionBlock(alertResponseBlockID, linkBtn)),
+				slack.MsgOptionAttachments(
+					slack.Attachment{
+						Color: "#862421",
+						Fallback: msg,
+						Blocks: slack.Blocks{
+							BlockSet: []slack.Block{
+								slack.NewActionBlock(alertResponseBlockID, linkBtnBlock),
+							},
+						},
+					},
+				),
 			)
 
 			if err != nil {
