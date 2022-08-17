@@ -21,6 +21,7 @@ type AssertConfig struct {
 
 type ServerAPI interface {
 	SendMessage(ctx context.Context, from, to, body string) (Message, error)
+	WaitInFlight(context.Context) error
 	Messages() <-chan Message
 	Calls() <-chan Call
 }
@@ -103,6 +104,7 @@ func (a *assert) WaitAndAssert() {
 
 	// flush any remaining application messages
 	a.refresh()
+	a.ServerAPI.WaitInFlight(context.Background())
 
 drainMessages:
 	for {
@@ -132,10 +134,10 @@ checkMessages:
 			if a.matchMessage(ignore.number, ignore.keywords, msg) {
 				continue checkMessages
 			}
-
-			hasFailure = true
-			a.t.Errorf("mocktwilio: unexpected SMS to %s: %s", msg.To(), msg.Text())
 		}
+
+		hasFailure = true
+		a.t.Errorf("mocktwilio: unexpected SMS to %s: %s", msg.To(), msg.Text())
 	}
 
 checkCalls:
@@ -144,10 +146,10 @@ checkCalls:
 			if a.matchMessage(ignore.number, ignore.keywords, call) {
 				continue checkCalls
 			}
-
-			hasFailure = true
-			a.t.Errorf("mocktwilio: unexpected call to %s: %s", call.To(), call.Text())
 		}
+
+		hasFailure = true
+		a.t.Errorf("mocktwilio: unexpected call to %s: %s", call.To(), call.Text())
 	}
 
 	if hasFailure {

@@ -63,6 +63,8 @@ type Server struct {
 	numbersDB chan map[string]*Number
 	msgSvcDB  chan map[string][]*Number
 
+	waitInFlight chan chan struct{}
+
 	mux *http.ServeMux
 
 	once         sync.Once
@@ -102,11 +104,13 @@ func NewServer(cfg Config) *Server {
 		mux:       http.NewServeMux(),
 
 		smsDB:         make(chan map[string]*sms, 1),
-		messagesCh:    make(chan Message),
+		messagesCh:    make(chan Message, 10000),
 		outboundSMSCh: make(chan *sms),
 
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
+
+		waitInFlight: make(chan chan struct{}),
 	}
 	srv.msgSvcDB <- make(map[string][]*Number)
 	srv.numbersDB <- make(map[string]*Number)
@@ -260,8 +264,31 @@ func (srv *Server) loop() {
 				sms.lifecycle(ctx)
 				wg.Done()
 			}()
+		case ch := <-srv.waitInFlight:
+			go func() {
+				wg.Wait()
+				close(ch)
+			}()
 		}
 	}
+}
+
+// WaitInFlight waits for all in-flight requests/messages/calls to complete.
+func (srv *Server) WaitInFlight(ctx context.Context) error {
+	ch := make(chan struct{})
+	select {
+	case srv.waitInFlight <- ch:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	select {
+	case <-ch:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	return nil
 }
 
 func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {

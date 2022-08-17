@@ -58,7 +58,7 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 
 	keywords = toLowerSlice(keywords)
 	if prev {
-		for _, msg := range dev.messages {
+		for idx, msg := range dev.messages {
 			if !dev.matchMessage(dev.number, keywords, msg) {
 				continue
 			}
@@ -72,6 +72,10 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 			}
 
 			dev.t.Log("mocktwilio: received expected SMS from", msg.From(), "to", msg.To(), "with text", msg.Text())
+
+			// remove the message from the list of messages
+			dev.messages = append(dev.messages[:idx], dev.messages[idx+1:]...)
+
 			return &assertSMS{assertDev: dev, Message: msg}
 		}
 	}

@@ -75,10 +75,13 @@ func (dev *assertDev) getVoice(prev bool, keywords []string) Call {
 	dev.t.Helper()
 
 	if prev {
-		for _, call := range dev.calls {
+		for idx, call := range dev.calls {
 			if !dev.matchMessage(dev.number, keywords, call) {
 				continue
 			}
+
+			// Remove the call from the list of calls.
+			dev.calls = append(dev.calls[:idx], dev.calls[idx+1:]...)
 
 			return call
 		}
