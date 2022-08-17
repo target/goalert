@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type sms struct {
+type msgState struct {
 	Body      string     `json:"body"`
 	CreatedAt time.Time  `json:"date_created"`
 	SentAt    *time.Time `json:"date_sent,omitempty"`
@@ -30,9 +30,9 @@ type sms struct {
 	final    sync.Once
 }
 
-func (srv *Server) newSMS() *sms {
+func (srv *Server) newMsgState() *msgState {
 	n := time.Now()
-	return &sms{
+	return &msgState{
 		setFinal:  make(chan FinalMessageStatus, 1),
 		CreatedAt: n,
 		UpdatedAt: n,
@@ -41,7 +41,7 @@ func (srv *Server) newSMS() *sms {
 	}
 }
 
-func (s *sms) lifecycle(ctx context.Context) {
+func (s *msgState) lifecycle(ctx context.Context) {
 	if s.MsgSID != "" {
 		nums := s.srv.numberSvc(s.MsgSID)
 		idx := rand.Intn(len(nums))
@@ -61,7 +61,7 @@ func (s *sms) lifecycle(ctx context.Context) {
 	if n == nil {
 		select {
 		case <-ctx.Done():
-		case s.srv.messagesCh <- &message{s}:
+		case s.srv.msgCh <- &message{s}:
 		}
 		return
 	}
@@ -79,7 +79,7 @@ func (s *sms) lifecycle(ctx context.Context) {
 	}
 }
 
-func (s *sms) setSendStatus(ctx context.Context, status, updateFrom string) error {
+func (s *msgState) setSendStatus(ctx context.Context, status, updateFrom string) error {
 	s.mx.Lock()
 	if updateFrom != "" {
 		s.From = updateFrom
@@ -115,7 +115,7 @@ func (s *sms) setSendStatus(ctx context.Context, status, updateFrom string) erro
 	return nil
 }
 
-func (s *sms) setFinalStatus(ctx context.Context, status FinalMessageStatus, code int) error {
+func (s *msgState) setFinalStatus(ctx context.Context, status FinalMessageStatus, code int) error {
 	var err error
 	s.final.Do(func() {
 		err = s.setSendStatus(ctx, string(status), "")
@@ -124,12 +124,12 @@ func (s *sms) setFinalStatus(ctx context.Context, status FinalMessageStatus, cod
 	return err
 }
 
-func (s *sms) MarshalJSON() ([]byte, error) {
+func (s *msgState) MarshalJSON() ([]byte, error) {
 	if s == nil {
 		return []byte("null"), nil
 	}
 
-	type data sms
+	type data msgState
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	return json.Marshal((*data)(s))

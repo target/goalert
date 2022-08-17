@@ -26,16 +26,16 @@ const (
 )
 
 // Messages returns a channel of outbound messages.
-func (srv *Server) Messages() <-chan Message { return srv.messagesCh }
+func (srv *Server) Messages() <-chan Message { return srv.msgCh }
 
 type message struct {
-	*sms
+	*msgState
 }
 
-func (msg *message) ID() string   { return msg.sms.ID }
-func (msg *message) To() string   { return msg.sms.To }
-func (msg *message) From() string { return msg.sms.From }
-func (msg *message) Text() string { return msg.sms.Body }
+func (msg *message) ID() string   { return msg.msgState.ID }
+func (msg *message) To() string   { return msg.msgState.To }
+func (msg *message) From() string { return msg.msgState.From }
+func (msg *message) Text() string { return msg.msgState.Body }
 
 func (msg *message) SetStatus(ctx context.Context, status FinalMessageStatus) error {
 	return msg.setFinalStatus(ctx, status, 0)

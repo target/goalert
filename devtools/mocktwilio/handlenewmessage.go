@@ -19,7 +19,7 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := srv.newSMS()
+	s := srv.newMsgState()
 	s.Direction = "outbound-api"
 	s.To = r.FormValue("To")
 	s.From = r.FormValue("From")
@@ -106,11 +106,11 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	db := <-srv.smsDB
+	db := <-srv.msgStateDB
 	db[s.ID] = s
-	srv.smsDB <- db
+	srv.msgStateDB <- db
 
-	srv.outboundSMSCh <- s
+	srv.outboundMsgCh <- s
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

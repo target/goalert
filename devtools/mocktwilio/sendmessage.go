@@ -31,7 +31,7 @@ func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Mess
 		return nil, fmt.Errorf("no SMS webhook URL registered for number: %s", to)
 	}
 
-	s := srv.newSMS()
+	s := srv.newMsgState()
 	s.Direction = "inbound"
 	s.To = to
 	s.From = from
@@ -56,9 +56,9 @@ func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Mess
 	v.Set("To", to)
 	// to city/country/state/zip omitted
 
-	db := <-srv.smsDB
+	db := <-srv.msgStateDB
 	db[s.ID] = s
-	srv.smsDB <- db
+	srv.msgStateDB <- db
 
 	_, err = srv.post(ctx, n.SMSWebhookURL, v)
 	if err != nil {

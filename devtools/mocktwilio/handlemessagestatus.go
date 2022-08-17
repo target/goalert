@@ -21,9 +21,9 @@ func (srv *Server) HandleMessageStatus(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, srv.basePath()+"/Messages/")
 	id = strings.TrimSuffix(id, ".json")
 
-	db := <-srv.smsDB
+	db := <-srv.msgStateDB
 	s := db[id]
-	srv.smsDB <- db
+	srv.msgStateDB <- db
 
 	if s == nil {
 		respondErr(w, twError{

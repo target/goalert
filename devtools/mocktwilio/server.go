@@ -3,7 +3,6 @@ package mocktwilio
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -56,9 +55,13 @@ type MsgService struct {
 type Server struct {
 	cfg Config
 
-	smsDB         chan map[string]*sms
-	messagesCh    chan Message
-	outboundSMSCh chan *sms
+	msgCh         chan Message
+	msgStateDB    chan map[string]*msgState
+	outboundMsgCh chan *msgState
+
+	callsCh        chan Call
+	callStateDB    chan map[string]*callState
+	outboundCallCh chan *callState
 
 	numbersDB chan map[string]*Number
 	msgSvcDB  chan map[string][]*Number
@@ -103,9 +106,13 @@ func NewServer(cfg Config) *Server {
 		numbersDB: make(chan map[string]*Number, 1),
 		mux:       http.NewServeMux(),
 
-		smsDB:         make(chan map[string]*sms, 1),
-		messagesCh:    make(chan Message, 10000),
-		outboundSMSCh: make(chan *sms),
+		msgCh:         make(chan Message, 10000),
+		msgStateDB:    make(chan map[string]*msgState, 1),
+		outboundMsgCh: make(chan *msgState),
+
+		callsCh:        make(chan Call, 10000),
+		callStateDB:    make(chan map[string]*callState, 1),
+		outboundCallCh: make(chan *callState),
 
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
@@ -114,13 +121,7 @@ func NewServer(cfg Config) *Server {
 	}
 	srv.msgSvcDB <- make(map[string][]*Number)
 	srv.numbersDB <- make(map[string]*Number)
-	srv.smsDB <- make(map[string]*sms)
-
-	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
-	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
-	// s.mux.HandleFunc(base+"/Calls.json", s.serveNewCall)
-	// s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
-	// s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
+	srv.msgStateDB <- make(map[string]*msgState)
 
 	go srv.loop()
 
@@ -217,10 +218,6 @@ func (srv *Server) AddMsgService(ms MsgService) error {
 	return nil
 }
 
-func (srv *Server) basePath() string {
-	return "/2010-04-01/Accounts/" + srv.cfg.AccountSID
-}
-
 func (srv *Server) nextID(prefix string) string {
 	return fmt.Sprintf("%s%032d", prefix, atomic.AddUint64(&srv.id, 1))
 }
@@ -247,7 +244,7 @@ func (srv *Server) loop() {
 	var wg sync.WaitGroup
 
 	defer close(srv.shutdownDone)
-	defer close(srv.messagesCh)
+	defer close(srv.msgCh)
 	defer wg.Wait()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -258,7 +255,7 @@ func (srv *Server) loop() {
 		case <-srv.shutdown:
 
 			return
-		case sms := <-srv.outboundSMSCh:
+		case sms := <-srv.outboundMsgCh:
 			wg.Add(1)
 			go func() {
 				sms.lifecycle(ctx)
@@ -289,50 +286,4 @@ func (srv *Server) WaitInFlight(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("X-Twilio-Signature", Signature(s.cfg.AuthToken, url, v))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode/100 != 2 {
-		return nil, errors.Errorf("non-2xx response: %s", resp.Status)
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) == 0 && resp.StatusCode != 204 {
-		return nil, errors.Errorf("non-204 response on empty body: %s", resp.Status)
-	}
-
-	return data, nil
-}
-
-// ServeHTTP implements the http.Handler interface for serving [mock] API requests.
-func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if s.cfg.EnableAuth {
-		user, pass, ok := req.BasicAuth()
-		if !ok || user != s.cfg.AccountSID || pass != s.cfg.AuthToken {
-			respondErr(w, twError{
-				Status:  401,
-				Code:    20003,
-				Message: "Authenticate",
-			})
-			return
-		}
-	}
-
-	s.mux.ServeHTTP(w, req)
 }
