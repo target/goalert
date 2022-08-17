@@ -87,7 +87,7 @@ validateNodes:
 	for _, node := range s.Nodes {
 		n := nodes[node.ID.String()]
 		if n == nil {
-			n = &graphql2.SWONode{ID: n.ID}
+			n = &graphql2.SWONode{ID: node.ID.String()}
 			nodes[node.ID.String()] = n
 		}
 		n.IsLeader = node.ID == s.LeaderID
