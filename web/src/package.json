@@ -39,7 +39,7 @@
     "esbuild": "0.15.0",
     "fuse.js": "6.6.1",
     "graphiql": "1.11.1",
-    "graphql": "16.5.0",
+    "graphql": "16.6.0",
     "lodash": "4.17.21",
     "luxon": "3.0.1",
     "mdi-material-ui": "7.5.0",
