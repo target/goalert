@@ -110,6 +110,7 @@ func NewServer(cfg Config) *Server {
 	}
 	srv.msgSvcDB <- make(map[string][]*Number)
 	srv.numbersDB <- make(map[string]*Number)
+	srv.smsDB <- make(map[string]*sms)
 
 	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
 	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
