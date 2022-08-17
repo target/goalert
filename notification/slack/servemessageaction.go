@@ -158,7 +158,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				slack.NewTextBlockObject("plain_text", "Link Account", false, false))
 			btn.URL = linkURL
 
-			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
 				slack.MsgOptionBlocks(
 					slack.NewSectionBlock(

@@ -246,7 +246,7 @@ const (
 	alertResponseBlockID = "block_alert_response"
 	alertCloseActionID   = "action_alert_close"
 	alertAckActionID     = "action_alert_ack"
-	linkActActionID     = "action_link_account"
+	linkActActionID      = "action_link_account"
 )
 
 // alertMsgOption will return the slack.MsgOption for an alert-type message (e.g., notification or status update).
@@ -375,4 +375,3 @@ func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) 
 
 	return teamID, nil
 }
-	
