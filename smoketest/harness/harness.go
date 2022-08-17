@@ -199,16 +199,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 			t.Error(err)
 		},
 	})
-	h.tw = mocktwilio.NewAssertions(t, mocktwilio.AssertConfig{
-		ServerAPI:      h.mockTw,
-		Timeout:        15 * time.Second,
-		AppPhoneNumber: h.TwilioNumber(""),
-		RefreshFunc: func() {
-			t.Helper()
-			h.FastForward(time.Second)
-			h.Trigger()
-		},
-	})
 
 	h.twS = httptest.NewServer(h.mockTw)
 
@@ -296,7 +286,16 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
-	h.TwilioNumber("") // register default number
+	h.tw = mocktwilio.NewAssertions(h.t, mocktwilio.AssertConfig{
+		ServerAPI:      h.mockTw,
+		Timeout:        15 * time.Second,
+		AppPhoneNumber: h.TwilioNumber(""),
+		RefreshFunc: func() {
+			h.t.Helper()
+			h.FastForward(time.Second)
+			h.Trigger()
+		},
+	})
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
 	go h.backend.Run(context.Background())
