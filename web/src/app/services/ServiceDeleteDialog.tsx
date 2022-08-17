@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useQuery, useMutation } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Checkbox from '@mui/material/Checkbox'
@@ -11,33 +10,33 @@ import Typography from '@mui/material/Typography'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import _ from 'lodash'
+import { useLocation } from 'wouter'
 
-function DeleteForm({ epName, error, value, onChange }) {
+function DeleteForm(props: {
+  epName: string
+  error: string | undefined
+  value: boolean
+  onChange: (deleteEP: boolean) => void
+}): JSX.Element {
   return (
-    <FormControl error={Boolean(error)} style={{ width: '100%' }}>
+    <FormControl error={Boolean(props.error)} style={{ width: '100%' }}>
       <FormControlLabel
         control={
           <Checkbox
-            checked={value}
-            onChange={(e) => onChange(e.target.checked)}
+            checked={props.value}
+            onChange={(e) => props.onChange(e.target.checked)}
             value='delete-escalation-policy'
           />
         }
         label={
           <React.Fragment>
-            Also delete escalation policy: {epName}
+            Also delete escalation policy: {props.epName}
           </React.Fragment>
         }
       />
-      <FormHelperText>{error}</FormHelperText>
+      <FormHelperText>{props.error}</FormHelperText>
     </FormControl>
   )
-}
-DeleteForm.propTypes = {
-  epName: p.node.isRequired,
-  error: p.string,
-  value: p.bool,
-  onChange: p.func.isRequired,
 }
 
 const query = gql`
@@ -58,15 +57,18 @@ const mutation = gql`
   }
 `
 
-export default function ServiceDeleteDialog({ serviceID, onClose }) {
-  const [deleteEP, setDeleteEP] = useState(true)
-  const { data, ...dataStatus } = useQuery(query, {
-    variables: { id: serviceID },
+export default function ServiceDeleteDialog(props: {
+  serviceID: string
+  onClose: () => void
+}): JSX.Element {
+  const [, navigate] = useLocation()
+  const [deleteEP, setDeleteEP] = useState<boolean>(true)
+  const [{ data, ...dataStatus }] = useQuery({
+    query,
+    variables: { id: props.serviceID },
   })
-  const input = [{ type: 'service', id: serviceID }]
-  const [deleteService, deleteServiceStatus] = useMutation(mutation, {
-    variables: { input },
-  })
+  const input = [{ type: 'service', id: props.serviceID }]
+  const [deleteServiceStatus, deleteService] = useMutation(mutation)
 
   const epID = _.get(data, 'service.ep.id')
   const epName = _.get(
@@ -93,10 +95,20 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
         </Typography>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
-      loading={deleteServiceStatus.loading || (!data && dataStatus.loading)}
+      loading={deleteServiceStatus.fetching || (!data && dataStatus.fetching)}
       errors={nonFieldErrors(deleteServiceStatus.error)}
-      onClose={onClose}
-      onSubmit={() => deleteService()}
+      onClose={props.onClose}
+      onSubmit={() => {
+        deleteService(
+          { input },
+          {
+            additionalTypenames: ['Service'],
+          },
+        ).then((res) => {
+          if (res.error) return
+          navigate('/services')
+        })
+      }}
       form={
         <DeleteForm
           epName={epName}
@@ -111,8 +123,4 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
       }
     />
   )
-}
-ServiceDeleteDialog.propTypes = {
-  serviceID: p.string.isRequired,
-  onClose: p.func,
 }
