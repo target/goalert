@@ -1,7 +1,7 @@
 package twilio
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +20,7 @@ func TestTwiMLResponse(t *testing.T) {
 		resp := rec.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -41,7 +41,7 @@ func TestTwiMLResponse(t *testing.T) {
 		resp := rec.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -61,7 +61,7 @@ func TestTwiMLResponse(t *testing.T) {
 		resp := rec.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -83,7 +83,7 @@ func TestTwiMLResponse(t *testing.T) {
 		resp := rec.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -108,7 +108,7 @@ func TestTwiMLResponse(t *testing.T) {
 		resp := rec.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
