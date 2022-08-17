@@ -2,13 +2,13 @@ package smoketest
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/require"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -27,7 +27,7 @@ func TestWebhookAlert(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert WebhookTestingAlert
 
-		data, err := ioutil.ReadAll(r.Body)
+		data, err := io.ReadAll(r.Body)
 		require.Nil(t, err)
 
 		err = json.Unmarshal(data, &alert)
