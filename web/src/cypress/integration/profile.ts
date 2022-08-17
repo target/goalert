@@ -418,6 +418,26 @@ function testProfile(): void {
       cy.get('body').should('contain', 'No notification rules')
     })
   })
+
+  describe('Slack', () => {
+    let alert: Alert
+    beforeEach(() => {
+      cy.createAlert().then((a: Alert) => {
+        alert = a
+      })
+    })
+
+    it('should display slack link pop-up with correct values', () => {
+      cy.visit(
+        `/profile?action=ResultAcknowledge&alertID=${alert.alertID}` +
+          `&authLinkToken=token&details=slack%3A${profile.username}`,
+      )
+      cy.get('body').should(
+        'contain',
+        `Click confirm to link this account to slack:${profile.username}.`,
+      )
+    })
+  })
 }
 
 testScreen('Profile', testProfile)
