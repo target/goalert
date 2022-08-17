@@ -39,6 +39,8 @@ func NewTaskMgr(ctx context.Context, cfg Config) (*TaskMgr, error) {
 			NewID: cfg.NewID,
 
 			CanExec: cfg.CanExec,
+
+			StartedAt: time.Now(),
 		},
 		nodes:   make(map[uuid.UUID]Node),
 		paused:  make(map[uuid.UUID]struct{}),

@@ -346,6 +346,7 @@ type SWONode struct {
 	ID          string          `json:"id"`
 	CanExec     bool            `json:"canExec"`
 	IsLeader    bool            `json:"isLeader"`
+	Uptime      *string         `json:"uptime"`
 	ConfigError string          `json:"configError"`
 	Connections []SWOConnection `json:"connections"`
 }

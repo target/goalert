@@ -80,6 +80,10 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
             </ListItemSecondaryAction>
           </ListItem>
           <ListItem>
+            <ListItemText primary='Uptime' />
+            <ListItemSecondaryAction>{node.uptime}</ListItemSecondaryAction>
+          </ListItem>
+          <ListItem>
             <ListItemText primary='Connections' />
             <ListItemSecondaryAction>
               {node.connections?.reduce((acc, cur) => acc + cur.count, 0)}

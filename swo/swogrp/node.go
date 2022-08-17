@@ -1,6 +1,10 @@
 package swogrp
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Node struct {
 	ID uuid.UUID
@@ -9,4 +13,6 @@ type Node struct {
 
 	OldID uuid.UUID
 	NewID uuid.UUID
+
+	StartedAt time.Time
 }

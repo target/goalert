@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
@@ -92,6 +93,9 @@ validateNodes:
 		}
 		n.IsLeader = node.ID == s.LeaderID
 		n.CanExec = node.CanExec
+
+		up := time.Since(node.StartedAt).Truncate(time.Second).String()
+		n.Uptime = &up
 
 		if node.NewID != s.NextDBID {
 			n.ConfigError = "next-db-url is invalid"

@@ -39,6 +39,7 @@ const query = gql`
       nextDBVersion
       nodes {
         id
+        uptime
         canExec
         isLeader
         configError
@@ -104,7 +105,7 @@ export default function AdminSwitchover(): JSX.Element {
     return () => clearInterval(t)
   }, [fetching, refetch, data?.state])
 
-  if (fetching) {
+  if (fetching && !data?.state) {
     return <Spinner />
   }
 

@@ -413,6 +413,7 @@ type ComplexityRoot struct {
 		Connections func(childComplexity int) int
 		ID          func(childComplexity int) int
 		IsLeader    func(childComplexity int) int
+		Uptime      func(childComplexity int) int
 	}
 
 	SWOStatus struct {
@@ -2733,6 +2734,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SWONode.IsLeader(childComplexity), true
+
+	case "SWONode.uptime":
+		if e.complexity.SWONode.Uptime == nil {
+			break
+		}
+
+		return e.complexity.SWONode.Uptime(childComplexity), true
 
 	case "SWOStatus.lastError":
 		if e.complexity.SWOStatus.LastError == nil {
@@ -16385,6 +16393,47 @@ func (ec *executionContext) fieldContext_SWONode_isLeader(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _SWONode_uptime(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_uptime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Uptime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_uptime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SWONode_configError(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SWONode_configError(ctx, field)
 	if err != nil {
@@ -16659,6 +16708,8 @@ func (ec *executionContext) fieldContext_SWOStatus_nodes(ctx context.Context, fi
 				return ec.fieldContext_SWONode_canExec(ctx, field)
 			case "isLeader":
 				return ec.fieldContext_SWONode_isLeader(ctx, field)
+			case "uptime":
+				return ec.fieldContext_SWONode_uptime(ctx, field)
 			case "configError":
 				return ec.fieldContext_SWONode_configError(ctx, field)
 			case "connections":
@@ -29974,6 +30025,10 @@ func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "uptime":
+
+			out.Values[i] = ec._SWONode_uptime(ctx, field, obj)
+
 		case "configError":
 
 			out.Values[i] = ec._SWONode_configError(ctx, field, obj)
