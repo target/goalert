@@ -32,7 +32,6 @@ import (
 	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/devtools/pgmocktime"
 	"github.com/target/goalert/migrate"
-	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
@@ -74,8 +73,9 @@ type Harness struct {
 
 	msgSvcID string
 
-	tw  *twilioAssertionAPI
-	twS *httptest.Server
+	tw     mocktwilio.PhoneAssertions
+	mockTw *mocktwilio.Server
+	twS    *httptest.Server
 
 	cfg config.Config
 
@@ -100,6 +100,8 @@ type Harness struct {
 
 	gqlSessions map[string]string
 }
+
+func (h *Harness) Twilio(t *testing.T) mocktwilio.PhoneAssertions { return h.tw.WithT(t) }
 
 func (h *Harness) Config() config.Config {
 	return h.cfg
@@ -169,12 +171,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 	t.Logf("created test database '%s': %s", name, dbURL)
 
-	twCfg := mocktwilio.Config{
-		AuthToken:    twilioAuthToken,
-		AccountSID:   twilioAccountSID,
-		MinQueueTime: 100 * time.Millisecond, // until we have a stateless backend for answering calls
-	}
-
 	pgTime, err := pgmocktime.New(ctx, DBURL(name))
 	if err != nil {
 		t.Fatal("create pgmocktime:", err)
@@ -194,19 +190,27 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	}
 	h.email = newEmailServer(h)
 
-	h.tw = newTwilioAssertionAPI(func() {
-		h.FastForward(time.Minute)
-		h.Trigger()
-	}, func(num string) string {
-		id, ok := h.phoneCCG.names[num]
-		if !ok {
-			return num
-		}
+	h.mockTw = mocktwilio.NewServer(mocktwilio.Config{
+		AuthToken:  twilioAuthToken,
+		AccountSID: twilioAccountSID,
+		EnableAuth: true,
+		OnError: func(ctx context.Context, err error) {
+			t.Helper()
+			t.Error(err)
+		},
+	})
+	h.tw = mocktwilio.NewAssertions(t, mocktwilio.AssertConfig{
+		ServerAPI:      h.mockTw,
+		Timeout:        15 * time.Second,
+		AppPhoneNumber: h.TwilioNumber(""),
+		RefreshFunc: func() {
+			t.Helper()
+			h.FastForward(time.Second)
+			h.Trigger()
+		},
+	})
 
-		return fmt.Sprintf("%s/Phone(%s)", num, id)
-	}, mocktwilio.NewServer(twCfg), h.phoneCCG.Get("twilio"))
-
-	h.twS = httptest.NewServer(h.tw)
+	h.twS = httptest.NewServer(h.mockTw)
 
 	err = h.pgTime.Inject(ctx)
 	if err != nil {
@@ -563,7 +567,7 @@ func (h *Harness) Close() error {
 		defer panic(recErr)
 	}
 
-	h.tw.WaitAndAssert(h.t)
+	h.tw.WaitAndAssert()
 	h.slack.WaitAndAssert()
 	h.email.WaitAndAssert()
 
@@ -582,7 +586,7 @@ func (h *Harness) Close() error {
 	h.slackS.Close()
 	h.twS.Close()
 
-	h.tw.Close()
+	h.mockTw.Close()
 	h.dumpDB()
 
 	h.pgTime.Close()
@@ -602,7 +606,8 @@ func (h *Harness) Close() error {
 
 // SetCarrierName will set the carrier name for the given phone number.
 func (h *Harness) SetCarrierName(number, name string) {
-	h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+	h.t.Fatal("not implemented")
+	// h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
 }
 
 // TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
@@ -613,13 +618,13 @@ func (h *Harness) TwilioNumber(id string) string {
 	}
 	num := h.phoneCCG.Get("twilio" + id)
 
-	err := h.tw.RegisterSMSCallback(num, h.URL()+"/v1/twilio/sms/messages")
+	err := h.mockTw.AddNumber(mocktwilio.Number{
+		Number:          num,
+		SMSWebhookURL:   h.URL() + "/v1/twilio/sms/messages",
+		VoiceWebhookURL: h.URL() + "/v1/twilio/voice/call",
+	})
 	if err != nil {
-		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
-	}
-	err = h.tw.RegisterVoiceCallback(num, h.URL()+"/v1/twilio/voice/call")
-	if err != nil {
-		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
+		h.t.Fatalf("failed to init twilio: %v", err)
 	}
 
 	return num
@@ -634,8 +639,12 @@ func (h *Harness) TwilioMessagingService() string {
 	}
 	defer h.mx.Unlock()
 
-	nums := []string{h.phoneCCG.Get("twilio:sid1"), h.phoneCCG.Get("twilio:sid2"), h.phoneCCG.Get("twilio:sid3")}
-	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", nums...)
+	newID := mocktwilio.NewMsgServiceID()
+	err := h.mockTw.AddMsgService(mocktwilio.MsgService{
+		ID:            newID,
+		Numbers:       []string{h.phoneCCG.Get("twilio:sid1"), h.phoneCCG.Get("twilio:sid2"), h.phoneCCG.Get("twilio:sid3")},
+		SMSWebhookURL: h.URL() + "/v1/twilio/sms/messages",
+	})
 	if err != nil {
 		panic(err)
 	}

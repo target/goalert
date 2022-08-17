@@ -72,7 +72,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 			return r
 		}
 		return -1
-	}, strings.ReplaceAll(call.Body(), "6-digit", ""))
+	}, strings.ReplaceAll(call.Text(), "6-digit", ""))
 
 	// Since verification code is said twice during one Twilio message
 	assert.Len(t, codeStr, 12)

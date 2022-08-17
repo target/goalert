@@ -1,5 +1,7 @@
 package mocktwilio
 
+import "testing"
+
 // PhoneAssertions is used to assert voice and SMS behavior.
 type PhoneAssertions interface {
 	// Device returns a TwilioDevice for the given number.
@@ -9,6 +11,9 @@ type PhoneAssertions interface {
 
 	// WaitAndAssert will fail the test if there are any unexpected messages received.
 	WaitAndAssert()
+
+	// WithT will return a new PhoneAssertions with a separate text context.
+	WithT(*testing.T) PhoneAssertions
 }
 
 // A PhoneDevice immitates a device (i.e. a phone) for testing interactions.

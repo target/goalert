@@ -58,7 +58,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 			return r
 		}
 		return -1
-	}, msg.Body())
+	}, msg.Text())
 
 	code, _ := strconv.Atoi(codeStr)
 

@@ -26,7 +26,7 @@ func (dev *assertDev) SendSMS(body string) {
 	ctx, cancel := context.WithTimeout(context.Background(), dev.Timeout)
 	defer cancel()
 
-	err := dev.SendMessage(ctx, dev.number, dev.AppPhoneNumber, body)
+	_, err := dev.SendMessage(ctx, dev.number, dev.AppPhoneNumber, body)
 	if err != nil {
 		dev.t.Fatalf("mocktwilio: send SMS %s to %s: %v", body, dev.number, err)
 	}

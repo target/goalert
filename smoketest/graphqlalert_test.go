@@ -110,8 +110,8 @@ func TestGraphQLAlert(t *testing.T) {
 		return -1
 	}
 
-	codeStr1 := strings.Map(digits, msg1.Body())
-	codeStr2 := strings.Map(digits, msg2.Body())
+	codeStr1 := strings.Map(digits, msg1.Text())
+	codeStr2 := strings.Map(digits, msg2.Text())
 
 	code1, _ := strconv.Atoi(codeStr1)
 	code2, _ := strconv.Atoi(codeStr2)

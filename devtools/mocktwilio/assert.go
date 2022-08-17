@@ -20,20 +20,31 @@ type AssertConfig struct {
 }
 
 type ServerAPI interface {
-	SendMessage(ctx context.Context, from, to, body string) error
+	SendMessage(ctx context.Context, from, to, body string) (Message, error)
 	Messages() <-chan Message
 	Calls() <-chan Call
 }
 
 func NewAssertions(t *testing.T, cfg AssertConfig) PhoneAssertions {
 	return &assert{
-		t:            t,
-		AssertConfig: cfg,
+		t:          t,
+		assertBase: &assertBase{AssertConfig: cfg},
+	}
+}
+
+func (a *assert) WithT(t *testing.T) PhoneAssertions {
+	return &assert{
+		t:          t,
+		assertBase: a.assertBase,
 	}
 }
 
 type assert struct {
 	t *testing.T
+	*assertBase
+}
+
+type assertBase struct {
 	AssertConfig
 
 	messages []Message

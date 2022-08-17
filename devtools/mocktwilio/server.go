@@ -39,8 +39,8 @@ type Number struct {
 
 // MsgService allows configuring a mock messaging service that can rotate between available numbers.
 type MsgService struct {
-	// SID is the messaging service ID, it must start with 'MG'.
-	SID string
+	// ID is the messaging service SID, it must start with 'MG'.
+	ID string
 
 	Numbers []string
 
@@ -90,9 +90,9 @@ func validateURL(s string) error {
 }
 
 // NewServer creates a new Server.
-func NewServer(cfg Config) (*Server, error) {
+func NewServer(cfg Config) *Server {
 	if cfg.AccountSID == "" {
-		return nil, errors.New("AccountSID is required")
+		panic("AccountSID is required")
 	}
 
 	srv := &Server{
@@ -119,7 +119,7 @@ func NewServer(cfg Config) (*Server, error) {
 
 	go srv.loop()
 
-	return srv, nil
+	return srv
 }
 
 func (srv *Server) number(s string) *Number {
@@ -168,8 +168,8 @@ func (srv *Server) AddNumber(n Number) error {
 
 // AddMsgService adds a new messaging service to the mock server.
 func (srv *Server) AddMsgService(ms MsgService) error {
-	if !strings.HasPrefix(ms.SID, "MG") {
-		return fmt.Errorf("invalid MsgService SID %s", ms.SID)
+	if !strings.HasPrefix(ms.ID, "MG") {
+		return fmt.Errorf("invalid MsgService SID %s", ms.ID)
 	}
 
 	if ms.SMSWebhookURL != "" {
@@ -186,9 +186,9 @@ func (srv *Server) AddMsgService(ms MsgService) error {
 	}
 
 	msDB := <-srv.msgSvcDB
-	if _, ok := msDB[ms.SID]; ok {
+	if _, ok := msDB[ms.ID]; ok {
 		srv.msgSvcDB <- msDB
-		return fmt.Errorf("MsgService SID %s already exists", ms.SID)
+		return fmt.Errorf("MsgService SID %s already exists", ms.ID)
 	}
 
 	numDB := <-srv.numbersDB
@@ -198,7 +198,7 @@ func (srv *Server) AddMsgService(ms MsgService) error {
 			n = &Number{Number: nStr}
 			numDB[nStr] = n
 		}
-		msDB[ms.SID] = append(msDB[ms.SID], n)
+		msDB[ms.ID] = append(msDB[ms.ID], n)
 
 		if ms.SMSWebhookURL == "" {
 			continue
