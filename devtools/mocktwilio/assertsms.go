@@ -84,8 +84,13 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 	for {
 		select {
 		case <-t.C:
-			dev.t.Log("mocktwilio: messages:", dev.messages)
-			dev.t.Fatalf("mocktwilio: timeout after %s waiting for an SMS to %s with keywords: %v", dev.Timeout, dev.number, keywords)
+
+			dev.t.Errorf("mocktwilio: timeout after %s waiting for an SMS to %s with keywords: %v", dev.Timeout, dev.number, keywords)
+			for i, msg := range dev.messages {
+				dev.t.Errorf("mocktwilio: message %d: from=%s; to=%s; text=%s", i, msg.From(), msg.To(), msg.Text())
+			}
+
+			dev.t.FailNow()
 		case msg := <-dev.Messages():
 			if !dev.matchMessage(dev.number, keywords, msg) {
 				dev.messages = append(dev.messages, msg)
