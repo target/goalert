@@ -154,9 +154,9 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				msg = "Please link your Slack account with GoAlert then try again."
 			}
 
-			linkBtnBlock := slack.NewButtonBlockElement(linkActActionID, linkURL,
+			btn := slack.NewButtonBlockElement(linkActActionID, linkURL,
 				slack.NewTextBlockObject("plain_text", "Link Account", false, false))
-			linkBtnBlock.URL = linkURL
+			btn.URL = linkURL
 
 			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
@@ -165,7 +165,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 						slack.NewTextBlockObject("plain_text", msg, false, false),
 						nil, nil,
 					),
-					slack.NewActionBlock(alertResponseBlockID, linkBtnBlock),
+					slack.NewActionBlock(alertResponseBlockID, btn),
 				),
 			)
 			if err != nil {
