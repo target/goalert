@@ -86,7 +86,23 @@ func (t *TaskMgr) statusLoop() {
 
 func (t *TaskMgr) messageLoop() {
 	ctx := t.cfg.Logger.BackgroundContext()
-	for msg := range t.cfg.Messages.Events() {
+	for {
+		var msg swomsg.Message
+		if t.state == ClusterStateResetting {
+			tm := time.NewTimer(15 * time.Second)
+			select {
+			case <-tm.C:
+				// timeout if no messages for 15 sec
+				t.state = ClusterStateUnknown
+				t.cfg.Logger.Error(ctx, fmt.Errorf("timeout waiting for messages during reset"))
+				tm.Stop()
+				continue
+			case msg = <-t.cfg.Messages.Events():
+				tm.Stop()
+			}
+		} else {
+			msg = <-t.cfg.Messages.Events()
+		}
 		t.mx.Lock()
 		if ch, ok := t.waitMsg[msg.ID]; ok {
 			close(ch)
