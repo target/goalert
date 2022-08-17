@@ -17,7 +17,7 @@ import (
 )
 
 // DefaultTwilioAPIURL is the value that will be used for API calls if Config.BaseURL is empty.
-const DefaultTwilioAPIURL = "https://api.twilio.com/2010-04-01"
+const DefaultTwilioAPIURL = "https://api.twilio.com"
 
 // SMSOptions allows configuring outgoing SMS messages.
 type SMSOptions struct {
@@ -71,6 +71,7 @@ func urlJoin(base string, parts ...string) string {
 	}
 	return base + "/" + strings.Join(parts, "/")
 }
+
 func (c *Config) url(parts ...string) string {
 	base := c.BaseURL
 	if base == "" {
@@ -78,6 +79,7 @@ func (c *Config) url(parts ...string) string {
 	}
 	return urlJoin(base, parts...)
 }
+
 func (c *Config) httpClient() *http.Client {
 	if c.Client != nil {
 		return c.Client
@@ -85,6 +87,7 @@ func (c *Config) httpClient() *http.Client {
 
 	return http.DefaultClient
 }
+
 func (c *Config) get(ctx context.Context, urlStr string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
@@ -98,6 +101,7 @@ func (c *Config) get(ctx context.Context, urlStr string) (*http.Response, error)
 
 	return c.httpClient().Do(req)
 }
+
 func (c *Config) post(ctx context.Context, urlStr string, v url.Values) (*http.Response, error) {
 	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(v.Encode()))
 	if err != nil {
@@ -114,7 +118,7 @@ func (c *Config) post(ctx context.Context, urlStr string, v url.Values) (*http.R
 // GetSMS will return the current state of a Message from Twilio.
 func (c *Config) GetSMS(ctx context.Context, sid string) (*Message, error) {
 	cfg := config.FromContext(ctx)
-	urlStr := c.url("Accounts", cfg.Twilio.AccountSID, "Messages", sid+".json")
+	urlStr := c.url("2010-04-01", "Accounts", cfg.Twilio.AccountSID, "Messages", sid+".json")
 	resp, err := c.get(ctx, urlStr)
 	if err != nil {
 		return nil, err
@@ -130,7 +134,7 @@ func (c *Config) GetSMS(ctx context.Context, sid string) (*Message, error) {
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrap(err, "parse error response")
+			return nil, errors.Wrapf(err, "parse error response %s", string(data))
 		}
 		return nil, &e
 	}
@@ -147,7 +151,7 @@ func (c *Config) GetSMS(ctx context.Context, sid string) (*Message, error) {
 // GetVoice will return the current state of a voice call from Twilio.
 func (c *Config) GetVoice(ctx context.Context, sid string) (*Call, error) {
 	cfg := config.FromContext(ctx)
-	urlStr := c.url("Accounts", cfg.Twilio.AccountSID, "Calls", sid+".json")
+	urlStr := c.url("2010-04-01", "Accounts", cfg.Twilio.AccountSID, "Calls", sid+".json")
 	resp, err := c.post(ctx, urlStr, nil)
 	if err != nil {
 		return nil, err
@@ -226,7 +230,7 @@ func (c *Config) StartVoice(ctx context.Context, to string, o *VoiceOptions) (*C
 	v.Add("StatusCallbackEvent", "answered")
 	v.Add("StatusCallbackEvent", "completed")
 	o.apply(v)
-	urlStr := c.url("Accounts", cfg.Twilio.AccountSID, "Calls.json")
+	urlStr := c.url("2010-04-01", "Accounts", cfg.Twilio.AccountSID, "Calls.json")
 
 	resp, err := c.post(ctx, urlStr, v)
 	if err != nil {
@@ -291,7 +295,7 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 	}
 	v.Set("StatusCallback", stat)
 	o.apply(v)
-	urlStr := c.url("Accounts", cfg.Twilio.AccountSID, "Messages.json")
+	urlStr := c.url("2010-04-01", "Accounts", cfg.Twilio.AccountSID, "Messages.json")
 
 	resp, err := c.post(ctx, urlStr, v)
 	if err != nil {
@@ -307,7 +311,7 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrap(err, "parse error response")
+			return nil, errors.Wrapf(err, "parse error response %s", string(data))
 		}
 		return nil, &e
 	}
