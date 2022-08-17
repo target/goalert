@@ -1,60 +1,78 @@
 package mocktwilio
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/validation/validate"
+	"github.com/ttacon/libphonenumber"
 )
 
 // Config is used to configure the mock server.
 type Config struct {
-
-	// The SID and token should match values given to the backend
-	// as the mock server will send and validate signatures.
+	// AccountSID is the Twilio account SID.
 	AccountSID string
-	AuthToken  string
 
-	// MinQueueTime determines the minimum amount of time an SMS or voice
-	// call will sit in the queue before being processed/delivered.
-	MinQueueTime time.Duration
+	// AuthToken is the Twilio auth token.
+	AuthToken string
+
+	Numbers     []Number
+	MsgServices []MsgService
+
+	// If EnableAuth is true, incoming requests will need to have a valid Authorization header.
+	EnableAuth bool
+
+	OnError func(context.Context, error)
+}
+
+// Number represents a mock phone number.
+type Number struct {
+	Number string
+
+	VoiceWebhookURL string
+	SMSWebhookURL   string
+}
+
+// MsgService allows configuring a mock messaging service that can rotate between available numbers.
+type MsgService struct {
+	// SID is the messaging service ID, it must start with 'MG'.
+	SID string
+
+	Numbers []string
+
+	// SMSWebhookURL is the URL to which SMS messages will be sent.
+	//
+	// It takes precedence over the SMSWebhookURL field in the Config.Numbers field
+	// for all numbers in the service.
+	SMSWebhookURL string
 }
 
 // Server implements the Twilio API for SMS and Voice calls
 // via the http.Handler interface.
 type Server struct {
-	mx        sync.RWMutex
-	callbacks map[string]string
-
-	smsInCh  chan *SMS
-	callInCh chan *VoiceCall
-
-	smsCh  chan *SMS
-	callCh chan *VoiceCall
-
-	errs chan error
-
 	cfg Config
 
-	messages map[string]*SMS
-	calls    map[string]*VoiceCall
-	msgSvc   map[string][]string
+	smsDB         chan map[string]*sms
+	messagesCh    chan Message
+	outboundSMSCh chan *sms
+
+	numbers map[string]*Number
+	msgSvc  map[string][]*Number
 
 	mux *http.ServeMux
 
-	shutdown chan struct{}
+	once         sync.Once
+	shutdown     chan struct{}
+	shutdownDone chan struct{}
 
-	sidSeq uint64
+	id uint64
 
 	workers sync.WaitGroup
 
@@ -62,54 +80,161 @@ type Server struct {
 	carrierInfoMx sync.Mutex
 }
 
+func validateURL(s string) error {
+	u, err := url.Parse(s)
+	if err != nil {
+		return err
+	}
+	if u.Scheme == "" {
+		return errors.Errorf("invalid URL (missing scheme): %s", s)
+	}
+
+	return nil
+}
+
 // NewServer creates a new Server.
-func NewServer(cfg Config) *Server {
-	if cfg.MinQueueTime == 0 {
-		cfg.MinQueueTime = 100 * time.Millisecond
-	}
-	s := &Server{
-		cfg:         cfg,
-		callbacks:   make(map[string]string),
-		mux:         http.NewServeMux(),
-		messages:    make(map[string]*SMS),
-		calls:       make(map[string]*VoiceCall),
-		msgSvc:      make(map[string][]string),
-		smsCh:       make(chan *SMS),
-		smsInCh:     make(chan *SMS),
-		callCh:      make(chan *VoiceCall),
-		callInCh:    make(chan *VoiceCall),
-		errs:        make(chan error, 10000),
-		shutdown:    make(chan struct{}),
-		carrierInfo: make(map[string]twilio.CarrierInfo),
+func NewServer(cfg Config) (*Server, error) {
+	if cfg.AccountSID == "" {
+		return nil, errors.New("AccountSID is required")
 	}
 
-	base := "/Accounts/" + cfg.AccountSID
+	srv := &Server{
+		cfg:     cfg,
+		msgSvc:  make(map[string][]*Number),
+		numbers: make(map[string]*Number),
+		mux:     http.NewServeMux(),
 
-	s.mux.HandleFunc(base+"/Calls.json", s.serveNewCall)
-	s.mux.HandleFunc(base+"/Messages.json", s.serveNewMessage)
-	s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
-	s.mux.HandleFunc(base+"/Messages/", s.serveMessageStatus)
-	s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
+		smsDB:         make(chan map[string]*sms, 1),
+		messagesCh:    make(chan Message),
+		outboundSMSCh: make(chan *sms),
 
-	s.workers.Add(1)
-	go s.loop()
+		shutdown:     make(chan struct{}),
+		shutdownDone: make(chan struct{}),
+	}
 
-	return s
+	for _, n := range cfg.Numbers {
+		_, err := libphonenumber.Parse(n.Number, "")
+		if err != nil {
+			return nil, fmt.Errorf("invalid phone number %s: %v", n.Number, err)
+		}
+		if n.SMSWebhookURL != "" {
+			err = validateURL(n.SMSWebhookURL)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if n.VoiceWebhookURL != "" {
+			err = validateURL(n.VoiceWebhookURL)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// point to copy
+		_n := n
+		srv.numbers[n.Number] = &_n
+	}
+	for _, m := range cfg.MsgServices {
+		if !strings.HasPrefix(m.SID, "MG") {
+			return nil, fmt.Errorf("invalid MsgService SID %s", m.SID)
+		}
+
+		if m.SMSWebhookURL != "" {
+			err := validateURL(m.SMSWebhookURL)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for _, nStr := range m.Numbers {
+			_, err := libphonenumber.Parse(nStr, "")
+			if err != nil {
+				return nil, fmt.Errorf("invalid phone number %s: %v", nStr, err)
+			}
+
+			n := srv.numbers[nStr]
+			if n == nil {
+				n = &Number{Number: nStr}
+				srv.numbers[nStr] = n
+			}
+
+			if m.SMSWebhookURL == "" {
+				continue
+			}
+
+			n.SMSWebhookURL = m.SMSWebhookURL
+		}
+	}
+
+	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
+	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
+	// s.mux.HandleFunc(base+"/Calls.json", s.serveNewCall)
+	// s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
+	// s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
+
+	go srv.loop()
+
+	return srv, nil
 }
 
-// Errors returns a channel that gets fed all errors when calling
-// the backend.
-func (s *Server) Errors() chan error {
-	return s.errs
+func (srv *Server) basePath() string {
+	return "/2010-04-01/Accounts/" + srv.cfg.AccountSID
 }
 
-func (s *Server) post(url string, v url.Values) ([]byte, error) {
-	req, err := http.NewRequest("POST", url, strings.NewReader(v.Encode()))
+func (srv *Server) nextID(prefix string) string {
+	return fmt.Sprintf("%s%032d", prefix, atomic.AddUint64(&srv.id, 1))
+}
+
+func (srv *Server) logErr(ctx context.Context, err error) {
+	if srv.cfg.OnError == nil {
+		return
+	}
+
+	srv.cfg.OnError(ctx, err)
+}
+
+func (srv *Server) Close() error {
+	srv.once.Do(func() {
+		close(srv.shutdown)
+	})
+
+	<-srv.shutdownDone
+	return nil
+}
+
+func (srv *Server) loop() {
+	var wg sync.WaitGroup
+
+	defer close(srv.shutdownDone)
+	defer close(srv.messagesCh)
+	defer wg.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	for {
+		select {
+		case <-srv.shutdown:
+
+			return
+		case sms := <-srv.outboundSMSCh:
+			wg.Add(1)
+			go func() {
+				sms.lifecycle(ctx)
+				wg.Done()
+			}()
+		}
+	}
+}
+
+func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("X-Twilio-Signature", string(twilio.Signature(s.cfg.AuthToken, url, v)))
+	req.Header.Set("X-Twilio-Signature", Signature(s.cfg.AuthToken, url, v))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -131,133 +256,19 @@ func (s *Server) post(url string, v url.Values) ([]byte, error) {
 	return data, nil
 }
 
-func (s *Server) id(prefix string) string {
-	return fmt.Sprintf("%s%032d", prefix, atomic.AddUint64(&s.sidSeq, 1))
-}
-
-// Close will shutdown the server loop.
-func (s *Server) Close() error {
-	close(s.shutdown)
-	s.workers.Wait()
-	return nil
-}
-
-// wait will wait the specified amount of time, but return
-// true if aborted due to shutdown.
-func (s *Server) wait(dur time.Duration) bool {
-	t := time.NewTimer(dur)
-	defer t.Stop()
-	select {
-	case <-t.C:
-		return false
-	case <-s.shutdown:
-		return true
-	}
-}
-
-func (s *Server) loop() {
-	defer s.workers.Done()
-
-	for {
-		select {
-		case <-s.shutdown:
-			return
-		default:
-		}
-
-		select {
-		case <-s.shutdown:
-			return
-		case sms := <-s.smsInCh:
-			s.workers.Add(1)
-			go sms.process()
-		case vc := <-s.callInCh:
-			s.workers.Add(1)
-			go vc.process()
-		}
-	}
-}
-
-func apiError(status int, w http.ResponseWriter, e *twilio.Exception) {
-	w.WriteHeader(status)
-	err := json.NewEncoder(w).Encode(e)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // ServeHTTP implements the http.Handler interface for serving [mock] API requests.
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if s.cfg.EnableAuth {
+		user, pass, ok := req.BasicAuth()
+		if !ok || user != s.cfg.AccountSID || pass != s.cfg.AuthToken {
+			respondErr(w, twError{
+				Status:  401,
+				Code:    20003,
+				Message: "Authenticate",
+			})
+			return
+		}
+	}
+
 	s.mux.ServeHTTP(w, req)
-}
-
-// SetCarrierInfo will set/update the carrier info (used for the Lookup API) for the given number.
-func (s *Server) SetCarrierInfo(number string, info twilio.CarrierInfo) {
-	s.carrierInfoMx.Lock()
-	defer s.carrierInfoMx.Unlock()
-
-	s.carrierInfo[number] = info
-}
-
-// getFromNumber will return a random number from the messaging service if ID is a
-// messaging SID, or the value itself otherwise.
-func (s *Server) getFromNumber(id string) string {
-	if !strings.HasPrefix(id, "MG") {
-		return id
-	}
-
-	s.mx.Lock()
-	defer s.mx.Unlock()
-
-	// select a random number from the message service
-	if len(s.msgSvc[id]) == 0 {
-		return ""
-	}
-
-	return s.msgSvc[id][rand.Intn(len(s.msgSvc[id]))]
-}
-
-// NewMessagingService registers a new Messaging SID for the given numbers.
-func (s *Server) NewMessagingService(url string, numbers ...string) (string, error) {
-	err := validate.URL("URL", url)
-	for i, n := range numbers {
-		err = validate.Many(err, validate.Phone(fmt.Sprintf("Number[%d]", i), n))
-	}
-	if err != nil {
-		return "", err
-	}
-	svcID := s.id("MG")
-
-	s.mx.Lock()
-	defer s.mx.Unlock()
-	for _, num := range numbers {
-		s.callbacks["SMS:"+num] = url
-	}
-	s.msgSvc[svcID] = numbers
-
-	return svcID, nil
-}
-
-// RegisterSMSCallback will set/update a callback URL for SMS calls made to the given number.
-func (s *Server) RegisterSMSCallback(number, url string) error {
-	err := validate.URL("URL", url)
-	if err != nil {
-		return err
-	}
-	s.mx.Lock()
-	defer s.mx.Unlock()
-	s.callbacks["SMS:"+number] = url
-	return nil
-}
-
-// RegisterVoiceCallback will set/update a callback URL for voice calls made to the given number.
-func (s *Server) RegisterVoiceCallback(number, url string) error {
-	err := validate.URL("URL", url)
-	if err != nil {
-		return err
-	}
-	s.mx.Lock()
-	defer s.mx.Unlock()
-	s.callbacks["VOICE:"+number] = url
-	return nil
 }
