@@ -106,6 +106,10 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	db := <-srv.smsDB
+	db[s.ID] = s
+	srv.smsDB <- db
+
 	srv.outboundSMSCh <- s
 
 	w.Header().Set("Content-Type", "application/json")
