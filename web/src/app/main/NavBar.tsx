@@ -11,6 +11,7 @@ import {
   Today,
   VpnKey,
   Build,
+  DeveloperBoard,
 } from '@mui/icons-material'
 import { WizardHat as WizardIcon } from 'mdi-material-ui'
 import { Theme, useTheme } from '@mui/material/styles'
@@ -40,6 +41,11 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function NavBar(): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
+
+  let localDev = null
+  if (process.env.NODE_ENV !== 'production') {
+    localDev = <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
+  }
 
   return (
     <React.Fragment>
@@ -80,6 +86,8 @@ export default function NavBar(): JSX.Element {
           </RequireConfig>
 
           <NavBarLink to='/wizard' title='Wizard' icon={<WizardIcon />} />
+
+          {localDev}
         </List>
       </nav>
     </React.Fragment>
