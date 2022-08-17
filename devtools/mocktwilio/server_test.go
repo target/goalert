@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -33,6 +32,10 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, "hello", req.FormValue("Body"))
 		w.WriteHeader(204)
 	})
+	mux.HandleFunc("/status", func(w http.ResponseWriter, req *http.Request) {
+		t.Log(req.URL.Path)
+		w.WriteHeader(204)
+	})
 	appHTTP := httptest.NewServer(mux)
 	defer appHTTP.Close()
 
@@ -58,11 +61,13 @@ func TestServer(t *testing.T) {
 	v.Set("From", appPhone.Number)
 	v.Set("To", devNum)
 	v.Set("Body", "world")
+	v.Set("StatusCallback", appHTTP.URL+"/status")
 	resp, err := http.PostForm(twHTTP.URL+"/2010-04-01/Accounts/"+cfg.AccountSID+"/Messages.json", v)
 	require.NoError(t, err)
 
 	data, err := ioutil.ReadAll(resp.Body)
-	log.Println(string(data))
+	require.NoError(t, err)
+	t.Log("Response:", string(data))
 	require.Equal(t, 201, resp.StatusCode)
 
 	require.NoError(t, err)
@@ -74,6 +79,14 @@ func TestServer(t *testing.T) {
 
 	msg := <-srv.Messages()
 	assert.Equal(t, res.SID, msg.ID())
+
+	resp, err = http.Get(twHTTP.URL + "/2010-04-01/Accounts/" + cfg.AccountSID + "/Messages/" + res.SID + ".json")
+	require.NoError(t, err)
+
+	data, err = ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	t.Log("Response:", string(data))
+	require.Equal(t, 200, resp.StatusCode)
 
 	err = srv.Close()
 	require.NoError(t, err)
