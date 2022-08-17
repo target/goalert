@@ -292,7 +292,7 @@ func (h *Harness) Start() {
 		AppPhoneNumber: h.TwilioNumber(""),
 		RefreshFunc: func() {
 			h.t.Helper()
-			h.FastForward(time.Second)
+			h.FastForward(time.Minute)
 			h.Trigger()
 		},
 	})
