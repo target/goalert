@@ -23,9 +23,6 @@ type Config struct {
 	// AuthToken is the Twilio auth token.
 	AuthToken string
 
-	Numbers     []Number
-	MsgServices []MsgService
-
 	// If EnableAuth is true, incoming requests will need to have a valid Authorization header.
 	EnableAuth bool
 
@@ -63,8 +60,8 @@ type Server struct {
 	messagesCh    chan Message
 	outboundSMSCh chan *sms
 
-	numbers map[string]*Number
-	msgSvc  map[string][]*Number
+	numbersDB chan map[string]*Number
+	msgSvcDB  chan map[string][]*Number
 
 	mux *http.ServeMux
 
@@ -99,10 +96,10 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	srv := &Server{
-		cfg:     cfg,
-		msgSvc:  make(map[string][]*Number),
-		numbers: make(map[string]*Number),
-		mux:     http.NewServeMux(),
+		cfg:       cfg,
+		msgSvcDB:  make(chan map[string][]*Number, 1),
+		numbersDB: make(chan map[string]*Number, 1),
+		mux:       http.NewServeMux(),
 
 		smsDB:         make(chan map[string]*sms, 1),
 		messagesCh:    make(chan Message),
@@ -111,60 +108,8 @@ func NewServer(cfg Config) (*Server, error) {
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
 	}
-
-	for _, n := range cfg.Numbers {
-		_, err := libphonenumber.Parse(n.Number, "")
-		if err != nil {
-			return nil, fmt.Errorf("invalid phone number %s: %v", n.Number, err)
-		}
-		if n.SMSWebhookURL != "" {
-			err = validateURL(n.SMSWebhookURL)
-			if err != nil {
-				return nil, err
-			}
-		}
-		if n.VoiceWebhookURL != "" {
-			err = validateURL(n.VoiceWebhookURL)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// point to copy
-		_n := n
-		srv.numbers[n.Number] = &_n
-	}
-	for _, m := range cfg.MsgServices {
-		if !strings.HasPrefix(m.SID, "MG") {
-			return nil, fmt.Errorf("invalid MsgService SID %s", m.SID)
-		}
-
-		if m.SMSWebhookURL != "" {
-			err := validateURL(m.SMSWebhookURL)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		for _, nStr := range m.Numbers {
-			_, err := libphonenumber.Parse(nStr, "")
-			if err != nil {
-				return nil, fmt.Errorf("invalid phone number %s: %v", nStr, err)
-			}
-
-			n := srv.numbers[nStr]
-			if n == nil {
-				n = &Number{Number: nStr}
-				srv.numbers[nStr] = n
-			}
-
-			if m.SMSWebhookURL == "" {
-				continue
-			}
-
-			n.SMSWebhookURL = m.SMSWebhookURL
-		}
-	}
+	srv.msgSvcDB <- make(map[string][]*Number)
+	srv.numbersDB <- make(map[string]*Number)
 
 	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
 	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
@@ -175,6 +120,96 @@ func NewServer(cfg Config) (*Server, error) {
 	go srv.loop()
 
 	return srv, nil
+}
+
+func (srv *Server) number(s string) *Number {
+	db := <-srv.numbersDB
+	n := db[s]
+	srv.numbersDB <- db
+	return n
+}
+
+func (srv *Server) numberSvc(id string) []*Number {
+	db := <-srv.msgSvcDB
+	nums := db[id]
+	srv.msgSvcDB <- db
+
+	return nums
+}
+
+// AddNumber adds a new number to the mock server.
+func (srv *Server) AddNumber(n Number) error {
+	_, err := libphonenumber.Parse(n.Number, "")
+	if err != nil {
+		return fmt.Errorf("invalid phone number %s: %v", n.Number, err)
+	}
+	if n.SMSWebhookURL != "" {
+		err = validateURL(n.SMSWebhookURL)
+		if err != nil {
+			return err
+		}
+	}
+	if n.VoiceWebhookURL != "" {
+		err = validateURL(n.VoiceWebhookURL)
+		if err != nil {
+			return err
+		}
+	}
+
+	db := <-srv.numbersDB
+	if _, ok := db[n.Number]; ok {
+		srv.numbersDB <- db
+		return fmt.Errorf("number %s already exists", n.Number)
+	}
+	db[n.Number] = &n
+	srv.numbersDB <- db
+	return nil
+}
+
+// AddMsgService adds a new messaging service to the mock server.
+func (srv *Server) AddMsgService(ms MsgService) error {
+	if !strings.HasPrefix(ms.SID, "MG") {
+		return fmt.Errorf("invalid MsgService SID %s", ms.SID)
+	}
+
+	if ms.SMSWebhookURL != "" {
+		err := validateURL(ms.SMSWebhookURL)
+		if err != nil {
+			return err
+		}
+	}
+	for _, nStr := range ms.Numbers {
+		_, err := libphonenumber.Parse(nStr, "")
+		if err != nil {
+			return fmt.Errorf("invalid phone number %s: %v", nStr, err)
+		}
+	}
+
+	msDB := <-srv.msgSvcDB
+	if _, ok := msDB[ms.SID]; ok {
+		srv.msgSvcDB <- msDB
+		return fmt.Errorf("MsgService SID %s already exists", ms.SID)
+	}
+
+	numDB := <-srv.numbersDB
+	for _, nStr := range ms.Numbers {
+		n := numDB[nStr]
+		if n == nil {
+			n = &Number{Number: nStr}
+			numDB[nStr] = n
+		}
+		msDB[ms.SID] = append(msDB[ms.SID], n)
+
+		if ms.SMSWebhookURL == "" {
+			continue
+		}
+
+		n.SMSWebhookURL = ms.SMSWebhookURL
+	}
+	srv.numbersDB <- numDB
+	srv.msgSvcDB <- msDB
+
+	return nil
 }
 
 func (srv *Server) basePath() string {
@@ -193,6 +228,7 @@ func (srv *Server) logErr(ctx context.Context, err error) {
 	srv.cfg.OnError(ctx, err)
 }
 
+// Close shuts down the server.
 func (srv *Server) Close() error {
 	srv.once.Do(func() {
 		close(srv.shutdown)

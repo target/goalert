@@ -62,7 +62,7 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.MsgSID != "" {
-		if len(srv.msgSvc[s.MsgSID]) == 0 {
+		if len(srv.numberSvc(s.MsgSID)) == 0 {
 			respondErr(w, twError{
 				Status:  404,
 				Message: fmt.Sprintf("The requested resource %s was not found", r.URL.String()),
@@ -85,7 +85,7 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if srv.numbers[s.From] == nil {
+		if srv.number(s.From) == nil {
 			respondErr(w, twError{
 				Status:  400,
 				Message: fmt.Sprintf("The From phone number %s is not a valid, SMS-capable inbound phone number or short code for your account.", s.From),

@@ -43,7 +43,7 @@ func (srv *Server) newSMS() *sms {
 
 func (s *sms) lifecycle(ctx context.Context) {
 	if s.MsgSID != "" {
-		nums := s.srv.msgSvc[s.MsgSID]
+		nums := s.srv.numberSvc(s.MsgSID)
 		idx := rand.Intn(len(nums))
 		newFrom := nums[idx]
 		err := s.setSendStatus(ctx, "queued", newFrom.Number)
@@ -57,7 +57,7 @@ func (s *sms) lifecycle(ctx context.Context) {
 		s.srv.logErr(ctx, err)
 	}
 
-	n := s.srv.numbers[s.To]
+	n := s.srv.number(s.To)
 	if n == nil {
 		select {
 		case <-ctx.Done():

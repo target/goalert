@@ -22,7 +22,7 @@ func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Mess
 		return nil, fmt.Errorf("invalid to phone number: %v", err)
 	}
 
-	n := srv.numbers[to]
+	n := srv.number(to)
 	if n == nil {
 		return nil, fmt.Errorf("unregistered destination number: %s", to)
 	}
