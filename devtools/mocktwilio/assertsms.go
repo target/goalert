@@ -71,6 +71,7 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 				dev.t.Fatalf("mocktwilio: error setting SMS status %s to %s: %v", status, msg.To(), err)
 			}
 
+			dev.t.Log("mocktwilio: received expected SMS from", msg.From(), "to", msg.To(), "with text", msg.Text())
 			return &assertSMS{assertDev: dev, Message: msg}
 		}
 	}
@@ -83,6 +84,7 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 	for {
 		select {
 		case <-t.C:
+			dev.t.Log("mocktwilio: messages:", dev.messages)
 			dev.t.Fatalf("mocktwilio: timeout after %s waiting for an SMS to %s with keywords: %v", dev.Timeout, dev.number, keywords)
 		case msg := <-dev.Messages():
 			if !dev.matchMessage(dev.number, keywords, msg) {
@@ -98,6 +100,7 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 				dev.t.Fatalf("mocktwilio: error setting SMS status %s to %s: %v", status, msg.To(), err)
 			}
 
+			dev.t.Log("mocktwilio: received expected SMS from", msg.From(), "to", msg.To(), "with text", msg.Text())
 			return &assertSMS{assertDev: dev, Message: msg}
 		}
 	}
