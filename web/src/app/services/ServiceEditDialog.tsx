@@ -65,12 +65,17 @@ export default function ServiceEditDialog(props: {
       )}
       onClose={props.onClose}
       onSubmit={() => {
-        save({
-          input: {
-            ...value,
-            id: props.serviceID,
+        save(
+          {
+            input: {
+              ...value,
+              id: props.serviceID,
+            },
           },
-        }).then((res) => {
+          {
+            additionalTypenames: ['Service'],
+          },
+        ).then((res) => {
           if (res.error) return
           props.onClose()
         })
