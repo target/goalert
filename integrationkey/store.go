@@ -8,7 +8,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -46,7 +45,7 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (con
 		serviceID, err = s.GetServiceID(c, tok.ID.String(), t)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		return ctx, validation.NewFieldError("IntegrationKeyID", "not found")
+		return ctx, permission.Unauthorized()
 	}
 	if err != nil {
 		return ctx, errors.Wrap(err, "lookup serviceID")
@@ -116,9 +115,11 @@ func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) 
 func (s *Store) Delete(ctx context.Context, id string) error {
 	return s.DeleteTx(ctx, nil, id)
 }
+
 func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 	return s.DeleteManyTx(ctx, tx, []string{id})
 }
+
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
@@ -159,7 +160,6 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 	}
 
 	return &i, nil
-
 }
 
 func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]IntegrationKey, error) {

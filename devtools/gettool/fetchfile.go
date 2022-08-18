@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -19,7 +18,7 @@ func fetchFile(url string) (*os.File, int64, error) {
 		return nil, 0, fmt.Errorf("non-200 response: %s", resp.Status)
 	}
 
-	fd, err := ioutil.TempFile("", "*.zip")
+	fd, err := os.CreateTemp("", "*.zip")
 	if err != nil {
 		return nil, 0, fmt.Errorf("create temp file: %w", err)
 	}
