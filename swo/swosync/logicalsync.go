@@ -82,7 +82,7 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	applyChanges.Queue("begin")
 	applyChanges.Queue("set constraints all deferred")
 	seqSync.AddBatchWrites(&applyChanges)
-	tblSync.AddBatchWrites(&applyChanges, l.dstRows)
+	tblSync.AddBatchWrites(&applyChanges)
 	applyChanges.Queue("commit")
 	if final {
 		// re-enable triggers in destination DB

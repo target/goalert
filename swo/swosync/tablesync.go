@@ -27,6 +27,7 @@ type changeEntry struct {
 	id int64
 	changeID
 }
+type changeID struct{ Table, Row string }
 
 // NewTableSync creates a new TableSync for the given tables.
 func NewTableSync(tables []swoinfo.Table) *TableSync {
@@ -162,10 +163,9 @@ func (c *TableSync) ExecDeleteChanges(ctx context.Context, srcConn *pgx.Conn) (i
 	return int64(len(ids)), nil
 }
 
-func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows rowSet) {
+func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 	type pending struct {
-		inserts []json.RawMessage
-		updates []json.RawMessage
+		upserts []json.RawMessage
 		deletes []string
 	}
 	pendingByTable := make(map[string]*pending)
@@ -178,36 +178,21 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows rowSet) {
 		newRowData := c.changedData[chg.changeID]
 		if newRowData == nil {
 			// row was deleted
-			dstRows.Delete(chg.changeID)
 			p.deletes = append(p.deletes, chg.Row)
 			continue
 		}
 
-		if dstRows.Has(chg.changeID) {
-			// row was updated
-			p.updates = append(p.updates, newRowData)
-		} else {
-			// row was inserted
-			dstRows.Set(chg.changeID)
-			p.inserts = append(p.inserts, newRowData)
-		}
+		p.upserts = append(p.upserts, newRowData)
 	}
 
 	// insert, then update, then reverse delete
 	for _, t := range c.tables {
 		p := pendingByTable[t.Name()]
-		if p == nil || len(p.inserts) == 0 {
+		if p == nil || len(p.upserts) == 0 {
 			continue
 		}
-		b.Queue(insertRowsQuery(t), p.inserts)
-	}
 
-	for _, t := range c.tables {
-		p := pendingByTable[t.Name()]
-		if p == nil || len(p.updates) == 0 {
-			continue
-		}
-		b.Queue(updateRowsQuery(t), p.updates)
+		b.Queue(upsertRowsQuery(t), p.upserts)
 	}
 
 	for i := range c.tables {
@@ -222,18 +207,24 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch, dstRows rowSet) {
 	}
 }
 
-func updateRowsQuery(t swoinfo.Table) string {
+func upsertRowsQuery(t swoinfo.Table) string {
 	var s strings.Builder
-	fmt.Fprintf(&s, "update %s dst\n", sqlutil.QuoteID(t.Name()))
-	fmt.Fprintf(&s, "set ")
+	fmt.Fprintf(&s, `
+		insert into %s
+		select * from json_populate_recordset(null::%s, $1)
+		on conflict (id) do update
+		set 
+	`, sqlutil.QuoteID(t.Name()), sqlutil.QuoteID(t.Name()))
 	for i, col := range t.Columns() {
+		if col == "id" {
+			continue
+		}
+
 		if i > 0 {
 			fmt.Fprintf(&s, ", ")
 		}
-		fmt.Fprintf(&s, "%s = data.%s", sqlutil.QuoteID(col), sqlutil.QuoteID(col))
+		fmt.Fprintf(&s, "%s = EXCLUDED.%s", sqlutil.QuoteID(col), sqlutil.QuoteID(col))
 	}
-	fmt.Fprintf(&s, "\nfrom json_populate_recordset(null::%s, $1) as data\n", sqlutil.QuoteID(t.Name()))
-	fmt.Fprintf(&s, "where dst.id = data.id")
 
 	return s.String()
 }

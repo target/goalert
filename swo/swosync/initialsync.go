@@ -98,7 +98,6 @@ func (l *LogicalReplicator) initialSyncTable(ctx context.Context, srcTx, dstTx p
 			return 0, fmt.Errorf("scan: %w", err)
 		}
 		insertRows = append(insertRows, rowData)
-		l.dstRows.Set(changeID{table.Name(), id})
 
 		if len(insertRows) < 10000 {
 			continue

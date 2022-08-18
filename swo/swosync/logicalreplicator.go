@@ -16,15 +16,11 @@ type LogicalReplicator struct {
 	seqNames []string
 
 	progFn func(ctx context.Context, format string, args ...interface{})
-
-	dstRows rowSet
 }
 
 // NewLogicalReplicator creates a new LogicalReplicator.
 func NewLogicalReplicator() *LogicalReplicator {
-	return &LogicalReplicator{
-		dstRows: make(rowSet),
-	}
+	return &LogicalReplicator{}
 }
 
 // SetSourceDB sets the source database and must be called before Start.
