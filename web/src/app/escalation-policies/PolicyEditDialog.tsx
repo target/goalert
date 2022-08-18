@@ -1,8 +1,9 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
+import Spinner from '../loading/components/Spinner'
 
 interface Value {
   name: string
@@ -33,7 +34,7 @@ const mutation = gql`
 function PolicyEditDialog(props: {
   escalationPolicyID: string
   onClose: () => void
-}): ReactNode {
+}): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching }] = useQuery({
     query,
@@ -53,7 +54,7 @@ function PolicyEditDialog(props: {
   const [editDialogMutationStatus, editDialogMutation] = useMutation(mutation)
   const fieldErrs = fieldErrors(editDialogMutationStatus.error)
 
-  if (fetching && !data?.escalationPolicy) return null
+  if (fetching && !data?.escalationPolicy) return <Spinner />
 
   return (
     <FormDialog
