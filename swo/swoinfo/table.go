@@ -1,6 +1,12 @@
 package swoinfo
 
-import "github.com/target/goalert/swo/swodb"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/target/goalert/swo/swodb"
+	"github.com/target/goalert/util/sqlutil"
+)
 
 type Table struct {
 	name string
@@ -20,4 +26,21 @@ func (t Table) Columns() []string {
 		cols = append(cols, c.ColumnName)
 	}
 	return cols
+}
+
+func (t Table) InsertJSONRowsQuery(upsert bool) string {
+	query := fmt.Sprintf("insert into %s select * from json_populate_recordset(null::%s, $1)", sqlutil.QuoteID(t.Name()), sqlutil.QuoteID(t.Name()))
+	if !upsert {
+		return query
+	}
+
+	sets := make([]string, 0, len(t.cols))
+	for _, col := range t.Columns() {
+		if col == "id" {
+			continue
+		}
+		sets = append(sets, fmt.Sprintf("%s = excluded.%s", sqlutil.QuoteID(col), sqlutil.QuoteID(col)))
+	}
+
+	return query + " on conflict (id) do update set " + strings.Join(sets, ", ")
 }

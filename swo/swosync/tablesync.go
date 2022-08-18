@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/swo/swoinfo"
@@ -192,7 +191,7 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 			continue
 		}
 
-		b.Queue(upsertRowsQuery(t), p.upserts)
+		b.Queue(t.InsertJSONRowsQuery(true), p.upserts)
 	}
 
 	for i := range c.tables {
@@ -205,26 +204,4 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 		arg, cast := castIDs(t, p.deletes)
 		b.Queue(fmt.Sprintf(`delete from %s where id%s = any($1)`, sqlutil.QuoteID(t.Name()), cast), arg)
 	}
-}
-
-func upsertRowsQuery(t swoinfo.Table) string {
-	var s strings.Builder
-	fmt.Fprintf(&s, `
-		insert into %s
-		select * from json_populate_recordset(null::%s, $1)
-		on conflict (id) do update
-		set 
-	`, sqlutil.QuoteID(t.Name()), sqlutil.QuoteID(t.Name()))
-	for i, col := range t.Columns() {
-		if col == "id" {
-			continue
-		}
-
-		if i > 0 {
-			fmt.Fprintf(&s, ", ")
-		}
-		fmt.Fprintf(&s, "%s = EXCLUDED.%s", sqlutil.QuoteID(col), sqlutil.QuoteID(col))
-	}
-
-	return s.String()
 }

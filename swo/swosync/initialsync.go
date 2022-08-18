@@ -10,13 +10,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
-func insertRowsQuery(table swoinfo.Table) string {
-	return fmt.Sprintf(`
-		insert into %s
-		select * from
-		json_populate_recordset(null::%s, $1)
-	`, sqlutil.QuoteID(table.Name()), sqlutil.QuoteID(table.Name()))
-}
+const maxBatchSize = 1024 * 1024 // 1MB
 
 // InitialSync will insert all rows from the source database into the destination database.
 //
@@ -87,37 +81,74 @@ func (l *LogicalReplicator) initialSyncTable(ctx context.Context, srcTx, dstTx p
 	}
 	defer rows.Close()
 
-	insertSQL := insertRowsQuery(table)
+	insertSQL := table.InsertJSONRowsQuery(false)
 
-	var insertRows []json.RawMessage
-	var inserted int
+	doneCh := make(chan error)
+	rowCh := make(chan json.RawMessage)
+	go func() {
+		var inserted int
+		var dataSize int
+		var batch []json.RawMessage
+	sendLoop:
+		for {
+			var row json.RawMessage
+			select {
+			case row = <-rowCh:
+				if row == nil {
+					break sendLoop
+				}
+			case <-ctx.Done():
+				return
+			}
+			batch = append(batch, row)
+			dataSize += len(row)
+			if dataSize < maxBatchSize {
+				continue
+			}
+
+			l.printf(ctx, "sync %s: %d/%d", table.Name(), inserted, count)
+			_, err := dstTx.Exec(ctx, insertSQL, batch)
+			if err != nil {
+				doneCh <- fmt.Errorf("insert: %w", err)
+				return
+			}
+
+			inserted += len(batch)
+			dataSize = 0
+			batch = batch[:0]
+		}
+
+		if len(batch) > 0 {
+			l.printf(ctx, "sync %s: %d/%d", table.Name(), inserted, count)
+			_, err := dstTx.Exec(ctx, insertSQL, batch)
+			if err != nil {
+				doneCh <- fmt.Errorf("insert: %w", err)
+				return
+			}
+		}
+
+		doneCh <- nil
+	}()
+
 	for rows.Next() {
 		var id string
 		var rowData json.RawMessage
 		if err := rows.Scan(&id, &rowData); err != nil {
 			return 0, fmt.Errorf("scan: %w", err)
 		}
-		insertRows = append(insertRows, rowData)
-
-		if len(insertRows) < 10000 {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		case rowCh <- rowData:
 			continue
-		}
-
-		l.printf(ctx, "sync %s: %d/%d", table.Name(), inserted, count)
-		_, err := dstTx.Exec(ctx, insertSQL, insertRows)
-		if err != nil {
-			return 0, fmt.Errorf("insert: %w", err)
-		}
-		inserted += len(insertRows)
-		insertRows = insertRows[:0]
-	}
-
-	if len(insertRows) > 0 {
-		_, err := dstTx.Exec(ctx, insertSQL, insertRows)
-		if err != nil {
-			return 0, fmt.Errorf("insert: %w", err)
+		case err := <-doneCh:
+			return 0, err
 		}
 	}
 
+	close(rowCh)
+	if err := <-doneCh; err != nil {
+		return 0, err
+	}
 	return count, nil
 }
