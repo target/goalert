@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/jackc/pgx/v4"
@@ -16,10 +17,10 @@ import (
 type TableSync struct {
 	tables []swoinfo.Table
 
-	changes []changeEntry
-
 	changedTables []string
+	changedRowIDs map[string][]string
 	changedData   map[changeID]json.RawMessage
+	changeLogIDs  []int
 }
 
 type changeEntry struct {
@@ -31,8 +32,9 @@ type changeID struct{ Table, Row string }
 // NewTableSync creates a new TableSync for the given tables.
 func NewTableSync(tables []swoinfo.Table) *TableSync {
 	return &TableSync{
-		tables:      tables,
-		changedData: make(map[changeID]json.RawMessage),
+		tables:        tables,
+		changedData:   make(map[changeID]json.RawMessage),
+		changedRowIDs: make(map[string][]string),
 	}
 }
 
@@ -56,15 +58,16 @@ func (c *TableSync) ScanBatchChangeRead(res pgx.BatchResults) error {
 		if err := rows.Scan(&id, &table, &rowID); err != nil {
 			return err
 		}
-
-		c.changes = append(c.changes, changeEntry{id: id, changeID: changeID{table, rowID}})
+		c.changeLogIDs = append(c.changeLogIDs, int(id))
+		c.changedData[changeID{table, rowID}] = nil // mark as changed
+		c.changedRowIDs[table] = append(c.changedRowIDs[table], rowID)
 	}
 
 	return rows.Err()
 }
 
 // HasChanges returns true after ScanBatchChangeRead has been called, if there are changes.
-func (c *TableSync) HasChanges() bool { return len(c.changes) > 0 }
+func (c *TableSync) HasChanges() bool { return len(c.changeLogIDs) > 0 }
 
 func intIDs(ids []string) []int {
 	var ints []int
@@ -80,13 +83,8 @@ func intIDs(ids []string) []int {
 
 // AddBatchRowReads adds a query to the batch to read all changed rows from the source database.
 func (c *TableSync) AddBatchRowReads(b *pgx.Batch) {
-	rowIDsByTable := make(map[string][]string)
-	for _, chg := range c.changes {
-		rowIDsByTable[chg.Table] = append(rowIDsByTable[chg.Table], chg.Row)
-	}
-
 	for _, table := range c.tables {
-		rowIDs := rowIDsByTable[table.Name()]
+		rowIDs := unique(c.changedRowIDs[table.Name()])
 		if len(rowIDs) == 0 {
 			continue
 		}
@@ -95,6 +93,21 @@ func (c *TableSync) AddBatchRowReads(b *pgx.Batch) {
 		arg, cast := castIDs(table, rowIDs)
 		b.Queue(fmt.Sprintf(`select id::text, to_jsonb(row) from %s row where id%s = any($1)`, sqlutil.QuoteID(table.Name()), cast), arg)
 	}
+}
+
+func unique(ids []string) []string {
+	sort.Strings(ids)
+
+	uniq := ids[:0]
+	var last string
+	for _, id := range ids {
+		if id == last {
+			continue
+		}
+		uniq = append(uniq, id)
+		last = id
+	}
+	return uniq
 }
 
 func castIDs(t swoinfo.Table, rowIDs []string) (interface{}, string) {
@@ -146,20 +159,16 @@ func (c *TableSync) ScanBatchRowReads(res pgx.BatchResults) error {
 
 // ExecDeleteChanges executes a query to deleted the change_log entries from the source database.
 func (c *TableSync) ExecDeleteChanges(ctx context.Context, srcConn *pgx.Conn) (int64, error) {
-	if len(c.changes) == 0 {
+	if len(c.changeLogIDs) == 0 {
 		return 0, nil
 	}
 
-	var ids []int
-	for _, chg := range c.changes {
-		ids = append(ids, int(chg.id))
-	}
-	_, err := srcConn.Exec(ctx, `delete from change_log where id = any($1)`, sqlutil.IntArray(ids))
+	_, err := srcConn.Exec(ctx, `delete from change_log where id = any($1)`, sqlutil.IntArray(c.changeLogIDs))
 	if err != nil {
-		return 0, fmt.Errorf("delete %d change log rows: %w", len(ids), err)
+		return 0, fmt.Errorf("delete %d change log rows: %w", len(c.changeLogIDs), err)
 	}
 
-	return int64(len(ids)), nil
+	return int64(len(c.changeLogIDs)), nil
 }
 
 func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
@@ -168,20 +177,20 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 		deletes []string
 	}
 	pendingByTable := make(map[string]*pending)
-	for _, chg := range c.changes {
-		p := pendingByTable[chg.Table]
+	for id, data := range c.changedData {
+		p := pendingByTable[id.Table]
 		if p == nil {
 			p = &pending{}
-			pendingByTable[chg.Table] = p
+			pendingByTable[id.Table] = p
 		}
-		newRowData := c.changedData[chg.changeID]
-		if newRowData == nil {
+
+		if data == nil {
 			// row was deleted
-			p.deletes = append(p.deletes, chg.Row)
+			p.deletes = append(p.deletes, id.Row)
 			continue
 		}
 
-		p.upserts = append(p.upserts, newRowData)
+		p.upserts = append(p.upserts, data)
 	}
 
 	// insert, then update, then reverse delete
