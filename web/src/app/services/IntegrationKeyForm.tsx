@@ -15,11 +15,14 @@ interface IntegrationKeyFormProps {
   value: Value
 
   errors: {
-    field: 'name' | 'type'
+    field: string
     message: string
   }[]
 
   onChange: (val: Value) => void
+
+  // can be removed when FormContainer.js is converted to ts
+  disabled: boolean
 }
 
 export default function IntegrationKeyForm(
