@@ -18,5 +18,5 @@ func TestTable_InsertJSONRowsQuery(t *testing.T) {
 	query := tbl.InsertJSONRowsQuery(false)
 	assert.Equal(t, `insert into "test" select * from json_populate_recordset(null::"test", $1)`, query)
 	query = tbl.InsertJSONRowsQuery(true)
-	assert.Equal(t, `insert into "test" select * from json_populate_recordset(null::"test", $1) on conflict (id) do update set "foo" = excluded."foo", "bar" = excluded."bar" where id = excluded.id`, query)
+	assert.Equal(t, `insert into "test" select * from json_populate_recordset(null::"test", $1) on conflict (id) do update set "foo" = excluded."foo", "bar" = excluded."bar" where "test".id = excluded.id`, query)
 }

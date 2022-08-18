@@ -42,5 +42,5 @@ func (t Table) InsertJSONRowsQuery(upsert bool) string {
 		sets = append(sets, fmt.Sprintf("%s = excluded.%s", sqlutil.QuoteID(col), sqlutil.QuoteID(col)))
 	}
 
-	return query + " on conflict (id) do update set " + strings.Join(sets, ", ") + " where id = excluded.id"
+	return fmt.Sprintf("%s on conflict (id) do update set %s where %s.id = excluded.id", query, strings.Join(sets, ", "), sqlutil.QuoteID(t.Name()))
 }
