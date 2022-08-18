@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -36,7 +36,9 @@ const sortItems = (a: Label, b: Label): number => {
 
 const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
 
-export default function ServiceLabelList(props: { serviceID: string }) {
+export default function ServiceLabelList(props: {
+  serviceID: string
+}): JSX.Element {
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState<string | null>(null)
   const [deleteKey, setDeleteKey] = useState<string | null>(null)
@@ -51,7 +53,7 @@ export default function ServiceLabelList(props: { serviceID: string }) {
     return <Spinner />
   }
 
-  function renderList(labels: Label[]) {
+  function renderList(labels: Label[]): ReactElement {
     const items = (labels || [])
       .slice()
       .sort(sortItems)
