@@ -61,7 +61,7 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
         <List>
           <ListItem>
             <ListItemText primary='Executable?' />
-            <ListItemSecondaryAction>
+            <ListItemSecondaryAction title='Indicates a node capable of performing data replication.'>
               {node.canExec ? (
                 <TrueIcon color='success' />
               ) : (
@@ -81,7 +81,13 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
           </ListItem>
           <ListItem>
             <ListItemText primary='Uptime' />
-            <ListItemSecondaryAction>{node.uptime}</ListItemSecondaryAction>
+            <ListItemSecondaryAction
+              title={
+                node.uptime ? '' : 'Node appeared outside of reset window.'
+              }
+            >
+              {node.uptime ? node.uptime : <FalseIcon color='error' />}
+            </ListItemSecondaryAction>
           </ListItem>
           <ListItem>
             <ListItemText primary='Connections' />
