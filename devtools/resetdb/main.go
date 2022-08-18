@@ -26,6 +26,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
 	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
+	mult := flag.Float64("mult", 1, "Multiply base type counts (e.g., alerts, users, services).")
 	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
 	skipDrop := flag.Bool("skip-drop", false, "Skip database drop/create step.")
@@ -68,19 +69,21 @@ func main() {
 	if !*genData {
 		return
 	}
-
-	err = fillDB(ctx, *dbURL)
+	dataCfg := &datagenConfig{AdminID: adminID}
+	dataCfg.SetDefaults()
+	dataCfg.Multiply(*mult)
+	err = fillDB(ctx, dataCfg, *dbURL)
 	if err != nil {
 		log.Fatal("insert random data:", err)
 	}
 }
 
-func fillDB(ctx context.Context, url string) error {
+func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	s := time.Now()
 	defer func() {
 		log.Println("Completed in", time.Since(s))
 	}()
-	data := datagenConfig{AdminID: adminID}.Generate()
+	data := dataCfg.Generate()
 	log.Println("Generated random data in", time.Since(s))
 
 	cfg, err := pgxpool.ParseConfig(url)
