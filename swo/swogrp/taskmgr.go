@@ -180,6 +180,7 @@ func (t *TaskMgr) messageLoop() {
 			}
 			t.startTask(t.cfg.Executor.Exec, "done")
 		case t.state == ClusterStateExecuting && msg.Type == "done" && msg.AckID == t.lastMsgID:
+			t.cancel()
 			t.state = ClusterStateDone
 		case msg.Type == "status":
 			if msg.AckID != t.lastMsgID {
