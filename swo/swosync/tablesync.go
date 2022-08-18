@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/swo/swoinfo"
@@ -199,7 +200,11 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 		if p == nil || len(p.upserts) == 0 {
 			continue
 		}
-
+		switch t.Name() {
+		case "ep_step_on_call_users", "schedule_on_call_users":
+			// due to unique constraint on shifts, we need to sort shift ends before new shifts
+			sortOnCallData(p.upserts)
+		}
 		b.Queue(t.InsertJSONRowsQuery(true), p.upserts)
 	}
 
@@ -213,4 +218,21 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 		arg, cast := castIDs(t, p.deletes)
 		b.Queue(fmt.Sprintf(`delete from %s where id%s = any($1)`, sqlutil.QuoteID(t.Name()), cast), arg)
 	}
+}
+
+// sort entries with a non-nil end time before entries with a nil end time
+func sortOnCallData(data []json.RawMessage) {
+	type onCallData struct {
+		End *time.Time `json:"end_time"`
+	}
+	sort.Slice(data, func(i, j int) bool {
+		var a, b onCallData
+		if err := json.Unmarshal(data[i], &a); err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(data[j], &b); err != nil {
+			panic(err)
+		}
+		return a.End != nil && b.End == nil
+	})
 }
