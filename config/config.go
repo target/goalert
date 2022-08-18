@@ -97,6 +97,9 @@ type Config struct {
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
+		VoiceName     string `public:"true" info:"The Twilio voice to use for Text To Speech for phone calls."`
+		VoiceLanguage string `public:"true" info:"The Twilio voice language to use for Text To Speech for phone calls."`
+
 		AccountSID string
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
@@ -231,7 +234,7 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
-//  MatchURL will compare two url strings and will return true if they match.
+// MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
 	compareQueryValues := func(baseVal, testVal url.Values) bool {
 		for name := range baseVal {
@@ -358,6 +361,22 @@ func (cfg Config) ApplicationName() string {
 		return "GoAlert"
 	}
 	return cfg.General.ApplicationName
+}
+
+// VoiceName will return the Twilio.VoiceName value
+func (cfg Config) VoiceName() string {
+	if cfg.Twilio.VoiceName == "" {
+		return "Polly.Joanna-Neural"
+	}
+	return cfg.Twilio.VoiceName
+}
+
+// VoiceLanguage will return the Twilio.VoiceLanguage value
+func (cfg Config) VoiceLanguage() string {
+	if cfg.Twilio.VoiceLanguage == "" {
+		return "en-US"
+	}
+	return cfg.Twilio.VoiceLanguage
 }
 
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
@@ -505,6 +524,14 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL("Feedback.OverrideURL", cfg.Feedback.OverrideURL),
+		)
+	}
+
+	if cfg.Twilio.VoiceName != "" {
+		err = validate.Many(
+			err,
+			validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 1, 50),
+			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10), // language is required when voice is set
 		)
 	}
 

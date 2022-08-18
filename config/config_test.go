@@ -97,3 +97,24 @@ func TestValidReferer(t *testing.T) {
 		assert.False(t, cfg.ValidReferer("https://req.com", "https://req.com/bar"), "auth URL set (no same host)")
 	})
 }
+
+func TestVoiceOptions(t *testing.T) {
+	t.Run("Set Voice Options", func(t *testing.T) {
+		var cfg Config
+		cfg.Twilio.VoiceName = "Test"
+		cfg.Twilio.VoiceLanguage = "es-US"
+
+		assert.Equal(t, "Test", cfg.VoiceName())
+		assert.Equal(t, "es-US", cfg.VoiceLanguage())
+		assert.Equal(t, nil, cfg.Validate())
+	})
+	t.Run("Set Empty Voice Options", func(t *testing.T) {
+		var cfg Config
+		cfg.Twilio.VoiceName = ""
+		cfg.Twilio.VoiceLanguage = ""
+
+		assert.Equal(t, "Polly.Joanna-Neural", cfg.VoiceName())
+		assert.Equal(t, "en-US", cfg.VoiceLanguage())
+		assert.Equal(t, nil, cfg.Validate())
+	})
+}

@@ -14,6 +14,7 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(rec)
+		r.AddVoiceOptions("Polly.Joanna-Neural", "en-US")
 		r.Say("Hello")
 		r.Hangup()
 
@@ -24,8 +25,8 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">Goodbye.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Hello</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Goodbye.</prosody></Say>
 <Hangup/>
 </Response>
 `, string(data))
@@ -35,6 +36,7 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(rec)
+		r.AddVoiceOptions("Polly.Joanna-Neural", "en-US")
 		r.Say("Hello")
 		r.Redirect("http://example.com")
 
@@ -45,7 +47,7 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Hello</prosody></Say>
 <Redirect>http://example.com</Redirect>
 </Response>
 `, string(data))
@@ -55,6 +57,7 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(rec)
+		r.AddVoiceOptions("Polly.Joanna-Neural", "en-US")
 		r.Say("Hello")
 		r.RedirectPauseSec("http://example.com", 3)
 
@@ -65,7 +68,7 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Hello</prosody></Say>
 <Pause length="3"/>
 <Redirect>http://example.com</Redirect>
 </Response>
@@ -76,6 +79,7 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(rec)
+		r.AddVoiceOptions("Polly.Joanna-Neural", "en-US")
 		r.SayUnknownDigit()
 		r.Say("Hello")
 		r.Gather("http://example.com")
@@ -88,10 +92,10 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
 <Gather numDigits="1" timeout="10" action="http://example.com">
-<Say><prosody rate="slow">Sorry, I didn&#39;t understand that.</prosody></Say>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">If you are done, you may simply hang up.</prosody></Say>
-<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Sorry, I didn&#39;t understand that.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Hello</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">If you are done, you may simply hang up.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">To repeat this message, press star.</prosody></Say>
 </Gather>
 </Response>
 `, string(data))
@@ -101,6 +105,7 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(rec)
+		r.AddVoiceOptions("Polly.Joanna-Neural", "en-US")
 		r.Say("Hello")
 		r.AddOptions(optionAck)
 		r.Gather("http://example.com")
@@ -113,9 +118,9 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
 <Gather numDigits="1" timeout="10" action="http://example.com">
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">To acknowledge, press 4.</prosody></Say>
-<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">Hello</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">To acknowledge, press 4.</prosody></Say>
+<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">To repeat this message, press star.</prosody></Say>
 </Gather>
 </Response>
 `, string(data))

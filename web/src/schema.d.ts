@@ -1031,6 +1031,8 @@ type ConfigID =
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'

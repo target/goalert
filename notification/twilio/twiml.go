@@ -10,6 +10,9 @@ import (
 type twiMLResponse struct {
 	say []string
 
+	voiceName     string
+	voiceLanguage string
+
 	gatherURL        string
 	redirectURL      string
 	redirectPauseSec int
@@ -52,6 +55,11 @@ const (
 	optionStop
 	optionRepeat
 )
+
+func (t *twiMLResponse) AddVoiceOptions(voiceName string, voiceLanguage string) {
+	t.voiceName = voiceName
+	t.voiceLanguage = voiceLanguage
+}
 
 func (t *twiMLResponse) AddOptions(options ...menuOption) {
 	t.hasOptions = true
@@ -134,7 +142,7 @@ func (t *twiMLResponse) sendResponse() {
 		io.WriteString(t.w, `">`+"\n")
 	}
 	for _, s := range t.say {
-		io.WriteString(t.w, `<Say><prosody rate="slow">`)
+		io.WriteString(t.w, fmt.Sprintf(`<Say voice="%s" language="%s"><prosody rate="slow">`, t.voiceName, t.voiceLanguage))
 		xml.EscapeText(t.w, []byte(s))
 		io.WriteString(t.w, "</prosody></Say>\n")
 	}

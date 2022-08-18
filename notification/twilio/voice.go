@@ -187,7 +187,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 
-	prefix := fmt.Sprintf("This is %s", cfg.ApplicationName())
+	prefix := fmt.Sprintf("Hello! This is %s. <break strength=\"x-strong\" time=\"700ms\"/>", cfg.ApplicationName())
 
 	var message string
 	subID := -1
@@ -344,8 +344,10 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
+	cfg := config.FromContext(ctx)
 
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -470,8 +472,10 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
+	cfg := config.FromContext(ctx)
 
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -495,8 +499,10 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
+	cfg := config.FromContext(ctx)
 
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -516,8 +522,10 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
+	cfg := config.FromContext(ctx)
 
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -546,12 +554,13 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 	cfg := config.FromContext(ctx)
 
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Sayf("This is %s.", cfg.ApplicationName())
+		resp.Sayf("Hello! This is %s. <break strength=\"x-strong\" time=\"700ms\"/>", cfg.ApplicationName())
 		resp.Say("Please use the application dashboard to manage alerts.")
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
@@ -572,10 +581,12 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
+	cfg := config.FromContext(ctx)
 
 	// See Twilio Request Parameter documentation at
 	// https://www.twilio.com/docs/api/twiml/twilio_request#synchronous
 	resp := newTwiMLResponse(w)
+	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
 	switch call.Digits {
 	default:
 		if call.Digits == digitOldAck {

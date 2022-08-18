@@ -67,6 +67,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
+		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio Text To Speech Voice to use for phone calls.", Value: cfg.Twilio.VoiceName},
+		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio Text To Speech Voice languange to use for phone calls. ", Value: cfg.Twilio.VoiceLanguage},
 		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation.", Value: cfg.Twilio.AuthToken, Password: true},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
@@ -295,6 +297,10 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Twilio.Enable = val
+		case "Twilio.VoiceName":
+			cfg.Twilio.VoiceName = v.Value
+		case "Twilio.VoiceLanguage":
+			cfg.Twilio.VoiceLanguage = v.Value
 		case "Twilio.AccountSID":
 			cfg.Twilio.AccountSID = v.Value
 		case "Twilio.AuthToken":
