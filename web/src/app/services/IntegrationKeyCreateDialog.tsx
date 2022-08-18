@@ -40,7 +40,7 @@ export default function IntegrationKeyCreateDialog(props: {
       onSubmit={() => {
         createIntegrationKey(
           { input: { ...value } },
-          { additionalTypenames: ['IntegrationKey'] },
+          { additionalTypenames: ['Service'] },
         ).then((res) => {
           if (res.error) return
           props.onClose()
