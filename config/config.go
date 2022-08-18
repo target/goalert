@@ -531,7 +531,7 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 1, 50),
-			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10), // language is required when voice is set
+			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10),
 		)
 	}
 
