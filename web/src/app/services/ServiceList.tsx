@@ -2,7 +2,7 @@ import React from 'react'
 import { gql } from 'urql'
 import { useURLParam } from '../actions'
 import SimpleListPage from '../lists/SimpleListPage'
-import getServiceLabel from '../util/getServiceLabel'
+import getServiceFilters from '../util/getServiceFilters'
 import ServiceCreateDialog from './ServiceCreateDialog'
 import ServiceFilterContainer from './ServiceFilterContainer'
 
@@ -25,7 +25,8 @@ const query = gql`
 
 export default function ServiceList(): JSX.Element {
   const [searchParam, setSearchParam] = useURLParam<string>('search', '')
-  const { labelKey, labelValue, integrationKey } = getServiceLabel(searchParam)
+  const { labelKey, labelValue, integrationKey } =
+    getServiceFilters(searchParam)
 
   return (
     <SimpleListPage
@@ -46,7 +47,7 @@ export default function ServiceList(): JSX.Element {
             const labelSearch = labelKey ? labelKey + '=' + labelValue : ''
             const intKeySearch = integrationKey ? 'token=' + integrationKey : ''
             setSearchParam(
-              intKeySearch ? intKeySearch + labelSearch : labelSearch,
+              intKeySearch ? intKeySearch + ' ' + labelSearch : labelSearch,
             )
           }}
           onReset={() => setSearchParam('')}

@@ -1,4 +1,4 @@
-export default function getServiceLabel(input: string): {
+export default function getServiceFilters(input: string): {
   labelKey: string
   labelValue: string
   integrationKey: string
@@ -10,7 +10,7 @@ export default function getServiceLabel(input: string): {
   if (input.includes('token=')) {
     const tokenStr = input.substring(0, 42)
     integrationKey = tokenStr.slice(6)
-    input = input.replace(tokenStr, '') // remove token string from input
+    input = input.replace(tokenStr, '').trim() // remove token string from input
   }
   if (input.includes('=')) {
     const searchSplit = input.split(/(!=|=)/)

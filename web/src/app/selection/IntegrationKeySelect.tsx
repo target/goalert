@@ -17,5 +17,5 @@ const query = gql`
 
 export const IntegrationKeySelect = makeQuerySelect('IntegrationKeySelect', {
   query,
-  mapDataNode: (key: IntegrationKey) => ({ label: key.id, value: key.id })
+  mapDataNode: (key: IntegrationKey) => ({ label: key.id, value: key.id }),
 })
