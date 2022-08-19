@@ -123,6 +123,8 @@ func NewServer(cfg Config) *Server {
 	srv.numbersDB <- make(map[string]*Number)
 	srv.msgStateDB <- make(map[string]*msgState)
 
+	srv.initHTTP()
+
 	go srv.loop()
 
 	return srv
@@ -223,6 +225,9 @@ func (srv *Server) nextID(prefix string) string {
 }
 
 func (srv *Server) logErr(ctx context.Context, err error) {
+	if err == nil {
+		return
+	}
 	if srv.cfg.OnError == nil {
 		return
 	}

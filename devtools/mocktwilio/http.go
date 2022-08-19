@@ -10,16 +10,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (srv *Server) basePath() string {
+	return "/2010-04-01/Accounts/" + srv.cfg.AccountSID
+}
+
 func (srv *Server) initHTTP() {
 	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
 	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
 	// s.mux.HandleFunc(base+"/Calls.json", s.serveNewCall)
 	// s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
 	// s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
-}
-
-func (srv *Server) basePath() string {
-	return "/2010-04-01/Accounts/" + srv.cfg.AccountSID
 }
 
 func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {
