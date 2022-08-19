@@ -25,7 +25,7 @@ const query = gql`
 
 export default function ServiceList(): JSX.Element {
   const [searchParam, setSearchParam] = useURLParam<string>('search', '')
-  const { labelKey, labelValue } = getServiceLabel(searchParam)
+  const { labelKey, labelValue, integrationKey } = getServiceLabel(searchParam)
 
   return (
     <SimpleListPage
@@ -41,10 +41,14 @@ export default function ServiceList(): JSX.Element {
       createLabel='Service'
       searchAdornment={
         <ServiceFilterContainer
-          value={{ labelKey, labelValue }}
-          onChange={({ labelKey, labelValue }) =>
-            setSearchParam(labelKey ? labelKey + '=' + labelValue : '')
-          }
+          value={{ labelKey, labelValue, integrationKey }}
+          onChange={({ labelKey, labelValue, integrationKey }) => {
+            const labelSearch = labelKey ? labelKey + '=' + labelValue : ''
+            const intKeySearch = integrationKey ? 'token=' + integrationKey : ''
+            setSearchParam(
+              intKeySearch ? intKeySearch + labelSearch : labelSearch,
+            )
+          }}
           onReset={() => setSearchParam('')}
         />
       }
