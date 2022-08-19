@@ -104,8 +104,8 @@ func TestVoiceOptions(t *testing.T) {
 		cfg.Twilio.VoiceName = "Test"
 		cfg.Twilio.VoiceLanguage = "es-US"
 
-		assert.Equal(t, "Test", cfg.VoiceName())
-		assert.Equal(t, "es-US", cfg.VoiceLanguage())
+		assert.Equal(t, "Test", cfg.Twilio.VoiceName)
+		assert.Equal(t, "es-US", cfg.Twilio.VoiceLanguage)
 		assert.Equal(t, nil, cfg.Validate())
 	})
 	t.Run("Set Empty Voice Options", func(t *testing.T) {
@@ -113,8 +113,17 @@ func TestVoiceOptions(t *testing.T) {
 		cfg.Twilio.VoiceName = ""
 		cfg.Twilio.VoiceLanguage = ""
 
-		assert.Equal(t, "Polly.Joanna-Neural", cfg.VoiceName())
-		assert.Equal(t, "en-US", cfg.VoiceLanguage())
+		assert.Equal(t, "", cfg.Twilio.VoiceName)
+		assert.Equal(t, "", cfg.Twilio.VoiceLanguage)
 		assert.Equal(t, nil, cfg.Validate())
+	})
+	t.Run("Set Voice Without Language", func(t *testing.T) {
+		var cfg Config
+		cfg.Twilio.VoiceName = "Test"
+		cfg.Twilio.VoiceLanguage = ""
+
+		assert.Equal(t, "Test", cfg.Twilio.VoiceName)
+		assert.Equal(t, "", cfg.Twilio.VoiceLanguage)
+		assert.ErrorContains(t, cfg.Validate(), "Twilio.VoiceLanguage")
 	})
 }

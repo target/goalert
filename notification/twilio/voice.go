@@ -344,10 +344,8 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
-	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -438,14 +436,14 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			q.Set("retry_count", strconv.Itoa(retryCount+1))
 			q.Set("retry_digits", digits)
 
-			newTwiMLResponse(w).
+			newTwiMLResponse(ctx, w).
 				Say("One moment please.").
 				RedirectPauseSec(v.callbackURL(ctx, q, CallType(q.Get("type"))), 5)
 
 			return true
 		}
 
-		newTwiMLResponse(w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
+		newTwiMLResponse(ctx, w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
 		return true
 	}
 
@@ -472,10 +470,8 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
-	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -499,10 +495,8 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
-	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -522,10 +516,8 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
-	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -553,8 +545,7 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 	}
 	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -581,12 +572,10 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	if call == nil {
 		return
 	}
-	cfg := config.FromContext(ctx)
 
 	// See Twilio Request Parameter documentation at
 	// https://www.twilio.com/docs/api/twiml/twilio_request#synchronous
-	resp := newTwiMLResponse(w)
-	resp.AddVoiceOptions(cfg.VoiceName(), cfg.VoiceLanguage())
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		if call.Digits == digitOldAck {

@@ -305,8 +305,7 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 		Hangup      *struct{} `xml:"Hangup"`
 	}
 	var r resp
-	data = bytes.ReplaceAll(data, []byte(`<Say voice="Polly.Joanna-Neural" language="en-US"><prosody rate="slow">`), []byte("<Say>"))
-	data = bytes.ReplaceAll(data, []byte(`<Say voice="" language=""><prosody rate="slow">`), []byte("<Say>"))
+	data = bytes.ReplaceAll(data, []byte(`<Say><prosody rate="slow">`), []byte("<Say>"))
 	data = bytes.ReplaceAll(data, []byte(`</prosody></Say>`), []byte("</Say>"))
 	err = xml.Unmarshal(data, &r)
 	if err != nil {

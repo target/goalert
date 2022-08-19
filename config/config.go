@@ -363,22 +363,6 @@ func (cfg Config) ApplicationName() string {
 	return cfg.General.ApplicationName
 }
 
-// VoiceName will return the Twilio.VoiceName value
-func (cfg Config) VoiceName() string {
-	if cfg.Twilio.VoiceName == "" {
-		return "Polly.Joanna-Neural"
-	}
-	return cfg.Twilio.VoiceName
-}
-
-// VoiceLanguage will return the Twilio.VoiceLanguage value
-func (cfg Config) VoiceLanguage() string {
-	if cfg.Twilio.VoiceLanguage == "" {
-		return "en-US"
-	}
-	return cfg.Twilio.VoiceLanguage
-}
-
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
 	switch {
@@ -531,7 +515,7 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 1, 50),
-			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10),
+			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 1, 10), // language is required when a voice name is set
 		)
 	}
 

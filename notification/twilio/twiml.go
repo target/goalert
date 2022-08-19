@@ -1,10 +1,13 @@
 package twilio
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/target/goalert/config"
 )
 
 type twiMLResponse struct {
@@ -26,9 +29,12 @@ type twiMLResponse struct {
 	w http.ResponseWriter
 }
 
-func newTwiMLResponse(w http.ResponseWriter) *twiMLResponse {
+func newTwiMLResponse(ctx context.Context, w http.ResponseWriter) *twiMLResponse {
+	cfg := config.FromContext(ctx)
 	return &twiMLResponse{
-		w: w,
+		voiceName:     cfg.Twilio.VoiceName,
+		voiceLanguage: cfg.Twilio.VoiceLanguage,
+		w:             w,
 	}
 }
 
@@ -55,11 +61,6 @@ const (
 	optionStop
 	optionRepeat
 )
-
-func (t *twiMLResponse) AddVoiceOptions(voiceName string, voiceLanguage string) {
-	t.voiceName = voiceName
-	t.voiceLanguage = voiceLanguage
-}
 
 func (t *twiMLResponse) AddOptions(options ...menuOption) {
 	t.hasOptions = true
@@ -141,8 +142,18 @@ func (t *twiMLResponse) sendResponse() {
 		xml.EscapeText(t.w, []byte(t.gatherURL))
 		io.WriteString(t.w, `">`+"\n")
 	}
+
+	// add optional voice and/or language options
+	voiceAndLanuage := ""
+	if t.voiceName != "" && t.voiceLanguage != "" {
+		// language is required with a voice
+		voiceAndLanuage = fmt.Sprintf(` voice="%s" language="%s"`, t.voiceName, t.voiceLanguage)
+	} else if t.voiceLanguage != "" {
+		// language can be set without a voice
+		voiceAndLanuage = fmt.Sprintf(` language="%s"`, t.voiceLanguage)
+	}
 	for _, s := range t.say {
-		io.WriteString(t.w, fmt.Sprintf(`<Say voice="%s" language="%s"><prosody rate="slow">`, t.voiceName, t.voiceLanguage))
+		io.WriteString(t.w, fmt.Sprintf(`<Say%s><prosody rate="slow">`, voiceAndLanuage))
 		xml.EscapeText(t.w, []byte(s))
 		io.WriteString(t.w, "</prosody></Say>\n")
 	}
