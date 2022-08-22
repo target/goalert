@@ -231,7 +231,7 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
-//  MatchURL will compare two url strings and will return true if they match.
+// MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
 	compareQueryValues := func(baseVal, testVal url.Values) bool {
 		for name := range baseVal {
