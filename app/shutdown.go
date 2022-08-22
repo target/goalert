@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -32,6 +33,11 @@ func (app *App) _Shutdown(ctx context.Context) error {
 
 	shut := func(sh shutdownable, msg string) {
 		if sh == nil {
+			return
+		}
+		t := reflect.TypeOf(sh)
+		if reflect.ValueOf(sh) == reflect.Zero(t) {
+			// check for nil pointer
 			return
 		}
 		err := sh.Shutdown(ctx)
