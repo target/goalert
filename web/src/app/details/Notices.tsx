@@ -6,12 +6,16 @@ import {
   IconButton,
   Alert,
   AlertTitle,
+  AlertColor,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
 import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
-import { AlertProps } from '@mui/lab'
 import toTitleCase from '../util/toTitleCase'
+import {
+  NoticeType as SchemaNoticeType,
+  NotificationStatus,
+} from '../../schema'
 
 const useStyles = makeStyles({
   alertAction: {
@@ -31,15 +35,31 @@ const useStyles = makeStyles({
   },
 })
 
+export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
+
+export function toSeverity(notice: NoticeType): AlertColor {
+  switch (notice.toLowerCase()) {
+    case 'success':
+      return 'success'
+    case 'warning':
+    case 'warn':
+      return 'warning'
+    case 'error':
+      return 'error'
+    case 'info':
+      return 'info'
+    default:
+      throw new Error('Unknown notice type: ' + notice)
+  }
+}
+
 export interface Notice {
   type: NoticeType
   message: string | JSX.Element
   details?: string | JSX.Element
+  endNote?: string | JSX.Element
   action?: JSX.Element
 }
-
-export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
-
 interface NoticesProps {
   notices?: Notice[]
 }
@@ -97,7 +117,7 @@ export default function Notices({
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
-          severity={notice.type.toLowerCase() as AlertProps['severity']}
+          severity={toSeverity(notice.type)}
           classes={{
             message: classes.alertMessage,
             action: classes.alertAction,
@@ -117,6 +137,9 @@ export default function Notices({
             {toTitleCase(notice.type)}: {notice.message}
           </AlertTitle>
           {notice.details}
+          {notice.endNote && (
+            <div style={{ float: 'right' }}>{notice.endNote}</div>
+          )}
         </Alert>
       </Grid>
     )
