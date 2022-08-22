@@ -197,7 +197,7 @@ postgres: bin/waitfor
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
 regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
