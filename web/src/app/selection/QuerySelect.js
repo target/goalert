@@ -125,6 +125,7 @@ export const querySelectPropTypes = {
   onCreate: p.func,
 
   error: p.bool,
+  formatInputOnChange: p.func,
   onChange: p.func,
   value: valueCheck,
   label: p.string,
@@ -179,6 +180,8 @@ export function makeQuerySelect(displayName, options) {
 
       onCreate: _onCreate,
       onChange = () => {},
+      formatInputOnChange = (val) => val,
+
       ..._otherProps
     } = props
 
@@ -246,6 +249,7 @@ export function makeQuerySelect(displayName, options) {
           placeholder ||
           (defaultQueryVariables && !searchInput ? 'Start typing...' : null)
         }
+        formatInputOnChange={(val) => formatInputOnChange(val)}
         onChange={(val) => handleChange(val)}
         {...otherProps}
       />

@@ -18,7 +18,6 @@ export default function getServiceFilters(input: string): {
     // the value can contain "=", so joining the rest of the match such that it doesn't get lost
     labelValue = searchSplit.slice(2).join('')
   }
-  console.log('here,', labelKey, labelValue)
 
   return { labelKey, labelValue, integrationKey }
 }

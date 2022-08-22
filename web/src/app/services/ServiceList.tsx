@@ -46,9 +46,11 @@ export default function ServiceList(): JSX.Element {
           onChange={({ labelKey, labelValue, integrationKey }) => {
             const labelSearch = labelKey ? labelKey + '=' + labelValue : ''
             const intKeySearch = integrationKey ? 'token=' + integrationKey : ''
-            setSearchParam(
-              intKeySearch ? intKeySearch + ' ' + labelSearch : labelSearch,
-            )
+            const searchStr =
+              intKeySearch && labelSearch
+                ? intKeySearch + ' ' + labelSearch
+                : intKeySearch + labelSearch
+            setSearchParam(searchStr)
           }}
           onReset={() => setSearchParam('')}
         />

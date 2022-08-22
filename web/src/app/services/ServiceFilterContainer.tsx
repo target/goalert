@@ -30,7 +30,7 @@ export default function ServiceFilterContainer(
   return (
     <FilterContainer
       icon={<LabelFilterIcon />}
-      title='Search by Labels'
+      title='Search Services by Filters'
       iconButtonProps={{
         'data-cy': 'services-filter-button',
         color: 'default',
@@ -50,6 +50,12 @@ export default function ServiceFilterContainer(
           name='integration-key'
           label='Select Integration Key'
           value={integrationKey}
+          formatInputOnChange={(input: string): string => {
+            if (input.indexOf('token=') > -1) {
+              input = input.substring(input.indexOf('token=') + 6)
+            }
+            return input
+          }}
           onChange={(integrationKey) =>
             props.onChange({ ...props.value, integrationKey })
           }
