@@ -1,10 +1,12 @@
 package twilio
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type twiMLResponse struct {
@@ -33,6 +35,7 @@ func (t *twiMLResponse) Redirect(url string) {
 	t.redirectURL = url
 	t.sendResponse()
 }
+
 func (t *twiMLResponse) RedirectPauseSec(url string, seconds int) {
 	t.redirectURL = url
 	t.redirectPauseSec = seconds
@@ -103,6 +106,7 @@ func (t *twiMLResponse) Say(text string) *twiMLResponse {
 	t.say = append(t.say, text)
 	return t
 }
+
 func (t *twiMLResponse) Sayf(format string, args ...interface{}) *twiMLResponse {
 	return t.Say(fmt.Sprintf(format, args...))
 }
@@ -111,6 +115,17 @@ func (t *twiMLResponse) Hangup() {
 	t.hangup = true
 	t.Say("Goodbye.")
 	t.sendResponse()
+}
+
+type xmlNode struct {
+	XMLName xml.Name
+	Attrs   []xml.Attr `xml:",any,attr"`
+	Text    string     `xml:",chardata"`
+	Nodes   []xmlNode  `xml:",any"`
+}
+type twiMLDoc struct {
+	XMLName xml.Name `xml:"Response"`
+	xmlNode `xml:",any"`
 }
 
 func (t *twiMLResponse) sendResponse() {
@@ -124,35 +139,65 @@ func (t *twiMLResponse) sendResponse() {
 		panic("Options without gather")
 	}
 
-	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-
-	io.WriteString(t.w, xml.Header)
-	io.WriteString(t.w, "<Response>\n")
-	if t.gatherURL != "" {
-		io.WriteString(t.w, `<Gather numDigits="1" timeout="10" action="`)
-		xml.EscapeText(t.w, []byte(t.gatherURL))
-		io.WriteString(t.w, `">`+"\n")
-	}
+	var doc twiMLDoc
 	for _, s := range t.say {
-		io.WriteString(t.w, `<Say><prosody rate="slow">`)
-		xml.EscapeText(t.w, []byte(s))
-		io.WriteString(t.w, "</prosody></Say>\n")
+		doc.Nodes = append(doc.Nodes, xmlNode{
+			XMLName: xml.Name{Local: "Say"},
+			Nodes: []xmlNode{
+				{
+					XMLName: xml.Name{Local: "prosody"},
+					Attrs:   []xml.Attr{{Name: xml.Name{Local: "rate"}, Value: "slow"}},
+					Text:    s,
+				},
+			},
+		})
 	}
 
 	if t.redirectPauseSec > 0 {
-		fmt.Fprintf(t.w, `<Pause length="%d"/>`+"\n", t.redirectPauseSec)
+		doc.Nodes = append(doc.Nodes, xmlNode{
+			XMLName: xml.Name{Local: "Pause"},
+			Attrs:   []xml.Attr{{Name: xml.Name{Local: "length"}, Value: strconv.Itoa(t.redirectPauseSec)}},
+		})
 	}
 
 	if t.redirectURL != "" {
-		io.WriteString(t.w, "<Redirect>")
-		xml.EscapeText(t.w, []byte(t.redirectURL))
-		io.WriteString(t.w, "</Redirect>\n")
+		doc.Nodes = append(doc.Nodes, xmlNode{
+			XMLName: xml.Name{Local: "Redirect"},
+			Text:    t.redirectURL,
+		})
 	}
+
 	if t.gatherURL != "" {
-		io.WriteString(t.w, "</Gather>\n")
+		// wrap everything in a Gather node
+		doc.Nodes = []xmlNode{
+			{
+				XMLName: xml.Name{Local: "Gather"},
+				Attrs: []xml.Attr{
+					{Name: xml.Name{Local: "numDigits"}, Value: "1"},
+					{Name: xml.Name{Local: "timeout"}, Value: "10"},
+					{Name: xml.Name{Local: "action"}, Value: t.gatherURL},
+				},
+				Nodes: doc.Nodes,
+			},
+		}
 	}
+
 	if t.hangup {
-		io.WriteString(t.w, "<Hangup/>\n")
+		doc.Nodes = append(doc.Nodes, xmlNode{
+			XMLName: xml.Name{Local: "Hangup"},
+		})
 	}
-	io.WriteString(t.w, "</Response>\n")
+
+	var buf bytes.Buffer
+	io.WriteString(&buf, xml.Header)
+	enc := xml.NewEncoder(&buf)
+	enc.Indent("", "\t")
+	err := enc.Encode(doc)
+	if err != nil {
+		http.Error(t.w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		panic(err)
+	}
+
+	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	io.WriteString(t.w, buf.String())
 }
