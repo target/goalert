@@ -84,12 +84,29 @@
         {{else}} None {{end}}
       </div>
 
-      <div class="col section">
+      <div class="col section" id="call">
         <h1>Phone Calls</h1>
+
+        {{range .Calls}}
+        <a href="/ui/call?dev={{.ID}}">
+          <div class="convo {{if .Call.IsActive}}unread{{end}}">
+            <div class="flex-grid">
+              <span class="col number">{{.Name}}</span>
+              <span class="since"
+                >{{if
+                .Call.IsActive}}{{.Call.Status}}{{else}}{{.Since}}{{end}}</span
+              >
+            </div>
+            <div>
+              <div class="summary">{{.Call.Body}}</div>
+            </div>
+          </div>
+        </a>
+        {{else}} None {{end}}
       </div>
     </div>
     <script>
-      liveUpdate('#sms')
+      liveUpdate('#sms', '#call')
     </script>
   </body>
 </html>

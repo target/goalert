@@ -64,6 +64,10 @@ td.in {
 .convo {
     padding: 10px;
     color: #222;
+
+    border: #ccc 1px solid;
+    border-radius: 1em;
+    margin-bottom: 0.5em;
 }
 
 .convo .number {

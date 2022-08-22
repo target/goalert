@@ -45,6 +45,8 @@ type VoiceCall struct {
 	lastMessage    string
 	callbackEvents []string
 	hangup         bool
+
+	once sync.Once
 }
 
 func (vc *VoiceCall) process() {
@@ -63,12 +65,6 @@ func (vc *VoiceCall) process() {
 
 	vc.updateStatus(twilio.CallStatusRinging)
 
-	var err error
-	vc.lastMessage, err = vc.fetchMessage("")
-	if err != nil {
-		vc.s.errs <- fmt.Errorf("fetch message: %w", err)
-		return
-	}
 	select {
 	case vc.s.callCh <- vc:
 	case <-vc.s.shutdown:
@@ -92,6 +88,7 @@ waitForAccept:
 	vc.updateStatus(twilio.CallStatusInProgress)
 	vc.callStart = time.Now()
 
+	var err error
 	for {
 		select {
 		case <-vc.rejectCh:
@@ -130,12 +127,14 @@ func (s *Server) serveCallStatus(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
+
 func (s *Server) call(id string) *VoiceCall {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
 
 	return s.calls[id]
 }
+
 func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -246,6 +245,7 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 		vc.s.errs <- errors.Wrap(err, "post to call status callback")
 	}
 }
+
 func (vc *VoiceCall) values(digits string) url.Values {
 	call := vc.cloneCall()
 
@@ -281,13 +281,13 @@ func (vc *VoiceCall) cloneCall() *twilio.Call {
 }
 
 // Accept will allow a call to move from initiated to "in-progress".
-func (vc *VoiceCall) Accept() { close(vc.acceptCh) }
+func (vc *VoiceCall) Accept() { vc.once.Do(func() { close(vc.acceptCh) }) }
 
 // Reject will reject a call, moving it to a "failed" state.
-func (vc *VoiceCall) Reject() { close(vc.rejectCh); <-vc.doneCh }
+func (vc *VoiceCall) Reject() { vc.once.Do(func() { close(vc.rejectCh); <-vc.doneCh }) }
 
 // Hangup will end the call, setting it's state to "completed".
-func (vc *VoiceCall) Hangup() { close(vc.hangupCh); <-vc.doneCh }
+func (vc *VoiceCall) Hangup() { vc.once.Do(func() { close(vc.hangupCh); <-vc.doneCh }) }
 
 func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 	data, err := vc.s.post(vc.url, vc.values(digits))
@@ -366,4 +366,14 @@ func (vc *VoiceCall) Body() string {
 	case <-vc.s.shutdown:
 		return ""
 	}
+}
+
+// IsActive will return true if the call is still active.
+func (vc *VoiceCall) IsActive() bool {
+	switch vc.Status() {
+	case twilio.CallStatusInitiated, twilio.CallStatusQueued, twilio.CallStatusRinging, twilio.CallStatusInProgress:
+		return true
+	}
+
+	return false
 }

@@ -26,6 +26,8 @@ PROD_CY_PROC = Procfile.cypress.prod
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
+export GOALERT_TWILIO_BASE_URL := http://localhost:3099
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
@@ -94,7 +96,7 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+start: bin/goalert bin/mocktwilio node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
 

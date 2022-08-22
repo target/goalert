@@ -78,6 +78,7 @@ func main() {
 			Binaries: []string{
 				"goalert",
 				"mockslack",
+				"mocktwilio",
 				"pgdump-lite",
 				"psql-lite",
 				"procwrap",

@@ -23,6 +23,7 @@ type State struct {
 	LastCall string
 
 	messages chan []Message
+	calls    chan []PhoneCall
 
 	saveFile string
 
@@ -53,31 +54,43 @@ type Conversation struct {
 	Unread          bool
 }
 
+type PhoneCall struct {
+	ID           string
+	Name         string
+	DeviceNumber string
+	Time         time.Time
+
+	Call *mocktwilio.VoiceCall `json:"-"`
+}
+
 func sameDate(a, b time.Time) bool {
 	return a.Year() == b.Year() && a.Month() == b.Month() && a.Day() == b.Day()
 }
 
-func (c Conversation) Since() string {
+func since(t time.Time) string {
 	switch {
-	case time.Since(c.LastMessageTime) < time.Minute:
+	case time.Since(t) < time.Minute:
 		return "Just Now"
-	case time.Since(c.LastMessageTime) < time.Hour:
-		return fmt.Sprintf("%d min", int(time.Since(c.LastMessageTime).Minutes()))
-	case sameDate(c.LastMessageTime, time.Now()):
-		return c.LastMessageTime.Format("3:04 PM")
-	case c.LastMessageTime.After(time.Now().AddDate(0, 0, -7)):
-		return c.LastMessageTime.Format("Mon")
-	case c.LastMessageTime.Year() == time.Now().Year():
-		return c.LastMessageTime.Format("Jan 2")
+	case time.Since(t) < time.Hour:
+		return fmt.Sprintf("%d min", int(time.Since(t).Minutes()))
+	case sameDate(t, time.Now()):
+		return t.Format("3:04 PM")
+	case t.After(time.Now().AddDate(0, 0, -7)):
+		return t.Format("Mon")
+	case t.Year() == time.Now().Year():
+		return t.Format("Jan 2")
 	default:
-		return c.LastMessageTime.Format("1/2/06")
+		return t.Format("1/2/06")
 	}
 }
+func (c Conversation) Since() string { return since(c.LastMessageTime) }
+func (c PhoneCall) Since() string    { return since(c.Time) }
 
 func NewState(srv *mocktwilio.Server, saveFile string) *State {
 	s := &State{
 		srv:      srv,
 		messages: make(chan []Message),
+		calls:    make(chan []PhoneCall),
 
 		LastSent: "+16125555555",
 		LastCall: "+16125555555",
@@ -137,6 +150,8 @@ func (s *State) Conversations() []Conversation {
 // SMS returns the current set of SMS messages.
 func (s *State) SMS() []Message { return <-s.messages }
 
+func (s *State) Calls() []PhoneCall { return <-s.calls }
+
 func loadMessages(name string) ([]Message, *json.Encoder) {
 	var msgs []Message
 	if name == "" {
@@ -184,8 +199,17 @@ func (s *State) loop() {
 		}
 	}
 
+	var calls []PhoneCall
 	for {
 		select {
+		case call := <-s.srv.VoiceCalls():
+			calls = append([]PhoneCall{{
+				ID:           call.ID(),
+				Name:         formatNumber(call.To()),
+				DeviceNumber: call.To(),
+				Time:         time.Now(),
+				Call:         call,
+			}}, calls...)
 		case sms := <-s.srv.SMS():
 			add(sms.To(), sms.Body(), sms)
 		case send := <-s.sendSMS:
@@ -197,6 +221,7 @@ func (s *State) loop() {
 				}
 			}()
 		case s.messages <- msgs:
+		case s.calls <- calls:
 		}
 	}
 }

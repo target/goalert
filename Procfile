@@ -1,4 +1,4 @@
-build: while true; do make -qs bin/goalert || make bin/goalert || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
+build: while true; do make -qs bin/goalert bin/mocktwilio || make bin/goalert bin/mocktwilio || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert
 goalert: ./bin/goalert -l=localhost:3030 --ui-dir=web/src/build --db-url=postgres://goalert@localhost --listen-sysapi=localhost:1234 --listen-prometheus=localhost:2112
@@ -10,3 +10,6 @@ prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/pr
 ui: yarn workspace goalert-web run esbuild --watch
 
 grpcui: go run github.com/fullstorydev/grpcui/cmd/grpcui -plaintext -open-browser=false -port 8234 localhost:1234
+
+@watch-file=./bin/mocktwilio
+twilio: ./bin/mocktwilio
