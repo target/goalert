@@ -35,7 +35,7 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	return true, nil
 }
 
-func (a *Mutation) LinkAccountToken(ctx context.Context, token string) (bool, error) {
+func (a *Mutation) LinkAccount(ctx context.Context, token string) (bool, error) {
 	err := a.AuthLinkStore.LinkAccount(ctx, token)
 	return err == nil, err
 }

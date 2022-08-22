@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/errutil"
@@ -79,13 +79,17 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	var payload struct {
 		Type        string
 		ResponseURL string `json:"response_url"`
-		Channel     struct {
+		Team        struct {
+			ID     string
+			Domain string
+		}
+		Channel struct {
 			ID string
 		}
 		User struct {
 			ID       string `json:"id"`
-			TeamID   string `json:"team_id"`
 			Username string `json:"username"`
+			Name     string
 		}
 		Actions []struct {
 			ActionID string `json:"action_id"`
@@ -133,17 +137,22 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	}
 
 	var e *notification.UnknownSubjectError
-	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
+	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.Team.ID, payload.User.ID, act.Value, res)
 
 	if errors.As(err, &e) {
-		v := make(url.Values)
-		v.Set("details", fmt.Sprintf("slack:%s", payload.User.Username))
-		v.Set("alertID", strconv.Itoa(e.AlertID))
-		v.Set("action", res.String())
-
-		linkURL, err := s.recv.AuthLinkURL(ctx, "slack:"+payload.User.TeamID, payload.User.ID, v)
-		if err != nil {
-			log.Log(ctx, err)
+		var linkURL string
+		switch {
+		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
+			// missing data, don't allow linking
+		default:
+			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
+				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),
+				AlertID:     e.AlertID,
+				AlertAction: res.String(),
+			})
+			if err != nil {
+				log.Log(ctx, err)
+			}
 		}
 
 		err = s.withClient(ctx, func(c *slack.Client) error {

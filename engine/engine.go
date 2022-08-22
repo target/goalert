@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/engine/cleanupmanager"
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
@@ -154,9 +154,9 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
-func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, params url.Values) (url string, err error) {
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (url string, err error) {
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID, params)
+		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID, meta)
 	})
 	return url, err
 }

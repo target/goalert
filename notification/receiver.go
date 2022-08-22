@@ -2,7 +2,8 @@ package notification
 
 import (
 	"context"
-	"net/url"
+
+	"github.com/target/goalert/auth/authlink"
 )
 
 // A Receiver processes incoming messages and responses.
@@ -17,7 +18,7 @@ type Receiver interface {
 	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
 
 	// AuthLinkURL will generate a URL to link a provider and subject to a GoAlert user.
-	AuthLinkURL(ctx context.Context, providerID, subjectID string, params url.Values) (string, error)
+	AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error)
 
 	// Start indicates a user has opted-in for notifications to this contact method.
 	Start(context.Context, Dest) error

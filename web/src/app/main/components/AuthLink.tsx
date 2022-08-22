@@ -1,15 +1,25 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSessionInfo } from '../../util/RequireConfig'
-import { useResetURLParams, useURLParams } from '../../actions'
-import { gql, useMutation } from 'urql'
+import { useResetURLParams, useURLParam, useURLParams } from '../../actions'
+import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { useLocation } from 'wouter'
 import Snackbar from '@mui/material/Snackbar'
-import { Alert } from '@mui/material'
+import { Alert, Typography } from '@mui/material'
+import { LinkAccountInfo } from '../../../schema'
 
 const mutation = gql`
   mutation ($token: ID!) {
-    linkAccountToken(token: $token)
+    linkAccount(token: $token)
+  }
+`
+const query = gql`
+  query ($token: ID!) {
+    linkAccountInfo(token: $token) {
+      userDetails
+      alertID
+      alertNewStatus
+    }
   }
 `
 
@@ -21,28 +31,34 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AuthLink(): JSX.Element {
-  const [params] = useURLParams({
-    authLinkToken: '',
-    details: '',
-    alertID: '',
-    action: '',
-  })
+export default function AuthLink(): JSX.Element | null {
+  const [token, setToken] = useURLParam('authLinkToken', '')
   const [, navigate] = useLocation()
 
-  const resetParams = useResetURLParams('authLinkToken', 'details')
-  const { ready } = useSessionInfo()
+  const { ready, userName } = useSessionInfo()
 
+  const [{ data, fetching, error }] = useQuery({ query, variables: { token } })
   const [linkAccountStatus, linkAccount] = useMutation(mutation)
   const [, updateAlertStatus] = useMutation(updateStatusMutation)
+  const [snack, setSnack] = useState(true)
 
-  if (!params.details || !params.authLinkToken || !ready) {
-    return <div>{undefined}</div>
+  const info: LinkAccountInfo = data?.linkAccountInfo
+
+  useEffect(() => {
+    if (!ready) return
+    if (!token) return
+    if (fetching) return
+    if (error) return
+    if (info) return
+
+    setToken('')
+  }, [!!info, !!error, fetching, ready, token])
+
+  if (!token || !ready || fetching) {
+    return null
   }
 
-  const authTokenExpired = linkAccountStatus?.error?.message.includes('expired')
-
-  if (linkAccountStatus.error) {
+  if (error) {
     return (
       <Snackbar
         anchorOrigin={{
@@ -50,46 +66,85 @@ export default function AuthLink(): JSX.Element {
           horizontal: 'right',
         }}
         autoHideDuration={6000}
-        onClose={() => console.log('hello')}
-        open={authTokenExpired || Boolean(linkAccountStatus?.error)}
+        onClose={() => setSnack(false)}
+        open={snack && !!error}
       >
         <Alert severity='error'>
-          {authTokenExpired
-            ? 'The auth link token has expired. Please try again later.'
-            : 'An unexpected error has occurred. Please try again later.'}
+          Unable to fetch account link details. Try again later.
         </Alert>
       </Snackbar>
     )
+  }
+
+  if (!info) {
+    return (
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        autoHideDuration={6000}
+        onClose={() => setSnack(false)}
+        open={snack}
+      >
+        <Alert severity='error'>
+          Invalid or expired account link URL. Try again.
+        </Alert>
+      </Snackbar>
+    )
+  }
+
+  let alertAction = ''
+  if (info.alertID && info.alertNewStatus) {
+    switch (info.alertNewStatus) {
+      case 'StatusAcknowledged':
+        alertAction = `alert #${data.linkAccountInfo.alertID} will be acknowledged.`
+        break
+      case 'StatusClosed':
+        alertAction = `alert #${data.linkAccountInfo.alertID} will be closed.`
+        break
+      default:
+        alertAction = `Alert #${data.linkAccountInfo.alertID} will be updated to ${info.alertNewStatus}.`
+        break
+    }
   }
 
   return (
     <FormDialog
       title='Link Account?'
       confirm
-      subTitle={`Click confirm to link this account to ${params.details}.`}
       errors={linkAccountStatus.error ? [linkAccountStatus.error] : []}
-      onClose={() => {
-        resetParams()
-      }}
+      onClose={() => setToken('')}
       onSubmit={() =>
-        linkAccount({ token: params.authLinkToken }).then((result) => {
+        linkAccount({ token }).then((result) => {
           if (result.error) return
-          if (params.alertID) navigate(`/alerts/${params.alertID}`)
-          if (params.action) {
+          if (info.alertID) navigate(`/alerts/${info.alertID}`)
+          if (info.alertNewStatus) {
             updateAlertStatus({
               input: {
-                alertIDs: [params.alertID],
-                newStatus:
-                  params.action === 'ResultAcknowledge'
-                    ? 'StatusAcknowledged'
-                    : 'StatusClosed',
+                alertIDs: [info.alertID],
+                newStatus: info.alertNewStatus,
               },
             })
           }
 
-          resetParams()
+          setToken('')
         })
       }
-    />
+      form={
+        <React.Fragment>
+          <Typography>
+            Clicking confirm will link the current GoAlert user{' '}
+            <b>{userName}</b> with:
+          </Typography>
+          {data.linkAccountInfo.userDetails}.
+          <br />
+          <br />
+          {alertAction && (
+            <React.Fragment>After linking, {alertAction}</React.Fragment>
+          )}
+        </React.Fragment>
+      }
+    ></FormDialog>
   )
 }
