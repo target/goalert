@@ -20,3 +20,29 @@ func respondErr(w http.ResponseWriter, err twError) {
 	err.Info = "https://www.twilio.com/docs/errors/" + strconv.Itoa(err.Code)
 	json.NewEncoder(w).Encode(err)
 }
+
+// IsStatusUpdateErr returns true if the error is from a status update.
+func IsStatusUpdateErr(err error) bool {
+	type statErr interface {
+		IsStatusUpdate() bool
+	}
+
+	if err == nil {
+		return false
+	}
+
+	e, ok := err.(statErr)
+	return ok && e.IsStatusUpdate()
+}
+
+type statusErr struct {
+	err error
+}
+
+func (s statusErr) IsStatusUpdate() bool { return true }
+
+func (s statusErr) Error() string {
+	return s.Error()
+}
+
+func (s statusErr) Unwrap() error { return s.err }

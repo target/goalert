@@ -13,6 +13,8 @@ type Call interface {
 
 	Answer(context.Context) error
 
+	IsActive() bool
+
 	// Press will simulate a press of the specified key.
 	//
 	// It does nothing if Answer has not been called or
@@ -32,9 +34,15 @@ const (
 	CallCanceled  FinalCallStatus = "canceled"
 )
 
-func (srv *Server) Calls() <-chan Call {
-	return nil
+type call struct {
+	*callState
 }
+
+func (c *call) ID() string   { return c.callState.ID }
+func (c *call) From() string { return c.callState.From }
+func (c *call) To() string   { return c.callState.To }
+
+func (srv *Server) Calls() <-chan Call { return srv.callCh }
 
 // StartCall will start a new voice call.
 func (srv *Server) StartCall(ctx context.Context, from, to string) error {

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// HandleNewMessage handles POST requests to /Accounts/<AccountSid>/Messages.json
+// HandleNewMessage handles POST requests to  /2010-04-01/Accounts/<AccountSid>/Messages.json
 func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		respondErr(w, twError{

@@ -59,7 +59,7 @@ type Server struct {
 	msgStateDB    chan map[string]*msgState
 	outboundMsgCh chan *msgState
 
-	callsCh        chan Call
+	callCh         chan Call
 	callStateDB    chan map[string]*callState
 	outboundCallCh chan *callState
 
@@ -110,7 +110,7 @@ func NewServer(cfg Config) *Server {
 		msgStateDB:    make(chan map[string]*msgState, 1),
 		outboundMsgCh: make(chan *msgState),
 
-		callsCh:        make(chan Call, 10000),
+		callCh:         make(chan Call, 10000),
 		callStateDB:    make(chan map[string]*callState, 1),
 		outboundCallCh: make(chan *callState),
 
@@ -250,6 +250,7 @@ func (srv *Server) loop() {
 
 	defer close(srv.shutdownDone)
 	defer close(srv.msgCh)
+	defer close(srv.callCh)
 	defer wg.Wait()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -258,12 +259,17 @@ func (srv *Server) loop() {
 	for {
 		select {
 		case <-srv.shutdown:
-
 			return
 		case sms := <-srv.outboundMsgCh:
 			wg.Add(1)
 			go func() {
 				sms.lifecycle(ctx)
+				wg.Done()
+			}()
+		case call := <-srv.outboundCallCh:
+			wg.Add(1)
+			go func() {
+				call.lifecycle(ctx)
 				wg.Done()
 			}()
 		case ch := <-srv.waitInFlight:
