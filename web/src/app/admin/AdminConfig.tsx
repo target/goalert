@@ -42,11 +42,6 @@ const query = gql`
     }
   }
 `
-const mutation = gql`
-  mutation ($input: [ConfigValueInput!]) {
-    setConfig(input: $input)
-  }
-`
 
 const useStyles = makeStyles((theme: Theme) => ({
   accordionDetails: {
@@ -161,9 +156,7 @@ export default function AdminConfig(): JSX.Element {
 
       {confirm && (
         <AdminDialog
-          mutation={mutation}
-          values={configValues}
-          fieldValues={values}
+          value={values}
           onClose={() => setConfirm(false)}
           onComplete={() => {
             setValues({})
