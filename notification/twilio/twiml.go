@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
 type twiMLResponse struct {
@@ -128,6 +127,47 @@ type twiMLDoc struct {
 	xmlNode `xml:",any"`
 }
 
+type verbSay struct {
+	XMLName xml.Name `xml:"Say"`
+	Text    string
+}
+
+func (s verbSay) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = "Say"
+	var doc struct {
+		Prosody struct {
+			Text string `xml:",chardata"`
+			Rate string `xml:"rate,attr"`
+		} `xml:"prosody"`
+	}
+	doc.Prosody.Rate = "slow"
+	doc.Prosody.Text = s.Text
+	return enc.EncodeElement(doc, start)
+}
+
+type twimlResponse struct {
+	XMLName xml.Name `xml:"Response"`
+	Verbs   []any    `xml:",any"`
+}
+type verbPause struct {
+	XMLName   xml.Name `xml:"Pause"`
+	LengthSec int      `xml:"length,attr"`
+}
+type verbRedirect struct {
+	XMLName xml.Name `xml:"Redirect"`
+	URL     string   `xml:",chardata"`
+}
+type verbHangup struct {
+	XMLName xml.Name `xml:"Hangup"`
+}
+type verbGather struct {
+	XMLName    xml.Name `xml:"Gather"`
+	NumDigits  int      `xml:"numDigits,attr"`
+	TimeoutSec int      `xml:"timeout,attr"`
+	Action     string   `xml:"action,attr"`
+	Verbs      []any    `xml:",any"`
+}
+
 func (t *twiMLResponse) sendResponse() {
 	if t.sent {
 		panic("Response already sent")
@@ -139,53 +179,30 @@ func (t *twiMLResponse) sendResponse() {
 		panic("Options without gather")
 	}
 
-	var doc twiMLDoc
+	var doc twimlResponse
 	for _, s := range t.say {
-		doc.Nodes = append(doc.Nodes, xmlNode{
-			XMLName: xml.Name{Local: "Say"},
-			Nodes: []xmlNode{
-				{
-					XMLName: xml.Name{Local: "prosody"},
-					Attrs:   []xml.Attr{{Name: xml.Name{Local: "rate"}, Value: "slow"}},
-					Text:    s,
-				},
-			},
-		})
+		doc.Verbs = append(doc.Verbs, verbSay{Text: s})
 	}
 
 	if t.redirectPauseSec > 0 {
-		doc.Nodes = append(doc.Nodes, xmlNode{
-			XMLName: xml.Name{Local: "Pause"},
-			Attrs:   []xml.Attr{{Name: xml.Name{Local: "length"}, Value: strconv.Itoa(t.redirectPauseSec)}},
-		})
+		doc.Verbs = append(doc.Verbs, verbPause{LengthSec: t.redirectPauseSec})
 	}
 
 	if t.redirectURL != "" {
-		doc.Nodes = append(doc.Nodes, xmlNode{
-			XMLName: xml.Name{Local: "Redirect"},
-			Text:    t.redirectURL,
-		})
+		doc.Verbs = append(doc.Verbs, verbRedirect{URL: t.redirectURL})
 	}
 
 	if t.gatherURL != "" {
-		// wrap everything in a Gather node
-		doc.Nodes = []xmlNode{
-			{
-				XMLName: xml.Name{Local: "Gather"},
-				Attrs: []xml.Attr{
-					{Name: xml.Name{Local: "numDigits"}, Value: "1"},
-					{Name: xml.Name{Local: "timeout"}, Value: "10"},
-					{Name: xml.Name{Local: "action"}, Value: t.gatherURL},
-				},
-				Nodes: doc.Nodes,
-			},
-		}
+		doc.Verbs = []any{verbGather{
+			Action:     t.gatherURL,
+			TimeoutSec: 10,
+			NumDigits:  1,
+			Verbs:      doc.Verbs,
+		}}
 	}
 
 	if t.hangup {
-		doc.Nodes = append(doc.Nodes, xmlNode{
-			XMLName: xml.Name{Local: "Hangup"},
-		})
+		doc.Verbs = append(doc.Verbs, verbHangup{})
 	}
 
 	var buf bytes.Buffer
