@@ -36,7 +36,9 @@ const useStyles = makeStyles({
 })
 
 export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
-
+function assertNever(x: never): never {
+  throw new Error('Unexpected value: ' + x)
+}
 export function toSeverity(notice: NoticeType): AlertColor {
   switch (notice) {
     case 'success':
@@ -53,9 +55,7 @@ export function toSeverity(notice: NoticeType): AlertColor {
     case 'INFO':
       return 'info'
     default:
-      // will fail typecheck if we are missing a case
-      const c: never = notice
-      throw new Error('Unknown notice type: ' + c)
+      assertNever(notice)
   }
 }
 
