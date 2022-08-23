@@ -3,9 +3,12 @@ package mocktwilio
 import (
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"math"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -28,9 +31,13 @@ type callState struct {
 
 	srv *Server
 	mx  sync.Mutex
+	seq int
 
-	action   chan struct{}
-	lastResp string
+	action chan struct{}
+
+	lastResp struct {
+		Response Node
+	}
 }
 
 func (srv *Server) newCallState() *callState {
@@ -44,10 +51,39 @@ func (srv *Server) newCallState() *callState {
 	}
 }
 
+func (s *callState) lifecycle(ctx context.Context) {
+	s.setStatus(ctx, "initiated")
+	s.setStatus(ctx, "ringing")
+
+	select {
+	case <-ctx.Done():
+	case s.srv.callCh <- &call{s}:
+	}
+}
+
 func (s *callState) Text() string {
 	s.mx.Lock()
 	defer s.mx.Unlock()
-	return s.lastResp
+
+	var text strings.Builder
+build:
+	for _, n := range s.lastResp.Response.Nodes {
+		switch n.XMLName.Local {
+		case "Say":
+			text.WriteString(n.Content + "\n")
+		case "Gather", "Hangup", "Redirect", "Reject":
+			break build
+		}
+	}
+
+	return text.String()
+}
+
+func (s *callState) Response() Node {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	return s.lastResp.Response
 }
 
 func (s *callState) IsActive() bool {
@@ -79,6 +115,13 @@ func (s *callState) Answer(ctx context.Context) error {
 	return nil
 }
 
+type Node struct {
+	XMLName xml.Name
+	Attrs   []xml.Attr `xml:",any,attr"`
+	Content string     `xml:",innerxml"`
+	Nodes   []Node     `xml:",any"`
+}
+
 func (s *callState) update(ctx context.Context, digits string) error {
 	v := make(url.Values)
 	v.Set("AccountSid", s.srv.cfg.AccountSID)
@@ -88,6 +131,19 @@ func (s *callState) update(ctx context.Context, digits string) error {
 	v.Set("Direction", s.Direction)
 	v.Set("From", s.From)
 	v.Set("To", s.To)
+	if digits != "" {
+		v.Set("Digits", digits)
+	}
+
+	data, err := s.srv.post(ctx, s.CallURL, v)
+	if err != nil {
+		return err
+	}
+
+	err = xml.Unmarshal(data, &s.lastResp)
+	if err != nil {
+		return fmt.Errorf("unmarshal app response: %v", err)
+	}
 
 	return nil
 }
@@ -98,12 +154,13 @@ func (s *callState) status() string {
 	return s.Status
 }
 
-func (s *callState) lifecycle(ctx context.Context) {
-}
-
 func (s *callState) setStatus(ctx context.Context, status string) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
+	if s.Status == status {
+		return
+	}
+
 	s.Status = status
 	s.UpdatedAt = time.Now()
 	switch status {
@@ -116,7 +173,32 @@ func (s *callState) setStatus(ctx context.Context, status string) {
 		}
 	}
 
-	// TODO: post status, pass to logErr
+	if s.StatusURL == "" {
+		return
+	}
+
+	v := make(url.Values)
+	v.Set("AccountSid", s.srv.cfg.AccountSID)
+	v.Set("ApiVersion", "2010-04-01")
+	if s.StartedAt != nil {
+		dur := time.Since(*s.StartedAt)
+		if s.EndedAt != nil {
+			dur = s.EndedAt.Sub(*s.StartedAt)
+		}
+		v.Set("Duration", strconv.Itoa(int(math.Ceil(dur.Seconds()))))
+	}
+	v.Set("CallSid", s.ID)
+	v.Set("CallStatus", status)
+	v.Set("Direction", s.Direction)
+	v.Set("From", s.From)
+	v.Set("To", s.To)
+	s.seq++
+	v.Set("SequenceNumber", strconv.Itoa(s.seq))
+
+	_, err := s.srv.post(ctx, s.StatusURL, v)
+	if err != nil {
+		s.srv.logErr(ctx, err)
+	}
 }
 
 func (s *callState) Press(ctx context.Context, key string) error {
