@@ -116,17 +116,6 @@ func (t *twiMLResponse) Hangup() {
 	t.sendResponse()
 }
 
-type xmlNode struct {
-	XMLName xml.Name
-	Attrs   []xml.Attr `xml:",any,attr"`
-	Text    string     `xml:",chardata"`
-	Nodes   []xmlNode  `xml:",any"`
-}
-type twiMLDoc struct {
-	XMLName xml.Name `xml:"Response"`
-	xmlNode `xml:",any"`
-}
-
 type verbSay struct {
 	XMLName xml.Name `xml:"Say"`
 	Text    string
