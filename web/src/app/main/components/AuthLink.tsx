@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSessionInfo } from '../../util/RequireConfig'
-import { useResetURLParams, useURLParam, useURLParams } from '../../actions'
+import { useURLParam } from '../../actions'
 import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { useLocation } from 'wouter'
@@ -145,6 +145,6 @@ export default function AuthLink(): JSX.Element | null {
           )}
         </React.Fragment>
       }
-    ></FormDialog>
+    />
   )
 }
