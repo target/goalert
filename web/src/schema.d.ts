@@ -34,7 +34,7 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
-  linkAccountInfo: LinkAccountInfo
+  linkAccountInfo?: null | LinkAccountInfo
 }
 
 export interface LinkAccountInfo {
