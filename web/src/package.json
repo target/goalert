@@ -32,7 +32,7 @@
     "@mui/material": "5.8.0",
     "@mui/styles": "5.9.0",
     "@mui/x-data-grid": "5.15.0",
-    "@urql/exchange-retry": "0.3.3",
+    "@urql/exchange-retry": "1.0.0",
     "bowser": "2.11.0",
     "classnames": "2.3.1",
     "diff": "5.0.0",
@@ -58,8 +58,8 @@
     "recharts": "2.1.8",
     "redux-thunk": "2.4.0",
     "remark-gfm": "3.0.0",
-    "urql": "2.2.0",
-    "wonka": "4.0.15",
+    "urql": "3.0.1",
+    "wonka": "6.0.0",
     "wouter": "2.8.0-alpha.2"
   },
   "devDependencies": {
