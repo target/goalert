@@ -104,7 +104,7 @@ func (opts renderData) OrderBy() string {
 }
 
 func (opts renderData) IntegrationKey() string {
-	if (!strings.Contains(opts.Search, "token=")) {
+	if !strings.Contains(opts.Search, "token=") {
 		return ""
 	}
 	return opts.Search[6:42]
@@ -112,7 +112,7 @@ func (opts renderData) IntegrationKey() string {
 
 func (opts renderData) LabelKey() string {
 	searchStr := opts.Search
-	if (strings.Contains(opts.Search, "token=")) {
+	if strings.Contains(opts.Search, "token=") {
 		// strip token string
 		searchStr = opts.Search[42:]
 	}
@@ -124,7 +124,7 @@ func (opts renderData) LabelKey() string {
 }
 func (opts renderData) LabelValue() string {
 	searchStr := opts.Search
-	if (strings.Contains(opts.Search, "token=")) {
+	if strings.Contains(opts.Search, "token=") {
 		// strip token string
 		searchStr = opts.Search[42:]
 	}
