@@ -40,6 +40,7 @@ export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
 export function toSeverity(notice: NoticeType): AlertColor {
   switch (notice.toLowerCase()) {
     case 'success':
+    case 'ok':
       return 'success'
     case 'warning':
     case 'warn':
