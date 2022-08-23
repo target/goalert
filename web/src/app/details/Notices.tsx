@@ -38,19 +38,24 @@ const useStyles = makeStyles({
 export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
 
 export function toSeverity(notice: NoticeType): AlertColor {
-  switch (notice.toLowerCase()) {
+  switch (notice) {
     case 'success':
-    case 'ok':
+    case 'OK':
       return 'success'
     case 'warning':
-    case 'warn':
+    case 'WARNING':
+    case 'WARN':
       return 'warning'
     case 'error':
+    case 'ERROR':
       return 'error'
     case 'info':
+    case 'INFO':
       return 'info'
     default:
-      throw new Error('Unknown notice type: ' + notice)
+      // will fail typecheck if we are missing a case
+      const c: never = notice
+      throw new Error('Unknown notice type: ' + c)
   }
 }
 
