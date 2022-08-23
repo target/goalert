@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { IntegrationKeyType } from '../../schema'
 const c = new Chance()
 
 declare global {
@@ -17,6 +18,9 @@ declare global {
 
       /** Creates a label for a given service */
       createLabel: typeof createLabel
+
+      /** Creates an integration key for a given service */
+      createIntKey: typeof createIntKey
 
       /** Creates a label for a given service */
       createHeartbeatMonitor: typeof createHeartbeatMonitor
@@ -56,6 +60,22 @@ declare global {
     svc?: ServiceOptions
     key?: string
     value?: string
+  }
+
+  interface IntegrationKey {
+    svcID: string
+    svc: Service
+    id: string
+    name: string
+    type: IntegrationKeyType
+  }
+
+  interface IntKeyOptions {
+    svcID?: string
+    svc?: ServiceOptions
+    id?: string
+    name?: string
+    type?: IntegrationKeyType
   }
 
   interface HeartbeatMonitor {
@@ -181,6 +201,56 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
     }))
 }
 
+function createIntKey(
+  intKey?: IntKeyOptions,
+): Cypress.Chainable<IntegrationKey> {
+  if (!intKey) intKey = {}
+  if (!intKey.svcID) {
+    return cy
+      .createService(intKey.svc)
+      .then((s: Service) => createIntKey({ svcID: s.id }))
+  }
+
+  const name = intKey.name || c.word({ length: 5 }) + ' Key'
+  const svcID = intKey.svcID
+  const type =
+    intKey.type ||
+    c.pickone([
+      'email',
+      'generic',
+      'grafana',
+      'site24x7',
+      'prometheusAlertmanager',
+    ])
+
+  const query = `
+    mutation($input: CreateIntegrationKeyInput!) {
+      createIntegrationKey(input: $input) {
+        id
+        serviceID
+        name
+        type
+      }
+    }
+  `
+
+  return cy
+    .graphql(query, {
+      input: {
+        serviceID: svcID,
+        name: name,
+        type: type,
+      },
+    })
+    .then((res: GraphQLResponse) => {
+      const key = res.createIntegrationKey
+      return getService(svcID).then((svc) => {
+        key.svc = svc
+        return key
+      })
+    })
+}
+
 function createHeartbeatMonitor(
   monitor?: HeartbeatMonitorOptions,
 ): Cypress.Chainable<HeartbeatMonitor> {
@@ -228,4 +298,5 @@ Cypress.Commands.add('getService', getService)
 Cypress.Commands.add('createService', createService)
 Cypress.Commands.add('deleteService', deleteService)
 Cypress.Commands.add('createLabel', createLabel)
+Cypress.Commands.add('createIntKey', createIntKey)
 Cypress.Commands.add('createHeartbeatMonitor', createHeartbeatMonitor)
