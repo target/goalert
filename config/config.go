@@ -430,6 +430,7 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
+		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
