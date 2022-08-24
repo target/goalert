@@ -56,7 +56,7 @@ Currently the dev user must be a superuser to enable `pgcrypto` with `CREATE EXT
 
 #### Toolchain Requirements
 
-- For the first start, run `make regendb` to migrate and add test data into the DB. This includes adding an admin user `admin/admin123`.
+- For the first start, run `make regendb` to migrate and add test data into the DB (you can also scale the amount of random data with `SIZE` like `make regendb SIZE=10`). This includes adding an admin user `admin/admin123`.
 - To start GoAlert in development mode run `make start`.
 - To build the GoAlert binary run `make bin/goalert BUNDLE=1`.
 
