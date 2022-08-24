@@ -97,8 +97,10 @@ type Config struct {
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
-		AccountSID string
-		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
+		AccountSID         string
+		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary Unless Alternate Auth Token is set."`
+		AlternateAuthToken string `password:"true" info:"An alternate Auth Token for validating requests. During a key change, set this to the current Primary, and Auth Token to Secondary, then promote and then clear this field."`
+
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
