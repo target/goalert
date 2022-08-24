@@ -30,7 +30,7 @@
     "@mui/icons-material": "5.8.0",
     "@mui/lab": "5.0.0-alpha.59",
     "@mui/material": "5.8.0",
-    "@mui/styles": "5.9.0",
+    "@mui/styles": "5.10.2",
     "@mui/x-data-grid": "5.15.0",
     "@urql/exchange-retry": "1.0.0",
     "bowser": "2.11.0",
