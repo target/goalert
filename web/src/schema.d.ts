@@ -1032,6 +1032,7 @@ type ConfigID =
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
+  | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
