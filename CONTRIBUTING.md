@@ -35,5 +35,5 @@ Be sure to run `make check` and tests before opening a PR to catch common errors
 ### Backend Change Guidelines
 
 - Use unit tests as a tool to validate complex logic. For [example](./schedule/rule/weekdayfilter_test.go).
-- New functionality should have a behavioral smoketest at a minimum. For [example](./smoketest/simplenotification_test.go). Documentation on our smoketest framework can be found [here](./smoketest/README.md).
+- New functionality should have a behavioral smoketest at a minimum. For [example](./test/smoketest/simplenotification_test.go). Documentation on our smoketest framework can be found [here](./test/smoketest/README.md).
 - Go code should [follow best practices](https://golang.org/doc/effective_go.html), exported functions/methods should be commented, etc..

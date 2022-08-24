@@ -80,7 +80,7 @@ of the GoAlert server component.
 
 Run the full suite with `make smoketest`.
 
-More information about smoketests can be found [here](../smoketest/README.md).
+More information about smoketests can be found [here](../test/smoketest/README.md).
 
 ### Running Unit Tests
 

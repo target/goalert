@@ -144,10 +144,10 @@ generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	go generate ./...
 
 smoketest:
-	(cd smoketest && go test -parallel 10 -timeout 20m)
+	(cd test/smoketest && go test -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
-	(cd smoketest && go test -run TestMigrations)
+	(cd test/smoketest && go test -run TestMigrations)
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename
