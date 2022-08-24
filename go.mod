@@ -54,7 +54,10 @@ require (
 	honnef.co/go/tools v0.3.2
 )
 
-require github.com/fullstorydev/grpcui v1.3.1
+require (
+	github.com/fullstorydev/grpcui v1.3.1
+	github.com/kffl/speedbump v1.0.0
+)
 
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
