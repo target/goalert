@@ -109,7 +109,6 @@ require (
 	github.com/jhump/protoreflect v1.12.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/kffl/speedbump v0.2.0
 	github.com/kyleconroy/sqlc v1.14.0
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
