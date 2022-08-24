@@ -1,7 +1,6 @@
 package mocktwilio
 
 import (
-	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -130,12 +129,14 @@ func (s *Server) serveCallStatus(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
+
 func (s *Server) call(id string) *VoiceCall {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
 
 	return s.calls[id]
 }
+
 func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -246,6 +247,7 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 		vc.s.errs <- errors.Wrap(err, "post to call status callback")
 	}
 }
+
 func (vc *VoiceCall) values(digits string) url.Values {
 	call := vc.cloneCall()
 
@@ -296,17 +298,15 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 	}
 	type resp struct {
 		XMLName xml.Name `xml:"Response"`
-		Say     []string `xml:"Say"`
+		Say     []string `xml:"Say>prosody"`
 		Gather  struct {
 			Action string   `xml:"action,attr"`
-			Say    []string `xml:"Say"`
+			Say    []string `xml:"Say>prosody"`
 		}
 		RedirectURL string    `xml:"Redirect"`
 		Hangup      *struct{} `xml:"Hangup"`
 	}
 	var r resp
-	data = bytes.ReplaceAll(data, []byte(`<Say><prosody rate="slow">`), []byte("<Say>"))
-	data = bytes.ReplaceAll(data, []byte(`</prosody></Say>`), []byte("</Say>"))
 	err = xml.Unmarshal(data, &r)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal XML voice response: %w", err)
