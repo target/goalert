@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/target/goalert/test/smoketest/harness"
+	"github.com/target/goalert/test/smoke/harness"
 )
 
 func main() {

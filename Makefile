@@ -143,11 +143,17 @@ pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go 
 generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	go generate ./...
 
+
+test-all: test-unit test-smoke test-integration
+test-integration: cy-wide-prod-run cy-mobile-prod-run
+test-smoke: smoketest
+test-unit: test
+
 smoketest:
-	(cd test/smoketest && go test -parallel 10 -timeout 20m)
+	(cd test/smoke && go test -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
-	(cd test/smoketest && go test -run TestMigrations)
+	(cd test/smoke && go test -run TestMigrations)
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename
