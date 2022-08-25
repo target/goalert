@@ -73,17 +73,17 @@ The Cypress UI should start automatically.
 
 More information about browser tests can be found [here](../web/src/cypress/README.md).
 
-### Running Smoketests
+### Running Smoke Tests
 
 A suite of functional/behavioral tests are maintained for the backend code. These test various APIs and behaviors
 of the GoAlert server component.
 
-Run the full suite with `make smoketest`.
+Run the full suite with `make test-smoke`.
 
-More information about smoketests can be found [here](../smoketest/README.md).
+More information about smoke tests can be found [here](../test/smoke/README.md).
 
 ### Running Unit Tests
 
-All unit tests can be run with `make test`.
+All unit tests can be run with `make test-unit`.
 
 UI Unit tests are found under the directory of the file being tested, with the same file name, appended with `.test.js`. They can be run independently of the Go unit tests with `make jest`. Watch mode can be enabled with `make jest JEST_ARGS=--watch`.
