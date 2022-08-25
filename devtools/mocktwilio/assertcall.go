@@ -13,10 +13,10 @@ type assertCall struct {
 func (call *assertCall) Hangup() {
 	call.t.Helper()
 
-	ctx, cancel := context.WithTimeout(context.Background(), call.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
 	defer cancel()
 
-	err := call.End(ctx, CallCompleted)
+	err := call.Call.Hangup(ctx, CallCompleted)
 	if err != nil {
 		call.t.Fatalf("mocktwilio: error ending call to %s: %v", call.To(), err)
 	}
@@ -25,7 +25,7 @@ func (call *assertCall) Hangup() {
 func (call *assertCall) ThenPress(digits string) ExpectedCall {
 	call.t.Helper()
 
-	ctx, cancel := context.WithTimeout(context.Background(), call.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
 	defer cancel()
 	err := call.Press(ctx, digits)
 	if err != nil {
@@ -61,7 +61,7 @@ func (dev *assertDev) RejectVoice(keywords ...string) {
 	ctx, cancel := context.WithTimeout(context.Background(), dev.Timeout)
 	defer cancel()
 
-	err := call.End(ctx, CallFailed)
+	err := call.Hangup(ctx, CallFailed)
 	if err != nil {
 		dev.t.Fatalf("mocktwilio: error ending call to %s: %v", call.To(), err)
 	}

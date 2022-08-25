@@ -8,9 +8,10 @@ import (
 	"math"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/devtools/mocktwilio/twiml"
 )
 
 type callState struct {
@@ -35,9 +36,9 @@ type callState struct {
 
 	action chan struct{}
 
-	lastResp struct {
-		Response Node
-	}
+	run *twiml.Interpreter
+
+	text string
 }
 
 func (srv *Server) newCallState() *callState {
@@ -46,8 +47,10 @@ func (srv *Server) newCallState() *callState {
 		srv:       srv,
 		ID:        srv.nextID("CA"),
 		CreatedAt: n,
+		Status:    "queued",
 		UpdatedAt: n,
 		action:    make(chan struct{}, 1),
+		run:       twiml.NewInterpreter(),
 	}
 }
 
@@ -64,26 +67,7 @@ func (s *callState) lifecycle(ctx context.Context) {
 func (s *callState) Text() string {
 	s.mx.Lock()
 	defer s.mx.Unlock()
-
-	var text strings.Builder
-build:
-	for _, n := range s.lastResp.Response.Nodes {
-		switch n.XMLName.Local {
-		case "Say":
-			text.WriteString(n.Content + "\n")
-		case "Gather", "Hangup", "Redirect", "Reject":
-			break build
-		}
-	}
-
-	return text.String()
-}
-
-func (s *callState) Response() Node {
-	s.mx.Lock()
-	defer s.mx.Unlock()
-
-	return s.lastResp.Response
+	return s.text
 }
 
 func (s *callState) IsActive() bool {
@@ -140,12 +124,43 @@ func (s *callState) update(ctx context.Context, digits string) error {
 		return err
 	}
 
-	err = xml.Unmarshal(data, &s.lastResp)
+	err = s.run.SetResponse(data)
 	if err != nil {
-		return fmt.Errorf("unmarshal app response: %v", err)
+		return err
+	}
+
+	return s.process(ctx)
+}
+
+func (s *callState) process(ctx context.Context) error {
+	s.text = ""
+
+	for s.run.Next() {
+		switch t := s.run.Verb().(type) {
+		case *twiml.Say:
+			s.text += t.Content + "\n"
+		case *twiml.Redirect:
+			s.setCallURL(t.URL)
+			return s.update(ctx, "")
+		case *twiml.Gather:
+			return nil
+		case *twiml.Reject:
+			s.setStatus(ctx, t.Reason)
+			return nil
+		case *twiml.Hangup:
+			s.setStatus(ctx, "completed")
+			return nil
+		case *twiml.Pause:
+			// ignored
+		}
 	}
 
 	return nil
+}
+
+func (s *callState) setCallURL(url string) {
+	// TODO: handle relative path
+	s.CallURL = url
 }
 
 func (s *callState) status() string {
@@ -201,13 +216,50 @@ func (s *callState) setStatus(ctx context.Context, status string) {
 	}
 }
 
-func (s *callState) Press(ctx context.Context, key string) error {
+func (s *callState) Press(ctx context.Context, digits string) error {
 	s.action <- struct{}{}
 	if s.status() != "in-progress" {
 		<-s.action
 		return fmt.Errorf("call not in progress")
 	}
 
+	g, ok := s.run.Verb().(*twiml.Gather)
+	if !ok {
+		<-s.action
+		return fmt.Errorf("gather not in progress")
+	}
+	s.setCallURL(g.Action)
+
+	err := s.update(ctx, digits)
+	if err != nil {
+		s.setStatus(ctx, "failed")
+		<-s.action
+		return err
+	}
+
+	<-s.action
+	return nil
+}
+
+func (s *callState) PressTimeout(ctx context.Context) error {
+	s.action <- struct{}{}
+	if s.status() != "in-progress" {
+		<-s.action
+		return fmt.Errorf("call not in progress")
+	}
+
+	g, ok := s.run.Verb().(*twiml.Gather)
+	if !ok {
+		<-s.action
+		return fmt.Errorf("gather not in progress")
+	}
+	if !g.ActionOnEmptyResult {
+		err := s.process(ctx)
+		<-s.action
+		return err
+	}
+
+	s.setCallURL(g.Action)
 	err := s.update(ctx, "")
 	if err != nil {
 		s.setStatus(ctx, "failed")
@@ -219,7 +271,7 @@ func (s *callState) Press(ctx context.Context, key string) error {
 	return nil
 }
 
-func (s *callState) End(ctx context.Context, status FinalCallStatus) error {
+func (s *callState) Hangup(ctx context.Context, status FinalCallStatus) error {
 	s.action <- struct{}{}
 	if !s.IsActive() {
 		<-s.action

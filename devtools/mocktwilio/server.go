@@ -122,6 +122,7 @@ func NewServer(cfg Config) *Server {
 	srv.msgSvcDB <- make(map[string][]*Number)
 	srv.numbersDB <- make(map[string]*Number)
 	srv.msgStateDB <- make(map[string]*msgState)
+	srv.callStateDB <- make(map[string]*callState)
 
 	srv.initHTTP()
 

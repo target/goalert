@@ -6,7 +6,7 @@ import (
 )
 
 type Interpreter struct {
-	state any
+	state Verb
 
 	verbs []Verb
 }
@@ -26,7 +26,7 @@ func (i *Interpreter) SetResponse(data []byte) error {
 	return nil
 }
 
-func (i *Interpreter) Verb() any { return i.state }
+func (i *Interpreter) Verb() Verb { return i.state }
 
 func (i *Interpreter) Next() bool {
 	if len(i.verbs) == 0 {

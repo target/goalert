@@ -1,6 +1,8 @@
 package mocktwilio
 
-import "context"
+import (
+	"context"
+)
 
 type Call interface {
 	ID() string
@@ -11,17 +13,20 @@ type Call interface {
 	// Text will return the last message returned by the application. It is empty until Answer is called.
 	Text() string
 
+	// User interactions below
+
 	Answer(context.Context) error
+	Hangup(context.Context, FinalCallStatus) error
 
-	IsActive() bool
-
-	// Press will simulate a press of the specified key.
+	// Press will simulate a press of the specified key(s).
 	//
-	// It does nothing if Answer has not been called or
-	// the call has ended.
+	// It does nothing if the call isn't waiting for input.
 	Press(context.Context, string) error
 
-	End(context.Context, FinalCallStatus) error
+	// PressTimeout will simulate a user waiting for the menu to timeout.
+	//
+	// It does nothing if the call isn't waiting for input.
+	PressTimeout(context.Context) error
 }
 
 type FinalCallStatus string
