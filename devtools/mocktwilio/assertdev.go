@@ -1,6 +1,6 @@
 package mocktwilio
 
 type assertDev struct {
-	*assert
+	*assertions
 	number string
 }

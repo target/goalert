@@ -27,20 +27,20 @@ type ServerAPI interface {
 }
 
 func NewAssertions(t *testing.T, cfg AssertConfig) PhoneAssertions {
-	return &assert{
+	return &assertions{
 		t:          t,
 		assertBase: &assertBase{AssertConfig: cfg},
 	}
 }
 
-func (a *assert) WithT(t *testing.T) PhoneAssertions {
-	return &assert{
+func (a *assertions) WithT(t *testing.T) PhoneAssertions {
+	return &assertions{
 		t:          t,
 		assertBase: a.assertBase,
 	}
 }
 
-type assert struct {
+type assertions struct {
 	t *testing.T
 	*assertBase
 }
@@ -68,7 +68,7 @@ type answerer interface {
 	Answer(context.Context) error
 }
 
-func (a *assert) matchMessage(destNumber string, keywords []string, t texter) bool {
+func (a *assertions) matchMessage(destNumber string, keywords []string, t texter) bool {
 	a.t.Helper()
 	if t.To() != destNumber {
 		return false
@@ -87,7 +87,7 @@ func (a *assert) matchMessage(destNumber string, keywords []string, t texter) bo
 	return containsAll(t.Text(), keywords)
 }
 
-func (a *assert) refresh() {
+func (a *assertions) refresh() {
 	if a.RefreshFunc == nil {
 		return
 	}
@@ -95,11 +95,11 @@ func (a *assert) refresh() {
 	a.RefreshFunc()
 }
 
-func (a *assert) Device(number string) PhoneDevice {
+func (a *assertions) Device(number string) PhoneDevice {
 	return &assertDev{a, number}
 }
 
-func (a *assert) WaitAndAssert() {
+func (a *assertions) WaitAndAssert() {
 	a.t.Helper()
 
 	// flush any remaining application messages
