@@ -11,6 +11,7 @@ import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import { useResetURLParams, useURLParam } from '../actions'
+import { Target } from '../../schema'
 
 interface PolicyStepProps {
   escalationPolicyID: string
@@ -25,12 +26,6 @@ interface Step {
   id: string
   delayMinutes: number
   targets: Target[]
-}
-
-interface Target {
-  id: string
-  name: string
-  type: string
 }
 
 const useStyles = makeStyles(() => ({

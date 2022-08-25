@@ -840,7 +840,7 @@ export type AlertStatus =
 export interface Target {
   id: string
   type: TargetType
-  name?: null | string
+  name: string
 }
 
 export interface TargetInput {
