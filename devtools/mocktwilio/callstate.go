@@ -140,7 +140,10 @@ func (s *callState) process(ctx context.Context) error {
 		case *twiml.Say:
 			s.text += t.Content + "\n"
 		case *twiml.Redirect:
-			s.setCallURL(t.URL)
+			err := s.setCallURL(t.URL)
+			if err != nil {
+				return err
+			}
 			return s.update(ctx, "")
 		case *twiml.Gather:
 			return nil
@@ -158,7 +161,15 @@ func (s *callState) process(ctx context.Context) error {
 	return nil
 }
 
-func (s *callState) setCallURL(url string) { s.CallURL = relURL(s.CallURL, url) }
+func (s *callState) setCallURL(url string) error {
+	newURL := relURL(s.CallURL, url)
+	if newURL == "" {
+		return fmt.Errorf("invalid redirect url: %s", url)
+	}
+
+	s.CallURL = newURL
+	return nil
+}
 
 func (s *callState) status() string {
 	s.mx.Lock()
@@ -225,9 +236,14 @@ func (s *callState) Press(ctx context.Context, digits string) error {
 		<-s.action
 		return fmt.Errorf("gather not in progress")
 	}
-	s.setCallURL(g.Action)
+	err := s.setCallURL(g.Action)
+	if err != nil {
+		s.setStatus(ctx, "failed")
+		<-s.action
+		return err
+	}
 
-	err := s.update(ctx, digits)
+	err = s.update(ctx, digits)
 	if err != nil {
 		s.setStatus(ctx, "failed")
 		<-s.action
@@ -256,8 +272,14 @@ func (s *callState) PressTimeout(ctx context.Context) error {
 		return err
 	}
 
-	s.setCallURL(g.Action)
-	err := s.update(ctx, "")
+	err := s.setCallURL(g.Action)
+	if err != nil {
+		s.setStatus(ctx, "failed")
+		<-s.action
+		return err
+	}
+
+	err = s.update(ctx, "")
 	if err != nil {
 		s.setStatus(ctx, "failed")
 		<-s.action
