@@ -158,10 +158,7 @@ func (s *callState) process(ctx context.Context) error {
 	return nil
 }
 
-func (s *callState) setCallURL(url string) {
-	// TODO: handle relative path
-	s.CallURL = url
-}
+func (s *callState) setCallURL(url string) { s.CallURL = relURL(s.CallURL, url) }
 
 func (s *callState) status() string {
 	s.mx.Lock()
