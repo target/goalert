@@ -27,7 +27,6 @@ func TestSay(t *testing.T) {
 	}
 
 	check(Say{Content: "hi"}, `<Say>hi</Say>`)
-	return
 	checkExp(Say{Content: "hi"}, `<Say loop="">hi</Say>`, `<Say>hi</Say>`)
 	checkExp(Say{Content: "hi", LoopCount: 1000}, `<Say loop="0">hi</Say>`, `<Say loop="1000">hi</Say>`)
 	check(Say{Content: "hi", LoopCount: 1}, `<Say loop="1">hi</Say>`)
