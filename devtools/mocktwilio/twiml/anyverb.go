@@ -6,49 +6,70 @@ import (
 	"fmt"
 )
 
+type (
+	v          struct{}
+	GatherVerb interface {
+		Verb
+		isGatherVerb() v
+	}
+	Verb interface {
+		isVerb() v
+	}
+)
+
+func (*Pause) isGatherVerb() v { return v{} }
+func (*Say) isGatherVerb() v   { return v{} }
+
+func (*Pause) isVerb() v    { return v{} }
+func (*Say) isVerb() v      { return v{} }
+func (*Gather) isVerb() v   { return v{} }
+func (*Hangup) isVerb() v   { return v{} }
+func (*Redirect) isVerb() v { return v{} }
+func (*Reject) isVerb() v   { return v{} }
+
 type anyVerb struct {
-	verb any
+	verb Verb
 }
 
-func decodeVerb(d *xml.Decoder, start xml.StartElement) (any, error) {
+func decodeVerb(d *xml.Decoder, start xml.StartElement) (Verb, error) {
 	switch start.Name.Local {
 	case "Gather":
 		g := new(Gather)
-		return *g, d.DecodeElement(&g, &start)
+		return g, d.DecodeElement(&g, &start)
 	case "Hangup":
 		h := new(Hangup)
-		return *h, d.DecodeElement(&h, &start)
+		return h, d.DecodeElement(&h, &start)
 	case "Pause":
 		p := new(Pause)
-		return *p, d.DecodeElement(&p, &start)
+		return p, d.DecodeElement(&p, &start)
 	case "Redirect":
 		r := new(Redirect)
-		return *r, d.DecodeElement(&r, &start)
+		return r, d.DecodeElement(&r, &start)
 	case "Reject":
 		re := new(Reject)
-		return *re, d.DecodeElement(&re, &start)
+		return re, d.DecodeElement(&re, &start)
 	case "Say":
 		s := new(Say)
-		return *s, d.DecodeElement(&s, &start)
+		return s, d.DecodeElement(&s, &start)
 	}
 
 	return nil, errors.New("unsupported verb: " + start.Name.Local)
 }
 
-func encodeVerb(e *xml.Encoder, v any) error {
+func encodeVerb(e *xml.Encoder, v Verb) error {
 	var name string
 	switch v.(type) {
-	case Gather:
+	case *Gather:
 		name = "Gather"
-	case Hangup:
+	case *Hangup:
 		name = "Hangup"
-	case Pause:
+	case *Pause:
 		name = "Pause"
-	case Redirect:
+	case *Redirect:
 		name = "Redirect"
-	case Reject:
+	case *Reject:
 		name = "Reject"
-	case Say:
+	case *Say:
 		name = "Say"
 	default:
 		return fmt.Errorf("unsupported verb: %T", v)

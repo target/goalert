@@ -16,11 +16,11 @@ func TestResponse_UnmarshalXML(t *testing.T) {
 	err := xml.Unmarshal([]byte(doc), &r)
 	require.NoError(t, err)
 
-	assert.Equal(t, Response{Verbs: []any{
-		Say{Content: "hi"},
-		Gather{
+	assert.Equal(t, Response{Verbs: []Verb{
+		&Say{Content: "hi"},
+		&Gather{
 			TimeoutDur: 13 * time.Second,
-			Verbs:      []any{Say{Content: "there"}},
+			Verbs:      []GatherVerb{&Say{Content: "there"}},
 
 			// defaults should be set
 			FinishOnKey:                 "#",
@@ -31,7 +31,7 @@ func TestResponse_UnmarshalXML(t *testing.T) {
 			SpeechTimeoutDur:            13 * time.Second, // defaults to TimeoutDur
 			SpeechModel:                 "default",
 		},
-		Hangup{},
+		&Hangup{},
 	}}, r)
 
 	data, err := xml.Marshal(r)

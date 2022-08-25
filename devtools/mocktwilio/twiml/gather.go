@@ -57,7 +57,7 @@ type Gather struct {
 
 	ActionOnEmptyResult bool `xml:"actionOnEmptyResult,attr,omitempty"`
 
-	Verbs []any `xml:"-"`
+	Verbs []GatherVerb `xml:"-"`
 }
 
 func defStr(s *string, defaultValue string) {
@@ -83,13 +83,13 @@ func (g *Gather) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	}
 	*g = Gather(gg.RawGather)
 	for _, v := range gg.Content {
-		switch v.verb.(type) {
-		case Say:
-			g.Verbs = append(g.Verbs, v.verb)
-		case Pause:
-			g.Verbs = append(g.Verbs, v.verb)
+		switch t := v.verb.(type) {
+		case *Say:
+			g.Verbs = append(g.Verbs, t)
+		case *Pause:
+			g.Verbs = append(g.Verbs, t)
 		default:
-			return fmt.Errorf("unexpected verb in Gather: %T", v.verb)
+			return fmt.Errorf("unexpected verb in Gather: %T", t)
 		}
 	}
 
@@ -142,9 +142,9 @@ func (g Gather) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	gg.RawGather = RawGather(g)
 	for _, v := range g.Verbs {
 		switch t := v.(type) {
-		case Say:
+		case *Say:
 			gg.Verbs = append(gg.Verbs, anyVerb{verb: t})
-		case Pause:
+		case *Pause:
 			gg.Verbs = append(gg.Verbs, anyVerb{verb: t})
 		default:
 			return fmt.Errorf("unexpected verb in Gather: %T", v)

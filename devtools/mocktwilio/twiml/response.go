@@ -3,12 +3,11 @@ package twiml
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 )
 
 type Response struct {
-	Verbs []any `xml:"-"`
+	Verbs []Verb `xml:"-"`
 }
 
 func (r *Response) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -30,7 +29,6 @@ func (r *Response) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(v)
 			r.Verbs = append(r.Verbs, v)
 		}
 	}
