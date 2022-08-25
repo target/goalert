@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { PropTypes as p } from 'prop-types'
+import React, { ComponentType, ReactElement, ReactNode, useState } from 'react'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import ListItem from '@mui/material/ListItem'
@@ -13,17 +12,26 @@ import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import { useResetURLParams, useURLParam } from '../actions'
 
-const shapeStep = p.shape({
-  id: p.string.isRequired,
-  delayMinutes: p.number.isRequired,
-  targets: p.arrayOf(
-    p.shape({
-      id: p.string.isRequired,
-      name: p.string.isRequired,
-      type: p.string.isRequired,
-    }),
-  ).isRequired,
-})
+interface PolicyStepProps {
+  escalationPolicyID: string
+  repeat: number // # of times EP repeats escalation process
+  step: Step
+  steps: Step[]
+  index: number
+  selected: boolean
+}
+
+interface Step {
+  id: string
+  delayMinutes: number
+  targets: Target[]
+}
+
+interface Target {
+  id: string
+  name: string
+  type: string
+}
 
 const useStyles = makeStyles(() => ({
   centerFlex: {
@@ -33,14 +41,14 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-function PolicyStep(props) {
+function PolicyStep(props: PolicyStepProps): JSX.Element {
   const classes = useStyles()
 
-  const [editStep, setEditStep] = useURLParam('editStep', '')
+  const [editStep, setEditStep] = useURLParam<string>('editStep', '')
   const resetEditStep = useResetURLParams('editStep')
   const [deleteStep, setDeleteStep] = useState(false)
 
-  function getStepNumber(sid) {
+  function getStepNumber(sid: string): number {
     const sids = props.steps.map((s) => s.id)
     return sids.indexOf(sid) + 1
   }
@@ -48,7 +56,7 @@ function PolicyStep(props) {
   /*
    * Renders the mui chips for each target on the step
    */
-  function renderChips() {
+  function renderChips(): ReactElement {
     const { targets: _t } = props.step
 
     // copy and sort by type then name
@@ -59,7 +67,9 @@ function PolicyStep(props) {
     }
 
     const items = targets.map((tgt) => {
-      const tgtChip = (Chip) => <Chip id={tgt.id} label={tgt.name} />
+      const tgtChip = (
+        Chip: ComponentType<{ id: string; label: string }>,
+      ): JSX.Element => <Chip id={tgt.id} label={tgt.name} />
 
       let chip = null
       switch (tgt.type) {
@@ -98,7 +108,7 @@ function PolicyStep(props) {
    * Renders the delay message, dependent on if the escalation policy
    * repeats, and if the message is rendering on the last step
    */
-  function renderDelayMessage() {
+  function renderDelayMessage(): ReactNode {
     const { repeat, step, steps } = props
     const len = steps.length
     const isLastStep = getStepNumber(step.id) === len
@@ -108,7 +118,7 @@ function PolicyStep(props) {
       return null
     }
 
-    const pluralizer = (x) => (x === 1 ? '' : 's')
+    const pluralizer = (x: number): string => (x === 1 ? '' : 's')
 
     let repeatText = `Move on to step #${getStepNumber(step.id) + 1} after ${
       step.delayMinutes
@@ -136,7 +146,7 @@ function PolicyStep(props) {
 
   return (
     <React.Fragment key={step.id}>
-      <ListItem id={index} selected={props.selected}>
+      <ListItem key={index} selected={props.selected}>
         <Grid container spacing={2}>
           <Grid item className={classes.centerFlex}>
             <Typography component='h4' variant='subtitle1'>
@@ -162,7 +172,6 @@ function PolicyStep(props) {
                 onClick: () => setDeleteStep(true),
               },
             ]}
-            positionRelative
           />
         </ListItemSecondaryAction>
       </ListItem>
@@ -182,15 +191,6 @@ function PolicyStep(props) {
       )}
     </React.Fragment>
   )
-}
-
-PolicyStep.propTypes = {
-  escalationPolicyID: p.string.isRequired,
-  repeat: p.number.isRequired, // # of times EP repeats escalation process
-  step: shapeStep.isRequired,
-  steps: p.arrayOf(shapeStep).isRequired,
-  index: p.number,
-  selected: p.bool,
 }
 
 export default PolicyStep
