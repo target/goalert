@@ -46,4 +46,4 @@ GoAlert utilizes 3 main types of testing as tools for different purposes:
   - For backend code, a `_test.go` version of a file will contain relevant unit tests. More info [here](https://pkg.go.dev/testing)
   - For UI code, a `.test.ts` version of a file will contain relevant unit tests. More info [here](https://jestjs.io/docs/getting-started).
 - Smoke tests (in `test/smoke`) are used to ensure main functionality and things like behavioral compatibility with future versions & DB migrations. These focus on hard guarantees like deliverability and preserving intent as the application and datastore evolves and changes over time.
-- Integration tests (currently under `web/src/cypress/integration`) are primarily used to validate happy-path flows work end-to-end, and any important/common error scenarios. They are focused on UX and high-level funcationality.
+- Integration tests (currently under `web/src/cypress/integration`) are primarily used to validate happy-path flows work end-to-end, and any important/common error scenarios. They are focused on UX and high-level functionality.
