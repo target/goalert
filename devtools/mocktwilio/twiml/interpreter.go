@@ -45,16 +45,15 @@ func (i *Interpreter) Next() bool {
 			break
 		}
 
-		newVerbs := make([]any, 0, len(t.Verbs)+len(i.verbs))
+		newVerbs := make([]Verb, 0, len(t.Verbs)+len(i.verbs))
 		i.state = t.Verbs[0]
 		for _, v := range t.Verbs[1:] {
 			newVerbs = append(newVerbs, v)
 		}
 		t.Verbs = nil
 		newVerbs = append(newVerbs, t)
-		for _, v := range i.verbs[1:] {
-			newVerbs = append(newVerbs, v)
-		}
+		newVerbs = append(newVerbs, i.verbs[1:]...)
+		i.verbs = newVerbs
 	case *Pause, *Say:
 		i.state = t
 		i.verbs = i.verbs[1:]
