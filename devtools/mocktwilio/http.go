@@ -18,7 +18,7 @@ func (srv *Server) initHTTP() {
 	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
 	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
 	srv.mux.HandleFunc(srv.basePath()+"/Calls.json", srv.HandleNewCall)
-	// s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
+	srv.mux.HandleFunc(srv.basePath()+"/Calls/", srv.HandleCallStatus)
 	// s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
 }
 
