@@ -82,7 +82,7 @@ Global Flags:
       --data-encryption-key string       Encryption key for sensitive data like signing keys. Used for encrypting new and decrypting existing data.
       --data-encryption-key-old string   Fallback key. Used for decrypting existing data only.
       --db-url string                    Connection string for Postgres.
-      --db-url-next string               Connection string for the *next* Postgres server (enables DB switch-over mode).
+      --db-url-next string               Connection string for the *next* Postgres server (enables DB switchover mode).
       --json                             Log in JSON format.
       --stack-traces                     Enables stack traces with all error logs.
   -v, --verbose                          Enable verbose logging.

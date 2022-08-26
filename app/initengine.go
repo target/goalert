@@ -10,21 +10,18 @@ import (
 )
 
 func (app *App) initEngine(ctx context.Context) error {
-
 	var regionIndex int
 	err := app.db.QueryRowContext(ctx, `SELECT id FROM region_ids WHERE name = $1`, app.cfg.RegionName).Scan(&regionIndex)
 	if errors.Is(err, sql.ErrNoRows) {
 		// doesn't exist, try to create
-		err = app.db.QueryRowContext(ctx, `
-		WITH inserted AS (
-			INSERT INTO region_ids (name) VALUES ($1) 
-			ON CONFLICT DO NOTHING
-			RETURNING id
-		)
-		SELECT id FROM region_ids WHERE name = $1
-		UNION
-		SELECT id FROM inserted
-	`, app.cfg.RegionName).Scan(&regionIndex)
+		_, err = app.db.ExecContext(ctx, `
+		INSERT INTO region_ids (name) VALUES ($1) 
+		ON CONFLICT DO NOTHING`, app.cfg.RegionName)
+		if err != nil {
+			return errors.Wrap(err, "insert region")
+		}
+
+		err = app.db.QueryRowContext(ctx, `SELECT id FROM region_ids WHERE name = $1`, app.cfg.RegionName).Scan(&regionIndex)
 	}
 	if err != nil {
 		return errors.Wrap(err, "get region index")

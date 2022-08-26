@@ -1,5 +1,5 @@
 /*
-	goalert-slack-email-sync will create/update AuthSubject entries for users by matching the user's GoAlert email to the corresponding Slack user.
+goalert-slack-email-sync will create/update AuthSubject entries for users by matching the user's GoAlert email to the corresponding Slack user.
 */
 package main
 

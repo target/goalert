@@ -99,13 +99,13 @@ func (cs *Subscription) scanFrom(scanFn func(...interface{}) error) error {
 // or otherwise can not be authenticated, an error is returned.
 func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error) {
 	if tok.Type != authtoken.TypeCalSub {
-		return ctx, validation.NewFieldError("token", "invalid type")
+		return ctx, permission.Unauthorized()
 	}
 
 	var userID string
 	err := s.authUser.QueryRowContext(ctx, tok.ID, tok.CreatedAt).Scan(&userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ctx, validation.NewFieldError("sub", "invalid")
+		return ctx, permission.Unauthorized()
 	}
 	if err != nil {
 		return ctx, err

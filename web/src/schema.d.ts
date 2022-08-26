@@ -840,7 +840,7 @@ export type AlertStatus =
 export interface Target {
   id: string
   type: TargetType
-  name?: null | string
+  name: string
 }
 
 export interface TargetInput {
@@ -1032,6 +1032,7 @@ type ConfigID =
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
+  | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'
