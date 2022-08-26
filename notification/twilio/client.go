@@ -134,7 +134,7 @@ func (c *Config) GetSMS(ctx context.Context, sid string) (*Message, error) {
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrapf(err, "parse error response %s", string(data))
+			return nil, errors.Wrapf(err, "parse error response '%s': %s", urlStr, string(data))
 		}
 		return nil, &e
 	}
@@ -167,7 +167,7 @@ func (c *Config) GetVoice(ctx context.Context, sid string) (*Call, error) {
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrap(err, "parse error response")
+			return nil, errors.Wrapf(err, "parse error response '%s': %s", urlStr, string(data))
 		}
 		return nil, &e
 	}
@@ -246,7 +246,7 @@ func (c *Config) StartVoice(ctx context.Context, to string, o *VoiceOptions) (*C
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrap(err, "parse error response")
+			return nil, errors.Wrapf(err, "parse error response '%s': %s", urlStr, string(data))
 		}
 		return nil, &e
 	}
@@ -311,7 +311,7 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 		var e Exception
 		err = json.Unmarshal(data, &e)
 		if err != nil {
-			return nil, errors.Wrapf(err, "parse error response %s", string(data))
+			return nil, errors.Wrapf(err, "parse error response '%s': %s", urlStr, string(data))
 		}
 		return nil, &e
 	}
