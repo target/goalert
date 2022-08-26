@@ -59,9 +59,14 @@ type Redirect struct {
 }
 
 func (r *Redirect) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	if err := d.DecodeElement(&r, &start); err != nil {
+	type RedirectRaw Redirect
+	var rr struct {
+		RedirectRaw
+	}
+	if err := d.DecodeElement(&rr, &start); err != nil {
 		return err
 	}
+	*r = Redirect(rr.RedirectRaw)
 	if r.Method == "" {
 		r.Method = "POST"
 	}
