@@ -152,7 +152,7 @@ func (c *Config) GetSMS(ctx context.Context, sid string) (*Message, error) {
 func (c *Config) GetVoice(ctx context.Context, sid string) (*Call, error) {
 	cfg := config.FromContext(ctx)
 	urlStr := c.url("2010-04-01", "Accounts", cfg.Twilio.AccountSID, "Calls", sid+".json")
-	resp, err := c.post(ctx, urlStr, nil)
+	resp, err := c.get(ctx, urlStr)
 	if err != nil {
 		return nil, err
 	}
