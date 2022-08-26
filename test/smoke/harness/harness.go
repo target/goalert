@@ -617,7 +617,7 @@ func (h *Harness) TwilioNumber(id string) string {
 	}
 	num := h.phoneCCG.Get("twilio" + id)
 
-	err := h.mockTw.AddNumber(mocktwilio.Number{
+	err := h.mockTw.AddUpdateNumber(mocktwilio.Number{
 		Number:          num,
 		SMSWebhookURL:   h.URL() + "/v1/twilio/sms/messages",
 		VoiceWebhookURL: h.URL() + "/v1/twilio/voice/call",
@@ -639,7 +639,7 @@ func (h *Harness) TwilioMessagingService() string {
 	defer h.mx.Unlock()
 
 	newID := mocktwilio.NewMsgServiceID()
-	err := h.mockTw.AddMsgService(mocktwilio.MsgService{
+	err := h.mockTw.AddUpdateMsgService(mocktwilio.MsgService{
 		ID:            newID,
 		Numbers:       []string{h.phoneCCG.Get("twilio:sid1"), h.phoneCCG.Get("twilio:sid2"), h.phoneCCG.Get("twilio:sid3")},
 		SMSWebhookURL: h.URL() + "/v1/twilio/sms/messages",

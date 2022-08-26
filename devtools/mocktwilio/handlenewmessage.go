@@ -58,11 +58,11 @@ func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.HasPrefix(s.From, "MG") && s.MsgSID == "" {
-		s.MsgSID = s.ID
+		s.MsgSID = s.From
 	}
 
 	if s.MsgSID != "" {
-		if len(srv.numberSvc(s.MsgSID)) == 0 {
+		if len(srv.svcNumbers(s.MsgSID)) == 0 {
 			respondErr(w, twError{
 				Status:  404,
 				Message: fmt.Sprintf("The requested resource %s was not found", r.URL.String()),

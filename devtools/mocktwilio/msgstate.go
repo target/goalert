@@ -43,10 +43,10 @@ func (srv *Server) newMsgState() *msgState {
 
 func (s *msgState) lifecycle(ctx context.Context) {
 	if s.MsgSID != "" {
-		nums := s.srv.numberSvc(s.MsgSID)
+		nums := s.srv.svcNumbers(s.MsgSID)
 		idx := rand.Intn(len(nums))
 		newFrom := nums[idx]
-		err := s.setSendStatus(ctx, "queued", newFrom.Number)
+		err := s.setSendStatus(ctx, "queued", newFrom)
 		if err != nil {
 			s.srv.logErr(ctx, err)
 		}

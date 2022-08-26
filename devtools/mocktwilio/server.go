@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/notification/twilio"
-	"github.com/ttacon/libphonenumber"
 )
 
 // Config is used to configure the mock server.
@@ -63,8 +61,7 @@ type Server struct {
 	callStateDB    chan map[string]*callState
 	outboundCallCh chan *callState
 
-	numbersDB chan map[string]*Number
-	msgSvcDB  chan map[string][]*Number
+	numbersDB chan *numberDB
 
 	waitInFlight chan chan struct{}
 
@@ -102,8 +99,7 @@ func NewServer(cfg Config) *Server {
 
 	srv := &Server{
 		cfg:       cfg,
-		msgSvcDB:  make(chan map[string][]*Number, 1),
-		numbersDB: make(chan map[string]*Number, 1),
+		numbersDB: make(chan *numberDB, 1),
 		mux:       http.NewServeMux(),
 
 		msgCh:         make(chan Message, 10000),
@@ -119,8 +115,7 @@ func NewServer(cfg Config) *Server {
 
 		waitInFlight: make(chan chan struct{}),
 	}
-	srv.msgSvcDB <- make(map[string][]*Number)
-	srv.numbersDB <- make(map[string]*Number)
+	srv.numbersDB <- newNumberDB()
 	srv.msgStateDB <- make(map[string]*msgState)
 	srv.callStateDB <- make(map[string]*callState)
 
@@ -133,92 +128,42 @@ func NewServer(cfg Config) *Server {
 
 func (srv *Server) number(s string) *Number {
 	db := <-srv.numbersDB
-	n := db[s]
+	if !db.NumberExists(s) {
+		srv.numbersDB <- db
+		return nil
+	}
+
+	n := &Number{
+		Number:          s,
+		VoiceWebhookURL: db.VoiceWebhookURL(s),
+		SMSWebhookURL:   db.SMSWebhookURL(s),
+	}
 	srv.numbersDB <- db
 	return n
 }
 
-func (srv *Server) numberSvc(id string) []*Number {
-	db := <-srv.msgSvcDB
-	nums := db[id]
-	srv.msgSvcDB <- db
-
-	return nums
-}
-
-// AddNumber adds a new number to the mock server.
-func (srv *Server) AddNumber(n Number) error {
-	_, err := libphonenumber.Parse(n.Number, "")
-	if err != nil {
-		return fmt.Errorf("invalid phone number %s: %v", n.Number, err)
-	}
-	if n.SMSWebhookURL != "" {
-		err = validateURL(n.SMSWebhookURL)
-		if err != nil {
-			return err
-		}
-	}
-	if n.VoiceWebhookURL != "" {
-		err = validateURL(n.VoiceWebhookURL)
-		if err != nil {
-			return err
-		}
-	}
-
+func (srv *Server) svcNumbers(id string) []string {
 	db := <-srv.numbersDB
-	if _, ok := db[n.Number]; ok {
-		srv.numbersDB <- db
-		return fmt.Errorf("number %s already exists", n.Number)
-	}
-	db[n.Number] = &n
+	svc := db.MsgSvcNumbers(id)
 	srv.numbersDB <- db
-	return nil
+	return svc
 }
 
-// AddMsgService adds a new messaging service to the mock server.
-func (srv *Server) AddMsgService(ms MsgService) error {
-	if !strings.HasPrefix(ms.ID, "MG") {
-		return fmt.Errorf("invalid MsgService SID %s", ms.ID)
-	}
+// AddUpdateNumber adds or updates a number.
+func (srv *Server) AddUpdateNumber(n Number) error {
+	db := <-srv.numbersDB
+	err := db.AddUpdateNumber(n)
+	srv.numbersDB <- db
 
-	if ms.SMSWebhookURL != "" {
-		err := validateURL(ms.SMSWebhookURL)
-		if err != nil {
-			return err
-		}
-	}
-	for _, nStr := range ms.Numbers {
-		_, err := libphonenumber.Parse(nStr, "")
-		if err != nil {
-			return fmt.Errorf("invalid phone number %s: %v", nStr, err)
-		}
-	}
+	return err
+}
 
-	msDB := <-srv.msgSvcDB
-	if _, ok := msDB[ms.ID]; ok {
-		srv.msgSvcDB <- msDB
-		return fmt.Errorf("MsgService SID %s already exists", ms.ID)
-	}
-
-	numDB := <-srv.numbersDB
-	for _, nStr := range ms.Numbers {
-		n := numDB[nStr]
-		if n == nil {
-			n = &Number{Number: nStr}
-			numDB[nStr] = n
-		}
-		msDB[ms.ID] = append(msDB[ms.ID], n)
-
-		if ms.SMSWebhookURL == "" {
-			continue
-		}
-
-		n.SMSWebhookURL = ms.SMSWebhookURL
-	}
-	srv.numbersDB <- numDB
-	srv.msgSvcDB <- msDB
-
-	return nil
+// AddUpdateMsgService or updates a messaging service.
+func (srv *Server) AddUpdateMsgService(ms MsgService) error {
+	db := <-srv.numbersDB
+	err := db.AddUpdateMsgService(ms)
+	srv.numbersDB <- db
+	return err
 }
 
 func (srv *Server) nextID(prefix string) string {

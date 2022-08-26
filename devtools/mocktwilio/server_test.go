@@ -16,6 +16,46 @@ import (
 	"github.com/target/goalert/devtools/mocktwilio/twiml"
 )
 
+func TestServer_SMS_MG(t *testing.T) {
+	cfg := mocktwilio.Config{
+		AccountSID: "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		AuthToken:  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		OnError: func(ctx context.Context, err error) {
+			t.Errorf("mocktwilio: error: %v", err)
+		},
+	}
+	appPhone := mocktwilio.NewPhoneNumber()
+	appMsgID := mocktwilio.NewMsgServiceID()
+	devPhone := mocktwilio.NewPhoneNumber()
+	srv := mocktwilio.NewServer(cfg)
+	defer srv.Close()
+	err := srv.AddUpdateMsgService(mocktwilio.MsgService{
+		ID:      appMsgID,
+		Numbers: []string{appPhone},
+	})
+	require.NoError(t, err)
+
+	twHTTP := httptest.NewServer(srv)
+	defer twHTTP.Close()
+
+	v := make(url.Values)
+	v.Set("From", appMsgID)
+	v.Set("To", devPhone)
+	v.Set("Body", "world")
+	resp, err := http.PostForm(twHTTP.URL+"/2010-04-01/Accounts/"+cfg.AccountSID+"/Messages.json", v)
+	require.NoError(t, err)
+	var msgStatus struct {
+		SID    string
+		Status string
+	}
+	data, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(data, &msgStatus), string(data))
+
+	msg := <-srv.Messages()
+	assert.Equal(t, msg.ID(), msgStatus.SID)
+}
+
 func TestServer_SMS(t *testing.T) {
 	cfg := mocktwilio.Config{
 		AccountSID: "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -50,7 +90,7 @@ func TestServer_SMS(t *testing.T) {
 		VoiceWebhookURL: appHTTP.URL + "/voice",
 		SMSWebhookURL:   appHTTP.URL + "/sms",
 	}
-	require.NoError(t, srv.AddNumber(appPhone))
+	require.NoError(t, srv.AddUpdateNumber(appPhone))
 
 	// send device to app
 	devNum := mocktwilio.NewPhoneNumber()
@@ -150,7 +190,7 @@ func TestServer_Voice(t *testing.T) {
 		VoiceWebhookURL: appHTTP.URL + "/voice",
 		SMSWebhookURL:   appHTTP.URL + "/sms",
 	}
-	require.NoError(t, srv.AddNumber(appPhone))
+	require.NoError(t, srv.AddUpdateNumber(appPhone))
 
 	devNum := mocktwilio.NewPhoneNumber()
 	v := make(url.Values)
