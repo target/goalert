@@ -10,6 +10,37 @@ type assertCall struct {
 	Call
 }
 
+func (dev *assertDev) ExpectVoice(keywords ...string) {
+	dev.t.Helper()
+	dev.ExpectCall().Answer().ExpectSay(keywords...).Hangup()
+}
+
+func (call *assertCall) Answer() ExpectedCall {
+	call.t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
+	defer cancel()
+
+	err := call.Call.Answer(ctx)
+	if err != nil {
+		call.t.Fatalf("mocktwilio: error answering call to %s: %v", call.To(), err)
+	}
+
+	return call
+}
+
+func (call *assertCall) Reject() {
+	call.t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
+	defer cancel()
+
+	err := call.Call.Hangup(ctx, CallFailed)
+	if err != nil {
+		call.t.Fatalf("mocktwilio: error answering call to %s: %v", call.To(), err)
+	}
+}
+
 func (call *assertCall) Hangup() {
 	call.t.Helper()
 
@@ -22,12 +53,12 @@ func (call *assertCall) Hangup() {
 	}
 }
 
-func (call *assertCall) ThenPress(digits string) ExpectedCall {
+func (call *assertCall) Press(digits string) ExpectedCall {
 	call.t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
 	defer cancel()
-	err := call.Press(ctx, digits)
+	err := call.Call.Press(ctx, digits)
 	if err != nil {
 		call.t.Fatalf("mocktwilio: error pressing digits %s to %s: %v", digits, call.To(), err)
 	}
@@ -35,7 +66,20 @@ func (call *assertCall) ThenPress(digits string) ExpectedCall {
 	return call
 }
 
-func (call *assertCall) ThenExpect(keywords ...string) ExpectedCall {
+func (call *assertCall) IdleForever() ExpectedCall {
+	call.t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
+	defer cancel()
+	err := call.PressTimeout(ctx)
+	if err != nil {
+		call.t.Fatalf("mocktwilio: error waiting to %s: %v", call.To(), err)
+	}
+
+	return call
+}
+
+func (call *assertCall) ExpectSay(keywords ...string) ExpectedCall {
 	call.t.Helper()
 
 	if !containsAll(call.Text(), keywords) {
@@ -45,45 +89,20 @@ func (call *assertCall) ThenExpect(keywords ...string) ExpectedCall {
 	return call
 }
 
-func (dev *assertDev) ExpectVoice(keywords ...string) ExpectedCall {
+func (dev *assertDev) ExpectCall() RingingCall {
 	dev.t.Helper()
 
-	return &assertCall{
-		assertDev: dev,
-		Call:      dev.getVoice(false, keywords),
-	}
-}
+	for idx, call := range dev.calls {
+		if call.To() != dev.number {
+			continue
+		}
 
-func (dev *assertDev) RejectVoice(keywords ...string) {
-	dev.t.Helper()
+		// Remove the call from the list of calls.
+		dev.calls = append(dev.calls[:idx], dev.calls[idx+1:]...)
 
-	call := dev.getVoice(false, keywords)
-	ctx, cancel := context.WithTimeout(context.Background(), dev.Timeout)
-	defer cancel()
-
-	err := call.Hangup(ctx, CallFailed)
-	if err != nil {
-		dev.t.Fatalf("mocktwilio: error ending call to %s: %v", call.To(), err)
-	}
-}
-
-func (dev *assertDev) IgnoreUnexpectedVoice(keywords ...string) {
-	dev.ignoreCalls = append(dev.ignoreCalls, assertIgnore{number: dev.number, keywords: keywords})
-}
-
-func (dev *assertDev) getVoice(prev bool, keywords []string) Call {
-	dev.t.Helper()
-
-	if prev {
-		for idx, call := range dev.calls {
-			if !dev.matchMessage(dev.number, keywords, call) {
-				continue
-			}
-
-			// Remove the call from the list of calls.
-			dev.calls = append(dev.calls[:idx], dev.calls[idx+1:]...)
-
-			return call
+		return &assertCall{
+			assertDev: dev,
+			Call:      call,
 		}
 	}
 
@@ -95,14 +114,18 @@ func (dev *assertDev) getVoice(prev bool, keywords []string) Call {
 	for {
 		select {
 		case <-t.C:
-			dev.t.Fatalf("mocktwilio: timeout after %s waiting for a voice call to %s with keywords: %v", dev.Timeout, dev.number, keywords)
+			dev.t.Fatalf("mocktwilio: timeout after %s waiting for a voice call to %s", dev.Timeout, dev.number)
 		case call := <-dev.Calls():
-			if !dev.matchMessage(dev.number, keywords, call) {
+			dev.t.Logf("mocktwilio: incoming call from %s to %s", call.From(), call.To())
+			if call.To() != dev.number {
 				dev.calls = append(dev.calls, call)
 				continue
 			}
 
-			return call
+			return &assertCall{
+				assertDev: dev,
+				Call:      call,
+			}
 		}
 	}
 }

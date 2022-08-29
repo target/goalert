@@ -28,30 +28,33 @@ type PhoneDevice interface {
 	// RejectSMS will match against an SMS that matches ALL provided keywords (case-insensitive) and tell the server that delivery failed.
 	RejectSMS(keywords ...string)
 
-	// ExpectVoice will match against a voice call where the spoken text matches ALL provided keywords (case-insensitive).
-	ExpectVoice(keywords ...string) ExpectedCall
+	// ExpectCall asserts for and returns the next phone call to the device.
+	ExpectCall() RingingCall
 
-	// RejectVoice will match against a voice call where the spoken text matches ALL provided keywords (case-insensitive) and tell the server that delivery failed.
-	RejectVoice(keywords ...string)
+	// ExpectVoice is a convenience method for PhoneDevice.ExpectCall().Answer().ExpectSay(keywords...).Hangup()
+	ExpectVoice(keywords ...string)
 
 	// IgnoreUnexpectedSMS will cause any extra SMS messages (after processing ExpectSMS calls) that match
 	// ALL keywords (case-insensitive) to not fail the test.
 	IgnoreUnexpectedSMS(keywords ...string)
+}
 
-	// IgnoreUnexpectedVoice will cause any extra voice calls (after processing ExpectVoice) that match
-	// ALL keywords (case-insensitive) to not fail the test.
-	IgnoreUnexpectedVoice(keywords ...string)
+// RingingCall is a call that is ringing and not yet answered or rejected.
+type RingingCall interface {
+	Answer() ExpectedCall
+	Reject()
 }
 
 // ExpectedCall represents a phone call.
 type ExpectedCall interface {
-	// ThenPress imitates a user entering a key on the phone.
-	ThenPress(digits string) ExpectedCall
+	// Press imitates a user entering a key on the phone.
+	Press(digits string) ExpectedCall
 
-	// ThenExpect asserts that the message matches ALL keywords (case-insensitive).
-	//
-	// Generally used as ThenPress().ThenExpect()
-	ThenExpect(keywords ...string) ExpectedCall
+	// IdleForever imitates a user waiting for a timeout (without pressing anything) on the phone.
+	IdleForever() ExpectedCall
+
+	// ExpectSay asserts that the spoken message matches ALL keywords (case-insensitive).
+	ExpectSay(keywords ...string) ExpectedCall
 
 	// Text will return the last full spoken message as text. Separate stanzas (e.g. multiple `<Say>`) are
 	// separated by newline.

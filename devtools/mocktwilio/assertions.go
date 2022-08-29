@@ -51,8 +51,7 @@ type assertBase struct {
 	messages []Message
 	calls    []Call
 
-	ignoreSMS   []assertIgnore
-	ignoreCalls []assertIgnore
+	ignoreSMS []assertIgnore
 }
 
 type assertIgnore struct {
@@ -67,6 +66,12 @@ type texter interface {
 type answerer interface {
 	Answer(context.Context) error
 }
+
+var (
+	_ answerer = (Call)(nil)
+	_ texter   = (Call)(nil)
+	_ texter   = (Message)(nil)
+)
 
 func (a *assertions) matchMessage(destNumber string, keywords []string, t texter) bool {
 	a.t.Helper()
@@ -140,16 +145,9 @@ checkMessages:
 		a.t.Errorf("mocktwilio: unexpected SMS to %s: %s", msg.To(), msg.Text())
 	}
 
-checkCalls:
 	for _, call := range a.calls {
-		for _, ignore := range a.ignoreCalls {
-			if a.matchMessage(ignore.number, ignore.keywords, call) {
-				continue checkCalls
-			}
-		}
-
 		hasFailure = true
-		a.t.Errorf("mocktwilio: unexpected call to %s: %s", call.To(), call.Text())
+		a.t.Errorf("mocktwilio: unexpected call to %s", call.To())
 	}
 
 	if hasFailure {
