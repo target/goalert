@@ -43,6 +43,7 @@ type PhoneDevice interface {
 type RingingCall interface {
 	Answer() ExpectedCall
 	Reject()
+	RejectWith(FinalCallStatus)
 }
 
 // ExpectedCall represents a phone call.

@@ -29,13 +29,15 @@ func (call *assertCall) Answer() ExpectedCall {
 	return call
 }
 
-func (call *assertCall) Reject() {
+func (call *assertCall) Reject() { call.RejectWith(CallFailed) }
+
+func (call *assertCall) RejectWith(status FinalCallStatus) {
 	call.t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), call.assertDev.Timeout)
 	defer cancel()
 
-	err := call.Call.Hangup(ctx, CallFailed)
+	err := call.Call.Hangup(ctx, status)
 	if err != nil {
 		call.t.Fatalf("mocktwilio: error answering call to %s: %v", call.To(), err)
 	}

@@ -3,6 +3,7 @@ package smoke
 import (
 	"testing"
 
+	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -45,6 +46,6 @@ func TestTwilioVoiceFailure(t *testing.T) {
 	defer h.Close()
 
 	d1 := h.Twilio(t).Device(h.Phone("1"))
-	d1.ExpectCall().Reject()
+	d1.ExpectCall().RejectWith(mocktwilio.CallBusy)
 	d1.ExpectCall().Answer().ExpectSay("testing").Hangup()
 }
