@@ -1062,7 +1062,7 @@ enum AlertStatus {
 type Target {
   id: ID!
   type: TargetType!
-  name: String
+  name: String!
 }
 
 input TargetInput {
