@@ -85,6 +85,9 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 	t := time.NewTimer(dev.Timeout)
 	defer t.Stop()
 
+	ref := time.NewTicker(time.Second / 2)
+	defer ref.Stop()
+
 	for {
 		select {
 		case <-t.C:
@@ -95,6 +98,8 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 			}
 
 			dev.t.FailNow()
+		case <-ref.C:
+			dev.refresh()
 		case msg := <-dev.Messages():
 			if !dev.matchMessage(dev.number, keywords, msg) {
 				dev.messages = append(dev.messages, msg)
