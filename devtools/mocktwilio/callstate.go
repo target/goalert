@@ -79,6 +79,21 @@ func (s *callState) IsActive() bool {
 	return true
 }
 
+func (s *callState) IsRinging() bool {
+	if s == nil {
+		return false
+	}
+	return s.status() == "ringing"
+}
+
+func (s *callState) IsInProgress() bool {
+	if s == nil {
+		return false
+	}
+
+	return s.status() == "in-progress"
+}
+
 func (s *callState) Answer(ctx context.Context) error {
 	s.action <- struct{}{}
 	if s.status() != "ringing" {
@@ -108,7 +123,7 @@ type Node struct {
 
 func (s *callState) update(ctx context.Context, digits string) error {
 	v := make(url.Values)
-	v.Set("AccountSid", s.srv.cfg.AccountSID)
+	v.Set("AccountSid", s.srv.Config().AccountSID)
 	v.Set("ApiVersion", "2010-04-01")
 	v.Set("CallSid", s.ID)
 	v.Set("CallStatus", "in-progress")
@@ -201,7 +216,7 @@ func (s *callState) setStatus(ctx context.Context, status string) {
 	}
 
 	v := make(url.Values)
-	v.Set("AccountSid", s.srv.cfg.AccountSID)
+	v.Set("AccountSid", s.srv.Config().AccountSID)
 	v.Set("ApiVersion", "2010-04-01")
 	if s.StartedAt != nil {
 		dur := time.Since(*s.StartedAt)

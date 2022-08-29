@@ -10,6 +10,12 @@
     text-align: center;
   }
 
+  h1 a {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
   .actions form {
     display: inline;
   }
@@ -20,6 +26,13 @@
     height: 100%;
     text-decoration: underline;
     color: #44c;
+  }
+
+  #convo {
+    display: flex;
+    height: 800px;
+    flex-direction: column-reverse;
+    overflow-y: scroll;
   }
 
   .thread {

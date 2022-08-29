@@ -11,6 +11,9 @@ type Message interface {
 	From() string
 	Text() string
 
+	// IsActive returns true if the status is not yet final.
+	IsActive() bool
+
 	// SetStatus will set the final status of the message.
 	SetStatus(context.Context, FinalMessageStatus) error
 }

@@ -13,14 +13,17 @@ import (
 // Messages sent using this method will be treated as "inbound" messages and will not
 // appear in Messages().
 func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Message, error) {
-	_, err := libphonenumber.Parse(from, "")
+	nm, err := libphonenumber.Parse(from, "")
 	if err != nil {
-		return nil, fmt.Errorf("invalid from phone number: %v", err)
+		return nil, fmt.Errorf("invalid from phone number '%s': %w", from, err)
 	}
-	_, err = libphonenumber.Parse(to, "")
+	from = libphonenumber.Format(nm, libphonenumber.E164)
+
+	nm, err = libphonenumber.Parse(to, "")
 	if err != nil {
-		return nil, fmt.Errorf("invalid to phone number: %v", err)
+		return nil, fmt.Errorf("invalid to phone number '%s': %w", to, err)
 	}
+	to = libphonenumber.Format(nm, libphonenumber.E164)
 
 	n := srv.number(to)
 	if n == nil {
@@ -39,11 +42,11 @@ func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Mess
 
 	err = s.setFinalStatus(ctx, "received", 0)
 	if err != nil {
-		return nil, fmt.Errorf("set final status: %v", err)
+		return nil, fmt.Errorf("set final status: %w", err)
 	}
 
 	v := make(url.Values)
-	v.Set("AccountSid", srv.cfg.AccountSID)
+	v.Set("AccountSid", srv.Config().AccountSID)
 	v.Set("ApiVersion", "2010-04-01")
 	v.Set("Body", body)
 	v.Set("From", from)
@@ -60,9 +63,9 @@ func (srv *Server) SendMessage(ctx context.Context, from, to, body string) (Mess
 	db[s.ID] = s
 	srv.msgStateDB <- db
 
-	_, err = srv.post(ctx, n.SMSWebhookURL, v)
+	data, err := srv.post(ctx, n.SMSWebhookURL, v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("POST to webhook URL %s: %w\n\n%s", n.SMSWebhookURL, err, string(data))
 	}
 
 	return &message{s}, nil

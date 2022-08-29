@@ -191,9 +191,9 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	h.email = newEmailServer(h)
 
 	h.mockTw = mocktwilio.NewServer(mocktwilio.Config{
-		AuthToken:  twilioAuthToken,
-		AccountSID: twilioAccountSID,
-		EnableAuth: true,
+		PrimaryAuthToken: twilioAuthToken,
+		AccountSID:       twilioAccountSID,
+		EnableAuth:       true,
 		OnError: func(ctx context.Context, err error) {
 			t.Helper()
 			t.Error(err)

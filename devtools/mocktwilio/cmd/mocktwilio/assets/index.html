@@ -11,18 +11,72 @@
 
   <body>
     <script src="/ui/assets/liveupdate.js"></script>
+    {{if .Error}}
+    <div style="padding: 8px; border: 1px solid red; margin: 8px">
+      <h1>Error</h1>
+      <p>{{.Error}}</p>
+    </div>
+    {{end}}
     <div class="flex-grid">
       <div class="col">
-        <table>
+        <table id="twinfo">
           <tbody>
             <tr>
               <td>Account SID</td>
-              <td><code>{{.AccountSID}}</code></td>
+              <td><code>{{.Config.AccountSID}}</code></td>
             </tr>
             <tr>
-              <td>Auth Token</td>
-              <td><code>{{.AuthToken}}</code></td>
+              <td>Primary Auth Token</td>
+              <td><code>{{.Config.PrimaryAuthToken}}</code></td>
             </tr>
+            <tr>
+              <td>Secondary Auth Token</td>
+              {{if .Config.SecondaryAuthToken}}
+              <td><code>{{.Config.SecondaryAuthToken}}</code></td>
+              <td>
+                <form method="post" class="link">
+                  <input
+                    type="hidden"
+                    name="action"
+                    value="promoteSecondaryToken"
+                  />
+                  <input
+                    type="submit"
+                    value="Promote"
+                    title="Promote the secondary auth token to primary."
+                  />
+                </form>
+                <form method="post" class="link">
+                  <input
+                    type="hidden"
+                    name="action"
+                    value="removeSecondaryToken"
+                  />
+                  <input
+                    type="submit"
+                    value="Remove"
+                    title="Remove the secondary auth token."
+                  />
+                </form>
+              </td>
+              {{else}}
+              <td>
+                <form method="post" class="link">
+                  <input
+                    type="hidden"
+                    name="action"
+                    value="newSecondaryToken"
+                  />
+                  <input
+                    type="submit"
+                    value="Add Secondary"
+                    title="Generate a new secondary auth token."
+                  />
+                </form>
+              </td>
+              {{end}}
+            </tr>
+
             <tr>
               <td>Message SID</td>
               <td><code>{{.MessageSID}}</code></td>
@@ -35,7 +89,8 @@
         </table>
       </div>
       <div class="col">
-        <form action="/ui/action/send" method="post">
+        <form method="post">
+          <input type="hidden" name="action" value="sendSMS" />
           <input
             type="text"
             name="from"
@@ -49,7 +104,8 @@
             title="Send SMS from the provided number to the Twilio number."
           />
         </form>
-        <form action="/ui/action/call" method="post">
+        <form method="post">
+          <input type="hidden" name="action" value="startCall" />
           <input
             type="text"
             name="from"
@@ -70,7 +126,7 @@
         <h1>SMS Conversations</h1>
 
         {{range .Conversations}}
-        <a href="/ui/sms?dev={{.ID}}">
+        <a href="/ui/messages/{{.ID}}">
           <div class="convo {{if .Unread}}unread{{end}}">
             <div class="flex-grid">
               <span class="col number">{{.Name}}</span>
@@ -88,17 +144,19 @@
         <h1>Phone Calls</h1>
 
         {{range .Calls}}
-        <a href="/ui/call?dev={{.ID}}">
-          <div class="convo {{if .Call.IsActive}}unread{{end}}">
+        <a href="/ui/calls/{{.ID}}">
+          <div
+            class="convo {{if or .Call.IsRinging .Call.IsInProgress}}unread{{end}}"
+          >
             <div class="flex-grid">
               <span class="col number">{{.Name}}</span>
               <span class="since"
-                >{{if
-                .Call.IsActive}}{{.Call.Status}}{{else}}{{.Since}}{{end}}</span
+                >{{if .Call.IsRinging}}Ringing{{else if .Call.IsInProgress}}In
+                Progress{{end}}</span
               >
             </div>
             <div>
-              <div class="summary">{{.Call.Body}}</div>
+              <div class="summary">{{.Call.Text}}</div>
             </div>
           </div>
         </a>
@@ -106,7 +164,7 @@
       </div>
     </div>
     <script>
-      liveUpdate('#sms', '#call')
+      liveUpdate('#sms', '#call', '#twinfo')
     </script>
   </body>
 </html>

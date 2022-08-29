@@ -18,8 +18,8 @@ import (
 
 func TestServer_SMS_MG(t *testing.T) {
 	cfg := mocktwilio.Config{
-		AccountSID: "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-		AuthToken:  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		AccountSID:       "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		PrimaryAuthToken: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 		OnError: func(ctx context.Context, err error) {
 			t.Errorf("mocktwilio: error: %v", err)
 		},
@@ -58,8 +58,8 @@ func TestServer_SMS_MG(t *testing.T) {
 
 func TestServer_SMS(t *testing.T) {
 	cfg := mocktwilio.Config{
-		AccountSID: "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-		AuthToken:  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		AccountSID:       "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		PrimaryAuthToken: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 		OnError: func(ctx context.Context, err error) {
 			t.Errorf("mocktwilio: error: %v", err)
 		},
@@ -132,8 +132,8 @@ func TestServer_SMS(t *testing.T) {
 
 func TestServer_Voice(t *testing.T) {
 	cfg := mocktwilio.Config{
-		AccountSID: "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-		AuthToken:  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		AccountSID:       "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+		PrimaryAuthToken: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 		OnError: func(ctx context.Context, err error) {
 			t.Errorf("mocktwilio: error: %v", err)
 		},

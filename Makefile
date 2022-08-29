@@ -39,6 +39,8 @@ endif
 
 all: test install
 
+bin/mocktwilio: $(shell find devtools/mocktwilio -name '*')
+
 release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
 
 Makefile.binaries.mk: devtools/genmake/*

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -15,7 +14,8 @@ import (
 )
 
 type State struct {
-	mocktwilio.Config
+	srv *mocktwilio.Server
+
 	FromNumber string
 	MessageSID string
 
@@ -28,9 +28,9 @@ type State struct {
 	saveFile string
 
 	sendSMS chan sendSMS
-
-	srv *mocktwilio.Server
 }
+
+func (s *State) Config() mocktwilio.Config { return s.srv.Config() }
 
 type sendSMS struct {
 	From string
@@ -43,7 +43,7 @@ type Message struct {
 	Time         time.Time
 	Sent         bool
 
-	SMS *mocktwilio.SMS `json:"-"`
+	SMS mocktwilio.Message `json:"-"`
 }
 
 type Conversation struct {
@@ -60,29 +60,9 @@ type PhoneCall struct {
 	DeviceNumber string
 	Time         time.Time
 
-	Call *mocktwilio.VoiceCall `json:"-"`
+	Call mocktwilio.Call `json:"-"`
 }
 
-func sameDate(a, b time.Time) bool {
-	return a.Year() == b.Year() && a.Month() == b.Month() && a.Day() == b.Day()
-}
-
-func since(t time.Time) string {
-	switch {
-	case time.Since(t) < time.Minute:
-		return "Just Now"
-	case time.Since(t) < time.Hour:
-		return fmt.Sprintf("%d min", int(time.Since(t).Minutes()))
-	case sameDate(t, time.Now()):
-		return t.Format("3:04 PM")
-	case t.After(time.Now().AddDate(0, 0, -7)):
-		return t.Format("Mon")
-	case t.Year() == time.Now().Year():
-		return t.Format("Jan 2")
-	default:
-		return t.Format("1/2/06")
-	}
-}
 func (c Conversation) Since() string { return since(c.LastMessageTime) }
 func (c PhoneCall) Since() string    { return since(c.Time) }
 
@@ -148,7 +128,11 @@ func (s *State) Conversations() []Conversation {
 }
 
 // SMS returns the current set of SMS messages.
-func (s *State) SMS() []Message { return <-s.messages }
+func (s *State) SMS() []Message {
+	msgs := <-s.messages
+	// clone slice
+	return append([]Message{}, msgs...)
+}
 
 func (s *State) Calls() []PhoneCall { return <-s.calls }
 
@@ -185,7 +169,7 @@ func loadMessages(name string) ([]Message, *json.Encoder) {
 func (s *State) loop() {
 	msgs, enc := loadMessages(s.saveFile)
 
-	add := func(dev, body string, sms *mocktwilio.SMS) {
+	add := func(dev, body string, sms mocktwilio.Message) {
 		m := Message{
 			DeviceNumber: dev,
 			Body:         body,
@@ -202,7 +186,7 @@ func (s *State) loop() {
 	var calls []PhoneCall
 	for {
 		select {
-		case call := <-s.srv.VoiceCalls():
+		case call := <-s.srv.Calls():
 			calls = append([]PhoneCall{{
 				ID:           call.ID(),
 				Name:         formatNumber(call.To()),
@@ -210,16 +194,10 @@ func (s *State) loop() {
 				Time:         time.Now(),
 				Call:         call,
 			}}, calls...)
-		case sms := <-s.srv.SMS():
-			add(sms.To(), sms.Body(), sms)
+		case sms := <-s.srv.Messages():
+			add(sms.To(), sms.Text(), sms)
 		case send := <-s.sendSMS:
 			add(send.From, send.Body, nil)
-			go func() {
-				err := s.srv.SendSMS(send.From, s.FromNumber, send.Body)
-				if err != nil {
-					log.Println("ERROR: send sms:", err)
-				}
-			}()
 		case s.messages <- msgs:
 		case s.calls <- calls:
 		}

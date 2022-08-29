@@ -9,7 +9,19 @@
 .row {
     flex: 0;
 }
-
+form.link {
+    display: inline;
+    border: none;
+    padding: 0;
+}
+form.link input[type="submit"] {
+    cursor: pointer;
+    border: none;
+    background: none;
+    height: 100%;
+    text-decoration: underline;
+    color: #44c;
+}
 form {
     padding: 10px;
     border: 1px solid #ccc;

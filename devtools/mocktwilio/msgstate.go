@@ -79,6 +79,20 @@ func (s *msgState) lifecycle(ctx context.Context) {
 	}
 }
 
+func (s *msgState) IsActive() bool {
+	if s == nil {
+		return false
+	}
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	switch s.Status {
+	case "accepted", "queued", "sending":
+		return true
+	}
+
+	return false
+}
+
 func (s *msgState) setSendStatus(ctx context.Context, status, updateFrom string) error {
 	s.mx.Lock()
 	if updateFrom != "" {
@@ -99,7 +113,7 @@ func (s *msgState) setSendStatus(ctx context.Context, status, updateFrom string)
 	}
 
 	v := make(url.Values)
-	v.Set("AccountSid", s.srv.cfg.AccountSID)
+	v.Set("AccountSid", s.srv.Config().AccountSID)
 	v.Set("ApiVersion", "2010-04-01")
 	v.Set("From", s.From)
 	v.Set("MessageSid", s.ID)

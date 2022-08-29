@@ -11,20 +11,24 @@
 
   <body>
     <script src="/ui/assets/liveupdate.js"></script>
-    <a href="/ui">&lt;--</a> {{.Name}} TODO: Phone Call Button
+    {{if .Error}}
+    <div style="padding: 8px; border: 1px solid red; margin: 8px">
+      <h1>Error</h1>
+      <p>{{.Error}}</p>
+    </div>
+    {{end}}
+    <h1><a href="/ui">&lt; Back</a> {{.Name}}</h1>
 
     <div class="thread" id="convo">
-      {{range .Messages}} {{if .TimeHeader}}
-      <div class="time">{{.TimeHeader}}</div>
-      {{end}}
+      {{range .Messages}}
       <div class="msg {{if .Sent}}out{{else}}in{{end}} flex-grid">
         {{if .Sent}}
         <div class="col"></div>
         {{end}}
         <span class="body" title="{{.FriendlyTime}}">{{.Body}}</span>
-        {{if .Active}}
+        {{if and .SMS .SMS.IsActive}}
         <div class="col actions">
-          <form action="/ui/action/sms" method="post">
+          <form method="post">
             <input type="hidden" name="action" value="accept" />
             <input type="hidden" name="id" value="{{.SMS.ID}}" />
             <input
@@ -34,7 +38,7 @@
             />
           </form>
 
-          <form action="/ui/action/sms" method="post">
+          <form method="post">
             <input type="hidden" name="action" value="reject" />
             <input type="hidden" name="id" value="{{.SMS.ID}}" />
             <input
@@ -46,10 +50,13 @@
         </div>
         {{end}}
       </div>
-      {{end}}
+      {{if .TimeHeader}}
+      <div class="time">{{.TimeHeader}}</div>
+      {{end}} {{end}}
     </div>
 
-    <form action="/ui/action/send" method="post">
+    <form method="post">
+      <input type="hidden" name="action" value="sendSMS" />
       <input type="hidden" name="from" value="{{.Device}}" />
       <input name="body" value="" />
       <input type="submit" value="Send" title="Send SMS response." />

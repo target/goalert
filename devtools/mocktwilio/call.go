@@ -13,6 +13,9 @@ type Call interface {
 	// Text will return the last message returned by the application. It is empty until Answer is called.
 	Text() string
 
+	IsRinging() bool
+	IsInProgress() bool
+
 	// User interactions below
 
 	Answer(context.Context) error

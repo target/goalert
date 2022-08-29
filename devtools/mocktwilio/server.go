@@ -16,8 +16,10 @@ type Config struct {
 	// AccountSID is the Twilio account SID.
 	AccountSID string
 
-	// AuthToken is the Twilio auth token.
-	AuthToken string
+	// PrimaryAuthToken is the Twilio auth token.
+	PrimaryAuthToken string
+
+	SecondaryAuthToken string
 
 	// If EnableAuth is true, incoming requests will need to have a valid Authorization header.
 	EnableAuth bool
@@ -50,7 +52,7 @@ type MsgService struct {
 // Server implements the Twilio API for SMS and Voice calls
 // via the http.Handler interface.
 type Server struct {
-	cfg Config
+	cfgCh chan Config
 
 	msgCh         chan Message
 	msgStateDB    chan map[string]*msgState
@@ -94,7 +96,7 @@ func NewServer(cfg Config) *Server {
 	}
 
 	srv := &Server{
-		cfg:       cfg,
+		cfgCh:     make(chan Config, 1),
 		numbersDB: make(chan *numberDB, 1),
 		mux:       http.NewServeMux(),
 
@@ -117,12 +119,28 @@ func NewServer(cfg Config) *Server {
 	srv.msgStateDB <- make(map[string]*msgState)
 	srv.callStateDB <- make(map[string]*callState)
 	srv.numInfoCh <- make(map[string]*CarrierInfo)
+	srv.cfgCh <- cfg
 
 	srv.initHTTP()
 
 	go srv.loop()
 
 	return srv
+}
+
+func (srv *Server) Config() Config {
+	cfg := <-srv.cfgCh
+	srv.cfgCh <- cfg
+	return cfg
+}
+
+func (srv *Server) UpdateConfig(fn func(cfg Config) Config) {
+	oldConfig := <-srv.cfgCh
+	cfg := fn(oldConfig)
+	if cfg.AccountSID != oldConfig.AccountSID {
+		panic("AccountSID cannot be changed")
+	}
+	srv.cfgCh <- cfg
 }
 
 func (srv *Server) SetCarrierInfo(number string, info CarrierInfo) {
@@ -179,11 +197,12 @@ func (srv *Server) logErr(ctx context.Context, err error) {
 	if err == nil {
 		return
 	}
-	if srv.cfg.OnError == nil {
+	cfg := srv.Config()
+	if cfg.OnError == nil {
 		return
 	}
 
-	srv.cfg.OnError(ctx, err)
+	cfg.OnError(ctx, err)
 }
 
 // Close shuts down the server.
