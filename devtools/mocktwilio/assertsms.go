@@ -85,7 +85,7 @@ func (dev *assertDev) _ExpectSMS(prev bool, status FinalMessageStatus, keywords 
 	t := time.NewTimer(dev.Timeout)
 	defer t.Stop()
 
-	ref := time.NewTicker(time.Second / 2)
+	ref := time.NewTicker(time.Second)
 	defer ref.Stop()
 
 	for {

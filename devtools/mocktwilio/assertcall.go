@@ -111,10 +111,15 @@ func (dev *assertDev) ExpectCall() RingingCall {
 	t := time.NewTimer(dev.Timeout)
 	defer t.Stop()
 
+	ref := time.NewTicker(time.Second)
+	defer ref.Stop()
+
 	for {
 		select {
 		case <-t.C:
 			dev.t.Fatalf("mocktwilio: timeout after %s waiting for a voice call to %s", dev.Timeout, dev.number)
+		case <-ref.C:
+			dev.refresh()
 		case call := <-dev.Calls():
 			dev.t.Logf("mocktwilio: incoming call from %s to %s", call.From(), call.To())
 			if call.To() != dev.number {
