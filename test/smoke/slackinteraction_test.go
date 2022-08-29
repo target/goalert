@@ -48,6 +48,7 @@ func TestSlackInteraction(t *testing.T) {
 	msg.Action("Acknowledge").Click() // expect ephemeral
 
 	urlStr := ch.ExpectEphemeralMessage("link", "Slack", "account").Action("Link Account").URL()
+	t.Logf("url: %s", urlStr)
 
 	u, err := url.Parse(urlStr)
 	if err != nil {
@@ -57,7 +58,7 @@ func TestSlackInteraction(t *testing.T) {
 	tokenStr := u.Query().Get("authLinkToken")
 	resp := h.GraphQLQuery2(fmt.Sprintf(`
 		mutation {
-			linkAccountToken(token: "%s")
+			linkAccount(token: "%s")
 		}
 	`, tokenStr))
 
