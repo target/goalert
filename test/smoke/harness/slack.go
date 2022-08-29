@@ -113,7 +113,8 @@ func (msg *slackMessage) Action(text string) SlackAction {
 		a = &action
 		break
 	}
-	require.NotNil(msg.h.t, a, "could not find action with that text")
+	require.NotNilf(msg.h.t, a, `expected action "%s"`, text)
+	msg.h.t.Logf("found action: %s\n%#v", text, *a)
 
 	return &slackAction{
 		slackMessage: msg,

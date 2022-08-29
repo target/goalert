@@ -144,6 +144,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		switch {
 		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
 			// missing data, don't allow linking
+			log.Log(ctx, errors.New("slack payload missing requried data"))
 		default:
 			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
 				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),
@@ -160,22 +161,25 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			if linkURL == "" {
 				msg = "Your Slack account isn't currently linked to GoAlert, please try again later."
 			} else {
-				msg = "Please link your Slack account with GoAlert then try again."
+				msg = "Please link your Slack account with GoAlert."
+			}
+			blocks := []slack.Block{
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject("plain_text", msg, false, false),
+					nil, nil,
+				),
 			}
 
-			btn := slack.NewButtonBlockElement(linkActActionID, linkURL,
-				slack.NewTextBlockObject("plain_text", "Link Account", false, false))
-			btn.URL = linkURL
+			if linkURL != "" {
+				btn := slack.NewButtonBlockElement(linkActActionID, linkURL,
+					slack.NewTextBlockObject("plain_text", "Link Account", false, false))
+				btn.URL = linkURL
+				blocks = append(blocks, slack.NewActionBlock(alertResponseBlockID, btn))
+			}
 
 			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
-				slack.MsgOptionBlocks(
-					slack.NewSectionBlock(
-						slack.NewTextBlockObject("plain_text", msg, false, false),
-						nil, nil,
-					),
-					slack.NewActionBlock(alertResponseBlockID, btn),
-				),
+				slack.MsgOptionBlocks(blocks...),
 			)
 			if err != nil {
 				return err

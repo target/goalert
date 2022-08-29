@@ -34,6 +34,10 @@ type actionBody struct {
 		Name     string
 		TeamID   string `json:"team_id"`
 	}
+	Team struct {
+		ID     string
+		Domain string
+	}
 	ResponseURL string `json:"response_url"`
 	Actions     []actionItem
 }
@@ -147,6 +151,8 @@ func (s *Server) PerformActionAs(userID string, a Action) error {
 	p.User.Username = usr.Name
 	p.User.Name = usr.Name
 	p.User.TeamID = a.TeamID
+	p.Team.ID = a.TeamID
+	p.Team.Domain = "example.com"
 	p.Channel.ID = a.ChannelID
 	p.AppID = a.AppID
 
