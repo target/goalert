@@ -52,7 +52,7 @@ act:
 		}
 		render(w, "sms.html", data)
 		return
-	case "accept":
+	case "Accept":
 		for _, msg := range s.SMS() {
 			if msg.SMS == nil {
 				continue
@@ -70,7 +70,7 @@ act:
 		}
 		hasError(w, req, fmt.Errorf("unknown message %s", req.FormValue("id")))
 		return
-	case "reject":
+	case "Reject":
 		for _, msg := range s.SMS() {
 			if msg.SMS == nil {
 				continue

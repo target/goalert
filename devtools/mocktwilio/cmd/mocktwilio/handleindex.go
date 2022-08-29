@@ -25,17 +25,17 @@ func (s *State) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		}
 
 		s.sendSMS <- sendSMS{From: msg.From(), Body: msg.Text()}
-	case "newSecondaryToken":
+	case "Add Secondary":
 		s.srv.UpdateConfig(func(cfg mocktwilio.Config) mocktwilio.Config {
 			cfg.SecondaryAuthToken = mocktwilio.NewAuthToken()
 			return cfg
 		})
-	case "removeSecondaryToken":
+	case "Remove":
 		s.srv.UpdateConfig(func(cfg mocktwilio.Config) mocktwilio.Config {
 			cfg.SecondaryAuthToken = ""
 			return cfg
 		})
-	case "promoteSecondaryToken":
+	case "Promote":
 		s.srv.UpdateConfig(func(cfg mocktwilio.Config) mocktwilio.Config {
 			cfg.PrimaryAuthToken = cfg.SecondaryAuthToken
 			cfg.SecondaryAuthToken = ""

@@ -28,25 +28,8 @@
         <span class="body" title="{{.FriendlyTime}}">{{.Body}}</span>
         {{if and .SMS .SMS.IsActive}}
         <div class="col actions">
-          <form method="post">
-            <input type="hidden" name="action" value="accept" />
-            <input type="hidden" name="id" value="{{.SMS.ID}}" />
-            <input
-              type="submit"
-              value="Accept"
-              title="Mark this SMS message as delivered."
-            />
-          </form>
-
-          <form method="post">
-            <input type="hidden" name="action" value="reject" />
-            <input type="hidden" name="id" value="{{.SMS.ID}}" />
-            <input
-              type="submit"
-              value="Reject"
-              title="Mark this SMS message as failed."
-            />
-          </form>
+          {{action "Accept" "Mark this message as delivered." .SMS.ID}} {{action
+          "Reject" "Mark this message as failed." .SMS.ID}}
         </div>
         {{end}}
       </div>

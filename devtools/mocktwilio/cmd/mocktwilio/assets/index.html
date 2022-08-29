@@ -1,170 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mocktwilio</title>
-    <link rel="stylesheet" href="/ui/assets/main.css" />
-    <link rel="stylesheet" href="/ui/assets/index.css" />
-  </head>
 
-  <body>
-    <script src="/ui/assets/liveupdate.js"></script>
-    {{if .Error}}
-    <div style="padding: 8px; border: 1px solid red; margin: 8px">
-      <h1>Error</h1>
-      <p>{{.Error}}</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mocktwilio</title>
+  <link rel="stylesheet" href="/ui/assets/main.css" />
+  <link rel="stylesheet" href="/ui/assets/index.css" />
+</head>
+
+<body>
+  <script src="/ui/assets/liveupdate.js"></script>
+  {{if .Error}}
+  <div style="padding: 8px; border: 1px solid red; margin: 8px">
+    <h1>Error</h1>
+    <p>{{.Error}}</p>
+  </div>
+  {{end}}
+  <div class="flex-grid">
+    <div class="col">
+      <table id="twinfo">
+        <tbody>
+          <tr>
+            <td>Account SID</td>
+            <td><code>{{.Config.AccountSID}}</code></td>
+          </tr>
+          <tr>
+            <td>Primary Auth Token</td>
+            <td><code>{{.Config.PrimaryAuthToken}}</code></td>
+          </tr>
+          <tr>
+            <td>Secondary Auth Token</td>
+            {{if .Config.SecondaryAuthToken}}
+            <td><code>{{.Config.SecondaryAuthToken}}</code></td>
+            <td>
+              {{action "Promote" "Promote the secondary auth token to primary." ""}}
+              {{action "Remove" "Remove the secondary auth token." ""}}
+            </td>
+            {{else}}
+            <td>
+              {{action "Add Secondary" "Generate a new secondary auth token." ""}}
+            </td>
+            {{end}}
+          </tr>
+
+          <tr>
+            <td>Message SID</td>
+            <td><code>{{.MessageSID}}</code></td>
+          </tr>
+          <tr>
+            <td>Twilio Number</td>
+            <td><code>{{.FromNumber}}</code></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    {{end}}
-    <div class="flex-grid">
-      <div class="col">
-        <table id="twinfo">
-          <tbody>
-            <tr>
-              <td>Account SID</td>
-              <td><code>{{.Config.AccountSID}}</code></td>
-            </tr>
-            <tr>
-              <td>Primary Auth Token</td>
-              <td><code>{{.Config.PrimaryAuthToken}}</code></td>
-            </tr>
-            <tr>
-              <td>Secondary Auth Token</td>
-              {{if .Config.SecondaryAuthToken}}
-              <td><code>{{.Config.SecondaryAuthToken}}</code></td>
-              <td>
-                <form method="post" class="link">
-                  <input
-                    type="hidden"
-                    name="action"
-                    value="promoteSecondaryToken"
-                  />
-                  <input
-                    type="submit"
-                    value="Promote"
-                    title="Promote the secondary auth token to primary."
-                  />
-                </form>
-                <form method="post" class="link">
-                  <input
-                    type="hidden"
-                    name="action"
-                    value="removeSecondaryToken"
-                  />
-                  <input
-                    type="submit"
-                    value="Remove"
-                    title="Remove the secondary auth token."
-                  />
-                </form>
-              </td>
-              {{else}}
-              <td>
-                <form method="post" class="link">
-                  <input
-                    type="hidden"
-                    name="action"
-                    value="newSecondaryToken"
-                  />
-                  <input
-                    type="submit"
-                    value="Add Secondary"
-                    title="Generate a new secondary auth token."
-                  />
-                </form>
-              </td>
-              {{end}}
-            </tr>
-
-            <tr>
-              <td>Message SID</td>
-              <td><code>{{.MessageSID}}</code></td>
-            </tr>
-            <tr>
-              <td>Twilio Number</td>
-              <td><code>{{.FromNumber}}</code></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="col">
-        <form method="post">
-          <input type="hidden" name="action" value="sendSMS" />
-          <input
-            type="text"
-            name="from"
-            placeholder="From Number"
-            value="{{.LastSent}}"
-          />
-          <input type="text" name="body" placeholder="Message Body" />
-          <input
-            type="submit"
-            value="Send SMS"
-            title="Send SMS from the provided number to the Twilio number."
-          />
-        </form>
-        <form method="post">
-          <input type="hidden" name="action" value="startCall" />
-          <input
-            type="text"
-            name="from"
-            placeholder="From Number"
-            value="{{.LastCall}}"
-          />
-          <input
-            type="submit"
-            value="Place Call"
-            title="Initiate a phone call from the provided number to the Twilio number."
-          />
-        </form>
-      </div>
+    <div class="col">
+      <form method="post">
+        <input type="hidden" name="action" value="sendSMS" />
+        <input type="text" name="from" placeholder="From Number" value="{{.LastSent}}" />
+        <input type="text" name="body" placeholder="Message Body" />
+        <input type="submit" value="Send SMS" title="Send SMS from the provided number to the Twilio number." />
+      </form>
+      <form method="post">
+        <input type="hidden" name="action" value="startCall" />
+        <input type="text" name="from" placeholder="From Number" value="{{.LastCall}}" />
+        <input type="submit" value="Place Call"
+          title="Initiate a phone call from the provided number to the Twilio number." />
+      </form>
     </div>
+  </div>
 
-    <div class="flex-grid">
-      <div class="col section" id="sms">
-        <h1>SMS Conversations</h1>
+  <div class="flex-grid">
+    <div class="col section" id="sms">
+      <h1>SMS Conversations</h1>
 
-        {{range .Conversations}}
-        <a href="/ui/messages/{{.ID}}">
-          <div class="convo {{if .Unread}}unread{{end}}">
-            <div class="flex-grid">
-              <span class="col number">{{.Name}}</span>
-              <span class="since">{{.Since}}</span>
-            </div>
-            <div>
-              <div class="summary">{{.LastMessage}}</div>
-            </div>
+      {{range .Conversations}}
+      <a href="/ui/messages/{{.ID}}">
+        <div class="convo {{if .Unread}}unread{{end}}">
+          <div class="flex-grid">
+            <span class="col number">{{.Name}}</span>
+            <span class="since">{{.Since}}</span>
           </div>
-        </a>
-        {{else}} None {{end}}
-      </div>
-
-      <div class="col section" id="call">
-        <h1>Phone Calls</h1>
-
-        {{range .Calls}}
-        <a href="/ui/calls/{{.ID}}">
-          <div
-            class="convo {{if or .Call.IsRinging .Call.IsInProgress}}unread{{end}}"
-          >
-            <div class="flex-grid">
-              <span class="col number">{{.Name}}</span>
-              <span class="since"
-                >{{if .Call.IsRinging}}Ringing{{else if .Call.IsInProgress}}In
-                Progress{{end}}</span
-              >
-            </div>
-            <div>
-              <div class="summary">{{.Call.Text}}</div>
-            </div>
+          <div>
+            <div class="summary">{{.LastMessage}}</div>
           </div>
-        </a>
-        {{else}} None {{end}}
-      </div>
+        </div>
+      </a>
+      {{else}} None {{end}}
     </div>
-    <script>
-      liveUpdate('#sms', '#call', '#twinfo')
-    </script>
-  </body>
+
+    <div class="col section" id="call">
+      <h1>Phone Calls</h1>
+
+      {{range .Calls}}
+      <a href="/ui/calls/{{.ID}}">
+        <div class="convo {{if or .Call.IsRinging .Call.IsInProgress}}unread{{end}}">
+          <div class="flex-grid">
+            <span class="col number">{{.Name}}</span>
+            <span class="since">{{if .Call.IsRinging}}Ringing{{else if .Call.IsInProgress}}In
+              Progress{{end}}</span>
+          </div>
+          <div>
+            <div class="summary">{{.Call.Text}}</div>
+          </div>
+        </div>
+      </a>
+      {{else}} None {{end}}
+    </div>
+  </div>
+  <script>
+    liveUpdate('#sms', '#call', '#twinfo')
+  </script>
+</body>
+
 </html>
