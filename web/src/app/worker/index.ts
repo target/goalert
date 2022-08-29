@@ -3,6 +3,7 @@ import { pathPrefix } from '../env'
 import methods, {
   WorkerMethod,
   WorkerMethodName,
+  WorkerReturnType,
   WorkerParam,
   WorkerResult,
 } from './methods'
@@ -61,6 +62,7 @@ class Runner<N extends WorkerMethodName> {
   private next: NextRun<N> | null = null
   private onChange: ChangeCallback<N>
   private isBusy = false
+  private loading = true
 
   private _initWorker = (): Worker | StubWorker<N> => {
     const w = window.Worker
@@ -77,7 +79,10 @@ class Runner<N extends WorkerMethodName> {
   }
 
   private _send = (): void => {
-    if (!this.next) return
+    if (!this.next) {
+      this.loading = false
+      return
+    }
     if (!this.worker) {
       this.worker = this._initWorker()
     }
@@ -89,6 +94,7 @@ class Runner<N extends WorkerMethodName> {
 
   run = (arg: WorkerParam<N>): void => {
     this.next = { arg }
+    this.loading = true
     this._send()
   }
 
@@ -96,6 +102,10 @@ class Runner<N extends WorkerMethodName> {
     if (!this.worker) return
     this.worker.terminate()
     this.worker = null
+  }
+
+  isLoading = (): boolean => {
+    return this.loading
   }
 }
 
@@ -106,7 +116,7 @@ export function useWorker<N extends WorkerMethodName>(
   methodName: N,
   methodOpts: WorkerParam<N>,
   defaultValue: WorkerResult<N>,
-): WorkerResult<N> {
+): WorkerReturnType<N> {
   if (!(methodName in methods)) {
     throw new Error(`method must be a valid method from app/worker/methods.ts`)
   }
@@ -125,5 +135,7 @@ export function useWorker<N extends WorkerMethodName>(
     worker.run(methodOpts)
   }, [worker, methodOpts])
 
-  return result
+  const loadingStatus = worker?.isLoading() || false
+
+  return [result, { loading: loadingStatus }]
 }

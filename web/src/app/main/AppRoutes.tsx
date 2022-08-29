@@ -37,6 +37,7 @@ import UserOnCallAssignmentList from '../users/UserOnCallAssignmentList'
 import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
+import LocalDev from '../localdev/LocalDev'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -115,6 +116,10 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
 
   '/wizard': WizardRouter,
   '/docs': Documentation,
+}
+
+if (process.env.NODE_ENV !== 'production') {
+  routes['/dev'] = LocalDev
 }
 
 export default function AppRoutes(): JSX.Element {

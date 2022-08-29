@@ -3,6 +3,7 @@ import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
+import Spinner from '../../loading/components/Spinner'
 import {
   XAxis,
   YAxis,
@@ -15,6 +16,7 @@ import {
 
 interface AlertCountGraphProps {
   data: typeof BarChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -37,6 +39,7 @@ export default function AlertCountGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-count-graph'>
+        {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }) => (
             <BarChart
@@ -89,6 +92,7 @@ export default function AlertCountGraph(
               <Bar
                 dataKey='escalatedCount'
                 stackId='a'
+                fillOpacity={props.loading ? 0.5 : 1}
                 fill={theme.palette.primary.main}
                 className={classes.bar}
                 name='Escalated'
@@ -96,6 +100,7 @@ export default function AlertCountGraph(
               <Bar
                 stackId='a'
                 dataKey='nonEscalatedCount'
+                fillOpacity={props.loading ? 0.5 : 1}
                 fill={
                   theme.palette.mode === 'light'
                     ? theme.palette.secondary.dark
