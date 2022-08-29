@@ -34,15 +34,3 @@ func IsStatusUpdateErr(err error) bool {
 	e, ok := err.(statErr)
 	return ok && e.IsStatusUpdate()
 }
-
-type statusErr struct {
-	err error
-}
-
-func (s statusErr) IsStatusUpdate() bool { return true }
-
-func (s statusErr) Error() string {
-	return s.Error()
-}
-
-func (s statusErr) Unwrap() error { return s.err }

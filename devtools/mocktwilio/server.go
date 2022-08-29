@@ -73,8 +73,6 @@ type Server struct {
 	shutdownDone chan struct{}
 
 	id uint64
-
-	workers sync.WaitGroup
 }
 
 func validateURL(s string) error {
