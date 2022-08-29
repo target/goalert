@@ -56,7 +56,7 @@ Currently the dev user must be a superuser to enable `pgcrypto` with `CREATE EXT
 
 #### Toolchain Requirements
 
-- For the first start, run `make regendb` to migrate and add test data into the DB. This includes adding an admin user `admin/admin123`.
+- For the first start, run `make regendb` to migrate and add test data into the DB (you can also scale the amount of random data with `SIZE` like `make regendb SIZE=10`). This includes adding an admin user `admin/admin123`.
 - To start GoAlert in development mode run `make start`.
 - To build the GoAlert binary run `make bin/goalert BUNDLE=1`.
 
@@ -73,17 +73,17 @@ The Cypress UI should start automatically.
 
 More information about browser tests can be found [here](../web/src/cypress/README.md).
 
-### Running Smoketests
+### Running Smoke Tests
 
 A suite of functional/behavioral tests are maintained for the backend code. These test various APIs and behaviors
 of the GoAlert server component.
 
-Run the full suite with `make smoketest`.
+Run the full suite with `make test-smoke`.
 
-More information about smoketests can be found [here](../smoketest/README.md).
+More information about smoke tests can be found [here](../test/smoke/README.md).
 
 ### Running Unit Tests
 
-All unit tests can be run with `make test`.
+All unit tests can be run with `make test-unit`.
 
 UI Unit tests are found under the directory of the file being tested, with the same file name, appended with `.test.js`. They can be run independently of the Go unit tests with `make jest`. Watch mode can be enabled with `make jest JEST_ARGS=--watch`.

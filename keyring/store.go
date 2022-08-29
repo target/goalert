@@ -344,7 +344,7 @@ func (db *DB) commitNewKeyring(ctx context.Context, tx *sql.Tx) error {
 	if rowCount == 0 {
 		// failed to insert the new data, so scan old & refresh
 		var vKeysData, signKeyData, nextKeyData []byte
-		var rotateT time.Time
+		var rotateT sql.NullTime
 		err = db.fetchKeys.QueryRowContext(ctx, db.cfg.Name).Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &rotationCount)
 		if err != nil {
 			return err
@@ -408,7 +408,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 
 	var vKeysData, signKeyData, nextKeyData []byte
 	var t time.Time
-	var rotateT *time.Time
+	var rotateT sql.NullTime
 	var count int
 	err = row.Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &count)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -423,7 +423,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 		return errors.Wrap(err, "unmarshal verification keys")
 	}
 
-	if forceRotation || (rotateT != nil && !t.Before(*rotateT)) {
+	if forceRotation || (rotateT.Valid && !t.Before(rotateT.Time)) {
 		// perform a key rotation
 		signKeyData = nextKeyData
 		var nextKey *ecdsa.PrivateKey

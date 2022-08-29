@@ -148,8 +148,11 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 			default:
 			}
 			n, err := c.(*stdlib.Conn).Conn().WaitForNotification(ctx)
-			if err != nil && ctx.Err() == nil {
-				return errors.Wrap(err, "wait for notifications")
+			if err != nil {
+				if ctx.Err() == nil {
+					return errors.Wrap(err, "wait for notifications")
+				}
+				return nil
 			}
 
 			if n == nil {
