@@ -93,7 +93,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
 
-  const { graphData, filteredData } = messageLogData
+  const [{ graphData, filteredData }] = messageLogData
 
   return (
     <React.Fragment>
