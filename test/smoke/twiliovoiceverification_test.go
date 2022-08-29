@@ -65,7 +65,8 @@ func TestTwilioVoiceVerification(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	call := d1.ExpectVoice("verification")
+	call := d1.ExpectCall().Answer().ExpectSay("verification")
+	defer call.Hangup()
 
 	codeStr := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {

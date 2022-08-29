@@ -182,7 +182,7 @@ func TestAlertLog(t *testing.T) {
 		EPStep:     true,
 		EPStepUser: true,
 	}, func(t *testing.T, h *harness.Harness) {
-		h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
+		h.Twilio(t).Device(h.Phone("1")).ExpectCall().Reject()
 	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
