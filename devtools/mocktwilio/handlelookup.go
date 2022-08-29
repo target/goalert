@@ -6,22 +6,31 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/target/goalert/notification/twilio"
 	"github.com/ttacon/libphonenumber"
 )
 
-func (s *Server) serveLookup(w http.ResponseWriter, req *http.Request) {
+type CarrierInfo struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+
+	// MobileCC is the mobile country code.
+	MobileCC string `json:"mobile_country_code"`
+
+	// MobileNC is the mobile network code.
+	MobileNC string `json:"mobile_network_code"`
+}
+
+func (s *Server) HandleLookup(w http.ResponseWriter, req *http.Request) {
 	number := path.Base(req.URL.Path)
 	inclCarrier := req.URL.Query().Get("Type") == "carrier"
 
 	var info struct {
-		CallerName *struct{}           `json:"caller_name"`
-		Carrier    *twilio.CarrierInfo `json:"carrier"`
-		CC         string              `json:"country_code"`
-		Fmt        string              `json:"national_format"`
-		Number     string              `json:"phone_number"`
-		AddOns     *struct{}           `json:"add_ons"`
-		URL        string              `json:"url"`
+		CallerName *struct{}    `json:"caller_name"`
+		Carrier    *CarrierInfo `json:"carrier"`
+		CC         string       `json:"country_code"`
+		Fmt        string       `json:"national_format"`
+		Number     string       `json:"phone_number"`
+		URL        string       `json:"url"`
 	}
 	n, err := libphonenumber.Parse(number, "")
 	if err != nil {
@@ -35,12 +44,9 @@ func (s *Server) serveLookup(w http.ResponseWriter, req *http.Request) {
 	info.URL = req.URL.String()
 
 	if inclCarrier {
-		s.carrierInfoMx.Lock()
-		c, ok := s.carrierInfo[info.Number]
-		s.carrierInfoMx.Unlock()
-		if ok {
-			info.Carrier = &c
-		}
+		db := <-s.numInfoCh
+		info.Carrier = db[info.Number]
+		s.numInfoCh <- db
 	}
 
 	data, err := json.Marshal(info)

@@ -605,8 +605,7 @@ func (h *Harness) Close() error {
 
 // SetCarrierName will set the carrier name for the given phone number.
 func (h *Harness) SetCarrierName(number, name string) {
-	h.t.Fatal("not implemented")
-	// h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+	h.mockTw.SetCarrierInfo(number, mocktwilio.CarrierInfo{Name: name})
 }
 
 // TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.

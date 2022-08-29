@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/notification/twilio"
 )
 
 // Config is used to configure the mock server.
@@ -61,6 +60,8 @@ type Server struct {
 	callStateDB    chan map[string]*callState
 	outboundCallCh chan *callState
 
+	numInfoCh chan map[string]*CarrierInfo
+
 	numbersDB chan *numberDB
 
 	waitInFlight chan chan struct{}
@@ -74,9 +75,6 @@ type Server struct {
 	id uint64
 
 	workers sync.WaitGroup
-
-	carrierInfo   map[string]twilio.CarrierInfo
-	carrierInfoMx sync.Mutex
 }
 
 func validateURL(s string) error {
@@ -114,16 +112,25 @@ func NewServer(cfg Config) *Server {
 		shutdownDone: make(chan struct{}),
 
 		waitInFlight: make(chan chan struct{}),
+
+		numInfoCh: make(chan map[string]*CarrierInfo, 1),
 	}
 	srv.numbersDB <- newNumberDB()
 	srv.msgStateDB <- make(map[string]*msgState)
 	srv.callStateDB <- make(map[string]*callState)
+	srv.numInfoCh <- make(map[string]*CarrierInfo)
 
 	srv.initHTTP()
 
 	go srv.loop()
 
 	return srv
+}
+
+func (srv *Server) SetCarrierInfo(number string, info CarrierInfo) {
+	db := <-srv.numInfoCh
+	db[number] = &info
+	srv.numInfoCh <- db
 }
 
 func (srv *Server) number(s string) *Number {

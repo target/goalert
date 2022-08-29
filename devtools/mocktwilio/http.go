@@ -19,7 +19,7 @@ func (srv *Server) initHTTP() {
 	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
 	srv.mux.HandleFunc(srv.basePath()+"/Calls.json", srv.HandleNewCall)
 	srv.mux.HandleFunc(srv.basePath()+"/Calls/", srv.HandleCallStatus)
-	// s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
+	srv.mux.HandleFunc("/v1/PhoneNumbers/", srv.HandleLookup)
 }
 
 func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {
