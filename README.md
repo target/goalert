@@ -2,9 +2,9 @@
 
 GoAlert provides on-call scheduling, automated escalations and notifications (like SMS or voice calls) to automatically engage the right person, the right way, and at the right time.
 
-![image](homepage.png)
+![image](https://user-images.githubusercontent.com/11381794/187750677-23f22ad2-1e91-4aec-a32d-76cd993d6c59.png)
 
-![image](alert_details.png)
+![image](https://user-images.githubusercontent.com/11381794/187750834-2cd01f28-17bd-497b-93b4-6d2bee4940c9.png)
 
 ## Installation
 
