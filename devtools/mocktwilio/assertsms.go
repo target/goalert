@@ -13,7 +13,7 @@ type assertSMS struct {
 }
 
 func (a *assertions) newAssertSMS(baseSMS Message) *assertSMS {
-	dev := &assertDev{a, baseSMS.From()}
+	dev := &assertDev{a, baseSMS.To()}
 	sms := &assertSMS{
 		assertDev: dev,
 		Message:   baseSMS,
@@ -44,7 +44,7 @@ func (dev *assertDev) SendSMS(body string) {
 
 	_, err := dev.SendMessage(ctx, dev.number, dev.AppPhoneNumber, body)
 	if err != nil {
-		dev.t.Fatalf("mocktwilio: send SMS %s to %s: %v", strconv.Quote(body), dev.number, err)
+		dev.t.Fatalf("mocktwilio: send SMS %s from %s to %s: %v", strconv.Quote(body), dev.number, dev.AppPhoneNumber, err)
 	}
 }
 

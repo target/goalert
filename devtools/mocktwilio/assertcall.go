@@ -12,7 +12,7 @@ type assertCall struct {
 }
 
 func (a *assertions) newAssertCall(baseCall Call) *assertCall {
-	dev := &assertDev{a, baseCall.From()}
+	dev := &assertDev{a, baseCall.To()}
 	return dev.newAssertCall(baseCall)
 }
 
