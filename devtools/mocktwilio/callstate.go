@@ -3,7 +3,6 @@ package mocktwilio
 import (
 	"context"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"math"
 	"net/url"
@@ -64,6 +63,7 @@ func (s *callState) lifecycle(ctx context.Context) {
 	}
 }
 
+// Text returns the last spoken text of the call.
 func (s *callState) Text() string {
 	s.mx.Lock()
 	defer s.mx.Unlock()
@@ -99,13 +99,6 @@ func (s *callState) Answer(ctx context.Context) error {
 	return nil
 }
 
-type Node struct {
-	XMLName xml.Name
-	Attrs   []xml.Attr `xml:",any,attr"`
-	Content string     `xml:",innerxml"`
-	Nodes   []Node     `xml:",any"`
-}
-
 func (s *callState) update(ctx context.Context, digits string) error {
 	v := make(url.Values)
 	v.Set("AccountSid", s.srv.cfg.AccountSID)
@@ -132,6 +125,7 @@ func (s *callState) update(ctx context.Context, digits string) error {
 	return s.process(ctx)
 }
 
+// process will interpret the returned TwiML and update the call state and spoken text.
 func (s *callState) process(ctx context.Context) error {
 	s.text = ""
 
@@ -177,6 +171,7 @@ func (s *callState) status() string {
 	return s.Status
 }
 
+// setStatus will update the call status, posting to the status callback URL, if provided.
 func (s *callState) setStatus(ctx context.Context, status string) {
 	s.mx.Lock()
 	defer s.mx.Unlock()

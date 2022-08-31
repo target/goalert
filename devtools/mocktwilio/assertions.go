@@ -8,7 +8,10 @@ import (
 
 type AssertConfig struct {
 	ServerAPI
-	Timeout        time.Duration
+	// Timeout is used to set the timeout for all operations, expected messages/calls as well as API calls for things like answering a call.
+	Timeout time.Duration
+
+	// AppPhoneNumber is the phone number that the application will use to make calls and send messages.
 	AppPhoneNumber string
 
 	// RefreshFunc will be called before waiting for new messages or calls to arrive.
@@ -19,9 +22,13 @@ type AssertConfig struct {
 	RefreshFunc func()
 }
 
+// ServerAPI is the interface for the mocktwilio server.
 type ServerAPI interface {
 	SendMessage(ctx context.Context, from, to, body string) (Message, error)
+
+	// WaitInFlight should return after all in-flight messages are processed.
 	WaitInFlight(context.Context) error
+
 	Messages() <-chan Message
 	Calls() <-chan Call
 }
@@ -48,8 +55,8 @@ type assertions struct {
 type assertBase struct {
 	AssertConfig
 
-	messages []Message
-	calls    []Call
+	messages []*assertSMS
+	calls    []*assertCall
 
 	ignoreSMS []assertIgnore
 }
@@ -59,34 +66,10 @@ type assertIgnore struct {
 	keywords []string
 }
 
-type texter interface {
-	To() string
-	Text() string
-}
-type answerer interface {
-	Answer(context.Context) error
-}
-
-var (
-	_ answerer = (Call)(nil)
-	_ texter   = (Call)(nil)
-	_ texter   = (Message)(nil)
-)
-
-func (a *assertions) matchMessage(destNumber string, keywords []string, t texter) bool {
+func (a *assertions) matchMessage(destNumber string, keywords []string, t *assertSMS) bool {
 	a.t.Helper()
 	if t.To() != destNumber {
 		return false
-	}
-
-	if ans, ok := t.(answerer); ok {
-		ctx, cancel := context.WithTimeout(context.Background(), a.Timeout)
-		defer cancel()
-
-		err := ans.Answer(ctx)
-		if err != nil {
-			a.t.Fatalf("mocktwilio: error answering call to %s: %v", t.To(), err)
-		}
 	}
 
 	return containsAll(t.Text(), keywords)
@@ -100,10 +83,12 @@ func (a *assertions) refresh() {
 	a.RefreshFunc()
 }
 
+// Device will allow expecting calls and messages from a particular destination number.
 func (a *assertions) Device(number string) PhoneDevice {
 	return &assertDev{a, number}
 }
 
+// WaitAndAssert will ensure no unexpected messages or calls are received.
 func (a *assertions) WaitAndAssert() {
 	a.t.Helper()
 
@@ -115,7 +100,8 @@ drainMessages:
 	for {
 		select {
 		case msg := <-a.Messages():
-			a.messages = append(a.messages, msg)
+			sms := a.newAssertSMS(msg)
+			a.messages = append(a.messages, sms)
 		default:
 			break drainMessages
 		}
@@ -124,7 +110,8 @@ drainMessages:
 drainCalls:
 	for {
 		select {
-		case call := <-a.Calls():
+		case baseCall := <-a.Calls():
+			call := a.newAssertCall(baseCall)
 			a.calls = append(a.calls, call)
 		default:
 			break drainCalls
@@ -142,12 +129,12 @@ checkMessages:
 		}
 
 		hasFailure = true
-		a.t.Errorf("mocktwilio: unexpected SMS to %s: %s", msg.To(), msg.Text())
+		a.t.Errorf("mocktwilio: unexpected %s", msg)
 	}
 
 	for _, call := range a.calls {
 		hasFailure = true
-		a.t.Errorf("mocktwilio: unexpected call to %s", call.To())
+		a.t.Errorf("mocktwilio: unexpected %s", call)
 	}
 
 	if hasFailure {
