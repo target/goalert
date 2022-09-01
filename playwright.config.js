@@ -5,7 +5,7 @@ const config = {
   globalSetup: require.resolve('./test/integration/setup/global-setup.ts'),
   retries: 3,
   use: {
-    trace: 'retain-on-failure',
+    trace: 'on-first-retry',
     baseURL: 'http://localhost:6130',
     viewport: { width: 1440, height: 900 },
     timezoneId: 'America/Chicago',
@@ -31,7 +31,7 @@ const config = {
     },
   ],
   webServer: {
-    command: 'make start-integration',
+    command: 'make start-integration CI=1',
     url: 'http://localhost:6130/health',
     reuseExistingServer: true,
   },

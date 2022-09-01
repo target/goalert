@@ -1,7 +1,7 @@
 build: while true; do make -qs bin/goalert BUNDLE=1 || make bin/goalert BUNDLE=1 || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert
-goalert: ./bin/goalert -l=localhost:6130 --db-url=postgres://goalert@localhost/goalert_integration --public-url=http://localhost:6130 --engine-cycle-time=50ms
+goalert: ./bin/goalert -l=localhost:6130 --public-url=http://localhost:6130 --engine-cycle-time=50ms
 
 smtp: go run github.com/mailhog/MailHog -ui-bind-addr=localhost:6125 -api-bind-addr=localhost:6125 -smtp-bind-addr=localhost:6105 | grep -v KEEPALIVE
 

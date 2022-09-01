@@ -34,15 +34,20 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     const page = await browser.newPage({
       baseURL: config.projects[0].use.baseURL,
     })
-    await page.context().tracing.start({ screenshots: true, snapshots: true })
     try {
+      await page.context().tracing.start({ screenshots: true, snapshots: true })
       await page.goto('./profile')
       await login(page, c.user, c.pass)
       await expect(page.locator('h1')).toContainText(c.name)
       await page.context().storageState({ path })
-    } finally {
-      await page.context().tracing.stop({ path: `trace-${c.user}.zip` })
+      await page.context().tracing.stop()
       await page.close()
+    } catch (error) {
+      await page.context().tracing.stop({
+        path: `test-results/failed-setup-${c.user}-trace.zip`,
+      })
+      await page.close()
+      throw error
     }
   }
 

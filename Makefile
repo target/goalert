@@ -8,7 +8,9 @@
 include Makefile.binaries.mk
 
 CFGPARAMS = devtools/configparams/*.go
-DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
+DB_URL = postgres://goalert@localhost:5432/goalert
+INT_DB = goalert_integration
+INT_DB_URL = postgres://goalert@localhost:5432/$(INT_DB)
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
@@ -29,6 +31,11 @@ export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
+endif
+
+INT_PROC = Procfile.integration
+ifeq ($(CI), 1)
+INT_PROC = Procfile.integration.ci
 endif
 
 ifeq ($(PUSH), 1)
@@ -107,14 +114,14 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 
 start-integration: bin/goalert bin/psql-lite bin/waitfor bin/runproc web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	./bin/psql-lite -d 'postgres://goalert@localhost' -c 'DROP DATABASE IF EXISTS goalert_integration; CREATE DATABASE goalert_integration;'
-	./bin/goalert --db-url 'postgres://goalert@localhost/goalert_integration' migrate
-	./bin/psql-lite -d 'postgres://goalert@localhost/goalert_integration' -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
-	./bin/goalert add-user --db-url 'postgres://goalert@localhost/goalert_integration' --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
-	./bin/goalert add-user --db-url 'postgres://goalert@localhost/goalert_integration' --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
-	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url 'postgres://goalert@localhost/goalert_integration'
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
+	./bin/goalert --db-url "$(INT_DB_URL)" migrate
+	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
-	./bin/runproc -f Procfile.integration
+	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f $(INT_PROC)
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
