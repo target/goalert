@@ -89,12 +89,16 @@ func mapGSM(r rune) rune {
 	return '?'
 }
 
-func oneOfPrefixes(s string, prefixes ...string) bool {
+// hasAnyPrefix returns true if any of the prefixes are present in the string.
+func hasAnyPrefix(s string, prefixes ...string) bool {
 	for _, p := range prefixes {
-		if strings.HasPrefix(s, p) {
-			return true
+		if !strings.HasPrefix(s, p) {
+			continue
 		}
+
+		return true
 	}
+
 	return false
 }
 
@@ -104,9 +108,10 @@ func canContainURL(ctx context.Context, number string) bool {
 		return false
 	}
 
-	// not extensive, but CN code numbers do not allow URLs in SMS
-	// https://www.twilio.com/guidelines/cn/sms
-	return !oneOfPrefixes(number, "+86")
+	return !hasAnyPrefix(number,
+		// Non-exhaustive list of dialing codes that forbid URLs.
+		"+86", // CN - https://www.twilio.com/guidelines/cn/sms
+	)
 }
 
 // hasTwoWaySMSSupport returns true if a number supports 2-way SMS messaging (replies).
@@ -115,8 +120,15 @@ func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 		return false
 	}
 
-	// not extensive
-	return !oneOfPrefixes(number, "+91", "+86", "+502", "+506", "+507", "+84")
+	return !hasAnyPrefix(number,
+		// Non-exhaustive list of dialing codes that do not support 2-way SMS.
+		"+91",  // IN - https://www.twilio.com/guidelines/in/sms
+		"+86",  // CN - https://www.twilio.com/guidelines/cn/sms
+		"+502", // GT - https://www.twilio.com/guidelines/gt/sms
+		"+506", // CR - https://www.twilio.com/guidelines/cr/sms
+		"+507", // PA - https://www.twilio.com/guidelines/pa/sms
+		"+84",  // VN - https://www.twilio.com/guidelines/vn/sms
+	)
 }
 
 func normalizeGSM(str string) (s string) {
