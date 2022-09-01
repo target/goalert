@@ -97,14 +97,16 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	})
 
 	makeSMSCode := func(alertID int, serviceID string) int {
-		var code int
-		var err error
-		if hasTwoWaySMSSupport(ctx, destNumber) {
-			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
-			if err != nil {
-				log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
-			}
+		if !hasTwoWaySMSSupport(ctx, destNumber) {
+			return 0
 		}
+
+		code, err := s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
+			return 0
+		}
+
 		return code
 	}
 
