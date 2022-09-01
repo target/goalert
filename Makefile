@@ -105,6 +105,17 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
+start-integration: bin/goalert bin/psql-lite bin/waitfor bin/runproc web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/psql-lite -d 'postgres://goalert@localhost' -c 'DROP DATABASE IF EXISTS goalert_integration; CREATE DATABASE goalert_integration;'
+	./bin/goalert --db-url 'postgres://goalert@localhost/goalert_integration' migrate
+	./bin/psql-lite -d 'postgres://goalert@localhost/goalert_integration' -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
+	./bin/goalert add-user --db-url 'postgres://goalert@localhost/goalert_integration' --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	./bin/goalert add-user --db-url 'postgres://goalert@localhost/goalert_integration' --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url 'postgres://goalert@localhost/goalert_integration'
+	rm -f *.session.json
+	./bin/runproc -f Procfile.integration
+
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
@@ -145,9 +156,12 @@ generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 
 
 test-all: test-unit test-smoke test-integration
-test-integration: cy-wide-prod-run cy-mobile-prod-run
+test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
+
+playwright-run:
+	yarn playwright test
 
 smoketest:
 	(cd test/smoke && go test -parallel 10 -timeout 20m)

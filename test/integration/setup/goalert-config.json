@@ -1,0 +1,8 @@
+{
+  "SMTP": {
+    "Enable": true,
+    "From": "goalert@localhost",
+    "Address": "localhost:6105",
+    "DisableTLS": true
+  }
+}
