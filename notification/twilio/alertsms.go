@@ -89,14 +89,34 @@ func mapGSM(r rune) rune {
 	return '?'
 }
 
+func oneOfPrefixes(s string, prefixes ...string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(s, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// canContainURL returns true if the message can contain a URL.
+func canContainURL(ctx context.Context, number string) bool {
+	if config.FromContext(ctx).General.DisableSMSLinks {
+		return false
+	}
+
+	// not extensive, but CN code numbers do not allow URLs in SMS
+	// https://www.twilio.com/guidelines/cn/sms
+	return !oneOfPrefixes(number, "+86")
+}
+
 // hasTwoWaySMSSupport returns true if a number supports 2-way SMS messaging (replies).
 func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 	if config.FromContext(ctx).Twilio.DisableTwoWaySMS {
 		return false
 	}
 
-	// India numbers do not support SMS replies.
-	return !strings.HasPrefix(number, "+91")
+	// not extensive
+	return !oneOfPrefixes(number, "+91", "+86", "+502", "+506", "+507", "+84")
 }
 
 func normalizeGSM(str string) (s string) {

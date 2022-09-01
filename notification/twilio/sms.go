@@ -39,10 +39,12 @@ type SMS struct {
 	limit *replyLimiter
 }
 
-var _ notification.ReceiverSetter = &SMS{}
-var _ notification.Sender = &SMS{}
-var _ notification.StatusChecker = &SMS{}
-var _ notification.FriendlyValuer = &SMS{}
+var (
+	_ notification.ReceiverSetter = &SMS{}
+	_ notification.Sender         = &SMS{}
+	_ notification.StatusChecker  = &SMS{}
+	_ notification.FriendlyValuer = &SMS{}
+)
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
@@ -116,14 +118,14 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		message, err = renderAlertStatusMessage(maxLen, t)
 	case notification.AlertBundle:
 		var link string
-		if !cfg.General.DisableSMSLinks {
+		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
 		}
 
 		message, err = renderAlertBundleMessage(maxLen, t, link, makeSMSCode(0, t.ServiceID))
 	case notification.Alert:
 		var link string
-		if !cfg.General.DisableSMSLinks {
+		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID))
 		}
 
