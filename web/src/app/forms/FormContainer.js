@@ -155,7 +155,7 @@ export class FormContainer extends React.PureComponent {
             errors: this.state.validationErrors.concat(this.props.errors),
             onChange: this.onChange,
             addField: this.addField,
-            optionalLabels: optionalLabels,
+            optionalLabels,
           }}
         >
           {this.props.children}
