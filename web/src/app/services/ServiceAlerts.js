@@ -29,7 +29,7 @@ export default function ServiceAlerts({ serviceID }) {
   const [mutate, mutationStatus] = useMutation(mutation, {
     variables: {
       input: {
-        serviceID: serviceID,
+        serviceID,
         newStatus: alertStatus,
       },
     },

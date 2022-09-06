@@ -74,7 +74,7 @@ export default function ScheduleOverrideCreateDialog({
     variables: {
       input: {
         ...value,
-        scheduleID: scheduleID,
+        scheduleID,
       },
     },
     onCompleted: onClose,

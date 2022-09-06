@@ -25,7 +25,7 @@ export default function TempSchedDeleteConfirmation({
     onCompleted: () => onClose(),
     variables: {
       input: {
-        scheduleID: scheduleID,
+        scheduleID,
         start: value.start, // actual truncation will be handled by backend
         end: value.end,
       },
