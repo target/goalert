@@ -4,11 +4,11 @@ import { mergeFields, prefixQuery } from './graphql'
 import { print } from 'graphql/language/printer'
 import _ from 'lodash'
 
-interface MultiQueryHookOptions extends UseQueryArgs {
+type MultiQueryHookOptions = UseQueryArgs & {
   query: DocumentNode
   variables: Record<string, unknown>[]
 }
-interface MultiQueryResult extends UseQueryResponse {
+type MultiQueryResult = UseQueryResponse & {
   // matching type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any[]

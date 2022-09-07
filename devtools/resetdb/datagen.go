@@ -412,8 +412,7 @@ func (d *datagen) NewFavorite(userID string) {
 	})
 }
 
-// Generate will produce a full random dataset based on the configuration.
-func (cfg datagenConfig) Generate() datagen {
+func (cfg *datagenConfig) SetDefaults() {
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
 			return
@@ -441,7 +440,28 @@ func (cfg datagenConfig) Generate() datagen {
 	setDefault(&cfg.SvcLabelMax, SvcLabelMax)
 	setDefault(&cfg.UniqueLabelKeys, UniqueLabelKeys)
 	setDefault(&cfg.LabelValueMax, LabelValueMax)
+}
 
+// Multiply will multiply the following counts:
+// - UserCount
+// - RotationCount
+// - ScheduleCount
+// - EPCount
+// - SvcCount
+// - AlertClosedCount
+// - AlertActiveCount
+func (cfg *datagenConfig) Multiply(n float64) {
+	cfg.UserCount = int(float64(cfg.UserCount) * n)
+	cfg.RotationCount = int(float64(cfg.RotationCount) * n)
+	cfg.ScheduleCount = int(float64(cfg.ScheduleCount) * n)
+	cfg.EPCount = int(float64(cfg.EPCount) * n)
+	cfg.SvcCount = int(float64(cfg.SvcCount) * n)
+	cfg.AlertClosedCount = int(float64(cfg.AlertClosedCount) * n)
+	cfg.AlertActiveCount = int(float64(cfg.AlertActiveCount) * n)
+}
+
+// Generate will produce a full random dataset based on the configuration.
+func (cfg datagenConfig) Generate() datagen {
 	d := datagen{
 		ids:         newGen(),
 		ints:        newUniqIntGen(),

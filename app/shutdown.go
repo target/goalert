@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -34,6 +35,11 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		if sh == nil {
 			return
 		}
+		t := reflect.TypeOf(sh)
+		if reflect.ValueOf(sh) == reflect.Zero(t) {
+			// check for nil pointer
+			return
+		}
 		err := sh.Shutdown(ctx)
 		if err != nil {
 			errs = append(errs, errors.Wrap(err, msg))
@@ -63,6 +69,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.SessionKeyring, "session keyring")
 	shut(app.OAuthKeyring, "oauth keyring")
 	shut(app.APIKeyring, "API keyring")
+	shut(app.AuthLinkKeyring, "auth link keyring")
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
 	shut(app.requestLock, "context locker")

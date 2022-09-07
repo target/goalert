@@ -1,7 +1,6 @@
 node_modules
 __generated__
 .idea/
-/smoketest/output
 bundle.js
 npm-debug.log
 build/

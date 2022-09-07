@@ -22,6 +22,7 @@ export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 PROD_CY_PROC = Procfile.cypress.prod
+SIZE:=1
 
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
@@ -142,11 +143,17 @@ pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go 
 generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	go generate ./...
 
+
+test-all: test-unit test-smoke test-integration
+test-integration: cy-wide-prod-run cy-mobile-prod-run
+test-smoke: smoketest
+test-unit: test
+
 smoketest:
-	(cd smoketest && go test -parallel 10 -timeout 20m)
+	(cd test/smoke && go test -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
-	(cd smoketest && go test -run TestMigrations)
+	(cd test/smoke && go test -run TestMigrations)
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename
@@ -196,10 +203,10 @@ postgres: bin/waitfor
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
 regendb: bin/resetdb bin/goalert config.json.bak
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
