@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
@@ -20,7 +21,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
-	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -66,10 +66,12 @@ type Voice struct {
 	r notification.Receiver
 }
 
-var _ notification.ReceiverSetter = &Voice{}
-var _ notification.Sender = &Voice{}
-var _ notification.StatusChecker = &Voice{}
-var _ notification.FriendlyValuer = &Voice{}
+var (
+	_ notification.ReceiverSetter = &Voice{}
+	_ notification.Sender         = &Voice{}
+	_ notification.StatusChecker  = &Voice{}
+	_ notification.FriendlyValuer = &Voice{}
+)
 
 var rmParen = regexp.MustCompile(`\s*\(.*?\)`)
 
@@ -290,7 +292,6 @@ func (v *Voice) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		// log and continue
 		log.Log(ctx, err)
 	}
-
 }
 
 type call struct {
@@ -459,7 +460,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		msgSubjectID: subID,
 		msgBody:      string(bodyData),
 	}, errResp
-
 }
 
 func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
@@ -487,6 +487,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
 func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -632,9 +633,9 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 // FriendlyValue will return the international formatting of the phone number.
 func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := libphonenumber.Parse(value, "")
+	num, err := phonenumbers.Parse(value, "")
 	if err != nil {
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
-	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
 }

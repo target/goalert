@@ -60,6 +60,7 @@ require (
 require (
 	github.com/fullstorydev/grpcui v1.3.1
 	github.com/kffl/speedbump v1.0.0
+	github.com/nyaruka/phonenumbers v1.1.1
 )
 
 require (
