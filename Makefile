@@ -167,7 +167,7 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 
-playwright-run:
+playwright-run: node_modules
 	yarn playwright test
 
 smoketest:
