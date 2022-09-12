@@ -43,7 +43,6 @@ module.exports = {
       'error',
       {
         allowExpressions: true,
-        allowTypedFunctionExpressions: false,
       },
     ],
     '@typescript-eslint/no-unused-vars': [
