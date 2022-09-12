@@ -136,7 +136,7 @@ export default function AlertMetricsTable(
   const csvOpts = useMemo(
     () => ({
       urlPrefix: location.origin + pathPrefix,
-      alerts: alerts,
+      alerts,
     }),
     [props.alerts],
   )

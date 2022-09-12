@@ -34,6 +34,10 @@ type actionBody struct {
 		Name     string
 		TeamID   string `json:"team_id"`
 	}
+	Team struct {
+		ID     string
+		Domain string
+	}
 	ResponseURL string `json:"response_url"`
 	Actions     []actionItem
 }
@@ -42,6 +46,18 @@ func (s *Server) ServeActionResponse(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Text string
 		Type string `json:"response_type"`
+
+		Blocks []struct {
+			Type     string
+			Text     struct{ Text string }
+			Elements []struct {
+				Type     string
+				Text     struct{ Text string }
+				Value    string
+				ActionID string `json:"action_id"`
+				URL      string
+			}
+		}
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -60,11 +76,40 @@ func (s *Server) ServeActionResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg, err := s.API().ChatPostMessage(r.Context(), ChatPostMessageOptions{
+	opts := ChatPostMessageOptions{
 		ChannelID: a.ChannelID,
-		Text:      req.Text,
 		User:      r.URL.Query().Get("user"),
-	})
+	}
+
+	if len(req.Blocks) > 0 {
+		// new API
+		for _, block := range req.Blocks {
+			switch block.Type {
+			case "section":
+				opts.Text = block.Text.Text
+			case "actions":
+				for _, action := range block.Elements {
+					if action.Type != "button" {
+						continue
+					}
+
+					opts.Actions = append(opts.Actions, Action{
+						ChannelID: a.ChannelID,
+						TeamID:    a.TeamID,
+						AppID:     a.AppID,
+						ActionID:  action.ActionID,
+						Text:      action.Text.Text,
+						Value:     action.Value,
+						URL:       action.URL,
+					})
+				}
+			}
+		}
+	} else {
+		opts.Text = req.Text
+	}
+
+	msg, err := s.API().ChatPostMessage(r.Context(), opts)
 	if respondErr(w, err) {
 		return
 	}
@@ -106,6 +151,8 @@ func (s *Server) PerformActionAs(userID string, a Action) error {
 	p.User.Username = usr.Name
 	p.User.Name = usr.Name
 	p.User.TeamID = a.TeamID
+	p.Team.ID = a.TeamID
+	p.Team.Domain = "example.com"
 	p.Channel.ID = a.ChannelID
 	p.AppID = a.AppID
 

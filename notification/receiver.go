@@ -2,7 +2,8 @@ package notification
 
 import (
 	"context"
-	"errors"
+
+	"github.com/target/goalert/auth/authlink"
 )
 
 // A Receiver processes incoming messages and responses.
@@ -16,6 +17,9 @@ type Receiver interface {
 	// ReceiveSubject records a response to a previously sent message from a provider/subject (e.g. Slack user).
 	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
 
+	// AuthLinkURL will generate a URL to link a provider and subject to a GoAlert user.
+	AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error)
+
 	// Start indicates a user has opted-in for notifications to this contact method.
 	Start(context.Context, Dest) error
 
@@ -26,5 +30,11 @@ type Receiver interface {
 	IsKnownDest(ctx context.Context, value string) (bool, error)
 }
 
-// ErrUnknownSubject is returned from ReceiveSubject when the subject is unknown.
-var ErrUnknownSubject = errors.New("unknown subject for that provider")
+// UnknownSubjectError is returned from ReceiveSubject when the subject is unknown.
+type UnknownSubjectError struct {
+	AlertID int
+}
+
+func (e UnknownSubjectError) Error() string {
+	return "unknown subject for that provider"
+}
