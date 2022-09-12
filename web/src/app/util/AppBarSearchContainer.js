@@ -64,7 +64,7 @@ export function SearchProvider(props) {
   return (
     <SearchContext.Provider
       value={{
-        actions: actions,
+        actions,
         setActions: debouncedSetActions,
         trackMount: updateMounted,
       }}
