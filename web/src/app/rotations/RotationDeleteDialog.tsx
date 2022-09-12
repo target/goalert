@@ -30,7 +30,7 @@ export default function RotationDeleteDialog(props: {
 }): JSX.Element {
   const [, navigate] = useLocation()
   const [{ data, fetching: dataLoading }] = useQuery({
-    query: query,
+    query,
     variables: { id: props.rotationID },
   })
 

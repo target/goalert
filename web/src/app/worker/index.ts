@@ -25,6 +25,8 @@ type Post<N extends WorkerMethodName> = {
   arg: WorkerParam<N>
 }
 
+type OnMessage<N extends WorkerMethodName> = (e: RecvMessage<N>) => void
+
 // StubWorker does work after a setTimeout, but in the main thread.
 class StubWorker<N extends WorkerMethodName> {
   constructor(methodName: N) {
@@ -33,7 +35,7 @@ class StubWorker<N extends WorkerMethodName> {
 
   private method: WorkerMethod<N>
   private _timeout: ReturnType<typeof setTimeout> | undefined
-  onmessage: (e: RecvMessage<N>) => void = (): void => {}
+  onmessage: OnMessage<N> = (): void => {}
 
   postMessage = (data: Post<N>): void => {
     this._timeout = setTimeout(() => {

@@ -1,17 +1,18 @@
-import React, { useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import makeStyles from '@mui/styles/makeStyles'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import Query from '../util/Query'
 import OtherActions from '../util/OtherActions'
 
 import ServiceLabelSetDialog from './ServiceLabelCreateDialog'
 import ServiceLabelEditDialog from './ServiceLabelEditDialog'
 import ServiceLabelDeleteDialog from './ServiceLabelDeleteDialog'
+import { Label } from '../../schema'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -25,7 +26,7 @@ const query = gql`
   }
 `
 
-const sortItems = (a, b) => {
+const sortItems = (a: Label, b: Label): number => {
   if (a.key.toLowerCase() < b.key.toLowerCase()) return -1
   if (a.key.toLowerCase() > b.key.toLowerCase()) return 1
   if (a.key < b.key) return -1
@@ -35,13 +36,24 @@ const sortItems = (a, b) => {
 
 const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
 
-export default function ServiceLabelList({ serviceID }) {
+export default function ServiceLabelList(props: {
+  serviceID: string
+}): JSX.Element {
   const [create, setCreate] = useState(false)
-  const [editKey, setEditKey] = useState(null)
-  const [deleteKey, setDeleteKey] = useState(null)
+  const [editKey, setEditKey] = useState<string | null>(null)
+  const [deleteKey, setDeleteKey] = useState<string | null>(null)
   const classes = useStyles()
 
-  function renderList(labels) {
+  const [{ data, fetching }] = useQuery({
+    query,
+    variables: { serviceID: props.serviceID },
+  })
+
+  if (!data && fetching) {
+    return <Spinner />
+  }
+
+  function renderList(labels: Label[]): ReactElement {
     const items = (labels || [])
       .slice()
       .sort(sortItems)
@@ -73,40 +85,30 @@ export default function ServiceLabelList({ serviceID }) {
     )
   }
 
-  function renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ serviceID }}
-        render={({ data }) => renderList(data.service.labels)}
-      />
-    )
-  }
-
   return (
     <React.Fragment>
       <Grid item xs={12} className={classes.spacing}>
         <Card>
-          <CardContent>{renderQuery()}</CardContent>
+          <CardContent>{renderList(data.service.labels)}</CardContent>
         </Card>
       </Grid>
       <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
       {create && (
         <ServiceLabelSetDialog
-          serviceID={serviceID}
+          serviceID={props.serviceID}
           onClose={() => setCreate(false)}
         />
       )}
       {editKey && (
         <ServiceLabelEditDialog
-          serviceID={serviceID}
+          serviceID={props.serviceID}
           labelKey={editKey}
           onClose={() => setEditKey(null)}
         />
       )}
       {deleteKey && (
         <ServiceLabelDeleteDialog
-          serviceID={serviceID}
+          serviceID={props.serviceID}
           labelKey={deleteKey}
           onClose={() => setDeleteKey(null)}
         />
