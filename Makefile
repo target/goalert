@@ -112,7 +112,7 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-start-integration: bin/goalert bin/psql-lite bin/waitfor bin/runproc web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	./bin/goalert --db-url "$(INT_DB_URL)" migrate
@@ -167,7 +167,7 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 
-playwright-run: node_modules
+playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	yarn playwright test
 
 smoketest:
