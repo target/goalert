@@ -14,7 +14,7 @@ interface ServiceFormProps {
   value: Value
 
   errors: {
-    field: 'name' | 'description' | 'escalationPolicyID'
+    field: string
     message: string
   }[]
 

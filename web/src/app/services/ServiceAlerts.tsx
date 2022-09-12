@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Grid from '@mui/material/Grid'
@@ -21,34 +21,26 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ServiceAlerts({ serviceID }) {
+export default function ServiceAlerts(props: {
+  serviceID: string
+}): JSX.Element {
   const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
-  const [mutate, mutationStatus] = useMutation(mutation, {
-    variables: {
-      input: {
-        serviceID: serviceID,
-        newStatus: alertStatus,
-      },
-    },
-    onCompleted: () => setShowDialog(false),
-  })
+  const [mutationStatus, mutate] = useMutation(mutation)
 
-  const { loading } = mutationStatus
-
-  const handleClickAckAll = () => {
+  const handleClickAckAll = (): void => {
     setAlertStatus('StatusAcknowledged')
     setShowDialog(true)
   }
 
-  const handleClickCloseAll = () => {
+  const handleClickCloseAll = (): void => {
     setAlertStatus('StatusClosed')
     setShowDialog(true)
   }
 
-  const getStatusText = () => {
+  const getStatusText = (): string => {
     if (alertStatus === 'StatusAcknowledged') {
       return 'acknowledge'
     }
@@ -65,7 +57,7 @@ export default function ServiceAlerts({ serviceID }) {
         </ButtonGroup>
       </Grid>
       <Grid item>
-        <AlertsListFilter serviceID={serviceID} />
+        <AlertsListFilter serviceID={props.serviceID} />
       </Grid>
     </Grid>
   )
@@ -78,12 +70,25 @@ export default function ServiceAlerts({ serviceID }) {
           confirm
           subTitle={`This will ${getStatusText()} all the alerts for this service.`}
           caption='This will stop all notifications from being sent out for all alerts with this service.'
-          onSubmit={() => mutate()}
-          loading={loading}
+          onSubmit={() =>
+            mutate({
+              input: {
+                serviceID: props.serviceID,
+                newStatus: alertStatus,
+              },
+            }).then((res) => {
+              if (res.error) return
+              setShowDialog(false)
+            })
+          }
+          loading={mutationStatus.fetching}
           onClose={() => setShowDialog(false)}
         />
       )}
-      <AlertsList serviceID={serviceID} secondaryActions={secondaryActions} />
+      <AlertsList
+        serviceID={props.serviceID}
+        secondaryActions={secondaryActions}
+      />
     </React.Fragment>
   )
 }

@@ -34,6 +34,13 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
+  linkAccountInfo?: null | LinkAccountInfo
+}
+
+export interface LinkAccountInfo {
+  userDetails: string
+  alertID?: null | number
+  alertNewStatus?: null | AlertStatus
 }
 
 export interface AlertMetricsOptions {
@@ -256,6 +263,7 @@ export interface SetScheduleShiftInput {
 }
 
 export interface Mutation {
+  linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
   setScheduleOnCallNotificationRules: boolean
