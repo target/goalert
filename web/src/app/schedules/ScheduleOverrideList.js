@@ -55,7 +55,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
   const subText = (n) => {
     const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
-    const tzAbbr = DateTime.local({ zone: zone }).toFormat('ZZZZ')
+    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
     const localTimeStr = formatOverrideTime(n.start, n.end, 'local')
     const localAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
@@ -130,7 +130,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
         })}
         variables={{
           input: {
-            scheduleID: scheduleID,
+            scheduleID,
             start: showPast ? null : now,
             filterAnyUserID: userFilter,
           },
