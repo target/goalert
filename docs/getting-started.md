@@ -99,13 +99,7 @@ goalert add-user --db-url $GOALERT_DB_URL --admin --user admin --email admin@exa
 
 ## Configuration
 
-Upon logging in to GoAlert as an admin, you should see a link to the **Admin** page on the left nav-bar.
-
-| Section | Value         | Description                                                                                                                                                                                                                                                                                     |
-| ------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| General | Public URL    | Set this to the full publicly-routable URL to GoAlert. This is used for callbacks and messages from various features (like voice calls).                                                                                                                                                        |
-| Auth    | Referer URLs  | By default GoAlert will only allow authentication from referers on the same host as the current request. You may manually set/restrict which hosts are allowed in environments where the UI is served by a different domain than the API or you wish to further restrict allowed referer hosts. |
-| Auth    | Disable Basic | This will disable basic authentication. Do not set this until you've validated you can login as an admin by other means (e.g. GitHub or OIDC auth)                                                                                                                                              |
+Upon logging in to GoAlert as an admin, you should see a link to the **Admin** page on the left nav-bar. The primary page in this section is Config and allows configuration of various providers and options.
 
 ### GitHub Authentication
 
@@ -157,6 +151,8 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 
 - Set `Override Name` to `Google` (not required).
 - Set `Issuer URL` to `https://accounts.google.com`
+
+**Note:** An application like [Dex](https://dexidp.io/) can be used to integrate with many other auth systems and provide an OIDC method for GoAlert.
 
 ### Mailgun
 
