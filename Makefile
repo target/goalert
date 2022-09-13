@@ -10,8 +10,7 @@ include Makefile.binaries.mk
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert
 INT_DB = goalert_integration
-INT_DB_URL = $(shell dirname "$(DB_URL)")/$(INT_DB)
-
+INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 
