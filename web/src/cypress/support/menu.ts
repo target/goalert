@@ -15,11 +15,7 @@ declare global {
   }
 }
 
-function menu(
-  sub: JQuery<HTMLElement>,
-  s: string,
-  options?: MenuSelectOptions,
-): Cypress.Chainable {
+function menu(sub: JQuery<HTMLElement>, s: string): Cypress.Chainable {
   return cy.get('[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
