@@ -28,13 +28,8 @@ function menu(
     cy.wrap(sub).click()
 
     // click menu item
-    if ((options && options.forceWidescreen) || format === 'wide') {
-      cy.get('ul[role=menu]').contains('li', s).click()
-      cy.get('ul[role=menu]').should('not.exist')
-    } else {
-      cy.get('ul[data-cy=mobile-actions]').contains('*[role=button]', s).click()
-      cy.get('ul[data-cy=mobile-actions]').should('not.exist')
-    }
+    cy.get('ul[role=menu]').contains('[role=menuitem]', s).click()
+    cy.get('ul[role=menu]').should('not.exist')
   })
 }
 
