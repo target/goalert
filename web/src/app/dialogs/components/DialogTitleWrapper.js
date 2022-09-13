@@ -88,7 +88,7 @@ function DialogTitleWrapper(props) {
                 data-cy='dialog-title'
                 color='inherit'
                 variant='h6'
-                component='h1'
+                component='h6'
               >
                 {title}
               </Typography>

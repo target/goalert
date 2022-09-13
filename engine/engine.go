@@ -515,7 +515,11 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	alertTicker := time.NewTicker(5 * time.Second)
+	dur := p.cfg.CycleTime
+	if dur == 0 {
+		dur = 5 * time.Second
+	}
+	alertTicker := time.NewTicker(dur)
 	defer alertTicker.Stop()
 
 	defer close(p.triggerCh)

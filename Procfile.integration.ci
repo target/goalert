@@ -1,0 +1,3 @@
+goalert: ./bin/goalert -l=localhost:6130 --public-url=http://localhost:6130 --engine-cycle-time=50ms
+
+smtp: go run github.com/mailhog/MailHog -ui-bind-addr=localhost:6125 -api-bind-addr=localhost:6125 -smtp-bind-addr=localhost:6105 | grep -v KEEPALIVE
