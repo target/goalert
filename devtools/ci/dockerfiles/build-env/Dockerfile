@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.18.2-bullseye
+FROM docker.io/library/golang:1.19.1-bullseye
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
@@ -7,10 +7,12 @@ RUN apt-get update && apt-get install -y \
     gnupg-agent \
     software-properties-common \
     build-essential \
-    nodejs npm \
     postgresql-13 postgresql-client-13 \
     dbus-x11 xvfb && \
     rm -rf /var/lib/apt/lists/*
+
+ADD https://nodejs.org/dist/v16.17.0/node-v16.17.0-linux-x64.tar.xz /tmp/node.tar.xz
+RUN tar -xvf /tmp/node.tar.xz -C /usr/local --strip-components=1 && rm /tmp/node.tar.xz
 
 # yarn
 RUN npm install -g yarn
