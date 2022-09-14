@@ -238,8 +238,8 @@ function createIntKey(
     .graphql(query, {
       input: {
         serviceID: svcID,
-        name: name,
-        type: type,
+        name,
+        type,
       },
     })
     .then((res: GraphQLResponse) => {
