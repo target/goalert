@@ -114,7 +114,7 @@ func (opts renderData) LabelKey() string {
 	searchStr := opts.Search
 	if strings.Contains(opts.Search, "token=") {
 		// strip token string
-		searchStr = opts.Search[42:]
+		searchStr = opts.Search[43:]
 	}
 	idx := strings.IndexByte(searchStr, '=')
 	if idx == -1 {
@@ -126,7 +126,7 @@ func (opts renderData) LabelValue() string {
 	searchStr := opts.Search
 	if strings.Contains(opts.Search, "token=") {
 		// strip token string
-		searchStr = opts.Search[42:]
+		searchStr = opts.Search[43:]
 	}
 	idx := strings.IndexByte(searchStr, '=')
 	if idx == -1 {
