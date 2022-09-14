@@ -281,7 +281,7 @@ function createHeartbeatMonitor(
     .graphql(query, {
       input: {
         serviceID: svcID,
-        name: name,
+        name,
         timeoutMinutes: timeout,
       },
     })

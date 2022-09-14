@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/engine/cleanupmanager"
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
@@ -153,6 +154,13 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	return p, nil
 }
 
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (url string, err error) {
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID, meta)
+	})
+	return url, err
+}
+
 func (p *Engine) processModule(ctx context.Context, m updater) {
 	defer recoverPanic(ctx, m.Name())
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -293,7 +301,9 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		return fmt.Errorf("failed to find user: %w", err)
 	}
 	if usr == nil {
-		return notification.ErrUnknownSubject
+		return &notification.UnknownSubjectError{
+			AlertID: cb.AlertID,
+		}
 	}
 
 	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
@@ -505,7 +515,11 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	alertTicker := time.NewTicker(5 * time.Second)
+	dur := p.cfg.CycleTime
+	if dur == 0 {
+		dur = 5 * time.Second
+	}
+	alertTicker := time.NewTicker(dur)
 	defer alertTicker.Stop()
 
 	defer close(p.triggerCh)

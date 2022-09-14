@@ -313,6 +313,12 @@ type LabelValueSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type LinkAccountInfo struct {
+	UserDetails    string       `json:"userDetails"`
+	AlertID        *int         `json:"alertID"`
+	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
+}
+
 type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status"`
