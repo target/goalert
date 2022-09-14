@@ -32,7 +32,7 @@ var intKeySearchTemplate = template.Must(template.New("integration-key-search").
 		AND not key.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND key.id = :search
+		AND (key.id::text ILIKE :search)
 	{{end}}
 	{{if .After}}
 		lower(key.name) > lower(:after)
@@ -60,10 +60,18 @@ func (opts intKeyRenderData) Normalize() (*intKeyRenderData, error) {
 	return &opts, err
 }
 
+func (opts intKeyRenderData) SearchStr() string {
+	if opts.Search == "" {
+		return ""
+	}
+
+	return search.Escape(opts.Search) + "%"
+}
+
 func (opts intKeyRenderData) QueryArgs() []sql.NamedArg {
 
 	return []sql.NamedArg{
-		sql.Named("search", opts.Search),
+		sql.Named("search", opts.SearchStr()),
 		sql.Named("after", opts.After),
 		sql.Named("omit", sqlutil.StringArray(opts.Omit)),
 	}
