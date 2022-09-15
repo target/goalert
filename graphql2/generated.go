@@ -176,22 +176,6 @@ type ComplexityRoot struct {
 		Type              func(childComplexity int) int
 	}
 
-	DebugMessage struct {
-		AlertID     func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		Destination func(childComplexity int) int
-		ID          func(childComplexity int) int
-		ProviderID  func(childComplexity int) int
-		ServiceID   func(childComplexity int) int
-		ServiceName func(childComplexity int) int
-		Source      func(childComplexity int) int
-		Status      func(childComplexity int) int
-		Type        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		UserID      func(childComplexity int) int
-		UserName    func(childComplexity int) int
-	}
-
 	DebugMessageStatusInfo struct {
 		State func(childComplexity int) int
 	}
@@ -258,6 +242,27 @@ type ComplexityRoot struct {
 		AlertID        func(childComplexity int) int
 		AlertNewStatus func(childComplexity int) int
 		UserDetails    func(childComplexity int) int
+	}
+
+	MessageLog struct {
+		AlertID     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Destination func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ProviderID  func(childComplexity int) int
+		ServiceID   func(childComplexity int) int
+		ServiceName func(childComplexity int) int
+		Source      func(childComplexity int) int
+		Status      func(childComplexity int) int
+		Type        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+		UserID      func(childComplexity int) int
+		UserName    func(childComplexity int) int
+	}
+
+	MessageLogConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -356,7 +361,6 @@ type ComplexityRoot struct {
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
 		DebugMessageStatus       func(childComplexity int, input DebugMessageStatusInput) int
-		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
 		GenerateSlackAppManifest func(childComplexity int) int
@@ -366,6 +370,8 @@ type ComplexityRoot struct {
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
 		LinkAccountInfo          func(childComplexity int, token string) int
+		MessageLog               func(childComplexity int, id *string) int
+		MessageLogs              func(childComplexity int, input *MessageLogSearchOptions) int
 		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
@@ -675,7 +681,8 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
-	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
+	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
+	MessageLog(ctx context.Context, id *string) (*MessageLog, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
@@ -1134,97 +1141,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugCarrierInfo.Type(childComplexity), true
 
-	case "DebugMessage.alertID":
-		if e.complexity.DebugMessage.AlertID == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.AlertID(childComplexity), true
-
-	case "DebugMessage.createdAt":
-		if e.complexity.DebugMessage.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.CreatedAt(childComplexity), true
-
-	case "DebugMessage.destination":
-		if e.complexity.DebugMessage.Destination == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.Destination(childComplexity), true
-
-	case "DebugMessage.id":
-		if e.complexity.DebugMessage.ID == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.ID(childComplexity), true
-
-	case "DebugMessage.providerID":
-		if e.complexity.DebugMessage.ProviderID == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.ProviderID(childComplexity), true
-
-	case "DebugMessage.serviceID":
-		if e.complexity.DebugMessage.ServiceID == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.ServiceID(childComplexity), true
-
-	case "DebugMessage.serviceName":
-		if e.complexity.DebugMessage.ServiceName == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.ServiceName(childComplexity), true
-
-	case "DebugMessage.source":
-		if e.complexity.DebugMessage.Source == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.Source(childComplexity), true
-
-	case "DebugMessage.status":
-		if e.complexity.DebugMessage.Status == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.Status(childComplexity), true
-
-	case "DebugMessage.type":
-		if e.complexity.DebugMessage.Type == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.Type(childComplexity), true
-
-	case "DebugMessage.updatedAt":
-		if e.complexity.DebugMessage.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.UpdatedAt(childComplexity), true
-
-	case "DebugMessage.userID":
-		if e.complexity.DebugMessage.UserID == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.UserID(childComplexity), true
-
-	case "DebugMessage.userName":
-		if e.complexity.DebugMessage.UserName == nil {
-			break
-		}
-
-		return e.complexity.DebugMessage.UserName(childComplexity), true
-
 	case "DebugMessageStatusInfo.state":
 		if e.complexity.DebugMessageStatusInfo.State == nil {
 			break
@@ -1490,6 +1406,111 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LinkAccountInfo.UserDetails(childComplexity), true
+
+	case "MessageLog.alertID":
+		if e.complexity.MessageLog.AlertID == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.AlertID(childComplexity), true
+
+	case "MessageLog.createdAt":
+		if e.complexity.MessageLog.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.CreatedAt(childComplexity), true
+
+	case "MessageLog.destination":
+		if e.complexity.MessageLog.Destination == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.Destination(childComplexity), true
+
+	case "MessageLog.id":
+		if e.complexity.MessageLog.ID == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.ID(childComplexity), true
+
+	case "MessageLog.providerID":
+		if e.complexity.MessageLog.ProviderID == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.ProviderID(childComplexity), true
+
+	case "MessageLog.serviceID":
+		if e.complexity.MessageLog.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.ServiceID(childComplexity), true
+
+	case "MessageLog.serviceName":
+		if e.complexity.MessageLog.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.ServiceName(childComplexity), true
+
+	case "MessageLog.source":
+		if e.complexity.MessageLog.Source == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.Source(childComplexity), true
+
+	case "MessageLog.status":
+		if e.complexity.MessageLog.Status == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.Status(childComplexity), true
+
+	case "MessageLog.type":
+		if e.complexity.MessageLog.Type == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.Type(childComplexity), true
+
+	case "MessageLog.updatedAt":
+		if e.complexity.MessageLog.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.UpdatedAt(childComplexity), true
+
+	case "MessageLog.userID":
+		if e.complexity.MessageLog.UserID == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.UserID(childComplexity), true
+
+	case "MessageLog.userName":
+		if e.complexity.MessageLog.UserName == nil {
+			break
+		}
+
+		return e.complexity.MessageLog.UserName(childComplexity), true
+
+	case "MessageLogConnection.nodes":
+		if e.complexity.MessageLogConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.Nodes(childComplexity), true
+
+	case "MessageLogConnection.pageInfo":
+		if e.complexity.MessageLogConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.PageInfo(childComplexity), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -2254,18 +2275,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.DebugMessageStatus(childComplexity, args["input"].(DebugMessageStatusInput)), true
 
-	case "Query.debugMessages":
-		if e.complexity.Query.DebugMessages == nil {
-			break
-		}
-
-		args, err := ec.field_Query_debugMessages_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.DebugMessages(childComplexity, args["input"].(*DebugMessagesInput)), true
-
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
 			break
@@ -2368,6 +2377,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LinkAccountInfo(childComplexity, args["token"].(string)), true
+
+	case "Query.messageLog":
+		if e.complexity.Query.MessageLog == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messageLog_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessageLog(childComplexity, args["id"].(*string)), true
+
+	case "Query.messageLogs":
+		if e.complexity.Query.MessageLogs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messageLogs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessageLogs(childComplexity, args["input"].(*MessageLogSearchOptions)), true
 
 	case "Query.phoneNumberInfo":
 		if e.complexity.Query.PhoneNumberInfo == nil {
@@ -3460,12 +3493,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateUserOverrideInput,
 		ec.unmarshalInputDebugCarrierInfoInput,
 		ec.unmarshalInputDebugMessageStatusInput,
-		ec.unmarshalInputDebugMessagesInput,
 		ec.unmarshalInputDebugSendSMSInput,
 		ec.unmarshalInputEscalationPolicySearchOptions,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
 		ec.unmarshalInputLabelValueSearchOptions,
+		ec.unmarshalInputMessageLogSearchOptions,
 		ec.unmarshalInputOnCallNotificationRuleInput,
 		ec.unmarshalInputRotationSearchOptions,
 		ec.unmarshalInputScheduleRuleInput,
@@ -4359,21 +4392,6 @@ func (ec *executionContext) field_Query_debugMessageStatus_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_debugMessages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *DebugMessagesInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalODebugMessagesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessagesInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_escalationPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4491,6 +4509,36 @@ func (ec *executionContext) field_Query_linkAccountInfo_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_messageLog_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_messageLogs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *MessageLogSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -7042,557 +7090,6 @@ func (ec *executionContext) fieldContext_DebugCarrierInfo_mobileCountryCode(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _DebugMessage_id(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_createdAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_updatedAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_updatedAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_type(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_status(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_status(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_userID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_userID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_userName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_userName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_userName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_source(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_source(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Source, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_destination(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_destination(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Destination, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_destination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_serviceID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_serviceID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ServiceID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_serviceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_serviceName(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_serviceName(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ServiceName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_alertID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_alertID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AlertID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_alertID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DebugMessage_providerID(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DebugMessage_providerID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProviderID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DebugMessage_providerID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DebugMessage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DebugMessageStatusInfo_state(ctx, field)
 	if err != nil {
@@ -9346,6 +8843,679 @@ func (ec *executionContext) fieldContext_LinkAccountInfo_alertNewStatus(ctx cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AlertStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_id(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_createdAt(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_updatedAt(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_type(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_status(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_userID(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_userName(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_userName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_userName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_source(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_source(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_source(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_destination(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_destination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_destination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_serviceID(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_serviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_serviceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_serviceName(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_alertID(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_alertID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AlertID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_alertID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLog_providerID(ctx context.Context, field graphql.CollectedField, obj *MessageLog) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLog_providerID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProviderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLog_providerID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLog",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]MessageLog)
+	fc.Result = res
+	return ec.marshalNMessageLog2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MessageLog_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_MessageLog_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_MessageLog_updatedAt(ctx, field)
+			case "type":
+				return ec.fieldContext_MessageLog_type(ctx, field)
+			case "status":
+				return ec.fieldContext_MessageLog_status(ctx, field)
+			case "userID":
+				return ec.fieldContext_MessageLog_userID(ctx, field)
+			case "userName":
+				return ec.fieldContext_MessageLog_userName(ctx, field)
+			case "source":
+				return ec.fieldContext_MessageLog_source(ctx, field)
+			case "destination":
+				return ec.fieldContext_MessageLog_destination(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_MessageLog_serviceID(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_MessageLog_serviceName(ctx, field)
+			case "alertID":
+				return ec.fieldContext_MessageLog_alertID(ctx, field)
+			case "providerID":
+				return ec.fieldContext_MessageLog_providerID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLog", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -13132,8 +13302,8 @@ func (ec *executionContext) fieldContext_Query_phoneNumberInfo(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_debugMessages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_debugMessages(ctx, field)
+func (ec *executionContext) _Query_messageLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_messageLogs(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -13146,7 +13316,7 @@ func (ec *executionContext) _Query_debugMessages(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DebugMessages(rctx, fc.Args["input"].(*DebugMessagesInput))
+		return ec.resolvers.Query().MessageLogs(rctx, fc.Args["input"].(*MessageLogSearchOptions))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13158,12 +13328,12 @@ func (ec *executionContext) _Query_debugMessages(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]DebugMessage)
+	res := resTmp.(*MessageLogConnection)
 	fc.Result = res
-	return ec.marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx, field.Selections, res)
+	return ec.marshalNMessageLogConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_messageLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -13171,34 +13341,12 @@ func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_DebugMessage_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_DebugMessage_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_DebugMessage_updatedAt(ctx, field)
-			case "type":
-				return ec.fieldContext_DebugMessage_type(ctx, field)
-			case "status":
-				return ec.fieldContext_DebugMessage_status(ctx, field)
-			case "userID":
-				return ec.fieldContext_DebugMessage_userID(ctx, field)
-			case "userName":
-				return ec.fieldContext_DebugMessage_userName(ctx, field)
-			case "source":
-				return ec.fieldContext_DebugMessage_source(ctx, field)
-			case "destination":
-				return ec.fieldContext_DebugMessage_destination(ctx, field)
-			case "serviceID":
-				return ec.fieldContext_DebugMessage_serviceID(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_DebugMessage_serviceName(ctx, field)
-			case "alertID":
-				return ec.fieldContext_DebugMessage_alertID(ctx, field)
-			case "providerID":
-				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "nodes":
+				return ec.fieldContext_MessageLogConnection_nodes(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -13208,7 +13356,87 @@ func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_debugMessages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_messageLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_messageLog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_messageLog(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MessageLog(rctx, fc.Args["id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*MessageLog)
+	fc.Result = res
+	return ec.marshalOMessageLog2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLog(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_messageLog(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MessageLog_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_MessageLog_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_MessageLog_updatedAt(ctx, field)
+			case "type":
+				return ec.fieldContext_MessageLog_type(ctx, field)
+			case "status":
+				return ec.fieldContext_MessageLog_status(ctx, field)
+			case "userID":
+				return ec.fieldContext_MessageLog_userID(ctx, field)
+			case "userName":
+				return ec.fieldContext_MessageLog_userName(ctx, field)
+			case "source":
+				return ec.fieldContext_MessageLog_source(ctx, field)
+			case "destination":
+				return ec.fieldContext_MessageLog_destination(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_MessageLog_serviceID(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_MessageLog_serviceName(ctx, field)
+			case "alertID":
+				return ec.fieldContext_MessageLog_alertID(ctx, field)
+			case "providerID":
+				return ec.fieldContext_MessageLog_providerID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLog", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_messageLog_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -24184,49 +24412,6 @@ func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDebugMessagesInput(ctx context.Context, obj interface{}) (DebugMessagesInput, error) {
-	var it DebugMessagesInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	if _, present := asMap["first"]; !present {
-		asMap["first"] = 15
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "first":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "createdBefore":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
-			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "createdAfter":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
-			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context, obj interface{}) (DebugSendSMSInput, error) {
 	var it DebugSendSMSInput
 	asMap := map[string]interface{}{}
@@ -24526,6 +24711,79 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
 			it.Omit, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMessageLogSearchOptions(ctx context.Context, obj interface{}) (MessageLogSearchOptions, error) {
+	var it MessageLogSearchOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 50
+	}
+	if _, present := asMap["after"]; !present {
+		asMap["after"] = ""
+	}
+	if _, present := asMap["search"]; !present {
+		asMap["search"] = ""
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
+			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdAfter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
+			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "search":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "omit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
+			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -26872,97 +27130,6 @@ func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var debugMessageImplementors = []string{"DebugMessage"}
-
-func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.SelectionSet, obj *DebugMessage) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, debugMessageImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("DebugMessage")
-		case "id":
-
-			out.Values[i] = ec._DebugMessage_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdAt":
-
-			out.Values[i] = ec._DebugMessage_createdAt(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedAt":
-
-			out.Values[i] = ec._DebugMessage_updatedAt(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "type":
-
-			out.Values[i] = ec._DebugMessage_type(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "status":
-
-			out.Values[i] = ec._DebugMessage_status(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "userID":
-
-			out.Values[i] = ec._DebugMessage_userID(ctx, field, obj)
-
-		case "userName":
-
-			out.Values[i] = ec._DebugMessage_userName(ctx, field, obj)
-
-		case "source":
-
-			out.Values[i] = ec._DebugMessage_source(ctx, field, obj)
-
-		case "destination":
-
-			out.Values[i] = ec._DebugMessage_destination(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "serviceID":
-
-			out.Values[i] = ec._DebugMessage_serviceID(ctx, field, obj)
-
-		case "serviceName":
-
-			out.Values[i] = ec._DebugMessage_serviceName(ctx, field, obj)
-
-		case "alertID":
-
-			out.Values[i] = ec._DebugMessage_alertID(ctx, field, obj)
-
-		case "providerID":
-
-			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var debugMessageStatusInfoImplementors = []string{"DebugMessageStatusInfo"}
 
 func (ec *executionContext) _DebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugMessageStatusInfo) graphql.Marshaler {
@@ -27546,6 +27713,132 @@ func (ec *executionContext) _LinkAccountInfo(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._LinkAccountInfo_alertNewStatus(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var messageLogImplementors = []string{"MessageLog"}
+
+func (ec *executionContext) _MessageLog(ctx context.Context, sel ast.SelectionSet, obj *MessageLog) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLog")
+		case "id":
+
+			out.Values[i] = ec._MessageLog_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+
+			out.Values[i] = ec._MessageLog_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedAt":
+
+			out.Values[i] = ec._MessageLog_updatedAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._MessageLog_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+
+			out.Values[i] = ec._MessageLog_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userID":
+
+			out.Values[i] = ec._MessageLog_userID(ctx, field, obj)
+
+		case "userName":
+
+			out.Values[i] = ec._MessageLog_userName(ctx, field, obj)
+
+		case "source":
+
+			out.Values[i] = ec._MessageLog_source(ctx, field, obj)
+
+		case "destination":
+
+			out.Values[i] = ec._MessageLog_destination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "serviceID":
+
+			out.Values[i] = ec._MessageLog_serviceID(ctx, field, obj)
+
+		case "serviceName":
+
+			out.Values[i] = ec._MessageLog_serviceName(ctx, field, obj)
+
+		case "alertID":
+
+			out.Values[i] = ec._MessageLog_alertID(ctx, field, obj)
+
+		case "providerID":
+
+			out.Values[i] = ec._MessageLog_providerID(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var messageLogConnectionImplementors = []string{"MessageLogConnection"}
+
+func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.SelectionSet, obj *MessageLogConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLogConnection")
+		case "nodes":
+
+			out.Values[i] = ec._MessageLogConnection_nodes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._MessageLogConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28275,7 +28568,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "debugMessages":
+		case "messageLogs":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -28284,10 +28577,30 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_debugMessages(ctx, field)
+				res = ec._Query_messageLogs(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "messageLog":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_messageLog(ctx, field)
 				return res
 			}
 
@@ -31720,54 +32033,6 @@ func (ec *executionContext) unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtarge
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx context.Context, sel ast.SelectionSet, v DebugMessage) graphql.Marshaler {
-	return ec._DebugMessage(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []DebugMessage) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDebugMessage2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessage(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNDebugMessageStatusInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageStatusInfo(ctx context.Context, sel ast.SelectionSet, v DebugMessageStatusInfo) graphql.Marshaler {
 	return ec._DebugMessageStatusInfo(ctx, sel, &v)
 }
@@ -32271,6 +32536,68 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 		return graphql.Null
 	}
 	return ec._LabelConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMessageLog2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLog(ctx context.Context, sel ast.SelectionSet, v MessageLog) graphql.Marshaler {
+	return ec._MessageLog(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMessageLog2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogᚄ(ctx context.Context, sel ast.SelectionSet, v []MessageLog) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMessageLog2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLog(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMessageLogConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v MessageLogConnection) graphql.Marshaler {
+	return ec._MessageLogConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMessageLogConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v *MessageLogConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageLogConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
@@ -34335,14 +34662,6 @@ func (ec *executionContext) unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalODebugMessagesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessagesInput(ctx context.Context, v interface{}) (*DebugMessagesInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputDebugMessagesInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInfo(ctx context.Context, sel ast.SelectionSet, v *DebugSendSMSInfo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -34559,6 +34878,21 @@ func (ec *executionContext) marshalOLinkAccountInfo2ᚖgithubᚗcomᚋtargetᚋg
 		return graphql.Null
 	}
 	return ec._LinkAccountInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOMessageLog2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLog(ctx context.Context, sel ast.SelectionSet, v *MessageLog) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MessageLog(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx context.Context, v interface{}) (*MessageLogSearchOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputMessageLogSearchOptions(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {

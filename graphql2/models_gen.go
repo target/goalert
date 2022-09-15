@@ -216,34 +216,12 @@ type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
 }
 
-type DebugMessage struct {
-	ID          string    `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Type        string    `json:"type"`
-	Status      string    `json:"status"`
-	UserID      *string   `json:"userID"`
-	UserName    *string   `json:"userName"`
-	Source      *string   `json:"source"`
-	Destination string    `json:"destination"`
-	ServiceID   *string   `json:"serviceID"`
-	ServiceName *string   `json:"serviceName"`
-	AlertID     *int      `json:"alertID"`
-	ProviderID  *string   `json:"providerID"`
-}
-
 type DebugMessageStatusInfo struct {
 	State *NotificationState `json:"state"`
 }
 
 type DebugMessageStatusInput struct {
 	ProviderMessageID string `json:"providerMessageID"`
-}
-
-type DebugMessagesInput struct {
-	First         *int       `json:"first"`
-	CreatedBefore *time.Time `json:"createdBefore"`
-	CreatedAfter  *time.Time `json:"createdAfter"`
 }
 
 type DebugSendSMSInfo struct {
@@ -304,6 +282,36 @@ type LinkAccountInfo struct {
 	UserDetails    string       `json:"userDetails"`
 	AlertID        *int         `json:"alertID"`
 	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
+}
+
+type MessageLog struct {
+	ID          string    `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Type        string    `json:"type"`
+	Status      string    `json:"status"`
+	UserID      *string   `json:"userID"`
+	UserName    *string   `json:"userName"`
+	Source      *string   `json:"source"`
+	Destination string    `json:"destination"`
+	ServiceID   *string   `json:"serviceID"`
+	ServiceName *string   `json:"serviceName"`
+	AlertID     *int      `json:"alertID"`
+	ProviderID  *string   `json:"providerID"`
+}
+
+type MessageLogConnection struct {
+	Nodes    []MessageLog `json:"nodes"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+}
+
+type MessageLogSearchOptions struct {
+	First         *int       `json:"first"`
+	After         *string    `json:"after"`
+	CreatedBefore *time.Time `json:"createdBefore"`
+	CreatedAfter  *time.Time `json:"createdAfter"`
+	Search        *string    `json:"search"`
+	Omit          []string   `json:"omit"`
 }
 
 type NotificationState struct {

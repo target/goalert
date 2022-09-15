@@ -28,6 +28,7 @@ const (
 
 	dataLoaderKeyAlert
 	dataLoaderKeyAlertState
+	dataLoaderKeyMessageLog
 	dataLoaderKeyEP
 	dataLoaderKeyRotation
 	dataLoaderKeySchedule
@@ -76,6 +77,15 @@ func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string)
 			return nil, err
 		}
 		return &ms[0], nil
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+func (app *App) FindOneMessageLog(ctx context.Context, id string) (*notification.MessageLog, error) {
+	loader, ok := ctx.Value(dataLoaderKeyMessageLog).(*dataloader.Loader[string, notification.MessageLog])
+	if !ok {
+		return app.NotificationStore.FindOneMessageLog(ctx, id)
 	}
 
 	return loader.FetchOne(ctx, id)

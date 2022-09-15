@@ -2,7 +2,8 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
-  debugMessages: DebugMessage[]
+  messageLogs: MessageLogConnection
+  messageLog?: null | MessageLog
   user?: null | User
   users: UserConnection
   alert?: null | Alert
@@ -53,13 +54,7 @@ export interface AlertDataPoint {
   alertCount: number
 }
 
-export interface DebugMessagesInput {
-  first?: null | number
-  createdBefore?: null | ISOTimestamp
-  createdAfter?: null | ISOTimestamp
-}
-
-export interface DebugMessage {
+export interface MessageLog {
   id: string
   createdAt: ISOTimestamp
   updatedAt: ISOTimestamp
@@ -73,6 +68,20 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+}
+
+export interface MessageLogSearchOptions {
+  first?: null | number
+  after?: null | string
+  createdBefore?: null | ISOTimestamp
+  createdAfter?: null | ISOTimestamp
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface MessageLogConnection {
+  nodes: MessageLog[]
+  pageInfo: PageInfo
 }
 
 export interface SlackChannelSearchOptions {

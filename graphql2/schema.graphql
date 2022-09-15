@@ -2,7 +2,8 @@ type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
   # Returns the list of recent messages.
-  debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+  messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
+  messageLog(id: ID): MessageLog
 
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
@@ -130,13 +131,7 @@ type AlertDataPoint {
   alertCount: Int!
 }
 
-input DebugMessagesInput {
-  first: Int = 15
-  createdBefore: ISOTimestamp
-  createdAfter: ISOTimestamp
-}
-
-type DebugMessage {
+type MessageLog {
   id: ID!
   createdAt: ISOTimestamp!
   updatedAt: ISOTimestamp!
@@ -150,6 +145,20 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+}
+
+input MessageLogSearchOptions {
+  first: Int = 50
+  after: String = ""
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
+  search: String = ""
+  omit: [ID!]
+}
+
+type MessageLogConnection {
+  nodes: [MessageLog!]!
+  pageInfo: PageInfo!
 }
 
 input SlackChannelSearchOptions {
