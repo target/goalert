@@ -34,6 +34,13 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
+  linkAccountInfo?: null | LinkAccountInfo
+}
+
+export interface LinkAccountInfo {
+  userDetails: string
+  alertID?: null | number
+  alertNewStatus?: null | AlertStatus
 }
 
 export interface AlertMetricsOptions {
@@ -103,6 +110,7 @@ export interface ConfigValue {
   value: string
   type: ConfigType
   password: boolean
+  deprecated: string
 }
 
 export interface ConfigHint {
@@ -255,6 +263,7 @@ export interface SetScheduleShiftInput {
 }
 
 export interface Mutation {
+  linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
   setScheduleOnCallNotificationRules: boolean
@@ -459,6 +468,7 @@ export interface UpdateServiceInput {
   name?: null | string
   description?: null | string
   escalationPolicyID?: null | string
+  maintenanceExpiresAt?: null | ISOTimestamp
 }
 
 export interface UpdateEscalationPolicyInput {
@@ -756,6 +766,7 @@ export interface Service {
   escalationPolicyID: string
   escalationPolicy?: null | EscalationPolicy
   isFavorite: boolean
+  maintenanceExpiresAt?: null | ISOTimestamp
   onCallUsers: ServiceOnCallUser[]
   integrationKeys: IntegrationKey[]
   labels: Label[]
@@ -837,7 +848,7 @@ export type AlertStatus =
 export interface Target {
   id: string
   type: TargetType
-  name?: null | string
+  name: string
 }
 
 export interface TargetInput {
@@ -1029,6 +1040,7 @@ type ConfigID =
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
+  | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'

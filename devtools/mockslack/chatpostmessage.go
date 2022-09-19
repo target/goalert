@@ -124,6 +124,7 @@ type Action struct {
 	ActionID string
 	Text     string
 	Value    string
+	URL      string
 }
 
 // parseAttachments parses the attachments from the payload value.
@@ -174,6 +175,7 @@ func parseAttachments(appID, teamID, chanID, value string) (*attachments, error)
 				Text     textBlock
 				ActionID string `json:"action_id"`
 				Value    string
+				URL      string
 			}
 			err = json.Unmarshal(b.Elements, &acts)
 			if err != nil {
@@ -189,6 +191,7 @@ func parseAttachments(appID, teamID, chanID, value string) (*attachments, error)
 					ActionID:  a.ActionID,
 					Text:      a.Text.Text,
 					Value:     a.Value,
+					URL:       a.URL,
 				})
 			}
 		default:

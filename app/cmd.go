@@ -263,7 +263,7 @@ Migration: %s (#%d)
 
 				ctx := cmd.Context()
 
-				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "")
+				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "", "")
 				if err != nil {
 					return fmt.Errorf("read config: %w", err)
 				}
@@ -623,6 +623,8 @@ func getConfig(ctx context.Context) (Config, error) {
 		DBMaxOpen: viper.GetInt("db-max-open"),
 		DBMaxIdle: viper.GetInt("db-max-idle"),
 
+		PublicURL: viper.GetString("public-url"),
+
 		MaxReqBodyBytes:   viper.GetInt64("max-request-body-bytes"),
 		MaxReqHeaderBytes: viper.GetInt("max-request-header-bytes"),
 
@@ -636,6 +638,8 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPICertFile:   viper.GetString("sysapi-cert-file"),
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
+
+		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
 
 		HTTPPrefix: viper.GetString("http-prefix"),
 
@@ -655,6 +659,17 @@ func getConfig(ctx context.Context) (Config, error) {
 		StubNotifiers: viper.GetBool("stub-notifiers"),
 
 		UIDir: viper.GetString("ui-dir"),
+	}
+
+	if cfg.PublicURL != "" {
+		u, err := url.Parse(cfg.PublicURL)
+		if err != nil {
+			return cfg, errors.Wrap(err, "parse public url")
+		}
+		if cfg.HTTPPrefix != "" {
+			return cfg, errors.New("public-url and http-prefix cannot be used together")
+		}
+		cfg.HTTPPrefix = u.Path
 	}
 
 	if cfg.DBURL == "" {
@@ -685,6 +700,8 @@ func init() {
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-ca-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.")
 
+	RootCmd.Flags().String("public-url", "", "Externally routable URL to the application. Used for validating callback requests, links, auth, and prefix calculation.")
+
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
@@ -692,7 +709,10 @@ func init() {
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
 
+	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
+
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
+	RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
 
 	RootCmd.Flags().Bool("api-only", def.APIOnly, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 

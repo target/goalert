@@ -25,6 +25,9 @@ func (m *Mutation) UpdateUserOverride(ctx context.Context, input graphql2.Update
 		if err != nil {
 			return err
 		}
+		if u == nil {
+			return validation.NewFieldError("ID", "user override not found")
+		}
 
 		if input.Start != nil {
 			u.Start = *input.Start
@@ -72,18 +75,21 @@ func (m *Mutation) CreateUserOverride(ctx context.Context, input graphql2.Create
 	}
 	return u, nil
 }
+
 func (u *UserOverride) AddUser(ctx context.Context, raw *override.UserOverride) (*user.User, error) {
 	if raw.AddUserID == "" {
 		return nil, nil
 	}
 	return (*App)(u).FindOneUser(ctx, raw.AddUserID)
 }
+
 func (u *UserOverride) RemoveUser(ctx context.Context, raw *override.UserOverride) (*user.User, error) {
 	if raw.RemoveUserID == "" {
 		return nil, nil
 	}
 	return (*App)(u).FindOneUser(ctx, raw.RemoveUserID)
 }
+
 func (u *UserOverride) Target(ctx context.Context, raw *override.UserOverride) (*assignment.RawTarget, error) {
 	tgt := assignment.NewRawTarget(raw.Target)
 	return &tgt, nil

@@ -186,7 +186,7 @@ THE SOFTWARE
 
     // act upon a changed url of certain content type
     refreshResource: function (url, type) {
-      switch (type.toLowerCase()) {
+      switch ((type || '').toLowerCase()) {
         // css files can be reloaded dynamically by replacing the link element
         case 'text/css':
           var link = currentLinkElements[url],

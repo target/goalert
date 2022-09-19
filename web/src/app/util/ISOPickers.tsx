@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
 import { TextField, TextFieldProps } from '@mui/material'
 import DatePicker from '@mui/lab/DatePicker'
@@ -49,13 +49,20 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   } = props
 
   const native = hasInputSupport(type)
-  const zone = timeZone || 'local'
-  const valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+  const [_zone] = useURLParam('tz', 'local')
+  const zone = timeZone || _zone
+  let valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
     valueAsDT ? valueAsDT.toFormat(format) : '',
   )
+
+  // update isopickers render on reset
+  useEffect(() => {
+    valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+    setInputValue(valueAsDT ? valueAsDT.toFormat(format) : '')
+  }, [props.value])
 
   const dtToISO = (dt: DateTime): string => {
     return dt.startOf(truncateTo).setZone(zone).toISO()

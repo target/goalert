@@ -99,6 +99,25 @@ function testRotations(): void {
         .should('contain', rot.users[1].name)
     })
 
+    it('should display users with the same name correctly when selecting users to add', () => {
+      const name = 'John Smith'
+      const email = 'johnSmith@test.com'
+      const dupEmail = 'johnSmith2@test.com'
+      cy.createUser({ name, email })
+      cy.createUser({ name, email: dupEmail })
+
+      cy.pageFab()
+      cy.dialogTitle('Add User')
+      cy.get('input').click().type(name)
+
+      cy.get('body').should('contain', email)
+      cy.get('body').should('contain', dupEmail)
+
+      cy.get('p').contains(email).click()
+      cy.dialogFinish('Submit')
+      cy.get('ul[data-cy=users]').find('li').should('contain', name)
+    })
+
     it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
@@ -178,6 +197,7 @@ function testRotations(): void {
           const newName = c.word({ length: 15 })
           const newDesc = c.sentence({ words: 3 })
           const newTz = 'Africa/Accra'
+          const invalidName = 'a'
 
           cy.visit(`/rotations/${r.id}`)
           cy.get('[data-cy="card-actions"]')
@@ -185,6 +205,13 @@ function testRotations(): void {
             .click()
 
           cy.dialogTitle('Edit Rotation')
+
+          cy.dialogForm({
+            name: invalidName,
+          })
+          cy.dialogClick('Submit')
+          cy.get('body').should('contain', 'Must be at least 2 characters')
+
           cy.dialogForm({
             name: newName,
             description: newDesc,
@@ -192,7 +219,7 @@ function testRotations(): void {
             type: 'Weekly',
             shiftLength: '5',
           })
-          cy.dialogFinish('Submit')
+          cy.dialogFinish('Retry')
 
           cy.get('body')
             .should('contain', newName)

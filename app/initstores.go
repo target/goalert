@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -45,7 +46,7 @@ func (app *App) initStores(ctx context.Context) error {
 		fallback.Scheme = "http"
 		fallback.Host = app.l.Addr().String()
 		fallback.Path = app.cfg.HTTPPrefix
-		app.ConfigStore, err = config.NewStore(ctx, app.db, app.cfg.EncryptionKeys, fallback.String())
+		app.ConfigStore, err = config.NewStore(ctx, app.db, app.cfg.EncryptionKeys, app.cfg.PublicURL, fallback.String())
 	}
 	if err != nil {
 		return errors.Wrap(err, "init config store")
@@ -78,6 +79,18 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init oauth state keyring")
 	}
 
+	if app.AuthLinkKeyring == nil {
+		app.AuthLinkKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
+			Name:         "auth-link",
+			RotationDays: 1,
+			MaxOldKeys:   1,
+			Keys:         app.cfg.EncryptionKeys,
+		})
+	}
+	if err != nil {
+		return errors.Wrap(err, "init oauth state keyring")
+	}
+
 	if app.SessionKeyring == nil {
 		app.SessionKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
 			Name:         "browser-sessions",
@@ -101,8 +114,18 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init API keyring")
 	}
 
+	if app.AuthLinkStore == nil {
+		app.AuthLinkStore, err = authlink.NewStore(ctx, app.db, app.AuthLinkKeyring)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init auth link store")
+	}
+
 	if app.AlertMetricsStore == nil {
 		app.AlertMetricsStore, err = alertmetrics.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init alert metrics store")
 	}
 
 	if app.AlertLogStore == nil {

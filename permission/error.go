@@ -32,6 +32,11 @@ func NewAccessDenied(reason string) error {
 	return newGeneric(false, reason)
 }
 
+// Unauthorized will return an unauthorized error.
+func Unauthorized() error {
+	return newGeneric(true, "")
+}
+
 func (e genericError) ClientError() bool { return true }
 
 func (e genericError) Permission() bool   { return true }

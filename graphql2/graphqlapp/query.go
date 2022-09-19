@@ -28,6 +28,34 @@ type (
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
+func (a *Query) LinkAccountInfo(ctx context.Context, token string) (*graphql2.LinkAccountInfo, error) {
+	m, err := a.AuthLinkStore.FindLinkMetadata(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return nil, nil
+	}
+
+	info := &graphql2.LinkAccountInfo{
+		UserDetails: m.UserDetails,
+	}
+	if m.AlertID > 0 {
+		info.AlertID = &m.AlertID
+	}
+	var s graphql2.AlertStatus
+	switch m.AlertAction {
+	case notification.ResultAcknowledge.String():
+		s = graphql2.AlertStatusStatusAcknowledged
+		info.AlertNewStatus = &s
+	case notification.ResultResolve.String():
+		s = graphql2.AlertStatusStatusClosed
+		info.AlertNewStatus = &s
+	}
+
+	return info, nil
+}
+
 func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", nil
