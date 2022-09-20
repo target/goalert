@@ -1,5 +1,5 @@
 .PHONY:{{range $.Builds}} $(BIN_DIR)/{{.Name}}/_all{{end}}
-.PHONY:{{range $.ContainerArch}} container-goalert-{{.}} container-demo-{{.}}{{end}} container-goalert container-demo
+.PHONY:{{range $.ContainerArch}} container-goalert-{{.}} container-demo-{{.}}{{end}} container-goalert container-demo container-goalert-manifest container-demo-manifest
 
 BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
@@ -30,22 +30,30 @@ IMAGE_TAG=$(GIT_VERSION)
 CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 PUSH:=0
 
+container-goalert-manifest:
+	podman manifest rm $(IMAGE_REPO)/goalert:$(IMAGE_TAG) &>/dev/null || true
+	podman manifest create $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+
+container-demo-manifest:
+	podman manifest rm $(IMAGE_REPO)/demo:$(IMAGE_TAG) &>/dev/null || true
+	podman manifest create $(IMAGE_REPO)/demo:$(IMAGE_TAG)
+
 {{range $.ContainerArch}}
-container-demo-{{.}}: bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
-	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
-	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-ifeq ($(PUSH),1)
-	$(CONTAINER_TOOL) push $(IMAGE_REPO)/demo:$(IMAGE_TAG)
-endif
-container-goalert-{{.}}: bin/goalert-linux-{{.}}.tgz
-	$(CONTAINER_TOOL) pull --platform=linux/{{.}} docker.io/library/alpine:3.14
-	$(CONTAINER_TOOL) build --build-arg ARCH={{.}} --platform=linux/{{.}} -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-ifeq ($(PUSH),1)
-	$(CONTAINER_TOOL) push $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
-endif
+container-demo-{{.}}: container-demo-manifest bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
+	podman pull --platform=linux/{{.}} docker.io/library/alpine:3.14
+	podman build --format docker --build-arg ARCH={{.}} --platform=linux/{{.}} --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
+container-goalert-{{.}}: container-goalert-manifest bin/goalert-linux-{{.}}.tgz
+	podman pull --platform=linux/{{.}} docker.io/library/alpine:3.14
+	podman build --format docker --build-arg ARCH={{.}} --platform=linux/{{.}} --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
 {{end}}
 container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
+ifeq ($(PUSH),1)
+	podman manifest push --all $(IMAGE_REPO)/demo:$(IMAGE_TAG) docker://$(IMAGE_REPO)/demo:$(IMAGE_TAG)
+endif
 container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
+ifeq ($(PUSH),1)
+	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+endif
 
 $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 	cp web/src/cypress.json $@
