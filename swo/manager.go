@@ -133,7 +133,7 @@ func NewManager(cfg Config) (*Manager, error) {
 	return m, nil
 }
 
-func (m *Manager) Init(app lifecycle.PauseResumer) {
+func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) {
 	if m.pauseResume != nil {
 		panic("already set")
 	}

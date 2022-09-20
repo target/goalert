@@ -82,7 +82,7 @@ func (app *App) startup(ctx context.Context) error {
 	}
 
 	if app.cfg.SWO != nil {
-		app.cfg.SWO.Init(app)
+		app.cfg.SWO.SetPauseResumer(app)
 		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
 	}
 
