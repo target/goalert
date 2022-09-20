@@ -33,7 +33,7 @@ export function Form(props) {
       <FormContext.Provider
         value={{
           disabled,
-          addSubmitCheck: addSubmitCheck,
+          addSubmitCheck,
         }}
       >
         {props.children}

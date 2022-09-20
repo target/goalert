@@ -110,6 +110,8 @@ type Query {
 
   generateSlackAppManifest: String!
 
+  linkAccountInfo(token: ID!): LinkAccountInfo
+
   swoStatus: SWOStatus!
 }
 
@@ -151,6 +153,12 @@ type SWOConnection {
   type: String!
   isNext: Boolean!
   count: Int!
+}
+
+type LinkAccountInfo {
+  userDetails: String!
+  alertID: Int
+  alertNewStatus: AlertStatus
 }
 
 input AlertMetricsOptions {
@@ -389,6 +397,7 @@ enum SWOAction {
 
 type Mutation {
   swoAction(action: SWOAction!): Boolean!
+  linkAccount(token: ID!): Boolean!
 
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
@@ -1111,7 +1120,7 @@ enum AlertStatus {
 type Target {
   id: ID!
   type: TargetType!
-  name: String
+  name: String!
 }
 
 input TargetInput {

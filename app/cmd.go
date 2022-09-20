@@ -598,6 +598,8 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
+		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
+
 		HTTPPrefix: viper.GetString("http-prefix"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
@@ -665,6 +667,8 @@ func init() {
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
+
+	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
 	RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")

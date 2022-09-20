@@ -544,7 +544,7 @@ func (db *DB) VerifyJWT(s string, c jwt.Claims) (bool, error) {
 		return false, err
 	}
 
-	return currentKey, nil
+	return currentKey, c.Valid()
 }
 
 // Verify will validate the signature and metadata, and optionally length, of a message.

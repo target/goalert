@@ -42,7 +42,7 @@ function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<boolean> {
     setSystemLimits(input: $input)
   }`
 
-  return cy.graphql(query, { input: input }).then((res) => res.setSystemLimits)
+  return cy.graphql(query, { input }).then((res) => res.setSystemLimits)
 }
 
 Cypress.Commands.add('getLimits', getLimits)

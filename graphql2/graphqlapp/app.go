@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
@@ -75,9 +76,11 @@ type App struct {
 	LimitStore        *limit.Store
 	SlackStore        *slack.ChannelSender
 	HeartbeatStore    *heartbeat.Store
-	NoticeStore       notice.Store
+	NoticeStore       *notice.Store
 
-	NotificationManager notification.Manager
+	AuthLinkStore *authlink.Store
+
+	NotificationManager *notification.Manager
 
 	AuthHandler *auth.Handler
 

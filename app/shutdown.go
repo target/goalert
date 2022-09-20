@@ -69,6 +69,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.SessionKeyring, "session keyring")
 	shut(app.OAuthKeyring, "oauth keyring")
 	shut(app.APIKeyring, "API keyring")
+	shut(app.AuthLinkKeyring, "auth link keyring")
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
 

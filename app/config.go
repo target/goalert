@@ -49,6 +49,8 @@ type Config struct {
 	KubernetesCooldown time.Duration
 	StatusAddr         string
 
+	EngineCycleTime time.Duration
+
 	EncryptionKeys keyring.Keys
 
 	RegionName string
