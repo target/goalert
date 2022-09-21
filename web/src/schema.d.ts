@@ -3,7 +3,6 @@
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
   messageLogs: MessageLogConnection
-  messageLog?: null | MessageLog
   user?: null | User
   users: UserConnection
   alert?: null | Alert
@@ -54,7 +53,7 @@ export interface AlertDataPoint {
   alertCount: number
 }
 
-export interface MessageLog {
+export interface DebugMessage {
   id: string
   createdAt: ISOTimestamp
   updatedAt: ISOTimestamp
@@ -80,7 +79,7 @@ export interface MessageLogSearchOptions {
 }
 
 export interface MessageLogConnection {
-  nodes: MessageLog[]
+  nodes: DebugMessage[]
   pageInfo: PageInfo
 }
 

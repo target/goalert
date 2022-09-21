@@ -82,15 +82,6 @@ func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string)
 	return loader.FetchOne(ctx, id)
 }
 
-func (app *App) FindOneMessageLog(ctx context.Context, id string) (*notification.MessageLog, error) {
-	loader, ok := ctx.Value(dataLoaderKeyMessageLog).(*dataloader.Loader[string, notification.MessageLog])
-	if !ok {
-		return app.NotificationStore.FindOneMessageLog(ctx, id)
-	}
-
-	return loader.FetchOne(ctx, id)
-}
-
 func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotation, error) {
 	loader, ok := ctx.Value(dataLoaderKeyRotation).(*dataloader.Loader[string, rotation.Rotation])
 	if !ok {

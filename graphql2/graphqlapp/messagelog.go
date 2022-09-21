@@ -14,10 +14,6 @@ import (
 
 type MessageLog App
 
-func (q *Query) MessageLog(ctx context.Context, id string) (*notification.MessageLog, error) {
-	return (*App)(q).FindOneMessageLog(ctx, id)
-}
-
 func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	if id == "" {
 		return "", nil
@@ -42,13 +38,13 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
 }
 
-func (a *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
+func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
 	if !dst.Type.IsUserCM() {
-		return (*App)(a).formatNC(ctx, dst.ID)
+		return (*App)(q).formatNC(ctx, dst.ID)
 	}
 
 	var str strings.Builder
-	str.WriteString((*App)(a).FormatDestFunc(ctx, dst.Type, dst.Value))
+	str.WriteString((*App)(q).FormatDestFunc(ctx, dst.Type, dst.Value))
 	switch dst.Type {
 	case notification.DestTypeSMS:
 		str.WriteString(" (SMS)")
@@ -140,112 +136,39 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		conn.PageInfo.EndCursor = &cur
 	}
 
-	conn.Nodes = logs
+	// map to struct here (for loop/append)
+
+	var logsMapped []graphql2.DebugMessage
+	for _, log := range logs {
+		dst := notification.DestFromPair(&log.ContactMethod, &log.Channel)
+		destStr, err := q.formatDest(ctx, dst)
+		if err != nil {
+			return nil, fmt.Errorf("format dest: %w", err)
+		}
+
+		var x = graphql2.DebugMessage{
+			ID:          log.ID,
+			CreatedAt:   log.CreatedAt,
+			UpdatedAt:   log.LastStatusAt,
+			Type:        strings.TrimPrefix(log.MessageType.String(), "MessageType"),
+			Status:      msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
+			UserID:      &log.User.ID,
+			UserName:    &log.User.Name,
+			Destination: destStr,
+			ServiceID:   &log.Service.ID,
+			ServiceName: &log.Service.Name,
+			AlertID:     &log.AlertID,
+			ProviderID:  &log.ProviderMsgID.ExternalID,
+		}
+		if log.SrcValue != "" && &log.ContactMethod != nil {
+			src, err := q.formatDest(ctx, notification.Dest{Type: dst.Type, Value: log.SrcValue})
+			if err != nil {
+				return nil, fmt.Errorf("format src: %w", err)
+			}
+			x.Source = &src
+		}
+	}
+
+	conn.Nodes = logsMapped
 	return conn, nil
 }
-
-// func (a *Query) DebugMessages(ctx context.Context, input *graphql2.DebugMessagesInput) ([]graphql2.DebugMessage, error) {
-// 	err := permission.LimitCheckAny(ctx, permission.Admin)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var msgs []*struct {
-// 		ID           string
-// 		CreatedAt    time.Time
-// 		LastStatusAt time.Time
-// 		MessageType  notification.MessageType
-
-// 		LastStatus    notification.State
-// 		StatusDetails string
-// 		SrcValue      string
-
-// 		UserID string
-// 		User   *user.User `gorm:"foreignkey:ID;references:UserID"`
-
-// 		ContactMethodID string
-// 		ContactMethod   *contactmethod.ContactMethod `gorm:"foreignKey:ID;references:ContactMethodID"`
-
-// 		ChannelID string
-// 		Channel   *notificationchannel.Channel `gorm:"foreignKey:ID;references:ChannelID"`
-
-// 		ServiceID string
-// 		Service   *service.Service `gorm:"foreignKey:ID;references:ServiceID"`
-
-// 		AlertID       int
-// 		ProviderMsgID *notification.ProviderMessageID
-// 	}
-
-// 	db := sqlutil.FromContext(ctx).Table("outgoing_messages")
-
-// 	if input.CreatedAfter != nil {
-// 		db = db.Where("created_at >= ?", *input.CreatedAfter)
-// 	}
-// 	if input.CreatedBefore != nil {
-// 		db = db.Where("created_at < ?", *input.CreatedBefore)
-// 	}
-// 	if input.First != nil {
-// 		err = validate.Range("first", *input.First, 0, 1000)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		db = db.Limit(*input.First)
-// 	} else {
-// 		db = db.Limit(search.DefaultMaxResults)
-// 	}
-
-// 	err = db.
-// 		Preload("User", sqlutil.Columns("ID", "Name")).
-// 		Preload("Service", sqlutil.Columns("ID", "Name")).
-// 		Preload("Channel", sqlutil.Columns("ID", "Type", "Value")).
-// 		Preload("ContactMethod", sqlutil.Columns("ID", "Type", "Value")).
-// 		Order("created_at DESC").
-// 		Find(&msgs).Error
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var res []graphql2.DebugMessage
-// 	for _, m := range msgs {
-// 		dst := notification.DestFromPair(m.ContactMethod, m.Channel)
-// 		destStr, err := a.formatDest(ctx, dst)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("format dest: %w", err)
-// 		}
-
-// 		msg := graphql2.DebugMessage{
-// 			ID:          m.ID,
-// 			CreatedAt:   m.CreatedAt,
-// 			UpdatedAt:   m.LastStatusAt,
-// 			Type:        strings.TrimPrefix(m.MessageType.String(), "MessageType"),
-// 			Status:      msgStatus(notification.Status{State: m.LastStatus, Details: m.StatusDetails}),
-// 			Destination: destStr,
-// 		}
-// 		if m.User != nil {
-// 			msg.UserID = &m.User.ID
-// 			msg.UserName = &m.User.Name
-// 		}
-
-// 		if m.SrcValue != "" && m.ContactMethod != nil {
-// 			src, err := a.formatDest(ctx, notification.Dest{Type: dst.Type, Value: m.SrcValue})
-// 			if err != nil {
-// 				return nil, fmt.Errorf("format src: %w", err)
-// 			}
-// 			msg.Source = &src
-// 		}
-// 		if m.Service != nil {
-// 			msg.ServiceID = &m.Service.ID
-// 			msg.ServiceName = &m.Service.Name
-// 		}
-// 		if m.AlertID != 0 {
-// 			msg.AlertID = &m.AlertID
-// 		}
-// 		if m.ProviderMsgID != nil {
-// 			msg.ProviderID = &m.ProviderMsgID.ExternalID
-// 		}
-
-// 		res = append(res, msg)
-// 	}
-
-// 	return res, nil
-// }

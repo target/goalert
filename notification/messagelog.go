@@ -2,6 +2,11 @@ package notification
 
 import (
 	"time"
+
+	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/service"
+	"github.com/target/goalert/user"
+	"github.com/target/goalert/user/contactmethod"
 )
 
 type MessageLog struct {
@@ -17,8 +22,8 @@ type MessageLog struct {
 	AlertID       int
 	ProviderMsgID *ProviderMessageID
 
-	UserID          string // might need to join user details
-	ContactMethodID string // might need to join CM details
-	ChannelID       string // might need to join channel details
-	ServiceID       string // might need to join service details
+	User          user.User
+	ContactMethod contactmethod.ContactMethod
+	Channel       notificationchannel.Channel
+	Service       service.Service
 }
