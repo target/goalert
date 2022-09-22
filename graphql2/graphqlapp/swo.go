@@ -39,8 +39,8 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 
 var swoRx = regexp.MustCompile(`^GoAlert ([^ ]+)(?: SWO:([A-D]):(.{24}))?$`)
 
-func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
-	if a.SWO == nil {
+func (q *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
+	if q.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")
 	}
 
@@ -49,7 +49,7 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		return nil, err
 	}
 
-	conns, err := a.SWO.ConnInfo(ctx)
+	conns, err := q.SWO.ConnInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (a *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		})
 	}
 
-	s := a.SWO.Status()
+	s := q.SWO.Status()
 validateNodes:
 	for _, node := range s.Nodes {
 		n := nodes[node.ID.String()]
