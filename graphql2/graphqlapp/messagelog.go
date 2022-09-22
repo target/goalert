@@ -109,23 +109,23 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		searchOpts.Limit = *opts.First
 	}
 	if searchOpts.Limit == 0 {
-		searchOpts.Limit = 50 // default limit if unset
+		searchOpts.Limit = 50
 	}
 
-	searchOpts.Limit++
 	logs, err := q.NotificationStore.Search(ctx, &searchOpts)
 	if err != nil {
 		return nil, err
 	}
+
 	conn = new(graphql2.MessageLogConnection)
 	conn.PageInfo = &graphql2.PageInfo{}
 
 	// more than current limit exists, set page info and cursor
-	if len(logs) == searchOpts.Limit {
+	if len(logs) == (searchOpts.Limit + 1) {
 		logs = logs[:len(logs)-1]
 		conn.PageInfo.HasNextPage = true
 	}
-	if len(logs) > 0 {
+	if len(logs) > 0 && conn.PageInfo.HasNextPage {
 		last := logs[len(logs)-1]
 		searchOpts.After.SrcValue = last.SrcValue
 
@@ -136,17 +136,15 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		conn.PageInfo.EndCursor = &cur
 	}
 
-	// map to struct here (for loop/append)
-
 	var logsMapped []graphql2.DebugMessage
 	for _, log := range logs {
-		dst := notification.DestFromPair(&log.ContactMethod, &log.Channel)
-		destStr, err := q.formatDest(ctx, dst)
-		if err != nil {
-			return nil, fmt.Errorf("format dest: %w", err)
-		}
+		// dst := notification.DestFromPair(&log.ContactMethod, &log.Channel)
+		// destStr, err := q.formatDest(ctx, dst)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("format dest: %w", err)
+		// }
 
-		var x = graphql2.DebugMessage{
+		var dm = graphql2.DebugMessage{
 			ID:          log.ID,
 			CreatedAt:   log.CreatedAt,
 			UpdatedAt:   log.LastStatusAt,
@@ -154,19 +152,20 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			Status:      msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
 			UserID:      &log.User.ID,
 			UserName:    &log.User.Name,
-			Destination: destStr,
+			Destination: "test",
 			ServiceID:   &log.Service.ID,
 			ServiceName: &log.Service.Name,
 			AlertID:     &log.AlertID,
 			ProviderID:  &log.ProviderMsgID.ExternalID,
 		}
-		if log.SrcValue != "" && &log.ContactMethod != nil {
-			src, err := q.formatDest(ctx, notification.Dest{Type: dst.Type, Value: log.SrcValue})
+		if log.SrcValue != "" && log.ContactMethod.ID != "" {
+			src, err := q.formatDest(ctx, notification.Dest{Type: notification.DestTypeSMS, Value: log.SrcValue})
 			if err != nil {
 				return nil, fmt.Errorf("format src: %w", err)
 			}
-			x.Source = &src
+			dm.Source = &src
 		}
+		logsMapped = append(logsMapped, dm)
 	}
 
 	conn.Nodes = logsMapped
