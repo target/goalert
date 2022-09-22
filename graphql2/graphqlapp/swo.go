@@ -2,15 +2,13 @@ package graphqlapp
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-	"regexp"
 	"sort"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/swo/swogrp"
 	"github.com/target/goalert/validation"
 )
@@ -37,8 +35,6 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 	return err == nil, err
 }
 
-var swoRx = regexp.MustCompile(`^GoAlert ([^ ]+)(?: SWO:([A-D]):(.{24}))?$`)
-
 func (q *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	if q.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")
@@ -56,19 +52,15 @@ func (q *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 
 	nodes := make(map[string]*graphql2.SWONode)
 	for _, conn := range conns {
-		m := swoRx.FindStringSubmatch(conn.Name)
 		var connType, version string
 		idStr := "unknown-" + conn.Name
-		if len(m) == 4 {
-			version = m[1]
-			connType = m[2]
-			id, err := base64.URLEncoding.DecodeString(m[3])
-			if err == nil && len(id) == 16 {
-				var u uuid.UUID
-				copy(u[:], id)
-				idStr = u.String()
-			}
+		info, _ := swo.ParseConnInfo(conn.Name)
+		if info != nil {
+			version = info.Version
+			connType = string(info.Type)
+			idStr = info.ID.String()
 		}
+
 		n := nodes[idStr]
 		if n == nil {
 			n = &graphql2.SWONode{ID: idStr}

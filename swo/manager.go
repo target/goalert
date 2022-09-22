@@ -3,7 +3,6 @@ package swo
 import (
 	"context"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -56,29 +55,27 @@ type Config struct {
 func NewManager(cfg Config) (*Manager, error) {
 	id := uuid.New()
 
-	appStr := func(typ byte) string {
-		vers := version.GitVersion()
-		id := base64.URLEncoding.EncodeToString(id[:])
-		if len(vers) > 24 {
-			vers = vers[:24]
-		}
-
-		return fmt.Sprintf("GoAlert %s SWO:%c:%s", vers, typ, id)
+	appStr := func(typ ConnType) string {
+		return ConnInfo{
+			Version: version.GitVersion(),
+			ID:      id,
+			Type:    typ,
+		}.String()
 	}
 
-	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, appStr('A'))
+	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, appStr(ConnTypeMainMgr))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr('B'))
+	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr(ConnTypeMainApp))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, appStr('C'))
+	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, appStr(ConnTypeNextMgr))
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
-	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr('D'))
+	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr(ConnTypeNextApp))
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
