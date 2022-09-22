@@ -138,11 +138,28 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	var logsMapped []graphql2.DebugMessage
 	for _, log := range logs {
-		// dst := notification.DestFromPair(&log.ContactMethod, &log.Channel)
-		// destStr, err := q.formatDest(ctx, dst)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("format dest: %w", err)
-		// }
+		cm, err := q.CMStore.FindOne(ctx, log.ContactMethod.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		var ch notificationchannel.Channel
+		if log.Channel.ID != "" {
+			ncID, err := uuid.Parse(log.Channel.ID)
+			if err != nil {
+				return nil, err
+			}
+			_ch, err := q.NCStore.FindOne(ctx, ncID)
+			if err != nil {
+				return nil, err
+			}
+			ch = *_ch
+		}
+		dst := notification.DestFromPair(cm, &ch)
+		destStr, err := q.formatDest(ctx, dst)
+		if err != nil {
+			return nil, fmt.Errorf("format dest: %w", err)
+		}
 
 		var dm = graphql2.DebugMessage{
 			ID:          log.ID,
@@ -152,14 +169,14 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			Status:      msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
 			UserID:      &log.User.ID,
 			UserName:    &log.User.Name,
-			Destination: "test",
+			Destination: destStr,
 			ServiceID:   &log.Service.ID,
 			ServiceName: &log.Service.Name,
 			AlertID:     &log.AlertID,
 			ProviderID:  &log.ProviderMsgID.ExternalID,
 		}
 		if log.SrcValue != "" && log.ContactMethod.ID != "" {
-			src, err := q.formatDest(ctx, notification.Dest{Type: notification.DestTypeSMS, Value: log.SrcValue})
+			src, err := q.formatDest(ctx, notification.Dest{Type: dst.Type, Value: log.SrcValue})
 			if err != nil {
 				return nil, fmt.Errorf("format src: %w", err)
 			}
