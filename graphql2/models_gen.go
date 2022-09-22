@@ -349,10 +349,11 @@ type SWOConnection struct {
 }
 
 type SWONode struct {
-	ID          string          `json:"id"`
-	CanExec     bool            `json:"canExec"`
-	IsLeader    bool            `json:"isLeader"`
-	Uptime      *string         `json:"uptime"`
+	ID       string `json:"id"`
+	CanExec  bool   `json:"canExec"`
+	IsLeader bool   `json:"isLeader"`
+	// The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+	Uptime      string          `json:"uptime"`
 	ConfigError string          `json:"configError"`
 	Connections []SWOConnection `json:"connections"`
 }

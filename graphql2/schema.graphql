@@ -142,7 +142,10 @@ type SWONode {
   canExec: Boolean!
   isLeader: Boolean!
 
-  uptime: String
+  """
+  The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+  """
+  uptime: String!
 
   configError: String!
   connections: [SWOConnection!]

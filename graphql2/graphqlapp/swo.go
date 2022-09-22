@@ -94,8 +94,7 @@ validateNodes:
 		n.IsLeader = node.ID == s.LeaderID
 		n.CanExec = node.CanExec
 
-		up := time.Since(node.StartedAt).Truncate(time.Second).String()
-		n.Uptime = &up
+		n.Uptime = time.Since(node.StartedAt).Truncate(time.Second).String()
 
 		if node.NewID != s.NextDBID {
 			n.ConfigError = "next-db-url is invalid"

@@ -60,7 +60,7 @@ export interface SWONode {
   id: string
   canExec: boolean
   isLeader: boolean
-  uptime?: null | string
+  uptime: string
   configError: string
   connections?: null | SWOConnection[]
 }
