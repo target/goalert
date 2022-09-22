@@ -24,10 +24,6 @@ type TableSync struct {
 	changeLogIDs  []int
 }
 
-type changeEntry struct {
-	id int64
-	changeID
-}
 type changeID struct{ Table, Row string }
 
 // NewTableSync creates a new TableSync for the given tables.
