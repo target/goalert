@@ -9,6 +9,7 @@ const config = {
     baseURL: 'http://localhost:6130',
     viewport: { width: 1440, height: 900 },
     timezoneId: 'America/Chicago',
+    headless: false,
     launchOptions: {
       // slowMo: 1000,
     },
@@ -22,13 +23,13 @@ const config = {
         viewportSize: { width: 1440, height: 900 },
       },
     },
-    {
-      name: 'chromium-mobile',
-      use: {
-        ...devices['Pixel 5'],
-        viewportSize: { width: 375, height: 667 },
-      },
-    },
+    // {
+    //   name: 'chromium-mobile',
+    //   use: {
+    //     ...devices['Pixel 5'],
+    //     viewportSize: { width: 375, height: 667 },
+    //   },
+    // },
   ],
   webServer: {
     command: 'make start-integration CI=1',
