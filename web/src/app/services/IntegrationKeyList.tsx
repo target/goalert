@@ -75,7 +75,11 @@ export function IntegrationKeyDetails(props: {
       {props.type === 'email' && (
         <RequireConfig
           configID='Mailgun.Enable'
-          else={<div>Email integration keys are currently disabled.</div>}
+          else={
+            <React.Fragment>
+              Email integration keys are currently disabled.
+            </React.Fragment>
+          }
         />
       )}
     </React.Fragment>
