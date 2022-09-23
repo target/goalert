@@ -17,11 +17,11 @@ test.beforeEach(async ({ page }) => {
   await page.fill('input[name=name]', name)
   await page.click('input[name=time-zone]')
   await page.keyboard.type('Europe/Amsterdam')
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('Enter')
   await page.locator('button[type=submit]').click()
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   const p = page.url().split('/')
   scheduleID = p[p.length - 1]
 })
@@ -33,7 +33,7 @@ test.afterEach(async ({ page }) => {
   await page.click('button:has-text("Confirm")')
 })
 
-test.only('local time hover', async ({ page }) => {
+test('local time hover', async ({ page }) => {
   await page.click('span:has-text("Shifts")')
   await page.hover('[data-testid="AddIcon"]')
   await page.click('[data-testid="AccountPlusIcon"]')
@@ -45,11 +45,11 @@ test.only('local time hover', async ({ page }) => {
 
   // add user override
   await page.click('input[name=addUserID]')
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   await page.keyboard.press('ArrowDown')
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   await page.keyboard.press('Enter')
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   for (let i = 0; i < 4; i++) await page.keyboard.press('Tab')
   await page.keyboard.type('1')
   await page.keyboard.press('Tab')
