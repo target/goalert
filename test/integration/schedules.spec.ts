@@ -15,11 +15,6 @@ test.beforeEach(async ({ page }) => {
   await page.goto(`${baseURL}/schedules`)
   await page.click('[aria-label="Create Schedule"]')
   await page.fill('input[name=name]', name)
-  await page.click('input[name=time-zone]')
-  await page.keyboard.type('Europe/Amsterdam')
-  await page.waitForTimeout(1000)
-  await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('Enter')
   await page.locator('button[type=submit]').click()
   await page.waitForTimeout(1000)
   const p = page.url().split('/')
@@ -34,6 +29,14 @@ test.afterEach(async ({ page }) => {
 })
 
 test('local time hover', async ({ page }) => {
+  // change schedule tz to Europe/Amsterdam
+  await page.click('[aria-label="Edit"]')
+  await page.fill('input[name=time-zone]', 'Europe/Amsterdam')
+  await page.waitForTimeout(1000)
+  await page.keyboard.press('ArrowDown')
+  for (let i = 0; i < 2; i++) await page.keyboard.press('Enter')
+
+  // add user override
   await page.click('span:has-text("Shifts")')
   await page.hover('[data-testid="AddIcon"]')
   await page.click('[data-testid="AccountPlusIcon"]')
@@ -43,7 +46,6 @@ test('local time hover', async ({ page }) => {
     'Times shown in schedule timezone (Europe/Amsterdam)',
   )
 
-  // add user override
   await page.click('input[name=addUserID]')
   await page.waitForTimeout(1000)
   await page.keyboard.press('ArrowDown')
