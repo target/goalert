@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useMutation, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -27,12 +27,6 @@ export default function IntegrationKeyCreateDialog(props: {
   const [createIntegrationKeyStatus, createIntegrationKey] =
     useMutation(mutation)
 
-  useEffect(() => {
-    setInterval(() => {
-      console.log(createIntegrationKeyStatus)
-    }, 1000)
-  }, [])
-
   return (
     <FormDialog
       maxWidth='sm'
@@ -40,9 +34,9 @@ export default function IntegrationKeyCreateDialog(props: {
       loading={createIntegrationKeyStatus.fetching}
       errors={nonFieldErrors(createIntegrationKeyStatus.error)}
       onClose={onClose}
-      onSubmit={() => {
+      onSubmit={(): void => {
         createIntegrationKey(
-          { input: { serviceID: serviceID, ...value } },
+          { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey'] },
         ).then(onClose)
       }}
@@ -56,7 +50,7 @@ export default function IntegrationKeyCreateDialog(props: {
               type: 'generic',
             }
           }
-          onChange={(value) => setValue(value)}
+          onChange={(value): void => setValue(value)}
         />
       }
     />

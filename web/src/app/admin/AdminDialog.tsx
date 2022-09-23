@@ -7,32 +7,51 @@ import { omit } from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
-import { DocumentNode, useMutation } from '@apollo/client'
 import { ConfigValue } from '../../schema'
+import { gql, useMutation, useQuery } from 'urql'
+import { DocumentNode } from 'graphql'
 
-interface FieldValues {
-  [id: string]: string
-}
+const query = gql`
+  query {
+    values: config(all: true) {
+      id
+      value
+    }
+  }
+`
+
+const mutation = gql`
+  mutation ($input: [ConfigValueInput!]) {
+    setConfig(input: $input)
+  }
+`
 
 interface AdminDialogProps {
-  mutation: DocumentNode
-  values: ConfigValue[]
-  fieldValues: FieldValues
+  query?: DocumentNode
+  mutation?: DocumentNode
+  value: { [id: string]: string }
   onClose: () => void
-  onComplete: () => void
+  onComplete?: () => void
 }
 
 function AdminDialog(props: AdminDialogProps): JSX.Element {
-  const [commit, { error }] = useMutation(props.mutation, {
-    onCompleted: props.onComplete,
+  const [{ data, fetching, error: readError }] = useQuery({
+    query: props.query || query,
   })
-  const changeKeys = Object.keys(props.fieldValues)
-  const changes = props.values
-    .filter((v: { id: string }) => changeKeys.includes(v.id))
+  const [{ error }, commit] = useMutation(props.mutation || mutation)
+
+  const currentConfig: ConfigValue[] = data?.values || []
+
+  const changeKeys = Object.keys(props.value)
+  const changes = currentConfig
+    .filter(
+      (v: ConfigValue) =>
+        changeKeys.includes(v.id) && v.value !== props.value[v.id],
+    )
     .map((orig) => ({
       id: orig.id,
       oldValue: orig.value,
-      value: props.fieldValues[orig.id],
+      value: props.value[orig.id],
       type: orig.type || typeof orig.value,
     }))
 
@@ -50,16 +69,18 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
       onClose={props.onClose}
       onSubmit={() =>
         commit({
-          variables: {
-            input: changes.map((c: { value: string; type: string }) => {
-              c.value = c.value === '' && c.type === 'number' ? '0' : c.value
-              return omit(c, ['oldValue', 'type'])
-            }),
-          },
+          input: changes.map((c: { value: string; type: string }) => {
+            c.value = c.value === '' && c.type === 'number' ? '0' : c.value
+            return omit(c, ['oldValue', 'type'])
+          }),
+        }).then(() => {
+          if (props.onComplete) props.onComplete()
+          props.onClose()
         })
       }
       primaryActionLabel='Confirm'
-      errors={errs}
+      loading={fetching}
+      errors={errs.concat(readError ? [readError] : [])}
       form={
         <List data-cy='confirmation-diff'>
           {changes.map((c) => (
@@ -86,6 +107,9 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
               </ListItemText>
             </ListItem>
           ))}
+          {changes.length === 0 && (
+            <Typography>No changes to apply, already configured.</Typography>
+          )}
         </List>
       }
     />

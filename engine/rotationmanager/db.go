@@ -14,6 +14,7 @@ type DB struct {
 
 	currentTime *sql.Stmt
 
+	lockPart   *sql.Stmt
 	rotate     *sql.Stmt
 	rotateData *sql.Stmt
 }
@@ -36,6 +37,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		lock: lock,
 
 		currentTime: p.P(`select now()`),
+		lockPart:    p.P(`lock rotation_participants, rotation_state in exclusive mode`),
 		rotate: p.P(`
 			update rotation_state
 			set

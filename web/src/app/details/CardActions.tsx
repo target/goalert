@@ -1,6 +1,6 @@
 import React, { MouseEventHandler } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
-import Button from '@mui/material/Button'
+import Button, { ButtonProps } from '@mui/material/Button'
 import MUICardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
@@ -18,8 +18,8 @@ interface ActionProps {
 export type Action = {
   label: string // primary button text, use for a tooltip if secondary action
   handleOnClick: MouseEventHandler<HTMLButtonElement>
-
   icon?: JSX.Element // if true, adds a start icon to a button with text
+  ButtonProps?: ButtonProps
 }
 
 const useStyles = makeStyles({
@@ -77,11 +77,20 @@ export default function CardActions(p: CardActionProps): JSX.Element {
 function Action(p: ActionProps): JSX.Element {
   const { action, secondary } = p
   if (secondary && action.icon) {
+    // wrapping button in span so tooltip can still
+    // render when hovering over disabled buttons
     return (
       <Tooltip title={action.label} placement='top'>
-        <IconButton onClick={action.handleOnClick} size='large'>
-          {action.icon}
-        </IconButton>
+        <span aria-label={undefined}>
+          <IconButton
+            aria-label={action.label}
+            onClick={action.handleOnClick}
+            size='large'
+            {...action.ButtonProps}
+          >
+            {action.icon}
+          </IconButton>
+        </span>
       </Tooltip>
     )
   }
@@ -91,6 +100,7 @@ function Action(p: ActionProps): JSX.Element {
       onClick={action.handleOnClick}
       startIcon={action.icon}
       variant='contained'
+      {...action.ButtonProps}
     >
       {action.label}
     </Button>

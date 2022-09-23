@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
-import p from 'prop-types'
+import React, { ReactNode, useState } from 'react'
+import { gql, useQuery } from 'urql'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -17,6 +16,7 @@ import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+import { IntegrationKey } from '../../schema'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
   },
 })
 
-const sortItems = (a, b) => {
+const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   if (a.name < b.name) return -1
@@ -55,8 +55,12 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export function IntegrationKeyDetails(props) {
-  let copyText = (
+export function IntegrationKeyDetails(props: {
+  href: string
+  label: string
+  type: string
+}): JSX.Element {
+  let copyText: ReactNode = (
     <CopyText title={'Copy ' + props.label} value={props.href} asURL />
   )
 
@@ -71,27 +75,28 @@ export function IntegrationKeyDetails(props) {
       {props.type === 'email' && (
         <RequireConfig
           configID='Mailgun.Enable'
-          else='Email integration keys are currently disabled.'
+          else={
+            <React.Fragment>
+              Email integration keys are currently disabled.
+            </React.Fragment>
+          }
         />
       )}
     </React.Fragment>
   )
 }
 
-IntegrationKeyDetails.propTypes = {
-  href: p.string.isRequired,
-  label: p.string.isRequired,
-  type: p.string.isRequired,
-}
-
-export default function IntegrationKeyList({ serviceID }) {
+export default function IntegrationKeyList(props: {
+  serviceID: string
+}): JSX.Element {
   const classes = useStyles()
 
-  const [create, setCreate] = useState(false)
-  const [deleteDialog, setDeleteDialog] = useState(null)
+  const [create, setCreate] = useState<boolean>(false)
+  const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
 
-  const { loading, error, data } = useQuery(query, {
-    variables: { serviceID: serviceID },
+  const [{ fetching, error, data }] = useQuery({
+    query,
+    variables: { serviceID: props.serviceID },
   })
 
   const typeLabels = {
@@ -101,13 +106,13 @@ export default function IntegrationKeyList({ serviceID }) {
     email: 'Email Address',
     prometheusAlertmanager: 'Alertmanager Webhook URL',
   }
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   const items = (data.service.integrationKeys || [])
     .slice()
     .sort(sortItems)
-    .map((key) => ({
+    .map((key: IntegrationKey) => ({
       title: key.name,
       subText: (
         <IntegrationKeyDetails
@@ -149,7 +154,7 @@ export default function IntegrationKeyList({ serviceID }) {
       />
       {create && (
         <IntegrationKeyCreateDialog
-          serviceID={serviceID}
+          serviceID={props.serviceID}
           onClose={() => setCreate(false)}
         />
       )}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactElement } from 'react'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
@@ -41,7 +41,7 @@ export default function IntegrationKeyForm(
         </Grid>
         <Grid item xs={12}>
           <Config>
-            {(cfg: { [x: string]: unknown }) => (
+            {(cfg: { [x: string]: unknown }): ReactElement => (
               <FormField
                 fullWidth
                 component={TextField}

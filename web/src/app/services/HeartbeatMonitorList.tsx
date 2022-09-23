@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
-import { gql } from '@apollo/client'
+import React, { useState, ReactElement } from 'react'
+import { useQuery, gql } from 'urql'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import Query from '../util/Query'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
 import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
@@ -13,6 +12,9 @@ import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import HeartbeatMonitorStatus from './HeartbeatMonitorStatus'
 import CopyText from '../util/CopyText'
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
+import { HeartbeatMonitor } from '../../schema'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
@@ -45,7 +47,7 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-const sortItems = (a, b) => {
+const sortItems = (a: HeartbeatMonitor, b: HeartbeatMonitor): number => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   if (a.name < b.name) return -1
@@ -53,13 +55,27 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export default function HeartbeatMonitorList({ serviceID }) {
+export default function HeartbeatMonitorList(props: {
+  serviceID: string
+}): JSX.Element {
   const classes = useStyles()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
-  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
+  const [showEditDialogByID, setShowEditDialogByID] = useState<string | null>(
+    null,
+  )
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState<
+    string | null
+  >(null)
 
-  function renderList(monitors) {
+  const [{ data, fetching, error }] = useQuery({
+    query,
+    variables: { serviceID: props.serviceID },
+  })
+
+  if (fetching && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
+  function renderList(monitors: HeartbeatMonitor[]): ReactElement {
     const items = (monitors || [])
       .slice()
       .sort(sortItems)
@@ -111,11 +127,7 @@ export default function HeartbeatMonitorList({ serviceID }) {
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
-            <Query
-              query={query}
-              variables={{ serviceID: serviceID }}
-              render={({ data }) => renderList(data.service.heartbeatMonitors)}
-            />
+            {renderList(data.service.heartbeatMonitors)}
           </CardContent>
         </Card>
       </Grid>
@@ -125,7 +137,7 @@ export default function HeartbeatMonitorList({ serviceID }) {
       />
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
-          serviceID={serviceID}
+          serviceID={props.serviceID}
           onClose={() => setShowCreateDialog(false)}
         />
       )}

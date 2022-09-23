@@ -179,6 +179,7 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+  deprecated: String!
 }
 type ConfigHint {
   id: String!
@@ -600,6 +601,7 @@ input UpdateServiceInput {
   name: String
   description: String
   escalationPolicyID: ID
+  maintenanceExpiresAt: ISOTimestamp
 }
 
 input UpdateEscalationPolicyInput {
@@ -968,6 +970,7 @@ type Service {
   escalationPolicyID: ID!
   escalationPolicy: EscalationPolicy
   isFavorite: Boolean!
+  maintenanceExpiresAt: ISOTimestamp
 
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
