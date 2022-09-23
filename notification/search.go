@@ -113,6 +113,10 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 	var alertID sql.NullInt64
 	var chanID sql.NullString
 	var serviceID sql.NullString
+	var srcValue sql.NullString
+	var userID sql.NullString
+	var cmID sql.NullString
+	var providerID sql.NullString
 
 	for rows.Next() {
 		err = rows.Scan(
@@ -122,11 +126,11 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			&l.MessageType,
 			&l.LastStatus,
 			&l.StatusDetails,
-			&l.SrcValue,
+			&srcValue,
 			&alertID,
-			&l.ProviderMsgID,
-			&l.User.ID,
-			&l.ContactMethod.ID,
+			&providerID,
+			&userID,
+			&cmID,
 			&chanID,
 			&serviceID,
 		)
@@ -134,9 +138,20 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			return nil, err
 		}
 
+		// set all the nullable fields
+		if providerID.String != "" {
+			pm, err := ParseProviderMessageID(providerID.String)
+			if err != nil {
+				return nil, err
+			}
+			l.ProviderMsgID = &pm
+		}
 		l.AlertID = int(alertID.Int64)
 		l.Channel.ID = chanID.String
 		l.Service.ID = serviceID.String
+		l.SrcValue = srcValue.String
+		l.User.ID = userID.String
+		l.ContactMethod.ID = cmID.String
 
 		result = append(result, l)
 	}

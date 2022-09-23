@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user/contactmethod"
 )
 
 type MessageLog App
@@ -138,9 +139,13 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	var logsMapped []graphql2.DebugMessage
 	for _, log := range logs {
-		cm, err := q.CMStore.FindOne(ctx, log.ContactMethod.ID)
-		if err != nil {
-			return nil, err
+		var cm contactmethod.ContactMethod
+		if log.ContactMethod.ID != "" {
+			_cm, err := q.CMStore.FindOne(ctx, log.ContactMethod.ID)
+			if err != nil {
+				return nil, err
+			}
+			cm = *_cm
 		}
 
 		var ch notificationchannel.Channel
@@ -155,7 +160,8 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			}
 			ch = *_ch
 		}
-		dst := notification.DestFromPair(cm, &ch)
+
+		dst := notification.DestFromPair(&cm, &ch)
 		destStr, err := q.formatDest(ctx, dst)
 		if err != nil {
 			return nil, fmt.Errorf("format dest: %w", err)
@@ -175,7 +181,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			AlertID:     &log.AlertID,
 			ProviderID:  &log.ProviderMsgID.ExternalID,
 		}
-		if log.SrcValue != "" && log.ContactMethod.ID != "" {
+		if log.SrcValue != "" {
 			src, err := q.formatDest(ctx, notification.Dest{Type: dst.Type, Value: log.SrcValue})
 			if err != nil {
 				return nil, fmt.Errorf("format src: %w", err)
