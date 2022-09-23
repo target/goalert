@@ -100,7 +100,7 @@ function ScheduleShiftList({ scheduleID }) {
   })
 
   function getShiftDetails(s, day) {
-    const tzAbbr = DateTime.local({ zone: zone }).toFormat('ZZZZ')
+    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
     const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
     const locale = {
