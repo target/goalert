@@ -22,13 +22,13 @@ const config = {
         viewportSize: { width: 1440, height: 900 },
       },
     },
-    // {
-    //   name: 'chromium-mobile',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //     viewportSize: { width: 375, height: 667 },
-    //   },
-    // },
+    {
+      name: 'chromium-mobile',
+      use: {
+        ...devices['Pixel 5'],
+        viewportSize: { width: 375, height: 667 },
+      },
+    },
   ],
   webServer: {
     command: 'make start-integration CI=1',
