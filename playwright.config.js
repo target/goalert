@@ -9,7 +9,6 @@ const config = {
     baseURL: 'http://localhost:6130',
     viewport: { width: 1440, height: 900 },
     timezoneId: 'America/Chicago',
-    headless: false,
     launchOptions: {
       // slowMo: 1000,
     },
