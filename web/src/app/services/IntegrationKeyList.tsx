@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, useState, ReactElement } from 'react'
 import { gql, useQuery } from 'urql'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -17,6 +17,12 @@ import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { IntegrationKey } from '../../schema'
+
+interface Item {
+  title: string
+  subText: ReactElement
+  secondaryAction: ReactElement
+}
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -112,22 +118,27 @@ export default function IntegrationKeyList(props: {
   const items = (data.service.integrationKeys || [])
     .slice()
     .sort(sortItems)
-    .map((key: IntegrationKey) => ({
-      title: key.name,
-      subText: (
-        <IntegrationKeyDetails
-          key={key.id}
-          href={key.href}
-          label={typeLabels[key.type]}
-          type={key.type}
-        />
-      ),
-      secondaryAction: (
-        <IconButton onClick={() => setDeleteDialog(key.id)} size='large'>
-          <Trash />
-        </IconButton>
-      ),
-    }))
+    .map(
+      (key: IntegrationKey): Item => ({
+        title: key.name,
+        subText: (
+          <IntegrationKeyDetails
+            key={key.id}
+            href={key.href}
+            label={typeLabels[key.type]}
+            type={key.type}
+          />
+        ),
+        secondaryAction: (
+          <IconButton
+            onClick={(): void => setDeleteDialog(key.id)}
+            size='large'
+          >
+            <Trash />
+          </IconButton>
+        ),
+      }),
+    )
 
   return (
     <React.Fragment>
@@ -149,19 +160,19 @@ export default function IntegrationKeyList(props: {
         </Card>
       </Grid>
       <CreateFAB
-        onClick={() => setCreate(true)}
+        onClick={(): void => setCreate(true)}
         title='Create Integration Key'
       />
       {create && (
         <IntegrationKeyCreateDialog
           serviceID={props.serviceID}
-          onClose={() => setCreate(false)}
+          onClose={(): void => setCreate(false)}
         />
       )}
       {deleteDialog && (
         <IntegrationKeyDeleteDialog
           integrationKeyID={deleteDialog}
-          onClose={() => setDeleteDialog(null)}
+          onClose={(): void => setDeleteDialog(null)}
         />
       )}
     </React.Fragment>
