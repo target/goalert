@@ -31,7 +31,7 @@ const RotationUserDeleteDialog = (props: {
   const { rotationID, userIndex, onClose } = props
   const [, deleteUserMutation] = useMutation(mutation)
   const [{ fetching, data, error }] = useQuery({
-    query: query,
+    query,
     variables: {
       id: rotationID,
     },

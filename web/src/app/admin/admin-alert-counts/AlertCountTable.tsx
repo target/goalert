@@ -95,7 +95,7 @@ export default function AlertCountTable(
     }),
     [props.alertCounts],
   )
-  const csvData = useWorker('useAlertCountCSV', csvOpts, '')
+  const [csvData] = useWorker('useAlertCountCSV', csvOpts, '')
   const link = useMemo(
     () => URL.createObjectURL(new Blob([csvData], { type: 'text/csv' })),
     [csvData],

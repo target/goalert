@@ -109,6 +109,14 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+
+  linkAccountInfo(token: ID!): LinkAccountInfo
+}
+
+type LinkAccountInfo {
+  userDetails: String!
+  alertID: Int
+  alertNewStatus: AlertStatus
 }
 
 input AlertMetricsOptions {
@@ -341,6 +349,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
+  linkAccount(token: ID!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
@@ -1062,7 +1072,7 @@ enum AlertStatus {
 type Target {
   id: ID!
   type: TargetType!
-  name: String
+  name: String!
 }
 
 input TargetInput {

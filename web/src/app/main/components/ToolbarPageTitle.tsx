@@ -52,7 +52,7 @@ const renderCrumb = (
       data-cy={`breadcrumb-${index}`}
       noWrap
       key={index}
-      component='h1'
+      component='h6'
       sx={{
         padding: '0 4px 0 4px',
         fontSize: '1.25rem',
@@ -77,7 +77,7 @@ const renderCrumb = (
         '&:hover': {
           textDecoration: 'none',
         },
-        '&:hover > h1': {
+        '&:hover > h6': {
           cursor: 'pointer',
           backgroundColor: 'rgba(255, 255, 255, 0.2)',
           borderRadius: '6px',

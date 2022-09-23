@@ -7,6 +7,7 @@ import (
 	_ "github.com/99designs/gqlgen"
 	_ "github.com/fullstorydev/grpcui/cmd/grpcui"
 	_ "github.com/gordonklaus/ineffassign"
+	_ "github.com/kffl/speedbump"
 	_ "github.com/mailhog/MailHog"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/cmd/stringer"

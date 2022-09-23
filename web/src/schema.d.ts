@@ -34,6 +34,13 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
+  linkAccountInfo?: null | LinkAccountInfo
+}
+
+export interface LinkAccountInfo {
+  userDetails: string
+  alertID?: null | number
+  alertNewStatus?: null | AlertStatus
 }
 
 export interface AlertMetricsOptions {
@@ -256,6 +263,7 @@ export interface SetScheduleShiftInput {
 }
 
 export interface Mutation {
+  linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
   setScheduleOnCallNotificationRules: boolean
@@ -840,7 +848,7 @@ export type AlertStatus =
 export interface Target {
   id: string
   type: TargetType
-  name?: null | string
+  name: string
 }
 
 export interface TargetInput {
@@ -1032,6 +1040,7 @@ type ConfigID =
   | 'Twilio.Enable'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
+  | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
   | 'Twilio.DisableTwoWaySMS'

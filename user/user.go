@@ -14,7 +14,6 @@ import (
 
 // A User is the base information of a user of the system. Authentication details are stored
 // separately based on the auth provider.
-//
 type User struct {
 	// ID is the unique identifier for the user
 	ID string

@@ -1,8 +1,11 @@
 package engine
 
 import (
+	"time"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
@@ -24,6 +27,7 @@ type Config struct {
 	NCStore             *notificationchannel.Store
 	OnCallStore         *oncall.Store
 	ScheduleStore       *schedule.Store
+	AuthLinkStore       *authlink.Store
 
 	ConfigSource config.Source
 
@@ -33,4 +37,6 @@ type Config struct {
 
 	DisableCycle bool
 	LogCycles    bool
+
+	CycleTime time.Duration
 }

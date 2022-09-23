@@ -45,7 +45,7 @@ export default function RotationDetails(props: {
   const [showAddUser, setShowAddUser] = useState(false)
 
   const [{ data: _data, fetching, error }] = useQuery({
-    query: query,
+    query,
     variables: { id: props.rotationID },
   })
 
