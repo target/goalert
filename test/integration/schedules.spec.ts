@@ -32,7 +32,7 @@ test('local time hover', async ({ page }) => {
   // change schedule tz to Europe/Amsterdam
   await page.click('[aria-label="Edit"]')
   await page.fill('input[name=time-zone]', 'Europe/Amsterdam')
-  await page.waitForTimeout(1000)
+  await page.waitForTimeout(2000)
   await page.keyboard.press('ArrowDown')
   for (let i = 0; i < 2; i++) await page.keyboard.press('Enter')
 
@@ -70,6 +70,7 @@ test('local time hover', async ({ page }) => {
   await page.keyboard.press('Enter')
 
   // should display local tz on hover
+  await page.waitForTimeout(2000)
   await page.goto(`${baseURL}/schedules/${scheduleID}/overrides`)
   await page.hover('span:has-text("5:00 AM GMT+2")')
   await expect(page.locator('div[role=tooltip]')).toContainText('10:00 PM CDT')
