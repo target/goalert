@@ -219,7 +219,6 @@ function createSchedule(
         description: sched.description || c.sentence(),
         timeZone: sched.timeZone || 'America/Chicago',
         favorite: sched.isFavorite,
-        targets: sched.targets,
       },
     })
     .then((res: GraphQLResponse) => res.createSchedule)
