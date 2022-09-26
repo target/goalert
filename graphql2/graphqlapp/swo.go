@@ -36,6 +36,7 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 	return err == nil, err
 }
 
+// validateSWOGrpNode validates that the node has the correct DB urls.
 func validateSWOGrpNode(s swo.Status, node swogrp.Node) error {
 	if node.NewID != s.NextDBID {
 		return fmt.Errorf("next-db-url is invalid")
@@ -47,18 +48,15 @@ func validateSWOGrpNode(s swo.Status, node swogrp.Node) error {
 	return nil
 }
 
+// gwlSWOConnFromConnName maps a DB connection count to a GraphQL type.
 func gqlSWOConnFromConnName(countInfo swoinfo.ConnCount) (nodeID string, conn graphql2.SWOConnection) {
 	var connType, version string
 	idStr := "unknown-" + countInfo.Name
-	info, err := swo.ParseConnInfo(countInfo.Name)
-	if err != nil {
-		fmt.Println("invalid connection name:", countInfo.Name)
-	}
+	info, _ := swo.ParseConnInfo(countInfo.Name)
 	if info != nil {
 		version = info.Version
 		connType = string(info.Type)
 		idStr = info.ID.String()
-		fmt.Println("idStr", idStr)
 	}
 
 	return idStr, graphql2.SWOConnection{
@@ -70,6 +68,7 @@ func gqlSWOConnFromConnName(countInfo swoinfo.ConnCount) (nodeID string, conn gr
 	}
 }
 
+// validateNodeConnections ensures that the node has the correct number of connections, identified as the correct & expected type(s).
 func validateNodeConnections(n graphql2.SWONode) error {
 	if len(n.Connections) == 0 {
 		return fmt.Errorf("node is not connected to any DB")
@@ -93,6 +92,7 @@ func validateNodeConnections(n graphql2.SWONode) error {
 	return nil
 }
 
+// gqlStateFromSWOState maps a SWO state to a GraphQL type.
 func gqlStateFromSWOState(st swogrp.ClusterState) (graphql2.SWOState, error) {
 	switch st {
 	case swogrp.ClusterStateUnknown:
@@ -114,11 +114,15 @@ func gqlStateFromSWOState(st swogrp.ClusterState) (graphql2.SWOState, error) {
 	return "", fmt.Errorf("invalid state: %d", st)
 }
 
+// gqlSWOStatus maps a SWO status and connection list to a GraphQL type.
 func gqlSWOStatus(s swo.Status, conns []swoinfo.ConnCount) (*graphql2.SWOStatus, error) {
+	nodes := make(map[string]*graphql2.SWONode)
+
+	// sort connections by name to ensure consistent ordering
 	sort.Slice(conns, func(i, j int) bool {
 		return conns[i].Name < conns[j].Name
 	})
-	nodes := make(map[string]*graphql2.SWONode)
+	// map connections to nodes
 	for _, conn := range conns {
 		idStr, c := gqlSWOConnFromConnName(conn)
 
@@ -130,6 +134,7 @@ func gqlSWOStatus(s swo.Status, conns []swoinfo.ConnCount) (*graphql2.SWOStatus,
 		n.Connections = append(n.Connections, c)
 	}
 
+	// update nodes from switchover_log and validate
 	for _, node := range s.Nodes {
 		n := nodes[node.ID.String()]
 		if n == nil {
@@ -153,6 +158,7 @@ func gqlSWOStatus(s swo.Status, conns []swoinfo.ConnCount) (*graphql2.SWOStatus,
 		}
 	}
 
+	// convert to list, sort by ID (for consistency)
 	var nodeList []graphql2.SWONode
 	for _, n := range nodes {
 		nodeList = append(nodeList, *n)
@@ -161,6 +167,7 @@ func gqlSWOStatus(s swo.Status, conns []swoinfo.ConnCount) (*graphql2.SWOStatus,
 		return nodeList[i].ID < nodeList[j].ID
 	})
 
+	// map state to GraphQL type
 	state, err := gqlStateFromSWOState(s.State)
 	if err != nil {
 		return nil, err
