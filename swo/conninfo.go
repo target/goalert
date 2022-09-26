@@ -9,18 +9,32 @@ import (
 )
 
 // ConnInfo contains information about a connection to the DB for SWO.
+//
+// This is stored as the `application_name` for a connection in Postgres in
+// the format of "GoAlert <version> SWO:<type>:<id>" where id is a base64
+// encoded UUID that should match what ends up in a `switchover_log` hello message.
 type ConnInfo struct {
 	Version string
 	Type    ConnType
 	ID      uuid.UUID
 }
 
+// ConnType indicates a type of SWO connection.
 type ConnType byte
 
 const (
+	// ConnTypeMainMgr is the connection pool to the main/old DB used to coordinate the switchover.
 	ConnTypeMainMgr ConnType = iota + 'A'
+
+	// ConnTypeMainApp is the connection pool used by the GoAlert application to the main/old DB.
+	//
+	// Connections here are protected with a shared advisory lock.
 	ConnTypeMainApp
+
+	// ConnTypeNextMgr is the connection pool to the next/new DB used for applying changes during the switchover.
 	ConnTypeNextMgr
+
+	// ConnTypeNextApp is the connection pool used by the GoAlert application to the next/new DB, after the switchover is completed.
 	ConnTypeNextApp
 )
 
