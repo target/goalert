@@ -24,6 +24,11 @@ const (
 	ConnTypeNextApp
 )
 
+// IsNext returns true if the connection is for the next DB.
+func (t ConnType) IsNext() bool {
+	return t == ConnTypeNextMgr || t == ConnTypeNextApp
+}
+
 // IsValid returns true if the ConnType is valid.
 func (t ConnType) IsValid() bool {
 	return t >= ConnTypeMainMgr && t <= ConnTypeNextApp
