@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/swo/swogrp"
+	"github.com/target/goalert/swo/swoinfo"
 	"github.com/target/goalert/validation"
 )
 
@@ -35,6 +36,148 @@ func (m *Mutation) SwoAction(ctx context.Context, action graphql2.SWOAction) (bo
 	return err == nil, err
 }
 
+func validateSWOGrpNode(s swo.Status, node swogrp.Node) error {
+	if node.NewID != s.NextDBID {
+		return fmt.Errorf("next-db-url is invalid")
+	}
+	if node.OldID != s.MainDBID {
+		return fmt.Errorf("db-url is invalid")
+	}
+
+	return nil
+}
+
+func gqlSWOConnFromConnName(countInfo swoinfo.ConnCount) (nodeID string, conn graphql2.SWOConnection) {
+	var connType, version string
+	idStr := "unknown-" + countInfo.Name
+	info, err := swo.ParseConnInfo(countInfo.Name)
+	if err != nil {
+		fmt.Println("invalid connection name:", countInfo.Name)
+	}
+	if info != nil {
+		version = info.Version
+		connType = string(info.Type)
+		idStr = info.ID.String()
+		fmt.Println("idStr", idStr)
+	}
+
+	return idStr, graphql2.SWOConnection{
+		Name:    countInfo.Name,
+		IsNext:  countInfo.IsNext,
+		Version: version,
+		Type:    string(connType),
+		Count:   countInfo.Count,
+	}
+}
+
+func validateNodeConnections(n graphql2.SWONode) error {
+	if len(n.Connections) == 0 {
+		return fmt.Errorf("node is not connected to any DB")
+	}
+
+	version := n.Connections[0].Version
+	for _, conn := range n.Connections {
+		if conn.Version != version {
+			return fmt.Errorf("node has multiple versions: %s and %s", version, conn.Version)
+		}
+
+		if len(conn.Type) != 1 {
+			return fmt.Errorf("invalid connection type: %s", conn.Type)
+		}
+
+		if conn.IsNext != swo.ConnType(conn.Type[0]).IsNext() {
+			return fmt.Errorf("node has invalid connection type: %s", conn.Type)
+		}
+	}
+
+	return nil
+}
+
+func gqlStateFromSWOState(st swogrp.ClusterState) (graphql2.SWOState, error) {
+	switch st {
+	case swogrp.ClusterStateUnknown:
+		return graphql2.SWOStateUnknown, nil
+	case swogrp.ClusterStateResetting:
+		return graphql2.SWOStateResetting, nil
+	case swogrp.ClusterStateIdle:
+		return graphql2.SWOStateIdle, nil
+	case swogrp.ClusterStateSyncing:
+		return graphql2.SWOStateSyncing, nil
+	case swogrp.ClusterStatePausing:
+		return graphql2.SWOStatePausing, nil
+	case swogrp.ClusterStateExecuting:
+		return graphql2.SWOStateExecuting, nil
+	case swogrp.ClusterStateDone:
+		return graphql2.SWOStateDone, nil
+	}
+
+	return "", fmt.Errorf("invalid state: %d", st)
+}
+
+func gqlSWOStatus(s swo.Status, conns []swoinfo.ConnCount) (*graphql2.SWOStatus, error) {
+	sort.Slice(conns, func(i, j int) bool {
+		return conns[i].Name < conns[j].Name
+	})
+	nodes := make(map[string]*graphql2.SWONode)
+	for _, conn := range conns {
+		idStr, c := gqlSWOConnFromConnName(conn)
+
+		n := nodes[idStr]
+		if n == nil {
+			n = &graphql2.SWONode{ID: idStr}
+			nodes[idStr] = n
+		}
+		n.Connections = append(n.Connections, c)
+	}
+
+	for _, node := range s.Nodes {
+		n := nodes[node.ID.String()]
+		if n == nil {
+			n = &graphql2.SWONode{ID: node.ID.String()}
+			nodes[node.ID.String()] = n
+		}
+		n.IsLeader = node.ID == s.LeaderID
+		n.CanExec = node.CanExec
+		n.Uptime = time.Since(node.StartedAt).Truncate(time.Second).String()
+
+		err := validateSWOGrpNode(s, node)
+		if err != nil {
+			n.ConfigError = err.Error()
+			continue
+		}
+
+		err = validateNodeConnections(*n)
+		if err != nil {
+			n.ConfigError = err.Error()
+			continue
+		}
+	}
+
+	var nodeList []graphql2.SWONode
+	for _, n := range nodes {
+		nodeList = append(nodeList, *n)
+	}
+	sort.Slice(nodeList, func(i, j int) bool {
+		return nodeList[i].ID < nodeList[j].ID
+	})
+
+	state, err := gqlStateFromSWOState(s.State)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphql2.SWOStatus{
+		State: state,
+
+		LastStatus: s.LastStatus,
+		LastError:  s.LastError,
+		Nodes:      nodeList,
+
+		NextDBVersion: s.NextDBVersion,
+		MainDBVersion: s.MainDBVersion,
+	}, nil
+}
+
 func (q *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 	if q.SWO == nil {
 		return nil, validation.NewGenericError("not in SWO mode")
@@ -50,111 +193,5 @@ func (q *Query) SwoStatus(ctx context.Context) (*graphql2.SWOStatus, error) {
 		return nil, err
 	}
 
-	nodes := make(map[string]*graphql2.SWONode)
-	for _, conn := range conns {
-		var connType, version string
-		idStr := "unknown-" + conn.Name
-		info, _ := swo.ParseConnInfo(conn.Name)
-		if info != nil {
-			version = info.Version
-			connType = string(info.Type)
-			idStr = info.ID.String()
-		}
-
-		n := nodes[idStr]
-		if n == nil {
-			n = &graphql2.SWONode{ID: idStr}
-			nodes[idStr] = n
-		}
-		n.Connections = append(n.Connections, graphql2.SWOConnection{
-			Name:    conn.Name,
-			IsNext:  conn.IsNext,
-			Version: version,
-			Type:    string(connType),
-			Count:   conn.Count,
-		})
-	}
-
-	s := q.SWO.Status()
-validateNodes:
-	for _, node := range s.Nodes {
-		n := nodes[node.ID.String()]
-		if n == nil {
-			n = &graphql2.SWONode{ID: node.ID.String()}
-			nodes[node.ID.String()] = n
-		}
-		n.IsLeader = node.ID == s.LeaderID
-		n.CanExec = node.CanExec
-
-		n.Uptime = time.Since(node.StartedAt).Truncate(time.Second).String()
-
-		if node.NewID != s.NextDBID {
-			n.ConfigError = "next-db-url is invalid"
-			continue
-		}
-		if node.OldID != s.MainDBID {
-			n.ConfigError = "db-url is invalid"
-			continue
-		}
-
-		if len(n.Connections) == 0 {
-			n.ConfigError = "node is not connected to any DB"
-			continue
-		}
-
-		version := n.Connections[0].Version
-		for _, conn := range n.Connections {
-			if conn.Version != version {
-				n.ConfigError = "node is connected with multiple versions of GoAlert"
-				continue validateNodes
-			}
-			if !conn.IsNext && (conn.Type != "A" && conn.Type != "B") {
-				n.ConfigError = fmt.Sprintf("connected to db-url (main) with invalid type %s (expected A or B)", conn.Type)
-				continue validateNodes
-			}
-			if conn.IsNext && (conn.Type != "C" && conn.Type != "D") {
-				n.ConfigError = fmt.Sprintf("connected to next-db-url (next) with invalid type %s (expected C or D)", conn.Type)
-				continue validateNodes
-			}
-		}
-	}
-
-	var state graphql2.SWOState
-	switch s.State {
-	case swogrp.ClusterStateUnknown:
-		state = graphql2.SWOStateUnknown
-	case swogrp.ClusterStateResetting:
-		state = graphql2.SWOStateResetting
-	case swogrp.ClusterStateIdle:
-		state = graphql2.SWOStateIdle
-	case swogrp.ClusterStateSyncing:
-		state = graphql2.SWOStateSyncing
-	case swogrp.ClusterStatePausing:
-		state = graphql2.SWOStatePausing
-	case swogrp.ClusterStateExecuting:
-		state = graphql2.SWOStateExecuting
-	case swogrp.ClusterStateDone:
-		state = graphql2.SWOStateDone
-	default:
-		return nil, fmt.Errorf("unknown state: %d", s.State)
-	}
-
-	var nodeList []graphql2.SWONode
-	for _, n := range nodes {
-		nodeList = append(nodeList, *n)
-	}
-	sort.Slice(nodeList, func(i, j int) bool {
-		return nodeList[i].ID < nodeList[j].ID
-	})
-
-	return &graphql2.SWOStatus{
-		State: state,
-
-		LastStatus: s.LastStatus,
-		LastError:  s.LastError,
-		Nodes:      nodeList,
-
-		NextDBVersion: s.NextDBVersion,
-		MainDBVersion: s.MainDBVersion,
-	}, nil
+	return gqlSWOStatus(q.SWO.Status(), conns)
 }
