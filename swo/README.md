@@ -8,6 +8,6 @@ Switchover mode is initiated by starting GoAlert with an additional DB URL `--db
 
 All new application DB connections first acquire a shared advisory lock, then check the `use_next_db` pointer. If the pointer is set, all new connections will be made to the "new" DB (without the checking overhead), and the connection to the "old" DB will be terminated.
 
-The switch is performed by first replicating a complete snapshot of the "old" DB to the "new" DB. After the initial sync, subsequent synchronization is an incremental "diff" of snapshots—more info on how this works is available in the `swosync` package.
+The switch is performed by first replicating a complete snapshot of the "old" DB to the "new" DB. After the initial sync, subsequent synchronization is an incremental "diff" of snapshots -- more info on how this works is available in the `swosync` package.
 
-When both DBs are reasonably in-sync, a stop-the-world lock (i.e., an exclusive lock that conflicts with the shared advisory locks) is acquired, followed by the final logical sync. During the same transaction, the `use_next_db` pointer is set. After the lock is released, the connector will send all new queries to the "new" DB.
+After repeated logical sync operations (to keep the next-sync time low), a stop-the-world lock (i.e., an exclusive lock that conflicts with the shared advisory locks) is acquired, followed by the final logical sync. During the same transaction, the `use_next_db` pointer is set. After the lock is released, the connector will send all new queries to the "new" DB.
