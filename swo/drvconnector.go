@@ -9,6 +9,11 @@ import (
 	"github.com/jackc/pgx/v4/stdlib"
 )
 
+// Connector is a driver.Connector that will use the old database until the
+// switchover_state table indicates that the new database should be used.
+//
+// Until the switchover is complete, the old database will be protected with a
+// shared advisory lock (4369).
 type Connector struct {
 	dbcOld, dbcNew driver.Connector
 
