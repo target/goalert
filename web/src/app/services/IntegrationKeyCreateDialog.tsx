@@ -37,7 +37,7 @@ export default function IntegrationKeyCreateDialog(props: {
       onSubmit={(): void => {
         createIntegrationKey(
           { input: { serviceID, ...value } },
-          { additionalTypenames: ['IntegrationKey'] },
+          { additionalTypenames: ['IntegrationKey', 'Service'] },
         ).then(onClose)
       }}
       form={
