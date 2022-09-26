@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/swo/swosync"
 )
 
+// Executor is responsible for executing the switchover process.
 type Executor struct {
 	mgr *Manager
 	mx  sync.Mutex
