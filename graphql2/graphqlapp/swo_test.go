@@ -99,6 +99,7 @@ func b64(id uuid.UUID) string {
 func Test_gqlSWOStatus(t *testing.T) {
 	node1ID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 	node2ID := uuid.MustParse("22222222-2222-2222-2222-222222222222")
+	node3ID := uuid.MustParse("33333333-3333-3333-3333-333333333333")
 	mainDBID := uuid.New()
 	nextDBID := uuid.New()
 
@@ -111,6 +112,7 @@ func Test_gqlSWOStatus(t *testing.T) {
 			Nodes: []swogrp.Node{
 				{ID: node1ID, OldID: mainDBID, NewID: nextDBID, StartedAt: time.Now().Add(-time.Minute)},
 				{ID: node2ID, CanExec: true, OldID: mainDBID, NewID: nextDBID, StartedAt: time.Now().Add(-2 * time.Minute)},
+				{ID: node3ID, OldID: mainDBID, NewID: nextDBID, StartedAt: time.Now().Add(-3 * time.Minute)},
 			},
 		},
 		MainDBVersion: "v1.0.0", // not realistic, but good enough for testing
@@ -146,6 +148,11 @@ func Test_gqlSWOStatus(t *testing.T) {
 				Connections: []graphql2.SWOConnection{
 					{Name: "GoAlert v0.31.0 SWO:A:" + b64(node2ID), Version: "v0.31.0", Count: 1, Type: "A", IsNext: false},
 				},
+			},
+			{
+				ID:          node3ID.String(),
+				Uptime:      "3m0s",
+				ConfigError: "node is not connected to any DB",
 			},
 			{
 				ID: "unknown-foobar",
