@@ -1,37 +1,40 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import { Grid } from '@mui/material'
+import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import DebugMessagesList from './DebugMessagesList'
 import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
+import SimpleListPage from '../../lists/SimpleListPage'
 import { DateTime } from 'luxon'
-import { useFuse } from './useFuse'
+import toTitleCase from '../../util/toTitleCase'
 
-export const MAX_QUERY_ITEMS_COUNT = 1000
-const LOAD_AMOUNT = 50
-
-const debugMessageLogsQuery = gql`
-  query debugMessageLogsQuery($first: Int!) {
-    debugMessages(input: { first: $first }) {
-      id
-      createdAt
-      updatedAt
-      type
-      status
-      userID
-      userName
-      source
-      destination
-      serviceID
-      serviceName
-      alertID
-      providerID
+const query = gql`
+  query messageLogsQuery($input: MessageLogSearchOptions) {
+    data: messageLogs(input: $input) {
+      nodes {
+        id
+        createdAt
+        updatedAt
+        type
+        status
+        userID
+        userName
+        source
+        destination
+        serviceID
+        serviceName
+        alertID
+        providerID
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `
@@ -70,12 +73,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
   const classes = useStyles()
 
   // all data is fetched on page load, but the number of logs rendered is limited
-  const [numRendered, setNumRendered] = useState(LOAD_AMOUNT)
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
-
-  const { data, loading, error } = useQuery(debugMessageLogsQuery, {
-    variables: { first: MAX_QUERY_ITEMS_COUNT },
-  })
 
   const [params, setParams] = useURLParams({
     search: '',
@@ -83,41 +81,12 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     end: '',
   })
 
-  const results = useFuse<DebugMessage>({
-    data:
-      data?.debugMessages.map((d: DebugMessage) => ({
-        ...d,
-        additionalKeys: {
-          filteredDestination: d.destination.replace('-', ''),
-        },
-      })) || [],
-    keys: [
-      'destination',
-      'userName',
-      'serviceName',
-      'status',
-      'additionalKeys.filteredDestination',
-    ],
-    search: params.search,
-    options: {
-      shouldSort: false,
-      showResultsWhenNoSearchTerm: true,
-      ignoreLocation: true,
-      useExtendedSearch: true,
+  const { data, loading, error } = useQuery(query, {
+    variables: {
+      createdAfter: params.start,
+      createdBefore: params.end,
     },
   })
-
-  const startDT = params.start ? DateTime.fromISO(params.start) : null
-  const endDT = params.end ? DateTime.fromISO(params.end) : null
-
-  const filteredResults = results.filter((result) => {
-    const createdAtDT = DateTime.fromISO(result.item.createdAt)
-    if (startDT && startDT > createdAtDT) return false
-    if (endDT && endDT < createdAtDT) return false
-    return true
-  })
-
-  const displayedResults = filteredResults.slice(0, numRendered)
 
   if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
@@ -140,19 +109,63 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
             value={params}
             onChange={(newParams) => {
               setParams(newParams)
-              setNumRendered(LOAD_AMOUNT)
             }}
-            displayedCount={displayedResults.length}
-            resultsCount={filteredResults.length}
           />
         </Grid>
-        <Grid item xs={12}>
-          <DebugMessagesList
-            debugMessages={displayedResults}
-            selectedLog={selectedLog}
-            onSelect={setSelectedLog}
-            hasMore={numRendered < results.length}
-            onLoadMore={() => setNumRendered(numRendered + LOAD_AMOUNT)}
+        <Grid item xs={12} container spacing={2}>
+          <SimpleListPage
+            query={query}
+            noSearch
+            mapDataNode={(n) => {
+              const status = toTitleCase(n.status)
+              const statusDict = {
+                success: {
+                  backgroundColor: '#EDF6ED',
+                  color: '#1D4620',
+                },
+                error: {
+                  backgroundColor: '#FDEBE9',
+                  color: '#611A15',
+                },
+                warning: {
+                  backgroundColor: '#FFF4E5',
+                  color: '#663C00',
+                },
+                info: {
+                  backgroundColor: '#E8F4FD',
+                  color: '#0E3C61',
+                },
+              }
+
+              let statusStyles
+              const s = status.toLowerCase()
+              if (s.includes('deliver')) statusStyles = statusDict.success
+              if (s.includes('sent')) statusStyles = statusDict.success
+              if (s.includes('fail')) statusStyles = statusDict.error
+              if (s.includes('temp')) statusStyles = statusDict.warning
+              if (s.includes('pend')) statusStyles = statusDict.info
+
+              return {
+                title: `${n.type} Notification`,
+                subText: (
+                  <Grid container spacing={2} direction='column'>
+                    <Grid item>Destination: {n.destination}</Grid>
+                    {n.serviceName && (
+                      <Grid item>Service: {n.serviceName}</Grid>
+                    )}
+                    {n.userName && <Grid item>User: {n.userName}</Grid>}
+                    <Grid item>
+                      <Chip label={status} style={statusStyles} />
+                    </Grid>
+                  </Grid>
+                ),
+                action: (
+                  <Typography variant='body2' color='textSecondary'>
+                    {DateTime.fromISO(n.createdAt).toFormat('fff')}
+                  </Typography>
+                ),
+              }
+            }}
           />
         </Grid>
       </Grid>

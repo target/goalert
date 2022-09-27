@@ -3,8 +3,8 @@ import QueryList, { QueryListProps } from './QueryList'
 import CreateFAB from './CreateFAB'
 
 interface SimpleListPageProps extends QueryListProps {
-  createForm: ReactElement
-  createLabel: string
+  createForm?: ReactElement
+  createLabel?: string
 }
 
 export default function SimpleListPage(
@@ -17,7 +17,7 @@ export default function SimpleListPage(
     <React.Fragment>
       <QueryList {...rest} />
 
-      {createForm && (
+      {createForm && createLabel && (
         <CreateFAB
           onClick={() => setCreate(true)}
           title={`Create ${createLabel}`}
@@ -25,6 +25,7 @@ export default function SimpleListPage(
       )}
 
       {create &&
+        createForm &&
         React.cloneElement(createForm, {
           onClose: () => setCreate(false),
         })}

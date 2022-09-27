@@ -69,7 +69,7 @@ export interface PaginatedListProps {
 export interface PaginatedListItemProps {
   url?: string
   title: string
-  subText?: string
+  subText?: ReactNode
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode

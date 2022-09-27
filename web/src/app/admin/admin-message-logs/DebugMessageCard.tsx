@@ -6,6 +6,7 @@ import {
   Card,
   CardActions,
   Chip,
+  Grid,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
@@ -68,49 +69,51 @@ export default function DebugMessageCard(props: Props): JSX.Element {
   if (s.includes('pend')) statusStyles = statusDict.info
 
   return (
-    <Card
-      onClick={onSelect}
-      key={debugMessage.id}
-      className={classes.card}
-      sx={selected ? { border: '2px solid green' } : { border: 'none' }}
-    >
-      <CardHeader
-        action={
-          <Typography color='textSecondary'>
-            {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
-          </Typography>
-        }
-        title={`${type} Notification`}
-        titleTypographyProps={{
-          className: classes.msgType,
-          color: 'textSecondary',
-          gutterBottom: true,
-        }}
-        subheader={`Destination: ${debugMessage.destination}`}
-        subheaderTypographyProps={{
-          component: 'span',
-          variant: 'h6',
-          color: 'textPrimary',
-        }}
-        style={{ paddingBottom: 0 }}
-      />
-      {(debugMessage.serviceName || debugMessage.userName) && (
-        <CardContent>
-          {debugMessage.serviceName && (
+    <Grid item xs={12}>
+      <Card
+        onClick={onSelect}
+        key={debugMessage.id}
+        className={classes.card}
+        sx={selected ? { border: '2px solid green' } : { border: 'none' }}
+      >
+        <CardHeader
+          action={
             <Typography color='textSecondary'>
-              Service: {debugMessage.serviceName}
+              {DateTime.fromISO(debugMessage.createdAt).toFormat('fff')}
             </Typography>
-          )}
-          {debugMessage.userName && (
-            <Typography color='textSecondary'>
-              User: {debugMessage.userName}
-            </Typography>
-          )}
-        </CardContent>
-      )}
-      <CardActions>
-        <Chip className={classes.chip} label={status} style={statusStyles} />
-      </CardActions>
-    </Card>
+          }
+          title={`${type} Notification`}
+          titleTypographyProps={{
+            className: classes.msgType,
+            color: 'textSecondary',
+            gutterBottom: true,
+          }}
+          subheader={`Destination: ${debugMessage.destination}`}
+          subheaderTypographyProps={{
+            component: 'span',
+            variant: 'h6',
+            color: 'textPrimary',
+          }}
+          style={{ paddingBottom: 0 }}
+        />
+        {(debugMessage.serviceName || debugMessage.userName) && (
+          <CardContent>
+            {debugMessage.serviceName && (
+              <Typography color='textSecondary'>
+                Service: {debugMessage.serviceName}
+              </Typography>
+            )}
+            {debugMessage.userName && (
+              <Typography color='textSecondary'>
+                User: {debugMessage.userName}
+              </Typography>
+            )}
+          </CardContent>
+        )}
+        <CardActions>
+          <Chip className={classes.chip} label={status} style={statusStyles} />
+        </CardActions>
+      </Card>
+    </Grid>
   )
 }
