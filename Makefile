@@ -104,7 +104,7 @@ swo/swodb/queries.sql.go: bin/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migration
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
