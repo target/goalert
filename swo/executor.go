@@ -44,17 +44,17 @@ func (e *Executor) init() {
 
 			// sync
 			ctx := <-e.ctxCh
-			err := rep.Reset(ctx)
+			err := rep.ResetChangeTracking(ctx)
 			if err != nil {
 				return fmt.Errorf("reset: %w", err)
 			}
 
-			err = rep.Start(ctx)
+			err = rep.StartTrackingChanges(ctx)
 			if err != nil {
 				return fmt.Errorf("start: %w", err)
 			}
 
-			err = rep.InitialSync(ctx)
+			err = rep.FullInitialSync(ctx)
 			if err != nil {
 				return fmt.Errorf("initial sync: %w", err)
 			}

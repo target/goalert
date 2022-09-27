@@ -12,10 +12,10 @@ import (
 
 const maxBatchSize = 1024 * 1024 // 1MB
 
-// InitialSync will insert all rows from the source database into the destination database.
+// FullInitialSync will insert all rows from the source database into the destination database.
 //
 // While doing so it will update the rowID maps to track the rows that have been inserted.
-func (l *LogicalReplicator) InitialSync(ctx context.Context) error {
+func (l *LogicalReplicator) FullInitialSync(ctx context.Context) error {
 	srcTx, err := l.srcConn.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:       pgx.Serializable,
 		DeferrableMode: pgx.Deferrable,

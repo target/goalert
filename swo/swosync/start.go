@@ -18,8 +18,8 @@ func triggerName(table string) string {
 	return sqlutil.QuoteID(fmt.Sprintf("zz_99_change_log_%s", table))
 }
 
-// Start instruments and begins tracking changes to the DB.
-func (l *LogicalReplicator) Start(ctx context.Context) error {
+// StartTrackingChanges instruments and begins tracking changes to the DB.
+func (l *LogicalReplicator) StartTrackingChanges(ctx context.Context) error {
 	l.printf(ctx, "enabling logical replication...")
 	_, err := l.srcConn.Exec(ctx, changelogQuery)
 	if err != nil {

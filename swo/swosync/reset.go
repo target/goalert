@@ -10,8 +10,8 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
-// Reset disables tracking changes and truncates the tables in the destination database.
-func (l *LogicalReplicator) Reset(ctx context.Context) error {
+// ResetChangeTracking disables tracking changes and truncates the tables in the destination database.
+func (l *LogicalReplicator) ResetChangeTracking(ctx context.Context) error {
 	l.printf(ctx, "disabling logical replication...")
 
 	_, err := l.srcConn.Exec(ctx, ConnLockQuery)
