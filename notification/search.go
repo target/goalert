@@ -46,6 +46,7 @@ WHERE true
 	AND om.created_at > :afterCreatedAt
 {{end}}
 	AND om.created_at < now()
+	AND om.last_status != 'bundled'
 ORDER BY om.created_at
 LIMIT {{.Limit}}
 `))
