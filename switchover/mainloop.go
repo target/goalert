@@ -16,7 +16,9 @@ func (h *Handler) setState(ctx context.Context, newState State) {
 	switch newState {
 	case StatePaused, StatePauseWait, StatePausing:
 	default:
-		h.app.Resume()
+		if h.app != nil {
+			h.app.Resume()
+		}
 	}
 	if h.state == StateComplete && newState != StateStarting {
 		return
@@ -38,6 +40,7 @@ func (h *Handler) setState(ctx context.Context, newState State) {
 		log.Log(ctx, err)
 	}
 }
+
 func (s State) oneOf(state []State) bool {
 	for _, st := range state {
 		if st == s {
@@ -46,6 +49,7 @@ func (s State) oneOf(state []State) bool {
 	}
 	return false
 }
+
 func (h *Handler) allNodes(state ...State) bool {
 	for _, s := range h.nodeStatus {
 		if !s.State.oneOf(state) {
@@ -72,6 +76,7 @@ func (h *Handler) CheckDBNextID(id string) bool {
 
 	return h.dbNextID == id
 }
+
 func (h *Handler) updateNodeStatus(ctx context.Context, s *Status) bool {
 	if !h.CheckDBID(s.DBID) {
 		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched DB ID")
@@ -203,7 +208,7 @@ func (h *Handler) loop() {
 				continue
 			case StateStarting:
 				log.Logf(ctx, "Switch-Over: Got reset signal.")
-				abort() //reset
+				abort() // reset
 				h.nodeStatus = make(map[string]Status)
 			default:
 				log.Logf(ctx, "Switch-Over: Got signal '%s'.", state)

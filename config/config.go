@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,11 +18,12 @@ const SchemaVersion = 1
 type Config struct {
 	data        []byte
 	fallbackURL string
+	explicitURL string
 
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
-		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
-		GoogleAnalyticsID            string `public:"true" info:"No longer used."`
+		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
+		GoogleAnalyticsID            string `public:"true" info:"No longer used." deprecated:"No longer used."`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
 		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
@@ -37,7 +39,7 @@ type Config struct {
 	}
 
 	Auth struct {
-		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects."`
+		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects." deprecated:"Use --public-url flag instead, which takes precedence."`
 		DisableBasic bool     `public:"true" info:"Disallow username/password login."`
 	}
 
@@ -95,8 +97,10 @@ type Config struct {
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
-		AccountSID string
-		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
+		AccountSID         string
+		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests."`
+		AlternateAuthToken string `password:"true" info:"An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field."`
+
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
@@ -152,6 +156,31 @@ func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 	return cfg.Twilio.FromNumber
 }
 
+// RequestURL returns the full URL for the given request based on the current public url.
+func RequestURL(req *http.Request) string {
+	cfg := FromContext(req.Context())
+	if !cfg.ShouldUsePublicURL() {
+		// fallback to old method
+		u, err := url.ParseRequestURI(req.RequestURI)
+		if err != nil {
+			panic(errors.Wrap(err, "parse RequestURI"))
+		}
+		u.Host = req.Host
+		u.Scheme = req.URL.Scheme
+		return u.String()
+	}
+
+	base, err := url.Parse(cfg.PublicURL())
+	if err != nil {
+		panic(errors.Wrap(err, "parse PublicURL"))
+	}
+
+	base.Path = strings.TrimSuffix(base.Path, "/") + req.URL.Path
+	base.RawQuery = req.URL.RawQuery
+
+	return base.String()
+}
+
 func (cfg Config) rawCallbackURL(path string, mergeParams ...url.Values) *url.URL {
 	base, err := url.Parse(cfg.PublicURL())
 	if err != nil {
@@ -204,7 +233,7 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
-//  MatchURL will compare two url strings and will return true if they match.
+// MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
 	compareQueryValues := func(baseVal, testVal url.Values) bool {
 		for name := range baseVal {
@@ -280,8 +309,18 @@ func (cfg Config) ValidWebhookURL(testURL string) bool {
 	return false
 }
 
+// ShouldUsePublicURL returns true if redirects, validation, etc.. should use the
+// configured PublicURL instead of host/referer.
+func (cfg Config) ShouldUsePublicURL() bool { return cfg.explicitURL != "" }
+
 // ValidReferer returns true if the URL is an allowed referer source.
 func (cfg Config) ValidReferer(reqURL, ref string) bool {
+	// --public-url flag takes precedence
+	if cfg.explicitURL != "" {
+		valid, _ := MatchURL(cfg.explicitURL, ref)
+		return valid
+	}
+
 	pubURL := cfg.PublicURL()
 	if pubURL != "" && strings.HasPrefix(ref, pubURL) {
 		return true
@@ -325,11 +364,14 @@ func (cfg Config) ApplicationName() string {
 
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
 func (cfg Config) PublicURL() string {
-	if cfg.General.PublicURL == "" {
-		return strings.TrimSuffix(cfg.fallbackURL, "/")
+	switch {
+	case cfg.explicitURL != "":
+		return strings.TrimSuffix(cfg.explicitURL, "/")
+	case cfg.General.PublicURL != "":
+		return strings.TrimSuffix(cfg.General.PublicURL, "/")
 	}
 
-	return strings.TrimSuffix(cfg.General.PublicURL, "/")
+	return strings.TrimSuffix(cfg.fallbackURL, "/")
 }
 
 func validateEnable(prefix string, isEnabled bool, vals ...string) error {
@@ -388,6 +430,7 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
+		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),

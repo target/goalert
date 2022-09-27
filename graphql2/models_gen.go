@@ -100,6 +100,7 @@ type ConfigValue struct {
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
 	Password    bool       `json:"password"`
+	Deprecated  string     `json:"deprecated"`
 }
 
 type ConfigValueInput struct {
@@ -297,6 +298,12 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type LinkAccountInfo struct {
+	UserDetails    string       `json:"userDetails"`
+	AlertID        *int         `json:"alertID"`
+	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
 }
 
 type NotificationState struct {

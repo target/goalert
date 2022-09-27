@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { Target } from '../../schema'
+import { Target, TargetInput } from '../../schema'
 const c = new Chance()
 
 declare global {
@@ -40,7 +40,7 @@ declare global {
     epID?: string
     ep?: EPOptions
     delay?: number
-    targets?: [Target]
+    targets?: [TargetInput]
   }
 }
 

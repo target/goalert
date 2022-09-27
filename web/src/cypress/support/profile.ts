@@ -84,7 +84,7 @@ function setFavoriteUser(id: string): Cypress.Chainable {
 
   return cy.graphql(query, {
     input: {
-      target: { type: 'user', id: id },
+      target: { type: 'user', id },
       favorite: true,
     },
   })
