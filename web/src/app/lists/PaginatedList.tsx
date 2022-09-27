@@ -74,6 +74,7 @@ export interface PaginatedListItemProps {
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
   status?: 'ok' | 'warn' | 'err'
+  onClick?: () => void
 }
 
 export function PaginatedList(props: PaginatedListProps): JSX.Element {
@@ -140,11 +141,14 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
       component: AppLinkListItem,
-
-      // NOTE button: false? not assignable to true
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
       to: item.url,
+    }
+    const onClickProps = item.onClick && {
+      onClick: item.onClick,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      button: true as any,
     }
 
     return (
@@ -155,6 +159,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         dense={!fullScreen}
         key={'list_' + idx}
         {...urlProps}
+        {...onClickProps}
       >
         {item.icon && <ListItemAvatar>{item.icon}</ListItemAvatar>}
         <ListItemText

@@ -146,6 +146,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
               if (s.includes('pend')) statusStyles = statusDict.info
 
               return {
+                onClick: () => setSelectedLog(n as DebugMessage),
                 title: `${n.type} Notification`,
                 subText: (
                   <Grid container spacing={2} direction='column'>
