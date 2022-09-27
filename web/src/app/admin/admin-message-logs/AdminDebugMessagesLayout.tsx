@@ -112,7 +112,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
             }}
           />
         </Grid>
-        <Grid item xs={12} container spacing={2}>
+        <Grid item xs={12}>
           <SimpleListPage
             query={query}
             noSearch
