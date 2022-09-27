@@ -179,7 +179,9 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			ServiceID:   &log.Service.ID,
 			ServiceName: &log.Service.Name,
 			AlertID:     &log.AlertID,
-			ProviderID:  &log.ProviderMsgID.ExternalID,
+		}
+		if log.ProviderMsgID != nil {
+			dm.ProviderID = &log.ProviderMsgID.ExternalID
 		}
 		if log.SrcValue != "" {
 			src, err := q.formatDest(ctx, notification.Dest{Type: dst.Type, Value: log.SrcValue})
