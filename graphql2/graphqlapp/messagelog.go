@@ -122,13 +122,12 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 	conn.PageInfo = &graphql2.PageInfo{}
 
 	// more than current limit exists, set page info and cursor
-	if len(logs) == (searchOpts.Limit + 1) {
-		logs = logs[:len(logs)-1]
+	if len(logs) == searchOpts.Limit {
 		conn.PageInfo.HasNextPage = true
 	}
 	if len(logs) > 0 && conn.PageInfo.HasNextPage {
 		last := logs[len(logs)-1]
-		searchOpts.After.SrcValue = last.SrcValue
+		searchOpts.After.CreatedAt = last.CreatedAt
 
 		cur, err := search.Cursor(searchOpts)
 		if err != nil {
@@ -137,6 +136,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		conn.PageInfo.EndCursor = &cur
 	}
 
+	// map debugmessages to messagelogs
 	var logsMapped []graphql2.DebugMessage
 	for _, log := range logs {
 		var cm contactmethod.ContactMethod

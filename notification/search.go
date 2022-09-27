@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
@@ -25,7 +26,7 @@ type SearchOptions struct {
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	SrcValue string `json:"n,omitempty"`
+	CreatedAt time.Time `json:"n,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
@@ -41,9 +42,10 @@ WHERE true
 {{if .Search}}
 	AND {{prefixSearch "search" "om.src_value"}}
 {{end}}
-{{if .After.SrcValue}}
-	AND lower(om.src_value) > lower(:afterSrcValue)
+{{if .After.CreatedAt}}
+	AND om.created_at > :afterCreatedAt
 {{end}}
+	AND om.created_at < now()
 ORDER BY om.created_at
 LIMIT {{.Limit}}
 `))
@@ -60,9 +62,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Range("Limit", opts.Limit, 0, 50),
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
-	if opts.After.SrcValue != "" {
-		err = validate.Many(err, validate.IDName("After.SrcValue", opts.After.SrcValue))
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("search", opts.Search),
-		sql.Named("afterSrcValue", opts.After.SrcValue),
+		sql.Named("afterCreatedAt", opts.After.CreatedAt),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 	}
 }
@@ -100,7 +99,6 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if errors.Is(err, sql.ErrNoRows) {
-
 		return nil, nil
 	}
 	if err != nil {
