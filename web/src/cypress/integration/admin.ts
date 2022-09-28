@@ -15,6 +15,8 @@ function testAdmin(): void {
     })
 
     it('should allow updating system limits values', () => {
+      cy.get('nav li').contains('System Limits').should('be.visible')
+
       const newContactMethods = c.integer({ min: 15, max: 1000 }).toString()
       const newEPActions = c.integer({ min: 15, max: 1000 }).toString()
 

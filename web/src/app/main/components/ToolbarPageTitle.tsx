@@ -124,6 +124,11 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   const name = useName(parts[1], parts[2])
   parts.slice(1).forEach((part, i) => {
     title = i === 1 ? name : toTitleCase(part)
+    if (parts[1] === 'admin') {
+      // admin doesn't have IDs to lookup
+      // and instead just has fixed sub-page names
+      title = toTitleCase(part)
+    }
     crumbs.push(renderCrumb(i, title, parts.slice(0, i + 2).join('/')))
   })
 
