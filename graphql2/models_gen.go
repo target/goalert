@@ -133,9 +133,9 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateHeartbeatMonitorInput struct {
-	ServiceID      string `json:"serviceID"`
-	Name           string `json:"name"`
-	TimeoutMinutes int    `json:"timeoutMinutes"`
+	ServiceID      *string `json:"serviceID"`
+	Name           string  `json:"name"`
+	TimeoutMinutes int     `json:"timeoutMinutes"`
 }
 
 type CreateIntegrationKeyInput struct {
