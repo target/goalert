@@ -13,101 +13,105 @@ import (
 // Executor is responsible for executing the switchover process.
 type Executor struct {
 	mgr *Manager
-	mx  sync.Mutex
 
-	ctxCh  chan context.Context
-	errCh  chan error
-	cancel func()
+	stateCh chan execState
+
+	wf  *WithFunc[*swosync.LogicalReplicator]
+	rep *swosync.LogicalReplicator
+	mx  sync.Mutex
 }
 
-var _ swogrp.Executor = (*Executor)(nil)
-
-func (e *Executor) init() {
-	e.mx.Lock()
-	defer e.mx.Unlock()
-	if e.cancel != nil {
-		panic("already running")
+func NewExecutor(mgr *Manager) *Executor {
+	e := &Executor{
+		mgr:     mgr,
+		stateCh: make(chan execState, 1),
 	}
-
-	ctx, cancel := context.WithCancel(e.mgr.Logger.BackgroundContext())
-	e.cancel = cancel
-	e.ctxCh = make(chan context.Context)
-	e.errCh = make(chan error, 2)
-
-	go func() {
-		defer e.Cancel()
-		e.errCh <- e.mgr.withConnFromBoth(ctx, func(_ context.Context, oldConn, newConn *pgx.Conn) error {
+	e.stateCh <- execStateIdle
+	e.wf = NewWithFunc(func(ctx context.Context, fn func(*swosync.LogicalReplicator)) error {
+		return mgr.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
 			rep := swosync.NewLogicalReplicator()
 			rep.SetSourceDB(oldConn)
 			rep.SetDestinationDB(newConn)
-			rep.SetProgressFunc(e.mgr.taskMgr.Statusf)
-
-			// sync
-			ctx := <-e.ctxCh
-			err := rep.ResetChangeTracking(ctx)
-			if err != nil {
-				return fmt.Errorf("reset: %w", err)
-			}
-
-			err = rep.StartTrackingChanges(ctx)
-			if err != nil {
-				return fmt.Errorf("start: %w", err)
-			}
-
-			err = rep.FullInitialSync(ctx)
-			if err != nil {
-				return fmt.Errorf("initial sync: %w", err)
-			}
-
-			for i := 0; i < 10; i++ {
-				err = rep.LogicalSync(ctx)
-				if err != nil {
-					return fmt.Errorf("logical sync: %w", err)
-				}
-			}
-			e.errCh <- nil
-
-			// wait for pause
-			ctx = <-e.ctxCh
-			for i := 0; i < 10; i++ {
-				err := rep.LogicalSync(ctx)
-				if err != nil {
-					return fmt.Errorf("logical sync (after pause): %w", err)
-				}
-			}
-
-			err = rep.FinalSync(ctx)
-			if err != nil {
-				return fmt.Errorf("final sync: %w", err)
-			}
-
+			rep.SetProgressFunc(mgr.taskMgr.Statusf)
+			fn(rep)
 			return nil
 		})
-	}()
+	})
+	return e
 }
+
+type execState int
+
+const (
+	execStateIdle execState = iota
+	execStateSync
+)
+
+var _ swogrp.Executor = (*Executor)(nil)
 
 func (e *Executor) Sync(ctx context.Context) error {
-	e.init()
-
-	e.ctxCh <- ctx
-	return <-e.errCh
-}
-
-func (e *Executor) Exec(ctx context.Context) error {
-	e.ctxCh <- ctx
-	return <-e.errCh
-}
-
-func (e *Executor) Cancel() {
 	e.mx.Lock()
 	defer e.mx.Unlock()
 
-	if e.cancel == nil {
-		return
+	if e.rep != nil {
+		return fmt.Errorf("already syncing")
 	}
 
-	e.cancel()
-	e.ctxCh = nil
-	e.errCh = nil
-	e.cancel = nil
+	rep, err := e.wf.Begin(e.mgr.Logger.BackgroundContext())
+	if err != nil {
+		return err
+	}
+
+	err = rep.ResetChangeTracking(ctx)
+	if err != nil {
+		return fmt.Errorf("reset: %w", err)
+	}
+
+	err = rep.StartTrackingChanges(ctx)
+	if err != nil {
+		return fmt.Errorf("start: %w", err)
+	}
+
+	err = rep.FullInitialSync(ctx)
+	if err != nil {
+		return fmt.Errorf("initial sync: %w", err)
+	}
+
+	for i := 0; i < 10; i++ {
+		err = rep.LogicalSync(ctx)
+		if err != nil {
+			return fmt.Errorf("logical sync: %w", err)
+		}
+	}
+
+	e.rep = rep
+	return nil
 }
+
+func (e *Executor) Exec(ctx context.Context) error {
+	e.mx.Lock()
+	defer e.mx.Unlock()
+
+	if e.rep == nil {
+		return fmt.Errorf("not syncing")
+	}
+
+	rep := e.rep
+	e.rep = nil
+
+	for i := 0; i < 10; i++ {
+		err := rep.LogicalSync(ctx)
+		if err != nil {
+			return fmt.Errorf("logical sync (after pause): %w", err)
+		}
+	}
+
+	err := rep.FinalSync(ctx)
+	if err != nil {
+		return fmt.Errorf("final sync: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Executor) Cancel() { e.wf.Cancel() }

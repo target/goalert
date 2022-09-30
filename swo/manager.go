@@ -119,7 +119,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		OldID: m.MainDBInfo.ID,
 		NewID: m.NextDBInfo.ID,
 
-		Executor:   &Executor{mgr: m},
+		Executor:   NewExecutor(m),
 		PauseFunc:  func(ctx context.Context) error { return m.pauseResume.Pause(ctx) },
 		ResumeFunc: func(ctx context.Context) error { return m.pauseResume.Resume(ctx) },
 	})
