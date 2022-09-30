@@ -793,7 +793,7 @@ export interface CreateIntegrationKeyInput {
 }
 
 export interface CreateHeartbeatMonitorInput {
-  serviceID: string
+  serviceID?: null | string
   name: string
   timeoutMinutes: number
 }

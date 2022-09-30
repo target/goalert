@@ -1011,7 +1011,7 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatMonitorInput {
-  serviceID: ID!
+  serviceID: ID
   name: String!
   timeoutMinutes: Int!
 }
