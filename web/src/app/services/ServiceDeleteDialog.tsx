@@ -89,7 +89,7 @@ export default function ServiceDeleteDialog(props: {
       title='Are you sure?'
       confirm
       subTitle={
-        <Typography>
+        <Typography component='h2' variant='subtitle1'>
           This will delete the service:{' '}
           {_.get(data, 'service.name', <Spinner text='loading...' />)}
         </Typography>
