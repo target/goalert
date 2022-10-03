@@ -3,6 +3,7 @@ import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
+import Spinner from '../../loading/components/Spinner'
 import {
   XAxis,
   YAxis,
@@ -16,7 +17,10 @@ import {
 
 interface CustomDotProps extends DotProps {
   dataKey: string
-  payload: { date: string }
+  payload: {
+    date: string
+    count: number
+  }
 }
 
 const CustomDot = (props: CustomDotProps): JSX.Element => {
@@ -26,7 +30,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
       cy={cy}
       cx={cx}
       fill={fill}
-      r={r}
+      r={payload.count ? r : 0}
       stroke={stroke}
       strokeWidth={strokeWidth}
       key={dataKey + '-' + payload.date}
@@ -37,6 +41,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 
 interface AlertAveragesGraphProps {
   data: typeof LineChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -59,6 +64,7 @@ export default function AlertAveragesGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-averages-graph'>
+        {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }) => (
             <LineChart
@@ -112,6 +118,7 @@ export default function AlertAveragesGraph(
               <Line
                 type='monotone'
                 dataKey='avgTimeToAck'
+                strokeOpacity={props.loading ? 0.5 : 1}
                 strokeWidth={2}
                 stroke={theme.palette.primary.main}
                 activeDot={{ r: 8 }}
@@ -124,6 +131,7 @@ export default function AlertAveragesGraph(
                 strokeWidth={2}
                 dataKey='avgTimeToClose'
                 isAnimationActive={false}
+                strokeOpacity={props.loading ? 0.5 : 1}
                 stroke={
                   theme.palette.mode === 'light'
                     ? theme.palette.secondary.dark

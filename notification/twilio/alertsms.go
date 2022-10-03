@@ -89,14 +89,46 @@ func mapGSM(r rune) rune {
 	return '?'
 }
 
+// hasAnyPrefix returns true if any of the prefixes are present in the string.
+func hasAnyPrefix(s string, prefixes ...string) bool {
+	for _, p := range prefixes {
+		if !strings.HasPrefix(s, p) {
+			continue
+		}
+
+		return true
+	}
+
+	return false
+}
+
+// canContainURL returns true if the message can contain a URL.
+func canContainURL(ctx context.Context, number string) bool {
+	if config.FromContext(ctx).General.DisableSMSLinks {
+		return false
+	}
+
+	return !hasAnyPrefix(number,
+		// Non-exhaustive list of dialing codes that forbid URLs.
+		"+86", // CN - https://www.twilio.com/guidelines/cn/sms
+	)
+}
+
 // hasTwoWaySMSSupport returns true if a number supports 2-way SMS messaging (replies).
 func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 	if config.FromContext(ctx).Twilio.DisableTwoWaySMS {
 		return false
 	}
 
-	// India numbers do not support SMS replies.
-	return !strings.HasPrefix(number, "+91")
+	return !hasAnyPrefix(number,
+		// Non-exhaustive list of dialing codes that do not support 2-way SMS.
+		"+91",  // IN - https://www.twilio.com/guidelines/in/sms
+		"+86",  // CN - https://www.twilio.com/guidelines/cn/sms
+		"+502", // GT - https://www.twilio.com/guidelines/gt/sms
+		"+506", // CR - https://www.twilio.com/guidelines/cr/sms
+		"+507", // PA - https://www.twilio.com/guidelines/pa/sms
+		"+84",  // VN - https://www.twilio.com/guidelines/vn/sms
+	)
 }
 
 func normalizeGSM(str string) (s string) {

@@ -27,14 +27,17 @@ func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Mon
 	return (*App)(q).FindOneHeartbeatMonitor(ctx, id)
 }
 
-func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error) {
-	hb := &heartbeat.Monitor{
-		ServiceID: input.ServiceID,
-		Name:      input.Name,
-		Timeout:   time.Duration(input.TimeoutMinutes) * time.Minute,
+func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.CreateHeartbeatMonitorInput) (hb *heartbeat.Monitor, err error) {
+	var serviceID string
+	if input.ServiceID != nil {
+		serviceID = *input.ServiceID
 	}
-	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
+	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		hb = &heartbeat.Monitor{
+			ServiceID: serviceID,
+			Name:      input.Name,
+			Timeout:   time.Duration(input.TimeoutMinutes) * time.Minute,
+		}
 		hb, err = m.HeartbeatStore.CreateTx(ctx, tx, hb)
 		return err
 	})

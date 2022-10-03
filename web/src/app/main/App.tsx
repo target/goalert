@@ -23,6 +23,7 @@ import { Theme } from '@mui/material/styles'
 import AppRoutes from './AppRoutes'
 import { useURLKey } from '../actions'
 import NavBar from './NavBar'
+import AuthLink from './components/AuthLink'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -115,6 +116,7 @@ export default function App(): JSX.Element {
           <main id='content' className={classes.main} style={{ marginLeft }}>
             <ErrorBoundary>
               <LazyNewUserSetup />
+              <AuthLink />
               <Grid
                 container
                 justifyContent='center'
