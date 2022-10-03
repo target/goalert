@@ -91,7 +91,7 @@ export default function IntegrationKeyList({ serviceID }) {
   const [deleteDialog, setDeleteDialog] = useState(null)
 
   const { loading, error, data } = useQuery(query, {
-    variables: { serviceID: serviceID },
+    variables: { serviceID },
   })
 
   const typeLabels = {

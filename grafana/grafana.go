@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"text/template"
@@ -182,7 +182,7 @@ func GrafanaToEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.Hand
 		}
 		serviceID := permission.ServiceID(ctx)
 
-		data, err := ioutil.ReadAll(r.Body)
+		data, err := io.ReadAll(r.Body)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}

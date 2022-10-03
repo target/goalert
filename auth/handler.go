@@ -208,16 +208,38 @@ func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]Use
 	return sessions, nil
 }
 
-// ServeLogout will clear the current session cookie and end the session (if any).
+// ServeLogout will clear the current session cookie and end the session(s) (if any).
 func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
-	h.setSessionCookie(w, req, "")
+	ClearCookie(w, req, CookieName)
+	var sessionIDs []string
+	for _, c := range req.Cookies() {
+		switch c.Name {
+		case CookieName, v1CookieName:
+		default:
+			// only interested in cookies with one of the names above
+			continue
+		}
+
+		tok, _, _ := authtoken.Parse(c.Value, nil)
+		if tok == nil {
+			continue
+		}
+		sessionIDs = append(sessionIDs, tok.ID.String())
+	}
 	ctx := req.Context()
 	src := permission.Source(ctx)
 	if src != nil && src.Type == permission.SourceTypeAuthProvider {
-		_, err := h.endSession.ExecContext(log.FromContext(ctx).BackgroundContext(), sqlutil.UUIDArray([]string{src.ID}))
-		if err != nil {
-			log.Log(ctx, errors.Wrap(err, "end session"))
-		}
+		sessionIDs = append(sessionIDs, src.ID)
+	}
+
+	if len(sessionIDs) == 0 {
+		// no session to end
+		return
+	}
+
+	_, err := h.endSession.ExecContext(log.FromContext(ctx).BackgroundContext(), sqlutil.UUIDArray(sessionIDs))
+	if err != nil {
+		log.Log(ctx, errors.Wrap(err, "end session(s)"))
 	}
 }
 
@@ -268,14 +290,27 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+		cfg := config.FromContext(ctx)
 
 		var refU *url.URL
 		if req.Method == "POST" {
-			var ok bool
-			refU, ok = h.refererURL(w, req)
-			if !ok {
-				errutil.HTTPError(ctx, w, validation.NewFieldError("referer", "failed to resolve referer"))
-				return
+			if cfg.ShouldUsePublicURL() {
+				refU, _ = url.Parse(req.Header.Get("referer"))
+				if refU == nil || !cfg.ValidReferer("", req.Header.Get("referer")) {
+					// redirect with err
+					q := make(url.Values)
+					q.Set("login_error", "invalid referer")
+					http.Redirect(w, req, cfg.CallbackURL("", q), http.StatusTemporaryRedirect)
+					return
+				}
+			} else {
+				// fallback to old method
+				var ok bool
+				refU, ok = h.refererURL(w, req)
+				if !ok {
+					errutil.HTTPError(ctx, w, validation.NewFieldError("referer", "failed to resolve referer"))
+					return
+				}
 			}
 		} else {
 			c, err := req.Cookie("login_redir")
@@ -354,9 +389,14 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	u := *req.URL
-	u.RawQuery = "" // strip query params
-	route.CurrentURL = u.String()
+	cfg := config.FromContext(ctx)
+	if cfg.ShouldUsePublicURL() {
+		route.CurrentURL = cfg.CallbackURL(req.URL.Path)
+	} else {
+		u := *req.URL
+		u.RawQuery = "" // strip query params
+		route.CurrentURL = u.String()
+	}
 
 	sub, err := p.ExtractIdentity(&route, w, req)
 	var r Redirector
@@ -493,12 +533,7 @@ func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (
 }
 
 func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val string) {
-	ClearCookie(w, req, "login_redir")
-	if val == "" {
-		ClearCookie(w, req, CookieName)
-	} else {
-		SetCookieAge(w, req, CookieName, val, 30*24*time.Hour)
-	}
+	SetCookieAge(w, req, CookieName, val, 30*24*time.Hour)
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
@@ -549,6 +584,47 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 	return true
 }
 
+func (h *Handler) tryAuthUser(ctx context.Context, w http.ResponseWriter, req *http.Request, tokenStr string, isCookie bool) (context.Context, error) {
+	tok, isOld, err := authtoken.Parse(tokenStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
+		// only session tokens are supported for cookies
+		return h.cfg.SessionKeyring.Verify(p, sig)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var userID uuid.UUID
+	var userRole permission.Role
+	err = h.fetchSession.QueryRowContext(ctx, tok.ID.String()).Scan(&userID, &userRole)
+	if err != nil {
+		return nil, err
+	}
+
+	if isCookie && isOld {
+		// send new signature back if it was signed with an old key
+		newSignedToken, err := tok.Encode(h.cfg.SessionKeyring.Sign)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "failed to sign/issue new session token"))
+		} else {
+			h.setSessionCookie(w, req, newSignedToken)
+			_, err = h.updateUA.ExecContext(ctx, tok.ID.String(), req.UserAgent())
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "update user agent (session key refresh)"))
+			}
+		}
+	}
+
+	return permission.UserSourceContext(
+		ctx,
+		userID.String(),
+		userRole,
+		&permission.SourceInfo{
+			Type: permission.SourceTypeAuthProvider,
+			ID:   tok.ID.String(),
+		},
+	), nil
+}
+
 // WrapHandler will wrap an existing http.Handler so the Context of the request
 // includes authentication information (if the request is authorized).
 //
@@ -567,80 +643,36 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 		}
 
 		// User session flow
-		ctx := req.Context()
+
 		tokStr := GetToken(req)
-		var fromCookie bool
-		if tokStr == "" {
-			c, err := req.Cookie(CookieName)
-			if err == nil {
-				fromCookie = true
-				tokStr = c.Value
-			}
-		}
-		if tokStr == "" {
-			c, err := req.Cookie(v1CookieName)
-			if err == nil {
-				fromCookie = true
-				tokStr = c.Value
-			}
-		}
-
-		if tokStr == "" {
-			// no cookie value
-			wrapped.ServeHTTP(w, req)
-			return
-		}
-		tok, isOld, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
-			// only session tokens are supported for cookies
-			return h.cfg.SessionKeyring.Verify(p, sig)
-		})
-		if err != nil {
-			if fromCookie {
-				h.setSessionCookie(w, req, "")
-			}
-			wrapped.ServeHTTP(w, req)
-			return
-		}
-
-		if fromCookie && isOld {
-			// send new signature back if it was signed with an old key
-			newSignedToken, err := tok.Encode(h.cfg.SessionKeyring.Sign)
+		// explicit token always takes precedence
+		if tokStr != "" {
+			ctx, err := h.tryAuthUser(req.Context(), w, req, tokStr, false)
 			if err != nil {
-				log.Log(ctx, errors.Wrap(err, "failed to sign/issue new session token"))
-			} else {
-				h.setSessionCookie(w, req, newSignedToken)
-				_, err = h.updateUA.ExecContext(ctx, tok.ID.String(), req.UserAgent())
-				if err != nil {
-					log.Log(ctx, errors.Wrap(err, "update user agent (session key refresh)"))
-				}
+				wrapped.ServeHTTP(w, req)
+				return
 			}
-		}
 
-		var userID string
-		var userRole permission.Role
-		err = h.fetchSession.QueryRowContext(ctx, tok.ID.String()).Scan(&userID, &userRole)
-		if errors.Is(err, sql.ErrNoRows) {
-			if fromCookie {
-				h.setSessionCookie(w, req, "")
-			}
-			wrapped.ServeHTTP(w, req)
-			return
-		}
-		if err != nil {
-			errutil.HTTPError(ctx, w, err)
+			wrapped.ServeHTTP(w, req.WithContext(ctx))
 			return
 		}
 
-		ctx = permission.UserSourceContext(
-			ctx,
-			userID,
-			userRole,
-			&permission.SourceInfo{
-				Type: permission.SourceTypeAuthProvider,
-				ID:   tok.ID.String(),
-			},
-		)
-		req = req.WithContext(ctx)
+		for _, c := range req.Cookies() {
+			switch c.Name {
+			case CookieName, v1CookieName:
+			default:
+				// only interested in cookies with one of the names above
+				continue
+			}
+
+			ctx, err := h.tryAuthUser(req.Context(), w, req, c.Value, true)
+			if err != nil {
+				continue
+			}
+
+			wrapped.ServeHTTP(w, req.WithContext(ctx))
+			return
+		}
 
 		wrapped.ServeHTTP(w, req)
 	})

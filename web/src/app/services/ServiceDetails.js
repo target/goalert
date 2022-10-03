@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
+import { Button } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage from '../details/DetailsPage'
@@ -13,6 +14,8 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
+import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
+import ServiceMaintenanceNotice from './ServiceMaintenanceNotice'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -24,6 +27,7 @@ const query = gql`
   query serviceDetailsQuery($serviceID: ID!) {
     service(id: $serviceID) {
       ...ServiceTitleQuery
+      maintenanceExpiresAt
       ep: escalationPolicy {
         id
         name
@@ -71,6 +75,7 @@ const alertStatus = (a) => {
 export default function ServiceDetails({ serviceID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [showMaintMode, setShowMaintMode] = useState(false)
   const { data, loading, error } = useQuery(query, {
     variables: { serviceID },
     returnPartialData: true,
@@ -88,6 +93,7 @@ export default function ServiceDetails({ serviceID }) {
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
+        notices={<ServiceMaintenanceNotice serviceID={serviceID} />}
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}
@@ -102,6 +108,17 @@ export default function ServiceDetails({ serviceID }) {
         }
         details={data.service.description}
         pageContent={<ServiceOnCallList serviceID={serviceID} />}
+        primaryActions={[
+          <Button
+            color='primary'
+            variant='contained'
+            key='maintence-mode'
+            onClick={() => setShowMaintMode(true)}
+            aria-label='Maintenance Mode'
+          >
+            Maintenance Mode
+          </Button>,
+        ]}
         secondaryActions={[
           {
             label: 'Edit',
@@ -159,6 +176,13 @@ export default function ServiceDetails({ serviceID }) {
         <ServiceDeleteDialog
           onClose={() => setShowDelete(false)}
           serviceID={serviceID}
+        />
+      )}
+      {showMaintMode && (
+        <ServiceMaintenanceModeDialog
+          onClose={() => setShowMaintMode(false)}
+          serviceID={serviceID}
+          expiresAt={data.service.maintenanceExpiresAt}
         />
       )}
     </React.Fragment>

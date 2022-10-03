@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
@@ -100,6 +101,7 @@ type ConfigValue struct {
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
 	Password    bool       `json:"password"`
+	Deprecated  string     `json:"deprecated"`
 }
 
 type ConfigValueInput struct {
@@ -131,9 +133,9 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateHeartbeatMonitorInput struct {
-	ServiceID      string `json:"serviceID"`
-	Name           string `json:"name"`
-	TimeoutMinutes int    `json:"timeoutMinutes"`
+	ServiceID      *string `json:"serviceID"`
+	Name           string  `json:"name"`
+	TimeoutMinutes int     `json:"timeoutMinutes"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -271,6 +273,18 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
+type IntegrationKeyConnection struct {
+	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
+	PageInfo *PageInfo                       `json:"pageInfo"`
+}
+
+type IntegrationKeySearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
+}
+
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -297,6 +311,12 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type LinkAccountInfo struct {
+	UserDetails    string       `json:"userDetails"`
+	AlertID        *int         `json:"alertID"`
+	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
 }
 
 type NotificationState struct {
@@ -504,10 +524,11 @@ type UpdateScheduleInput struct {
 }
 
 type UpdateServiceInput struct {
-	ID                 string  `json:"id"`
-	Name               *string `json:"name"`
-	Description        *string `json:"description"`
-	EscalationPolicyID *string `json:"escalationPolicyID"`
+	ID                   string     `json:"id"`
+	Name                 *string    `json:"name"`
+	Description          *string    `json:"description"`
+	EscalationPolicyID   *string    `json:"escalationPolicyID"`
+	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {

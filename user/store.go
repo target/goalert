@@ -351,10 +351,6 @@ func withTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	return tx.StmtContext(ctx, stmt)
 }
 
-func (s *Store) requireTx(ctx context.Context, tx *sql.Tx, fn func(*sql.Tx) error) error {
-	return nil
-}
-
 // InsertTx creates a new User.
 func (s *Store) InsertTx(ctx context.Context, tx *sql.Tx, u *User) (*User, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
@@ -377,21 +373,6 @@ func (s *Store) InsertTx(ctx context.Context, tx *sql.Tx, u *User) (*User, error
 
 // Insert is equivalent to calling InsertTx(ctx, nil, u).
 func (s *Store) Insert(ctx context.Context, u *User) (*User, error) { return s.InsertTx(ctx, nil, u) }
-
-// DeleteTx deletes a User with the given ID.
-func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
-	if err != nil {
-		return err
-	}
-
-	err = validate.UUID("UserID", id)
-	if err != nil {
-		return err
-	}
-
-	return s.requireTx(ctx, tx, func(tx *sql.Tx) error { return s.retryDeleteTx(ctx, tx, id) })
-}
 
 func (s *Store) retryDeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 	return retry.DoTemporaryError(func(int) error {
@@ -516,9 +497,6 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 
 	return nil
 }
-
-// Delete is equivalent to calling DeleteTx(ctx, nil, id).
-func (s *Store) Delete(ctx context.Context, id string) error { return s.DeleteTx(ctx, nil, id) }
 
 // Update id equivalent to calling UpdateTx(ctx, nil, u).
 func (s *Store) Update(ctx context.Context, u *User) error { return s.UpdateTx(ctx, nil, u) }

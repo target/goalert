@@ -1,12 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { testScreen } from '../support'
+import { pathPrefix, testScreen } from '../support'
 const c = new Chance()
-
-function basePrefix(): string {
-  const u = new URL(Cypress.config('baseUrl') as string)
-  return u.pathname.replace(/\/$/, '')
-}
 
 function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
@@ -64,9 +59,10 @@ function testServices(screen: ScreenFormat): void {
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
-    describe('Filtering', () => {
+    describe.only('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
+      let intKey: IntegrationKey
       beforeEach(() => {
         cy.createLabel().then((l: Label) => {
           label1 = l
@@ -76,6 +72,9 @@ function testServices(screen: ScreenFormat): void {
           }).then((l: Label) => {
             label2 = l
           })
+        })
+        cy.createIntKey().then((i: IntegrationKey) => {
+          intKey = i
         })
       })
 
@@ -166,6 +165,23 @@ function testServices(screen: ScreenFormat): void {
           .should('not.contain', label2.svc.description)
       })
 
+      it('should filter by integration key', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="integration-key"]').selectByLabel(intKey.id)
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        cy.get('body')
+          .should('contain', intKey.svc.name)
+          .should('contain', intKey.svc.description)
+      })
+
       it('should reset label filters', () => {
         // open filter
         if (screen === 'mobile') {
@@ -243,7 +259,7 @@ function testServices(screen: ScreenFormat): void {
         .should(
           'have.attr',
           'href',
-          basePrefix() + `/escalation-policies/${svc.ep.id}`,
+          pathPrefix() + `/escalation-policies/${svc.ep.id}`,
         )
     })
 
@@ -276,7 +292,7 @@ function testServices(screen: ScreenFormat): void {
           .should(
             'have.attr',
             'href',
-            basePrefix() + `/escalation-policies/${ep.id}`,
+            pathPrefix() + `/escalation-policies/${ep.id}`,
           )
       })
     })
@@ -352,11 +368,16 @@ function testServices(screen: ScreenFormat): void {
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
       const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+      const invalidName = 'a'
 
       cy.pageFab()
 
+      cy.dialogForm({ name: invalidName, timeoutMinutes })
+      cy.dialogClick('Submit')
+      cy.get('body').should('contain', 'Must be at least 2 characters')
+
       cy.dialogForm({ name, timeoutMinutes })
-      cy.dialogFinish('Submit')
+      cy.dialogFinish('Retry')
 
       cy.get('li').should('contain', name).should('contain', timeoutMinutes)
     })
@@ -687,6 +708,71 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', now)
         .should('contain', 'Avg. Ack: 1 min')
         .should('contain', 'Avg. Close: 2 min')
+    })
+  })
+
+  describe('Maintenance Mode', () => {
+    let svc: Service
+    let openAlert: Alert
+    beforeEach(() => {
+      cy.createUser().then((user: Profile) => {
+        return cy.createService().then((s: Service) => {
+          svc = s
+          cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
+            openAlert = a
+          })
+          cy.createEPStep({
+            epID: s.epID,
+            targets: [{ type: 'user', id: user.id }],
+          }).then(() => s.id)
+          return cy.visit(`/services/${s.id}`)
+        })
+      })
+    })
+
+    it('should start maintenance mode, display banners, and cancel', () => {
+      cy.get('button[aria-label="Maintenance Mode"').click()
+      cy.dialogFinish('Submit')
+
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts/${openAlert.id}`)
+      cy.get('body').should('contain', 'Warning: In Maintenance Mode')
+
+      // verify escalate button is disabled
+      cy.get('button[aria-label="Escalate disabled. In maintenance mode."]')
+        .parent() // go 1 level up to focusable span
+        .trigger('mouseover')
+      cy.get('body').should(
+        'contain',
+        'Escalate disabled. In maintenance mode.',
+      )
+
+      // cancel maintenance mode
+      cy.get('button[aria-label="Cancel Maintenance Mode"').click()
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}/alerts`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+      cy.visit(`/services/${svc.id}`)
+      cy.get('body').should('not.contain', 'Warning: In Maintenance Mode')
+    })
+
+    it('should not escalate to step 1 when alert created in maintenance mode', () => {
+      cy.get('button[aria-label="Maintenance Mode"').click()
+      cy.dialogFinish('Submit')
+
+      const summary = 'test alert'
+      cy.get('[data-cy=route-links] li').contains('Alerts').click()
+      cy.get('button[aria-label="Create Alert"').click()
+      cy.dialogForm({
+        summary,
+      })
+      cy.dialogClick('Next')
+      cy.dialogClick('Submit')
+      cy.dialogFinish('Done')
+      cy.get('p').contains(summary).click()
+      cy.get('body').should('not.contain', 'Escalated to step #1')
     })
   })
 }

@@ -16,6 +16,7 @@ const query = gql`
       service {
         id
         name
+        maintenanceExpiresAt
         escalationPolicy {
           id
           repeat
