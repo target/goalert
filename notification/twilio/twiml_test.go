@@ -13,7 +13,7 @@ import (
 
 func TestTwiMLResponse(t *testing.T) {
 	t.Run("hangup", func(t *testing.T) {
-		mockConfig := config.Config{}
+		var cfg config.Config
 		ctx := mockConfig.Context(context.Background())
 		rec := httptest.NewRecorder()
 
