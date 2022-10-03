@@ -187,25 +187,27 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 
-	prefix := fmt.Sprintf("Hello! This is %s. <break strength=\"x-strong\" time=\"700ms\"/>", cfg.ApplicationName())
+	prefix := fmt.Sprintf("Hello! This is %s", cfg.ApplicationName())
+
+	twimlBreak := `<break strength="x-strong" time="700ms"/>`
 
 	var message string
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
+		message = fmt.Sprintf("%s with alert notifications. %s Service '%s' has %d unacknowledged alerts.", prefix, twimlBreak, t.ServiceName, t.Count)
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
 		if t.Summary == "" {
 			t.Summary = "No summary provided"
 		}
-		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
+		message = fmt.Sprintf("%s with an alert notification. %s %s.", prefix, twimlBreak, t.Summary)
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
+		message = fmt.Sprintf("%s with a status update for alert '%s'. %s %s", prefix, t.Summary, twimlBreak, message)
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
@@ -214,8 +216,8 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	case notification.Verification:
 		count := int(math.Log10(float64(t.Code)) + 1)
 		message = fmt.Sprintf(
-			"%s with your %d-digit verification code. The code is: %s. Again, your  %d-digit verification code is: %s.",
-			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
+			"%s with your %d-digit verification code. %s The code is: %s. %s Again, your  %d-digit verification code is: %s.",
+			prefix, count, twimlBreak, spellNumber(t.Code), twimlBreak, count, spellNumber(t.Code),
 		)
 		opts.CallType = CallTypeVerify
 	default:
