@@ -111,8 +111,6 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
-		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio voice to use for Text To Speech for phone calls.", Value: cfg.Twilio.VoiceName},
-		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio voice language to use for Text To Speech for phone calls.", Value: cfg.Twilio.VoiceLanguage},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},

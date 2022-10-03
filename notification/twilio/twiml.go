@@ -1,8 +1,8 @@
 package twilio
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -126,21 +126,16 @@ func (t *twiMLResponse) Hangup() {
 }
 
 type verbSay struct {
-	XMLName xml.Name `xml:"Say"`
-	Text    string
+	XMLName  xml.Name `xml:"Say"`
+	Language string   `xml:"language,attr,omitempty"`
+	Voice    string   `xml:"voice,attr,omitempty"`
+	Text     string   `xml:"-"`
+	Prosody  prosody  `xml:"prosody"`
 }
-
-func (s verbSay) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = "Say"
-	var doc struct {
-		Prosody struct {
-			Text string `xml:",chardata"`
-			Rate string `xml:"rate,attr"`
-		} `xml:"prosody"`
-	}
-	doc.Prosody.Rate = "slow"
-	doc.Prosody.Text = s.Text
-	return enc.EncodeElement(doc, start)
+type prosody struct {
+	XMLName xml.Name `xml:"prosody"`
+	Text    string   `xml:",chardata"`
+	Rate    string   `xml:"rate,attr"`
 }
 
 type twimlResponse struct {
@@ -179,7 +174,17 @@ func (t *twiMLResponse) sendResponse() {
 
 	var doc twimlResponse
 	for _, s := range t.say {
-		doc.Verbs = append(doc.Verbs, verbSay{Text: s})
+		doc.Verbs = append(
+			doc.Verbs,
+			verbSay{
+				Language: t.voiceLanguage,
+				Voice:    t.voiceName,
+				Prosody: prosody{
+					Rate: "slow",
+					Text: s,
+				},
+			},
+		)
 	}
 
 	if t.redirectPauseSec > 0 {

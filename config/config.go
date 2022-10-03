@@ -97,8 +97,8 @@ type Config struct {
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
-		VoiceName     string `public:"true" info:"The Twilio voice to use for Text To Speech for phone calls."`
-		VoiceLanguage string `public:"true" info:"The Twilio voice language to use for Text To Speech for phone calls."`
+		VoiceName     string `info:"The Twilio voice to use for Text To Speech for phone calls."`
+		VoiceLanguage string `info:"The Twilio voice language to use for Text To Speech for phone calls."`
 
 		AccountSID         string
 		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests."`
@@ -519,6 +519,13 @@ func (cfg Config) Validate() error {
 			err,
 			validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 1, 50),
 			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 1, 10), // language is required when a voice name is set
+		)
+	}
+
+	if cfg.Twilio.VoiceLanguage != "" {
+		err = validate.Many(
+			err,
+			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 1, 10),
 		)
 	}
 

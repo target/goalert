@@ -114,7 +114,7 @@ func TestConfig_Validate(t *testing.T) {
 		cfg = Config{}
 		cfg.Twilio.VoiceLanguage = "en-US"
 		assert.NoError(t, cfg.Validate(), "language alone is valid")
-		
+
 		cfg = Config{}
 		cfg.Twilio.VoiceLanguage = "\x00" // non-ASCII value
 		assert.Error(t, cfg.Validate(), "language must be a valid string")

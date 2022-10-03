@@ -13,7 +13,7 @@ import (
 
 func TestTwiMLResponse(t *testing.T) {
 	t.Run("hangup", func(t *testing.T) {
-		var cfg config.Config
+		var mockConfig config.Config
 		ctx := mockConfig.Context(context.Background())
 		rec := httptest.NewRecorder()
 
@@ -80,7 +80,7 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-	<Say voice="Polly.Joanna-Neural" language="en-US">
+	<Say language="en-US" voice="Polly.Joanna-Neural">
 		<prosody rate="slow">Hello</prosody>
 	</Say>
 	<Pause length="3"></Pause>
