@@ -100,8 +100,10 @@ type Config struct {
 		VoiceName     string `public:"true" info:"The Twilio voice to use for Text To Speech for phone calls."`
 		VoiceLanguage string `public:"true" info:"The Twilio voice language to use for Text To Speech for phone calls."`
 
-		AccountSID string
-		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
+		AccountSID         string
+		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests."`
+		AlternateAuthToken string `password:"true" info:"An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field."`
+
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
@@ -431,6 +433,7 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
+		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),

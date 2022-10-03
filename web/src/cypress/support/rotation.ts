@@ -98,7 +98,7 @@ function deleteRotation(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphqlVoid(query, { input: { id: id, type: 'rotation' } })
+  return cy.graphqlVoid(query, { input: { id, type: 'rotation' } })
 }
 
 Cypress.Commands.add('createRotation', createRotation)
