@@ -98,32 +98,25 @@ func TestValidReferer(t *testing.T) {
 	})
 }
 
-func TestVoiceOptions(t *testing.T) {
-	t.Run("Set Voice Options", func(t *testing.T) {
+func TestConfig_Validate(t *testing.T) {
+	assert.NoError(t, Config{}.Validate(), "empty config should always validate")
+
+	t.Run("Twilio.Voice*", func(t *testing.T) {
 		var cfg Config
+		cfg.Twilio.VoiceName = "Test"
+		assert.ErrorContains(t, cfg.Validate(), "Twilio.VoiceLanguage", "language should be required if name is set")
+
+		cfg = Config{}
 		cfg.Twilio.VoiceName = "Test"
 		cfg.Twilio.VoiceLanguage = "es-US"
+		assert.NoError(t, cfg.Validate())
 
-		assert.Equal(t, "Test", cfg.Twilio.VoiceName)
-		assert.Equal(t, "es-US", cfg.Twilio.VoiceLanguage)
-		assert.Equal(t, nil, cfg.Validate())
-	})
-	t.Run("Set Empty Voice Options", func(t *testing.T) {
-		var cfg Config
-		cfg.Twilio.VoiceName = ""
-		cfg.Twilio.VoiceLanguage = ""
-
-		assert.Equal(t, "", cfg.Twilio.VoiceName)
-		assert.Equal(t, "", cfg.Twilio.VoiceLanguage)
-		assert.Equal(t, nil, cfg.Validate())
-	})
-	t.Run("Set Voice Without Language", func(t *testing.T) {
-		var cfg Config
-		cfg.Twilio.VoiceName = "Test"
-		cfg.Twilio.VoiceLanguage = ""
-
-		assert.Equal(t, "Test", cfg.Twilio.VoiceName)
-		assert.Equal(t, "", cfg.Twilio.VoiceLanguage)
-		assert.ErrorContains(t, cfg.Validate(), "Twilio.VoiceLanguage")
+		cfg = Config{}
+		cfg.Twilio.VoiceLanguage = "en-US"
+		assert.NoError(t, cfg.Validate(), "language alone is valid")
+		
+		cfg = Config{}
+		cfg.Twilio.VoiceLanguage = "\x00" // non-ASCII value
+		assert.Error(t, cfg.Validate(), "language must be a valid string")
 	})
 }
