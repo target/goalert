@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@apollo/client": "3.6.2",
+    "@apollo/client": "3.7.0",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@material/material-color-utilities": "0.2.0",
