@@ -75,6 +75,7 @@ export interface PaginatedListItemProps {
   action?: ReactNode
   status?: 'ok' | 'warn' | 'err'
   onClick?: () => void
+  selected?: boolean
 }
 
 export function PaginatedList(props: PaginatedListProps): JSX.Element {
@@ -153,11 +154,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     return (
       <ListItem
+        id={idx + '-' + item.title}
         sx={{
           borderLeft: `3px solid ${borderColor(item.status)}`,
         }}
         dense={!fullScreen}
         key={'list_' + idx}
+        selected={item.selected}
         {...urlProps}
         {...onClickProps}
       >

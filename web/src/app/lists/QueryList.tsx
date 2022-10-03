@@ -76,7 +76,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   query: DocumentNode
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
-  mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
+  mapDataNode?: (n: ObjectMap, i: number) => PaginatedListItemProps
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
