@@ -3,6 +3,8 @@ type Query {
 
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
+  debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+    @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
 
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
@@ -128,6 +130,12 @@ input AlertMetricsOptions {
 type AlertDataPoint {
   timestamp: ISOTimestamp!
   alertCount: Int!
+}
+
+input DebugMessagesInput {
+  first: Int = 15
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
 }
 
 type DebugMessage {
