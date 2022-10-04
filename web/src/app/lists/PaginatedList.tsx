@@ -201,7 +201,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderList(): ReactElement {
-    return <List data-cy='apollo-list'>{renderListItems()}</List>
+    const dataCy = isLoading ? 'paginated-list-loading' : 'paginated-list'
+    return <List data-cy={dataCy}>{renderListItems()}</List>
   }
 
   function renderAsInfiniteScroll(): ReactElement {

@@ -18,7 +18,7 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should handle searching', () => {
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       // by name
       cy.pageSearch(svc.name)
       cy.get('body')
@@ -32,7 +32,7 @@ function testServices(screen: ScreenFormat): void {
       cy.createService({ name: firstHalf + ' ' + secondHalf })
       cy.createService({ name: firstHalf + secondHalf })
 
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       // by name with spaces before and after
       // search is based on word-matching so spaces are irrelevant
       cy.pageSearch(' ' + svc.name + '  ')
@@ -53,7 +53,7 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should link to details page', () => {
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(svc.name)
       cy.get('#app').contains(svc.name).click()
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
@@ -518,13 +518,16 @@ function testServices(screen: ScreenFormat): void {
 
       cy.reload()
 
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.get('button').contains('Acknowledge All').click()
       cy.dialogFinish('Confirm')
 
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'ACKNOWLEDGED')
-      cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should('contain', 'ACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
 
       cy.get('button').contains('Close All').click()
       cy.dialogFinish('Confirm')
@@ -600,7 +603,7 @@ function testServices(screen: ScreenFormat): void {
 
     it('should search for a specific service with label', () => {
       cy.visit(`/services`)
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(`${label.key}=${label.value}`)
       cy.get('body')
         .should('contain', label.svc.name)
@@ -609,7 +612,7 @@ function testServices(screen: ScreenFormat): void {
 
     it('should search for a services without label', () => {
       cy.visit(`/services`)
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(`${label.key}!=${label.value}`)
       cy.get('body')
         .should('not.contain', label.svc.name)
