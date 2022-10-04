@@ -154,6 +154,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			cm = *_cm
 		}
 
+		// set channel info
 		var ch notificationchannel.Channel
 		if log.Channel.ID != "" {
 			ncID, err := uuid.Parse(log.Channel.ID)
@@ -166,26 +167,50 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			}
 			ch = *_ch
 		}
-
+		// set destination
 		dst := notification.DestFromPair(&cm, &ch)
 		destStr, err := q.formatDest(ctx, dst)
 		if err != nil {
 			return nil, fmt.Errorf("format dest: %w", err)
 		}
 
+		// initial struct to return
 		var dm = graphql2.DebugMessage{
 			ID:          log.ID,
 			CreatedAt:   log.CreatedAt,
 			UpdatedAt:   log.LastStatusAt,
 			Type:        strings.TrimPrefix(log.MessageType.String(), "MessageType"),
 			Status:      msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
-			UserID:      &log.User.ID,
-			UserName:    &log.User.Name,
-			Destination: destStr,
-			ServiceID:   &log.Service.ID,
-			ServiceName: &log.Service.Name,
 			AlertID:     &log.AlertID,
+			Destination: destStr,
 		}
+
+		// quick fix to work around DestFromPair not returning channel info
+		if destStr == "" && ch.ID != "" {
+			dm.Destination = ch.Name + " (Slack)"
+		}
+
+		// set service info
+		if log.Service.ID != "" {
+			s, err := q.ServiceStore.FindOne(ctx, log.Service.ID)
+			if err != nil {
+				return nil, err
+			}
+			dm.ServiceID = &s.ID
+			dm.ServiceName = &s.Name
+		}
+
+		// set user info
+		if log.User.ID != "" {
+			u, err := q.UserStore.FindOne(ctx, log.User.ID)
+			if err != nil {
+				return nil, err
+			}
+			dm.UserID = &u.ID
+			dm.UserName = &u.Name
+		}
+
+		// set provider and src
 		if log.ProviderMsgID != nil {
 			dm.ProviderID = &log.ProviderMsgID.ExternalID
 		}
