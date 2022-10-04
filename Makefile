@@ -149,7 +149,7 @@ check-go:
 	go run github.com/gordonklaus/ineffassign ./...
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
 
-check-all: check lint test smoketest cy-wide-prod-run cy-mobile-prod-run ## Run all lint checks and integration tests
+check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run ## Run all lint checks and integration tests
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
