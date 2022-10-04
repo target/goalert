@@ -24,11 +24,14 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">Goodbye.</prosody></Say>
-<Hangup/>
-</Response>
-`, string(data))
+	<Say>
+		<prosody rate="slow">Hello</prosody>
+	</Say>
+	<Say>
+		<prosody rate="slow">Goodbye.</prosody>
+	</Say>
+	<Hangup></Hangup>
+</Response>`, string(data))
 	})
 
 	t.Run("redirect", func(t *testing.T) {
@@ -45,10 +48,11 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Redirect>http://example.com</Redirect>
-</Response>
-`, string(data))
+	<Say>
+		<prosody rate="slow">Hello</prosody>
+	</Say>
+	<Redirect>http://example.com</Redirect>
+</Response>`, string(data))
 	})
 
 	t.Run("redirect-pause", func(t *testing.T) {
@@ -65,11 +69,12 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Pause length="3"/>
-<Redirect>http://example.com</Redirect>
-</Response>
-`, string(data))
+	<Say>
+		<prosody rate="slow">Hello</prosody>
+	</Say>
+	<Pause length="3"></Pause>
+	<Redirect>http://example.com</Redirect>
+</Response>`, string(data))
 	})
 
 	t.Run("unknown-gather", func(t *testing.T) {
@@ -87,14 +92,21 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Gather numDigits="1" timeout="10" action="http://example.com">
-<Say><prosody rate="slow">Sorry, I didn&#39;t understand that.</prosody></Say>
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">If you are done, you may simply hang up.</prosody></Say>
-<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
-</Gather>
-</Response>
-`, string(data))
+	<Gather numDigits="1" timeout="10" action="http://example.com">
+		<Say>
+			<prosody rate="slow">Sorry, I didn&#39;t understand that.</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">Hello</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">If you are done, you may simply hang up.</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">To repeat this message, press star.</prosody>
+		</Say>
+	</Gather>
+</Response>`, string(data))
 	})
 
 	t.Run("ack test", func(t *testing.T) {
@@ -112,13 +124,17 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-<Gather numDigits="1" timeout="10" action="http://example.com">
-<Say><prosody rate="slow">Hello</prosody></Say>
-<Say><prosody rate="slow">To acknowledge, press 4.</prosody></Say>
-<Say><prosody rate="slow">To repeat this message, press star.</prosody></Say>
-</Gather>
-</Response>
-`, string(data))
+	<Gather numDigits="1" timeout="10" action="http://example.com">
+		<Say>
+			<prosody rate="slow">Hello</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">To acknowledge, press 4.</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">To repeat this message, press star.</prosody>
+		</Say>
+	</Gather>
+</Response>`, string(data))
 	})
-
 }

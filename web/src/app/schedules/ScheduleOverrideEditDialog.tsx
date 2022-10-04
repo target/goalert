@@ -44,7 +44,7 @@ export default function ScheduleOverrideEditDialog(props: {
   const [value, setValue] = useState<Value | null>(null)
 
   const [{ data, fetching, error }] = useQuery({
-    query: query,
+    query,
     variables: { id: props.overrideID },
     requestPolicy: 'network-only',
   })

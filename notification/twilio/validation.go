@@ -25,7 +25,14 @@ func validateRequest(req *http.Request) error {
 
 	calcSig := Signature(cfg.Twilio.AuthToken, config.RequestURL(req), req.PostForm)
 	if !hmac.Equal([]byte(sig), calcSig) {
-		return errors.New("invalid X-Twilio-Signature")
+		if cfg.Twilio.AlternateAuthToken == "" {
+			return errors.New("invalid X-Twilio-Signature")
+		}
+
+		calcSig = Signature(cfg.Twilio.AlternateAuthToken, config.RequestURL(req), req.PostForm)
+		if !hmac.Equal([]byte(sig), calcSig) {
+			return errors.New("invalid X-Twilio-Signature")
+		}
 	}
 
 	return nil

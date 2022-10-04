@@ -59,9 +59,10 @@ function testServices(screen: ScreenFormat): void {
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
-    describe('Filtering', () => {
+    describe.only('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
+      let intKey: IntegrationKey
       beforeEach(() => {
         cy.createLabel().then((l: Label) => {
           label1 = l
@@ -71,6 +72,9 @@ function testServices(screen: ScreenFormat): void {
           }).then((l: Label) => {
             label2 = l
           })
+        })
+        cy.createIntKey().then((i: IntegrationKey) => {
+          intKey = i
         })
       })
 
@@ -159,6 +163,23 @@ function testServices(screen: ScreenFormat): void {
         cy.get('body')
           .should('not.contain', label2.svc.name)
           .should('not.contain', label2.svc.description)
+      })
+
+      it('should filter by integration key', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="integration-key"]').selectByLabel(intKey.id)
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        cy.get('body')
+          .should('contain', intKey.svc.name)
+          .should('contain', intKey.svc.description)
       })
 
       it('should reset label filters', () => {

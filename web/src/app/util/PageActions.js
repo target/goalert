@@ -60,7 +60,7 @@ export const PageActionProvider = (props) => {
   return (
     <PageActionsContext.Provider
       value={{
-        actions: actions,
+        actions,
         setActions: debouncedSetActions,
         trackMount: updateMounted,
       }}

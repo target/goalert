@@ -80,6 +80,9 @@ type Query {
   # Allows searching for label values.
   labelValues(input: LabelValueSearchOptions): StringConnection!
 
+  # Allows searching for integration keys.
+  integrationKeys(input: IntegrationKeySearchOptions): IntegrationKeyConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -109,6 +112,14 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+
+  linkAccountInfo(token: ID!): LinkAccountInfo
+}
+
+type LinkAccountInfo {
+  userDetails: String!
+  alertID: Int
+  alertNewStatus: AlertStatus
 }
 
 input AlertMetricsOptions {
@@ -223,6 +234,12 @@ type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
 }
+
+type IntegrationKeyConnection {
+  nodes: [IntegrationKey!]!
+  pageInfo: PageInfo!
+}
+
 type UserOverride {
   id: ID!
 
@@ -254,6 +271,13 @@ input LabelKeySearchOptions {
 
 input LabelValueSearchOptions {
   key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input IntegrationKeySearchOptions {
   first: Int = 15
   after: String = ""
   search: String = ""
@@ -341,6 +365,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
+  linkAccount(token: ID!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
@@ -985,7 +1011,7 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatMonitorInput {
-  serviceID: ID!
+  serviceID: ID
   name: String!
   timeoutMinutes: Int!
 }
@@ -1062,7 +1088,7 @@ enum AlertStatus {
 type Target {
   id: ID!
   type: TargetType!
-  name: String
+  name: String!
 }
 
 input TargetInput {
