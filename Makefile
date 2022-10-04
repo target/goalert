@@ -1,5 +1,5 @@
-.PHONY: stop start lint tools regendb resetdb
-.PHONY: smoketest generate check all test test-long install install-race
+.PHONY: help start tools regendb resetdb
+.PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
 .PHONY: goalert-container demo-container release force-yarn
@@ -34,9 +34,9 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-all: test install
+all: test
 
-release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
+release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Launch the demo of this application
 
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
@@ -94,11 +94,14 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+help: ## Show all valid options
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
+start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
@@ -107,23 +110,28 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
-test: node_modules jest
+test: node_modules jest ## Run all unit tests
 	go test -short ./...
 
 force-yarn:
 	yarn install --no-progress --silent --frozen-lockfile --check-files
 
-check: force-yarn generate node_modules
-	# go run ./devtools/ordermigrations -check
-	go vet ./...
-	go run github.com/gordonklaus/ineffassign ./...
-	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+check: check-go check-js  ## Run all lint checks
+
+check-js: force-yarn generate node_modules
 	yarn run fmt
 	yarn run lint
 	yarn workspaces run check
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
+check-go:
+	go vet ./...
+	go fmt ./...
+	# go run ./devtools/ordermigrations -check
+	go run github.com/gordonklaus/ineffassign ./...
+	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+
+check-all: check lint test smoketest cy-wide-prod-run cy-mobile-prod-run ## Run all lint checks and integration tests
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
@@ -153,7 +161,6 @@ tools:
 	go get -u golang.org/x/tools/cmd/present
 	go get -u golang.org/x/tools/cmd/bundle
 	go get -u golang.org/x/tools/cmd/gomvpkg
-	go get -u github.com/golang/lint/golint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/gordonklaus/ineffassign
 	go get -u honnef.co/go/tools/cmd/staticcheck
@@ -198,19 +205,17 @@ postgres: bin/waitfor
 		-p 5432:5432 \
 		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
 
-regendb: bin/resetdb bin/goalert config.json.bak
+regendb: bin/resetdb bin/goalert config.json.bak ## Regenerate the database
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
-resetdb: config.json.bak
+resetdb: config.json.bak ## Reset the database
 	go run ./devtools/resetdb --no-migrate
 
-clean:
+clean: ## Clean up the application
+	@go mod tidy
 	rm -rf bin node_modules web/src/node_modules web/src/build/static
-
-lint: $(GOALERT_DEPS)
-	go run github.com/golang/lint/golint $(shell go list ./...)
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)
