@@ -25,6 +25,7 @@ export interface Query {
   labels: LabelConnection
   labelKeys: StringConnection
   labelValues: StringConnection
+  integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   userOverride?: null | UserOverride
   config: ConfigValue[]
@@ -166,6 +167,11 @@ export interface UserOverrideConnection {
   pageInfo: PageInfo
 }
 
+export interface IntegrationKeyConnection {
+  nodes: IntegrationKey[]
+  pageInfo: PageInfo
+}
+
 export interface UserOverride {
   id: string
   start: ISOTimestamp
@@ -194,6 +200,13 @@ export interface LabelKeySearchOptions {
 
 export interface LabelValueSearchOptions {
   key: string
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface IntegrationKeySearchOptions {
   first?: null | number
   after?: null | string
   search?: null | string
@@ -795,7 +808,7 @@ export interface CreateIntegrationKeyInput {
 }
 
 export interface CreateHeartbeatMonitorInput {
-  serviceID: string
+  serviceID?: null | string
   name: string
   timeoutMinutes: number
 }
