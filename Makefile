@@ -1,7 +1,7 @@
 .PHONY: help start tools regendb resetdb
-.PHONY: smoketest generate check all test check-js check-go
+.PHONY: smoketest generate check all test check-js check-go check-code
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
-.PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
+.PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
 .PHONY: goalert-container demo-container release force-yarn
 .SUFFIXES:
 
@@ -134,22 +134,23 @@ test: node_modules jest ## Run all unit tests
 force-yarn:
 	yarn install --no-progress --silent --frozen-lockfile --check-files
 
-check: check-go check-js  ## Run all lint checks
+check: check-go check-js check-code  ## Run all lint checks
 
 check-js: force-yarn generate node_modules
 	yarn run fmt
 	yarn run lint
 	yarn workspaces run check
-	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-go:
+	go mod tidy
 	go vet ./...
 	go fmt ./...
 	# go run ./devtools/ordermigrations -check
 	go run github.com/gordonklaus/ineffassign ./...
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
 
-check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run ## Run all lint checks and integration tests
+check-code:
+	./devtools/ci/tasks/scripts/codecheck.sh
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
