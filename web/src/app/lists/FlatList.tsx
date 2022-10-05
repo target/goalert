@@ -10,7 +10,6 @@ import ListSubheader from '@mui/material/ListSubheader'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
-import { AlertColor } from '@mui/material/Alert'
 import EditIcon from '@mui/icons-material/Edit'
 import {
   closestCenter,
@@ -123,31 +122,6 @@ export interface FlatListProps extends ListProps {
 
   // renders an edit button that hides the options buttons until toggled on
   toggleEdit?: boolean
-}
-
-const severityMap: { [K in NoticeType]: AlertColor } = {
-  INFO: 'info',
-  WARNING: 'warning',
-  ERROR: 'error',
-  OK: 'success',
-}
-
-interface ScrollIntoViewListItemProps extends ListItemProps {
-  scrollIntoView?: boolean
-}
-
-function ScrollIntoViewListItem(
-  props: ScrollIntoViewListItemProps,
-): JSX.Element {
-  const { scrollIntoView, ...other } = props
-  const ref = React.useRef<HTMLLIElement>(null)
-  useLayoutEffect(() => {
-    if (scrollIntoView) {
-      ref.current?.scrollIntoView({ block: 'center' })
-    }
-  }, [scrollIntoView])
-
-  return <ListItem ref={ref} {...other} />
 }
 
 export default function FlatList({
