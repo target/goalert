@@ -134,7 +134,7 @@ test: node_modules jest ## Run all unit tests
 force-yarn:
 	yarn install --no-progress --silent --frozen-lockfile --check-files
 
-check: check-go check-js check-code  ## Run all lint checks
+check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-js: force-yarn generate node_modules
