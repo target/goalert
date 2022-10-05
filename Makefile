@@ -137,12 +137,12 @@ force-yarn:
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-js: force-yarn generate node_modules
+check-js: force-yarn node_modules
 	yarn run fmt
 	yarn run lint
 	yarn workspaces run check
 
-check-go:
+check-go: generate
 	@go mod tidy
 	go vet ./...
 	go fmt ./...
