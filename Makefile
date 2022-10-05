@@ -237,7 +237,7 @@ regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill 
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
-resetdb: config.json.bak ## Reset the database
+resetdb: config.json.bak ## Recreate the database leaving it empty (no migrations)
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
