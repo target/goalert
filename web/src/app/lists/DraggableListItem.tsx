@@ -55,14 +55,14 @@ interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  canReorder: boolean
+  draggable: boolean
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
-  canReorder,
+  draggable,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
   const {
@@ -97,8 +97,8 @@ export function DraggableListItem({
     <div ref={setNodeRef} style={style} {...attributes}>
       <FlatListItem
         index={index}
-        item={canReorder ? draggableItem : item}
-        canEdit={canReorder}
+        item={draggable ? draggableItem : item}
+        showOptions={!draggable}
       />
     </div>
   )

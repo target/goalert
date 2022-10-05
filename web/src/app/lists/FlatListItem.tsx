@@ -26,12 +26,13 @@ const useStyles = makeStyles(() => ({
 export interface FlatListItemProps extends MUIListItemProps {
   item: FlatListItem
   index: number
-  canEdit?: boolean
+  showOptions?: boolean
 }
 
 export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
+  const showOptions = props?.showOptions ?? true
   const {
     disabled,
     highlight,
@@ -82,7 +83,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
           }),
         }}
       />
-      {secondaryAction && props.canEdit && (
+      {secondaryAction && showOptions && (
         <ListItemSecondaryAction sx={{ zIndex: 9002 }}>
           {secondaryAction}
         </ListItemSecondaryAction>
