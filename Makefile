@@ -240,7 +240,7 @@ regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill 
 resetdb: config.json.bak ## Reset the database
 	go run ./devtools/resetdb --no-migrate
 
-clean: ## Clean up the application
+clean: ## Clean up build artifacts
 	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 new-migration:
