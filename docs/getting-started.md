@@ -10,12 +10,7 @@ The only hard requirement for GoAlert is a running Postgres instance/database.
 
 ### Running Behind a Proxy
 
-When running GoAlert behind a reverse proxy:
-
-- Specify the `--http-prefix` flag or `GOALERT_HTTP_PREFIX` env var for any instances behind the proxy with a path prefix _without_ the trailing slash
-- Ensure the proxy passes the complete path, including prefix, if applicable
-- Ensure the proxy passes the original host header (used for validating Twilio requests)
-- Ensure the `General.PublicPath` contains the prefix in the URL, if applicable
+When running GoAlert behind a reverse proxy, make sure the `--public-url` includes the prefix path, if applicable. Ensure the proxy does _not_ trim the prefix before passing the request to GoAlert; it will be handled internally.
 
 ## Database
 
@@ -42,13 +37,13 @@ More information on Postgres connection strings can be found [here](https://www.
 Binary:
 
 ```bash
-goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key super-awesome-secret-key
+goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key super-awesome-secret-key --public-url https://goalert.example.com
 ```
 
 Container:
 
 ```bash
-podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key goalert/goalert
+podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.
@@ -87,7 +82,7 @@ Global Flags:
       --data-encryption-key string       Encryption key for sensitive data like signing keys. Used for encrypting new and decrypting existing data.
       --data-encryption-key-old string   Fallback key. Used for decrypting existing data only.
       --db-url string                    Connection string for Postgres.
-      --db-url-next string               Connection string for the *next* Postgres server (enables DB switch-over mode).
+      --db-url-next string               Connection string for the *next* Postgres server (enables DB switchover mode).
       --json                             Log in JSON format.
       --stack-traces                     Enables stack traces with all error logs.
   -v, --verbose                          Enable verbose logging.
@@ -104,13 +99,7 @@ goalert add-user --db-url $GOALERT_DB_URL --admin --user admin --email admin@exa
 
 ## Configuration
 
-Upon logging in to GoAlert as an admin, you should see a link to the **Admin** page on the left nav-bar.
-
-| Section | Value         | Description                                                                                                                                                                                                                                                                                     |
-| ------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| General | Public URL    | Set this to the full publicly-routable URL to GoAlert. This is used for callbacks and messages from various features (like voice calls).                                                                                                                                                        |
-| Auth    | Referer URLs  | By default GoAlert will only allow authentication from referers on the same host as the current request. You may manually set/restrict which hosts are allowed in environments where the UI is served by a different domain than the API or you wish to further restrict allowed referer hosts. |
-| Auth    | Disable Basic | This will disable basic authentication. Do not set this until you've validated you can login as an admin by other means (e.g. GitHub or OIDC auth)                                                                                                                                              |
+Upon logging in to GoAlert as an admin, you should see a link to the **Admin** page on the left nav-bar. The primary page in this section is Config and allows configuration of various providers and options.
 
 ### GitHub Authentication
 
@@ -123,8 +112,8 @@ Using following as examples for required fields:
 | Field                      | Example Value                                                    |
 | -------------------------- | ---------------------------------------------------------------- |
 | Application name           | `GoAlert`                                                        |
-| Homepage URL               | `<General.Public URL>`                                           |
-| Authorization callback URL | `<General.Public URL>/api/v2/identity/providers/github/callback` |
+| Homepage URL               | `<GOALERT_PUBLIC_URL>`                                           |
+| Authorization callback URL | `<GOALERT_PUBLIC_URL>/api/v2/identity/providers/github/callback` |
 
 Document **Client ID** and **Client Secret** after creation and input into appropriate fields in GoAlert's Admin page.
 
@@ -143,9 +132,9 @@ When creating the **user consent screen**, use the following as examples for req
 | Field                           | Example Value          |
 | ------------------------------- | ---------------------- |
 | Application name                | `GoAlert`              |
-| Authorized domains              | `<General.Public URL>` |
-| Application Homepage link       | `<General.Public URL>` |
-| Application Privacy Policy link | `<General.Public URL>` |
+| Authorized domains              | `<GOALERT_PUBLIC_URL>` |
+| Application Homepage link       | `<GOALERT_PUBLIC_URL>` |
+| Application Privacy Policy link | `<GOALERT_PUBLIC_URL>` |
 
 When creating the **OAuth client ID**, use the following as examples for required fields:
 
@@ -153,8 +142,8 @@ When creating the **OAuth client ID**, use the following as examples for require
 | ----------------------------- | -------------------------------------------------------------- |
 | Application type              | `Web application`                                              |
 | Name                          | `GoAlert`                                                      |
-| Authorized JavaScript origins | `<General.Public URL>`                                         |
-| Authorized redirect URIs      | `<General.Public URL>/api/v2/identity/providers/oidc/callback` |
+| Authorized JavaScript origins | `<GOALERT_PUBLIC_URL>`                                         |
+| Authorized redirect URIs      | `<GOALERT_PUBLIC_URL>/api/v2/identity/providers/oidc/callback` |
 
 Document **Client ID** and **Client Secret** after creation and input into appropriate fields in GoAlert's Admin page under the **OIDC** section.
 
@@ -162,6 +151,8 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 
 - Set `Override Name` to `Google` (not required).
 - Set `Issuer URL` to `https://accounts.google.com`
+
+**Note:** An application like [Dex](https://dexidp.io/) can be used to integrate with many other auth systems and provide an OIDC method for GoAlert.
 
 ### Mailgun
 
@@ -177,7 +168,7 @@ To configure Mailgun to forward to GoAlert:
 1. Set **Expression Type** to `Match Recipient`
 1. Set **Recipient** to `.*@<Mailgun.Email Domain>`
 1. Check **Forward**
-1. In the forward box, enter `<General.Public URL>/api/v2/mailgun/incoming`
+1. In the forward box, enter `<GOALERT_PUBLIC_URL>/api/v2/mailgun/incoming`
 1. Click **Create Route**
 
 ### Slack
@@ -229,7 +220,7 @@ In order for incoming SMS messages to be processed, the message callback URL mus
 
 From Twilio Dashboard, navigate to **Phone Numbers** and click on your trial phone number.
 
-- Under **Messaging** section, update the webhook URL for _A MESSAGE COMES IN_ to `<General.Public URL>/api/v2/twilio/message`
+- Under **Messaging** section, update the webhook URL for _A MESSAGE COMES IN_ to `<GOALERT_PUBLIC_URL>/api/v2/twilio/message`
 
 Twilio trial account limitations (if you decide to upgrade your Twilio account these go away):
 

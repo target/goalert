@@ -94,6 +94,7 @@ func (s *Service) EscalationPolicy(ctx context.Context, raw *service.Service) (*
 func (s *Service) IsFavorite(ctx context.Context, raw *service.Service) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }
+
 func (s *Service) OnCallUsers(ctx context.Context, raw *service.Service) ([]oncall.ServiceOnCallUser, error) {
 	return s.OnCallStore.OnCallUsersByService(ctx, raw.ID)
 }
@@ -170,7 +171,7 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 		}
 
 		for i, hb := range input.NewHeartbeatMonitors {
-			hb.ServiceID = result.ID
+			hb.ServiceID = &result.ID
 			_, err = m.CreateHeartbeatMonitor(ctx, hb)
 			if err != nil {
 				return validation.AddPrefix("newHeartbeatMonitors["+strconv.Itoa(i)+"].", err)
@@ -211,6 +212,10 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 	}
 	if input.EscalationPolicyID != nil {
 		svc.EscalationPolicyID = *input.EscalationPolicyID
+	}
+
+	if input.MaintenanceExpiresAt != nil {
+		svc.MaintenanceExpiresAt = *input.MaintenanceExpiresAt
 	}
 
 	err = a.ServiceStore.UpdateTx(ctx, tx, svc)

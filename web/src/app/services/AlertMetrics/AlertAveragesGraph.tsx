@@ -2,12 +2,13 @@ import React from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles/makeStyles'
 import { Theme, useTheme } from '@mui/material/styles'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import Spinner from '../../loading/components/Spinner'
 import {
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   LineChart,
   Line,
   Legend,
@@ -16,7 +17,10 @@ import {
 
 interface CustomDotProps extends DotProps {
   dataKey: string
-  payload: { date: string }
+  payload: {
+    date: string
+    count: number
+  }
 }
 
 const CustomDot = (props: CustomDotProps): JSX.Element => {
@@ -26,7 +30,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
       cy={cy}
       cx={cx}
       fill={fill}
-      r={r}
+      r={payload.count ? r : 0}
       stroke={stroke}
       strokeWidth={strokeWidth}
       key={dataKey + '-' + payload.date}
@@ -37,6 +41,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 
 interface AlertAveragesGraphProps {
   data: typeof LineChart.defaultProps['data']
+  loading: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -59,81 +64,86 @@ export default function AlertAveragesGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-averages-graph'>
-        <ResponsiveContainer width='100%' height='100%'>
-          <LineChart
-            width={730}
-            height={250}
-            data={props.data}
-            margin={{
-              top: 50,
-              right: 30,
-              bottom: 50,
-            }}
-          >
-            <CartesianGrid
-              strokeDasharray='4'
-              vertical={false}
-              stroke={theme.palette.text.secondary}
-            />
-            <XAxis
-              dataKey='date'
-              type='category'
-              stroke={theme.palette.text.secondary}
-            />
-            <YAxis
-              type='number'
-              allowDecimals={false}
-              interval='preserveStart'
-              stroke={theme.palette.text.secondary}
-            />
-            <Tooltip
-              data-cy='metrics-tooltip'
-              cursor={{ fill: theme.palette.background.default }}
-              content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null
-
-                const ackAvg = `${payload[0].name}: ${Math.round(
-                  payload[0].payload.avgTimeToAck,
-                )} min`
-                const closeAvg = `${payload[1].name}: ${Math.round(
-                  payload[1].payload.avgTimeToClose,
-                )} min`
-                return (
-                  <Paper variant='outlined' sx={{ p: 1 }}>
-                    <Typography variant='body2'>{label}</Typography>
-                    <Typography variant='body2'>{closeAvg}</Typography>
-                    <Typography variant='body2'>{ackAvg}</Typography>
-                  </Paper>
-                )
+        {props.loading && <Spinner />}
+        <AutoSizer>
+          {({ width, height }) => (
+            <LineChart
+              width={width}
+              height={height}
+              data={props.data}
+              margin={{
+                top: 50,
+                right: 30,
+                bottom: 50,
               }}
-            />
-            <Legend />
-            <Line
-              type='monotone'
-              dataKey='avgTimeToAck'
-              strokeWidth={2}
-              stroke={theme.palette.primary.main}
-              activeDot={{ r: 8 }}
-              isAnimationActive={false}
-              dot={CustomDot}
-              name='Avg. Ack'
-            />
-            <Line
-              type='monotone'
-              strokeWidth={2}
-              dataKey='avgTimeToClose'
-              isAnimationActive={false}
-              stroke={
-                theme.palette.mode === 'light'
-                  ? theme.palette.secondary.dark
-                  : theme.palette.secondary.light
-              }
-              activeDot={{ r: 8 }}
-              dot={CustomDot}
-              name='Avg. Close'
-            />
-          </LineChart>
-        </ResponsiveContainer>
+            >
+              <CartesianGrid
+                strokeDasharray='4'
+                vertical={false}
+                stroke={theme.palette.text.secondary}
+              />
+              <XAxis
+                dataKey='date'
+                type='category'
+                stroke={theme.palette.text.secondary}
+              />
+              <YAxis
+                type='number'
+                allowDecimals={false}
+                interval='preserveStart'
+                stroke={theme.palette.text.secondary}
+              />
+              <Tooltip
+                data-cy='metrics-tooltip'
+                cursor={{ fill: theme.palette.background.default }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+
+                  const ackAvg = `${payload[0].name}: ${Math.round(
+                    payload[0].payload.avgTimeToAck,
+                  )} min`
+                  const closeAvg = `${payload[1].name}: ${Math.round(
+                    payload[1].payload.avgTimeToClose,
+                  )} min`
+                  return (
+                    <Paper variant='outlined' sx={{ p: 1 }}>
+                      <Typography variant='body2'>{label}</Typography>
+                      <Typography variant='body2'>{closeAvg}</Typography>
+                      <Typography variant='body2'>{ackAvg}</Typography>
+                    </Paper>
+                  )
+                }}
+              />
+              <Legend />
+              <Line
+                type='monotone'
+                dataKey='avgTimeToAck'
+                strokeOpacity={props.loading ? 0.5 : 1}
+                strokeWidth={2}
+                stroke={theme.palette.primary.main}
+                activeDot={{ r: 8 }}
+                isAnimationActive={false}
+                dot={CustomDot}
+                name='Avg. Ack'
+              />
+              <Line
+                type='monotone'
+                strokeWidth={2}
+                dataKey='avgTimeToClose'
+                isAnimationActive={false}
+                strokeOpacity={props.loading ? 0.5 : 1}
+                stroke={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.secondary.dark
+                    : theme.palette.secondary.light
+                }
+                activeDot={{ r: 8 }}
+                dot={CustomDot}
+                name='Avg. Close'
+              />
+            </LineChart>
+          )}
+        </AutoSizer>
       </Grid>
     </Grid>
   )

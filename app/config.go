@@ -19,6 +19,8 @@ type Config struct {
 	APIOnly     bool
 	LogEngine   bool
 
+	PublicURL string
+
 	TLSListenAddr string
 	TLSConfig     *tls.Config
 
@@ -45,6 +47,8 @@ type Config struct {
 
 	KubernetesCooldown time.Duration
 	StatusAddr         string
+
+	EngineCycleTime time.Duration
 
 	EncryptionKeys keyring.Keys
 

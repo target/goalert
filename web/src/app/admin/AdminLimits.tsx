@@ -15,7 +15,7 @@ import { GenericError } from '../error-pages'
 
 const query = gql`
   query getLimits {
-    systemLimits {
+    values: systemLimits {
       id
       description
       value
@@ -102,9 +102,9 @@ export default function AdminLimits(): JSX.Element {
 
         {confirm && (
           <AdminDialog
+            query={query}
             mutation={mutation}
-            values={data.systemLimits}
-            fieldValues={values}
+            value={values}
             onClose={() => setConfirm(false)}
             onComplete={() => {
               setValues({})
@@ -122,7 +122,7 @@ export default function AdminLimits(): JSX.Element {
                   updateValue(id, value)
                 }
                 headerNote='Set limits to -1 to disable.'
-                fields={data.systemLimits.map(
+                fields={data.values.map(
                   (f: { id: string; description: string; value: number }) => ({
                     id: f.id,
                     type: 'integer',

@@ -51,6 +51,11 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		fav IS DISTINCT FROM NULL
 	FROM services svc
 	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON svc.id = fav.tgt_service_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
+	{{if and .IntegrationKey}}
+		JOIN integration_keys intKey ON
+			intKey.service_id = svc.id AND
+			intKey.id = :integrationKey
+	{{end}}
 	{{if and .LabelKey (not .LabelNegate)}}
 		JOIN labels l ON
 			l.tgt_service_id = svc.id AND
@@ -71,8 +76,8 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 				{{if ne .LabelValue "*"}} AND value = :labelValue{{end}}
 		)
 	{{end}}
-	{{- if and .Search (not .LabelKey)}}
-		AND {{textSearch "search" "svc.name" "svc.description"}}
+	{{- if and .Search (not .LabelKey) (not .IntegrationKey)}}
+		AND {{prefixSearch "search" "svc.name"}}
 	{{- end}}
 	{{- if .After.Name}}
 		AND
@@ -98,19 +103,38 @@ func (opts renderData) OrderBy() string {
 	return "lower(svc.name)"
 }
 
+func (opts renderData) IntegrationKey() string {
+	if !strings.Contains(opts.Search, "token=") {
+		return ""
+	}
+	return opts.Search[6:42]
+}
+
 func (opts renderData) LabelKey() string {
-	idx := strings.IndexByte(opts.Search, '=')
+	searchStr := opts.Search
+	if strings.Contains(opts.Search, "token=") {
+		// strip token string
+		searchStr = opts.Search[42:]
+		searchStr = strings.TrimSpace(searchStr)
+	}
+	idx := strings.IndexByte(searchStr, '=')
 	if idx == -1 {
 		return ""
 	}
-	return strings.TrimSuffix(opts.Search[:idx], "!") // if `!=`` is used
+	return strings.TrimSuffix(searchStr[:idx], "!") // if `!=`` is used
 }
 func (opts renderData) LabelValue() string {
-	idx := strings.IndexByte(opts.Search, '=')
+	searchStr := opts.Search
+	if strings.Contains(opts.Search, "token=") {
+		// strip token string
+		searchStr = opts.Search[42:]
+		searchStr = strings.TrimSpace(searchStr)
+	}
+	idx := strings.IndexByte(searchStr, '=')
 	if idx == -1 {
 		return ""
 	}
-	val := opts.Search[idx+1:]
+	val := searchStr[idx+1:]
 	if val == "" {
 		return "*"
 	}
@@ -144,6 +168,9 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if err != nil {
 		return nil, err
 	}
+	if opts.IntegrationKey() != "" {
+		err = validate.Search("IntegrationKey", opts.IntegrationKey())
+	}
 	if opts.LabelKey() != "" {
 		err = validate.Search("LabelKey", opts.LabelKey())
 		if opts.LabelValue() != "*" {
@@ -162,6 +189,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("favUserID", opts.FavoritesUserID),
+		sql.Named("integrationKey", opts.IntegrationKey()),
 		sql.Named("labelKey", opts.LabelKey()),
 		sql.Named("labelValue", opts.LabelValue()),
 		sql.Named("labelNegate", opts.LabelNegate()),

@@ -8,8 +8,9 @@
 include Makefile.binaries.mk
 
 CFGPARAMS = devtools/configparams/*.go
-DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
-
+DB_URL = postgres://goalert@localhost:5432/goalert
+INT_DB = goalert_integration
+INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 
@@ -22,9 +23,18 @@ export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 PROD_CY_PROC = Procfile.cypress.prod
+SIZE:=1
+
+PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
+export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
+endif
+
+INT_PROC = Procfile.integration
+ifeq ($(CI), 1)
+INT_PROC = Procfile.integration.ci
 endif
 
 ifeq ($(PUSH), 1)
@@ -101,6 +111,17 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
+	./bin/goalert --db-url "$(INT_DB_URL)" migrate
+	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
+	rm -f *.session.json
+	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f $(INT_PROC)
+
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
@@ -139,11 +160,20 @@ pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go 
 generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	go generate ./...
 
+
+test-all: test-unit test-smoke test-integration
+test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
+test-smoke: smoketest
+test-unit: test
+
+playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+	yarn playwright test
+
 smoketest:
-	(cd smoketest && go test -parallel 10 -timeout 20m)
+	(cd test/smoke && go test -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
-	(cd smoketest && go test -run TestMigrations)
+	(cd test/smoke && go test -run TestMigrations)
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename
@@ -193,10 +223,10 @@ postgres: bin/waitfor
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
 regendb: bin/resetdb bin/goalert config.json.bak
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 

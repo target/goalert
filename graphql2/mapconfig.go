@@ -26,8 +26,8 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
-		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
-		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID},
+		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
+		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID, Deprecated: "No longer used."},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
@@ -37,7 +37,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
-		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n")},
+		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n"), Deprecated: "Use --public-url flag instead, which takes precedence."},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "GitHub.NewUsers", Type: ConfigTypeBoolean, Description: "Allow new user creation via GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.NewUsers)},
@@ -67,7 +67,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
-		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation.", Value: cfg.Twilio.AuthToken, Password: true},
+		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests.", Value: cfg.Twilio.AuthToken, Password: true},
+		{ID: "Twilio.AlternateAuthToken", Type: ConfigTypeString, Description: "An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field.", Value: cfg.Twilio.AlternateAuthToken, Password: true},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
 		{ID: "Twilio.DisableTwoWaySMS", Type: ConfigTypeBoolean, Description: "Disables SMS reply codes for alert messages.", Value: fmt.Sprintf("%t", cfg.Twilio.DisableTwoWaySMS)},
@@ -91,8 +92,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
-		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
-		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID},
+		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
+		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID, Deprecated: "No longer used."},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
@@ -299,6 +300,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Twilio.AccountSID = v.Value
 		case "Twilio.AuthToken":
 			cfg.Twilio.AuthToken = v.Value
+		case "Twilio.AlternateAuthToken":
+			cfg.Twilio.AlternateAuthToken = v.Value
 		case "Twilio.FromNumber":
 			cfg.Twilio.FromNumber = v.Value
 		case "Twilio.MessagingServiceSID":

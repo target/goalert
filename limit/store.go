@@ -32,7 +32,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			on conflict (id) do update
 			set max = $2
 		`),
-		resetAll: p.P(`truncate config_limits`),
+		resetAll: p.P(`delete from config_limits`),
 	}, p.Err
 }
 

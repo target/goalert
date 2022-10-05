@@ -27,7 +27,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import classnames from 'classnames'
-import { Notice, NoticeType } from '../details/Notices'
+import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 
@@ -132,6 +132,24 @@ const severityMap: { [K in NoticeType]: AlertColor } = {
   OK: 'success',
 }
 
+interface ScrollIntoViewListItemProps extends ListItemProps {
+  scrollIntoView?: boolean
+}
+
+function ScrollIntoViewListItem(
+  props: ScrollIntoViewListItemProps,
+): JSX.Element {
+  const { scrollIntoView, ...other } = props
+  const ref = React.useRef<HTMLLIElement>(null)
+  useLayoutEffect(() => {
+    if (scrollIntoView) {
+      ref.current?.scrollIntoView({ block: 'center' })
+    }
+  }, [scrollIntoView])
+
+  return <ListItem ref={ref} {...other} />
+}
+
 export default function FlatList({
   onReorder,
   emptyMessage,
@@ -200,7 +218,7 @@ export default function FlatList({
           <Alert
             className={classes.alertAsButton}
             key={idx}
-            severity={severityMap[item.type]}
+            severity={toSeverity(item.type)}
             icon={item.icon}
           >
             {item.message && <AlertTitle>{item.message}</AlertTitle>}
@@ -214,7 +232,7 @@ export default function FlatList({
       <Alert
         key={idx}
         className={classes.alert}
-        severity={severityMap[item.type]}
+        severity={toSeverity(item.type)}
         icon={item.icon}
       >
         {item.message && <AlertTitle>{item.message}</AlertTitle>}

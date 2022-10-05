@@ -103,7 +103,7 @@ function testRotations(): void {
       const name = 'John Smith'
       const email = 'johnSmith@test.com'
       const dupEmail = 'johnSmith2@test.com'
-      cy.createUser({ name, email: email })
+      cy.createUser({ name, email })
       cy.createUser({ name, email: dupEmail })
 
       cy.pageFab()

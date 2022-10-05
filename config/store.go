@@ -28,6 +28,7 @@ type Store struct {
 	rawCfg       Config
 	cfgVers      int
 	fallbackURL  string
+	explicitURL  string
 	mx           sync.RWMutex
 	db           *sql.DB
 	keys         keyring.Keys
@@ -40,12 +41,13 @@ type Store struct {
 
 // NewStore will create a new Store with the given parameters. It will automatically detect
 // new configuration changes.
-func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, fallbackURL string) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, explicitURL, fallbackURL string) (*Store, error) {
 	p := util.Prepare{Ctx: ctx, DB: db}
 
 	s := &Store{
 		db:           db,
 		fallbackURL:  fallbackURL,
+		explicitURL:  explicitURL,
 		latestConfig: p.P(`select id, data, schema from config where schema <= $1 order by id desc limit 1`),
 		setConfig:    p.P(`insert into config (id, schema, data) values (DEFAULT, $1, $2) returning (id)`),
 		lock:         p.P(`lock config in exclusive mode`),
@@ -125,6 +127,7 @@ func (s *Store) Reload(ctx context.Context) error {
 	}
 	rawCfg := *cfg
 	rawCfg.fallbackURL = s.fallbackURL
+	rawCfg.explicitURL = s.explicitURL
 
 	err = cfg.Validate()
 	if err != nil {
