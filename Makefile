@@ -232,7 +232,7 @@ postgres: bin/waitfor
 		-p 5432:5432 \
 		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
-regendb: bin/resetdb bin/goalert config.json.bak ## Regenerate the database
+regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
