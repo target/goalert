@@ -241,7 +241,6 @@ resetdb: config.json.bak ## Reset the database
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up the application
-	@go mod tidy
 	rm -rf bin node_modules web/src/node_modules web/src/build/static
 
 new-migration:
