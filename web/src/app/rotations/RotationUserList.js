@@ -141,7 +141,7 @@ function RotationUserList({ rotationID }) {
         <FlatList
           data-cy='users'
           emptyMessage='No users currently assigned to this rotation'
-          headerNote={users.length ? 'Edit to reorder users' : ''}
+          headerNote={users.length ? 'Toggle edit to reorder users' : ''}
           toggleDnD
           items={users.map((u, index) => ({
             title: u.name,

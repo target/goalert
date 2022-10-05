@@ -1,4 +1,5 @@
 import React, { useRef, useState, MouseEvent } from 'react'
+import Button from '@mui/material/Button'
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
@@ -331,13 +332,21 @@ export default function FlatList({
       <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
-            {toggleDnD && (
+            {toggleDnD && !draggable && (
               <IconButton
-                onClick={() => setDraggable(!draggable)}
+                onClick={() => setDraggable(true)}
                 sx={{ marginRight: (t) => t.spacing(2) }}
               >
                 <EditIcon />
               </IconButton>
+            )}
+            {toggleDnD && draggable && (
+              <Button
+                onClick={() => setDraggable(false)}
+                sx={{ marginRight: (t) => t.spacing(2) }}
+              >
+                Done
+              </Button>
             )}
             {headerNote && (
               <ListItemText
