@@ -396,7 +396,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			EPID:      getEPID(a.ServiceID),
 			CMID:      cm.ID,
 			SentAt:    ts,
-			CreatedAt: gofakeit.DateRange(a.CreatedAt, ts),
+			CreatedAt: gofakeit.DateRange(ts.Add(-time.Minute), ts),
 		})
 		var meta struct {
 			MessageID string
