@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// WithFunc flattens a with-type func providing it's value with Begin() and ending with Cancel().
 type WithFunc[V any] struct {
 	withFn func(context.Context, func(V)) error
 
