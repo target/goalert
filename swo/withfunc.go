@@ -53,8 +53,6 @@ func (w *WithFunc[V]) Begin(ctx context.Context) (v V, err error) {
 }
 
 func (w *WithFunc[V]) Cancel() {
-	defer w.wg.Wait()
-
 	w.mx.Lock()
 	defer w.mx.Unlock()
 
@@ -64,4 +62,6 @@ func (w *WithFunc[V]) Cancel() {
 
 	w.cancel()
 	w.cancel = nil
+
+	w.wg.Wait()
 }
