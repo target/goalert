@@ -72,7 +72,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       })}
       selected={highlight}
     >
-      {icon && <ListItemIcon>{icon}</ListItemIcon>}
+      {icon && <ListItemIcon tabIndex={-1}>{icon}</ListItemIcon>}
       <ListItemText
         primary={title}
         secondary={subText}

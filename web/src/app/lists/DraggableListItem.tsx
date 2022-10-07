@@ -88,7 +88,8 @@ export function DraggableListItem({
     icon: (
       <DragHandleIcon
         {...listeners}
-        sx={{ cursor: 'pointer', paddingLeft: '8px' }}
+        tabIndex={0}
+        sx={{ cursor: 'pointer', marginLeft: '8px' }}
       />
     ),
   }

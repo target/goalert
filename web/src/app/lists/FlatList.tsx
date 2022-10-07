@@ -1,5 +1,4 @@
 import React, { useRef, useState, MouseEvent } from 'react'
-import Button from '@mui/material/Button'
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
@@ -12,6 +11,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
+import DoneIcon from '@mui/icons-material/Done'
 import {
   closestCenter,
   DndContext,
@@ -332,21 +332,13 @@ export default function FlatList({
       <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
-            {toggleDnD && !draggable && (
+            {toggleDnD && (
               <IconButton
-                onClick={() => setDraggable(true)}
+                onClick={() => setDraggable(!draggable)}
                 sx={{ marginRight: (t) => t.spacing(2) }}
               >
-                <EditIcon />
+                {draggable ? <DoneIcon /> : <EditIcon />}
               </IconButton>
-            )}
-            {toggleDnD && draggable && (
-              <Button
-                onClick={() => setDraggable(false)}
-                sx={{ marginRight: (t) => t.spacing(2) }}
-              >
-                Done
-              </Button>
             )}
             {headerNote && (
               <ListItemText
