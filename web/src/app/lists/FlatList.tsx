@@ -149,6 +149,7 @@ export default function FlatList({
     // use IDs to sort, fallback to index
     items.map((i, idx) => (i.id ? i.id : idx.toString())),
   )
+  const [dragging, setDragging] = useState(false)
   const [draggable, setDraggable] = useState(false)
   const isFirstAnnouncement = useRef(false)
   const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
@@ -156,8 +157,10 @@ export default function FlatList({
     if (!isFirstAnnouncement.current) {
       isFirstAnnouncement.current = true
     }
+    setDragging(true)
   }
   function handleDragEnd(e: DragEndEvent): void {
+    setDragging(false)
     if (!onReorder || !e.over) return
     if (e.active.id !== e.over.id) {
       const oldIndex = dndItems.indexOf(e.active.id.toString())
@@ -335,6 +338,7 @@ export default function FlatList({
             {toggleDnD && (
               <IconButton
                 onClick={() => setDraggable(!draggable)}
+                disabled={draggable && dragging}
                 sx={{ marginRight: (t) => t.spacing(2) }}
               >
                 {draggable ? <DoneIcon /> : <EditIcon />}
