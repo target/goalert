@@ -340,6 +340,7 @@ export default function FlatList({
                 onClick={() => setDraggable(!draggable)}
                 disabled={draggable && dragging}
                 sx={{ marginRight: (t) => t.spacing(2) }}
+                aria-label='Toggle Drag and Drop'
               >
                 {draggable ? <DoneIcon /> : <EditIcon />}
               </IconButton>

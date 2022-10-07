@@ -88,7 +88,9 @@ export function DraggableListItem({
     icon: (
       <DragHandleIcon
         {...listeners}
+        id={'drag-' + item?.id ?? index}
         tabIndex={0}
+        focusable
         sx={{ cursor: 'pointer', marginLeft: '8px' }}
       />
     ),
