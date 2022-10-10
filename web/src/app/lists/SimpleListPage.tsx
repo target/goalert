@@ -10,9 +10,8 @@ interface SimpleListPageProps extends QueryListProps {
 export default function SimpleListPage(
   props: SimpleListPageProps,
 ): JSX.Element {
-  const { createDialogComponent, createLabel, ...rest } = props
+  const { createDialogComponent: DialogComponent, createLabel, ...rest } = props
   const [create, setCreate] = useState(false)
-  const DialogComponent = createDialogComponent
 
   return (
     <React.Fragment>
