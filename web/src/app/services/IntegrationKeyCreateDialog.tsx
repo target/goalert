@@ -30,19 +30,19 @@ export default function IntegrationKeyCreateDialog(props: {
     <FormDialog
       maxWidth='sm'
       title='Create New Integration Key'
-      loading={createIntegrationKeyStatus.fetching}
-      errors={nonFieldErrors(createIntegrationKeyStatus.error)}
+      loading={createKeyStatus.fetching}
+      errors={nonFieldErrors(createKeyStatus.error)}
       onClose={onClose}
       onSubmit={(): void => {
-        createIntegrationKey(
+        createKey(
           { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
         ).then(onClose)
       }}
       form={
         <IntegrationKeyForm
-          errors={fieldErrors(createIntegrationKeyStatus.error)}
-          disabled={createIntegrationKeyStatus.fetching}
+          errors={fieldErrors(createKeyStatus.error)}
+          disabled={createKeyStatus.fetching}
           value={
             value || {
               name: '',

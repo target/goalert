@@ -1,10 +1,10 @@
-import React, { ReactNode, useState, ReactElement } from 'react'
+import React, { ReactNode, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList from '../lists/FlatList'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
 import IconButton from '@mui/material/IconButton'
 import { Trash } from '../icons'
 import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
@@ -17,12 +17,6 @@ import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { IntegrationKey } from '../../schema'
-
-interface Item {
-  title: string
-  subText: ReactElement
-  secondaryAction: ReactElement
-}
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -119,7 +113,7 @@ export default function IntegrationKeyList(props: {
     .slice()
     .sort(sortItems)
     .map(
-      (key: IntegrationKey): Item => ({
+      (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
         subText: (
           <IntegrationKeyDetails
