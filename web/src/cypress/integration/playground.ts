@@ -7,13 +7,16 @@ function testPlayground(): void {
     })
 
     it('should open, click around, and close docs', () => {
-      cy.get('.docExplorerShow').click()
-      cy.get('.doc-explorer').contains('Documentation Explorer')
-      cy.get('.doc-explorer').contains('Query').click()
-      cy.get('.doc-explorer').contains('alert').click()
-      cy.get('.docExplorerHide').click()
-      cy.get('.docExplorerHide').should('not.exist')
-      cy.get('.docExplorerShow').should('exist')
+      cy.get('button[aria-label="Show Documentation Explorer"]').click()
+      cy.get(
+        '.graphiql-doc-explorer[aria-label="Documentation Explorer"]',
+      ).should('be.visible')
+      cy.get('.graphiql-doc-explorer').contains('Query').click()
+      cy.get('.graphiql-doc-explorer').contains('a', 'alert').click()
+      cy.get('button[aria-label="Hide Documentation Explorer"]').click()
+      cy.get(
+        '.graphiql-doc-explorer[aria-label="Documentation Explorer"]',
+      ).should('not.exist')
     })
   })
 }

@@ -34,16 +34,12 @@ const query = gql`
       password
       type
       value
+      deprecated
     }
     configHints {
       id
       value
     }
-  }
-`
-const mutation = gql`
-  mutation ($input: [ConfigValueInput!]) {
-    setConfig(input: $input)
   }
 `
 
@@ -160,9 +156,7 @@ export default function AdminConfig(): JSX.Element {
 
       {confirm && (
         <AdminDialog
-          mutation={mutation}
-          values={configValues}
-          fieldValues={values}
+          value={values}
           onClose={() => setConfirm(false)}
           onComplete={() => {
             setValues({})
@@ -230,6 +224,7 @@ export default function AdminConfig(): JSX.Element {
                       password: f.password,
                       type: f.type,
                       value: f.value,
+                      deprecated: f.deprecated,
                     }))}
                 />
               </Form>

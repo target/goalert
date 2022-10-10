@@ -3,7 +3,6 @@ package twilio
 import (
 	"crypto/hmac"
 	"net/http"
-	"net/url"
 	"regexp"
 
 	"github.com/target/goalert/config"
@@ -24,16 +23,16 @@ func validateRequest(req *http.Request) error {
 		return errors.New("missing X-Twilio-Signature")
 	}
 
-	u, err := url.ParseRequestURI(req.RequestURI)
-	if err != nil {
-		return err
-	}
-	u.Host = req.Host
-	u.Scheme = req.URL.Scheme
-
-	calcSig := Signature(cfg.Twilio.AuthToken, u.String(), req.PostForm)
+	calcSig := Signature(cfg.Twilio.AuthToken, config.RequestURL(req), req.PostForm)
 	if !hmac.Equal([]byte(sig), calcSig) {
-		return errors.New("invalid X-Twilio-Signature")
+		if cfg.Twilio.AlternateAuthToken == "" {
+			return errors.New("invalid X-Twilio-Signature")
+		}
+
+		calcSig = Signature(cfg.Twilio.AlternateAuthToken, config.RequestURL(req), req.PostForm)
+		if !hmac.Equal([]byte(sig), calcSig) {
+			return errors.New("invalid X-Twilio-Signature")
+		}
 	}
 
 	return nil
@@ -55,8 +54,10 @@ func WrapValidation(h http.Handler, c Config) http.Handler {
 	})
 }
 
-var numRx = regexp.MustCompile(`^\+\d{1,15}$`)
-var sidRx = regexp.MustCompile(`^(CA|SM)[\da-f]{32}$`)
+var (
+	numRx = regexp.MustCompile(`^\+\d{1,15}$`)
+	sidRx = regexp.MustCompile(`^(CA|SM)[\da-f]{32}$`)
+)
 
 func validPhone(n string) string {
 	if !numRx.MatchString(n) {
@@ -65,6 +66,7 @@ func validPhone(n string) string {
 
 	return n
 }
+
 func validSID(n string) string {
 	if len(n) != 34 {
 		return ""

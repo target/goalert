@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sort"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
@@ -35,6 +37,21 @@ type AlertLog struct {
 	Timestamp time.Time
 	Event     string
 	Message   string
+	UserID    string
+	Class     string
+	Meta      json.RawMessage
+}
+
+type AlertMsg struct {
+	ID        string
+	AlertID   int
+	UserID    string
+	ServiceID string
+	CMID      string
+	EPID      string
+	Status    string
+	CreatedAt time.Time
+	SentAt    time.Time
 }
 
 type datagenConfig struct {
@@ -59,6 +76,7 @@ type datagenConfig struct {
 	SvcLabelMax          int
 	UniqueLabelKeys      int
 	LabelValueMax        int
+	MsgPerAlertMax       int
 
 	AdminID string
 }
@@ -97,6 +115,7 @@ type datagen struct {
 	AlertLogs          []AlertLog
 	Favorites          []userFavorite
 	Labels             []label.Label
+	AlertMessages      []AlertMsg
 
 	ids          *uniqGen
 	ints         *uniqIntGen
@@ -353,6 +372,51 @@ func (d *datagen) NewAlert(status alert.Status) {
 	})
 }
 
+func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
+	getEPID := func(svcID string) string {
+		idx := sort.Search(len(d.Services), func(n int) bool {
+			return d.Services[n].ID >= svcID
+		})
+		if idx == len(d.Services) {
+			panic("service not found: " + svcID)
+		}
+		return d.Services[idx].EscalationPolicyID
+	}
+
+	for i := 0; i < rand.Intn(max); i++ {
+		cm := d.ContactMethods[rand.Intn(len(d.ContactMethods))]
+		ts := gofakeit.DateRange(a.CreatedAt, time.Now())
+		id := gofakeit.UUID()
+		d.AlertMessages = append(d.AlertMessages, AlertMsg{
+			ID:        id,
+			AlertID:   a.ID,
+			ServiceID: a.ServiceID,
+			Status:    "delivered",
+			UserID:    cm.UserID,
+			EPID:      getEPID(a.ServiceID),
+			CMID:      cm.ID,
+			SentAt:    ts,
+			CreatedAt: gofakeit.DateRange(ts.Add(-time.Minute), ts),
+		})
+		var meta struct {
+			MessageID string
+		}
+		meta.MessageID = id
+		data, err := json.Marshal(meta)
+		if err != nil {
+			panic(err)
+		}
+		d.AlertLogs = append(d.AlertLogs, AlertLog{
+			AlertID:   a.ID,
+			Timestamp: ts,
+			Event:     "notification_sent",
+			UserID:    cm.UserID,
+			Meta:      data,
+			Class:     string(cm.Type),
+		})
+	}
+}
+
 // NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(a alert.Alert) {
 	t := a.CreatedAt
@@ -412,8 +476,7 @@ func (d *datagen) NewFavorite(userID string) {
 	})
 }
 
-// Generate will produce a full random dataset based on the configuration.
-func (cfg datagenConfig) Generate() datagen {
+func (cfg *datagenConfig) SetDefaults() {
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
 			return
@@ -441,7 +504,29 @@ func (cfg datagenConfig) Generate() datagen {
 	setDefault(&cfg.SvcLabelMax, SvcLabelMax)
 	setDefault(&cfg.UniqueLabelKeys, UniqueLabelKeys)
 	setDefault(&cfg.LabelValueMax, LabelValueMax)
+	setDefault(&cfg.MsgPerAlertMax, MsgPerAlertMax)
+}
 
+// Multiply will multiply the following counts:
+// - UserCount
+// - RotationCount
+// - ScheduleCount
+// - EPCount
+// - SvcCount
+// - AlertClosedCount
+// - AlertActiveCount
+func (cfg *datagenConfig) Multiply(n float64) {
+	cfg.UserCount = int(float64(cfg.UserCount) * n)
+	cfg.RotationCount = int(float64(cfg.RotationCount) * n)
+	cfg.ScheduleCount = int(float64(cfg.ScheduleCount) * n)
+	cfg.EPCount = int(float64(cfg.EPCount) * n)
+	cfg.SvcCount = int(float64(cfg.SvcCount) * n)
+	cfg.AlertClosedCount = int(float64(cfg.AlertClosedCount) * n)
+	cfg.AlertActiveCount = int(float64(cfg.AlertActiveCount) * n)
+}
+
+// Generate will produce a full random dataset based on the configuration.
+func (cfg datagenConfig) Generate() datagen {
 	d := datagen{
 		ids:         newGen(),
 		ints:        newUniqIntGen(),
@@ -519,6 +604,7 @@ func (cfg datagenConfig) Generate() datagen {
 		run(rand.Intn(cfg.HeartbeatMonitorMax), func() { d.NewMonitor(svc.ID) })
 		run(rand.Intn(cfg.SvcLabelMax), func() { d.NewLabel(svc.ID) })
 	}
+	sort.Slice(d.Services, func(i, j int) bool { return d.Services[i].ID < d.Services[j].ID })
 
 	for _, usr := range d.Users {
 		run(rand.Intn(cfg.UserFavMax), func() { d.NewFavorite(usr.ID) })
@@ -534,6 +620,7 @@ func (cfg datagenConfig) Generate() datagen {
 
 	for _, alert := range d.Alerts {
 		d.NewAlertLogs(alert)
+		d.NewAlertMessages(alert, cfg.MsgPerAlertMax)
 	}
 
 	return d

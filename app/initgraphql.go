@@ -7,7 +7,6 @@ import (
 )
 
 func (app *App) initGraphQL(ctx context.Context) error {
-
 	app.graphql2 = &graphqlapp.App{
 		DB:                  app.db,
 		AuthBasicStore:      app.AuthBasicStore,
@@ -35,11 +34,12 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		NotificationStore:   app.NotificationStore,
 		SlackStore:          app.slackChan,
 		HeartbeatStore:      app.HeartbeatStore,
-		NoticeStore:         *app.NoticeStore,
+		NoticeStore:         app.NoticeStore,
 		Twilio:              app.twilioConfig,
 		AuthHandler:         app.AuthHandler,
 		FormatDestFunc:      app.notificationManager.FormatDestValue,
-		NotificationManager: *app.notificationManager,
+		NotificationManager: app.notificationManager,
+		AuthLinkStore:       app.AuthLinkStore,
 	}
 
 	return nil

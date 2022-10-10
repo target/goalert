@@ -14,6 +14,7 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/errutil"
@@ -78,12 +79,17 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	var payload struct {
 		Type        string
 		ResponseURL string `json:"response_url"`
-		Channel     struct {
+		Team        struct {
+			ID     string
+			Domain string
+		}
+		Channel struct {
 			ID string
 		}
 		User struct {
-			ID     string `json:"id"`
-			TeamID string `json:"team_id"`
+			ID       string `json:"id"`
+			Username string `json:"username"`
+			Name     string
 		}
 		Actions []struct {
 			ActionID string `json:"action_id"`
@@ -113,23 +119,74 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		res = notification.ResultAcknowledge
 	case alertCloseActionID:
 		res = notification.ResultResolve
+	case linkActActionID:
+		s.withClient(ctx, func(c *slack.Client) error {
+			// remove ephemeral 'Link Account' button
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL),
+				slack.MsgOptionDeleteOriginal(payload.ResponseURL))
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		return
 	default:
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "unknown action ID '%s'", act.ActionID))
 		return
 	}
 
-	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.User.TeamID, payload.User.ID, act.Value, res)
-	if errors.Is(err, notification.ErrUnknownSubject) {
-		log.Log(ctx, fmt.Errorf("unknown provider/subject ID for Slack 'slack:%s/%s'", payload.User.TeamID, payload.User.ID))
-		err = s.withClient(ctx, func(c *slack.Client) error {
-			_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
-				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
+	var e *notification.UnknownSubjectError
+	err = s.recv.ReceiveSubject(ctx, "slack:"+payload.Team.ID, payload.User.ID, act.Value, res)
 
-				// TODO: add user-link/OAUTH flow
-				slack.MsgOptionText("Your Slack account isn't currently linked to GoAlert, the admin will need to set this up for it to work.", false),
+	if errors.As(err, &e) {
+		var linkURL string
+		switch {
+		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
+			// missing data, don't allow linking
+			log.Log(ctx, errors.New("slack payload missing requried data"))
+		default:
+			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
+				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),
+				AlertID:     e.AlertID,
+				AlertAction: res.String(),
+			})
+			if err != nil {
+				log.Log(ctx, err)
+			}
+		}
+
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			var msg string
+			if linkURL == "" {
+				msg = "Your Slack account isn't currently linked to GoAlert, please try again later."
+			} else {
+				msg = "Please link your Slack account with GoAlert."
+			}
+			blocks := []slack.Block{
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject("plain_text", msg, false, false),
+					nil, nil,
+				),
+			}
+
+			if linkURL != "" {
+				btn := slack.NewButtonBlockElement(linkActActionID, linkURL,
+					slack.NewTextBlockObject("plain_text", "Link Account", false, false))
+				btn.URL = linkURL
+				blocks = append(blocks, slack.NewActionBlock(alertResponseBlockID, btn))
+			}
+
+			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+				slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
+				slack.MsgOptionBlocks(blocks...),
 			)
-			return err
+			if err != nil {
+				return err
+			}
+			return nil
 		})
+		return
 	}
 	if alert.IsAlreadyAcknowledged(err) || alert.IsAlreadyClosed(err) {
 		// ignore errors from duplicate requests

@@ -48,7 +48,7 @@ export default function IntegrationKeyCreateDialog(props) {
         onSubmit={() => {
           return commit({
             variables: {
-              input: { ...value, serviceID: serviceID },
+              input: { ...value, serviceID },
             },
           })
         }}
@@ -71,11 +71,11 @@ export default function IntegrationKeyCreateDialog(props) {
       update={(cache, { data: { createIntegrationKey } }) => {
         const { service } = cache.readQuery({
           query,
-          variables: { serviceID: serviceID },
+          variables: { serviceID },
         })
         cache.writeQuery({
           query,
-          variables: { serviceID: serviceID },
+          variables: { serviceID },
           data: {
             service: {
               ...service,

@@ -21,6 +21,8 @@ func MapDBError(err error) error {
 	switch dbErr.Code {
 	case "23503": // fkey constraint
 		switch dbErr.ConstraintName {
+		case "schedule_rules_tgt_rotation_id_fkey":
+			return validation.NewFieldError("RotationID", "rotation does not exist")
 		case "user_calendar_subscriptions_user_id_fkey":
 			return validation.NewFieldError("UserID", "user does not exist")
 		case "user_calendar_subscriptions_schedule_id_fkey", "schedule_data_schedule_id_fkey":

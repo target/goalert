@@ -9,12 +9,14 @@ import {
   TextField,
   MenuItem,
   ListItemIcon,
-  Typography,
   Paper,
   Chip,
   InputProps,
   Alert,
   Autocomplete,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 
@@ -35,6 +37,13 @@ const useStyles = makeStyles({
   padding0: {
     padding: 0,
   },
+  list: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 0,
+  },
 })
 
 interface AutocompleteInputProps extends InputProps {
@@ -43,6 +52,7 @@ interface AutocompleteInputProps extends InputProps {
 
 interface SelectOption {
   icon?: ReactElement
+  subText?: string
   isCreate?: boolean
   label: string
   value: string
@@ -57,6 +67,7 @@ interface CommonSelectProps {
   noOptionsError?: Error
   name?: string
   required?: boolean
+  formatInputOnChange?: (value: string) => string
   onInputChange?: (value: string) => void
   options: SelectOption[]
   placeholder?: string
@@ -88,6 +99,7 @@ export default function MaterialSelect(
     noOptionsText,
     noOptionsError,
     onChange,
+    formatInputOnChange = (val) => val,
     onInputChange = () => {},
     options: _options,
     placeholder,
@@ -116,8 +128,9 @@ export default function MaterialSelect(
   const [inputValue, _setInputValue] = useState(getInputLabel())
 
   const setInputValue = (input: string): void => {
-    _setInputValue(input)
-    onInputChange(input)
+    const formattedInput = formatInputOnChange(input)
+    _setInputValue(formattedInput)
+    onInputChange(formattedInput)
   }
 
   useEffect(() => {
@@ -216,7 +229,7 @@ export default function MaterialSelect(
           />
         )
       }}
-      renderOption={(props, { label, icon, value }) => (
+      renderOption={(props, { label, subText, icon, value }) => (
         <MenuItem
           {...props}
           component='span'
@@ -224,10 +237,16 @@ export default function MaterialSelect(
           selected={isSelected(value)}
           data-cy='search-select-item'
         >
-          <Typography noWrap>{label}</Typography>
-          {icon && (
-            <ListItemIcon className={classes.listItemIcon}>{icon}</ListItemIcon>
-          )}
+          <List className={classes.list}>
+            <ListItem>
+              <ListItemText primary={label} secondary={subText || null} />
+            </ListItem>
+            {icon && (
+              <ListItemIcon className={classes.listItemIcon}>
+                {icon}
+              </ListItemIcon>
+            )}
+          </List>
         </MenuItem>
       )}
       PaperComponent={(params) => (
