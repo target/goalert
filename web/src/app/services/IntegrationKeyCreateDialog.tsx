@@ -24,8 +24,7 @@ export default function IntegrationKeyCreateDialog(props: {
   const [value, setValue] = useState<Value | null>(null)
   const { serviceID, onClose } = props
 
-  const [createIntegrationKeyStatus, createIntegrationKey] =
-    useMutation(mutation)
+  const [createKeyStatus, createKey] = useMutation(mutation)
 
   return (
     <FormDialog
