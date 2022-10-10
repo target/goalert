@@ -134,6 +134,15 @@ export type SystemLimitID =
   | 'TargetsPerSchedule'
   | 'HeartbeatMonitorsPerService'
   | 'UserOverridesPerSchedule'
+  | 'MaxSMSPer15Minutes'
+  | 'MaxSMSPerHour'
+  | 'MaxSMSPer3Hours'
+  | 'MaxVoicePer15Minutes'
+  | 'MaxVoicePerHour'
+  | 'MaxVoicePer3Hours'
+  | 'MaxAllForAlertStatusPer3Minutes'
+  | 'MaxAllForAlertStatusPer2Hours'
+  | 'MaxAllForAlertStatusPer20Minutes'
 
 export interface UserOverrideSearchOptions {
   first?: null | number

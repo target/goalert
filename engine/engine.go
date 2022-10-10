@@ -187,8 +187,12 @@ func (p *Engine) processMessages(ctx context.Context) {
 	defer recoverPanic(ctx, "MessageManager")
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
+	err := p.msg.Init(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationManager.MessageStatus)
+	err = p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationManager.MessageStatus)
 	if errors.Is(err, processinglock.ErrNoLock) {
 		return
 	}

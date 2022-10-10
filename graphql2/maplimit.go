@@ -18,6 +18,15 @@ func MapLimitValues(l limit.Limits) []SystemLimit {
 		{ID: "EPStepsPerPolicy", Description: "Maximum number of steps on a single escalation policy.", Value: l[limit.EPStepsPerPolicy]},
 		{ID: "HeartbeatMonitorsPerService", Description: "Maximum number of heartbeat monitors per service.", Value: l[limit.HeartbeatMonitorsPerService]},
 		{ID: "IntegrationKeysPerService", Description: "Maximum number of integration keys per service.", Value: l[limit.IntegrationKeysPerService]},
+		{ID: "MaxAllForAlertStatusPer20Minutes", Description: "All Message Type Limit for alert notifications per 20 minutes.", Value: l[limit.MaxAllForAlertStatusPer20Minutes]},
+		{ID: "MaxAllForAlertStatusPer2Hours", Description: "All Message Type Limit for alert notifications per 2 hours.", Value: l[limit.MaxAllForAlertStatusPer2Hours]},
+		{ID: "MaxAllForAlertStatusPer3Minutes", Description: "All Message Type Limit for alert notifications per 3 minutes.", Value: l[limit.MaxAllForAlertStatusPer3Minutes]},
+		{ID: "MaxSMSPer15Minutes", Description: "SMS Limit for alert notifications per 15 minutes.", Value: l[limit.MaxSMSPer15Minutes]},
+		{ID: "MaxSMSPer3Hours", Description: "SMS Limit for alert notifications per 3 hours.", Value: l[limit.MaxSMSPer3Hours]},
+		{ID: "MaxSMSPerHour", Description: "SMS  Limit for alert notifications per hour.", Value: l[limit.MaxSMSPerHour]},
+		{ID: "MaxVoicePer15Minutes", Description: "Voice Limit for alert notifications per 15 minutes.", Value: l[limit.MaxVoicePer15Minutes]},
+		{ID: "MaxVoicePer3Hours", Description: "Voice Limit for alert notifications per 3 hours.", Value: l[limit.MaxVoicePer3Hours]},
+		{ID: "MaxVoicePerHour", Description: "Voice Limit for alert notifications per hour.", Value: l[limit.MaxVoicePerHour]},
 		{ID: "NotificationRulesPerUser", Description: "Maximum number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
 		{ID: "ParticipantsPerRotation", Description: "Maximum number of participants per rotation.", Value: l[limit.ParticipantsPerRotation]},
 		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},
@@ -43,6 +52,24 @@ func ApplyLimitValues(l limit.Limits, vals []SystemLimitInput) (limit.Limits, er
 			l[limit.HeartbeatMonitorsPerService] = v.Value
 		case "IntegrationKeysPerService":
 			l[limit.IntegrationKeysPerService] = v.Value
+		case "MaxAllForAlertStatusPer20Minutes":
+			l[limit.MaxAllForAlertStatusPer20Minutes] = v.Value
+		case "MaxAllForAlertStatusPer2Hours":
+			l[limit.MaxAllForAlertStatusPer2Hours] = v.Value
+		case "MaxAllForAlertStatusPer3Minutes":
+			l[limit.MaxAllForAlertStatusPer3Minutes] = v.Value
+		case "MaxSMSPer15Minutes":
+			l[limit.MaxSMSPer15Minutes] = v.Value
+		case "MaxSMSPer3Hours":
+			l[limit.MaxSMSPer3Hours] = v.Value
+		case "MaxSMSPerHour":
+			l[limit.MaxSMSPerHour] = v.Value
+		case "MaxVoicePer15Minutes":
+			l[limit.MaxVoicePer15Minutes] = v.Value
+		case "MaxVoicePer3Hours":
+			l[limit.MaxVoicePer3Hours] = v.Value
+		case "MaxVoicePerHour":
+			l[limit.MaxVoicePerHour] = v.Value
 		case "NotificationRulesPerUser":
 			l[limit.NotificationRulesPerUser] = v.Value
 		case "ParticipantsPerRotation":

@@ -47,6 +47,7 @@ type DB struct {
 	failSMSVoice *sql.Stmt
 
 	sentByCMType *sql.Stmt
+	getAllLimits *sql.Stmt
 
 	updateCMStatusUpdate      *sql.Stmt
 	cleanupStatusUpdateOptOut *sql.Stmt
@@ -341,7 +342,8 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
 
-		deleteAny: p.P(`delete from outgoing_messages where id = any($1)`),
+		deleteAny:    p.P(`delete from outgoing_messages where id = any($1)`),
+		getAllLimits: p.P(`select max from config_limits where id=any($1)`),
 	}, p.Err
 }
 
