@@ -343,7 +343,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 		`),
 
 		deleteAny:    p.P(`delete from outgoing_messages where id = any($1)`),
-		getAllLimits: p.P(`select max from config_limits where id=any($1)`),
+		getAllLimits: p.P(`select max,array_position($1::enum_limit_type[],id) as ord  from config_limits where id=any($1::enum_limit_type[]) order by ord`),
 	}, p.Err
 }
 

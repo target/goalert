@@ -34,11 +34,12 @@ func (db *DB) Init(ctx context.Context) error {
 	}
 	type MaxLimits struct {
 		MaxHours int
+		Order    int
 	}
 	var a []MaxLimits
 	for rows.Next() {
 		var al MaxLimits
-		err = rows.Scan(&al.MaxHours)
+		err = rows.Scan(&al.MaxHours, &al.Order)
 		if err != nil {
 			fmt.Println("Error fetching limits", err)
 		}
