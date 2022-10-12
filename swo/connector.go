@@ -23,6 +23,7 @@ type Connector struct {
 
 var _ driver.Connector = (*Connector)(nil)
 
+// NewConnector creates a new Connector pointing to the old and new DBs, respectively.
 func NewConnector(dbcOld, dbcNew driver.Connector) *Connector {
 	return &Connector{
 		dbcOld: dbcOld,
@@ -30,8 +31,15 @@ func NewConnector(dbcOld, dbcNew driver.Connector) *Connector {
 	}
 }
 
+// Driver is a stub method for driver.Connector that returns nil.
 func (drv *Connector) Driver() driver.Driver { return nil }
 
+// Connect returns a new connection to the database.
+//
+// A shared advisory lock is acquired on the connection to the old DB, and then switchover_state is checked.
+//
+// When `current_state` is `use_next_db`, the connection is closed and a connection to the new DB is returned
+// instead. Future connections then skip the check and are returned directly from the new DB.
 func (drv *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	drv.mx.Lock()
 	isDone := drv.isDone

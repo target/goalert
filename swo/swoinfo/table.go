@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
+// Table represents a table in the database.
 type Table struct {
 	name string
 	deps map[string]struct{}
@@ -16,10 +17,13 @@ type Table struct {
 }
 type column swodb.InformationSchemaColumn
 
+// Name returns the name of the table.
 func (t Table) Name() string { return t.name }
 
+// IDType returns the type of the ID column.
 func (t Table) IDType() string { return t.id.DataType }
 
+// Columns returns the names of the columns in the table.
 func (t Table) Columns() []string {
 	var cols []string
 	for _, c := range t.cols {
@@ -28,6 +32,7 @@ func (t Table) Columns() []string {
 	return cols
 }
 
+// InsesrtJSONRowsQuery returns a query that can be used to insert or upsert rows from the given JSON data.
 func (t Table) InsertJSONRowsQuery(upsert bool) string {
 	query := fmt.Sprintf("insert into %s select * from json_populate_recordset(null::%s, $1)", sqlutil.QuoteID(t.Name()), sqlutil.QuoteID(t.Name()))
 	if !upsert {

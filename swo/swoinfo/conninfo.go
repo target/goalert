@@ -7,10 +7,15 @@ import (
 	"github.com/target/goalert/swo/swodb"
 )
 
+// ConnCount represents the number of connections to a database for the given application name.
 type ConnCount struct {
-	Name   string
+	// Name is the application name of the connection.
+	Name string
+
+	// IsNext indicates that the connection is to the new database.
 	IsNext bool
-	Count  int
+
+	Count int
 }
 
 // ConnInfo provides information about the connections to both old and new databases.

@@ -2,6 +2,7 @@ package swogrp
 
 import "github.com/google/uuid"
 
+// Status represents the current status of the switchover process.
 type Status struct {
 	State      ClusterState
 	Nodes      []Node
@@ -10,6 +11,7 @@ type Status struct {
 	LastError  string
 }
 
+// Status returns the current status of the switchover process.
 func (t *TaskMgr) Status() Status {
 	t.mx.Lock()
 	defer t.mx.Unlock()

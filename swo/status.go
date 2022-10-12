@@ -5,6 +5,7 @@ import (
 	"github.com/target/goalert/swo/swogrp"
 )
 
+// Status represents the current status of the switchover process.
 type Status struct {
 	swogrp.Status
 

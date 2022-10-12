@@ -216,7 +216,7 @@ func (c *TableSync) AddBatchWrites(b *pgx.Batch) {
 	}
 }
 
-// sort entries with a non-nil end time before entries with a nil end time
+// sortOnCallData sorts entries with a non-nil end time before entries with a nil end time
 func sortOnCallData(data []json.RawMessage) {
 	type onCallData struct {
 		End *time.Time `json:"end_time"`

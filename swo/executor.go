@@ -21,6 +21,7 @@ type Executor struct {
 	mx  sync.Mutex
 }
 
+// NewExecutor initializes a new Executor for the given Manager.
 func NewExecutor(mgr *Manager) *Executor {
 	e := &Executor{
 		mgr:     mgr,
@@ -49,6 +50,7 @@ const (
 
 var _ swogrp.Executor = (*Executor)(nil)
 
+// Sync begins the switchover process by resetting and starting the logical replication process.
 func (e *Executor) Sync(ctx context.Context) error {
 	e.mx.Lock()
 	defer e.mx.Unlock()
@@ -88,6 +90,7 @@ func (e *Executor) Sync(ctx context.Context) error {
 	return nil
 }
 
+// Exec executes the switchover process, blocking until it is complete.
 func (e *Executor) Exec(ctx context.Context) error {
 	e.mx.Lock()
 	defer e.mx.Unlock()
@@ -114,4 +117,5 @@ func (e *Executor) Exec(ctx context.Context) error {
 	return nil
 }
 
+// Cancel cancels the switchover process.
 func (e *Executor) Cancel() { e.wf.Cancel() }

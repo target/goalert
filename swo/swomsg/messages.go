@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Message represents a single event in the switchover log.
 type Message struct {
 	ID   uuid.UUID
 	Node uuid.UUID

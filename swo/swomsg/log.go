@@ -13,8 +13,10 @@ import (
 	"github.com/target/goalert/util/log"
 )
 
-const PollInterval = time.Second / 3
+// pollInterval is how often the log will be polled for new events.
+const pollInterval = time.Second / 3
 
+// Log is a reader for the switchover log.
 type Log struct {
 	db *sql.DB
 
@@ -23,8 +25,7 @@ type Log struct {
 	eventCh chan Message
 }
 
-var ErrStaleLog = fmt.Errorf("cannot append until log is read")
-
+// NewLog will create a new log reader, skipping any existing events.
 func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	conn, err := stdlib.AcquireConn(db)
 	if err != nil {
@@ -46,6 +47,7 @@ func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	return l, nil
 }
 
+// Events will return a channel that will receive all events in the log.
 func (l *Log) Events() <-chan Message { return l.eventCh }
 
 func (l *Log) readLoop(ctx context.Context, lastID int64) {
@@ -87,7 +89,7 @@ func ctxSleep(ctx context.Context, d time.Duration) error {
 }
 
 func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverLog, error) {
-	err := ctxSleep(ctx, PollInterval-time.Since(l.lastLoad))
+	err := ctxSleep(ctx, pollInterval-time.Since(l.lastLoad))
 	if err != nil {
 		return nil, err
 	}

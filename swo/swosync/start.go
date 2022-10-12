@@ -19,6 +19,12 @@ func triggerName(table string) string {
 }
 
 // StartTrackingChanges instruments and begins tracking changes to the DB.
+//
+// - Creates the change_log table
+// - Gets the list of tables and sequences to track
+// - Creates the change trigger for each table
+// - Disables triggers in the new DB
+// - Waits for any in-flight transactions to finish (since these may not have picked up the change trigger)
 func (l *LogicalReplicator) StartTrackingChanges(ctx context.Context) error {
 	l.printf(ctx, "enabling logical replication...")
 	_, err := l.srcConn.Exec(ctx, changelogQuery)

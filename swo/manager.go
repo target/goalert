@@ -19,6 +19,7 @@ import (
 	"github.com/target/goalert/version"
 )
 
+// A Manager is responsible for managing the switchover process.
 type Manager struct {
 	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
 	dbApp  *sql.DB
@@ -35,23 +36,30 @@ type Manager struct {
 	NextDBInfo *swoinfo.DB
 }
 
+// Node contains information on a GoAlert instance in SWO mode.
 type Node struct {
 	ID uuid.UUID
 
+	// OldValid indicates that the old database config is valid.
 	OldValid bool
+
+	// NewValid indicates that the new database config is valid.
 	NewValid bool
-	CanExec  bool
+
+	// CanExec indicates the node is NOT in API-only mode and is capable of executing tasks.
+	CanExec bool
 
 	Status string
 }
 
+// Config configures the current node for SWO.
 type Config struct {
 	OldDBURL, NewDBURL string
 	CanExec            bool
 	Logger             *log.Logger
 }
 
-// GoAlert v0.28.0-3141-g8a7b7d852-dirty
+// NewManager will create a new Manager with the given configuration.
 func NewManager(cfg Config) (*Manager, error) {
 	id := uuid.New()
 
@@ -130,6 +138,12 @@ func NewManager(cfg Config) (*Manager, error) {
 	return m, nil
 }
 
+// SetPauseResumer allows setting the pause/resume functionality for the manager.
+//
+// Pause is called during the switchover process to minimize the number of
+// long-lived DB connections so that the final sync can be performed quickly.
+//
+// After a switchover, or if it is aborted, Resume will be called.
 func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) {
 	if m.pauseResume != nil {
 		panic("already set")
@@ -138,6 +152,7 @@ func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) {
 	m.taskMgr.Init()
 }
 
+// ConnInfo returns information about all current DB connections.
 func (m *Manager) ConnInfo(ctx context.Context) (counts []swoinfo.ConnCount, err error) {
 	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
 		counts, err = swoinfo.ConnInfo(ctx, oldConn, newConn)
@@ -219,4 +234,7 @@ func (m *Manager) Reset(ctx context.Context) error {
 // StartExecute will trigger the switchover to begin.
 func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Execute(ctx) }
 
+// DB returns a sql.DB that will always return safe connections to be used during the switchover.
+//
+// All application code/queries should use this DB.
 func (m *Manager) DB() *sql.DB { return m.dbApp }

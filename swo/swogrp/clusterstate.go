@@ -1,5 +1,6 @@
 package swogrp
 
+// ClusterState represents the current state of the SWO cluster.
 type ClusterState int
 
 const (
