@@ -24,6 +24,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@apollo/client": "3.7.0",
+    "@dnd-kit/core": "6.0.3",
+    "@dnd-kit/sortable": "7.0.0",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@material/material-color-utilities": "0.2.0",
@@ -69,7 +71,6 @@
     "@types/lodash": "4.14.171",
     "@types/luxon": "3.0.0",
     "@types/react": "18.0.5",
-    "@types/react-beautiful-dnd": "13.1.1",
     "@types/react-big-calendar": "0.38.0",
     "@types/react-dom": "18.0.1",
     "@types/react-virtualized-auto-sizer": "1.0.1",
