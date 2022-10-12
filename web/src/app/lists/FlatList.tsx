@@ -1,4 +1,4 @@
-import React, { useRef, useState, MouseEvent } from 'react'
+import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
@@ -149,10 +149,11 @@ export default function FlatList({
     // use IDs to sort, fallback to index
     items.map((i, idx) => (i.id ? i.id : idx.toString())),
   )
-  
+
   useEffect(() => {
     setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
   }, [items])
+
   const [dragging, setDragging] = useState(false)
   const [draggable, setDraggable] = useState(false)
   const isFirstAnnouncement = useRef(false)
