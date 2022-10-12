@@ -1,30 +1,37 @@
-import React, { useLayoutEffect, MouseEvent } from 'react'
+import React, { useEffect, useRef, useState, MouseEvent } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
+import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
-import ListItem, { ListItemProps } from '@mui/material/ListItem'
-import ListItemIcon from '@mui/material/ListItemIcon'
+import MUIListItem from '@mui/material/ListItem'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-import { Theme } from '@mui/material/styles'
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-  DraggableStateSnapshot,
-  DraggableProvided,
-  DroppableProvided,
-} from 'react-beautiful-dnd'
 import ListSubheader from '@mui/material/ListSubheader'
-import AppLink from '../util/AppLink'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { Alert, AlertTitle } from '@mui/material'
+import EditIcon from '@mui/icons-material/Edit'
+import DoneIcon from '@mui/icons-material/Done'
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
 import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
+import FlatListItem from './FlatListItem'
+import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
     width: '100%',
@@ -39,11 +46,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  secondaryText: {
-    whiteSpace: 'pre-line',
-  },
-  participantDragging: {
-    backgroundColor: theme.palette.background.default,
+  listItemText: {
+    fontStyle: 'italic',
   },
   slideEnter: {
     maxHeight: '0px',
@@ -67,17 +71,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     transform: 'translateX(-100%)',
     transition: 'all 500ms',
   },
-  listItem: {
-    width: '100%',
-  },
-  listItemText: {
-    fontStyle: 'italic',
-  },
-  listItemDisabled: {
-    opacity: 0.6,
-    width: '100%',
-  },
-}))
+})
 
 export interface FlatListSub {
   id?: string
@@ -98,7 +92,7 @@ export interface FlatListItem {
   icon?: JSX.Element | null
   secondaryAction?: JSX.Element | null
   url?: string
-  id?: string
+  id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
   'data-cy'?: string
   disabled?: boolean
@@ -126,24 +120,9 @@ export interface FlatListProps extends ListProps {
 
   // will render transition in list
   transition?: boolean
-}
 
-interface ScrollIntoViewListItemProps extends ListItemProps {
-  scrollIntoView?: boolean
-}
-
-function ScrollIntoViewListItem(
-  props: ScrollIntoViewListItemProps,
-): JSX.Element {
-  const { scrollIntoView, ...other } = props
-  const ref = React.useRef<HTMLLIElement>(null)
-  useLayoutEffect(() => {
-    if (scrollIntoView) {
-      ref.current?.scrollIntoView({ block: 'center' })
-    }
-  }, [scrollIntoView])
-
-  return <ListItem ref={ref} {...other} />
+  // renders an edit button that hides the options buttons until toggled on
+  toggleDnD?: boolean
 }
 
 export default function FlatList({
@@ -154,21 +133,61 @@ export default function FlatList({
   items,
   inset,
   transition,
+  toggleDnD,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
+  // drag and drop stuff
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+  const [dndItems, setDndItems] = useState(
+    // use IDs to sort, fallback to index
+    items.map((i, idx) => (i.id ? i.id : idx.toString())),
+  )
+
+  useEffect(() => {
+    setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
+  }, [items])
+
+  const [dragging, setDragging] = useState(false)
+  const [draggable, setDraggable] = useState(false)
+  const isFirstAnnouncement = useRef(false)
+  const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
   function handleDragStart(): void {
-    // adds a little vibration if the browser supports it
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(100)
+    if (!isFirstAnnouncement.current) {
+      isFirstAnnouncement.current = true
+    }
+    setDragging(true)
+  }
+  function handleDragEnd(e: DragEndEvent): void {
+    setDragging(false)
+    if (!onReorder || !e.over) return
+    if (e.active.id !== e.over.id) {
+      const oldIndex = dndItems.indexOf(e.active.id.toString())
+      const newIndex = dndItems.indexOf(e.over.id.toString())
+      setDndItems(arrayMove(dndItems, oldIndex, newIndex)) // update order in local state
+      onReorder(oldIndex, newIndex) // callback fn from props
     }
   }
 
-  function handleDragEnd(result: DropResult): void {
-    if (result.destination && onReorder) {
-      onReorder(result.source.index, result.destination.index)
-    }
+  function renderEmptyMessage(): JSX.Element {
+    return (
+      <MUIListItem>
+        <ListItemText
+          disableTypography
+          secondary={
+            <Typography data-cy='list-empty-message' variant='caption'>
+              {emptyMessage}
+            </Typography>
+          }
+        />
+      </MUIListItem>
+    )
   }
 
   function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
@@ -306,25 +325,18 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          {renderItem(item, idx)}
+          <FlatListItem
+            index={idx}
+            item={item}
+            showOptions={toggleDnD ? draggable : true}
+          />
         </CSSTransition>
       )
     })
   }
 
-  function renderEmptyMessage(): JSX.Element {
-    return (
-      <ListItem>
-        <ListItemText
-          disableTypography
-          secondary={
-            <Typography data-cy='list-empty-message' variant='caption'>
-              {emptyMessage}
-            </Typography>
-          }
-        />
-      </ListItem>
-    )
+  function renderTransitions(): JSX.Element {
+    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
@@ -335,47 +347,52 @@ export default function FlatList({
       if ('type' in item) {
         return renderNoticeItem(item, idx)
       }
-      if (!onReorder) {
-        return renderItem(item, idx)
-      }
-      if (item.id) {
+      if (onReorder) {
         return (
-          <Draggable key={item.id} draggableId={item.id} index={idx}>
-            {(
-              provided: DraggableProvided,
-              snapshot: DraggableStateSnapshot,
-            ) => {
-              const draggingBackground = snapshot.isDragging
-                ? classes.participantDragging
-                : ''
-              return (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  className={draggingBackground}
-                >
-                  {renderItem(item, idx)}
-                </div>
-              )
-            }}
-          </Draggable>
+          <DraggableListItem
+            key={`${idx}-${item.id}`}
+            index={idx}
+            item={item}
+            id={item.id ?? idx.toString()}
+            draggable={toggleDnD ? draggable : true}
+          />
         )
       }
+
+      return (
+        <FlatListItem
+          key={`${idx}-${item.id}`}
+          index={idx}
+          item={item}
+          showOptions={toggleDnD ? draggable : true}
+        />
+      )
     })
   }
 
-  function renderTransitions(): JSX.Element {
-    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
-  }
-
-  // renderList handles rendering the list container as well as any
-  // header elements provided
   function renderList(): JSX.Element {
+    let sx = listProps.sx
+    if (onReorder) {
+      sx = {
+        ...sx,
+        display: 'grid',
+      }
+    }
+
     return (
-      <List {...listProps}>
-        {(headerNote || headerAction) && (
-          <ListItem>
+      <List {...listProps} sx={sx}>
+        {(headerNote || headerAction || onReorder) && (
+          <MUIListItem>
+            {toggleDnD && (
+              <IconButton
+                onClick={() => setDraggable(!draggable)}
+                disabled={draggable && dragging}
+                sx={{ marginRight: (t) => t.spacing(2) }}
+                aria-label='Toggle Drag and Drop'
+              >
+                {draggable ? <DoneIcon /> : <EditIcon />}
+              </IconButton>
+            )}
             {headerNote && (
               <ListItemText
                 disableTypography
@@ -385,10 +402,11 @@ export default function FlatList({
                 className={classes.listItemText}
               />
             )}
+            <div style={{ flex: 1 }} />
             {headerAction && (
               <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
             )}
-          </ListItem>
+          </MUIListItem>
         )}
         {!items.length && renderEmptyMessage()}
         {transition ? renderTransitions() : renderItems()}
@@ -396,24 +414,19 @@ export default function FlatList({
     )
   }
 
-  function renderDragAndDrop(): JSX.Element {
+  if (onReorder) {
     return (
-      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <Droppable droppableId='droppable'>
-          {(provided: DroppableProvided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              {renderList()}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <DndContext
+        accessibility={{ announcements }}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={dndItems}>{renderList()}</SortableContext>
+      </DndContext>
     )
   }
 
-  if (onReorder) {
-    // Enable drag and drop
-    return renderDragAndDrop()
-  }
   return renderList()
 }

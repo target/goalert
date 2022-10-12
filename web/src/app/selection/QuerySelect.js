@@ -125,12 +125,15 @@ export const querySelectPropTypes = {
   onCreate: p.func,
 
   error: p.bool,
+  formatInputOnChange: p.func,
   onChange: p.func,
   value: valueCheck,
   label: p.string,
   multiple: p.bool,
   name: p.string,
   placeholder: p.string,
+  disabled: p.bool,
+  labelKey: p.string,
 }
 
 // makeQuerySelect will return a new React component that can be used
@@ -177,6 +180,8 @@ export function makeQuerySelect(displayName, options) {
 
       onCreate: _onCreate,
       onChange = () => {},
+      formatInputOnChange = (val) => val,
+
       ..._otherProps
     } = props
 
@@ -244,6 +249,7 @@ export function makeQuerySelect(displayName, options) {
           placeholder ||
           (defaultQueryVariables && !searchInput ? 'Start typing...' : null)
         }
+        formatInputOnChange={(val) => formatInputOnChange(val)}
         onChange={(val) => handleChange(val)}
         {...otherProps}
       />
