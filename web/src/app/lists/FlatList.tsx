@@ -239,49 +239,6 @@ export default function FlatList({
     )
   }
 
-  function renderItem(item: FlatListItem, idx: number): JSX.Element {
-    let itemProps = {}
-    if (item.url) {
-      itemProps = {
-        component: AppLink,
-        to: item.url,
-        button: true,
-      }
-    }
-
-    return (
-      <ScrollIntoViewListItem
-        scrollIntoView={item.scrollIntoView}
-        key={idx}
-        {...itemProps}
-        className={classnames({
-          [classes.listItem]: true,
-          [classes.listItemDisabled]: item.disabled,
-        })}
-        selected={item.highlight}
-      >
-        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-        <ListItemText
-          primary={item.title}
-          secondary={item.subText}
-          secondaryTypographyProps={{
-            className: classnames({
-              [classes.secondaryText]: true,
-              [classes.listItemDisabled]: item.disabled,
-            }),
-            tabIndex: 0,
-          }}
-          inset={inset && !item.icon}
-        />
-        {item.secondaryAction && (
-          <ListItemSecondaryAction>
-            {item.secondaryAction}
-          </ListItemSecondaryAction>
-        )}
-      </ScrollIntoViewListItem>
-    )
-  }
-
   function renderTransitionItems(): JSX.Element[] {
     return items.map((item, idx) => {
       if ('subHeader' in item) {
