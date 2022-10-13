@@ -269,10 +269,19 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 		return []interface{}{a.ID, a.CreatedAt, a.Status, a.Summary, a.Details, dedup, asUUID(a.ServiceID), a.Source}
 	}, "services")
 
-	copyFrom("alert_logs", []string{"alert_id", "timestamp", "event", "message"}, len(data.AlertLogs), func(n int) []interface{} {
+	copyFrom("alert_logs", []string{"alert_id", "timestamp", "event", "message", "sub_type", "sub_user_id", "sub_classifier", "meta"}, len(data.AlertLogs), func(n int) []interface{} {
 		a := data.AlertLogs[n]
-		return []interface{}{a.AlertID, a.Timestamp, a.Event, a.Message}
-	}, "alerts")
+		var subType interface{}
+		if a.UserID != "" {
+			subType = "user"
+		}
+		return []interface{}{a.AlertID, a.Timestamp, a.Event, a.Message, subType, asUUIDPtr(a.UserID), a.Class, a.Meta}
+	}, "alerts", "outgoing_messages", "users")
+
+	copyFrom("outgoing_messages", []string{"id", "created_at", "alert_id", "service_id", "escalation_policy_id", "contact_method_id", "user_id", "message_type", "last_status", "sent_at"}, len(data.AlertMessages), func(n int) []interface{} {
+		msg := data.AlertMessages[n]
+		return []interface{}{asUUID(msg.ID), msg.CreatedAt, msg.AlertID, asUUID(msg.ServiceID), asUUID(msg.EPID), asUUID(msg.CMID), asUUID(msg.UserID), "alert_notification", msg.Status, msg.SentAt}
+	}, "alerts", "services", "users", "user_contact_methods")
 
 	dt.Wait()
 	_, err = pool.Exec(ctx, "alter table alerts enable trigger all")
