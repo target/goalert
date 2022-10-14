@@ -134,6 +134,7 @@ export type SystemLimitID =
   | 'TargetsPerSchedule'
   | 'HeartbeatMonitorsPerService'
   | 'UserOverridesPerSchedule'
+  | 'MaximumTimeToAutoCloseAlert'
 
 export interface UserOverrideSearchOptions {
   first?: null | number

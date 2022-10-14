@@ -215,6 +215,7 @@ enum SystemLimitID {
   TargetsPerSchedule
   HeartbeatMonitorsPerService
   UserOverridesPerSchedule
+  MaximumTimeToAutoCloseAlert
 }
 
 input UserOverrideSearchOptions {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -30,6 +31,9 @@ type DB struct {
 	cleanupOverrides   *sql.Stmt
 	cleanupSchedOnCall *sql.Stmt
 	cleanupEPOnCall    *sql.Stmt
+	unackAlerts        *sql.Stmt
+	getLimit           *sql.Stmt
+	alertStore         alert.Store
 
 	logIndex int
 }
@@ -38,7 +42,7 @@ type DB struct {
 func (db *DB) Name() string { return "Engine.CleanupManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, alertstore alert.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Version: 1,
 		Type:    processinglock.TypeCleanup,
@@ -91,5 +95,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
+		getLimit:           p.P(`SELECT max from config_limits where id='maximum_time_to_auto_close_alert'`),
+		unackAlerts:        p.P(`SELECT id from alerts where created_at <= (NOW() - interval '1 hours' * $1) and status='triggered'`),
+		alertStore:         alertstore,
 	}, p.Err
 }

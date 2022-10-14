@@ -61,7 +61,7 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
-	return e.String(ctx), nil
+	return e.Message(), nil
 }
 
 func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {

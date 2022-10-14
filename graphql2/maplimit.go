@@ -18,6 +18,7 @@ func MapLimitValues(l limit.Limits) []SystemLimit {
 		{ID: "EPStepsPerPolicy", Description: "Maximum number of steps on a single escalation policy.", Value: l[limit.EPStepsPerPolicy]},
 		{ID: "HeartbeatMonitorsPerService", Description: "Maximum number of heartbeat monitors per service.", Value: l[limit.HeartbeatMonitorsPerService]},
 		{ID: "IntegrationKeysPerService", Description: "Maximum number of integration keys per service.", Value: l[limit.IntegrationKeysPerService]},
+		{ID: "MaximumTimeToAutoCloseAlert", Description: "Maximum time in hours for an unacknowledged alert to be auto closed.", Value: l[limit.MaximumTimeToAutoCloseAlert]},
 		{ID: "NotificationRulesPerUser", Description: "Maximum number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
 		{ID: "ParticipantsPerRotation", Description: "Maximum number of participants per rotation.", Value: l[limit.ParticipantsPerRotation]},
 		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},
@@ -43,6 +44,8 @@ func ApplyLimitValues(l limit.Limits, vals []SystemLimitInput) (limit.Limits, er
 			l[limit.HeartbeatMonitorsPerService] = v.Value
 		case "IntegrationKeysPerService":
 			l[limit.IntegrationKeysPerService] = v.Value
+		case "MaximumTimeToAutoCloseAlert":
+			l[limit.MaximumTimeToAutoCloseAlert] = v.Value
 		case "NotificationRulesPerUser":
 			l[limit.NotificationRulesPerUser] = v.Value
 		case "ParticipantsPerRotation":

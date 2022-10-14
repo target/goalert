@@ -392,7 +392,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 	return tx.Commit()
 }
 
-func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) ([]int, error) {
+func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int, params ...bool) ([]int, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -444,9 +444,14 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 		}
 		updatedIDs = append(updatedIDs, id)
 	}
+	if len(params) > 0 && params[0] {
+		err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil, params[0])
 
-	// Logging Batch Updates for every alertID whose status was updated
-	err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil)
+	} else {
+
+		// Logging Batch Updates for every alertID whose status was updated
+		err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil)
+	}
 	if err != nil {
 		return nil, err
 	}

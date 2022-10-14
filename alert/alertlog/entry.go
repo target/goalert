@@ -58,6 +58,9 @@ func (e Entry) AlertID() int {
 func (e Entry) ID() int {
 	return e.id
 }
+func (e Entry) Message() string {
+	return e.message
+}
 
 func (e Entry) Timestamp() time.Time {
 	return e.timestamp
@@ -120,7 +123,7 @@ func escalationMsg(m *EscalationMetaData) string {
 	return msg
 }
 
-func (e Entry) String(ctx context.Context) string {
+func (e Entry) String(ctx context.Context, params ...bool) string {
 	var msg string
 	var infinitive bool
 	switch e.Type() {
@@ -130,6 +133,9 @@ func (e Entry) String(ctx context.Context) string {
 		msg = "Acknowledged"
 	case TypeClosed:
 		msg = "Closed"
+		if len(params) > 0 && params[0] {
+			msg = "Auto Closed by System"
+		}
 	case TypeEscalated:
 		msg = "Escalated"
 		meta, ok := e.Meta(ctx).(*EscalationMetaData)

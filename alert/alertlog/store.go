@@ -35,6 +35,7 @@ type Store struct {
 	lookupCMType       *sql.Stmt
 	lookupNCTypeName   *sql.Stmt
 	lookupHBInterval   *sql.Stmt
+	getUserName        *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -193,6 +194,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			order by id DESC
 			limit 1
 		`),
+		getUserName: p.P(`SELECT u.name from users u where id=$1`),
 	}, p.Err
 }
 
@@ -200,6 +202,7 @@ func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta inter
 	s.MustLogTx(ctx, nil, alertID, _type, meta)
 }
 func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
+
 	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
@@ -227,8 +230,14 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 	return s.logAny(ctx, tx, s.insertSvc, serviceID, t, meta)
 }
 
-func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error {
-	return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
+func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}, params ...bool) error {
+	if len(params) > 0 && params[0] {
+		fmt.Println("bool", params[0])
+		return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta, params[0])
+
+	} else {
+		return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
+	}
 }
 
 func (s *Store) Log(ctx context.Context, alertID int, _type Type, meta interface{}) error {
@@ -244,7 +253,7 @@ func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
-func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
+func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}, params ...bool) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
@@ -271,6 +280,15 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 	}
 
 	src := permission.Source(ctx)
+	var UserName string
+	if permission.UserID(ctx) != "" {
+		err = txWrap(ctx, tx, s.getUserName).QueryRowContext(ctx, permission.UserID(ctx)).Scan(&UserName)
+
+		if err != nil {
+			return errors.Wrap(err, "lookup username for user id")
+		}
+		r.subject.userName.String = UserName
+	}
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
@@ -345,7 +363,13 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			r.subject.userID.String = permission.UserID(ctx)
 			if r.subject.userID.String != "" {
 				r.subject.userID.Valid = true
+				err := txWrap(ctx, tx, s.getUserName).QueryRowContext(ctx, permission.UserID(ctx)).Scan(&UserName)
+				if err != nil {
+					return errors.Wrap(err, "lookup username for user id")
+				}
+				r.subject.userName.String = UserName
 			}
+
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
 			var minutes int
@@ -403,8 +427,11 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 	default:
 		return errors.Errorf("invalid id type %T", t)
 	}
-
-	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
+	if len(params) > 0 && params[0] {
+		_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx, true))
+	} else {
+		_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
+	}
 	return err
 }
 func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {

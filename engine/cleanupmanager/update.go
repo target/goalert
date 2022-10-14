@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -120,6 +122,48 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+	rows, err = tx.StmtContext(ctx, db.getLimit).QueryContext(ctx)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	type AutoCloseLimit struct {
+		MaxHours string
+	}
+	var a []AutoCloseLimit
+	for rows.Next() {
+		var al AutoCloseLimit
+		err = rows.Scan(&al.MaxHours)
+		if err != nil {
+			return err
+		}
+		a = append(a, al)
+	}
+	if len(a) == 1 {
+		id, _ := strconv.Atoi(a[0].MaxHours)
+		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, id)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		type AlertIds struct {
+			Id int
+		}
+		var ids []int
+		for rows.Next() {
+			var id int
+			err = rows.Scan(&id)
+			if err != nil {
+				return err
+			}
+			ids = append(ids, id)
+		}
+		_, err := db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, true)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	lookup := lookupMap(currentUsers)
