@@ -63,7 +63,9 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 
 	err := validateRequestSignature(time.Now(), req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 
 	var payload struct {
