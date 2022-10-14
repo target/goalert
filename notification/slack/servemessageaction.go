@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -24,29 +25,36 @@ import (
 func validateRequestSignature(now time.Time, req *http.Request) error {
 	cfg := config.FromContext(req.Context())
 
+	if req.Form != nil {
+		return errors.New("request already parsed, can't validate signature")
+	}
+
 	// copy body data
 	var buf bytes.Buffer
-	_, err := io.Copy(&buf, req.Body)
-	if err != nil {
-		return err
+	if req.Body != nil {
+		orig := req.Body
+		req.Body = io.NopCloser(io.TeeReader(req.Body, &buf))
+		err := req.ParseForm()
+		orig.Close()
+		if err != nil {
+			return err
+		}
 	}
-	req.Body.Close()
-	req.Body = io.NopCloser(&buf)
 
 	// read ts
 	tsStr := req.Header.Get("X-Slack-Request-Timestamp")
 	unixSec, err := strconv.ParseInt(tsStr, 10, 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse timestamp: %w", err)
+		return permission.Unauthorized()
 	}
 	ts := time.Unix(unixSec, 0)
 	if now.Sub(ts).Abs() > 5*time.Minute {
-		return errors.New("request timestamp is too far in the past or future")
+		return permission.Unauthorized()
 	}
 
 	properSig := Signature(cfg.Slack.SigningSecret, ts, buf.Bytes())
 	if !hmac.Equal([]byte(req.Header.Get("X-Slack-Signature")), []byte(properSig)) {
-		return fmt.Errorf("invalid signature")
+		return permission.Unauthorized()
 	}
 
 	return nil
@@ -62,9 +70,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	}
 
 	err := validateRequestSignature(time.Now(), req)
-	if err != nil {
-
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
