@@ -1,9 +1,8 @@
 package slack
 
 import (
+	"bytes"
 	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,46 +16,45 @@ import (
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
-func validateRequestSignature(req *http.Request) error {
+func validateRequestSignature(now time.Time, req *http.Request) error {
 	cfg := config.FromContext(req.Context())
 
-	var newBody struct {
-		io.Reader
-		io.Closer
+	if req.Form != nil {
+		return errors.New("request already parsed, can't validate signature")
 	}
 
-	h := hmac.New(sha256.New, []byte(cfg.Slack.SigningSecret))
+	// copy body data
+	var buf bytes.Buffer
+	if req.Body != nil {
+		orig := req.Body
+		req.Body = io.NopCloser(io.TeeReader(req.Body, &buf))
+		err := req.ParseForm()
+		orig.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	// read ts
 	tsStr := req.Header.Get("X-Slack-Request-Timestamp")
-	io.WriteString(h, "v0:"+tsStr+":")
-	newBody.Reader = io.TeeReader(req.Body, h)
-	newBody.Closer = req.Body
-	req.Body = newBody
-
-	err := req.ParseForm()
+	unixSec, err := strconv.ParseInt(tsStr, 10, 64)
 	if err != nil {
-		return fmt.Errorf("failed to parse form: %w", err)
+		return permission.Unauthorized()
+	}
+	ts := time.Unix(unixSec, 0)
+	if now.Sub(ts).Abs() > 5*time.Minute {
+		return permission.Unauthorized()
 	}
 
-	ts, err := strconv.ParseInt(tsStr, 10, 64)
-	if err != nil {
-		return fmt.Errorf("failed to parse timestamp: %w", err)
-	}
-	diff := time.Since(time.Unix(ts, 0))
-	if diff < 0 {
-		diff = -diff
-	}
-	if diff > 5*time.Minute {
-		return fmt.Errorf("timestamp too old: %s", diff)
-	}
-
-	sig := "v0=" + hex.EncodeToString(h.Sum(nil))
-	if hmac.Equal([]byte(req.Header.Get("X-Slack-Signature")), []byte(sig)) {
-		return fmt.Errorf("invalid signature")
+	properSig := Signature(cfg.Slack.SigningSecret, ts, buf.Bytes())
+	if !hmac.Equal([]byte(req.Header.Get("X-Slack-Signature")), []byte(properSig)) {
+		return permission.Unauthorized()
 	}
 
 	return nil
@@ -71,9 +69,9 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	err := validateRequestSignature(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	err := validateRequestSignature(time.Now(), req)
+	if errutil.HTTPError(ctx, w, err) {
+		return
 	}
 
 	var payload struct {
