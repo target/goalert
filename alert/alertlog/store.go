@@ -36,6 +36,7 @@ type Store struct {
 	lookupNCTypeName   *sql.Stmt
 	lookupHBInterval   *sql.Stmt
 	getUserName        *sql.Stmt
+	getunackAlertAge   *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -195,6 +196,9 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			limit 1
 		`),
 		getUserName: p.P(`SELECT u.name from users u where id=$1`),
+		getunackAlertAge: p.P(`select DATE_PART('day',now()::timestamp-max(l.timestamp)::timestamp)from alert_logs l, alerts a
+		where a.id=l.alert_id and a.status='triggered' and a.id=ANY($1)
+		and l.event='escalated' and l.timestamp <= (NOW() - interval '15 days' ) `),
 	}, p.Err
 }
 
@@ -230,10 +234,9 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 	return s.logAny(ctx, tx, s.insertSvc, serviceID, t, meta)
 }
 
-func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}, params ...bool) error {
-	if len(params) > 0 && params[0] {
-		fmt.Println("bool", params[0])
-		return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta, params[0])
+func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}, params1 ...bool) error {
+	if len(params1) > 0 {
+		return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta, true)
 
 	} else {
 		return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
@@ -427,7 +430,9 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 	default:
 		return errors.Errorf("invalid id type %T", t)
 	}
+
 	if len(params) > 0 && params[0] {
+
 		_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx, true))
 	} else {
 		_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))

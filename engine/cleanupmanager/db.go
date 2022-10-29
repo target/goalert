@@ -95,8 +95,9 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore alert.Store) (*DB, error)
 		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
-		getLimit:           p.P(`SELECT max from config_limits where id='maximum_time_to_auto_close_alert'`),
-		unackAlerts:        p.P(`SELECT id from alerts where created_at <= (NOW() - interval '1 hours' * $1) and status='triggered'`),
-		alertStore:         alertstore,
+		unackAlerts: p.P(`select extract(days from (NOW() - a.created_at)),a.id from alert_logs l, alerts a
+		where a.id=l.alert_id 
+		and a.created_at < (NOW() - interval '1 minutes' * $1) and a.status='triggered' group by a.id`),
+		alertStore: alertstore,
 	}, p.Err
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -393,6 +394,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 }
 
 func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int, params ...bool) ([]int, error) {
+	cfg := config.FromContext(ctx)
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -444,8 +446,11 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 		}
 		updatedIDs = append(updatedIDs, id)
 	}
+
 	if len(params) > 0 && params[0] {
-		err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, nil, params[0])
+		var meta alertlog.AutoClose
+		meta.UnacknowledgedDays = cfg.Maintenance.AlertAutoCloseDays
+		err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, meta, true)
 
 	} else {
 

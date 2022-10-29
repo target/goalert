@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgtype"
@@ -123,47 +122,39 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 	}
-	rows, err = tx.StmtContext(ctx, db.getLimit).QueryContext(ctx)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-	type AutoCloseLimit struct {
-		MaxHours string
-	}
-	var a []AutoCloseLimit
-	for rows.Next() {
-		var al AutoCloseLimit
-		err = rows.Scan(&al.MaxHours)
-		if err != nil {
-			return err
+	if cfg.Maintenance.AlertAutoCloseDays > 0 {
+		type AutoCloseLimit struct {
+			ExpiryDays int32
 		}
-		a = append(a, al)
-	}
-	if len(a) == 1 {
-		id, _ := strconv.Atoi(a[0].MaxHours)
+		var al AutoCloseLimit
+		al.ExpiryDays = int32(cfg.Maintenance.AlertAutoCloseDays)
+		id := al.ExpiryDays
 		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, id)
 		if err != nil {
 			return err
 		}
 		defer rows.Close()
 		type AlertIds struct {
-			Id int
+			unackDays int
+			Id        int
 		}
 		var ids []int
+		var unacks []int
 		for rows.Next() {
 			var id int
-			err = rows.Scan(&id)
+			var unack int
+			err = rows.Scan(&unack, &id)
 			if err != nil {
 				return err
 			}
 			ids = append(ids, id)
+			unacks = append(unacks, unack)
 		}
-		_, err := db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, true)
+		// We are passing true as an optional argument to uniquely idenfify alerts to be auto-closed
+		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, true)
 		if err != nil {
 			return err
 		}
-
 	}
 
 	lookup := lookupMap(currentUsers)
