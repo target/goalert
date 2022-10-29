@@ -36,7 +36,6 @@ type Store struct {
 	lookupNCTypeName   *sql.Stmt
 	lookupHBInterval   *sql.Stmt
 	getUserName        *sql.Stmt
-	getunackAlertAge   *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -196,9 +195,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			limit 1
 		`),
 		getUserName: p.P(`SELECT u.name from users u where id=$1`),
-		getunackAlertAge: p.P(`select DATE_PART('day',now()::timestamp-max(l.timestamp)::timestamp)from alert_logs l, alerts a
-		where a.id=l.alert_id and a.status='triggered' and a.id=ANY($1)
-		and l.event='escalated' and l.timestamp <= (NOW() - interval '15 days' ) `),
 	}, p.Err
 }
 
