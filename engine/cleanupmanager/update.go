@@ -134,21 +134,14 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 		defer rows.Close()
-		type AlertIds struct {
-			unackDays int
-			Id        int
-		}
 		var ids []int
-		var unacks []int
 		for rows.Next() {
 			var id int
-			var unack int
-			err = rows.Scan(&unack, &id)
+			err = rows.Scan(&id)
 			if err != nil {
 				return err
 			}
 			ids = append(ids, id)
-			unacks = append(unacks, unack)
 		}
 		// We are passing true as an optional argument to uniquely idenfify alerts to be auto-closed
 		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, true)
