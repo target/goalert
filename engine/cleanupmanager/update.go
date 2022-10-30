@@ -128,8 +128,7 @@ func (db *DB) update(ctx context.Context) error {
 		}
 		var al AutoCloseLimit
 		al.ExpiryDays = int32(cfg.Maintenance.AlertAutoCloseDays)
-		id := al.ExpiryDays
-		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, id)
+		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, al.ExpiryDays)
 		if err != nil {
 			return err
 		}
