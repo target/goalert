@@ -31,8 +31,6 @@ const (
 	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
 	// Maximum number of calendar subscriptions per user.
 	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
-	// Maximum time in hours for an unacknowledged alert to be auto closed.
-	MaximumTimeToAutoCloseAlert ID = "maximum_time_to_auto_close_alert"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
@@ -50,6 +48,5 @@ func (id ID) Valid() error {
 		HeartbeatMonitorsPerService,
 		UserOverridesPerSchedule,
 		CalendarSubscriptionsPerUser,
-		MaximumTimeToAutoCloseAlert,
 	)
 }

@@ -134,7 +134,6 @@ export type SystemLimitID =
   | 'TargetsPerSchedule'
   | 'HeartbeatMonitorsPerService'
   | 'UserOverridesPerSchedule'
-  | 'MaximumTimeToAutoCloseAlert'
 
 export interface UserOverrideSearchOptions {
   first?: null | number
@@ -1023,6 +1022,7 @@ type ConfigID =
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
+  | 'Maintenance.AlertAutoCloseDays'
   | 'Auth.RefererURLs'
   | 'Auth.DisableBasic'
   | 'GitHub.Enable'

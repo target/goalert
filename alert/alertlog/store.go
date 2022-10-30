@@ -362,11 +362,6 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			r.subject.userID.String = permission.UserID(ctx)
 			if r.subject.userID.String != "" {
 				r.subject.userID.Valid = true
-				err := txWrap(ctx, tx, s.getUserName).QueryRowContext(ctx, permission.UserID(ctx)).Scan(&UserName)
-				if err != nil {
-					return errors.Wrap(err, "lookup username for user id")
-				}
-				r.subject.userName.String = UserName
 			}
 
 		case permission.SourceTypeHeartbeat:
