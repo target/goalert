@@ -76,7 +76,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND om.created_at >= :createdAfter
 	{{end}}
 	{{if not .CreatedBefore.IsZero}}
-		AND om.created_at <= :createdBefore
+		AND om.created_at < :createdBefore
 	{{end}}
 	{{if .Search}}
 		AND (
