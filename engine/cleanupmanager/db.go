@@ -98,10 +98,10 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore alert.Store) (*DB, error)
 			select id from alerts a
 	     		where
 				a.status='triggered' and
-				created_at <= now() - '1 minutes'::interval * $1 and
+				created_at <= now() - '1 day'::interval * $1 and
 			not exists (
 				select 1 from alert_logs log
-				where timestamp > now() - '1 minutes'::interval * $1 and
+				where timestamp > now() - '1 day'::interval * $1 and
 				log.alert_id = a.id
 			)
 			limit 100`),
