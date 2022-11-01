@@ -113,6 +113,12 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		}
 		searchOpts.Limit = *opts.First
 	}
+	if opts.CreatedAfter != nil {
+		searchOpts.CreatedAfter = *opts.CreatedAfter
+	}
+	if opts.CreatedBefore != nil {
+		searchOpts.CreatedBefore = *opts.CreatedBefore
+	}
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 50
 	}
@@ -145,7 +151,8 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		logs = logs[:searchOpts.Limit]
 	}
 
-	for _, log := range logs {
+	for _, _log := range logs {
+		log := _log
 		var dest notification.Dest
 		switch {
 		case log.ContactMethodID != "":
