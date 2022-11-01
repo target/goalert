@@ -28,7 +28,6 @@ const (
 
 	dataLoaderKeyAlert
 	dataLoaderKeyAlertState
-	dataLoaderKeyMessageLog
 	dataLoaderKeyEP
 	dataLoaderKeyRotation
 	dataLoaderKeySchedule
