@@ -31,7 +31,7 @@ export default function PolicyList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      createForm={<PolicyCreateDialog />}
+      createDialogComponent={PolicyCreateDialog}
       createLabel='Escalation Policy'
     />
   )
