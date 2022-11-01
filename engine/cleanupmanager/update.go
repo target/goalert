@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgtype"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -123,14 +124,9 @@ func (db *DB) update(ctx context.Context) error {
 		}
 	}
 	if cfg.Maintenance.AlertAutoCloseDays > 0 {
-		type AutoCloseLimit struct {
-			ExpiryDays int32
-		}
-		var al AutoCloseLimit
-		al.ExpiryDays = int32(cfg.Maintenance.AlertAutoCloseDays)
-		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, al.ExpiryDays)
+		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays)
 		if err != nil {
-			return err
+			return fmt.Errorf("query auto-close alerts: %w", err)
 		}
 		defer rows.Close()
 		var ids []int
@@ -138,14 +134,15 @@ func (db *DB) update(ctx context.Context) error {
 			var id int
 			err = rows.Scan(&id)
 			if err != nil {
-				return err
+				return fmt.Errorf("cleanup auto-close alerts: scan : %w", err)
 			}
 			ids = append(ids, id)
 		}
-		// We are passing true as an optional argument to uniquely idenfify alerts to be auto-closed
-		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, true)
+		var autoCloseDays alertlog.AutoClose
+		autoCloseDays.AlertAutoCloseDays = cfg.Maintenance.AlertAutoCloseDays
+		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, autoCloseDays)
 		if err != nil {
-			return err
+			return fmt.Errorf("cleanup auto-close alerts: %w", err)
 		}
 	}
 

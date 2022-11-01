@@ -600,6 +600,7 @@ type AlertResolver interface {
 	Metrics(ctx context.Context, obj *alert.Alert) (*alertmetrics.Metric, error)
 }
 type AlertLogEntryResolver interface {
+	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
 type AlertMetricResolver interface {
@@ -5793,7 +5794,7 @@ func (ec *executionContext) _AlertLogEntry_message(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Message(), nil
+		return ec.resolvers.AlertLogEntry().Message(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5815,7 +5816,7 @@ func (ec *executionContext) fieldContext_AlertLogEntry_message(ctx context.Conte
 		Object:     "AlertLogEntry",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -26693,12 +26694,25 @@ func (ec *executionContext) _AlertLogEntry(ctx context.Context, sel ast.Selectio
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "message":
+			field := field
 
-			out.Values[i] = ec._AlertLogEntry_message(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertLogEntry_message(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "state":
 			field := field
 

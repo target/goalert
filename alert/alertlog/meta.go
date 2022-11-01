@@ -18,5 +18,5 @@ type CreatedMetaData struct {
 }
 
 type AutoClose struct {
-	UnacknowledgedDays int
+	AlertAutoCloseDays int
 }

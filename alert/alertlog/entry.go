@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/util/log"
 )
 
@@ -61,9 +60,6 @@ func (e Entry) AlertID() int {
 
 func (e Entry) ID() int {
 	return e.id
-}
-func (e Entry) Message() string {
-	return e.message
 }
 
 func (e Entry) Timestamp() time.Time {
@@ -127,9 +123,7 @@ func escalationMsg(m *EscalationMetaData) string {
 	return msg
 }
 
-func (e Entry) String(ctx context.Context, params ...bool) string {
-	cfg := config.FromContext(ctx)
-	autoCloseDays := cfg.Maintenance.AlertAutoCloseDays
+func (e Entry) String(ctx context.Context) string {
 	var msg string
 	var infinitive bool
 	switch e.Type() {
@@ -139,9 +133,11 @@ func (e Entry) String(ctx context.Context, params ...bool) string {
 		msg = "Acknowledged"
 	case TypeClosed:
 		msg = "Closed"
-		if len(params) > 0 && params[0] {
-			msg = "Closed due to inactivity (unacknowledged for more than " + strconv.Itoa(autoCloseDays) + " days)"
+		meta, ok := e.Meta(ctx).(*AutoClose)
+		if ok {
+			msg = "Closed due to inactivity (unacknowledged for  " + strconv.Itoa(meta.AlertAutoCloseDays) + " days)"
 		}
+
 	case TypeEscalated:
 		msg = "Escalated"
 		meta, ok := e.Meta(ctx).(*EscalationMetaData)

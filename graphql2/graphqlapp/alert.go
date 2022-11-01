@@ -61,7 +61,7 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
-	return e.Message(), nil
+	return e.String(ctx), nil
 }
 
 func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {
@@ -494,7 +494,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	var updatedIDs []int
-	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs)
+	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -13,8 +13,8 @@ import (
 
 // Store allows identifying notices for various targets.
 type Store struct {
-	findServicesByPolicyID *sql.Stmt
-	findPolicyDuration     *sql.Stmt
+	findServicesByPolicyID    *sql.Stmt
+	findPolicyDurationMinutes *sql.Stmt
 }
 
 // NewStore creates a new DB and prepares all necessary SQL statements.
@@ -26,11 +26,12 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			FROM services
 			WHERE escalation_policy_id = $1
 		`),
-		findPolicyDuration: p.P(`
-		    SELECT SUM(s.delay),e.repeat
+		findPolicyDurationMinutes: p.P(`
+			SELECT SUM(s.delay*e.repeat)
 		    FROM escalation_policy_steps s join escalation_policies e
-		    ON s.escalation_policy_id= e.id where s.escalation_policy_id=$1
-		    GROUP BY e.repeat`),
+		    ON s.escalation_policy_id= e.id 
+			WHERE s.escalation_policy_id=$1
+		`),
 	}, p.Err
 }
 
@@ -61,18 +62,17 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 	}
 	type PolicyDuration struct {
 		DelaySum int
-		Repeat   int
 	}
 	cfg := config.FromContext(ctx)
 	var policyDuration PolicyDuration
-	err = s.findPolicyDuration.QueryRowContext(ctx, policyID).Scan(&policyDuration.DelaySum, &policyDuration.Repeat)
+	err = s.findPolicyDurationMinutes.QueryRowContext(ctx, policyID).Scan(&policyDuration.DelaySum)
 	if err != nil {
 		return nil, err
 	}
 
 	autoCloseDays := cfg.Maintenance.AlertAutoCloseDays
 
-	if autoCloseDays != 0 && policyDuration.DelaySum*policyDuration.Repeat >= autoCloseDays {
+	if autoCloseDays > 0 && policyDuration.DelaySum/(24*60) >= autoCloseDays {
 		notices = append(notices, Notice{
 			Message: "Auto Closure of uncknowledged/stale alerts",
 			Details: "Alerts using this policy will be automatically closed after " + strconv.Itoa(autoCloseDays) + " days.",
