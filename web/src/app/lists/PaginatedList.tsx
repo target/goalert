@@ -141,6 +141,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
+      component: AppLinkListItem,
+
       // NOTE: needed for error: button: false? not assignable to type 'true'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
@@ -148,6 +150,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     }
     const onClickProps = item.onClick && {
       onClick: item.onClick,
+
+      // NOTE: needed for error: button: false? not assignable to type 'true'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
     }
