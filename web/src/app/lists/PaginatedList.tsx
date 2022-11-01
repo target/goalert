@@ -154,7 +154,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     return (
       <ListItem
-        id={idx + '-' + item.title}
         sx={{
           borderLeft: `3px solid ${borderColor(item.status)}`,
         }}
