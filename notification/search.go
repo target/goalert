@@ -171,10 +171,11 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		var userID, userName sql.NullString
 		var cmID sql.NullString
 		var providerID sql.NullString
+		var lastStatusAt sql.NullTime
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
-			&l.LastStatusAt,
+			&lastStatusAt,
 			&l.MessageType,
 			&l.LastStatus,
 			&l.StatusDetails,
@@ -208,6 +209,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		l.UserID = userID.String
 		l.UserName = userName.String
 		l.ContactMethodID = cmID.String
+		l.LastStatusAt = lastStatusAt.Time
 
 		result = append(result, l)
 	}
