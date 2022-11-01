@@ -186,7 +186,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			}
 		}
 		if log.UserID != "" {
-			dm.UserName = &log.UserID
+			dm.UserID = &log.UserID
 		}
 		if log.UserName != "" {
 			dm.UserName = &log.UserName
