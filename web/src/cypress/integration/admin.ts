@@ -245,7 +245,7 @@ function testAdmin(): void {
     })
   })
 
-  describe.only('Admin Message Logs Page', () => {
+  describe('Admin Message Logs Page', () => {
     let debugMessage: DebugMessage
 
     before(() => {
