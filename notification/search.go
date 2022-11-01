@@ -162,16 +162,15 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 	defer rows.Close()
 
 	var result []MessageLog
-	var l MessageLog
-	var alertID sql.NullInt64
-	var chanID sqlutil.NullUUID
-	var serviceID, svcName sql.NullString
-	var srcValue sql.NullString
-	var userID, userName sql.NullString
-	var cmID sql.NullString
-	var providerID sql.NullString
-
 	for rows.Next() {
+		var l MessageLog
+		var alertID sql.NullInt64
+		var chanID sqlutil.NullUUID
+		var serviceID, svcName sql.NullString
+		var srcValue sql.NullString
+		var userID, userName sql.NullString
+		var cmID sql.NullString
+		var providerID sql.NullString
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
