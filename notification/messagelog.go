@@ -3,10 +3,7 @@ package notification
 import (
 	"time"
 
-	"github.com/target/goalert/notificationchannel"
-	"github.com/target/goalert/service"
-	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
+	"github.com/google/uuid"
 )
 
 type MessageLog struct {
@@ -22,8 +19,13 @@ type MessageLog struct {
 	AlertID       int
 	ProviderMsgID *ProviderMessageID
 
-	User          user.User
-	ContactMethod contactmethod.ContactMethod
-	Channel       notificationchannel.Channel
-	Service       service.Service
+	UserID   string
+	UserName string
+
+	ContactMethodID string
+
+	ChannelID uuid.UUID
+
+	ServiceID   string
+	ServiceName string
 }

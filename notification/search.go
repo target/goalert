@@ -26,29 +26,30 @@ type SearchOptions struct {
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
+	ID        string    `json:"i,omitempty"`
 	CreatedAt time.Time `json:"n,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
-SELECT
-	om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
-	om.src_value, om.alert_id, om.provider_msg_id,
-	om.user_id, om.contact_method_id, om.channel_id, om.service_id
-FROM outgoing_messages om
-WHERE true
-{{if .Omit}}
-	AND NOT om.id = any(:omit)
-{{end}}
-{{if .Search}}
-	AND {{prefixSearch "search" "om.src_value"}}
-{{end}}
-{{if .After.CreatedAt}}
-	AND om.created_at > :afterCreatedAt
-{{end}}
-	AND om.created_at < now()
-	AND om.last_status != 'bundled'
-ORDER BY om.created_at
-LIMIT {{.Limit}}
+	SELECT
+		om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
+		om.src_value, om.alert_id, om.provider_msg_id,
+		om.user_id, om.contact_method_id, om.channel_id, om.service_id
+	FROM outgoing_messages om
+	WHERE true
+	{{if .Omit}}
+		AND NOT om.id = any(:omit)
+	{{end}}
+	{{if .Search}}
+		AND {{prefixSearch "search" "om.src_value"}}
+	{{end}}
+	{{if .After.CreatedAt}}
+		AND om.created_at > :afterCreatedAt
+	{{end}}
+		AND om.created_at < now()
+		AND om.last_status != 'bundled'
+	ORDER BY om.created_at, om.id
+	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
@@ -60,7 +61,8 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 	err := validate.Many(
 		validate.Search("Search", opts.Search),
-		validate.Range("Limit", opts.Limit, 0, 50),
+		// should be 1 more than the expected limit
+		validate.Range("Limit", opts.Limit, 0, 101),
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
 	if err != nil {
@@ -110,7 +112,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 	var result []MessageLog
 	var l MessageLog
 	var alertID sql.NullInt64
-	var chanID sql.NullString
+	var chanID sqlutil.NullUUID
 	var serviceID sql.NullString
 	var srcValue sql.NullString
 	var userID sql.NullString
@@ -146,11 +148,11 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			l.ProviderMsgID = &pm
 		}
 		l.AlertID = int(alertID.Int64)
-		l.Channel.ID = chanID.String
-		l.Service.ID = serviceID.String
+		l.ChannelID = chanID.UUID
+		l.ServiceID = serviceID.String
 		l.SrcValue = srcValue.String
-		l.User.ID = userID.String
-		l.ContactMethod.ID = cmID.String
+		l.UserID = userID.String
+		l.ContactMethodID = cmID.String
 
 		result = append(result, l)
 	}
