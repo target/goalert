@@ -13,12 +13,12 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// SearchOptions allow filtering and paginating the list of rotations.
+// SearchOptions allow filtering and paginating the list of messages.
 type SearchOptions struct {
 	Search string       `json:"s,omitempty"`
 	After  SearchCursor `json:"a,omitempty"`
 
-	// Omit specifies a list of rotation IDs to exclude from the results
+	// Omit specifies a list of message IDs to exclude from the results
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
