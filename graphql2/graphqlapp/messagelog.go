@@ -125,6 +125,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	searchOpts.Limit++
 	logs, err := q.NotificationStore.Search(ctx, &searchOpts)
+	hasNextPage := len(logs) == searchOpts.Limit
 	searchOpts.Limit-- // prevent confusion later
 	if err != nil {
 		return nil, err
@@ -132,10 +133,10 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	conn = new(graphql2.MessageLogConnection)
 	conn.PageInfo = &graphql2.PageInfo{
-		HasNextPage: len(logs) == searchOpts.Limit,
+		HasNextPage: hasNextPage,
 	}
 
-	if conn.PageInfo.HasNextPage {
+	if hasNextPage {
 		last := logs[len(logs)-1]
 		searchOpts.After.CreatedAt = last.CreatedAt
 		searchOpts.After.ID = last.ID
