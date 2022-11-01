@@ -208,18 +208,10 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		if log.AlertID != 0 {
 			dm.AlertID = &log.AlertID
 		}
-
-		// set provider and src
 		if log.ProviderMsgID != nil {
 			dm.ProviderID = &log.ProviderMsgID.ExternalID
 		}
-		if log.SrcValue != "" {
-			src, err := q.formatDest(ctx, notification.Dest{Type: dest.Type, Value: log.SrcValue})
-			if err != nil {
-				return nil, fmt.Errorf("format src: %w", err)
-			}
-			dm.Source = &src
-		}
+
 		conn.Nodes = append(conn.Nodes, dm)
 	}
 
