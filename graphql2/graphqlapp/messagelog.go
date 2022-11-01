@@ -125,6 +125,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	searchOpts.Limit++
 	logs, err := q.NotificationStore.Search(ctx, &searchOpts)
+	searchOpts.Limit-- // prevent confusion later
 	if err != nil {
 		return nil, err
 	}

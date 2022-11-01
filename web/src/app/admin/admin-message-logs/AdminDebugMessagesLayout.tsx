@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { gql } from 'urql'
 import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
-import { GenericError } from '../../error-pages'
-import Spinner from '../../loading/components/Spinner'
 import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { DebugMessage } from '../../../schema'
@@ -81,16 +79,6 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
     end: '',
   })
 
-  const { data, loading, error } = useQuery(query, {
-    variables: {
-      createdAfter: params.start,
-      createdBefore: params.end,
-    },
-  })
-
-  if (error) return <GenericError error={error.message} />
-  if (loading && !data) return <Spinner />
-
   return (
     <React.Fragment>
       <DebugMessageDetails
@@ -116,6 +104,12 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           <SimpleListPage
             query={query}
             noSearch
+            mapVariables={(vars) => {
+              if (params.search) vars.input.search = params.search
+              if (params.start) vars.input.createdAfter = params.start
+              if (params.end) vars.input.createdBefore = params.end
+              return vars
+            }}
             mapDataNode={(n) => {
               const status = toTitleCase(n.status)
               const statusDict = {
