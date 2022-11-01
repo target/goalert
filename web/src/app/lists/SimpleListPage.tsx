@@ -23,10 +23,6 @@ export default function SimpleListPage(
           title={`Create ${createLabel}`}
         />
       )}
-      <CreateFAB
-        onClick={() => setCreate(true)}
-        title={`Create ${createLabel}`}
-      />
       {create && DialogComponent && (
         <DialogComponent onClose={() => setCreate(false)} />
       )}
