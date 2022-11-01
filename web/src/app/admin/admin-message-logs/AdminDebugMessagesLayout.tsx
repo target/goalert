@@ -69,15 +69,11 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-interface SelectedLog extends DebugMessage {
-  index: number
-}
-
 export default function AdminDebugMessagesLayout(): JSX.Element {
   const classes = useStyles()
 
   // all data is fetched on page load, but the number of logs rendered is limited
-  const [selectedLog, setSelectedLog] = useState<SelectedLog | null>(null)
+  const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const [params, setParams] = useURLParams({
     search: '',
@@ -120,7 +116,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           <SimpleListPage
             query={query}
             noSearch
-            mapDataNode={(n, i) => {
+            mapDataNode={(n) => {
               const status = toTitleCase(n.status)
               const statusDict = {
                 success: {
@@ -149,11 +145,9 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
               if (s.includes('temp')) statusStyles = statusDict.warning
               if (s.includes('pend')) statusStyles = statusDict.info
 
-              const log = { ...n, index: i }
-
               return {
-                onClick: () => setSelectedLog(log as SelectedLog),
-                selected: i === selectedLog?.index,
+                onClick: () => setSelectedLog(n as DebugMessage),
+                selected: (n as DebugMessage).id === selectedLog?.id,
                 title: `${n.type} Notification`,
                 subText: (
                   <Grid container spacing={2} direction='column'>
