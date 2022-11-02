@@ -21,7 +21,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
+      cy.get('ul[data-cy=paginated-list] li a').should('have.length', 1)
     })
 
     it('should handle searching by summary', () => {
@@ -31,7 +31,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
+      cy.get('ul[data-cy=paginated-list] li a').should('have.length', 1)
     })
 
     it('should handle searching by service name', () => {
@@ -41,7 +41,7 @@ function testAlerts(screen: ScreenFormat): void {
         .should('contain', alert.summary)
         .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=apollo-list] li a').should('have.length', 1)
+      cy.get('ul[data-cy=paginated-list] li a').should('have.length', 1)
     })
 
     it('should handle toggling show by favorites filter', () => {
@@ -57,18 +57,20 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
-        cy.get('[data-cy=apollo-list] li').should('contain', summary)
-        cy.get('[data-cy=apollo-list] li a').should('have.length', 25)
+        cy.get('[data-cy=paginated-list] li').should('contain', summary)
+        cy.get('[data-cy=paginated-list] li a').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
-        cy.get('[data-cy=apollo-list] li a').should('have.length', 50)
+        cy.get('[data-cy=paginated-list] li a').should('have.length', 50)
       })
     })
 
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
-        cy.get('ul[data-cy=apollo-list] li a').should('have.lengthOf', 1)
-        cy.get('ul[data-cy=apollo-list]').contains(alert.id.toString()).click()
+        cy.get('ul[data-cy=paginated-list] li a').should('have.lengthOf', 1)
+        cy.get('ul[data-cy=paginated-list]')
+          .contains(alert.id.toString())
+          .click()
 
         cy.url().should(
           'eq',
@@ -102,7 +104,7 @@ function testAlerts(screen: ScreenFormat): void {
 
         // wait for list to fully load before beginning tests
         return cy
-          .get('[data-cy=apollo-list] [type=checkbox]')
+          .get('[data-cy=paginated-list] [type=checkbox]')
           .should('have.length', 3)
       })
     })
@@ -150,8 +152,11 @@ function testAlerts(screen: ScreenFormat): void {
 
       cy.get('button[aria-label=Acknowledge]').click()
 
-      cy.get('ul[data-cy=apollo-list] li a').should('have.length.at.least', 1)
-      cy.get('ul[data-cy=apollo-list] li a').should(
+      cy.get('ul[data-cy=paginated-list] li a').should(
+        'have.length.at.least',
+        1,
+      )
+      cy.get('ul[data-cy=paginated-list] li a').should(
         'not.contain',
         'UNACKNOWLEDGED',
       )
@@ -159,13 +164,19 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[aria-label=Escalate]').click()
-      cy.get('ul[data-cy=apollo-list] li a').should('have.length.at.least', 1)
-      cy.get('ul[data-cy=apollo-list] li a').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list] li a').should(
+        'have.length.at.least',
+        1,
+      )
+      cy.get('ul[data-cy=paginated-list] li a').should(
+        'contain',
+        'UNACKNOWLEDGED',
+      )
 
       cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[aria-label=Close]').should('have.length', 1).click()
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
+      cy.get('ul[data-cy=paginated-list]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {

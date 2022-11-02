@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
   users: UserConnection
@@ -74,6 +75,20 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+}
+
+export interface MessageLogSearchOptions {
+  first?: null | number
+  after?: null | string
+  createdBefore?: null | ISOTimestamp
+  createdAfter?: null | ISOTimestamp
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface MessageLogConnection {
+  nodes: DebugMessage[]
+  pageInfo: PageInfo
 }
 
 export interface SlackChannelSearchOptions {
