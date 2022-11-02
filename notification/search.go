@@ -127,6 +127,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.Search),
 		sql.Named("cursorCreatedAt", opts.After.CreatedAt),
 		sql.Named("createdAfter", opts.CreatedAfter),
+		sql.Named("afterID", opts.After.ID),
 		sql.Named("createdBefore", opts.CreatedBefore),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 	}
