@@ -45,6 +45,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     end: '',
   })
   const { data, loading, error } = useQuery(query, {
+    fetchPolicy: 'cache-first',
     variables: {
       input: {
         search: params.search,
@@ -61,7 +62,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     console.error(error.message)
     return <React.Fragment />
   }
-  const logs: DebugMessage[] = data.data.nodes
+  const logs: DebugMessage[] = data?.data?.nodes ?? []
 
   // adds a bit of time before/after the first and last alerts
   // if start or end isn't set
