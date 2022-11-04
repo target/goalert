@@ -172,6 +172,9 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
           className={classes.itemText}
           primary={item.title}
           secondary={item.subText}
+          secondaryTypographyProps={{
+            component: typeof item.subText !== 'string' ? 'div' : 'p',
+          }}
         />
         {favIcon}
         {item.action && <div className={classes.itemAction}>{item.action}</div>}

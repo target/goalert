@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
 import SimpleListPage from '../../lists/SimpleListPage'
 import toTitleCase from '../../util/toTitleCase'
 
-const query = gql`
+export const query = gql`
   query messageLogsQuery($input: MessageLogSearchOptions) {
     data: messageLogs(input: $input) {
       nodes {
@@ -52,23 +52,6 @@ const useStyles = makeStyles((theme: Theme) => ({
       transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
     },
   },
-
-  // todo: verify what's used
-  groupTitle: {
-    fontSize: '1.1rem',
-  },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  card: {
-    margin: theme.spacing(1),
-    cursor: 'pointer',
-  },
-  textField: {
-    backgroundColor: 'white',
-    borderRadius: '4px',
-    minWidth: 250,
-  },
 }))
 
 export default function AdminMessageLogsLayout(): JSX.Element {
@@ -77,24 +60,11 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   // all data is fetched on page load, but the number of logs rendered is limited
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  // graph duration set with ISO duration values, e.g. P1D for a daily duration
-  // const [duration] = useURLParam<string>('interval', 'P1D')
-
   const [params] = useURLParams({
     search: '',
     start: '',
     end: '',
   })
-
-  const graphData: { date: string; label: string; count: number }[] = []
-  const filteredData = []
-
-  // const messageLogData = useWorker('useMessageLogs', opts, {
-  //   graphData: [],
-  //   filteredData: [],
-  // })
-
-  // const [{ graphData, filteredData }] = messageLogData
 
   return (
     <React.Fragment>
@@ -112,14 +82,9 @@ export default function AdminMessageLogsLayout(): JSX.Element {
         <Grid item xs={12}>
           <AdminMessageLogsControls />
         </Grid>
-        {graphData.length > 0 && (
-          <Grid item xs={12}>
-            <AdminMessageLogsGraph
-              data={graphData}
-              totalLoaded={filteredData.length}
-            />
-          </Grid>
-        )}
+
+        <AdminMessageLogsGraph />
+
         <Grid item xs={12}>
           <SimpleListPage
             query={query}
