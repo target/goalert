@@ -228,4 +228,6 @@ FormField.propTypes = {
   timeZone: p.string,
 
   userID: p.string,
+
+  value: p.arrayOf(p.string),
 }
