@@ -3,8 +3,9 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
+import { FieldError } from '../util/errutil'
 
-interface Value {
+export interface Value {
   name: string
   description: string
   escalationPolicyID?: string
@@ -13,10 +14,7 @@ interface Value {
 interface ServiceFormProps {
   value: Value
 
-  errors: {
-    field: 'name' | 'description' | 'escalationPolicyID'
-    message: string
-  }[]
+  errors: FieldError[]
 
   onChange: (val: Value) => void
 

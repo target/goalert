@@ -23,4 +23,5 @@ const (
 	SvcLabelMax          = 5     // select count(*) from labels group by tgt_service_id order by count desc limit 1
 	UniqueLabelKeys      = 20    // select count(distinct key) from labels
 	LabelValueMax        = 13    // select count(distinct value) from labels group by key order by count desc limit 1
+	MsgPerAlertMax       = 2
 )

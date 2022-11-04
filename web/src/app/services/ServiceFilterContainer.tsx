@@ -1,19 +1,36 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { Ref } from 'react'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 
 import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { LabelValueSelect } from '../selection/LabelValueSelect'
+import { IntegrationKeySelect } from '../selection/IntegrationKeySelect'
 import FilterContainer from '../util/FilterContainer'
 
-export default function ServiceLabelFilterContainer(props) {
-  const { labelKey, labelValue } = props.value
+interface Value {
+  labelKey: string
+  labelValue: string
+  integrationKey: string
+}
+
+interface ServiceFilterContainerProps {
+  value: Value
+  onChange: (val: Value) => void
+  onReset: () => void
+
+  // optionally anchors the popover to a specified element's ref
+  anchorRef?: Ref<HTMLElement>
+}
+
+export default function ServiceFilterContainer(
+  props: ServiceFilterContainerProps,
+): JSX.Element {
+  const { labelKey, labelValue, integrationKey } = props.value
   return (
     <FilterContainer
       icon={<LabelFilterIcon />}
-      title='Search by Labels'
+      title='Search Services by Filters'
       iconButtonProps={{
         'data-cy': 'services-filter-button',
         color: 'default',
@@ -23,6 +40,27 @@ export default function ServiceLabelFilterContainer(props) {
       onReset={props.onReset}
       anchorRef={props.anchorRef}
     >
+      <Grid item xs={12}>
+        <Typography color='textSecondary'>
+          <i>Search by Integration Key</i>
+        </Typography>
+      </Grid>
+      <Grid data-cy='integration-key-container' item xs={12}>
+        <IntegrationKeySelect
+          name='integration-key'
+          label='Select Integration Key'
+          value={integrationKey}
+          formatInputOnChange={(input: string): string => {
+            if (input.indexOf('token=') > -1) {
+              input = input.substring(input.indexOf('token=') + 6)
+            }
+            return input
+          }}
+          onChange={(integrationKey) =>
+            props.onChange({ ...props.value, integrationKey })
+          }
+        />
+      </Grid>
       <Grid item xs={12}>
         <Typography color='textSecondary'>
           <i>Search by Label</i>
@@ -50,13 +88,4 @@ export default function ServiceLabelFilterContainer(props) {
       </Grid>
     </FilterContainer>
   )
-}
-
-ServiceLabelFilterContainer.propTypes = {
-  value: p.shape({ labelKey: p.string, labelValue: p.string }),
-  onChange: p.func,
-  onReset: p.func,
-
-  // optionally anchors the popover to a specified element's ref
-  anchorRef: p.object,
 }

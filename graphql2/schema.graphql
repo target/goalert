@@ -2,7 +2,9 @@ type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
   # Returns the list of recent messages.
+  messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+    @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
 
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
@@ -80,6 +82,9 @@ type Query {
   # Allows searching for label values.
   labelValues(input: LabelValueSearchOptions): StringConnection!
 
+  # Allows searching for integration keys.
+  integrationKeys(input: IntegrationKeySearchOptions): IntegrationKeyConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -109,6 +114,14 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+
+  linkAccountInfo(token: ID!): LinkAccountInfo
+}
+
+type LinkAccountInfo {
+  userDetails: String!
+  alertID: Int
+  alertNewStatus: AlertStatus
 }
 
 input AlertMetricsOptions {
@@ -142,6 +155,20 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+}
+
+input MessageLogSearchOptions {
+  first: Int = 50
+  after: String = ""
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
+  search: String = ""
+  omit: [ID!]
+}
+
+type MessageLogConnection {
+  nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
 }
 
 input SlackChannelSearchOptions {
@@ -223,6 +250,12 @@ type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
 }
+
+type IntegrationKeyConnection {
+  nodes: [IntegrationKey!]!
+  pageInfo: PageInfo!
+}
+
 type UserOverride {
   id: ID!
 
@@ -254,6 +287,13 @@ input LabelKeySearchOptions {
 
 input LabelValueSearchOptions {
   key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input IntegrationKeySearchOptions {
   first: Int = 15
   after: String = ""
   search: String = ""
@@ -341,6 +381,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
+  linkAccount(token: ID!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
@@ -985,7 +1027,7 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatMonitorInput {
-  serviceID: ID!
+  serviceID: ID
   name: String!
   timeoutMinutes: Int!
 }

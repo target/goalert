@@ -31,12 +31,12 @@ interface DetailsPageProps {
   secondaryActions?: Array<Action | JSX.Element>
 }
 
-type LinkStatus = 'ok' | 'warn' | 'err'
+export type LinkStatus = 'ok' | 'warn' | 'err'
 type Link = {
   url: string
   label: string
   subText?: string
-  status?: LinkStatus
+  status?: LinkStatus | null
 }
 
 const useStyles = makeStyles({
@@ -116,7 +116,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 titleTypographyProps={{
                   'data-cy': 'title',
                   variant: 'h5',
-                  component: 'h2',
+                  component: 'h1',
                 }}
                 subheaderTypographyProps={{
                   'data-cy': 'subheader',
@@ -169,7 +169,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 <ListItem
                   key={idx}
                   sx={{
-                    borderLeft: `3px solid ${borderColor(li.status)}`,
+                    borderLeft: `3px solid ${borderColor(
+                      li.status?.toString(),
+                    )}`,
                   }}
                   component={LIApplink}
                   to={li.url}

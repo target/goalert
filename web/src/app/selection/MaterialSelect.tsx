@@ -67,6 +67,7 @@ interface CommonSelectProps {
   noOptionsError?: Error
   name?: string
   required?: boolean
+  formatInputOnChange?: (value: string) => string
   onInputChange?: (value: string) => void
   options: SelectOption[]
   placeholder?: string
@@ -98,6 +99,7 @@ export default function MaterialSelect(
     noOptionsText,
     noOptionsError,
     onChange,
+    formatInputOnChange = (val) => val,
     onInputChange = () => {},
     options: _options,
     placeholder,
@@ -126,8 +128,9 @@ export default function MaterialSelect(
   const [inputValue, _setInputValue] = useState(getInputLabel())
 
   const setInputValue = (input: string): void => {
-    _setInputValue(input)
-    onInputChange(input)
+    const formattedInput = formatInputOnChange(input)
+    _setInputValue(formattedInput)
+    onInputChange(formattedInput)
   }
 
   useEffect(() => {

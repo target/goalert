@@ -18,7 +18,7 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should handle searching', () => {
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       // by name
       cy.pageSearch(svc.name)
       cy.get('body')
@@ -32,7 +32,7 @@ function testServices(screen: ScreenFormat): void {
       cy.createService({ name: firstHalf + ' ' + secondHalf })
       cy.createService({ name: firstHalf + secondHalf })
 
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       // by name with spaces before and after
       // search is based on word-matching so spaces are irrelevant
       cy.pageSearch(' ' + svc.name + '  ')
@@ -53,15 +53,16 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should link to details page', () => {
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(svc.name)
       cy.get('#app').contains(svc.name).click()
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
-    describe('Filtering', () => {
+    describe.only('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
+      let intKey: IntegrationKey
       beforeEach(() => {
         cy.createLabel().then((l: Label) => {
           label1 = l
@@ -71,6 +72,9 @@ function testServices(screen: ScreenFormat): void {
           }).then((l: Label) => {
             label2 = l
           })
+        })
+        cy.createIntKey().then((i: IntegrationKey) => {
+          intKey = i
         })
       })
 
@@ -159,6 +163,23 @@ function testServices(screen: ScreenFormat): void {
         cy.get('body')
           .should('not.contain', label2.svc.name)
           .should('not.contain', label2.svc.description)
+      })
+
+      it('should filter by integration key', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="integration-key"]').selectByLabel(intKey.id)
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        cy.get('body')
+          .should('contain', intKey.svc.name)
+          .should('contain', intKey.svc.description)
       })
 
       it('should reset label filters', () => {
@@ -518,13 +539,16 @@ function testServices(screen: ScreenFormat): void {
 
       cy.reload()
 
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.get('button').contains('Acknowledge All').click()
       cy.dialogFinish('Confirm')
 
-      cy.get('ul[data-cy=apollo-list]').should('contain', 'ACKNOWLEDGED')
-      cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should('contain', 'ACKNOWLEDGED')
+      cy.get('ul[data-cy=paginated-list]').should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
 
       cy.get('button').contains('Close All').click()
       cy.dialogFinish('Confirm')
@@ -600,7 +624,7 @@ function testServices(screen: ScreenFormat): void {
 
     it('should search for a specific service with label', () => {
       cy.visit(`/services`)
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(`${label.key}=${label.value}`)
       cy.get('body')
         .should('contain', label.svc.name)
@@ -609,7 +633,7 @@ function testServices(screen: ScreenFormat): void {
 
     it('should search for a services without label', () => {
       cy.visit(`/services`)
-      cy.get('ul[data-cy=apollo-list]').should('exist')
+      cy.get('ul[data-cy=paginated-list]').should('exist')
       cy.pageSearch(`${label.key}!=${label.value}`)
       cy.get('body')
         .should('not.contain', label.svc.name)

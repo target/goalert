@@ -1,6 +1,5 @@
 import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
-import p from 'prop-types'
 
 const query = gql`
   query ($input: LabelKeySearchOptions) {
@@ -12,8 +11,5 @@ const query = gql`
 
 export const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
   query,
-  mapDataNode: (key) => ({ label: key, value: key }),
+  mapDataNode: (key: string) => ({ label: key, value: key }),
 })
-LabelKeySelect.propTypes = {
-  value: p.string,
-}

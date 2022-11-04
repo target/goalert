@@ -50,6 +50,7 @@ type SlackMessageState interface {
 
 type SlackAction interface {
 	Click()
+	URL() string
 }
 
 type SlackMessage interface {
@@ -112,12 +113,18 @@ func (msg *slackMessage) Action(text string) SlackAction {
 		a = &action
 		break
 	}
-	require.NotNil(msg.h.t, a, "could not find action with that text")
+	require.NotNilf(msg.h.t, a, `expected action "%s"`, text)
+	msg.h.t.Logf("found action: %s\n%#v", text, *a)
 
 	return &slackAction{
 		slackMessage: msg,
 		Action:       *a,
 	}
+}
+
+func (a *slackAction) URL() string {
+	a.h.t.Helper()
+	return a.Action.URL
 }
 
 func (a *slackAction) Click() {

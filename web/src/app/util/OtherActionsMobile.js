@@ -15,11 +15,12 @@ export default function OtherActionsMobile({ isOpen, onClose, actions }) {
       onOpen={() => null}
       onClose={onClose}
     >
-      <List data-cy='mobile-actions'>
+      <List data-cy='mobile-actions' role='menu'>
         {actions.map((o, idx) => (
           <ListItem
             key={idx}
             button
+            role='menuitem'
             onClick={() => {
               onClose()
               o.onClick()

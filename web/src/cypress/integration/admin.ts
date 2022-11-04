@@ -15,6 +15,8 @@ function testAdmin(): void {
     })
 
     it('should allow updating system limits values', () => {
+      cy.get('nav li').contains('System Limits').should('be.visible')
+
       const newContactMethods = c.integer({ min: 15, max: 1000 }).toString()
       const newEPActions = c.integer({ min: 15, max: 1000 }).toString()
 
@@ -243,23 +245,19 @@ function testAdmin(): void {
     })
   })
 
-  describe('Admin Outgoing Logs Page', () => {
+  describe('Admin Message Logs Page', () => {
     let debugMessage: DebugMessage
 
     before(() => {
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
-        cy.visit('/admin/message-logs?poll=0')
+        cy.visit('/admin/message-logs')
       })
     })
 
     it('should view the logs list with one log', () => {
-      cy.get('[aria-label="Message Logs List"]').children('div').as('list')
-
-      cy.get('@list').should('have.length', 2) // all results card included
-      cy.get('@list').should('contain.text', 'Displaying all results') // all results card included
-      cy.get('body').should('contain.text', 'Total Count: 1')
-
+      cy.get('[data-cy="paginated-list"]').as('list')
+      cy.get('@list').should('have.length', 1)
       cy.get('@list')
         .eq(0)
         .should(
@@ -281,7 +279,7 @@ function testAdmin(): void {
     })
 
     it('should select and view a logs details', () => {
-      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
       // todo: not asserting updatedAt, destination, or providerID
@@ -311,8 +309,7 @@ function testAdmin(): void {
     })
 
     it('should verify user link from a logs details', () => {
-      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
-
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
@@ -326,7 +323,7 @@ function testAdmin(): void {
     })
 
     it('should verify service link from a logs details', () => {
-      cy.get('[aria-label="Message Logs List"]').children('div').eq(0).click()
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')

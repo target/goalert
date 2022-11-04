@@ -9,7 +9,7 @@ import useOverrideNotices from './useOverrideNotices'
 interface ScheduleOverrideCreateDialogProps {
   scheduleID: string
   variant: 'add' | 'remove' | 'replace'
-  onClose?: () => void
+  onClose: () => void
   removeUserReadOnly?: boolean
 }
 
@@ -74,7 +74,7 @@ export default function ScheduleOverrideCreateDialog({
     variables: {
       input: {
         ...value,
-        scheduleID: scheduleID,
+        scheduleID,
       },
     },
     onCompleted: onClose,

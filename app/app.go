@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -116,9 +117,10 @@ type App struct {
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
-	OAuthKeyring   keyring.Keyring
-	SessionKeyring keyring.Keyring
-	APIKeyring     keyring.Keyring
+	OAuthKeyring    keyring.Keyring
+	SessionKeyring  keyring.Keyring
+	APIKeyring      keyring.Keyring
+	AuthLinkKeyring keyring.Keyring
 
 	NonceStore    *nonce.Store
 	LabelStore    *label.Store
@@ -126,6 +128,7 @@ type App struct {
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
+	AuthLinkStore *authlink.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.

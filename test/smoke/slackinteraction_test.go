@@ -1,6 +1,8 @@
 package smoke
 
 import (
+	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/target/goalert/test/smoke/harness"
@@ -30,7 +32,7 @@ func TestSlackInteraction(t *testing.T) {
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 `
-	h := harness.NewHarness(t, sql, "slack-user-link")
+	h := harness.NewHarness(t, sql, "auth-link-requests")
 	defer h.Close()
 
 	h.SetConfigValue("Slack.InteractiveMessages", "true")
@@ -44,9 +46,26 @@ func TestSlackInteraction(t *testing.T) {
 
 	h.IgnoreErrorsWith("unknown provider/subject")
 	msg.Action("Acknowledge").Click() // expect ephemeral
-	ch.ExpectEphemeralMessage("GoAlert", "admin")
 
-	h.LinkSlackUser()
+	urlStr := ch.ExpectEphemeralMessage("link", "Slack", "account").Action("Link Account").URL()
+	t.Logf("url: %s", urlStr)
+
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		t.Fatal("bad link url returned:", err)
+	}
+
+	tokenStr := u.Query().Get("authLinkToken")
+	resp := h.GraphQLQuery2(fmt.Sprintf(`
+		mutation {
+			linkAccount(token: "%s")
+		}
+	`, tokenStr))
+
+	if len(resp.Errors) > 0 {
+		t.Fatalf("expected no errors but got %v", resp.Errors)
+	}
+
 	msg.Action("Acknowledge").Click()
 
 	updated := msg.ExpectUpdate()

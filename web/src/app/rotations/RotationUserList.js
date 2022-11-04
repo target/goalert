@@ -89,6 +89,7 @@ function RotationUserList({ rotationID }) {
       return (
         <CountDown
           end={time}
+          key={index}
           weeks
           days
           hours
@@ -140,9 +141,8 @@ function RotationUserList({ rotationID }) {
         <FlatList
           data-cy='users'
           emptyMessage='No users currently assigned to this rotation'
-          headerNote={
-            users.length ? "Click and drag on a user's name to re-order" : ''
-          }
+          headerNote={users.length ? 'Toggle edit to reorder users' : ''}
+          toggleDnD
           items={users.map((u, index) => ({
             title: u.name,
             id: String(listIDs[index]),

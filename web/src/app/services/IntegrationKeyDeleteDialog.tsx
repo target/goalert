@@ -1,7 +1,5 @@
 import React from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
-
-import p from 'prop-types'
+import { gql, useQuery, useMutation } from 'urql'
 
 import { nonFieldErrors } from '../util/errutil'
 import Spinner from '../loading/components/Spinner'
@@ -24,19 +22,21 @@ const mutation = gql`
   }
 `
 
-export default function IntegrationKeyDeleteDialog(props) {
-  const { loading, error, data } = useQuery(query, {
+export default function IntegrationKeyDeleteDialog(props: {
+  integrationKeyID: string
+  onClose: () => void
+}): JSX.Element {
+  const [{ fetching, error, data }] = useQuery({
+    query,
     variables: { id: props.integrationKeyID },
   })
 
-  const [deleteKey, deleteKeyStatus] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [deleteKeyStatus, deleteKey] = useMutation(mutation)
 
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  if (!loading && !deleteKeyStatus.loading && data?.integrationKey === null) {
+  if (!fetching && !deleteKeyStatus.fetching && data?.integrationKey === null) {
     return (
       <FormDialog
         alert
@@ -53,7 +53,7 @@ export default function IntegrationKeyDeleteDialog(props) {
       confirm
       subTitle={`This will delete the integration key: ${data?.integrationKey?.name}`}
       caption='This will prevent the creation of new alerts using this integration key. If you wish to re-enable, a NEW integration key must be created and may require additional reconfiguration of the alert source.'
-      loading={deleteKeyStatus.loading}
+      loading={deleteKeyStatus.fetching}
       errors={nonFieldErrors(deleteKeyStatus.error)}
       onClose={props.onClose}
       onSubmit={() => {
@@ -63,17 +63,14 @@ export default function IntegrationKeyDeleteDialog(props) {
             id: props.integrationKeyID,
           },
         ]
-        return deleteKey({
-          variables: {
-            input,
-          },
+        return deleteKey(
+          { input },
+          { additionalTypenames: ['IntegrationKey'] },
+        ).then((res) => {
+          if (res.error) return
+          props.onClose()
         })
       }}
     />
   )
-}
-
-IntegrationKeyDeleteDialog.propTypes = {
-  integrationKeyID: p.string.isRequired,
-  onClose: p.func,
 }
