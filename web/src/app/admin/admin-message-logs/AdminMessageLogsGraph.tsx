@@ -30,7 +30,7 @@ import { DateTime } from 'luxon'
 
 interface Props {
   data: typeof LineChart.defaultProps['data']
-  totalCount: number
+  totalLoaded: number
 }
 
 export default function AdminMessageLogsGraph(props: Props): JSX.Element {
@@ -56,7 +56,7 @@ export default function AdminMessageLogsGraph(props: Props): JSX.Element {
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <CardHeader
           title='Message Logs'
-          subheader={`Total Count: ${props.totalCount}`}
+          subheader={`Total Loaded: ${props.totalLoaded}`}
         />
       </AccordionSummary>
       <AccordionDetails>

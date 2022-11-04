@@ -8,11 +8,7 @@ import { useURLParams } from '../../actions'
 import FilterContainer from '../../util/FilterContainer'
 import { ServiceSelect, UserSelect } from '../../selection'
 
-interface Props {
-  resetCount: () => void
-}
-
-export default function AdminMessageLogsControls(props: Props): JSX.Element {
+export default function AdminMessageLogsControls(): JSX.Element {
   const [params, setParams] = useURLParams({
     search: '',
     start: '',
@@ -62,7 +58,7 @@ export default function AdminMessageLogsControls(props: Props): JSX.Element {
             value={params.start}
             onChange={(newStart) => {
               setParams({ ...params, start: newStart as string })
-              props.resetCount()
+              // props.resetCount()
             }}
             label='Created After'
             size='small'
@@ -77,7 +73,7 @@ export default function AdminMessageLogsControls(props: Props): JSX.Element {
             label='Created Before'
             onChange={(newEnd) => {
               setParams({ ...params, end: newEnd as string })
-              props.resetCount()
+              // props.resetCount()
             }}
             size='small'
             variant='outlined'
@@ -95,7 +91,7 @@ export default function AdminMessageLogsControls(props: Props): JSX.Element {
               })
               setFilterByUser('')
               setFilterByService('')
-              props.resetCount()
+              // props.resetCount()
             }}
             endIcon={<ResetIcon />}
             sx={{ height: '100%' }}
