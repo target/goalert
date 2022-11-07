@@ -631,6 +631,10 @@ func (h *Handler) tryAuthUser(ctx context.Context, w http.ResponseWriter, req *h
 // Updating and clearing the session cookie is automatically handled.
 func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/api/v2/slack") {
+			wrapped.ServeHTTP(w, req)
+			return
+		}
 		if req.URL.Path == "/api/v2/mailgun/incoming" || req.URL.Path == "/v1/webhooks/mailgun" {
 			// Mailgun handles it's own auth and has special
 			// requirements on status codes, so we pass it through

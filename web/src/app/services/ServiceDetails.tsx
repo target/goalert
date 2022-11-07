@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
 import { Button } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
 
-import DetailsPage from '../details/DetailsPage'
+import DetailsPage, { LinkStatus } from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
@@ -16,6 +16,12 @@ import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
 import ServiceMaintenanceNotice from './ServiceMaintenanceNotice'
+import { HeartbeatMonitor } from '../../schema'
+
+interface AlertNode {
+  id: string
+  status: string
+}
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -58,30 +64,33 @@ const query = gql`
   }
 `
 
-const hbStatus = (h) => {
+const hbStatus = (h: Partial<HeartbeatMonitor>[]): LinkStatus | null => {
   if (!h || !h.length) return null
   if (h.every((m) => m.lastState === 'healthy')) return 'ok'
   if (h.some((m) => m.lastState === 'unhealthy')) return 'err'
   return 'warn'
 }
 
-const alertStatus = (a) => {
+const alertStatus = (a: AlertNode[]): LinkStatus | null => {
   if (!a) return null
   if (!a.length) return 'ok'
   if (a[0].status === 'StatusUnacknowledged') return 'err'
   return 'warn'
 }
 
-export default function ServiceDetails({ serviceID }) {
+export default function ServiceDetails(props: {
+  serviceID: string
+}): JSX.Element {
+  const { serviceID } = props
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showMaintMode, setShowMaintMode] = useState(false)
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, fetching, error }] = useQuery({
+    query,
     variables: { serviceID },
-    returnPartialData: true,
   })
 
-  if (loading && !_.get(data, 'service.id')) return <Spinner />
+  if (fetching && !_.get(data, 'service.id')) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!_.get(data, 'service.id')) {
@@ -139,14 +148,14 @@ export default function ServiceDetails({ serviceID }) {
         links={[
           {
             label: 'Alerts',
-            status: alertStatus(_.get(data, 'alerts.nodes')),
+            status: alertStatus(data?.alerts?.nodes),
             url: 'alerts',
             subText: 'Manage alerts specific to this service',
           },
           {
             label: 'Heartbeat Monitors',
             url: 'heartbeat-monitors',
-            status: hbStatus(_.get(data, 'service.heartbeatMonitors')),
+            status: hbStatus(data?.service?.heartbeatMonitors),
             subText: 'Manage endpoints monitored for you',
           },
           {
