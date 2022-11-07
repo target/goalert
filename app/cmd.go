@@ -109,15 +109,13 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 
+		var db *sql.DB
 		if cfg.DBURLNext != "" {
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
-		}
 
-		var db *sql.DB
-		if cfg.DBURLNext != "" {
 			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
