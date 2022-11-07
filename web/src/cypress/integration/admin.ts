@@ -245,26 +245,19 @@ function testAdmin(): void {
     })
   })
 
-  describe('Admin Outgoing Logs Page', () => {
+  describe('Admin Message Logs Page', () => {
     let debugMessage: DebugMessage
 
     before(() => {
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
-        cy.visit('/admin/message-logs?poll=0')
+        cy.visit('/admin/message-logs')
       })
     })
 
     it('should view the logs list with one log', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').as('list')
-
+      cy.get('[data-cy="paginated-list"]').as('list')
       cy.get('@list').should('have.length', 1)
-      cy.get('body').should('contain.text', 'Showing 1 of 1 results')
-      cy.get('[data-cy="outgoing-message-list"]').should(
-        'contain.text',
-        'Displaying all results.',
-      )
-
       cy.get('@list')
         .eq(0)
         .should(
@@ -286,7 +279,7 @@ function testAdmin(): void {
     })
 
     it('should select and view a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
       // todo: not asserting updatedAt, destination, or providerID
@@ -316,7 +309,7 @@ function testAdmin(): void {
     })
 
     it('should verify user link from a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
 
       cy.get('[data-cy="debug-message-details"')
         .find('a')
@@ -331,7 +324,7 @@ function testAdmin(): void {
     })
 
     it('should verify service link from a logs details', () => {
-      cy.get('[data-cy="outgoing-message-list"]').children('div').eq(0).click()
+      cy.get('[data-cy="paginated-list"]').eq(0).click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')

@@ -3,8 +3,8 @@ import QueryList, { QueryListProps } from './QueryList'
 import CreateFAB from './CreateFAB'
 
 interface SimpleListPageProps extends QueryListProps {
-  createDialogComponent: ComponentType<{ onClose: () => void }>
-  createLabel: string
+  createLabel?: string
+  createDialogComponent?: ComponentType<{ onClose: () => void }>
 }
 
 export default function SimpleListPage(
@@ -16,11 +16,16 @@ export default function SimpleListPage(
   return (
     <React.Fragment>
       <QueryList {...rest} />
-      <CreateFAB
-        onClick={() => setCreate(true)}
-        title={`Create ${createLabel}`}
-      />
-      {create && <DialogComponent onClose={() => setCreate(false)} />}
+
+      {createLabel && (
+        <CreateFAB
+          onClick={() => setCreate(true)}
+          title={`Create ${createLabel}`}
+        />
+      )}
+      {create && DialogComponent && (
+        <DialogComponent onClose={() => setCreate(false)} />
+      )}
     </React.Fragment>
   )
 }

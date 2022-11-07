@@ -319,6 +319,20 @@ type LinkAccountInfo struct {
 	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
 }
 
+type MessageLogConnection struct {
+	Nodes    []DebugMessage `json:"nodes"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+type MessageLogSearchOptions struct {
+	First         *int       `json:"first"`
+	After         *string    `json:"after"`
+	CreatedBefore *time.Time `json:"createdBefore"`
+	CreatedAfter  *time.Time `json:"createdAfter"`
+	Search        *string    `json:"search"`
+	Omit          []string   `json:"omit"`
+}
+
 type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status"`
