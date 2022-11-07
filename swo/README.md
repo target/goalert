@@ -2,6 +2,10 @@
 
 Switchover (SWO) is a feature that allows a live system to switch from one database to another safely and with little to no user impact.
 
+## Development
+
+To start the dev instance in switchover mode, run `make start-swo`
+
 ## Theory of Operation
 
 Switchover mode is initiated by starting GoAlert with an additional DB URL `--db-url-next`. The database referenced by `--db-url` is referred to as the "old" DB and the `--db-url-next` is the "new" DB.
