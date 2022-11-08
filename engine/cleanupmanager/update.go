@@ -63,6 +63,30 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("cleanup alerts: %w", err)
 		}
 	}
+
+	if cfg.Maintenance.AlertAutoCloseDays > 0 {
+		rows, err := tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays)
+		if err != nil {
+			return fmt.Errorf("query auto-close alerts: %w", err)
+		}
+		defer rows.Close()
+		var ids []int
+		for rows.Next() {
+			var id int
+			err = rows.Scan(&id)
+			if err != nil {
+				return fmt.Errorf("cleanup auto-close alerts: scan : %w", err)
+			}
+			ids = append(ids, id)
+		}
+		var autoCloseDays alertlog.AutoClose
+		autoCloseDays.AlertAutoCloseDays = cfg.Maintenance.AlertAutoCloseDays
+		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, autoCloseDays)
+		if err != nil {
+			return fmt.Errorf("cleanup auto-close alerts: %w", err)
+		}
+	}
+
 	if cfg.Maintenance.APIKeyExpireDays > 0 {
 		var dur pgtype.Interval
 		dur.Days = int32(cfg.Maintenance.APIKeyExpireDays)
@@ -123,29 +147,6 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 	}
-	if cfg.Maintenance.AlertAutoCloseDays > 0 {
-		rows, err = tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays)
-		if err != nil {
-			return fmt.Errorf("query auto-close alerts: %w", err)
-		}
-		defer rows.Close()
-		var ids []int
-		for rows.Next() {
-			var id int
-			err = rows.Scan(&id)
-			if err != nil {
-				return fmt.Errorf("cleanup auto-close alerts: scan : %w", err)
-			}
-			ids = append(ids, id)
-		}
-		var autoCloseDays alertlog.AutoClose
-		autoCloseDays.AlertAutoCloseDays = cfg.Maintenance.AlertAutoCloseDays
-		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, autoCloseDays)
-		if err != nil {
-			return fmt.Errorf("cleanup auto-close alerts: %w", err)
-		}
-	}
-
 	lookup := lookupMap(currentUsers)
 	schedCuttoff := now.AddDate(-1, 0, 0)
 	for _, dat := range m {
