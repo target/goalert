@@ -27,7 +27,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			WHERE escalation_policy_id = $1
 		`),
 		findPolicyDurationMinutes: p.P(`
-			SELECT SUM(s.delay*(e.repeat+1))
+			SELECT coalesce(SUM(s.delay*(e.repeat+1)), 0)
 		   	FROM escalation_policy_steps s join escalation_policies e
 		    		ON s.escalation_policy_id= e.id 
 			WHERE s.escalation_policy_id=$1
