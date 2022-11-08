@@ -2,11 +2,15 @@ import React from 'react'
 import { FormContainer, FormField } from '../forms'
 import { UserSelect } from '../selection'
 
+interface UserFormValue {
+  users: Array<string>
+}
+
 interface UserFormProps {
   errors?: Array<Error>
-  onChange?: (value: { users: string[] }) => void
+  onChange?: (value: UserFormValue) => void
   disabled?: boolean
-  value: { users?: Array<string> }
+  value: UserFormValue
 }
 
 export default function UserForm(props: UserFormProps): JSX.Element {
@@ -18,7 +22,7 @@ export default function UserForm(props: UserFormProps): JSX.Element {
         fieldName='users'
         fullWidth
         label='Select User(s)'
-        multiline
+        multiple
         name='users'
         required
         value={props.value.users}
