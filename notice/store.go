@@ -3,7 +3,7 @@ package notice
 import (
 	"context"
 	"database/sql"
-	"strconv"
+	"fmt"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
@@ -27,9 +27,9 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			WHERE escalation_policy_id = $1
 		`),
 		findPolicyDurationMinutes: p.P(`
-			SELECT SUM(s.delay*e.repeat)
+			SELECT SUM(s.delay*(e.repeat+1))
 		    FROM escalation_policy_steps s join escalation_policies e
-		    ON s.escalation_policy_id= e.id 
+		    	ON s.escalation_policy_id= e.id 
 			WHERE s.escalation_policy_id=$1
 		`),
 	}, p.Err
@@ -60,22 +60,19 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 			Details: "To receive alerts for this configuration, assign this escalation policy to its relevant service.",
 		})
 	}
-	type PolicyDuration struct {
-		DelaySum int
-	}
-	cfg := config.FromContext(ctx)
-	var policyDuration PolicyDuration
-	err = s.findPolicyDurationMinutes.QueryRowContext(ctx, policyID).Scan(&policyDuration.DelaySum)
+	var mins int
+	err = s.findPolicyDurationMinutes.QueryRowContext(ctx, policyID).Scan(&mins)
 	if err != nil {
 		return nil, err
 	}
 
-	autoCloseDays := cfg.Maintenance.AlertAutoCloseDays
+	cfg := config.FromContext(ctx)
+	days := cfg.Maintenance.AlertAutoCloseDays
 
-	if autoCloseDays > 0 && policyDuration.DelaySum/(24*60) >= autoCloseDays {
+	if days > 0 && mins/(24*60) >= days {
 		notices = append(notices, Notice{
-			Message: "Auto Closure of uncknowledged/stale alerts",
-			Details: "Alerts using this policy will be automatically closed after " + strconv.Itoa(autoCloseDays) + " days.",
+			Message: "Auto-closure of unacknowledged alerts",
+			Details: fmt.Sprintf("Alerts using this policy will be automatically closed after %d day(s).", days),
 		})
 	}
 

@@ -32,7 +32,7 @@ type DB struct {
 	cleanupSchedOnCall *sql.Stmt
 	cleanupEPOnCall    *sql.Stmt
 	unackAlerts        *sql.Stmt
-	alertStore         alert.Store
+	alertStore         *alert.Store
 
 	logIndex int
 }
@@ -41,7 +41,7 @@ type DB struct {
 func (db *DB) Name() string { return "Engine.CleanupManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, alertstore alert.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Version: 1,
 		Type:    processinglock.TypeCleanup,
@@ -99,11 +99,11 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore alert.Store) (*DB, error)
 	     	where
 				a.status='triggered' and
 				created_at <= now() - '1 minutes'::interval * $1 and
-			not exists (
-				select 1 from alert_logs log
-				where timestamp > now() - '1 minutes'::interval * $1 and
-				log.alert_id = a.id
-			)
+				not exists (
+					select 1 from alert_logs log
+					where timestamp > now() - '1 minutes'::interval * $1 and
+					log.alert_id = a.id
+				)
 			limit 100`),
 		alertStore: alertstore,
 	}, p.Err

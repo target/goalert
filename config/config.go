@@ -36,7 +36,7 @@ type Config struct {
 		AlertCleanupDays    int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
 		APIKeyExpireDays    int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
 		ScheduleCleanupDays int `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
-		AlertAutoCloseDays  int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable autoclose)."`
+		AlertAutoCloseDays  int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
 	}
 
 	Auth struct {
