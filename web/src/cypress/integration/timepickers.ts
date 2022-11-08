@@ -59,39 +59,6 @@ function testTimePickers(): void {
     })
   })
 
-  describe('Date (schedule shifts)', () => {
-    const check = (name: string, params: string, display: string): Mocha.Test =>
-      it(name, () => {
-        cy.createSchedule({
-          timeZone: 'America/New_York',
-        }).then((s: Schedule) => cy.visit(`/schedules/${s.id}/shifts${params}`))
-
-        // sanity check
-        cy.get('body').contains(display)
-
-        cy.get('button[title=Filter]').click()
-        cy.form({ filterStart: '2007-02-03' })
-
-        cy.get('body').contains('2/3/2007')
-      })
-
-    describe('Native', () => {
-      check(
-        'should handle selecting date values',
-        '?start=2006-01-02T06%3A00%3A00.000Z',
-        '1/2/2006',
-      )
-    })
-
-    describe('Fallback', () => {
-      check(
-        'should handle selecting date values',
-        '?start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/2/2006',
-      )
-    })
-  })
-
   describe('DateTime (schedule overrides)', () => {
     const check = (name: string, params: string): Mocha.Test =>
       it(name, () => {
