@@ -444,9 +444,9 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 		}
 		updatedIDs = append(updatedIDs, id)
 	}
+
 	// Logging Batch Updates for every alertID whose status was updated
 	err = s.logDB.LogManyTx(ctx, tx, updatedIDs, t, logMeta)
-
 	if err != nil {
 		return nil, err
 	}
