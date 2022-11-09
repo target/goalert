@@ -33,4 +33,9 @@ test('should handle selecting date values', async ({ page }) => {
     `${baseURL}/schedules/${scheduleID}/shifts?start=2006-01-02T06%3A00%3A00.000Z`,
   )
   await expect(page.locator('text=1/2/2006')).toContainText('1/2/2006')
+
+  await page.click('button[title="Filter"]')
+  await page.fill('input[name="filterStart"]', '2007-02-03')
+  await page.locator('text=Done').click()
+  await expect(page.locator('text=2/3/2007')).toContainText('2/3/2007')
 })
