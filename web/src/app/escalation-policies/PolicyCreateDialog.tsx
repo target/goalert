@@ -2,18 +2,8 @@ import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import PolicyForm from './PolicyForm'
+import PolicyForm, { PolicyFormValue } from './PolicyForm'
 import { Redirect } from 'wouter'
-
-interface Value {
-  name: string
-  description: string
-  repeat: {
-    label: string
-    value: string
-  }
-  favorite: boolean
-}
 
 const mutation = gql`
   mutation ($input: CreateEscalationPolicyInput!) {
@@ -24,7 +14,7 @@ const mutation = gql`
 `
 
 function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
+  const [value, setValue] = useState<PolicyFormValue | null>(null)
   const defaultValue = {
     name: '',
     description: '',
@@ -65,7 +55,7 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
           errors={fieldErrs}
           disabled={loading}
           value={value || defaultValue}
-          onChange={(value: Value) => setValue(value)}
+          onChange={(value: PolicyFormValue) => setValue(value)}
         />
       }
     />
