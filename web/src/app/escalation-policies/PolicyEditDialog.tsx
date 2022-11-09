@@ -4,14 +4,6 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm, { PolicyFormValue } from './PolicyForm'
 import Spinner from '../loading/components/Spinner'
-// interface Value {
-//   name: string
-//   description: string
-//   repeat: {
-//     label: string
-//     value: string
-//   }
-// }
 
 const query = gql`
   query ($id: ID!) {
