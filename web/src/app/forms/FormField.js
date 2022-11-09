@@ -229,5 +229,10 @@ FormField.propTypes = {
 
   userID: p.string,
 
-  value: p.arrayOf(p.string),
+  value: p.oneOf(p.string, p.arrayOf(p.string)),
+
+  options: p.shape({
+    label: p.string,
+    value: p.string,
+  }),
 }

@@ -1,11 +1,27 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import MaterialSelect from '../selection/MaterialSelect'
+import { FieldError } from '../util/errutil'
 
-function PolicyForm(props) {
+export interface PolicyFormValue {
+  name?: string
+  description?: string
+  repeat: {
+    label: string
+    value: string
+  }
+}
+
+interface PolicyFormProps {
+  value: PolicyFormValue
+  errors?: Array<FieldError>
+  disabled?: boolean
+  onChange?: (value: PolicyFormValue) => void
+}
+
+function PolicyForm(props: PolicyFormProps): JSX.Element {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
@@ -61,25 +77,25 @@ function PolicyForm(props) {
   )
 }
 
-PolicyForm.propTypes = {
-  value: p.shape({
-    name: p.string,
-    description: p.string,
-    repeat: p.shape({
-      label: p.string.isRequired,
-      value: p.string.isRequired,
-    }).isRequired,
-  }).isRequired,
+// PolicyForm.propTypes = {
+//   value: p.shape({
+//     name: p.string,
+//     description: p.string,
+//     repeat: p.shape({
+//       label: p.string.isRequired,
+//       value: p.string.isRequired,
+//     }).isRequired,
+//   }).isRequired,
 
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['name', 'description', 'repeat']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
+//   errors: p.arrayOf(
+//     p.shape({
+//       field: p.oneOf(['name', 'description', 'repeat']).isRequired,
+//       message: p.string.isRequired,
+//     }),
+//   ),
 
-  disabled: p.bool,
-  onChange: p.func,
-}
+//   disabled: p.bool,
+//   onChange: p.func,
+// }
 
 export default PolicyForm
