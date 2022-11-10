@@ -1035,6 +1035,7 @@ type ConfigID =
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
   | 'Maintenance.AlertCleanupDays'
+  | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'
