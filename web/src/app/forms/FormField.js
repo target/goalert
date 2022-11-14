@@ -229,7 +229,7 @@ FormField.propTypes = {
 
   userID: p.string,
 
-  value: p.arrayOf(p.string),
+  value: p.oneOfType([p.string, p.arrayOf(p.string)]),
 
   multiple: p.bool,
 }
