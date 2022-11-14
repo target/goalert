@@ -1,10 +1,17 @@
-export default function getServiceLabel(input: string): {
+export default function getServiceFilters(input: string): {
   labelKey: string
   labelValue: string
+  integrationKey: string
 } {
   // grab key and value from the input param, if at all
   let labelKey = ''
   let labelValue = ''
+  let integrationKey = ''
+  if (input.includes('token=')) {
+    const tokenStr = input.substring(0, 42)
+    integrationKey = tokenStr.slice(6)
+    input = input.replace(tokenStr, '').trim() // remove token string from input
+  }
   if (input.includes('=')) {
     const searchSplit = input.split(/(!=|=)/)
     labelKey = searchSplit[0]
@@ -12,5 +19,5 @@ export default function getServiceLabel(input: string): {
     labelValue = searchSplit.slice(2).join('')
   }
 
-  return { labelKey, labelValue }
+  return { labelKey, labelValue, integrationKey }
 }

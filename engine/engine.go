@@ -120,7 +120,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	cleanMgr, err := cleanupmanager.NewDB(ctx, db)
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
@@ -515,7 +515,11 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	alertTicker := time.NewTicker(5 * time.Second)
+	dur := p.cfg.CycleTime
+	if dur == 0 {
+		dur = 5 * time.Second
+	}
+	alertTicker := time.NewTicker(dur)
 	defer alertTicker.Stop()
 
 	defer close(p.triggerCh)

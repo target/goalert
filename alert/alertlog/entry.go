@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/target/goalert/util/log"
@@ -40,6 +41,8 @@ func (e Entry) Meta(ctx context.Context) interface{} {
 		dest = &NotificationMetaData{}
 	case TypeCreated:
 		dest = &CreatedMetaData{}
+	case TypeClosed:
+		dest = &AutoClose{}
 	default:
 		return nil
 	}
@@ -130,6 +133,11 @@ func (e Entry) String(ctx context.Context) string {
 		msg = "Acknowledged"
 	case TypeClosed:
 		msg = "Closed"
+		meta, ok := e.Meta(ctx).(*AutoClose)
+		if ok {
+			msg = "Closed due to inactivity (unacknowledged for  " + strconv.Itoa(meta.AlertAutoCloseDays) + " days)"
+		}
+
 	case TypeEscalated:
 		msg = "Escalated"
 		meta, ok := e.Meta(ctx).(*EscalationMetaData)

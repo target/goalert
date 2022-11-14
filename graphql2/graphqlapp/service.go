@@ -171,7 +171,7 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 		}
 
 		for i, hb := range input.NewHeartbeatMonitors {
-			hb.ServiceID = result.ID
+			hb.ServiceID = &result.ID
 			_, err = m.CreateHeartbeatMonitor(ctx, hb)
 			if err != nil {
 				return validation.AddPrefix("newHeartbeatMonitors["+strconv.Itoa(i)+"].", err)

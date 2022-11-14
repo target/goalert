@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"time"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/authlink"
@@ -35,4 +37,6 @@ type Config struct {
 
 	DisableCycle bool
 	LogCycles    bool
+
+	CycleTime time.Duration
 }

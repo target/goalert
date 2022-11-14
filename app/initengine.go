@@ -43,6 +43,8 @@ func (app *App) initEngine(ctx context.Context) error {
 
 		Keys: app.cfg.EncryptionKeys,
 
+		CycleTime: app.cfg.EngineCycleTime,
+
 		MaxMessages: 50,
 
 		DisableCycle: app.cfg.APIOnly,

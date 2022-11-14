@@ -36,7 +36,7 @@ export default function HeartbeatMonitorCreateDialog(props: {
               serviceID: props.serviceID,
             },
           },
-          { additionalTypenames: ['HeartbeatMonitor'] },
+          { additionalTypenames: ['HeartbeatMonitor', 'Service'] },
         ).then((result) => {
           if (!result.error) {
             props.onClose()

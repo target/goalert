@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
   users: UserConnection
@@ -24,6 +25,7 @@ export interface Query {
   labels: LabelConnection
   labelKeys: StringConnection
   labelValues: StringConnection
+  integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   userOverride?: null | UserOverride
   config: ConfigValue[]
@@ -73,6 +75,20 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+}
+
+export interface MessageLogSearchOptions {
+  first?: null | number
+  after?: null | string
+  createdBefore?: null | ISOTimestamp
+  createdAfter?: null | ISOTimestamp
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface MessageLogConnection {
+  nodes: DebugMessage[]
+  pageInfo: PageInfo
 }
 
 export interface SlackChannelSearchOptions {
@@ -151,6 +167,11 @@ export interface UserOverrideConnection {
   pageInfo: PageInfo
 }
 
+export interface IntegrationKeyConnection {
+  nodes: IntegrationKey[]
+  pageInfo: PageInfo
+}
+
 export interface UserOverride {
   id: string
   start: ISOTimestamp
@@ -179,6 +200,13 @@ export interface LabelKeySearchOptions {
 
 export interface LabelValueSearchOptions {
   key: string
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface IntegrationKeySearchOptions {
   first?: null | number
   after?: null | string
   search?: null | string
@@ -780,7 +808,7 @@ export interface CreateIntegrationKeyInput {
 }
 
 export interface CreateHeartbeatMonitorInput {
-  serviceID: string
+  serviceID?: null | string
   name: string
   timeoutMinutes: number
 }
@@ -1007,6 +1035,7 @@ type ConfigID =
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
   | 'Maintenance.AlertCleanupDays'
+  | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'

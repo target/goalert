@@ -1,13 +1,23 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
-
-import p from 'prop-types'
+import { ApolloError, gql, useMutation } from '@apollo/client'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
-import ServiceForm from './ServiceForm'
+import ServiceForm, { Value } from './ServiceForm'
 import { Redirect } from 'wouter'
+
+interface InputVar {
+  name: string
+  description: string
+  escalationPolicyID?: string
+  favorite: boolean
+  newEscalationPolicy?: {
+    name: string
+    description: string
+    steps: { delayMinutes: number; targets: { type: string; id: string }[] }[]
+  }
+}
 
 const createMutation = gql`
   mutation createService($input: CreateServiceInput!) {
@@ -20,8 +30,11 @@ const createMutation = gql`
   }
 `
 
-function inputVars({ name, description, escalationPolicyID }, attempt = 0) {
-  const vars = {
+function inputVars(
+  { name, description, escalationPolicyID }: Value,
+  attempt = 0,
+): InputVar {
+  const vars: InputVar = {
     name,
     description,
     escalationPolicyID,
@@ -48,8 +61,10 @@ function inputVars({ name, description, escalationPolicyID }, attempt = 0) {
   return vars
 }
 
-export default function ServiceCreateDialog(props) {
-  const [value, setValue] = useState({
+export default function ServiceCreateDialog(props: {
+  onClose: () => void
+}): JSX.Element {
+  const [value, setValue] = useState<Value>({
     name: '',
     description: '',
     escalationPolicyID: '',
@@ -74,7 +89,7 @@ export default function ServiceCreateDialog(props) {
       onClose={props.onClose}
       onSubmit={() => {
         let n = 1
-        const onErr = (err) => {
+        const onErr = (err: ApolloError): Awaited<Promise<unknown>> => {
           // retry if it's a policy name conflict
           if (
             err.graphQLErrors &&
@@ -103,13 +118,9 @@ export default function ServiceCreateDialog(props) {
           errors={fieldErrs}
           disabled={loading}
           value={value}
-          onChange={(val) => setValue(val)}
+          onChange={(val: Value) => setValue(val)}
         />
       }
     />
   )
-}
-
-ServiceCreateDialog.propTypes = {
-  onClose: p.func,
 }
