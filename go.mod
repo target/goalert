@@ -3,7 +3,7 @@ module github.com/target/goalert
 go 1.19
 
 require (
-	github.com/99designs/gqlgen v0.17.9
+	github.com/99designs/gqlgen v0.17.20
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/vbauerster/mpb/v4 v4.12.2
-	github.com/vektah/gqlparser/v2 v2.4.4
+	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/crypto v0.2.0
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.2.0
@@ -65,7 +65,7 @@ require (
 require (
 	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
-	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
@@ -123,7 +123,6 @@ require (
 	github.com/mailhog/http v1.0.1 // indirect
 	github.com/mailhog/mhsendmail v0.2.0 // indirect
 	github.com/mailhog/smtp v1.0.1 // indirect
-	github.com/matryer/moq v0.2.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
@@ -153,7 +152,7 @@ require (
 	github.com/t-k/fluent-logger-golang v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
-	github.com/urfave/cli/v2 v2.8.1 // indirect
+	github.com/urfave/cli/v2 v2.23.5 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.20.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
