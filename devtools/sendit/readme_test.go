@@ -25,10 +25,6 @@ func logCmd(t *testing.T, name string, arg ...string) *exec.Cmd {
 
 // TestReadme is a test that runs the commands in the README and validates core functionality.
 func TestReadme(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-
 	const secret = "testing-secret"
 
 	cmd := logCmd(t, "go", "run", "./cmd/sendit-token",

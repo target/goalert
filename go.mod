@@ -18,7 +18,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20220928193011-d2c82e48359b
-	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // pinned version - see https://github.com/target/goalert/issues/1239
+	github.com/hashicorp/yamux v0.1.1
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgtype v1.12.0
 	github.com/jackc/pgx/v4 v4.17.2
@@ -88,7 +88,6 @@ require (
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.6 // indirect
-	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -117,6 +116,8 @@ require (
 	github.com/jhump/protoreflect v1.12.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
 	github.com/mailhog/http v1.0.1 // indirect
