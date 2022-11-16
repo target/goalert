@@ -708,12 +708,12 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@graphiql/react@^0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@graphiql/react/-/react-0.11.0.tgz#81aa24b2d3e759e0ac2d1d81abbd8d5201f5fa33"
-  integrity sha512-gYScAUFiANRfn6Jb+1qJ2EgT+GcMHIarmoSP9H1Hjtb4LoCccT/oCZetQ8NBnLLJAMDIOGmal5Fr3AevzmAYng==
+"@graphiql/react@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@graphiql/react/-/react-0.14.0.tgz#a3beb5bf2967d5085f306c8fcb953a1a95b4e41b"
+  integrity sha512-BBkbl35akar4/+4P6ggZ99jSmU0D1qV70A2OegkuJ4t/knAis/R713faOs9xKyjkUj8hv6+KcAqBOp48LnP6lA==
   dependencies:
-    "@graphiql/toolkit" "^0.7.0"
+    "@graphiql/toolkit" "^0.8.0"
     "@reach/combobox" "^0.17.0"
     "@reach/dialog" "^0.17.0"
     "@reach/listbox" "^0.17.0"
@@ -721,16 +721,16 @@
     "@reach/tooltip" "^0.17.0"
     "@reach/visually-hidden" "^0.17.0"
     codemirror "^5.65.3"
-    codemirror-graphql "^2.0.0"
+    codemirror-graphql "^2.0.2"
     copy-to-clipboard "^3.2.0"
     graphql-language-service "^5.1.0"
     markdown-it "^12.2.0"
     set-value "^4.1.0"
 
-"@graphiql/toolkit@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@graphiql/toolkit/-/toolkit-0.7.0.tgz#8aed1727356b773d09598dd795e51f50038f42a9"
-  integrity sha512-71p7yu3KDyIxP6h4AhDY+Ax3p7PqxEIaWaC4j3dqa3qeBFkpo6AdwBQNCNfBmmffXTz05LXWFHcAvUgyyGiTsg==
+"@graphiql/toolkit@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@graphiql/toolkit/-/toolkit-0.8.0.tgz#f778baaab36be7fa7c9c07e8161a3334fc2c23ec"
+  integrity sha512-DbMFhEKejpPzB6k8W3Mj+Rl8geXiw49USDF9Wdi06EEk1XLVh1iebDqveYY+4lViITsV4+BeGikxlqi8umfP4g==
   dependencies:
     "@n1ru4l/push-pull-async-iterable-iterator" "^3.1.0"
     meros "^1.1.4"
@@ -2562,12 +2562,12 @@ co@^4.6.0:
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha1-bqa989hTrlTMuOR7+gvz+QMfsYQ=
 
-codemirror-graphql@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/codemirror-graphql/-/codemirror-graphql-2.0.0.tgz#0705da4e179f0708b249d4460b231598cebaa696"
-  integrity sha512-4trIaV9LYo/yRMu3s5qf7ASrKQjcCGrVfqOwaFsdjjcG8koh93gCzZ+csMhe3n6A7lMLWEpPdFWBIepKGV7qQg==
+codemirror-graphql@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/codemirror-graphql/-/codemirror-graphql-2.0.2.tgz#df3cbcb53efc2ad63f170888f25647659376f319"
+  integrity sha512-9c1cItR+8lG7thmTnDDQ3zI8YesNKiFCp2BnLFkYWCtdhSSuCUHebU/Vurew6ayyUl8MBCldNx3Ev66QAWM5Kw==
   dependencies:
-    graphql-language-service "^5.1.0"
+    graphql-language-service "5.0.6"
 
 codemirror@^5.65.3:
   version "5.65.4"
@@ -2687,10 +2687,10 @@ core-util-is@1.0.2:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-cosmiconfig@^7.0.0, cosmiconfig@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-7.0.1.tgz#714d756522cace867867ccb4474c5d01bbae5d6d"
-  integrity sha512-a1YWNUV2HwGimB7dU2s1wUMurNKjpx60HxBB6xUM8Re+2s1g1IIfJvFR0/iCF+XHdE0GMTKTuLR32UQff4TEyQ==
+cosmiconfig@^7.0.0, cosmiconfig@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-7.1.0.tgz#1443b9afa596b670082ea46cbd8f6a62b84635f6"
+  integrity sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==
   dependencies:
     "@types/parse-json" "^4.0.0"
     import-fresh "^3.2.1"
@@ -3441,19 +3441,19 @@ eslint-plugin-jsx-a11y@6.6.0:
     minimatch "^3.1.2"
     semver "^6.3.0"
 
-eslint-plugin-n@15.4.0:
-  version "15.4.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-15.4.0.tgz#1cfe9faff1b914ecc8f71433d228eaa5fc65b111"
-  integrity sha512-MkoKy9/lfd52TAXK4fkABgCp0aglk82Q3viy2UOWIEpTVE/Cem5P/UAxMBA4vSw7Gy+2egPqImE9euitLGp5aw==
+eslint-plugin-n@15.5.1:
+  version "15.5.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-15.5.1.tgz#b3991857d1edaa47e0108ead825470ce63f391c1"
+  integrity sha512-kAd+xhZm7brHoFLzKLB7/FGRFJNg/srmv67mqb7tto22rpr4wv/LV6RuXzAfv3jbab7+k1wi42PsIhGviywaaw==
   dependencies:
     builtins "^5.0.1"
     eslint-plugin-es "^4.1.0"
     eslint-utils "^3.0.0"
     ignore "^5.1.1"
-    is-core-module "^2.10.0"
+    is-core-module "^2.11.0"
     minimatch "^3.1.2"
     resolve "^1.22.1"
-    semver "^7.3.7"
+    semver "^7.3.8"
 
 eslint-plugin-node@11.1.0:
   version "11.1.0"
@@ -4160,16 +4160,24 @@ graceful-fs@^4.2.4:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
-graphiql@2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-2.0.1.tgz#8e5c50da0059f57ffcc2077c8ff8cde70f6ce6af"
-  integrity sha512-/4KrJc1D+fAMpWyGPsfm7ySUpo5IBHjm2cUJYLAvQrWBycbWbJ7PICrszoAL/NhXBTaF8zSFzEQz5Liv2BVxMg==
+graphiql@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-2.1.0.tgz#2c67dd5121e120e30fc4e37ce2b776b7a12d2a76"
+  integrity sha512-b58o/o7y5x/C4WzH7YTeSWbINE6tcfzZN4TxgvoSZxhE9X6MulXXbXLRiGEl5+FuajIN0LxaoleHTJUHb9H2wg==
   dependencies:
-    "@graphiql/react" "^0.11.0"
-    "@graphiql/toolkit" "^0.7.0"
+    "@graphiql/react" "^0.14.0"
+    "@graphiql/toolkit" "^0.8.0"
     entities "^2.0.0"
     graphql-language-service "^5.1.0"
     markdown-it "^12.2.0"
+
+graphql-language-service@5.0.6:
+  version "5.0.6"
+  resolved "https://registry.yarnpkg.com/graphql-language-service/-/graphql-language-service-5.0.6.tgz#7fd1e6479e5c3074b070c760fa961d9ad1ed7c72"
+  integrity sha512-FjE23aTy45Lr5metxCv3ZgSKEZOzN7ERR+OFC1isV5mHxI0Ob8XxayLTYjQKrs8b3kOpvgTYmSmu6AyXOzYslg==
+  dependencies:
+    nullthrows "^1.0.0"
+    vscode-languageserver-types "^3.15.1"
 
 graphql-language-service@^5.1.0:
   version "5.1.0"
@@ -4489,10 +4497,10 @@ is-ci@^3.0.0:
   dependencies:
     ci-info "^3.2.0"
 
-is-core-module@^2.10.0, is-core-module@^2.2.0, is-core-module@^2.5.0, is-core-module@^2.8.1, is-core-module@^2.9.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.10.0.tgz#9012ede0a91c69587e647514e1d5277019e728ed"
-  integrity sha512-Erxj2n/LDAZ7H8WNJXd9tw38GYM3dv8rk8Zcs+jJuxYTW7sozH+SS8NtrSjVL1/vpLvWi1hxy96IzjJ3EHTJJg==
+is-core-module@^2.11.0, is-core-module@^2.2.0, is-core-module@^2.5.0, is-core-module@^2.8.1, is-core-module@^2.9.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.11.0.tgz#ad4cb3e3863e814523c96f3f58d26cc570ff0144"
+  integrity sha512-RRjxlvLDkD1YJwDbroBHMb+cukurkDWNyHx7D3oNB5x9rb5ogcksMC5wHCadcXoo67gVr/+3GFySh3134zi6rw==
   dependencies:
     has "^1.0.3"
 
@@ -5444,10 +5452,10 @@ kleur@^4.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-4.1.4.tgz#8c202987d7e577766d039a8cd461934c01cda04d"
   integrity sha512-8QADVssbrFjivHWQU7KkMgptGTl6WAcSdlbBPY4uNF+mWr6DGcKrvY2w4FQJoXch7+fKMjj0dRrL75vk3k23OA==
 
-known-css-properties@^0.25.0:
-  version "0.25.0"
-  resolved "https://registry.yarnpkg.com/known-css-properties/-/known-css-properties-0.25.0.tgz#6ebc4d4b412f602e5cfbeb4086bd544e34c0a776"
-  integrity sha512-b0/9J1O9Jcyik1GC6KC42hJ41jKwdO/Mq8Mdo5sYN+IuRTXs2YFHZC3kZSx6ueusqa95x3wLYe/ytKjbAfGixA==
+known-css-properties@^0.26.0:
+  version "0.26.0"
+  resolved "https://registry.yarnpkg.com/known-css-properties/-/known-css-properties-0.26.0.tgz#008295115abddc045a9f4ed7e2a84dc8b3a77649"
+  integrity sha512-5FZRzrZzNTBruuurWpvZnvP9pum+fe0HcK8z/ooo+U+Hmp4vtbyp1/QDsqmufirXy4egGzbaH/y2uCZf+6W5Kg==
 
 language-subtag-registry@~0.3.2:
   version "0.3.21"
@@ -6636,10 +6644,10 @@ postcss-value-parser@^4.2.0:
   resolved "https://registry.yarnpkg.com/postcss-value-parser/-/postcss-value-parser-4.2.0.tgz#723c09920836ba6d3e5af019f92bc0971c02e514"
   integrity sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==
 
-postcss@^8.4.17:
-  version "8.4.18"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.18.tgz#6d50046ea7d3d66a85e0e782074e7203bc7fbca2"
-  integrity sha512-Wi8mWhncLJm11GATDaQKobXSNEYGUHeQLiQqDFG1qQ5UTDPTEvKw0Xt5NsTpktGTwLps3ByrWsBrG0rB8YQ9oA==
+postcss@^8.4.19:
+  version "8.4.19"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.19.tgz#61178e2add236b17351897c8bcc0b4c8ecab56fc"
+  integrity sha512-h+pbPsyhlYj6N2ozBmHhHrs9DzGmbaarbLvWipMRO7RLS+v4onj26MPFXA5OBYFxyqYhUJK456SwDcY9H2/zsA==
   dependencies:
     nanoid "^3.3.4"
     picocolors "^1.0.0"
@@ -7343,10 +7351,10 @@ semver@^6.0.0, semver@^6.1.0, semver@^6.3.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
 
-semver@^7.0.0, semver@^7.2.1, semver@^7.3.2, semver@^7.3.4, semver@^7.3.5, semver@^7.3.7:
-  version "7.3.7"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.7.tgz#12c5b649afdbf9049707796e22a4028814ce523f"
-  integrity sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==
+semver@^7.0.0, semver@^7.2.1, semver@^7.3.2, semver@^7.3.4, semver@^7.3.5, semver@^7.3.7, semver@^7.3.8:
+  version "7.3.8"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
+  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
   dependencies:
     lru-cache "^6.0.0"
 
@@ -7704,15 +7712,15 @@ stylelint-config-standard@29.0.0:
   dependencies:
     stylelint-config-recommended "^9.0.0"
 
-stylelint@14.14.0:
-  version "14.14.0"
-  resolved "https://registry.yarnpkg.com/stylelint/-/stylelint-14.14.0.tgz#1acb52497c9a921f23f9c4014d4e0ee6eba768d0"
-  integrity sha512-yUI+4xXfPHVnueYddSQ/e1GuEA/2wVhWQbGj16AmWLtQJtn28lVxfS4b0CsWyVRPgd3Auzi0NXOthIEUhtQmmA==
+stylelint@14.15.0:
+  version "14.15.0"
+  resolved "https://registry.yarnpkg.com/stylelint/-/stylelint-14.15.0.tgz#4df55078e734869f81f6b85bbec2d56a4b478ece"
+  integrity sha512-JOgDAo5QRsqiOZPZO+B9rKJvBm64S0xasbuRPAbPs6/vQDgDCnZLIiw6XcAS6GQKk9k1sBWR6rmH3Mfj8OknKg==
   dependencies:
     "@csstools/selector-specificity" "^2.0.2"
     balanced-match "^2.0.0"
     colord "^2.9.3"
-    cosmiconfig "^7.0.1"
+    cosmiconfig "^7.1.0"
     css-functions-list "^3.1.0"
     debug "^4.3.4"
     fast-glob "^3.2.12"
@@ -7726,13 +7734,13 @@ stylelint@14.14.0:
     import-lazy "^4.0.0"
     imurmurhash "^0.1.4"
     is-plain-object "^5.0.0"
-    known-css-properties "^0.25.0"
+    known-css-properties "^0.26.0"
     mathml-tag-names "^2.1.3"
     meow "^9.0.0"
     micromatch "^4.0.5"
     normalize-path "^3.0.0"
     picocolors "^1.0.0"
-    postcss "^8.4.17"
+    postcss "^8.4.19"
     postcss-media-query-parser "^0.2.3"
     postcss-resolve-nested-selector "^0.1.1"
     postcss-safe-parser "^6.0.0"
@@ -7744,7 +7752,7 @@ stylelint@14.14.0:
     style-search "^0.1.0"
     supports-hyperlinks "^2.3.0"
     svg-tags "^1.0.0"
-    table "^6.8.0"
+    table "^6.8.1"
     v8-compile-cache "^2.3.0"
     write-file-atomic "^4.0.2"
 
@@ -7802,10 +7810,10 @@ tabbable@^4.0.0:
   resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-4.0.0.tgz#5bff1d1135df1482cf0f0206434f15eadbeb9261"
   integrity sha512-H1XoH1URcBOa/rZZWxLxHCtOdVUEev+9vo5YdYhC9tCY4wnybX+VQrCYuy9ubkg69fCBxCONJOSLGfw0DWMffQ==
 
-table@^6.0.9, table@^6.8.0:
-  version "6.8.0"
-  resolved "https://registry.yarnpkg.com/table/-/table-6.8.0.tgz#87e28f14fa4321c3377ba286f07b79b281a3b3ca"
-  integrity sha512-s/fitrbVeEyHKFa7mFdkuQMWlH1Wgw/yEXMt5xACT4ZpzWFluehAxRtUUQKPuWhaLAWhFcVx6w3oC8VKaUfPGA==
+table@^6.0.9, table@^6.8.1:
+  version "6.8.1"
+  resolved "https://registry.yarnpkg.com/table/-/table-6.8.1.tgz#ea2b71359fe03b017a5fbc296204471158080bdf"
+  integrity sha512-Y4X9zqrCftUhMeH2EptSSERdVKt/nEdijTOacGD/97EKjhQ/Qs8RTlEGABSJNNN8lac9kheH+af7yAkEWlgneA==
   dependencies:
     ajv "^8.0.1"
     lodash.truncate "^4.4.2"
@@ -8277,7 +8285,7 @@ vfile@^5.0.0:
     unist-util-stringify-position "^3.0.0"
     vfile-message "^3.0.0"
 
-vscode-languageserver-types@^3.17.1:
+vscode-languageserver-types@^3.15.1, vscode-languageserver-types@^3.17.1:
   version "3.17.2"
   resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.17.2.tgz#b2c2e7de405ad3d73a883e91989b850170ffc4f2"
   integrity sha512-zHhCWatviizPIq9B7Vh9uvrH6x3sK8itC84HkamnBWoDFJtzBf7SWlpLCZUit72b3os45h6RWQNC9xHRDF8dRA==
