@@ -6,8 +6,8 @@ import MaterialSelect from '../selection/MaterialSelect'
 import { FieldError } from '../util/errutil'
 
 export interface PolicyFormValue {
-  name?: string
-  description?: string
+  name: string
+  description: string
   repeat: {
     label: string
     value: string
@@ -76,26 +76,5 @@ function PolicyForm(props: PolicyFormProps): JSX.Element {
     </FormContainer>
   )
 }
-
-// PolicyForm.propTypes = {
-//   value: p.shape({
-//     name: p.string,
-//     description: p.string,
-//     repeat: p.shape({
-//       label: p.string.isRequired,
-//       value: p.string.isRequired,
-//     }).isRequired,
-//   }).isRequired,
-
-//   errors: p.arrayOf(
-//     p.shape({
-//       field: p.oneOf(['name', 'description', 'repeat']).isRequired,
-//       message: p.string.isRequired,
-//     }),
-//   ),
-
-//   disabled: p.bool,
-//   onChange: p.func,
-// }
 
 export default PolicyForm

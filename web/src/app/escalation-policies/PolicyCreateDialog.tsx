@@ -14,19 +14,19 @@ const mutation = gql`
 `
 
 function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
-  const [value, setValue] = useState<PolicyFormValue | null>(null)
   const defaultValue = {
     name: '',
     description: '',
     repeat: { label: '3', value: '3' },
     favorite: true,
   }
+  const [value, setValue] = useState<PolicyFormValue>(defaultValue)
   const [createPolicy, createPolicyStatus] = useMutation(mutation, {
     variables: {
       input: {
-        name: (value && value.name) || defaultValue.name,
-        description: (value && value.description) || defaultValue.description,
-        repeat: (value && value.repeat.value) || defaultValue.repeat.value,
+        name: value && value.name,
+        description: value && value.description,
+        repeat: value && value.repeat.value,
         favorite: true,
       },
     },
@@ -54,7 +54,7 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
         <PolicyForm
           errors={fieldErrs}
           disabled={loading}
-          value={value || defaultValue}
+          value={value}
           onChange={(value: PolicyFormValue) => setValue(value)}
         />
       }
