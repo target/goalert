@@ -95,6 +95,21 @@ function deleteScheduleTarget(c: Client) {
   s.clearTarget(gen.pickone(s.targets))
 }
 
+const ignoreErrors = [
+  // these are expected errors, as users/resources are deleted
+  'not found',
+  'not exist',
+  'empty array',
+  'of undefined',
+  'invalid index', // e.g., update rotation while user is deleted
+
+  'too many', // e.g., contact method limit
+
+  // schedule override constraints
+  'same user twice',
+  'as the user being replaced',
+]
+
 export default function LoginLogout() {
   const c = new Client('http://localhost:3030')
 
@@ -121,7 +136,21 @@ export default function LoginLogout() {
       createCM,
       deleteCM,
     ])
-    action(c)
+    try {
+      action(c)
+    } catch (e) {
+      if (ignoreErrors.some((s) => e.message.includes(s))) {
+        break
+      }
+
+      console.error(`${e.message}
+
+        Query: ${e.ctx.query.replace(/\s+/g, ' ')}
+        Vars:  ${JSON.stringify(e.ctx.variables)}
+        Body:  ${JSON.stringify(e.ctx.res)}
+        ${e.stack}
+        `)
+    }
   }
 
   c.logout()

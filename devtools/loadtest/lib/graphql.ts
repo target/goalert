@@ -10,6 +10,10 @@ import {
 // Instantiate Chance so it can be used
 var gen = new Chance()
 
+interface Constructor<T> {
+  new (c: Client, id: string): T
+}
+
 class IDFetchType {
   constructor(c: Client, id: string, queryName: string) {
     this.c = c
@@ -29,7 +33,7 @@ class IDFetchType {
       { id: this.id },
     ).data[this.queryName][fieldName]
   }
-  simpleFieldMap<T>(fieldName: string, Type: T): Array<T> {
+  simpleFieldMap<T>(fieldName: string, Type: Constructor<T>): Array<T> {
     return this.simpleField(fieldName, '{id}').map(
       (obj) => new Type(this.c, obj.id),
     )
@@ -559,7 +563,9 @@ export class Client {
     const res = JSON.parse(resp.body)
 
     if (res.errors) {
-      throw new Error(res.errors[0].message)
+      const e = new Error(res.errors[0].message)
+      e.ctx = { query, variables, res }
+      throw e
     }
 
     return res
