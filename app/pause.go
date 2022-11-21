@@ -21,11 +21,13 @@ func (app *App) Resume(ctx context.Context) error {
 func (app *App) _pause(ctx context.Context) error {
 	app.db.SetMaxIdleConns(0)
 	app.db.SetConnMaxLifetime(time.Second)
+	app.db.SetMaxOpenConns(3)
 	app.events.Stop()
 	return nil
 }
 
 func (app *App) _resume(ctx context.Context) error {
+	app.db.SetMaxOpenConns(app.cfg.DBMaxOpen)
 	app.db.SetMaxIdleConns(app.cfg.DBMaxIdle)
 	app.db.SetConnMaxLifetime(0)
 	app.events.Start()
