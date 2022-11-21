@@ -120,7 +120,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	cleanMgr, err := cleanupmanager.NewDB(ctx, db)
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}

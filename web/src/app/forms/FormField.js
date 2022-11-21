@@ -228,4 +228,8 @@ FormField.propTypes = {
   timeZone: p.string,
 
   userID: p.string,
+
+  value: p.oneOfType([p.string, p.arrayOf(p.string)]),
+
+  multiple: p.bool,
 }

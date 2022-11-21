@@ -291,6 +291,7 @@ input UserOverrideSearchOptions {
   end: ISOTimestamp # end of the window to search for.
 }
 
+
 type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
