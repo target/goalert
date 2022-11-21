@@ -103,11 +103,12 @@ const ignoreErrors = [
   'of undefined',
   'invalid index', // e.g., update rotation while user is deleted
 
-  'too many', // e.g., contact method limit
-
   // schedule override constraints
   'same user twice',
   'as the user being replaced',
+
+  'too many', // e.g., contact method limit
+  'already in use', // name conflicts
 ]
 
 export default function LoginLogout() {
