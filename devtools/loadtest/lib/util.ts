@@ -4,6 +4,15 @@ import Chance from 'chance'
 var gen = new Chance()
 
 export function genTZ(): string {
-  const genTZ = gen.timezone()
-  return genTZ.utc ? genTZ.utc[0] : 'Etc/UTC'
+  return gen.pickone([
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Los_Angeles',
+    'America/Anchorage',
+    'America/Adak',
+    'Pacific/Honolulu',
+    'Pacific/Midway',
+    'Etc/UTC',
+  ])
 }
