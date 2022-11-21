@@ -4,11 +4,13 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
@@ -157,9 +159,23 @@ func (a *Mutation) EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, e
 }
 
 func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error) {
+	// Retry because deleting frequently can cause a deadlock
+	// under heavy load.
+	err := retry.DoTemporaryError(func(int) error {
+		return a.tryDeleteAll(ctx, input)
+	},
+		retry.Log(ctx),
+		retry.Limit(5),
+		retry.FibBackoff(time.Second),
+	)
+
+	return err == nil, err
+}
+
+func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarget) error {
 	tx, err := a.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer tx.Rollback()
 
@@ -214,17 +230,17 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		case assignment.TargetTypeUserSession:
 			err = errors.Wrap(a.AuthHandler.EndUserSessionTx(ctx, tx, ids...), "end user sessions")
 		default:
-			return false, validation.NewFieldError("type", "unsupported type "+typ.String())
+			return validation.NewFieldError("type", "unsupported type "+typ.String())
 		}
 		if err != nil {
-			return false, err
+			return err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
