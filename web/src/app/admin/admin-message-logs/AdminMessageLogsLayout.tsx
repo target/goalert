@@ -49,7 +49,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   const { logs, loading, error } = useMessageLogs(
     {
       search: params.search,
-      createdAfter: params.start || DateTime.now().minus({ days: 1 }).toISO(),
+      createdAfter: params.start || DateTime.now().minus({ hours: 8 }).toISO(),
       createdBefore: params.end || DateTime.now().toISO(),
     },
     depKey,

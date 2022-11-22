@@ -26,13 +26,7 @@ import {
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
 import { useURLParam, useURLParams } from '../../actions'
-import {
-  DateTime,
-  DateTimeFormatOptions,
-  Duration,
-  DurationLike,
-  Interval,
-} from 'luxon'
+import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import { DebugMessage } from '../../../schema'
 
 export default function AdminMessageLogsGraph(props: {
@@ -45,32 +39,17 @@ export default function AdminMessageLogsGraph(props: {
     end: '',
   })
 
-  // graph duration set with ISO duration values, e.g. P1D for a daily duration
-  const [duration, setDuration] = useURLParam<string>('graphInterval', 'P1D')
+  // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
+  const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
 
   const logs: DebugMessage[] = props.logs
   if (logs.length === 0) return <React.Fragment />
 
-  // adds a bit of time before/after the first and last alerts
-  // if start or end isn't set
-  let bufferLen: DurationLike = {}
-  if (duration.endsWith('D')) {
-    bufferLen = { days: 1 }
-  }
-  if (duration.endsWith('W')) {
-    bufferLen = { weeks: 1 }
-  }
-  if (duration.endsWith('H')) {
-    bufferLen = { hours: 1 }
-  }
-  if (duration.endsWith('M')) {
-    bufferLen = { minutes: 15 }
-  }
   const ttlInterval = Interval.fromDateTimes(
-    DateTime.fromISO(params.start || logs[logs.length - 1].createdAt).minus(
-      bufferLen,
+    DateTime.fromISO(
+      params.start || DateTime.now().minus({ hours: 8 }).toISO(), // if no start set, show past 8 hours
     ),
-    DateTime.fromISO(params.end || logs[0].createdAt).plus(bufferLen),
+    DateTime.fromISO(params.end || DateTime.now().toISO()),
   )
 
   const intervals = ttlInterval?.splitBy(Duration.fromISO(duration)) ?? []
@@ -109,10 +88,9 @@ export default function AdminMessageLogsGraph(props: {
     // check for default bounds
     if (label.toString() !== '0' && label !== 'auto') {
       const dt = DateTime.fromFormat(label, 'MMM d, t')
-      if (duration === 'P1D') return dt.toFormat('MMM d')
-      if (duration === 'PT1H') return dt.toFormat('h a')
-      if (duration === 'PT5M' || duration === 'PT15M')
-        return dt.toFormat('h:mma').toLowerCase()
+      if (duration.endsWith('D')) return dt.toFormat('MMM d')
+      if (duration.endsWith('H')) return dt.toFormat('h a')
+      if (duration.endsWith('M')) return dt.toFormat('h:mma').toLowerCase()
     }
     return ''
   }
@@ -147,6 +125,7 @@ export default function AdminMessageLogsGraph(props: {
                   onChange={(e) => setDuration(e.target.value)}
                 >
                   <MenuItem value='P1D'>Daily</MenuItem>
+                  <MenuItem value='PT8H'>8 hours</MenuItem>
                   <MenuItem value='PT1H'>Hourly</MenuItem>
                   <MenuItem value='PT15M'>15 minutes</MenuItem>
                   <MenuItem value='PT5M'>5 minutes</MenuItem>

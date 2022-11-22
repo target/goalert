@@ -7,12 +7,13 @@ import Search from '../../util/Search'
 import { useURLParams } from '../../actions'
 import FilterContainer from '../../util/FilterContainer'
 import { ServiceSelect, UserSelect } from '../../selection'
+import { DateTime } from 'luxon'
 
 export default function AdminMessageLogsControls(): JSX.Element {
   const [params, setParams] = useURLParams({
     search: '',
-    start: '',
-    end: '',
+    start: DateTime.now().minus({ hours: 8 }).toISO(),
+    end: DateTime.now().toISO(),
   })
 
   const [filterByUser, setFilterByUser] = useState('')
@@ -58,7 +59,6 @@ export default function AdminMessageLogsControls(): JSX.Element {
             value={params.start}
             onChange={(newStart) => {
               setParams({ ...params, start: newStart as string })
-              // props.resetCount()
             }}
             label='Created After'
             size='small'
@@ -73,7 +73,6 @@ export default function AdminMessageLogsControls(): JSX.Element {
             label='Created Before'
             onChange={(newEnd) => {
               setParams({ ...params, end: newEnd as string })
-              // props.resetCount()
             }}
             size='small'
             variant='outlined'
@@ -91,7 +90,6 @@ export default function AdminMessageLogsControls(): JSX.Element {
               })
               setFilterByUser('')
               setFilterByService('')
-              // props.resetCount()
             }}
             endIcon={<ResetIcon />}
             sx={{ height: '100%' }}
