@@ -1,5 +1,4 @@
 import React from 'react'
-import { useQuery } from '@apollo/client'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -34,35 +33,23 @@ import {
   DurationLike,
   Interval,
 } from 'luxon'
-import { query } from './AdminMessageLogsLayout'
 import { DebugMessage } from '../../../schema'
 
-export default function AdminMessageLogsGraph(): JSX.Element {
+export default function AdminMessageLogsGraph(props: {
+  logs: DebugMessage[]
+}): JSX.Element {
   const theme = useTheme()
   const [params] = useURLParams({
     search: '',
     start: '',
     end: '',
   })
-  const { data, loading, error } = useQuery(query, {
-    fetchPolicy: 'cache-first',
-    variables: {
-      input: {
-        search: params.search,
-        createdAfter: params.start || null,
-        createdBefore: params.end || null,
-      },
-    },
-  })
+
   // graph duration set with ISO duration values, e.g. P1D for a daily duration
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'P1D')
 
-  if (loading) return <React.Fragment />
-  if (error) {
-    console.error(error.message)
-    return <React.Fragment />
-  }
-  const logs: DebugMessage[] = data?.data?.nodes ?? []
+  const logs: DebugMessage[] = props.logs
+  if (logs.length === 0) return <div>No logs to display</div>
 
   // adds a bit of time before/after the first and last alerts
   // if start or end isn't set
