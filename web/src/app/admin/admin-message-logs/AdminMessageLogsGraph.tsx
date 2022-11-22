@@ -49,7 +49,7 @@ export default function AdminMessageLogsGraph(props: {
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'P1D')
 
   const logs: DebugMessage[] = props.logs
-  if (logs.length === 0) return <div>No logs to display</div>
+  if (logs.length === 0) return <React.Fragment />
 
   // adds a bit of time before/after the first and last alerts
   // if start or end isn't set

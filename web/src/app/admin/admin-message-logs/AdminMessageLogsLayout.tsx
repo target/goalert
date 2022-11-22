@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Chip, Grid } from '@mui/material'
+import { Card, Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
@@ -60,19 +60,6 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   }
 
   function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
-    // export interface FlatListItem {
-    //   title?: string
-    //   highlight?: boolean
-    //   subText?: JSX.Element | string
-    //   icon?: JSX.Element | null
-    //   secondaryAction?: JSX.Element | null
-    //   url?: string
-    //   id?: string // required for drag and drop functionality
-    //   scrollIntoView?: boolean
-    //   'data-cy'?: string
-    //   disabled?: boolean
-    // }
-
     const status = toTitleCase(log.status)
     const statusDict = {
       success: {
@@ -115,11 +102,11 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           </Grid>
         </Grid>
       ),
-      // action: (
-      //   <Typography variant='body2' color='textSecondary'>
-      //     {DateTime.fromISO(n.createdAt).toFormat('fff')}
-      //   </Typography>
-      // ),
+      action: (
+        <Typography variant='body2' color='textSecondary'>
+          {DateTime.fromISO(log.createdAt).toFormat('fff')}
+        </Typography>
+      ),
     }
   }
 
@@ -143,17 +130,21 @@ export default function AdminMessageLogsLayout(): JSX.Element {
         <AdminMessageLogsGraph logs={logs} />
 
         <Grid item xs={12}>
+          <Card>
+            <PaginatedList
+              items={logs.map((log) => mapLogToListItem(log))}
+              isLoading={loading}
+              itemsPerPage={15}
+              page={page}
+            />
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
           <PageControls
             pageCount={logs.length / 15}
             page={page}
             setPage={setPage}
             isLoading={loading}
-          />
-          <PaginatedList
-            items={logs.map((log) => mapLogToListItem(log))}
-            isLoading={loading}
-            itemsPerPage={15}
-            page={page}
           />
         </Grid>
       </Grid>
