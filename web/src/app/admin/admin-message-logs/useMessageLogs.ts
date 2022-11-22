@@ -29,7 +29,7 @@ export const logsQuery = gql`
   }
 `
 
-const QUERY_LIMIT = 100
+const QUERY_LIMIT = 30
 
 export type MessageLogData = {
   logs: DebugMessage[]
@@ -84,6 +84,7 @@ export function useMessageLogs(
         .toPromise()
 
       if (q.error) {
+        console.log('error: ', q.error)
         return [[], false, '', q.error]
       }
 

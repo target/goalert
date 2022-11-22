@@ -9,9 +9,13 @@ import { DebugMessage } from '../../../schema'
 import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 import { useURLParams } from '../../actions'
 import toTitleCase from '../../util/toTitleCase'
-import FlatList, { FlatListItem } from '../../lists/FlatList'
 import { useMessageLogs } from './useMessageLogs'
 import { DateTime } from 'luxon'
+import {
+  PaginatedList,
+  PaginatedListItemProps,
+} from '../../lists/PaginatedList'
+import { PageControls } from '../../lists/PageControls'
 
 const useStyles = makeStyles((theme: Theme) => ({
   containerDefault: {
@@ -30,6 +34,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
+  const [page, setPage] = useState(0)
 
   // all data is fetched on page load, but the number of logs rendered is limited
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
@@ -50,12 +55,11 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     depKey,
   )
 
-  if (loading) return <div>Loading logs...</div>
   if (error) {
     return <div>Error: {error.message}</div>
   }
 
-  function mapLogToListItem(log: DebugMessage): FlatListItem {
+  function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
     // export interface FlatListItem {
     //   title?: string
     //   highlight?: boolean
@@ -139,7 +143,18 @@ export default function AdminMessageLogsLayout(): JSX.Element {
         <AdminMessageLogsGraph logs={logs} />
 
         <Grid item xs={12}>
-          <FlatList items={logs.map((log) => mapLogToListItem(log))} />
+          <PageControls
+            pageCount={logs.length / 15}
+            page={page}
+            setPage={setPage}
+            isLoading={loading}
+          />
+          <PaginatedList
+            items={logs.map((log) => mapLogToListItem(log))}
+            isLoading={loading}
+            itemsPerPage={15}
+            page={page}
+          />
         </Grid>
       </Grid>
     </React.Fragment>
