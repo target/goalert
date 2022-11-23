@@ -62,7 +62,7 @@
     "remark-gfm": "3.0.0",
     "urql": "3.0.1",
     "wonka": "6.1.0",
-    "wouter": "2.8.0-alpha.2"
+    "wouter": "2.9.0"
   },
   "devDependencies": {
     "@types/chance": "1.1.3",
