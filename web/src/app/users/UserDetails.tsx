@@ -21,6 +21,7 @@ import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { EscalationPolicyStep } from '../../schema'
+import { useIsWidthDown } from '../util/useWidth'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -102,6 +103,7 @@ export default function UserDetails(props: {
     string | null | undefined
   >(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
+  const mobile = useIsWidthDown('md')
 
   const [{ data, fetching: isQueryLoading, error }] = useQuery({
     query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
@@ -163,7 +165,7 @@ export default function UserDetails(props: {
           onClose={() => setShowUserDeleteDialog(false)}
         />
       )}
-      {props.readOnly ? null : (
+      {mobile && !props.readOnly ? (
         <SpeedDial
           label='Add Items'
           actions={[
@@ -180,7 +182,7 @@ export default function UserDetails(props: {
             },
           ]}
         />
-      )}
+      ) : null}
       {createCM && (
         <UserContactMethodCreateDialog
           userID={userID}
