@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import p from 'prop-types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
 import Card from '@mui/material/Card'
@@ -15,6 +14,8 @@ import { UserAvatar } from '../util/avatars'
 import { styles as globalStyles } from '../styles/materialStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
+import { Theme } from '@mui/material/styles'
+import { User, Rotation } from '../../schema'
 
 const query = gql`
   query rotationUsers($id: ID!) {
@@ -36,7 +37,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -44,11 +45,21 @@ const useStyles = makeStyles((theme) => {
   }
 })
 
-function RotationUserList({ rotationID }) {
+interface RotationUserListProps {
+  rotationID: string
+}
+
+type SwapType = {
+  oldIndex: number
+  newIndex: number
+}
+
+function RotationUserList(props: RotationUserListProps): JSX.Element {
   const classes = useStyles()
-  const [deleteIndex, setDeleteIndex] = useState(null)
-  const [setActiveIndex, setSetActiveIndex] = useState(null)
-  const [lastSwap, setLastSwap] = useState([])
+  const { rotationID } = props
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
+  const [setActiveIndex, setSetActiveIndex] = useState<number | null>(null)
+  const [lastSwap, setLastSwap] = useState<SwapType[]>([])
 
   const {
     data,
@@ -68,7 +79,7 @@ function RotationUserList({ rotationID }) {
   if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
   if (qError || mError)
-    return <GenericError error={qError.message || mError.message} />
+    return <GenericError error={qError?.message || mError?.message} />
 
   const { users, activeUserIndex, nextHandoffTimes } = data.rotation
 
@@ -77,7 +88,7 @@ function RotationUserList({ rotationID }) {
     .slice(0, 1)
     .concat(nextHandoffTimes)
 
-  const handoff = users.map((u, index) => {
+  const handoff = users.map((u: User, index: number) => {
     const handoffIndex =
       (index + (users.length - activeUserIndex)) % users.length
     const time = _nextHandoffTimes[handoffIndex]
@@ -110,7 +121,7 @@ function RotationUserList({ rotationID }) {
   })
 
   // re-enact swap history to get unique identier per list item
-  let listIDs = users.map((_, idx) => idx)
+  let listIDs = users.map((_: User, idx: number) => idx)
   lastSwap.forEach((s) => {
     listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
   })
@@ -143,7 +154,7 @@ function RotationUserList({ rotationID }) {
           emptyMessage='No users currently assigned to this rotation'
           headerNote={users.length ? 'Toggle edit to reorder users' : ''}
           toggleDnD
-          items={users.map((u, index) => ({
+          items={users.map((u: User, index: number) => ({
             title: u.name,
             id: String(listIDs[index]),
             highlight: index === activeUserIndex,
@@ -164,11 +175,11 @@ function RotationUserList({ rotationID }) {
               />
             ),
           }))}
-          onReorder={(oldIndex, newIndex) => {
+          onReorder={(oldIndex: number, newIndex: number) => {
             setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
             const updatedUsers = reorderList(
-              users.map((u) => u.id),
+              users.map((u: User) => u.id),
               oldIndex,
               newIndex,
             )
@@ -177,7 +188,11 @@ function RotationUserList({ rotationID }) {
               oldIndex,
               newIndex,
             )
-            const params = { id: rotationID, userIDs: updatedUsers }
+            const params = {
+              id: rotationID,
+              userIDs: updatedUsers,
+              activeUserIndex,
+            }
 
             if (newActiveIndex !== -1) {
               params.activeUserIndex = newActiveIndex
@@ -189,32 +204,33 @@ function RotationUserList({ rotationID }) {
                 if (!response.data.updateRotation) {
                   return
                 }
-                const data = cache.readQuery({
+                const data: { rotation: Rotation } | null = cache.readQuery({
                   query,
                   variables: { id: rotationID },
                 })
 
-                const users = reorderList(
-                  data.rotation.users,
-                  oldIndex,
-                  newIndex,
-                )
-
-                cache.writeQuery({
-                  query,
-                  variables: { id: rotationID },
-                  data: {
-                    ...data,
-                    rotation: {
-                      ...data.rotation,
-                      activeUserIndex:
-                        newActiveIndex === -1
-                          ? data.rotation.activeUserIndex
-                          : newActiveIndex,
-                      users,
+                if (data?.rotation?.users) {
+                  const users = reorderList(
+                    data.rotation.users,
+                    oldIndex,
+                    newIndex,
+                  )
+                  cache.writeQuery({
+                    query,
+                    variables: { id: rotationID },
+                    data: {
+                      ...data,
+                      rotation: {
+                        ...data?.rotation,
+                        activeUserIndex:
+                          newActiveIndex === -1
+                            ? data?.rotation?.activeUserIndex
+                            : newActiveIndex,
+                        users,
+                      },
                     },
-                  },
-                })
+                  })
+                }
               },
               optimisticResponse: {
                 __typename: 'Mutation',
@@ -227,9 +243,4 @@ function RotationUserList({ rotationID }) {
     </React.Fragment>
   )
 }
-
-RotationUserList.propTypes = {
-  rotationID: p.string.isRequired,
-}
-
 export default RotationUserList
