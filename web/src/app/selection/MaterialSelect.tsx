@@ -164,7 +164,7 @@ export default function MaterialSelect(
       data-cy-ready={!isLoading}
       classes={customCSS}
       multiple={multiple}
-      filterSelectedOptions={multiple}
+      filterSelectedOptions
       value={value}
       inputValue={inputValue}
       disableClearable={required}
