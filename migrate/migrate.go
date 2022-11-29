@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
@@ -64,6 +65,7 @@ func migrationName(file string) string {
 	file = strings.TrimSuffix(file, ".sql")
 	return file
 }
+
 func migrationID(name string) (int, string) {
 	for i, id := range migrationIDs() {
 		if migrationName(id) == name {
@@ -124,8 +126,8 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 	}
 
 	return conn, nil
-
 }
+
 func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 	for {
 		_, err := conn.Exec(ctx, `select pg_advisory_lock($1)`, lock.GlobalMigrate)
@@ -207,10 +209,16 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 		return 0, err
 	}
 
-	migrations, err := parseMigrations()
+	// check for gen_random_uuid support
+	var uuidTest uuid.UUID
+	err = conn.QueryRow(ctx, `select gen_random_uuid()`).Scan(&uuidTest)
+	hasUUIDSupport := err == nil
+
+	migrations, err := parseMigrations(hasUUIDSupport)
 	if err != nil {
 		return 0, err
 	}
+
 	err = aquireLock(ctx, conn)
 	if err != nil {
 		return 0, err
@@ -265,7 +273,7 @@ func Down(ctx context.Context, url, targetName string) (int, error) {
 		return 0, nil
 	}
 
-	migrations, err := parseMigrations()
+	migrations, err := parseMigrations(false)
 	if err != nil {
 		return 0, err
 	}
@@ -313,12 +321,12 @@ func readMigration(id string) ([]byte, error) {
 func DumpMigrations(dest string) error {
 	for _, id := range migrationIDs() {
 		fullPath := filepath.Join(dest, "migrations", id)
-		os.MkdirAll(filepath.Dir(fullPath), 0755)
+		os.MkdirAll(filepath.Dir(fullPath), 0o755)
 		data, err := readMigration(id)
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(fullPath, data, 0644)
+		err = os.WriteFile(fullPath, data, 0o644)
 		if err != nil {
 			return errors.Wrapf(err, "write to %s", fullPath)
 		}
@@ -340,7 +348,7 @@ type migrationStep struct {
 	*migration
 }
 
-func parseMigrations() ([]migration, error) {
+func parseMigrations(skipPgCrypto bool) ([]migration, error) {
 	var migrations []migration
 	for _, id := range migrationIDs() {
 		var m migration
@@ -350,6 +358,11 @@ func parseMigrations() ([]migration, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if skipPgCrypto {
+			data = bytes.ReplaceAll(data, []byte(`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`), nil)
+		}
+
 		p, err := sqlparse.ParseMigration(bytes.NewReader(data))
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse %s", m.ID)
@@ -379,6 +392,7 @@ func (step migrationStep) doneStmt() string {
 	}
 	return deleteMigrationRecord
 }
+
 func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
 		_, err := c.Exec(ctx, stmt)
