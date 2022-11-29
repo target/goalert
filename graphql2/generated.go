@@ -24562,7 +24562,12 @@ func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"rInterval", "filterByServiceID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "rInterval":
 			var err error
@@ -24597,7 +24602,12 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 		asMap["after"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"limit", "after"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "limit":
 			var err error
@@ -24647,7 +24657,12 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		asMap["sort"] = "statusID"
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"filterByStatus", "filterByServiceID", "search", "first", "after", "favoritesOnly", "includeNotified", "omit", "sort", "createdBefore", "notCreatedBefore", "closedBefore", "notClosedBefore"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "filterByStatus":
 			var err error
@@ -24766,7 +24781,12 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "providerID", "subjectID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -24805,7 +24825,12 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLengthHours", "count"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "handoff":
 			var err error
@@ -24860,7 +24885,12 @@ func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -24899,7 +24929,12 @@ func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -24930,7 +24965,12 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"summary", "details", "serviceID", "sanitize"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "summary":
 			var err error
@@ -24984,7 +25024,12 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 		asMap["repeat"] = 3
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "repeat", "favorite", "steps"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -25039,7 +25084,12 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "escalationPolicyID":
 			var err error
@@ -25094,7 +25144,12 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -25133,7 +25188,12 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "type", "name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -25176,7 +25236,12 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 		asMap["shiftLength"] = 1
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "start", "favorite", "type", "shiftLength", "userIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -25255,7 +25320,12 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "favorite", "targets", "newUserOverrides"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -25322,7 +25392,12 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 		asMap["description"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "favorite", "escalationPolicyID", "newEscalationPolicy", "newIntegrationKeys", "labels", "newHeartbeatMonitors"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -25401,7 +25476,12 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "reminderMinutes", "scheduleID", "disabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -25448,7 +25528,12 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "type", "name", "value", "newUserNotificationRule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -25503,7 +25588,12 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"username", "password", "name", "email", "role", "favorite"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "username":
 			var err error
@@ -25566,7 +25656,12 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "contactMethodID", "delayMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -25605,7 +25700,12 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "start", "end", "addUserID", "removeUserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -25660,7 +25760,12 @@ func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"number"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "number":
 			var err error
@@ -25683,7 +25788,12 @@ func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"providerMessageID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "providerMessageID":
 			var err error
@@ -25710,7 +25820,12 @@ func (ec *executionContext) unmarshalInputDebugMessagesInput(ctx context.Context
 		asMap["first"] = 15
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "createdBefore", "createdAfter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25749,7 +25864,12 @@ func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"from", "to", "body"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "from":
 			var err error
@@ -25804,7 +25924,12 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25877,7 +26002,12 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25934,7 +26064,12 @@ func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Cont
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25994,7 +26129,12 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 		asMap["uniqueKeys"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "uniqueKeys", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26059,7 +26199,12 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"key", "first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "key":
 			var err error
@@ -26124,7 +26269,12 @@ func (ec *executionContext) unmarshalInputMessageLogSearchOptions(ctx context.Co
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "createdBefore", "createdAfter", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26187,7 +26337,12 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "target", "time", "weekdayFilter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26250,7 +26405,12 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26313,7 +26473,12 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "start", "end", "weekdayFilter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26376,7 +26541,12 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26439,7 +26609,12 @@ func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "target", "newRotation", "rules"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -26486,7 +26661,12 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"contactMethodID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "contactMethodID":
 			var err error
@@ -26525,7 +26705,12 @@ func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Conte
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26588,7 +26773,12 @@ func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"target", "favorite"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "target":
 			var err error
@@ -26619,7 +26809,12 @@ func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"target", "key", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "target":
 			var err error
@@ -26658,7 +26853,12 @@ func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInpu
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "rules"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -26689,7 +26889,12 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -26728,7 +26933,12 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "clearStart", "clearEnd", "start", "end", "shifts"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -26801,7 +27011,12 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26848,7 +27063,12 @@ func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26879,7 +27099,12 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "type"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26920,7 +27145,12 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26967,7 +27197,12 @@ func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "newStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -26998,7 +27233,12 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"alertIDs", "newStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "alertIDs":
 			var err error
@@ -27029,7 +27269,12 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "repeat", "stepIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27084,7 +27329,12 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "delayMinutes", "targets"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27123,7 +27373,12 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27162,7 +27417,12 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "activeUserIndex", "userIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27249,7 +27509,12 @@ func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27296,7 +27561,12 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "escalationPolicyID", "maintenanceExpiresAt"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27351,7 +27621,12 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "reminderMinutes", "disabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27398,7 +27673,12 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27437,7 +27717,12 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "email", "role", "statusUpdateContactMethodID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27492,7 +27777,12 @@ func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "start", "end", "addUserID", "removeUserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -27554,7 +27844,12 @@ func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.
 		asMap["after"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "omit", "scheduleID", "filterAddUserID", "filterRemoveUserID", "filterAnyUserID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -27660,7 +27955,12 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "CMValue", "CMType", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -27739,7 +28039,12 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"contactMethodID", "code"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "contactMethodID":
 			var err error

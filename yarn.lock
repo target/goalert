@@ -708,10 +708,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@graphiql/react@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@graphiql/react/-/react-0.14.0.tgz#a3beb5bf2967d5085f306c8fcb953a1a95b4e41b"
-  integrity sha512-BBkbl35akar4/+4P6ggZ99jSmU0D1qV70A2OegkuJ4t/knAis/R713faOs9xKyjkUj8hv6+KcAqBOp48LnP6lA==
+"@graphiql/react@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@graphiql/react/-/react-0.15.0.tgz#b10fc40c5a85e7b5b845907d57bfd8be92753037"
+  integrity sha512-kJqkdf6d4Cck05Wt5yCDZXWfs7HZgcpuoWq/v8nOa698qVaNMM3qdG4CpRsZEexku0DSSJzWWuanxd5x+sRcFg==
   dependencies:
     "@graphiql/toolkit" "^0.8.0"
     "@reach/combobox" "^0.17.0"
@@ -1217,13 +1217,13 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@playwright/test@1.27.0":
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.27.0.tgz#a5327a4823837a718ae6fad9b1e5ff520927e834"
-  integrity sha512-L4BswoJvGkFsEHhEgzVNHBnkFB1FbnBQn3QmvTl7+AouoJQ4a8tLwZKvytdovCsNi7B5cXuRo58yGvfM5PnExw==
+"@playwright/test@1.28.0":
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.28.0.tgz#8de83f9d2291bba3f37883e33431b325661720d9"
+  integrity sha512-vrHs5DFTPwYox5SGKq/7TDn/S4q6RA1zArd7uhO6EyP9hj3XgZBBM12ktMbnDQNxh/fL1IUKsTNLxihmsU38lQ==
   dependencies:
     "@types/node" "*"
-    playwright-core "1.27.0"
+    playwright-core "1.28.0"
 
 "@popperjs/core@^2.11.6":
   version "2.11.6"
@@ -1762,14 +1762,14 @@
   dependencies:
     "@types/node" "*"
 
-"@typescript-eslint/eslint-plugin@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.42.0.tgz#36a8c0c379870127059889a9cc7e05c260d2aaa5"
-  integrity sha512-5TJh2AgL6+wpL8H/GTSjNb4WrjKoR2rqvFxR/DDTqYNk6uXn8BJMEcncLSpMbf/XV1aS0jAjYwn98uvVCiAywQ==
+"@typescript-eslint/eslint-plugin@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.44.0.tgz#105788f299050c917eb85c4d9fd04b089e3740de"
+  integrity sha512-j5ULd7FmmekcyWeArx+i8x7sdRHzAtXTkmDPthE4amxZOWKFK7bomoJ4r7PJ8K7PoMzD16U8MmuZFAonr1ERvw==
   dependencies:
-    "@typescript-eslint/scope-manager" "5.42.0"
-    "@typescript-eslint/type-utils" "5.42.0"
-    "@typescript-eslint/utils" "5.42.0"
+    "@typescript-eslint/scope-manager" "5.44.0"
+    "@typescript-eslint/type-utils" "5.44.0"
+    "@typescript-eslint/utils" "5.44.0"
     debug "^4.3.4"
     ignore "^5.2.0"
     natural-compare-lite "^1.4.0"
@@ -1777,72 +1777,72 @@
     semver "^7.3.7"
     tsutils "^3.21.0"
 
-"@typescript-eslint/parser@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.42.0.tgz#be0ffbe279e1320e3d15e2ef0ad19262f59e9240"
-  integrity sha512-Ixh9qrOTDRctFg3yIwrLkgf33AHyEIn6lhyf5cCfwwiGtkWhNpVKlEZApi3inGQR/barWnY7qY8FbGKBO7p3JA==
+"@typescript-eslint/parser@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.44.0.tgz#99e2c710a2252191e7a79113264f438338b846ad"
+  integrity sha512-H7LCqbZnKqkkgQHaKLGC6KUjt3pjJDx8ETDqmwncyb6PuoigYajyAwBGz08VU/l86dZWZgI4zm5k2VaKqayYyA==
   dependencies:
-    "@typescript-eslint/scope-manager" "5.42.0"
-    "@typescript-eslint/types" "5.42.0"
-    "@typescript-eslint/typescript-estree" "5.42.0"
+    "@typescript-eslint/scope-manager" "5.44.0"
+    "@typescript-eslint/types" "5.44.0"
+    "@typescript-eslint/typescript-estree" "5.44.0"
     debug "^4.3.4"
 
-"@typescript-eslint/scope-manager@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.42.0.tgz#e1f2bb26d3b2a508421ee2e3ceea5396b192f5ef"
-  integrity sha512-l5/3IBHLH0Bv04y+H+zlcLiEMEMjWGaCX6WyHE5Uk2YkSGAMlgdUPsT/ywTSKgu9D1dmmKMYgYZijObfA39Wow==
+"@typescript-eslint/scope-manager@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.44.0.tgz#988c3f34b45b3474eb9ff0674c18309dedfc3e04"
+  integrity sha512-2pKml57KusI0LAhgLKae9kwWeITZ7IsZs77YxyNyIVOwQ1kToyXRaJLl+uDEXzMN5hnobKUOo2gKntK9H1YL8g==
   dependencies:
-    "@typescript-eslint/types" "5.42.0"
-    "@typescript-eslint/visitor-keys" "5.42.0"
+    "@typescript-eslint/types" "5.44.0"
+    "@typescript-eslint/visitor-keys" "5.44.0"
 
-"@typescript-eslint/type-utils@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/type-utils/-/type-utils-5.42.0.tgz#4206d7192d4fe903ddf99d09b41d4ac31b0b7dca"
-  integrity sha512-HW14TXC45dFVZxnVW8rnUGnvYyRC0E/vxXShFCthcC9VhVTmjqOmtqj6H5rm9Zxv+ORxKA/1aLGD7vmlLsdlOg==
+"@typescript-eslint/type-utils@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/type-utils/-/type-utils-5.44.0.tgz#bc5a6e8a0269850714a870c9268c038150dfb3c7"
+  integrity sha512-A1u0Yo5wZxkXPQ7/noGkRhV4J9opcymcr31XQtOzcc5nO/IHN2E2TPMECKWYpM3e6olWEM63fq/BaL1wEYnt/w==
   dependencies:
-    "@typescript-eslint/typescript-estree" "5.42.0"
-    "@typescript-eslint/utils" "5.42.0"
+    "@typescript-eslint/typescript-estree" "5.44.0"
+    "@typescript-eslint/utils" "5.44.0"
     debug "^4.3.4"
     tsutils "^3.21.0"
 
-"@typescript-eslint/types@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.42.0.tgz#5aeff9b5eced48f27d5b8139339bf1ef805bad7a"
-  integrity sha512-t4lzO9ZOAUcHY6bXQYRuu+3SSYdD9TS8ooApZft4WARt4/f2Cj/YpvbTe8A4GuhT4bNW72goDMOy7SW71mZwGw==
+"@typescript-eslint/types@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.44.0.tgz#f3f0b89aaff78f097a2927fe5688c07e786a0241"
+  integrity sha512-Tp+zDnHmGk4qKR1l+Y1rBvpjpm5tGXX339eAlRBDg+kgZkz9Bw+pqi4dyseOZMsGuSH69fYfPJCBKBrbPCxYFQ==
 
-"@typescript-eslint/typescript-estree@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.42.0.tgz#2592d24bb5f89bf54a63384ff3494870f95b3fd8"
-  integrity sha512-2O3vSq794x3kZGtV7i4SCWZWCwjEtkWfVqX4m5fbUBomOsEOyd6OAD1qU2lbvV5S8tgy/luJnOYluNyYVeOTTg==
+"@typescript-eslint/typescript-estree@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.44.0.tgz#0461b386203e8d383bb1268b1ed1da9bc905b045"
+  integrity sha512-M6Jr+RM7M5zeRj2maSfsZK2660HKAJawv4Ud0xT+yauyvgrsHu276VtXlKDFnEmhG+nVEd0fYZNXGoAgxwDWJw==
   dependencies:
-    "@typescript-eslint/types" "5.42.0"
-    "@typescript-eslint/visitor-keys" "5.42.0"
+    "@typescript-eslint/types" "5.44.0"
+    "@typescript-eslint/visitor-keys" "5.44.0"
     debug "^4.3.4"
     globby "^11.1.0"
     is-glob "^4.0.3"
     semver "^7.3.7"
     tsutils "^3.21.0"
 
-"@typescript-eslint/utils@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.42.0.tgz#f06bd43b9a9a06ed8f29600273240e84a53f2f15"
-  integrity sha512-JZ++3+h1vbeG1NUECXQZE3hg0kias9kOtcQr3+JVQ3whnjvKuMyktJAAIj6743OeNPnGBmjj7KEmiDL7qsdnCQ==
+"@typescript-eslint/utils@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.44.0.tgz#d733da4d79d6c30f1a68b531cdda1e0c1f00d52d"
+  integrity sha512-fMzA8LLQ189gaBjS0MZszw5HBdZgVwxVFShCO3QN+ws3GlPkcy9YuS3U4wkT6su0w+Byjq3mS3uamy9HE4Yfjw==
   dependencies:
     "@types/json-schema" "^7.0.9"
     "@types/semver" "^7.3.12"
-    "@typescript-eslint/scope-manager" "5.42.0"
-    "@typescript-eslint/types" "5.42.0"
-    "@typescript-eslint/typescript-estree" "5.42.0"
+    "@typescript-eslint/scope-manager" "5.44.0"
+    "@typescript-eslint/types" "5.44.0"
+    "@typescript-eslint/typescript-estree" "5.44.0"
     eslint-scope "^5.1.1"
     eslint-utils "^3.0.0"
     semver "^7.3.7"
 
-"@typescript-eslint/visitor-keys@5.42.0":
-  version "5.42.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-5.42.0.tgz#ee8d62d486f41cfe646632fab790fbf0c1db5bb0"
-  integrity sha512-QHbu5Hf/2lOEOwy+IUw0GoSCuAzByTAWWrOTKzTzsotiUnWFpuKnXcAhC9YztAf2EElQ0VvIK+pHJUPkM0q7jg==
+"@typescript-eslint/visitor-keys@5.44.0":
+  version "5.44.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-5.44.0.tgz#10740dc28902bb903d12ee3a005cc3a70207d433"
+  integrity sha512-a48tLG8/4m62gPFbJ27FxwCOqPKxsb8KC3HkmYoq2As/4YyjQl1jDbRr1s63+g4FS/iIehjmN3L5UjmKva1HzQ==
   dependencies:
-    "@typescript-eslint/types" "5.42.0"
+    "@typescript-eslint/types" "5.44.0"
     eslint-visitor-keys "^3.3.0"
 
 "@urql/core@>=3.0.0", "@urql/core@^3.0.0":
@@ -4160,12 +4160,12 @@ graceful-fs@^4.2.4:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
-graphiql@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-2.1.0.tgz#2c67dd5121e120e30fc4e37ce2b776b7a12d2a76"
-  integrity sha512-b58o/o7y5x/C4WzH7YTeSWbINE6tcfzZN4TxgvoSZxhE9X6MulXXbXLRiGEl5+FuajIN0LxaoleHTJUHb9H2wg==
+graphiql@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/graphiql/-/graphiql-2.2.0.tgz#406b9b28bca130ae9ece892826c1d60958c1ac13"
+  integrity sha512-w1ujpCKMlkwkoUjeg0HpRiBBTm1WHAjHNkFv1TbMu6trjzz63mQ48GLZlmyQY1yhwmc+diCcvmmAt+AyvKLWWA==
   dependencies:
-    "@graphiql/react" "^0.14.0"
+    "@graphiql/react" "^0.15.0"
     "@graphiql/toolkit" "^0.8.0"
     entities "^2.0.0"
     graphql-language-service "^5.1.0"
@@ -6594,17 +6594,17 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-playwright-core@1.27.0:
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.27.0.tgz#e5f9d2bc19ebdd9581a01e74f019bb91aa7cf55d"
-  integrity sha512-VBKaaFUVKDo3akW+o4DwbK1ZyXh46tcSwQKPK3lruh8IJd5feu55XVZx4vOkbb2uqrNdIF51sgsadYT533SdpA==
+playwright-core@1.28.0:
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.28.0.tgz#61df5c714f45139cca07095eccb4891e520e06f2"
+  integrity sha512-nJLknd28kPBiCNTbqpu6Wmkrh63OEqJSFw9xOfL9qxfNwody7h6/L3O2dZoWQ6Oxcm0VOHjWmGiCUGkc0X3VZA==
 
-playwright@1.27.0:
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.27.0.tgz#68a0e29f1756da105b22291a7c3f402ae749213a"
-  integrity sha512-F+0+0RD03LS+KdNAMMp63OBzu+NwYYLd52pKLczuSlTsV5b/SLkUoNhSfzDFngEFOuRL2gk0LlfGW3mKiUBk6w==
+playwright@1.28.0:
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.28.0.tgz#eaec2e607858bd4c0bd7434ac01042720e6a39e3"
+  integrity sha512-kyOXGc5y1mgi+hgEcCIyE1P1+JumLrxS09nFHo5sdJNzrucxPRAGwM4A2X3u3SDOfdgJqx61yIoR6Av+5plJPg==
   dependencies:
-    playwright-core "1.27.0"
+    playwright-core "1.28.0"
 
 posix-character-classes@^0.1.0:
   version "0.1.1"
@@ -6665,10 +6665,10 @@ prettier-linter-helpers@^1.0.0:
   dependencies:
     fast-diff "^1.1.2"
 
-prettier@2.7.1:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"
-  integrity sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==
+prettier@2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.0.tgz#c7df58393c9ba77d6fba3921ae01faf994fb9dc9"
+  integrity sha512-9Lmg8hTFZKG0Asr/kW9Bp8tJjRVluO8EJQVfY2T7FMw9T5jy4I/Uvx0Rca/XWf50QQ1/SS48+6IJWnrb+2yemA==
 
 pretty-bytes@^5.6.0:
   version "5.6.0"
@@ -8339,10 +8339,10 @@ word-wrap@^1.2.3:
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
-wouter@2.8.0-alpha.2:
-  version "2.8.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/wouter/-/wouter-2.8.0-alpha.2.tgz#d57dfbd23b964b8bd848f2ed3eb2b38cf3c00e00"
-  integrity sha512-aPsL5m5rW9RiceClOmGj6t5gn9Ut2TJVr98UDi1u9MIRNYiYVflg6vFIjdDYJ4IAyH0JdnkSgGwfo0LQS3k2zg==
+wouter@2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/wouter/-/wouter-2.9.0.tgz#0a6ad9083c73fbdae9ac62e80c217735a593654f"
+  integrity sha512-cGi9miU5jgwNaybj4sfzY9ZVhU8EwFsncmi2yDvVbS2pL/yz8ZpAMMiELHr4j8w2NLStgI/ltqDluYvBwPhYoQ==
 
 wrap-ansi@^6.2.0:
   version "6.2.0"
