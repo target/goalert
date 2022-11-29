@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import Badge from '@mui/material/Badge'
 import Grid from '@mui/material/Grid'
@@ -24,6 +23,8 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import { ReactNode } from 'react-markdown/lib/react-markdown'
+import { TargetInput } from '../../schema'
 
 const useStyles = makeStyles({
   badge: {
@@ -39,12 +40,24 @@ const useStyles = makeStyles({
   },
 })
 
-function PolicyStepForm(props) {
+interface PolicyStepFormValue {
+  targets: Array<TargetInput>
+  delayMinutes: string
+}
+
+interface PolicyStepFormProps {
+  value: PolicyStepFormValue
+  errors: Array<{ field: 'targets' | 'delayMinutes'; message: string }>
+  disabled: boolean
+  onChange?: (value: PolicyStepFormValue) => void
+}
+
+function PolicyStepForm(props: PolicyStepFormProps): JSX.Element {
   const [step, setStep] = useState(0)
   const { disabled, value } = props
   const classes = useStyles()
 
-  function handleStepChange(stepChange) {
+  function handleStepChange(stepChange: number): void {
     if (stepChange === step) {
       setStep(-1) // close
     } else {
@@ -53,34 +66,40 @@ function PolicyStepForm(props) {
   }
 
   // takes a list of { id, type } targets and return the ids for a specific type
-  const getTargetsByType = (type) => (tgts) =>
-    tgts
-      .filter((t) => t.type === type) // only the list of the current type
-      .map((t) => t.id) // array of ID strings
+  const getTargetsByType =
+    (type: string) => (tgts: PolicyStepFormValue['targets']) =>
+      tgts
+        .filter((t) => t.type === type) // only the list of the current type
+        .map((t) => t.id) // array of ID strings
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-  const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
-    curTgts
-      .filter((t) => t.type !== type) // current targets without any of the current type
-      .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
+  const makeSetTargetType =
+    (curTgts: PolicyStepFormValue['targets']) =>
+    (type: string) =>
+    (newTgts: PolicyStepFormValue['targets']) =>
+      curTgts
+        .filter((t) => t.type !== type) // current targets without any of the current type
+        .concat(newTgts.map((id: string) => ({ id, type }))) // add the list of current type to the end
 
   // then form fields would all point to `targets` but can map values
   const setTargetType = makeSetTargetType(value.targets)
 
-  const badgeMeUpScotty = (len, txt) => (
-    <Badge
-      badgeContent={len}
-      color='secondary'
-      invisible={!len}
-      classes={{
-        badge: classes.badge,
-      }}
-      tabIndex={0}
-      aria-label={`Toggle ${txt}`}
-    >
-      <Typography className={classes.label}>{txt}</Typography>
-    </Badge>
-  )
+  const badgeMeUpScotty = (len: ReactNode, txt: string): React.ReactNode => {
+    return (
+      <Badge
+        badgeContent={len}
+        color='secondary'
+        invisible={!len}
+        classes={{
+          badge: classes.badge,
+        }}
+        tabIndex={0}
+        aria-label={`Toggle ${txt}`}
+      >
+        <Typography className={classes.label}>{txt}</Typography>
+      </Badge>
+    )
+  }
 
   const optionalText = (
     <Typography
@@ -247,23 +266,23 @@ function PolicyStepForm(props) {
   )
 }
 
-PolicyStepForm.propTypes = {
-  value: p.shape({
-    targets: p.arrayOf(
-      p.shape({ id: p.string.isRequired, type: p.string.isRequired }),
-    ),
-    delayMinutes: p.string.isRequired,
-  }).isRequired,
+// PolicyStepForm.propTypes = {
+//   value: p.shape({
+//     targets: p.arrayOf(
+//       p.shape({ id: p.string.isRequired, type: p.string.isRequired }),
+//     ),
+//     delayMinutes: p.string.isRequired,
+//   }).isRequired,
 
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['targets', 'delayMinutes']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
+//   errors: p.arrayOf(
+//     p.shape({
+//       field: p.oneOf(['targets', 'delayMinutes']).isRequired,
+//       message: p.string.isRequired,
+//     }),
+//   ),
 
-  disabled: p.bool,
-  onChange: p.func,
-}
+//   disabled: p.bool,
+//   onChange: p.func,
+// }
 
 export default PolicyStepForm

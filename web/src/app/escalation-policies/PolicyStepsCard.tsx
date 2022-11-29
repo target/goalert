@@ -1,5 +1,4 @@
-import React, { useRef, useState } from 'react'
-import { PropTypes as p } from 'prop-types'
+import React, { SetStateAction, useRef, useState } from 'react'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Dialog from '@mui/material/Dialog'
@@ -13,8 +12,10 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 import { useIsWidthDown } from '../util/useWidth'
+import { Theme } from '@mui/material/styles'
+import { Target } from '../../schema'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   dndDragging: {
     backgroundColor: theme.palette.background.default,
   },
@@ -31,23 +32,35 @@ const mutation = gql`
   }
 `
 
-function PolicyStepsCard(props) {
+interface Step {
+  id: string
+  delayMinutes: number
+  targets: Target[]
+}
+
+interface PolicyStepsCardProps {
+  escalationPolicyID: string
+  repeat: number // # of times EP repeats escalation process
+  steps: Step[]
+}
+
+function PolicyStepsCard(props: PolicyStepsCardProps): JSX.Element {
   const classes = useStyles()
   const { escalationPolicyID, repeat, steps } = props
 
-  const oldID = useRef(null)
-  const oldIdx = useRef(null)
-  const newIdx = useRef(null)
+  const oldID = useRef(0)
+  const oldIdx = useRef(0)
+  const newIdx = useRef(0)
 
   const [error, setError] = useState(null)
 
-  function arrayMove(arr) {
+  function arrayMove(arr: Array<React.MutableRefObject<number>>): void {
     const el = arr[oldIdx.current]
     arr.splice(oldIdx.current, 1)
     arr.splice(newIdx.current, 0, el)
   }
 
-  function onStepUpdate(cache, data) {
+  function onStepUpdate(cache, data): void {
     // mutation returns true on a success
     if (
       !data.updateEscalationPolicy ||
@@ -101,7 +114,7 @@ function PolicyStepsCard(props) {
     optimisticResponse: { updateEscalationPolicy: true },
   })
 
-  function handleDragStart() {
+  function handleDragStart(): void {
     // adds a little vibration if the browser supports it
     if (window.navigator.vibrate) {
       window.navigator.vibrate(100)
@@ -109,14 +122,14 @@ function PolicyStepsCard(props) {
   }
 
   // update step order on ui and send out mutation
-  function onDragEnd(result) {
+  function onDragEnd(result): JSX.Element {
     // dropped outside the list
     if (!result.destination) {
       return
     }
 
     // map ids to swap elements
-    const sids = steps.map((s) => s.id)
+    const sids = steps.map((s) => s.id as unknown as number)
     oldID.current = result.draggableId
     oldIdx.current = sids.indexOf(oldID.current)
     newIdx.current = result.destination.index
@@ -134,7 +147,7 @@ function PolicyStepsCard(props) {
     })
   }
 
-  function renderRepeatText() {
+  function renderRepeatText(): JSX.Element | null {
     if (!steps.length) {
       return null
     }
@@ -151,7 +164,7 @@ function PolicyStepsCard(props) {
     )
   }
 
-  function renderNoSteps() {
+  function renderNoSteps(): JSX.Element {
     return (
       <Typography className={classes.paddingTop} variant='caption'>
         No steps currently on this Escalation Policy
@@ -166,7 +179,7 @@ function PolicyStepsCard(props) {
    * targets (rendered as mui chips), and the delay length
    * until the next escalation.
    */
-  function renderStepsList() {
+  function renderStepsList(): JSX.Element {
     if (!steps.length) {
       return renderNoSteps()
     }
@@ -251,22 +264,22 @@ function PolicyStepsCard(props) {
   )
 }
 
-PolicyStepsCard.propTypes = {
-  escalationPolicyID: p.string.isRequired,
-  repeat: p.number.isRequired, // # of times EP repeats escalation process
-  steps: p.arrayOf(
-    p.shape({
-      id: p.string.isRequired,
-      delayMinutes: p.number.isRequired,
-      targets: p.arrayOf(
-        p.shape({
-          id: p.string.isRequired,
-          name: p.string.isRequired,
-          type: p.string.isRequired,
-        }),
-      ).isRequired,
-    }),
-  ).isRequired,
-}
+// PolicyStepsCard.propTypes = {
+//   escalationPolicyID: p.string.isRequired,
+//   repeat: p.number.isRequired, // # of times EP repeats escalation process
+//   steps: p.arrayOf(
+//     p.shape({
+//       id: p.string.isRequired,
+//       delayMinutes: p.number.isRequired,
+//       targets: p.arrayOf(
+//         p.shape({
+//           id: p.string.isRequired,
+//           name: p.string.isRequired,
+//           type: p.string.isRequired,
+//         }),
+//       ).isRequired,
+//     }),
+//   ).isRequired,
+// }
 
 export default PolicyStepsCard
