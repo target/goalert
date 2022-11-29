@@ -165,6 +165,8 @@ export default function UserDetails(props: {
           onClose={() => setShowUserDeleteDialog(false)}
         />
       )}
+
+      {/* dialogs only shown on mobile via FAB button */}
       {mobile && !props.readOnly ? (
         <SpeedDial
           label='Add Items'

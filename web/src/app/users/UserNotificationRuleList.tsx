@@ -1,13 +1,22 @@
 import React, { useState, ReactNode } from 'react'
-import Query from '../util/Query'
 import { gql, QueryResult } from '@apollo/client'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
-import { Grid, Card, CardHeader, IconButton, Theme } from '@mui/material'
+import {
+  Button,
+  Grid,
+  Card,
+  CardHeader,
+  IconButton,
+  Theme,
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Add, Delete } from '@mui/icons-material'
+import Query from '../util/Query'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { formatNotificationRule, sortNotificationRules } from './util'
-import { Delete } from '@mui/icons-material'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
+import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -40,6 +49,8 @@ export default function UserNotificationRuleList(props: {
   readOnly: boolean
 }): JSX.Element {
   const classes = useStyles()
+  const mobile = useIsWidthDown('md')
+  const [showAddDialog, setShowAddDialog] = useState(false)
   const [deleteID, setDeleteID] = useState(null)
 
   function renderList(notificationRules: FlatListListItem[]): ReactNode {
@@ -50,6 +61,17 @@ export default function UserNotificationRuleList(props: {
             className={classes.cardHeader}
             titleTypographyProps={{ component: 'h2', variant: 'h5' }}
             title='Notification Rules'
+            action={
+              !mobile ? (
+                <Button
+                  variant='contained'
+                  startIcon={<Add />}
+                  onClick={() => setShowAddDialog(true)}
+                >
+                  Add
+                </Button>
+              ) : null
+            }
           />
           <FlatList
             data-cy='notification-rules'
@@ -68,6 +90,12 @@ export default function UserNotificationRuleList(props: {
             emptyMessage='No notification rules'
           />
         </Card>
+        {showAddDialog && (
+          <UserNotificationRuleCreateDialog
+            userID={props.userID}
+            onClose={() => setShowAddDialog(false)}
+          />
+        )}
         {deleteID && (
           <UserNotificationRuleDeleteDialog
             ruleID={deleteID}
