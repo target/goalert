@@ -4,6 +4,7 @@ import profile from '../fixtures/profile.json'
 const c = new Chance()
 
 function countryCodeCheck(
+  screen: ScreenFormat,
   country: string,
   countryCode: string,
   value: string,
@@ -13,7 +14,12 @@ function countryCodeCheck(
     const name = 'CM SM ' + c.word({ length: 8 })
     const type = c.pickone(['SMS', 'VOICE'])
 
-    cy.pageFab('Contact')
+    if (screen === 'mobile') {
+      cy.pageFab('Add Contact Method')
+    } else {
+      cy.get('button[aria-label="Add contact method"]').click()
+    }
+
     cy.get('input[name=name]').type(name)
     cy.get('input[name=type]').selectByLabel(type)
     cy.get('input[name=value]').type(countryCode + value)
@@ -22,7 +28,7 @@ function countryCodeCheck(
   })
 }
 
-function testProfile(): void {
+function testProfile(screen: ScreenFormat): void {
   let cm: ContactMethod
 
   beforeEach(() =>
@@ -54,13 +60,15 @@ function testProfile(): void {
     return cy
       .createService({ name })
       .then((svc: Service) => {
-        return cy
-          .createEPStep({
-            epID: svc.epID,
-            targets: [{ type: 'user', id: profile.id }],
-          })
-          .engineTrigger()
-          .then(() => svc.id)
+        return (
+          cy
+            .createEPStep({
+              epID: svc.epID,
+              targets: [{ type: 'user', id: profile.id }],
+            })
+            // .engineTrigger()
+            .then(() => svc.id)
+        )
       })
       .then((svcID: string) => {
         cy.get('body').contains('a', 'On-Call').click()
@@ -151,7 +159,12 @@ function testProfile(): void {
 
   describe('Contact Methods', () => {
     function check(name: string, type: string, value: string): void {
-      cy.pageFab('Contact')
+      if (screen === 'mobile') {
+        cy.pageFab('Add Contact Method')
+      } else {
+        cy.get('button[aria-label="Add contact method"]').click()
+      }
+
       cy.dialogTitle('Create New Contact Method')
       cy.dialogForm({
         name,
@@ -220,7 +233,12 @@ function testProfile(): void {
     it('should return error with link to conflicting user', () => {
       cy.addContactMethod({ userID: profile.id }).then(
         (contactMethod: ContactMethod) => {
-          cy.pageFab('Add Contact Method')
+          if (screen === 'mobile') {
+            cy.pageFab('Add Contact Method')
+          } else {
+            cy.get('button[aria-label="Add contact method"]').click()
+          }
+
           cy.dialogTitle('Create New Contact Method')
           cy.dialogForm({
             name: c.word({ length: 8 }),
@@ -280,12 +298,18 @@ function testProfile(): void {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.get('button[data-cy=page-fab]').should('be.visible').click()
-      cy.get(
-        `span[aria-label*=${JSON.stringify(
-          'Add Notification Rule',
-        )}] button[role=menuitem]`,
-      ).should('be.disabled')
+      if (screen === 'mobile') {
+        cy.get('button[data-cy=page-fab]').should('be.visible').click()
+        cy.get(
+          `span[aria-label*=${JSON.stringify(
+            'Add Notification Rule',
+          )}] button[role=menuitem]`,
+        ).should('be.disabled')
+      } else {
+        cy.get('button[aria-label="Add notification rule"]').should(
+          'be.disabled',
+        )
+      }
     })
 
     it('should display notification disclaimer when enabled', () => {
@@ -297,7 +321,12 @@ function testProfile(): void {
       })
       cy.reload()
 
-      cy.pageFab('Add Contact Method')
+      if (screen === 'mobile') {
+        cy.pageFab('Add Contact Method')
+      } else {
+        cy.get('button[aria-label="Add contact method"]').click()
+      }
+
       cy.dialogTitle('New Contact Method')
       cy.dialogContains(disclaimer)
 
@@ -308,20 +337,30 @@ function testProfile(): void {
       })
       cy.reload()
 
-      cy.pageFab('Add Contact Method')
+      if (screen === 'mobile') {
+        cy.pageFab('Add Contact Method')
+      } else {
+        cy.get('button[aria-label="Add contact method"]').click()
+      }
+
       cy.dialogTitle('New Contact Method')
       cy.dialogContains('new disclaimer')
     })
 
-    countryCodeCheck('India', '+91', '1234567890', '+91 1234 567 890')
-    countryCodeCheck('UK', '+44', '7911123456', '+44 7911 123456')
+    countryCodeCheck(screen, 'India', '+91', '1234567890', '+91 1234 567 890')
+    countryCodeCheck(screen, 'UK', '+44', '7911123456', '+44 7911 123456')
 
     it('should not allow fake country codes', () => {
       const value = '810' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'CM SM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
 
-      cy.pageFab('Contact')
+      if (screen === 'mobile') {
+        cy.pageFab('Add Contact Method')
+      } else {
+        cy.get('button[aria-label="Add contact method"]').click()
+      }
+
       cy.dialogTitle('New Contact Method')
       cy.dialogForm({
         name,
@@ -364,7 +403,12 @@ function testProfile(): void {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.pageFab('Notification')
+      if (screen === 'mobile') {
+        cy.pageFab('Add Notification Rule')
+      } else {
+        cy.get('button[aria-label="Add notification rule"]').click()
+      }
+
       cy.dialogTitle('New Notification Rule')
       cy.dialogForm({ contactMethodID: cm.name })
       cy.dialogFinish('Submit')
@@ -390,7 +434,13 @@ function testProfile(): void {
 
       // create new rule
       const delay = c.integer({ min: 2, max: 15 })
-      cy.pageFab('Notification')
+
+      if (screen === 'mobile') {
+        cy.pageFab('Add Notification Rule')
+      } else {
+        cy.get('button[aria-label="Add notification rule"]').click()
+      }
+
       cy.dialogTitle('New Notification Rule')
       cy.dialogForm({
         contactMethodID: cm.name,

@@ -4,17 +4,21 @@ import { Grid, Card, CardHeader, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Add, Delete } from '@mui/icons-material'
 import Query from '../util/Query'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
+import FlatList from '../lists/FlatList'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
+import { User } from '../../schema'
 
 const query = gql`
   query nrList($id: ID!) {
     user(id: $id) {
       id
+      contactMethods {
+        id
+      }
       notificationRules {
         id
         delayMinutes
@@ -46,7 +50,7 @@ export default function UserNotificationRuleList(props: {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [deleteID, setDeleteID] = useState(null)
 
-  function renderList(notificationRules: FlatListListItem[]): ReactNode {
+  function renderList(user: User): ReactNode {
     return (
       <Grid item xs={12}>
         <Card>
@@ -59,6 +63,7 @@ export default function UserNotificationRuleList(props: {
                 <IconButton
                   aria-label='Add notification rule'
                   onClick={() => setShowAddDialog(true)}
+                  disabled={user.contactMethods.length === 0}
                   size='large'
                 >
                   <Add fontSize='large' />
@@ -68,7 +73,7 @@ export default function UserNotificationRuleList(props: {
           />
           <FlatList
             data-cy='notification-rules'
-            items={sortNotificationRules(notificationRules).map((nr) => ({
+            items={sortNotificationRules(user.notificationRules).map((nr) => ({
               title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
               secondaryAction: props.readOnly ? null : (
                 <IconButton
@@ -102,9 +107,7 @@ export default function UserNotificationRuleList(props: {
     <Query
       query={query}
       variables={{ id: props.userID }}
-      render={({ data }: QueryResult) =>
-        renderList(data.user.notificationRules)
-      }
+      render={({ data }: QueryResult) => renderList(data.user)}
     />
   )
 }
