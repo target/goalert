@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { gql } from '@apollo/client'
-import p from 'prop-types'
+import { gql, useQuery } from '@apollo/client'
 import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
@@ -8,6 +7,13 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import _ from 'lodash'
 import Query from '../util/Query'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
+import { Target } from '../../schema'
+
+interface ScheduleRuleEditDialogProps {
+  scheduleID: string
+  target: Target
+  onClose: () => void
+}
 
 const query = gql`
   query ($id: ID!, $tgt: TargetInput!) {
@@ -32,23 +38,27 @@ const mutation = gql`
   }
 `
 
-export default function ScheduleRuleEditDialog({
-  onClose,
-  target,
-  scheduleID,
-}) {
+export default function ScheduleRuleEditDialog(
+  props: ScheduleRuleEditDialogProps,
+): JSX.Element {
+  const onClose = props.onClose
+  const target = props.target
+  const scheduleID = props.scheduleID
   const [value, setValue] = useState(null)
+  const [{ data, error, fetching }] = useQuery({
+    query,
+    variables: { id: props.scheduleID, tgt: props.target },
+  })
 
-  function renderDialog(data, commit, status, zone) {
-    const defaults = {
-      targetID: target.id,
-      rules: data.rules.map((r) => ({
-        id: r.id,
-        weekdayFilter: r.weekdayFilter,
-        start: gqlClockTimeToISO(r.start, zone),
-        end: gqlClockTimeToISO(r.end, zone),
-      })),
-    }
+  const defaults = {
+    targetID: target.id,
+    rules: data.rules.map((r) => ({
+      id: r.id,
+      weekdayFilter: r.weekdayFilter,
+      start: gqlClockTimeToISO(r.start, zone),
+      end: gqlClockTimeToISO(r.end, zone),
+    })),
+  }
     return (
       <FormDialog
         onClose={onClose}
@@ -112,11 +122,11 @@ export default function ScheduleRuleEditDialog({
   )
 }
 
-ScheduleRuleEditDialog.propTypes = {
-  scheduleID: p.string.isRequired,
-  target: p.shape({
-    type: p.oneOf(['rotation', 'user']).isRequired,
-    id: p.string.isRequired,
-  }).isRequired,
-  onClose: p.func,
-}
+// ScheduleRuleEditDialog.propTypes = {
+//   scheduleID: p.string.isRequired,
+//   target: p.shape({
+//     type: p.oneOf(['rotation', 'user']).isRequired,
+//     id: p.string.isRequired,
+//   }).isRequired,
+//   onClose: p.func,
+// }
