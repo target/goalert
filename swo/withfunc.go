@@ -16,7 +16,7 @@ type WithFunc[V any] struct {
 }
 
 // NewWithFunc creates a new WithFunc.
-// 
+//
 // withFn must not return an error after useFn is called.
 func NewWithFunc[V any](withFn func(ctx context.Context, useFn func(V)) error) *WithFunc[V] {
 	return &WithFunc[V]{
@@ -51,15 +51,15 @@ func (w *WithFunc[V]) Begin(ctx context.Context) (v V, err error) {
 		})
 		if err == nil {
 			if !called {
-				errCh <-fmt.Errorf("useFn never called")
+				errCh <- fmt.Errorf("useFn never called")
 			}
 			return
 		}
 
 		if called {
-			panic(fmt.Errorf("error returned after withFn called: %w",err))
+			panic(fmt.Errorf("error returned after withFn called: %w", err))
 		}
-		errCh <-err
+		errCh <- err
 	}()
 
 	select {
