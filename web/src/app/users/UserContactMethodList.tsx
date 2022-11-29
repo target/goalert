@@ -163,13 +163,13 @@ export default function UserContactMethodList(
           title='Contact Methods'
           action={
             !mobile ? (
-              <Button
-                variant='contained'
-                startIcon={<Add />}
+              <IconButton
+                aria-label='Add contact method'
                 onClick={() => setShowAddDialog(true)}
+                size='large'
               >
-                Add
-              </Button>
+                <Add fontSize='large' />
+              </IconButton>
             ) : null
           }
         />

@@ -31,7 +31,7 @@ export default function OtherActions({
         aria-label='Other Actions'
         data-cy='other-actions'
         aria-expanded={Boolean(anchorEl)}
-        size='large'
+        color='secondary'
         onClick={(e) => {
           onClose.cancel()
           setAnchorEl(e.currentTarget)

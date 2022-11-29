@@ -1,13 +1,6 @@
 import React, { useState, ReactNode } from 'react'
 import { gql, QueryResult } from '@apollo/client'
-import {
-  Button,
-  Grid,
-  Card,
-  CardHeader,
-  IconButton,
-  Theme,
-} from '@mui/material'
+import { Grid, Card, CardHeader, IconButton, Theme } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Add, Delete } from '@mui/icons-material'
 import Query from '../util/Query'
@@ -63,13 +56,13 @@ export default function UserNotificationRuleList(props: {
             title='Notification Rules'
             action={
               !mobile ? (
-                <Button
-                  variant='contained'
-                  startIcon={<Add />}
+                <IconButton
+                  aria-label='Add notification rule'
                   onClick={() => setShowAddDialog(true)}
+                  size='large'
                 >
-                  Add
-                </Button>
+                  <Add fontSize='large' />
+                </IconButton>
               ) : null
             }
           />
@@ -81,7 +74,7 @@ export default function UserNotificationRuleList(props: {
                 <IconButton
                   aria-label='Delete notification rule'
                   onClick={() => setDeleteID(nr.id)}
-                  size='large'
+                  color='secondary'
                 >
                   <Delete />
                 </IconButton>
