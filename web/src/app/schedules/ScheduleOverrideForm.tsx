@@ -152,29 +152,3 @@ export default function ScheduleOverrideForm(
     </FormContainer>
   )
 }
-
-// ScheduleOverrideForm.propTypes = {
-//   scheduleID: p.string.isRequired,
-
-//   value: p.shape({
-//     addUserID: p.string.isRequired,
-//     removeUserID: p.string.isRequired,
-//     start: p.string.isRequired,
-//     end: p.string.isRequired,
-//   }).isRequired,
-
-//   add: p.bool,
-//   remove: p.bool,
-
-//   disabled: p.bool.isRequired,
-//   errors: p.arrayOf(
-//     p.shape({
-//       field: p.oneOf(['addUserID', 'removeUserID', 'userID', 'start', 'end'])
-//         .isRequired,
-//       message: p.string.isRequired,
-//     }),
-//   ),
-
-//   onChange: p.func.isRequired,
-//   removeUserReadOnly: p.bool,
-// }
