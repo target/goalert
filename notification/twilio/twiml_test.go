@@ -70,7 +70,8 @@ func TestTwiMLResponse(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		r := newTwiMLResponse(ctx, rec)
-		r.Say("Hello")
+		r.Say("Hello! This is GoAlert.")
+		r.Pause()
 		r.RedirectPauseSec("http://example.com", 3)
 
 		resp := rec.Result()
@@ -81,7 +82,10 @@ func TestTwiMLResponse(t *testing.T) {
 		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
 	<Say language="en-US" voice="Polly.Joanna-Neural">
-		<prosody rate="slow">Hello</prosody>
+		<prosody rate="slow">Hello! This is GoAlert.</prosody>
+	</Say>
+	<Say language="en-US" voice="Polly.Joanna-Neural">
+		<break strength="x-strong" time="700ms"></break>
 	</Say>
 	<Pause length="3"></Pause>
 	<Redirect>http://example.com</Redirect>

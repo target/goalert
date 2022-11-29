@@ -26,26 +26,24 @@ import (
 // CallType indicates a supported Twilio voice call type.
 type CallType string
 
-// Supported call types.
+// KeyPressed specifies a key pressed from the voice menu options.
+type KeyPressed string
+
+// Voice implements a notification.Sender for Twilio voice calls.
+type Voice struct {
+	c *Config
+	r notification.Receiver
+}
+
 const (
+	// Supported call types.
 	CallTypeAlert       = CallType("alert")
 	CallTypeAlertStatus = CallType("alert-status")
 	CallTypeTest        = CallType("test")
 	CallTypeVerify      = CallType("verify")
 	CallTypeStop        = CallType("stop")
-)
 
-// We use url encoding with no padding to try and eliminate
-// encoding problems with buggy apps.
-var b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
-
-var errVoiceTimeout = errors.New("process voice action: timeout")
-
-// KeyPressed specifies a key pressed from the voice menu options.
-type KeyPressed string
-
-// Possible keys pressed from the Menu mapped to their actions.
-const (
+	// Possible keys pressed from the Menu mapped to their actions.
 	digitAck      = "4"
 	digitClose    = "6"
 	digitStop     = "1"
@@ -54,24 +52,24 @@ const (
 	digitConfirm  = "3"
 	digitOldAck   = "8"
 	digitOldClose = "9"
+	sayRepeat     = "star"
 
-	sayRepeat = "star"
+	PAUSE = "PAUSE"
 )
 
-var pRx = regexp.MustCompile(`\((.*?)\)`)
+var (
+	// We use url encoding with no padding to try and eliminate
+	// encoding problems with buggy apps.
+	b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
 
-// Voice implements a notification.Sender for Twilio voice calls.
-type Voice struct {
-	c *Config
-	r notification.Receiver
-}
-
-var _ notification.ReceiverSetter = &Voice{}
-var _ notification.Sender = &Voice{}
-var _ notification.StatusChecker = &Voice{}
-var _ notification.FriendlyValuer = &Voice{}
-
-var rmParen = regexp.MustCompile(`\s*\(.*?\)`)
+	errVoiceTimeout                             = errors.New("process voice action: timeout")
+	pRx                                         = regexp.MustCompile(`\((.*?)\)`)
+	_               notification.ReceiverSetter = &Voice{}
+	_               notification.Sender         = &Voice{}
+	_               notification.StatusChecker  = &Voice{}
+	_               notification.FriendlyValuer = &Voice{}
+	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
+)
 
 func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	var e alert.LogEntryFetcher
@@ -189,36 +187,40 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 
 	prefix := fmt.Sprintf("Hello! This is %s", cfg.ApplicationName())
 
-	twimlBreak := `<break strength="x-strong" time="700ms"/>`
-
-	var message string
+	var message []string
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with alert notifications. %s Service '%s' has %d unacknowledged alerts.", prefix, twimlBreak, t.ServiceName, t.Count)
+		message = append(message, fmt.Sprintf("%s with alert notifications.", prefix))
+		message = append(message, PAUSE)
+		message = append(message, fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count))
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
 		if t.Summary == "" {
 			t.Summary = "No summary provided"
 		}
-		message = fmt.Sprintf("%s with an alert notification. %s %s.", prefix, twimlBreak, t.Summary)
+		message = append(message, fmt.Sprintf("%s with an alert notification.", prefix))
+		message = append(message, PAUSE)
+		message = append(message, fmt.Sprintf("%s.", t.Summary))
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
-		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with a status update for alert '%s'. %s %s", prefix, t.Summary, twimlBreak, message)
+		message = append(message, fmt.Sprintf("%s with a status update for alert '%s'.", prefix, t.Summary))
+		message = append(message, PAUSE)
+		message = append(message, fmt.Sprintf("%s", rmParen.ReplaceAllString(t.LogEntry, "")))
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
-		message = fmt.Sprintf("%s with a test message.", prefix)
+		message = append(message, fmt.Sprintf("%s with a test message.", prefix))
 		opts.CallType = CallTypeTest
 	case notification.Verification:
 		count := int(math.Log10(float64(t.Code)) + 1)
-		message = fmt.Sprintf(
-			"%s with your %d-digit verification code. %s The code is: %s. %s Again, your  %d-digit verification code is: %s.",
-			prefix, count, twimlBreak, spellNumber(t.Code), twimlBreak, count, spellNumber(t.Code),
-		)
+		message = append(message, fmt.Sprintf("%s with your %d-digit verification code.", prefix, count))
+		message = append(message, PAUSE)
+		message = append(message, fmt.Sprintf("The code is: %s.", spellNumber(t.Code)))
+		message = append(message, PAUSE)
+		message = append(message, fmt.Sprintf("Again, your  %d-digit verification code is: %s.", count, spellNumber(t.Code)))
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
@@ -228,7 +230,9 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Encode the body so we don't need to worry about
 	// buggy apps not escaping url params properly.
-	opts.Params.Set(msgParamBody, b64enc.EncodeToString([]byte(message)))
+	for _, val := range message {
+		opts.Params.Add(msgParamBody, b64enc.EncodeToString([]byte(val)))
+	}
 
 	voiceResponse, err := v.c.StartVoice(ctx, toNumber, opts)
 	if err != nil {
@@ -306,7 +310,7 @@ type call struct {
 	// Embedded query fields
 	msgID        string
 	msgSubjectID int
-	msgBody      string
+	msgBody      []string
 }
 
 // doDeadline will ensure a return within 5 seconds, and log
@@ -402,7 +406,17 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 
 	msgID := q.Get(msgParamID)
 	subID, _ := strconv.Atoi(q.Get(msgParamSubID))
-	bodyData, _ := b64enc.DecodeString(q.Get(msgParamBody))
+
+	// account for if there's multiple message body items
+	var bodyData [][]byte
+	if q.Has(msgParamBody) {
+		for _, val := range q[msgParamBody] {
+			if val != "" {
+				bodyData = append(bodyData, func() (b []byte) { b, _ = b64enc.DecodeString(val); return }())
+			}
+		}
+	}
+
 	if isOutbound && msgID == "" {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamID))
 	}
@@ -459,9 +473,13 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 
 		msgID:        msgID,
 		msgSubjectID: subID,
-		msgBody:      string(bodyData),
+		msgBody: func() (strArr []string) {
+			for _, val := range bodyData {
+				strArr = append(strArr, string(val))
+			}
+			return
+		}(),
 	}, errResp
-
 }
 
 func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
@@ -479,7 +497,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Say(call.msgBody)
+		processSayBody(resp, call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
@@ -504,7 +522,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Say(call.msgBody)
+		processSayBody(resp, call.msgBody)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeVerify))
 		return
 	}
@@ -525,7 +543,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Say(call.msgBody)
+		processSayBody(resp, call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
@@ -553,7 +571,8 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Sayf("Hello! This is %s. <break strength=\"x-strong\" time=\"700ms\"/>", cfg.ApplicationName())
+		resp.Sayf("Hello! This is %s. ", cfg.ApplicationName())
+		resp.Pause()
 		resp.Say("Please use the application dashboard to manage alerts.")
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
@@ -589,7 +608,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
-		resp.Say(call.msgBody)
+		processSayBody(resp, call.msgBody)
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
@@ -639,4 +658,15 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
 	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+}
+
+// processSayBody is a helper function to apply the correct verb types
+func processSayBody(resp *twiMLResponse, msgBody []string) {
+	for _, msg := range msgBody {
+		if msg == PAUSE {
+			resp.Pause()
+		} else {
+			resp.Say(msg)
+		}
+	}
 }
