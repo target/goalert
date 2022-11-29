@@ -18,7 +18,6 @@ import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
-import { useConfigValue } from '../util/RequireConfig'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 
 const query = gql`
@@ -56,7 +55,6 @@ export default function UserContactMethodList(
 ): JSX.Element {
   const classes = useStyles()
   const mobile = useIsWidthDown('md')
-  const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
 
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
@@ -186,7 +184,6 @@ export default function UserContactMethodList(
         {showAddDialog && (
           <UserContactMethodCreateDialog
             userID={props.userID}
-            disclaimer={disclaimer?.toString()}
             onClose={(contactMethodID = '') => {
               setShowAddDialog(false)
               setShowVerifyDialogByID(contactMethodID)
