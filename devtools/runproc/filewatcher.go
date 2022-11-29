@@ -53,5 +53,5 @@ func (w *Watcher) Changed() bool {
 func Watch(patterns []string) *Watcher {
 	sort.Strings(patterns)
 
-	return &Watcher{p: patterns}
+	return &Watcher{p: patterns, state: calcTree(patterns)}
 }
