@@ -22,12 +22,6 @@ import { useURLKey } from '../actions'
 import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles({
-  actionsContainer: {
-    alignItems: 'center',
-    display: 'flex',
-    paddingLeft: '1em', // align with listItem icons
-    width: 'fit-content',
-  },
   checkbox: {
     marginTop: 4,
     marginBottom: 4,
@@ -161,10 +155,14 @@ export default function ControlledPaginatedList(
     return (
       <Grid
         aria-label='List Checkbox Controls'
-        className={classes.actionsContainer}
         item
         container
         spacing={2}
+        sx={{
+          alignItems: 'center',
+          display: 'flex',
+          width: 'fit-content',
+        }}
       >
         <Grid item>
           <Checkbox
@@ -177,6 +175,9 @@ export default function ControlledPaginatedList(
               checkedItems.length > 0 && itemIDs.length !== checkedItems.length
             }
             onChange={handleToggleSelectAll}
+            sx={{
+              ml: '1em', // align with listItem icons
+            }}
           />
         </Grid>
 
@@ -263,6 +264,7 @@ export default function ControlledPaginatedList(
         container
         item
         xs={12}
+        spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
@@ -272,7 +274,7 @@ export default function ControlledPaginatedList(
             <Search endAdornment={searchAdornment} />
           </Grid>
         )}
-        {secondaryActions}
+        {secondaryActions && <Grid item>{secondaryActions}</Grid>}
 
         {CreateDialog && !isMobile && (
           <Grid item sx={{ ml: 'auto' }}>
