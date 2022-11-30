@@ -44,7 +44,7 @@ interface ScheduleOverrideFormProps {
   remove?: boolean
   disabled: boolean
   errors: Array<FieldError>
-  onChange?: (value: ScheduleOverrideFormValue) => void
+  onChange: (value: ScheduleOverrideFormValue) => void
   removeUserReadOnly?: boolean
 }
 
