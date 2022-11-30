@@ -292,6 +292,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
               )
             }
             CreateDialog={CreateAlertDialog}
+            createLabel='Alert'
             cardHeader={
               <Hidden lgDown>
                 <AlertsListControls />

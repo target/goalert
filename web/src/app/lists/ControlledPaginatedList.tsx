@@ -279,7 +279,6 @@ export default function ControlledPaginatedList(
         {CreateDialog && !isMobile && (
           <Grid item sx={{ ml: 'auto' }}>
             <Button
-              aria-label={`Create ${createLabel}`}
               variant='contained'
               startIcon={<Add />}
               onClick={() => setShowCreate(true)}
