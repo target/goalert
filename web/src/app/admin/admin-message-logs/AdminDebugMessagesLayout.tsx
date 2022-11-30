@@ -7,7 +7,7 @@ import DebugMessagesControls from './DebugMessagesControls'
 import DebugMessageDetails from './DebugMessageDetails'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
-import SimpleListPage from '../../lists/SimpleListPage'
+import QueryList from '../../lists/QueryList'
 import { DateTime } from 'luxon'
 import toTitleCase from '../../util/toTitleCase'
 
@@ -101,7 +101,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
           />
         </Grid>
         <Grid item xs={12}>
-          <SimpleListPage
+          <QueryList
             query={query}
             noSearch
             mapVariables={(vars) => {

@@ -1,5 +1,13 @@
-import React, { ReactElement, ReactNode, useState } from 'react'
-import { Card, Checkbox, Grid, IconButton, Tooltip } from '@mui/material'
+import React, { ComponentType, ReactElement, ReactNode, useState } from 'react'
+import {
+  Button,
+  Card,
+  Checkbox,
+  Grid,
+  IconButton,
+  Tooltip,
+} from '@mui/material'
+import { Add, ArrowDropDown } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
@@ -9,15 +17,14 @@ import {
 import { ListHeaderProps } from './ListHeader'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
-import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
 import { useURLKey } from '../actions'
+import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles({
   actionsContainer: {
     alignItems: 'center',
     display: 'flex',
-    marginRight: 'auto',
     paddingLeft: '1em', // align with listItem icons
     width: 'fit-content',
   },
@@ -37,9 +44,6 @@ const useStyles = makeStyles({
   popper: {
     opacity: 1,
   },
-  search: {
-    paddingLeft: '0.5em',
-  },
 })
 
 export interface ControlledPaginatedListProps
@@ -57,6 +61,9 @@ export interface ControlledPaginatedListProps
   searchAdornment?: ReactElement
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
+
+  CreateDialog?: ComponentType<{ onClose: () => void }>
+  createLabel?: string
 }
 
 export interface ControlledPaginatedListAction {
@@ -90,6 +97,8 @@ export default function ControlledPaginatedList(
   const classes = useStyles()
   const {
     checkboxActions,
+    CreateDialog,
+    createLabel,
     secondaryActions,
     noSearch,
     searchAdornment,
@@ -97,6 +106,9 @@ export default function ControlledPaginatedList(
     listHeader,
     ...listProps
   } = props
+
+  const [showCreate, setShowCreate] = useState(false)
+  const isMobile = useIsWidthDown('md')
 
   /*
    * ensures item type is of CheckboxItemsProps and not PaginatedListItemProps
@@ -251,14 +263,30 @@ export default function ControlledPaginatedList(
         container
         item
         xs={12}
-        justifyContent='flex-end'
+        justifyContent='flex-start'
         alignItems='center'
       >
         {renderActions()}
-        {secondaryActions}
         {!noSearch && (
-          <Grid item className={classes.search}>
+          <Grid item>
             <Search endAdornment={searchAdornment} />
+          </Grid>
+        )}
+        {secondaryActions}
+
+        {CreateDialog && !isMobile && (
+          <Grid item sx={{ ml: 'auto' }}>
+            <Button
+              aria-label={`Create ${createLabel}`}
+              variant='contained'
+              startIcon={<Add />}
+              onClick={() => setShowCreate(true)}
+            >
+              Create {createLabel}
+            </Button>
+            {showCreate && (
+              <CreateDialog onClose={() => setShowCreate(false)} />
+            )}
           </Grid>
         )}
       </Grid>

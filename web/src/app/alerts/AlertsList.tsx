@@ -15,8 +15,6 @@ import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import { formatTimeSince } from '../util/timeFormat'
 import QueryList from '../lists/QueryList'
-import { useIsWidthDown } from '../util/useWidth'
-import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
@@ -106,11 +104,7 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
-  // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('sm')
-
   const [checkedCount, setCheckedCount] = useState(0)
-  const [showCreate, setShowCreate] = useState(false)
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
@@ -259,7 +253,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     return actions
   }
 
-  // render
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
@@ -298,6 +291,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <AlertsListFilter serviceID={props.serviceID} />
               )
             }
+            CreateDialog={CreateAlertDialog}
             cardHeader={
               <Hidden lgDown>
                 <AlertsListControls />
@@ -307,17 +301,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-      <CreateFAB
-        title='Create Alert'
-        transition={isXs && showAlertActionSnackbar}
-        onClick={() => setShowCreate(true)}
-      />
-      {showCreate && (
-        <CreateAlertDialog
-          onClose={() => setShowCreate(false)}
-          serviceID={props.serviceID}
-        />
-      )}
 
       {/* Update message after using checkbox actions */}
       <Snackbar

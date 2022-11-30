@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { ComponentType, useMemo, useState, useEffect } from 'react'
 import {
   useQuery,
   OperationVariables,
@@ -17,6 +17,8 @@ import ControlledPaginatedList, {
 } from './ControlledPaginatedList'
 import { PageControls } from './PageControls'
 import { ListHeader } from './ListHeader'
+import CreateFAB from './CreateFAB'
+import { useIsWidthDown } from '../util/useWidth'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -84,6 +86,9 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
 
   // mapVariables transforms query variables just before submission
   mapVariables?: (vars: OperationVariables) => OperationVariables
+
+  CreateDialog?: ComponentType<{ onClose: () => void }>
+  createLabel?: string
 }
 
 export type QueryListProps = Omit<_QueryListProps, 'items'>
@@ -100,10 +105,14 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     variables = {},
     noSearch,
     mapVariables = (v) => v,
+    CreateDialog,
+    createLabel,
     ...listProps
   } = props
   const { input, ...vars } = variables
   const [page, setPage] = useState(0)
+  const [showCreate, setShowCreate] = useState(false)
+  const isMobile = useIsWidthDown('md')
 
   const [searchParam] = useURLParam('search', '')
   const urlKey = useURLKey()
@@ -186,6 +195,8 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           isLoading={isLoading}
           loadMore={loadMore}
           noSearch={noSearch}
+          CreateDialog={CreateDialog}
+          createLabel={createLabel}
         />
       )
     }
@@ -224,6 +235,15 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           setPage={setPage}
           isLoading={isLoading}
         />
+      )}
+      {isMobile && CreateDialog && createLabel && (
+        <React.Fragment>
+          <CreateFAB
+            onClick={() => setShowCreate(true)}
+            title={`Create ${createLabel}`}
+          />
+          {showCreate && <CreateDialog onClose={() => setShowCreate(false)} />}
+        </React.Fragment>
       )}
     </Grid>
   )
