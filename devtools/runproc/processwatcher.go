@@ -103,7 +103,8 @@ func (w *ProcessWatcher) _start() {
 }
 
 func (w *ProcessWatcher) watch() {
-	hash := groupHash(w.t.WatchFiles)
+	wt := Watch(w.t.WatchFiles)
+
 	t := time.NewTicker(100 * time.Millisecond)
 	defer t.Stop()
 
@@ -115,15 +116,14 @@ func (w *ProcessWatcher) watch() {
 		case <-t.C:
 		}
 
-		newHash := groupHash(w.t.WatchFiles)
-		if newHash == hash {
+		if !wt.Changed() {
 			continue
 		}
 
-		hash = newHash
 		w._restart()
 	}
 }
+
 func (w *ProcessWatcher) _restart() {
 	s := <-w.state
 	if s != ProcessStateRunning {
