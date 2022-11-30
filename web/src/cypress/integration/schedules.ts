@@ -13,7 +13,11 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.visit('/schedules')
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Schedule').click()
+      }
       cy.dialogTitle('Create New Schedule')
       cy.dialogForm({ name, description })
       cy.dialogFinish('Submit')

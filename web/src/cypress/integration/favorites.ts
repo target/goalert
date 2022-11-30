@@ -68,7 +68,7 @@ function check(
   })
 }
 
-function testFavorites(): void {
+function testFavorites(screen: ScreenFormat): void {
   check(
     'Service',
     'services',
@@ -81,7 +81,11 @@ function testFavorites(): void {
 
       cy.visit('/alerts')
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Alert').click()
+      }
       cy.dialogTitle('New Alert')
       cy.dialogForm({ summary })
       cy.dialogClick('Next')

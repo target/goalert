@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-function testRotations(): void {
+function testRotations(screen: ScreenFormat): void {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {
@@ -29,7 +29,11 @@ function testRotations(): void {
 
     describe('Creation', () => {
       it('should allow canceling', () => {
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Rotation').click()
+        }
         cy.dialogTitle('Create Rotation')
         cy.dialogFinish('Cancel')
       })
@@ -40,7 +44,11 @@ function testRotations(): void {
           const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
           const shiftLength = c.integer({ min: 1, max: 10 })
 
-          cy.pageFab()
+          if (screen === 'mobile') {
+            cy.pageFab()
+          } else {
+            cy.get('button').contains('Create Rotation').click()
+          }
           cy.dialogTitle('Create Rotation')
           cy.dialogForm({
             name,

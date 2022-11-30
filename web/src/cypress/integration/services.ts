@@ -7,6 +7,7 @@ function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
+
   describe('List Page', () => {
     let svc: Service
     beforeEach(() => {
@@ -211,7 +212,11 @@ function testServices(screen: ScreenFormat): void {
 
     describe('Creation', () => {
       it('should allow canceling', () => {
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Service').click()
+        }
         cy.dialogTitle('Create New Service')
         cy.dialogFinish('Cancel')
       })
@@ -220,7 +225,12 @@ function testServices(screen: ScreenFormat): void {
         const name = 'SM Svc ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
 
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Service').click()
+        }
+
         cy.dialogForm({ name, 'escalation-policy': svc.ep.name, description })
         cy.dialogFinish('Submit')
 
@@ -232,7 +242,12 @@ function testServices(screen: ScreenFormat): void {
         const name = 'SM Svc ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
 
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Service').click()
+        }
+
         cy.dialogForm({ name, description })
         cy.dialogFinish('Submit')
 
@@ -524,7 +539,11 @@ function testServices(screen: ScreenFormat): void {
       const summary = c.sentence({ words: 3 })
       const details = c.word({ length: 10 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Alert').click()
+      }
       cy.dialogForm({ summary, details })
       cy.dialogClick('Next')
       cy.dialogContains(svc.name)
