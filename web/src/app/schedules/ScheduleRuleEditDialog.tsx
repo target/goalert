@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
-import { Mutation } from '@apollo/client/react/components'
+import { gql, useMutation} from '@apollo/client'
+import { useQuery } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import _ from 'lodash'
-import Query from '../util/Query'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
-import { Target } from '../../schema'
+import { ScheduleRuleInput, Target } from '../../schema'
+import { GenericError } from '../error-pages'
+import Query from '../util/Query'
+
 
 interface ScheduleRuleEditDialogProps {
   scheduleID: string
@@ -49,10 +51,16 @@ export default function ScheduleRuleEditDialog(
     query,
     variables: { id: props.scheduleID, tgt: props.target },
   })
-
+  const zone = data.schedule.TimeZone
+  const [deleteRule] = useMutation(mutation, {
+    onCompleted: props.onClose,
+  })
+  if (error) {
+    return <GenericError error={error.message} />
+  }
   const defaults = {
     targetID: target.id,
-    rules: data.rules.map((r) => ({
+    rules: data.rules.map((r: ScheduleRuleInput) => ({
       id: r.id,
       weekdayFilter: r.weekdayFilter,
       start: gqlClockTimeToISO(r.start, zone),
@@ -63,7 +71,7 @@ export default function ScheduleRuleEditDialog(
       <FormDialog
         onClose={onClose}
         title={`Edit Rules for ${_.startCase(target.type)}`}
-        errors={nonFieldErrors(status.error)}
+        errors={nonFieldErrors(error)}
         maxWidth='md'
         onSubmit={() => {
           if (!value) {
@@ -91,21 +99,13 @@ export default function ScheduleRuleEditDialog(
             targetType={target.type}
             targetDisabled
             scheduleID={scheduleID}
-            disabled={status.loading}
-            errors={fieldErrors(status.error)}
+            disabled={loading}
+            errors={fieldErrors(error)}
             value={value || defaults}
             onChange={(value) => setValue(value)}
           />
         }
       />
-    )
-  }
-
-  function renderMutation(data, zone) {
-    return (
-      <Mutation mutation={mutation} onCompleted={onClose}>
-        {(commit, status) => renderDialog(data, commit, status, zone)}
-      </Mutation>
     )
   }
 
