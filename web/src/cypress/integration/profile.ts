@@ -60,15 +60,13 @@ function testProfile(screen: ScreenFormat): void {
     return cy
       .createService({ name })
       .then((svc: Service) => {
-        return (
-          cy
-            .createEPStep({
-              epID: svc.epID,
-              targets: [{ type: 'user', id: profile.id }],
-            })
-            // .engineTrigger()
-            .then(() => svc.id)
-        )
+        return cy
+          .createEPStep({
+            epID: svc.epID,
+            targets: [{ type: 'user', id: profile.id }],
+          })
+          .engineTrigger()
+          .then(() => svc.id)
       })
       .then((svcID: string) => {
         cy.get('body').contains('a', 'On-Call').click()
