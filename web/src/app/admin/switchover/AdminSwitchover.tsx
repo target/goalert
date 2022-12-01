@@ -28,6 +28,8 @@ import AddIcon from '@mui/icons-material/PlaylistAdd'
 import DownIcon from '@mui/icons-material/ArrowDownward'
 import { TransitionGroup } from 'react-transition-group'
 import Spinner from '../../loading/components/Spinner'
+import AdminSWOConfirmDialog from './AdminSWOConfirmDialog'
+import { errCheck } from './errCheck'
 
 const query = gql`
   query {
@@ -88,6 +90,8 @@ export default function AdminSwitchover(): JSX.Element {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
     query,
   })
+
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const [data, setData] = useState<SWOStatus | null>(null)
   useEffect(() => {
@@ -244,8 +248,17 @@ export default function AdminSwitchover(): JSX.Element {
 
   const headerSize = { titleTypographyProps: { sx: { fontSize: '1.25rem' } } }
 
+  const configErr = errCheck(data).join('\n')
+
   return (
     <Grid container spacing={2}>
+      {showConfirm && (
+        <AdminSWOConfirmDialog
+          message={configErr}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={actionHandler('execute')}
+        />
+      )}
       {statusNotices.length > 0 && (
         <Grid item xs={12}>
           <Notices notices={statusNotices.reverse()} />
@@ -291,7 +304,11 @@ export default function AdminSwitchover(): JSX.Element {
                 size='large'
                 loading={executeLoad}
                 loadingPosition='start'
-                onClick={actionHandler('execute')}
+                onClick={
+                  configErr
+                    ? () => setShowConfirm(true)
+                    : actionHandler('execute')
+                }
               >
                 {executeLoad ? 'Executing...' : 'Execute'}
               </LoadingButton>
