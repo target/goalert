@@ -1,35 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import { useTheme, SvgIconProps, Zoom } from '@mui/material'
-import Alert from '@mui/material/Alert'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
-import Skeleton from '@mui/material/Skeleton'
-import Typography from '@mui/material/Typography'
-import ResetIcon from 'mdi-material-ui/DatabaseRefresh'
-import NoExecuteIcon from 'mdi-material-ui/DatabaseExportOutline'
-import ExecuteIcon from 'mdi-material-ui/DatabaseExport'
-import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
-import IdleIcon from 'mdi-material-ui/DatabaseSettings'
-import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { gql, useMutation, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 import { SWOAction, SWONode as SWONodeType, SWOStatus } from '../../../schema'
 import Notices, { Notice } from '../../details/Notices'
 import SWONode from './SWONode'
-import LoadingButton from '@mui/lab/LoadingButton'
-import DatabaseOff from 'mdi-material-ui/DatabaseOff'
-import DatabaseCheck from 'mdi-material-ui/DatabaseCheck'
-import Tooltip from '@mui/material/Tooltip'
-import RemoveIcon from '@mui/icons-material/PlaylistRemove'
-import AddIcon from '@mui/icons-material/PlaylistAdd'
-import DownIcon from '@mui/icons-material/ArrowDownward'
-import { TransitionGroup } from 'react-transition-group'
 import Spinner from '../../loading/components/Spinner'
 import AdminSWOConfirmDialog from './AdminSWOConfirmDialog'
 import { errCheck } from './errCheck'
+import { AdminSWODone } from './AdminSWODone'
+import { AdminSWOWrongMode } from './AdminSWOWrongMode'
+import { AdminSWODBVersionCard } from './AdminSWODBVersionCard'
+import { AdminSWOStatusCard } from './AdminSWOStatusCard'
 
 const query = gql`
   query {
@@ -93,84 +75,29 @@ export default function AdminSwitchover(): JSX.Element {
 
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const [data, setData] = useState<SWOStatus | null>(null)
-  useEffect(() => {
-    if (!_data?.swoStatus) return
-
-    setData(_data.swoStatus)
-  }, [_data?.swoStatus])
-  const [lastAction, setLastAction] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
-  const theme = useTheme()
-
-  const curVer = data?.mainDBVersion.split(' on ')
-  const nextVer = data?.mainDBVersion.split(' on ')
+  const data = _data?.swoStatus as SWOStatus
 
   useEffect(() => {
     if (data?.state === 'done') return
+    if (mutationStatus.fetching) return
 
     const t = setInterval(() => {
       if (!fetching) refetch()
     }, 1000)
     return () => clearInterval(t)
-  }, [fetching, refetch, data?.state])
+  }, [fetching, refetch, data?.state, mutationStatus.fetching])
 
   // remember if we are done and stay that way
-  if (data?.state === 'done') {
-    return (
-      <TransitionGroup appear={false}>
-        <Zoom in timeout={500}>
-          <Grid item container alignItems='center' justifyContent='center'>
-            <DatabaseCheck
-              color='primary'
-              style={{ width: '100%', height: 256 }}
-            />
-            <Grid item>
-              <Typography
-                color='primary'
-                variant='h6'
-                style={{ marginTop: 16 }}
-              >
-                DB switchover is complete.
-              </Typography>
-            </Grid>
-          </Grid>
-        </Zoom>
-      </TransitionGroup>
-    )
-  }
+  if (data?.state === 'done') return <AdminSWODone />
 
-  if (error && error.message === '[GraphQL] not in SWO mode' && !data) {
-    return (
-      <Grid item container alignItems='center' justifyContent='center'>
-        <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
-        <Grid item>
-          <div style={{ textAlign: 'center' }}>
-            <Typography
-              color='secondary'
-              variant='h6'
-              style={{ marginTop: 16 }}
-            >
-              Unavailable: Application is not in switchover mode.
-              <br />
-              <br />
-              You must start GoAlert with <code>
-                GOALERT_DB_URL_NEXT
-              </code> or <code>--db-url-next</code> to perform a switchover.
-            </Typography>
-          </div>
-        </Grid>
-      </Grid>
-    )
-  }
+  if (error && error.message === '[GraphQL] not in SWO mode' && !data)
+    return <AdminSWOWrongMode />
 
-  if (!data) {
-    return <Spinner />
-  }
+  if (!data) return <Spinner />
 
   function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
-      setLastAction(action)
       commit({ action }, { additionalTypenames: ['SWOStatus'] })
     }
   }
@@ -196,58 +123,6 @@ export default function AdminSwitchover(): JSX.Element {
     })
   }
 
-  const resetLoad =
-    data?.state === 'resetting' ||
-    (lastAction === 'reset' && mutationStatus.fetching)
-  const executeLoad =
-    ['syncing', 'pausing', 'executing'].includes(data?.state) ||
-    (lastAction === 'execute' && mutationStatus.fetching)
-
-  function getIcon(data: SWOStatus): React.ReactNode {
-    const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
-
-    if (data.lastError) {
-      return <ErrorIcon {...i} color='error' />
-    }
-    if (fetching && !data) {
-      return (
-        <Skeleton variant='circular'>
-          <InProgressIcon {...i} />
-        </Skeleton>
-      )
-    }
-    if (!['unknown', 'idle', 'done'].includes(data.state)) {
-      return <InProgressIcon {...i} />
-    }
-    if (data.state === 'idle') {
-      return <IdleIcon {...i} />
-    }
-  }
-
-  function getSubheader(data: SWOStatus): React.ReactNode {
-    if (data.lastError) return 'Error'
-    if (data.state === 'done') return 'Complete'
-    if (data.state === 'idle') return 'Ready'
-    if (data.state === 'unknown') return 'Needs Reset'
-    return 'Busy'
-  }
-
-  function getDetails(data: SWOStatus): React.ReactNode {
-    if (data.lastError) {
-      return (
-        <Typography color='error' sx={{ pb: 2 }}>
-          {cptlz(data.lastError)}
-        </Typography>
-      )
-    }
-    if (data?.state !== 'unknown' && data.lastStatus) {
-      return <Typography sx={{ pb: 2 }}>{cptlz(data.lastStatus)}</Typography>
-    }
-    return <Typography>&nbsp;</Typography> // reserves whitespace
-  }
-
-  const headerSize = { titleTypographyProps: { sx: { fontSize: '1.25rem' } } }
-
   const configErr = errCheck(data).join('\n')
 
   return (
@@ -265,89 +140,15 @@ export default function AdminSwitchover(): JSX.Element {
         </Grid>
       )}
       <Grid item xs={12} sm={12} md={12} lg={4} xl={4}>
-        <Card sx={{ height: '100%' }}>
-          <CardContent
-            sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-          >
-            <CardHeader
-              title='Switchover Status'
-              avatar={getIcon(data)}
-              subheader={getSubheader(data)}
-              {...headerSize}
-              sx={{ p: 0 }}
-            />
-            {getDetails(data)}
-            <div style={{ flexGrow: 1 }} />
-            <ButtonGroup
-              orientation={
-                theme.breakpoints.up('md') ? 'vertical' : 'horizontal'
-              }
-              sx={{ width: '100%', pb: '32px' }}
-            >
-              <LoadingButton
-                startIcon={<ResetIcon />}
-                disabled={mutationStatus.fetching}
-                variant='outlined'
-                size='large'
-                loading={resetLoad}
-                loadingPosition='start'
-                onClick={actionHandler('reset')}
-              >
-                {resetLoad ? 'Resetting...' : 'Reset'}
-              </LoadingButton>
-              <LoadingButton
-                startIcon={
-                  data?.state !== 'idle' ? <NoExecuteIcon /> : <ExecuteIcon />
-                }
-                disabled={data?.state !== 'idle' || mutationStatus.fetching}
-                variant='outlined'
-                size='large'
-                loading={executeLoad}
-                loadingPosition='start'
-                onClick={
-                  configErr
-                    ? () => setShowConfirm(true)
-                    : actionHandler('execute')
-                }
-              >
-                {executeLoad ? 'Executing...' : 'Execute'}
-              </LoadingButton>
-            </ButtonGroup>
-          </CardContent>
-        </Card>
+        <AdminSWOStatusCard
+          data={data}
+          onExecClick={actionHandler('execute')}
+          onResetClick={actionHandler('reset')}
+        />
       </Grid>
 
       <Grid item xs={12} sm={12} md={12} lg={8} xl={8}>
-        <Card sx={{ height: '100%' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              padding: '0 16px 0 16px',
-              marginBottom: '16px',
-              height: '100%',
-            }}
-          >
-            <CardHeader title='DB Diff' {...headerSize} />
-            <Tooltip title={curVer[1]}>
-              <Alert icon={<RemoveIcon />} severity='warning'>
-                From {curVer[0]}
-              </Alert>
-            </Tooltip>
-            <DownIcon
-              style={{ flexGrow: 1 }}
-              sx={{
-                alignSelf: 'center',
-                color: (theme) => theme.palette.primary.main,
-              }}
-            />
-            <Tooltip title={nextVer[1]}>
-              <Alert icon={<AddIcon />} severity='success' sx={{ mb: '16px' }}>
-                To {nextVer[0]}
-              </Alert>
-            </Tooltip>
-          </div>
-        </Card>
+        <AdminSWODBVersionCard data={data} />
       </Grid>
 
       <Grid item xs={12} container spacing={2} justifyContent='space-between'>
