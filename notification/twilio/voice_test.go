@@ -16,6 +16,12 @@ func TestSpellNumber(t *testing.T) {
 	assert.Equal(t, "1. 2. 3. 4. 5. 6", spellNumber(123456))
 }
 
+func BenchmarkSpellNumber(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = spellNumber(i)
+	}
+}
+
 func TestBuildMessage(t *testing.T) {
 	prefix := "This is GoAlert"
 	type mockInput struct {
@@ -211,7 +217,7 @@ func BenchmarkBuildMessage(b *testing.B) {
 	var msgPauseIndex []int
 	for i := 0; i < b.N; i++ {
 		msgPauseIndex = append(msgPauseIndex, i)
-		buildMessage(
+		_, _ = buildMessage(
 			fmt.Sprintf("%d", i),
 			notification.Test{
 				Dest: notification.Dest{
