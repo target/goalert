@@ -88,7 +88,13 @@ export default function AdminSwitchover(): JSX.Element {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
     query,
   })
-  const data = _data?.swoStatus as SWOStatus
+
+  const [data, setData] = useState<SWOStatus | null>(null)
+  useEffect(() => {
+    if (!_data?.swoStatus) return
+
+    setData(_data.swoStatus)
+  }, [_data?.swoStatus])
   const [lastAction, setLastAction] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
   const theme = useTheme()
@@ -105,34 +111,7 @@ export default function AdminSwitchover(): JSX.Element {
     return () => clearInterval(t)
   }, [fetching, refetch, data?.state])
 
-  if (fetching && !data?.state) {
-    return <Spinner />
-  }
-
-  if (error && error.message === '[GraphQL] not in SWO mode') {
-    return (
-      <Grid item container alignItems='center' justifyContent='center'>
-        <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
-        <Grid item>
-          <div style={{ textAlign: 'center' }}>
-            <Typography
-              color='secondary'
-              variant='h6'
-              style={{ marginTop: 16 }}
-            >
-              Unavailable: Application is not in switchover mode.
-              <br />
-              <br />
-              You must start GoAlert with <code>
-                GOALERT_DB_URL_NEXT
-              </code> or <code>--db-url-next</code> to perform a switchover.
-            </Typography>
-          </div>
-        </Grid>
-      </Grid>
-    )
-  }
-
+  // remember if we are done and stay that way
   if (data?.state === 'done') {
     return (
       <TransitionGroup appear={false}>
@@ -157,6 +136,34 @@ export default function AdminSwitchover(): JSX.Element {
     )
   }
 
+  if (error && error.message === '[GraphQL] not in SWO mode' && !data) {
+    return (
+      <Grid item container alignItems='center' justifyContent='center'>
+        <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
+        <Grid item>
+          <div style={{ textAlign: 'center' }}>
+            <Typography
+              color='secondary'
+              variant='h6'
+              style={{ marginTop: 16 }}
+            >
+              Unavailable: Application is not in switchover mode.
+              <br />
+              <br />
+              You must start GoAlert with <code>
+                GOALERT_DB_URL_NEXT
+              </code> or <code>--db-url-next</code> to perform a switchover.
+            </Typography>
+          </div>
+        </Grid>
+      </Grid>
+    )
+  }
+
+  if (!data) {
+    return <Spinner />
+  }
+
   function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
       setLastAction(action)
@@ -176,10 +183,12 @@ export default function AdminSwitchover(): JSX.Element {
       endNote: DateTime.local().toFormat('fff'),
     })
   }
-  if (data?.state === 'unknown' && data?.lastError) {
+  if (error && error.message !== '[GraphQL] not in SWO mode') {
     statusNotices.push({
       type: 'error',
-      message: data.lastError,
+      message: 'Failed to fetch status',
+      details: cptlz(error.message),
+      endNote: DateTime.local().toFormat('fff'),
     })
   }
 
@@ -190,10 +199,10 @@ export default function AdminSwitchover(): JSX.Element {
     ['syncing', 'pausing', 'executing'].includes(data?.state) ||
     (lastAction === 'execute' && mutationStatus.fetching)
 
-  function getIcon(): React.ReactNode {
+  function getIcon(data: SWOStatus): React.ReactNode {
     const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
 
-    if (error) {
+    if (data.lastError) {
       return <ErrorIcon {...i} color='error' />
     }
     if (fetching && !data) {
@@ -211,20 +220,19 @@ export default function AdminSwitchover(): JSX.Element {
     }
   }
 
-  function getSubheader(): React.ReactNode {
-    if (error) return 'Error'
-    if (!data) return 'Loading...'
+  function getSubheader(data: SWOStatus): React.ReactNode {
+    if (data.lastError) return 'Error'
     if (data.state === 'done') return 'Complete'
     if (data.state === 'idle') return 'Ready'
     if (data.state === 'unknown') return 'Needs Reset'
     return 'Busy'
   }
 
-  function getDetails(): React.ReactNode {
-    if (error) {
+  function getDetails(data: SWOStatus): React.ReactNode {
+    if (data.lastError) {
       return (
         <Typography color='error' sx={{ pb: 2 }}>
-          {cptlz(error.message)}
+          {cptlz(data.lastError)}
         </Typography>
       )
     }
@@ -250,12 +258,12 @@ export default function AdminSwitchover(): JSX.Element {
           >
             <CardHeader
               title='Switchover Status'
-              avatar={getIcon()}
-              subheader={getSubheader()}
+              avatar={getIcon(data)}
+              subheader={getSubheader(data)}
               {...headerSize}
               sx={{ p: 0 }}
             />
-            {getDetails()}
+            {getDetails(data)}
             <div style={{ flexGrow: 1 }} />
             <ButtonGroup
               orientation={
