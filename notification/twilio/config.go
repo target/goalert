@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	msgParamID    = "msgID"
-	msgParamSubID = "msgSubjectID"
-	msgParamBody  = "msgBody"
-
+	msgParamID     = "msgID"
+	msgParamSubID  = "msgSubjectID"
+	msgParamBody   = "msgBody"
+	msgParamPause  = "msgPause"
 	msgParamBundle = "msgBundle"
 )
 
