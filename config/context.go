@@ -1,8 +1,6 @@
 package config
 
-import (
-	"context"
-)
+import "context"
 
 type contextKey string
 
