@@ -15,7 +15,13 @@ import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
 import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { Alert, AlertTitle } from '@mui/material'
+import {
+  Alert,
+  AlertTitle,
+  ListItemButton,
+  ListItemIcon,
+  Collapse,
+} from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DoneIcon from '@mui/icons-material/Done'
 import {
@@ -36,6 +42,7 @@ import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
+import { ExpandLess, ExpandMore } from '@mui/icons-material'
 
 const useStyles = makeStyles({
   alert: {
@@ -96,6 +103,7 @@ export interface FlatListItem {
   highlight?: boolean
   subText?: JSX.Element | string
   icon?: JSX.Element | null
+  section?: string | number
   secondaryAction?: JSX.Element | null
   url?: string
   id?: string // required for drag and drop functionality
@@ -104,10 +112,18 @@ export interface FlatListItem {
   disabled?: boolean
 }
 
+export interface SectionTitle {
+  title: string
+  icon?: JSX.Element | null
+}
+
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
 
 export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
+
+  // sectition titles for collaspable sections
+  sections?: SectionTitle[]
 
   // header elements will be displayed at the top of the list.
   headerNote?: JSX.Element | string | ReactNode // left-aligned
@@ -127,6 +143,9 @@ export interface FlatListProps extends ListProps {
   // will render transition in list
   transition?: boolean
 
+  // will render items in collaspable sections in list
+  collapsable?: boolean
+
   // renders an edit button that hides the options buttons until toggled on
   toggleDnD?: boolean
 }
@@ -138,11 +157,24 @@ export default function FlatList({
   headerAction,
   items,
   inset,
+  sections,
   transition,
+  collapsable,
   toggleDnD,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
+
+  // collapsable sections state
+  const [openSections, setOpenSections] = useState<string[]>(
+    sections ? [sections[0].title] : [],
+  )
+
+  useEffect(() => {
+    if (sections) {
+      setOpenSections([sections[0].title])
+    }
+  }, [sections])
 
   // drag and drop stuff
   const sensors = useSensors(
@@ -333,6 +365,47 @@ export default function FlatList({
     })
   }
 
+  function renderCollapsableItems(): JSX.Element[] | undefined {
+    const toggleSection = (section: string): void => {
+      if (openSections?.includes(section)) {
+        setOpenSections(
+          openSections.filter((openSection) => openSection !== section),
+        )
+      } else {
+        setOpenSections([...openSections, section])
+      }
+    }
+    return sections?.map((section, idx) => {
+      const open = openSections?.includes(section.title)
+      console.log('here2', open, openSections)
+      return (
+        <React.Fragment key={idx}>
+          <ListItemButton onClick={() => toggleSection(section.title)}>
+            {section.icon && <ListItemIcon>{section.icon}</ListItemIcon>}
+            <ListItemText primary={section.title} />
+            {open ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={open} unmountOnExit>
+            <List>
+              {items
+                .filter((item: FlatListItem) => item.section === section.title)
+                .map((item, idx) => {
+                  return (
+                    <FlatListItem
+                      index={idx}
+                      key={idx}
+                      item={item}
+                      showOptions={toggleDnD ? draggable : true}
+                    />
+                  )
+                })}
+            </List>
+          </Collapse>
+        </React.Fragment>
+      )
+    })
+  }
+
   function renderList(): JSX.Element {
     let sx = listProps.sx
     if (onReorder) {
@@ -340,6 +413,16 @@ export default function FlatList({
         ...sx,
         display: 'grid',
       }
+    }
+
+    const renderListItems = ():
+      | (JSX.Element | undefined)[]
+      | JSX.Element
+      | JSX.Element[]
+      | undefined => {
+      if (transition) return renderTransitions()
+      if (collapsable) return renderCollapsableItems()
+      return renderItems()
     }
 
     return (
@@ -372,7 +455,7 @@ export default function FlatList({
           </MUIListItem>
         )}
         {!items.length && renderEmptyMessage()}
-        {transition ? renderTransitions() : renderItems()}
+        {renderListItems()}
       </List>
     )
   }

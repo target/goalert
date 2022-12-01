@@ -32,19 +32,8 @@ const query = gql`
   }
 `
 
-const stepsText = (_steps) => {
-  const steps = _.chain(_steps)
-    .sort()
-    .map((s) => `#${s + 1}`)
-    .value()
-  if (steps.length === 1) {
-    return 'Step ' + steps[0]
-  }
-
-  const last = steps.pop()
-  return (
-    `Steps ` + steps.join(', ') + (steps.length > 2 ? ', and ' : ' and ') + last
-  )
+const stepText = (s) => {
+  return `Step #${s + 1}`
 }
 
 export default function ServiceOnCallList({ serviceID }) {
@@ -54,6 +43,7 @@ export default function ServiceOnCallList({ serviceID }) {
   })
 
   let items = []
+  let sections = []
   const style = {}
   if (error) {
     items = [
@@ -71,21 +61,28 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
     style.color = 'gray'
+    sections = [
+      {
+        title: 'Fetching users...',
+        icon: <CircularProgress />,
+      },
+    ]
   } else {
+    const chainedItems = _.chain(data?.service?.onCallUsers)
+    sections = chainedItems
+      .groupBy('stepNumber')
+      .keys()
+      .map((s) => ({ title: stepText(Number(s)) }))
+      .value()
+
     items = _.chain(data?.service?.onCallUsers)
-      .groupBy('userID')
-      .mapValues((v) => ({
-        id: v[0].userID,
-        name: v[0].userName,
-        steps: _.map(v, 'stepNumber'),
-      }))
-      .values()
-      .sortBy('name')
+      .sortBy(['stepNumber', 'userName'])
       .map((u) => ({
-        title: u.name,
-        subText: stepsText(u.steps),
-        icon: <UserAvatar userID={u.id} />,
-        url: `/users/${u.id}`,
+        title: u.userName,
+        subText: stepText(u.stepNumber),
+        icon: <UserAvatar userID={u.userID} />,
+        section: stepText(u.stepNumber),
+        url: `/users/${u.userID}`,
       }))
       .value()
   }
@@ -100,6 +97,8 @@ export default function ServiceOnCallList({ serviceID }) {
       <FlatList
         emptyMessage='No users on-call for this service'
         items={items}
+        sections={sections}
+        collapsable
       />
     </Card>
   )
