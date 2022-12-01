@@ -214,9 +214,7 @@ func TestBuildMessage(t *testing.T) {
 }
 
 func BenchmarkBuildMessage(b *testing.B) {
-	var msgPauseIndex []int
 	for i := 0; i < b.N; i++ {
-		msgPauseIndex = append(msgPauseIndex, i)
 		_, _ = buildMessage(
 			fmt.Sprintf("%d", i),
 			notification.Test{
