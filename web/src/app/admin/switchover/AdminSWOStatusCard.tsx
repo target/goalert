@@ -61,6 +61,9 @@ type AdminSWOStatusCardProps = {
 
 export function AdminSWOStatusCard(props: AdminSWOStatusCardProps) {
   const theme = useTheme()
+
+  // We track this separately so we can wait for a NEW status without
+  // our button flickering back to idle.
   const [state, setState] = useState(props.data.state)
   useEffect(() => {
     setState(props.data.state)
