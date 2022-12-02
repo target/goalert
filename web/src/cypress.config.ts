@@ -1,4 +1,5 @@
-import { defineConfig } from "cypress";
+import { defineConfig } from 'cypress'
+import setupNodeEvents from './cypress/plugins/index'
 
 export default defineConfig({
   videoUploadOnPasses: false,
@@ -14,22 +15,18 @@ export default defineConfig({
     openMode: 0,
   },
 
-  blockHosts: ["gravatar.com"],
+  blockHosts: ['gravatar.com'],
 
   e2e: {
-    // We've imported your old cypress plugins here.
-    // You may want to clean this up later by importing these.
-    setupNodeEvents(on, config) {
-      return require("./cypress/plugins/index.js")(on, config);
-    },
-    baseUrl: "http://localhost:3030",
-    excludeSpecPattern: "*.map",
+    setupNodeEvents,
+    baseUrl: 'http://localhost:3030',
+    excludeSpecPattern: '*.map',
   },
 
   component: {
     devServer: {
-      framework: "react",
-      bundler: "webpack",
+      framework: 'react',
+      bundler: 'webpack',
     },
   },
-});
+})
