@@ -2,7 +2,8 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release force-yarn
+.PHONY: goalert-container demo-container release force-yarn delete-postgres
+.PHONY: reset-postgres
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -24,6 +25,7 @@ export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 PROD_CY_PROC = Procfile.cypress.prod
 SIZE:=1
+PG := 13
 
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
@@ -229,7 +231,12 @@ postgres: bin/waitfor
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
+		docker.io/library/postgres:$(PG)-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
+
+delete-postgres: config.json.bak
+	$(CONTAINER_TOOL) rm -f goalert-postgres
+
+reset-postgres: delete-postgres postgres
 
 regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
