@@ -123,13 +123,13 @@ export default function AdminSwitchover(): JSX.Element {
     })
   }
 
-  const configErr = errCheck(data).join('\n')
+  const configErr = errCheck(data)
 
   return (
     <Grid container spacing={2}>
       {showConfirm && (
         <AdminSWOConfirmDialog
-          message={configErr}
+          messages={configErr}
           onClose={() => setShowConfirm(false)}
           onConfirm={actionHandler('execute')}
         />
@@ -142,7 +142,15 @@ export default function AdminSwitchover(): JSX.Element {
       <Grid item xs={12} sm={12} md={12} lg={4} xl={4}>
         <AdminSWOStatusCard
           data={data}
-          onExecClick={actionHandler('execute')}
+          onExecClick={() => {
+            if (configErr) {
+              setShowConfirm(true)
+              return false
+            }
+
+            actionHandler('execute')()
+            return true
+          }}
           onResetClick={actionHandler('reset')}
         />
       </Grid>

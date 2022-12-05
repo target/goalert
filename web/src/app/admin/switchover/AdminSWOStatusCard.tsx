@@ -56,7 +56,7 @@ type AdminSWOStatusCardProps = {
   data: SWOStatus
 
   onResetClick: () => void
-  onExecClick: () => void
+  onExecClick: () => boolean
 }
 
 export function AdminSWOStatusCard(props: AdminSWOStatusCardProps) {
@@ -111,8 +111,7 @@ export function AdminSWOStatusCard(props: AdminSWOStatusCardProps) {
             loading={isExec}
             loadingPosition='start'
             onClick={() => {
-              setState('syncing')
-              props.onExecClick()
+              if (props.onExecClick()) setState('syncing')
             }}
           >
             {isExec ? 'Executing...' : 'Execute'}

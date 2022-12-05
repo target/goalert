@@ -2,7 +2,7 @@ import React from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 
 export default function AdminSWOConfirmDialog(props: {
-  message: string
+  messages: string[]
   onConfirm: () => void
   onClose: () => void
 }): JSX.Element {
@@ -10,7 +10,7 @@ export default function AdminSWOConfirmDialog(props: {
     <FormDialog
       title='Continue with switchover?'
       confirm
-      subTitle={props.message}
+      subTitle={props.messages.join('\n')}
       onClose={props.onClose}
       onSubmit={() => {
         props.onConfirm()
