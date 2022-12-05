@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
 
-import { pathPrefix, testScreen } from '../support'
+import { pathPrefix, testScreen } from '../support/e2e'
 const c = new Chance()
 
 function testAlerts(screen: ScreenFormat): void {

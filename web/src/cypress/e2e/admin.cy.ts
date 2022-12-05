@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
-import { testScreen, Config, pathPrefix } from '../support'
+import { testScreen, Config, pathPrefix } from '../support/e2e'
 const c = new Chance()
 
 function testAdmin(): void {

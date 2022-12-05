@@ -12,7 +12,7 @@ glob.sync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
 require('esbuild')
   .build({
     entryPoints: {
-      'support/index': 'cypress/support/index.ts',
+      'support/index': 'cypress/support/e2e.ts',
       ...intEntry,
     },
     outdir: '../../bin/build/integration/cypress',

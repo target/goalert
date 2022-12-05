@@ -1,4 +1,4 @@
-import { testScreen } from '../support'
+import { testScreen } from '../support/e2e'
 import { Chance } from 'chance'
 import { Schedule } from '../../schema'
 
