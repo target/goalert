@@ -13,6 +13,7 @@ import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { SWOStatus } from '../../../schema'
 import LoadingButton from '@mui/lab/LoadingButton'
+import { toTitle } from './util'
 
 function getIcon(data: SWOStatus): JSX.Element {
   const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -35,8 +36,6 @@ function getSubheader(data: SWOStatus): React.ReactNode {
   if (data.state === 'unknown') return 'Needs Reset'
   return 'Busy'
 }
-
-const toTitle = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
 
 function getDetails(data: SWOStatus): React.ReactNode {
   if (data.lastError) {

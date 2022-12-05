@@ -10,12 +10,19 @@ export default function AdminSWOConfirmDialog(props: {
     <FormDialog
       title='Continue with switchover?'
       confirm
-      subTitle={props.messages.join('\n')}
+      subTitle='One or more possible problems were detected.'
       onClose={props.onClose}
       onSubmit={() => {
         props.onConfirm()
         props.onClose()
       }}
+      form={
+        <ul>
+          {props.messages.map((m, idx) => {
+            return <li key={idx}>{m}</li>
+          })}
+        </ul>
+      }
     />
   )
 }

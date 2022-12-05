@@ -7,7 +7,7 @@ import Notices, { Notice } from '../../details/Notices'
 import SWONode from './SWONode'
 import Spinner from '../../loading/components/Spinner'
 import AdminSWOConfirmDialog from './AdminSWOConfirmDialog'
-import { errCheck } from './errCheck'
+import { errCheck, friendlyName, toTitle } from './util'
 import { AdminSWODone } from './AdminSWODone'
 import { AdminSWOWrongMode } from './AdminSWOWrongMode'
 import { AdminSWODBVersionCard } from './AdminSWODBVersionCard'
@@ -39,34 +39,11 @@ const query = gql`
   }
 `
 
-let n = 1
-let u = 1
-const names: { [key: string]: string } = {}
-
-// friendlyName will assign a persistant "friendly" name to the node.
-//
-// This ensures a specific ID will always refer to the same node. This
-// is so that it is clear if a node dissapears or a new one appears.
-//
-// Note: `Node 1` on one browser tab may not be the same node as `Node 1`
-// on another browser tab.
-function friendlyName(id: string): string {
-  if (!names[id]) {
-    if (id.startsWith('unknown')) return (names[id] = 'Unknown ' + u++)
-    return (names[id] = 'Node ' + n++)
-  }
-  return names[id]
-}
-
 const mutation = gql`
   mutation ($action: SWOAction!) {
     swoAction(action: $action)
   }
 `
-
-function cptlz(s: string): string {
-  return s.charAt(0).toUpperCase() + s.substring(1)
-}
 
 export default function AdminSwitchover(): JSX.Element {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
@@ -110,7 +87,7 @@ export default function AdminSwitchover(): JSX.Element {
     statusNotices.push({
       type: 'error',
       message: 'Failed to ' + vars.action,
-      details: cptlz(mutationStatus.error.message),
+      details: toTitle(mutationStatus.error.message),
       endNote: DateTime.local().toFormat('fff'),
     })
   }
@@ -118,7 +95,7 @@ export default function AdminSwitchover(): JSX.Element {
     statusNotices.push({
       type: 'error',
       message: 'Failed to fetch status',
-      details: cptlz(error.message),
+      details: toTitle(error.message),
       endNote: DateTime.local().toFormat('fff'),
     })
   }
@@ -143,7 +120,7 @@ export default function AdminSwitchover(): JSX.Element {
         <AdminSWOStatusCard
           data={data}
           onExecClick={() => {
-            if (configErr) {
+            if (configErr.length) {
               setShowConfirm(true)
               return false
             }
