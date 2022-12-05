@@ -14,7 +14,7 @@ import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { SWOStatus } from '../../../schema'
 import LoadingButton from '@mui/lab/LoadingButton'
 
-function getIcon(data: SWOStatus) {
+function getIcon(data: SWOStatus): JSX.Element {
   const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
 
   if (data.lastError) {
@@ -36,7 +36,7 @@ function getSubheader(data: SWOStatus): React.ReactNode {
   return 'Busy'
 }
 
-const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const toTitle = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
 
 function getDetails(data: SWOStatus): React.ReactNode {
   if (data.lastError) {
@@ -59,7 +59,9 @@ type AdminSWOStatusCardProps = {
   onExecClick: () => boolean
 }
 
-export function AdminSWOStatusCard(props: AdminSWOStatusCardProps) {
+export function AdminSWOStatusCard(
+  props: AdminSWOStatusCardProps,
+): JSX.Element {
   const theme = useTheme()
 
   // We track this separately so we can wait for a NEW status without

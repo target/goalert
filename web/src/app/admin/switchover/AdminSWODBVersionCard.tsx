@@ -13,7 +13,9 @@ interface DBVersionProps {
   nextDBVersion: string
 }
 
-export function AdminSWODBVersionCard(props: { data: DBVersionProps }) {
+export function AdminSWODBVersionCard(props: {
+  data: DBVersionProps
+}): JSX.Element {
   const curVer = props.data.mainDBVersion.split(' on ')
   const nextVer = props.data.nextDBVersion.split(' on ')
 
