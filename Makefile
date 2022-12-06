@@ -59,6 +59,9 @@ $(BIN_DIR)/tools/protoc-gen-go: go.mod
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR)/tools $(shell cat golangci-lint.version)
+
 system.ca.pem:
 	go run ./cmd/goalert gen-cert ca
 system.ca.key:
@@ -142,10 +145,10 @@ check-js: force-yarn generate node_modules
 	yarn run lint
 	yarn workspaces run check
 
-check-go: generate
+check-go: generate $(BIN_DIR)/tools/golangci-lint bin/tools/golangci-lint
 	@go mod tidy
 	# go run ./devtools/ordermigrations -check
-	golangci-lint run  
+	./bin/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2

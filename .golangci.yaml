@@ -1,8 +1,3 @@
 linters:
   disable:
     - errcheck
-issues:
-  exclude:
-    - "SA1019: x509.EncryptPEMBlock has been deprecated since Go 1.16 because it shouldn't be used: Legacy PEM encryption as specified in RFC 1423 is insecure by design. Since it does not authenticate the ciphertext, it is vulnerable to padding oracle attacks that can let an attacker recover the plaintext."
-    - "SA1019: x509.DecryptPEMBlock has been deprecated since Go 1.16 because it shouldn't be used: Legacy PEM encryption as specified in RFC 1423 is insecure by design. Since it does not authenticate the ciphertext, it is vulnerable to padding oracle attacks that can let an attacker recover the plaintext."
-    - 'SA6002: argument should be pointer-like to avoid allocations'
