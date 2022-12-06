@@ -189,17 +189,18 @@ export function CreateAlertServiceSelect(props) {
           ),
           endAdornment: (
             <span className={classes.endAdornment}>
-              {searchResults.length > 0 && value.length < CREATE_ALERT_LIMIT && (
-                <Chip
-                  className={classes.addAll}
-                  color='primary' // for white text
-                  component='button'
-                  label='Add All'
-                  size='small'
-                  icon={<AddIcon fontSize='small' />}
-                  onClick={addAll}
-                />
-              )}
+              {searchResults.length > 0 &&
+                value.length < CREATE_ALERT_LIMIT && (
+                  <Chip
+                    className={classes.addAll}
+                    color='primary' // for white text
+                    component='button'
+                    label='Add All'
+                    size='small'
+                    icon={<AddIcon fontSize='small' />}
+                    onClick={addAll}
+                  />
+                )}
               <ServiceLabelFilterContainer
                 value={{ labelKey, labelValue }}
                 onChange={({ labelKey, labelValue }) =>

@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { Schedule, ScheduleTarget } from '../../schema'
 import users from '../fixtures/users.json'
 
-import { testScreen } from '../support'
+import { testScreen } from '../support/e2e'
 const c = new Chance()
 
 function testTimePickers(): void {
