@@ -10,9 +10,9 @@ func TestTable_InsertJSONRowsQuery(t *testing.T) {
 	tbl := Table{
 		name: "test",
 		cols: []column{
-			{ColumnName: "id"},
-			{ColumnName: "foo"},
-			{ColumnName: "bar"},
+			{ColColumnName: "id"},
+			{ColColumnName: "foo"},
+			{ColColumnName: "bar"},
 		},
 	}
 	query := tbl.InsertJSONRowsQuery(false)

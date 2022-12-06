@@ -51,6 +51,9 @@ Makefile.binaries.mk: devtools/genmake/*
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 
+$(BIN_DIR)/tools/sqlc: sqlc.version
+	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
+
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
@@ -98,8 +101,8 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
-swo/swodb/queries.sql.go: bin/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql
-	./bin/tools/sqlc generate
+swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql
+	$(BIN_DIR)/tools/sqlc generate
 
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
@@ -175,11 +178,8 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-bin/tools/sqlc: go.mod go.sum
-	CGO_ENABLED=1 go build -o bin/tools/sqlc github.com/kyleconroy/sqlc/cmd/sqlc
-
-generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go bin/tools/sqlc
-	./bin/tools/sqlc generate
+generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
+	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
 

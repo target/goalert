@@ -27,7 +27,7 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 
 	tables := make(map[string]*Table)
 	for _, cRow := range columns {
-		switch cRow.TableName {
+		switch cRow.ColTableName {
 		case "engine_processing_versions", "gorp_migrations":
 			// skip migrate-only tables
 			continue
@@ -36,18 +36,18 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 			continue
 		}
 
-		if tables[cRow.TableName] == nil {
-			tables[cRow.TableName] = &Table{name: cRow.TableName, deps: make(map[string]struct{})}
+		if tables[cRow.ColTableName] == nil {
+			tables[cRow.ColTableName] = &Table{name: cRow.ColTableName, deps: make(map[string]struct{})}
 		}
 
-		tables[cRow.TableName].cols = append(tables[cRow.TableName].cols, column(cRow))
-		if cRow.ColumnName == "id" {
-			tables[cRow.TableName].id = column(cRow)
+		tables[cRow.ColTableName].cols = append(tables[cRow.ColTableName].cols, column(cRow))
+		if cRow.ColColumnName == "id" {
+			tables[cRow.ColTableName].id = column(cRow)
 		}
 	}
 
 	for _, t := range tables {
-		if t.id.ColumnName == "" {
+		if t.id.ColColumnName == "" {
 			return nil, fmt.Errorf("table %s has no id column", t.name)
 		}
 	}
@@ -59,7 +59,7 @@ func ScanTables(ctx context.Context, conn *pgx.Conn) ([]Table, error) {
 	var tableList []*Table
 	for _, t := range tables {
 		sort.Slice(t.cols, func(i, j int) bool {
-			return t.cols[i].OrdinalPosition < t.cols[j].OrdinalPosition
+			return t.cols[i].ColOrdinalPosition < t.cols[j].ColOrdinalPosition
 		})
 		tableList = append(tableList, t)
 	}

@@ -15,19 +15,19 @@ type Table struct {
 	cols []column
 	id   column
 }
-type column swodb.InformationSchemaColumn
+type column swodb.TableColumnsRow
 
 // Name returns the name of the table.
 func (t Table) Name() string { return t.name }
 
 // IDType returns the type of the ID column.
-func (t Table) IDType() string { return t.id.DataType }
+func (t Table) IDType() string { return t.id.ColDataType }
 
 // Columns returns the names of the columns in the table.
 func (t Table) Columns() []string {
 	var cols []string
 	for _, c := range t.cols {
-		cols = append(cols, c.ColumnName)
+		cols = append(cols, c.ColColumnName)
 	}
 	return cols
 }
