@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
 import { DateTime } from 'luxon'
@@ -16,6 +16,10 @@ import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
+import { OverrideDialogContext } from './ScheduleDetails'
+import TempSchedDialog from './temp-sched/TempSchedDialog'
+import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
+import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -54,6 +58,14 @@ export default function ScheduleOverrideList({ scheduleID }) {
   const [showPast, setShowPast] = useURLParam('showPast', false)
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
+
+  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
+  const onEditTempSched = useCallback((v) => setConfigTempSchedule(v), [])
+
+  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+  const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
+  const [overrideDialog, setOverrideDialog] = useState(null)
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
@@ -104,9 +116,39 @@ export default function ScheduleOverrideList({ scheduleID }) {
       } in ${zone}.`
 
   return (
-    <React.Fragment>
+    <OverrideDialogContext.Provider
+      value={{
+        onNewTempSched,
+        onEditTempSched,
+        onDeleteTempSched,
+        setOverrideDialog,
+      }}
+    >
       {isMobile && (
         <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+      )}
+      {configTempSchedule && (
+        <TempSchedDialog
+          value={configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+      {deleteTempSchedule && (
+        <TempSchedDeleteConfirmation
+          value={deleteTempSchedule}
+          onClose={() => setDeleteTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+      {overrideDialog && (
+        <ScheduleOverrideDialog
+          defaultValue={overrideDialog.defaultValue}
+          variantOptions={overrideDialog.variantOptions}
+          scheduleID={scheduleID}
+          onClose={() => setOverrideDialog(null)}
+          removeUserReadOnly={overrideDialog.removeUserReadOnly}
+        />
       )}
       <QueryList
         headerNote={note}
@@ -169,6 +211,12 @@ export default function ScheduleOverrideList({ scheduleID }) {
               <Button
                 variant='contained'
                 startIcon={<GroupAdd />}
+                onClick={() =>
+                  setOverrideDialog({
+                    variantOptions: ['replace', 'remove', 'add', 'temp'],
+                    removeUserReadOnly: false,
+                  })
+                }
                 sx={{ ml: 1 }}
               >
                 Add Override
@@ -196,6 +244,6 @@ export default function ScheduleOverrideList({ scheduleID }) {
           onClose={() => setEditID(null)}
         />
       )}
-    </React.Fragment>
+    </OverrideDialogContext.Provider>
   )
 }

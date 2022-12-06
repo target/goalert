@@ -1,16 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import FormDialog from '../../dialogs/FormDialog'
+import FormDialog from '../dialogs/FormDialog'
 import { DateTime } from 'luxon'
-import {
-  fieldErrors as getFieldErrors,
-  nonFieldErrors,
-} from '../../util/errutil'
-import useOverrideNotices from '../useOverrideNotices'
-import { ScheduleCalendarContext } from '../ScheduleDetails'
-import { variantDetails } from '../ScheduleOverrideCreateDialog'
-import ScheduleOverrideForm from '../ScheduleOverrideForm'
+import { fieldErrors as getFieldErrors, nonFieldErrors } from '../util/errutil'
+import useOverrideNotices from './useOverrideNotices'
+import { OverrideDialogContext } from './ScheduleDetails'
+import { variantDetails } from './ScheduleOverrideCreateDialog'
+import ScheduleOverrideForm from './ScheduleOverrideForm'
 import {
   FormControlLabel,
   FormHelperText,
@@ -52,7 +49,7 @@ export default function ScheduleCalendarOverrideDialog(props) {
   const [fieldErrors, setFieldErrors] = useState([])
   const [activeVariant, setActiveVariant] = useState(variantOptions[0])
 
-  const { onNewTempSched } = useContext(ScheduleCalendarContext)
+  const { onNewTempSched } = useContext(OverrideDialogContext)
 
   const notices = useOverrideNotices(props.scheduleID, value)
 
