@@ -46,7 +46,6 @@ require (
 	golang.org/x/tools v0.3.0
 	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.50.1
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.4.5
@@ -57,11 +56,6 @@ require (
 require (
 	github.com/fullstorydev/grpcui v1.3.1
 	github.com/kffl/speedbump v1.0.0
-)
-
-require (
-	github.com/benbjohnson/clock v1.1.0 // indirect
-	github.com/pganalyze/pg_query_go/v2 v2.1.0 // indirect
 )
 
 require (
@@ -76,7 +70,6 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220209173558-ad29539cd2e9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -116,7 +109,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/kyleconroy/sqlc v1.14.0
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
@@ -134,9 +126,6 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
-	github.com/pingcap/errors v0.11.5-0.20210425183316-da1aaba5fb63 // indirect
-	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354 // indirect
-	github.com/pingcap/parser v0.0.0-20210914110036-002913dd28ec // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
@@ -159,9 +148,6 @@ require (
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.20.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220602145555-4a0574d9293f // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
@@ -170,7 +156,6 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
