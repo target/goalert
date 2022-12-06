@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support'
+import { testScreen } from '../support/e2e'
 import users from '../fixtures/users.json'
 const c = new Chance()
 

@@ -1,4 +1,4 @@
-import { testScreen } from '../support'
+import { testScreen } from '../support/e2e'
 
 function testSidebar(): void {
   beforeEach(() => cy.visit('/'))

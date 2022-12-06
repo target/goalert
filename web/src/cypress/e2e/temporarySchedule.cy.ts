@@ -1,4 +1,4 @@
-import { randInterval, randDTWithinInterval, testScreen } from '../support'
+import { randInterval, randDTWithinInterval, testScreen } from '../support/e2e'
 import { Schedule } from '../../schema'
 import { DateTime, Interval } from 'luxon'
 import users from '../fixtures/users.json'
