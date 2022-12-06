@@ -41,7 +41,7 @@ require (
 	golang.org/x/crypto v0.2.0
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.2.0
-	golang.org/x/sys v0.2.0
+	golang.org/x/sys v0.3.0
 	golang.org/x/term v0.2.0
 	golang.org/x/tools v0.3.0
 	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
@@ -55,7 +55,7 @@ require (
 
 require (
 	github.com/fullstorydev/grpcui v1.3.1
-	github.com/kffl/speedbump v1.0.0
+	github.com/kffl/speedbump v1.1.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 )
 
@@ -89,7 +89,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/hashicorp/go-hclog v1.2.1 // indirect
+	github.com/hashicorp/go-hclog v1.4.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
