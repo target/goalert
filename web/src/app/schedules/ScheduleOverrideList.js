@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
-import QueryList from '../lists/QueryList'
+import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
+import { GroupAdd } from '@mui/icons-material'
+import { DateTime } from 'luxon'
 import { gql } from '@apollo/client'
+import QueryList from '../lists/QueryList'
 import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
@@ -13,7 +15,7 @@ import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
 import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
-import { DateTime } from 'luxon'
+import { useIsWidthDown } from '../util/useWidth'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -42,6 +44,8 @@ const query = gql`
 `
 
 export default function ScheduleOverrideList({ scheduleID }) {
+  const isMobile = useIsWidthDown('md')
+
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
   const [create, setCreate] = useState(null)
@@ -101,7 +105,9 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
   return (
     <React.Fragment>
-      <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+      {isMobile && (
+        <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+      )}
       <QueryList
         headerNote={note}
         noSearch
@@ -136,28 +142,39 @@ export default function ScheduleOverrideList({ scheduleID }) {
           },
         }}
         headerAction={
-          <FilterContainer onReset={() => resetFilter()}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={showPast}
-                    onChange={(e) => setShowPast(e.target.checked)}
-                    value='showPast'
-                  />
-                }
-                label='Show past overrides'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <UserSelect
-                label='Filter users...'
-                multiple
-                value={userFilter}
-                onChange={(value) => setUserFilter(value)}
-              />
-            </Grid>
-          </FilterContainer>
+          <React.Fragment>
+            <FilterContainer onReset={() => resetFilter()}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showPast}
+                      onChange={(e) => setShowPast(e.target.checked)}
+                      value='showPast'
+                    />
+                  }
+                  label='Show past overrides'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <UserSelect
+                  label='Filter users...'
+                  multiple
+                  value={userFilter}
+                  onChange={(value) => setUserFilter(value)}
+                />
+              </Grid>
+            </FilterContainer>
+            {!isMobile && (
+              <Button
+                variant='contained'
+                startIcon={<GroupAdd />}
+                sx={{ ml: 1 }}
+              >
+                Add Override
+              </Button>
+            )}
+          </React.Fragment>
         }
       />
       {create && (
