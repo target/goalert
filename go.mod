@@ -56,6 +56,7 @@ require (
 require (
 	github.com/fullstorydev/grpcui v1.3.1
 	github.com/kffl/speedbump v1.0.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 )
 
 require (
