@@ -878,6 +878,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'webhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -918,6 +919,11 @@ export interface AuthSubjectInput {
   userID: string
   providerID: string
   subjectID: string
+}
+
+export interface Webhook {
+  value?: null | string
+  isFavorite: boolean
 }
 
 export type UserRole = 'unknown' | 'user' | 'admin'

@@ -598,6 +598,11 @@ type VerifyContactMethodInput struct {
 	Code            int    `json:"code"`
 }
 
+type Webhook struct {
+	Value      *string `json:"value"`
+	IsFavorite bool    `json:"isFavorite"`
+}
+
 type AlertSearchSort string
 
 const (

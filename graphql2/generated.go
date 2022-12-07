@@ -586,6 +586,11 @@ type ComplexityRoot struct {
 		LastAccessAt func(childComplexity int) int
 		UserAgent    func(childComplexity int) int
 	}
+
+	Webhook struct {
+		IsFavorite func(childComplexity int) int
+		Value      func(childComplexity int) int
+	}
 }
 
 type AlertResolver interface {
@@ -3462,6 +3467,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserSession.UserAgent(childComplexity), true
+
+	case "Webhook.isFavorite":
+		if e.complexity.Webhook.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.Webhook.IsFavorite(childComplexity), true
+
+	case "Webhook.value":
+		if e.complexity.Webhook.Value == nil {
+			break
+		}
+
+		return e.complexity.Webhook.Value(childComplexity), true
 
 	}
 	return 0, false
@@ -21483,6 +21502,91 @@ func (ec *executionContext) fieldContext_UserSession_lastAccessAt(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Webhook_value(ctx context.Context, field graphql.CollectedField, obj *Webhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Webhook_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Webhook_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Webhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Webhook_isFavorite(ctx context.Context, field graphql.CollectedField, obj *Webhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Webhook_isFavorite(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsFavorite, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Webhook_isFavorite(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Webhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -31232,6 +31336,38 @@ func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionS
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var webhookImplementors = []string{"Webhook"}
+
+func (ec *executionContext) _Webhook(ctx context.Context, sel ast.SelectionSet, obj *Webhook) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, webhookImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Webhook")
+		case "value":
+
+			out.Values[i] = ec._Webhook_value(ctx, field, obj)
+
+		case "isFavorite":
+
+			out.Values[i] = ec._Webhook_isFavorite(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

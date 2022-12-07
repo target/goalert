@@ -3,6 +3,7 @@ package escalation
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
@@ -187,6 +188,7 @@ func (s *Store) logChange(ctx context.Context, tx *sql.Tx, policyID string) {
 }
 
 func validStepTarget(tgt assignment.Target) error {
+	fmt.Print("\n", tgt.TargetType(), "\n")
 	return validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.OneOf("TargetType", tgt.TargetType(),
@@ -317,6 +319,7 @@ func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slac
 // AddStepTargetTx adds a target to an escalation policy step.
 func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
+		fmt.Println("\nmaking slack channel")
 		var err error
 		tgt, err = s.newSlackChannel(ctx, tx, tgt.TargetID())
 		if err != nil {
@@ -389,6 +392,9 @@ func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID str
 			case notificationchannel.TypeSlack:
 				tgt.ID = chValue.String
 				tgt.Type = assignment.TargetTypeSlackChannel
+			case notificationchannel.TypeWebhook:
+				tgt.ID = chValue.String
+				tgt.Type = assignment.TargetTypeWebhook
 			default:
 				tgt.ID = ch.String
 				tgt.Type = assignment.TargetTypeNotificationChannel

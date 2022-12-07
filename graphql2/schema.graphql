@@ -1105,6 +1105,7 @@ enum TargetType {
   service
   schedule
   user
+  webhook
   integrationKey
   userOverride
   notificationRule
@@ -1147,6 +1148,11 @@ input AuthSubjectInput {
   userID: ID!
   providerID: ID!
   subjectID: ID!
+}
+
+type Webhook {
+  value: String
+  isFavorite: Boolean!
 }
 
 enum UserRole {

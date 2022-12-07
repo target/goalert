@@ -20,10 +20,12 @@ import {
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   Group as UsersIcon,
+  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import { TextField } from '@mui/material'
 
 const useStyles = makeStyles({
   badge: {
@@ -53,16 +55,24 @@ function PolicyStepForm(props) {
   }
 
   // takes a list of { id, type } targets and return the ids for a specific type
-  const getTargetsByType = (type) => (tgts) =>
-    tgts
+  const getTargetsByType = (type) => (tgts) => {
+    return tgts
       .filter((t) => t.type === type) // only the list of the current type
       .map((t) => t.id) // array of ID strings
+  }
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-  const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
-    curTgts
+  const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
+    console.log(type, ' , ', newTgts)
+    if (type === 'webhook') {
+      return curTgts
+        .filter((t) => t.type !== type)
+        .concat({ id: newTgts, type })
+    }
+    return curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
+  }
 
   // then form fields would all point to `targets` but can map values
   const setTargetType = makeSetTargetType(value.targets)
@@ -218,6 +228,36 @@ function PolicyStepForm(props) {
                       name='rotations'
                       mapValue={getTargetsByType('rotation')}
                       mapOnChangeValue={setTargetType('rotation')}
+                    />
+                  </StepContent>
+                </Step>
+                <Step>
+                  <StepButton
+                    aria-expanded={(
+                      step === (cfg['Webhook.Enable'] ? 4 : 3)
+                    ).toString()}
+                    data-cy='webhook-step'
+                    icon={<WebhookIcon />}
+                    optional={optionalText}
+                    onClick={() =>
+                      handleStepChange(cfg['Slack.Enable'] ? 4 : 3)
+                    }
+                    tabIndex={-1}
+                  >
+                    {badgeMeUpScotty(
+                      getTargetsByType('webhook')(value.targets).length,
+                      'Add Webhook',
+                    )}
+                  </StepButton>
+                  <StepContent>
+                    <FormField
+                      fieldName='targets'
+                      fullWidth
+                      component={TextField}
+                      label='Webhook (link)'
+                      name='webhooks'
+                      mapValue={getTargetsByType('webhook')}
+                      mapOnChangeValue={setTargetType('webhook')}
                     />
                   </StepContent>
                 </Step>
