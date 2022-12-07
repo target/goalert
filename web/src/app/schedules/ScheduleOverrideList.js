@@ -9,8 +9,6 @@ import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
-import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
-import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
 import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
@@ -18,8 +16,8 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
 import { OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
-import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
+import CreateFAB from '../lists/CreateFAB'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -52,20 +50,15 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
-  const [create, setCreate] = useState(null)
 
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [showPast, setShowPast] = useURLParam('showPast', false)
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
+  const [overrideDialog, setOverrideDialog] = useState(null)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
-  const onEditTempSched = useCallback((v) => setConfigTempSchedule(v), [])
-
-  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
-  const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
-  const [overrideDialog, setOverrideDialog] = useState(null)
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
@@ -119,37 +112,9 @@ export default function ScheduleOverrideList({ scheduleID }) {
     <OverrideDialogContext.Provider
       value={{
         onNewTempSched,
-        onEditTempSched,
-        onDeleteTempSched,
         setOverrideDialog,
       }}
     >
-      {isMobile && (
-        <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
-      {deleteTempSchedule && (
-        <TempSchedDeleteConfirmation
-          value={deleteTempSchedule}
-          onClose={() => setDeleteTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
-      {overrideDialog && (
-        <ScheduleOverrideDialog
-          defaultValue={overrideDialog.defaultValue}
-          variantOptions={overrideDialog.variantOptions}
-          scheduleID={scheduleID}
-          onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly={overrideDialog.removeUserReadOnly}
-        />
-      )}
       <QueryList
         headerNote={note}
         noSearch
@@ -225,13 +190,37 @@ export default function ScheduleOverrideList({ scheduleID }) {
           </React.Fragment>
         }
       />
-      {create && (
-        <ScheduleOverrideCreateDialog
-          scheduleID={scheduleID}
-          variant={create}
-          onClose={() => setCreate(null)}
+      {isMobile && (
+        <CreateFAB
+          title='Add Override'
+          onClick={() =>
+            setOverrideDialog({
+              variantOptions: ['replace', 'remove', 'add', 'temp'],
+              removeUserReadOnly: false,
+            })
+          }
         />
       )}
+
+      {/* create dialogs */}
+      {overrideDialog && (
+        <ScheduleOverrideDialog
+          defaultValue={overrideDialog.defaultValue}
+          variantOptions={overrideDialog.variantOptions}
+          scheduleID={scheduleID}
+          onClose={() => setOverrideDialog(null)}
+          removeUserReadOnly={overrideDialog.removeUserReadOnly}
+        />
+      )}
+      {configTempSchedule && (
+        <TempSchedDialog
+          value={configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+
+      {/* edit dialogs by ID */}
       {deleteID && (
         <ScheduleOverrideDeleteDialog
           overrideID={deleteID}

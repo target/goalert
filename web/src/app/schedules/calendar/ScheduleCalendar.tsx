@@ -364,7 +364,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
               startIcon={<GroupAdd />}
               title='Make temporary change to schedule'
             >
-              Override
+              Add Override
             </Button>
           }
         />
