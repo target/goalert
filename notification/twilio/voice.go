@@ -360,11 +360,13 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 
 	// add pause index values
 	var pauseIndexData []int
-	if q.Has(msgParamPause) {
-		for _, val := range q[msgParamPause] {
-			if i, err := strconv.Atoi(val); err != nil {
-				pauseIndexData = append(pauseIndexData, i)
-			}
+	for _, val := range q[msgParamPause] {
+		if i, err := strconv.Atoi(val); err == nil {
+			pauseIndexData = append(pauseIndexData, i)
+		} else {
+			// bad input, so we need to error out
+			http.Error(w, "", http.StatusBadRequest)
+			return nil, nil, nil
 		}
 	}
 
@@ -444,7 +446,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
@@ -469,7 +471,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeVerify))
 		return
 	}
@@ -490,7 +492,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
@@ -555,7 +557,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
-		processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
@@ -608,7 +610,7 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 }
 
 // processSayBody is a helper function to apply the correct verb types
-func processSayBody(resp *twiMLResponse, msgBody string, msgPauseIndex []int) {
+func (v *Voice) processSayBody(resp *twiMLResponse, msgBody string, msgPauseIndex []int) {
 	// avoid a panic if the response object or msgBody isn't setup yet
 	if resp == nil || msgBody == "" {
 		return

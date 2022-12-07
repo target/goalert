@@ -1,6 +1,7 @@
 package twilio
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -374,7 +375,8 @@ func TestProcessSayBody(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			// Arrange / Act
-			processSayBody(tc.input.resp, tc.input.msgBody, tc.input.msgPauseIndex)
+			v, _ := NewVoice(context.Background(), nil, &Config{})
+			v.processSayBody(tc.input.resp, tc.input.msgBody, tc.input.msgPauseIndex)
 
 			// Assert
 			assert.Equal(t, tc.expected, tc.input.resp)
@@ -388,6 +390,7 @@ func BenchmarkProcessSayBody(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		seed = fmt.Sprintf("%s%d", seed, i)
 		msgPauseIndex = append(msgPauseIndex, i)
-		processSayBody(&twiMLResponse{}, seed, msgPauseIndex)
+		v, _ := NewVoice(context.Background(), nil, &Config{})
+		v.processSayBody(&twiMLResponse{}, seed, msgPauseIndex)
 	}
 }
