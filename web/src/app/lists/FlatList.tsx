@@ -167,12 +167,18 @@ export default function FlatList({
 
   // collapsable sections state
   const [openSections, setOpenSections] = useState<string[]>(
-    sections ? [sections[0].title] : [],
+    sections && sections.length ? [sections[0].title] : [],
   )
 
   useEffect(() => {
-    if (sections) {
-      setOpenSections([sections[0].title])
+    const sectionArr = sections?.map((section) => section.title)
+    // update openSections if there are new sections
+    if (
+      openSections.length &&
+      sectionArr?.length &&
+      !sectionArr?.find((section: string) => section === openSections[0])
+    ) {
+      setOpenSections([sectionArr[0]])
     }
   }, [sections])
 
@@ -377,7 +383,6 @@ export default function FlatList({
     }
     return sections?.map((section, idx) => {
       const open = openSections?.includes(section.title)
-      console.log('here2', open, openSections)
       return (
         <React.Fragment key={idx}>
           <ListItemButton onClick={() => toggleSection(section.title)}>

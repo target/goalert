@@ -79,7 +79,6 @@ export default function ServiceOnCallList({ serviceID }) {
       .sortBy(['stepNumber', 'userName'])
       .map((u) => ({
         title: u.userName,
-        subText: stepText(u.stepNumber),
         icon: <UserAvatar userID={u.userID} />,
         section: stepText(u.stepNumber),
         url: `/users/${u.userID}`,
