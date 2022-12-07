@@ -1,6 +1,5 @@
 import React from 'react'
 import { gql, useQuery } from 'urql'
-import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { Grid, Typography } from '@mui/material'
 
@@ -11,6 +10,7 @@ import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
+import { FieldError } from '../util/errutil'
 
 const query = gql`
   query ($id: ID!) {
@@ -30,7 +30,27 @@ const query = gql`
   }
 `
 
-export default function ScheduleOverrideForm(props) {
+interface ScheduleOverrideFormValue {
+  addUserID: string
+  removeUserID: string
+  start: string
+  end: string
+}
+
+interface ScheduleOverrideFormProps {
+  scheduleID: string
+  value: ScheduleOverrideFormValue
+  add?: boolean
+  remove?: boolean
+  disabled: boolean
+  errors: Array<FieldError>
+  onChange: (value: ScheduleOverrideFormValue) => void
+  removeUserReadOnly?: boolean
+}
+
+export default function ScheduleOverrideForm(
+  props: ScheduleOverrideFormProps,
+): JSX.Element {
   const {
     add,
     remove,
@@ -131,30 +151,4 @@ export default function ScheduleOverrideForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-ScheduleOverrideForm.propTypes = {
-  scheduleID: p.string.isRequired,
-
-  value: p.shape({
-    addUserID: p.string.isRequired,
-    removeUserID: p.string.isRequired,
-    start: p.string.isRequired,
-    end: p.string.isRequired,
-  }).isRequired,
-
-  add: p.bool,
-  remove: p.bool,
-
-  disabled: p.bool.isRequired,
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['addUserID', 'removeUserID', 'userID', 'start', 'end'])
-        .isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func.isRequired,
-  removeUserReadOnly: p.bool,
 }
