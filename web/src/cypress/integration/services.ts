@@ -59,7 +59,7 @@ function testServices(screen: ScreenFormat): void {
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
-    describe.only('Filtering', () => {
+    describe('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
       let intKey: IntegrationKey
