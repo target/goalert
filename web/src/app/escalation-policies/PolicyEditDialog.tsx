@@ -59,7 +59,7 @@ function PolicyEditDialog(props: {
             input: {
               id: props.escalationPolicyID,
               name: value?.name || defaultValue.name,
-              description: value?.description || defaultValue.description,
+              description: value?.description,
               repeat: value?.repeat?.value ?? defaultValue.repeat.value,
             },
           },
