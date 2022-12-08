@@ -182,7 +182,11 @@ function testSchedules(screen: ScreenFormat): void {
       cy.createRotation().then(({ name }: Rotation) => {
         cy.get('ul').should('not.contain', name)
 
-        cy.pageFab('Rotation')
+        if (screen === 'mobile') {
+          cy.pageFab('Rotation')
+        } else {
+          cy.get('button').contains('Add Rotation').click()
+        }
         cy.dialogTitle('Add Rotation to Schedule')
         cy.dialogForm({ targetID: name })
         cy.dialogFinish('Submit')
@@ -196,7 +200,11 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.get('body').should('not.contain', name)
 
-      cy.pageFab('User')
+      if (screen === 'mobile') {
+        cy.pageFab('User')
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User to Schedule')
       cy.dialogForm({ targetID: name })
       cy.dialogFinish('Submit')
@@ -217,7 +225,11 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create multiple rules on an assignment', () => {
-      cy.pageFab('Rotation')
+      if (screen === 'mobile') {
+        cy.pageFab('Rotation')
+      } else {
+        cy.get('button').contains('Add Rotation').click()
+      }
       cy.dialogTitle('Add Rotation')
 
       if (screen === 'mobile' || screen === 'tablet') {
@@ -431,7 +443,11 @@ function testSchedules(screen: ScreenFormat): void {
       })
 
       // on change
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
@@ -442,7 +458,11 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         slackChannelID: 'foobar',
