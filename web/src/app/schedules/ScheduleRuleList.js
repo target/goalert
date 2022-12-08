@@ -45,7 +45,6 @@ export default function ScheduleRuleList({ scheduleID }) {
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)
-
   const isMobile = useIsWidthDown('md')
 
   const { data, loading, error } = useQuery(query, {

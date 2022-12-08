@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Grid, Card } from '@mui/material'
+import { Button, Grid, Card } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
@@ -11,6 +11,8 @@ import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificatio
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
+import { useIsWidthDown } from '../../util/useWidth'
+import { Add } from '@mui/icons-material'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -22,6 +24,8 @@ export default function ScheduleOnCallNotificationsList({
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
+  const isMobile = useIsWidthDown('md')
+
   const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
   return (
@@ -35,6 +39,17 @@ export default function ScheduleOnCallNotificationsList({
                 q.loading
                   ? 'Loading notification rules...'
                   : 'No notification rules.'
+              }
+              headerAction={
+                isMobile ? undefined : (
+                  <Button
+                    variant='contained'
+                    onClick={() => setCreateRule(true)}
+                    startIcon={<Add />}
+                  >
+                    Create Notification Rule
+                  </Button>
+                )
               }
               items={rules.map((rule) => {
                 return {
@@ -66,6 +81,12 @@ export default function ScheduleOnCallNotificationsList({
           </Card>
         </Grid>
       </Grid>
+      {isMobile && (
+        <CreateFAB
+          onClick={() => setCreateRule(true)}
+          title='Create Notification Rule'
+        />
+      )}
       {createRule && (
         <ScheduleOnCallNotificationsCreateDialog
           scheduleID={scheduleID}
@@ -86,10 +107,6 @@ export default function ScheduleOnCallNotificationsList({
           onClose={() => setDeleteRuleID('')}
         />
       )}
-      <CreateFAB
-        onClick={() => setCreateRule(true)}
-        title='Create Notification Rule'
-      />
     </React.Fragment>
   )
 }
