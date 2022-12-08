@@ -81,6 +81,9 @@ var ignoreRules = []ignoreRule{
 
 	// System default limits once set are not unset
 	{MigrationName: "set-default-system-limits", TableName: "config_limits", ExtraRows: true},
+
+	// Every DB must have a unique ID.
+	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
 }
 
 const migrateInitData = `
