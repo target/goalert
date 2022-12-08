@@ -32,7 +32,7 @@ const useStyles = makeStyles({
     marginTop: '.3rem',
   },
 })
-export default function ScheduleCalendarOverrideDialog(props) {
+export default function ScheduleOverrideDialog(props) {
   const { variantOptions = ['replace', 'remove', 'add', 'temp'] } = props
   const classes = useStyles()
 
