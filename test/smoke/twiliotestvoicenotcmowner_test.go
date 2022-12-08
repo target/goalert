@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestTwilioVoice checks that a test voice call is processed.
-func TestTwilioVoice(t *testing.T) {
+// TestTwilioSMS checks that a test SMS is processed.
+func TestTwilioVoiceNotCMOwner(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-	insert into users (id, name, email, role) 
+	insert into users (id, name, email) 
 	values 
-		({{uuid "user"}}, 'bob', 'joe', 'admin');
+		({{uuid "user"}}, 'bob', 'joe');
 	insert into user_contact_methods (id, user_id, name, type, value) 
 	values
 	    ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}});
@@ -23,20 +24,15 @@ func TestTwilioVoice(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQueryUserT(t, h.UUID("user"), query)
-		for _, err := range g.Errors {
-			t.Error("GraphQL Error:", err.Message)
-		}
-		if len(g.Errors) > 0 {
-			t.Fatal("errors returned from GraphQL")
-		}
+		g := h.GraphQLQuery2(query)
+		require.Len(t, g.Errors, 1, "errors returned from GraphQL")
+		require.Equal(t, "contact method does not belong to user", g.Errors[0].Message)
 	}
+	cm1 := h.UUID("cm1")
 
 	doQL(fmt.Sprintf(`
 		mutation {
 			testContactMethod(id: "%s")
 		}
-		`, h.UUID("cm1")))
-
-	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("test")
+		`, cm1))
 }

@@ -248,10 +248,16 @@ func (s *Store) Code(ctx context.Context, id string) (int, error) {
 }
 
 func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
-	_, err := s.cmUserID(ctx, id)
+	cmUserID, err := s.cmUserID(ctx, id)
 	if err != nil {
 		return err
 	}
+
+	// if the contact method user id does not match the current user id, return an error
+	if cmUserID != permission.UserID(ctx) {
+		return validation.NewFieldError("ContactMethod", "contact method does not belong to user")
+	}
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
