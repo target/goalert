@@ -336,7 +336,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create an add override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Add')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.add"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Add')
       cy.dialogForm({ addUserID: users[0].name })
       cy.dialogFinish('Submit')
@@ -349,7 +357,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create a remove override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Remove')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.remove"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Remove')
       cy.dialogForm({ removeUserID: users[0].name })
       cy.dialogFinish('Submit')
@@ -362,7 +378,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create a replace override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Replace')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.replace"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Replace')
       cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
       cy.dialogFinish('Submit')
@@ -375,7 +399,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should edit and delete an override', () => {
       cy.get('body').should('contain', 'No results')
 
-      cy.pageFab('Add')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.add"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Add')
       cy.dialogForm({ addUserID: users[0].name })
       cy.dialogFinish('Submit')
