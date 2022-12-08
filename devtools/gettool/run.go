@@ -28,6 +28,8 @@ func main() {
 		err = getPrometheus(*version, *output)
 	case "protoc":
 		err = getProtoC(*version, *output)
+	case "sqlc":
+		err = getSqlc(*version, *output)
 	default:
 		log.Fatalf("unknown tool '%s'", *tool)
 	}

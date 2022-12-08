@@ -65,6 +65,8 @@ func IsTemporaryError(err error) bool {
 		// https://www.postgresql.org/docs/10/static/errcodes-appendix.html
 		case strings.HasPrefix(e.Code, "40"), strings.HasPrefix(e.Code, "08"):
 			return true
+		case e.Code == "55P03": // lock_timeout
+			return true
 		}
 	}
 	return false
@@ -75,7 +77,7 @@ type DoTempFunc func(int) error
 
 // DoTemporaryError will retry as long as the error returned from fn is
 // temporary as defined by IsTemporaryError.
-func DoTemporaryError(fn DoTempFunc, opts ...Option) error {
+func DoTemporaryError(fn func(attempt int) error, opts ...Option) error {
 	return Do(func(n int) (bool, error) {
 		err := fn(n)
 		return IsTemporaryError(err), err
