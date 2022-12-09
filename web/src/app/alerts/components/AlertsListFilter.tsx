@@ -63,8 +63,6 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
     isMobile ? classes.drawer : classes.popover,
   )
 
-  console.log('is mobile: ', isMobile)
-
   function handleOpenFilters(event: MouseEvent<HTMLButtonElement>): void {
     setAnchorEl(event.currentTarget)
     setShow(true)

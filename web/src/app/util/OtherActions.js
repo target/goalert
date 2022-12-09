@@ -69,7 +69,7 @@ OtherActions.propTypes = {
       onClick: p.func.isRequired,
     }),
   ).isRequired,
-  disabled: p.boolean,
+  disabled: p.bool,
   color: p.string,
   IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
