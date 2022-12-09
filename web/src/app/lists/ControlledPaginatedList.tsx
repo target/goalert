@@ -152,7 +152,6 @@ export default function ControlledPaginatedList(
         className={classes.actionsContainer}
         item
         container
-        spacing={2}
       >
         <Grid item>
           <Checkbox
