@@ -37,7 +37,6 @@ const userConflictQuery = gql`
 export default function UserContactMethodCreateDialog(props: {
   userID: string
   onClose: (contactMethodID?: string) => void
-  disclaimer?: string
   title?: string
   subtitle?: string
 }): JSX.Element {
@@ -129,7 +128,6 @@ export default function UserContactMethodCreateDialog(props: {
       errors={fieldErrs}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
-      disclaimer={props.disclaimer}
     />
   )
 

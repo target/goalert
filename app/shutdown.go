@@ -72,7 +72,6 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.AuthLinkKeyring, "auth link keyring")
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
-	shut(app.requestLock, "context locker")
 
 	if len(errs) == 1 {
 		return errs[0]

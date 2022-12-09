@@ -30,6 +30,8 @@ func main() {
 		err = getProtoC(*version, *output)
 	case "golangci-lint":
 		err = getGolangCiLint(*version, *output)
+	case "sqlc":
+		err = getSqlc(*version, *output)
 	default:
 		log.Fatalf("unknown tool '%s'", *tool)
 	}

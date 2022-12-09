@@ -367,6 +367,33 @@ type RotationSearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
+type SWOConnection struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Type    string `json:"type"`
+	IsNext  bool   `json:"isNext"`
+	Count   int    `json:"count"`
+}
+
+type SWONode struct {
+	ID       string `json:"id"`
+	CanExec  bool   `json:"canExec"`
+	IsLeader bool   `json:"isLeader"`
+	// The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+	Uptime      string          `json:"uptime"`
+	ConfigError string          `json:"configError"`
+	Connections []SWOConnection `json:"connections"`
+}
+
+type SWOStatus struct {
+	State         SWOState  `json:"state"`
+	LastStatus    string    `json:"lastStatus"`
+	LastError     string    `json:"lastError"`
+	Nodes         []SWONode `json:"nodes"`
+	MainDBVersion string    `json:"mainDBVersion"`
+	NextDBVersion string    `json:"nextDBVersion"`
+}
+
 type ScheduleConnection struct {
 	Nodes    []schedule.Schedule `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -830,6 +857,98 @@ func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NotificationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SWOAction string
+
+const (
+	SWOActionReset   SWOAction = "reset"
+	SWOActionExecute SWOAction = "execute"
+)
+
+var AllSWOAction = []SWOAction{
+	SWOActionReset,
+	SWOActionExecute,
+}
+
+func (e SWOAction) IsValid() bool {
+	switch e {
+	case SWOActionReset, SWOActionExecute:
+		return true
+	}
+	return false
+}
+
+func (e SWOAction) String() string {
+	return string(e)
+}
+
+func (e *SWOAction) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOAction", str)
+	}
+	return nil
+}
+
+func (e SWOAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SWOState string
+
+const (
+	SWOStateUnknown   SWOState = "unknown"
+	SWOStateResetting SWOState = "resetting"
+	SWOStateIdle      SWOState = "idle"
+	SWOStateSyncing   SWOState = "syncing"
+	SWOStatePausing   SWOState = "pausing"
+	SWOStateExecuting SWOState = "executing"
+	SWOStateDone      SWOState = "done"
+)
+
+var AllSWOState = []SWOState{
+	SWOStateUnknown,
+	SWOStateResetting,
+	SWOStateIdle,
+	SWOStateSyncing,
+	SWOStatePausing,
+	SWOStateExecuting,
+	SWOStateDone,
+}
+
+func (e SWOState) IsValid() bool {
+	switch e {
+	case SWOStateUnknown, SWOStateResetting, SWOStateIdle, SWOStateSyncing, SWOStatePausing, SWOStateExecuting, SWOStateDone:
+		return true
+	}
+	return false
+}
+
+func (e SWOState) String() string {
+	return string(e)
+}
+
+func (e *SWOState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOState", str)
+	}
+	return nil
+}
+
+func (e SWOState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
