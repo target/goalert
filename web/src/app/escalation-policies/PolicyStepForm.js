@@ -251,11 +251,19 @@ function PolicyStepForm(props) {
                   </StepButton>
                   <StepContent>
                     <FormField
+                      fullWidth
+                      name='name'
+                      required
+                      component={TextField}
+                    />
+                    <FormField
+                      sx={{ marginTop: '0.5rem' }}
                       fieldName='targets'
                       fullWidth
                       component={TextField}
-                      label='Webhook (link)'
+                      label='Webhook URL'
                       name='webhooks'
+                      placeholder='https://example.com'
                       mapValue={getTargetsByType('webhook')}
                       mapOnChangeValue={setTargetType('webhook')}
                     />

@@ -288,6 +288,18 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 	return err
 }
 
+func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
+	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
+		Type:  notificationchannel.TypeWebhook,
+		Name:  "test-webhook",
+		Value: webhookTarget.TargetID(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return assignment.NotificationChannelTarget(notifID.String()), nil
+}
+
 func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID string) (assignment.Target, error) {
 	ch, err := s.slackFn(ctx, slackChanID)
 	if err != nil {
@@ -319,9 +331,15 @@ func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slac
 // AddStepTargetTx adds a target to an escalation policy step.
 func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
-		fmt.Println("\nmaking slack channel")
 		var err error
 		tgt, err = s.newSlackChannel(ctx, tx, tgt.TargetID())
+		if err != nil {
+			return err
+		}
+	}
+	if tgt.TargetType() == assignment.TargetTypeWebhook {
+		var err error
+		tgt, err = s.newWebhook(ctx, tx, tgt)
 		if err != nil {
 			return err
 		}
@@ -684,7 +702,6 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 	}
 
 	s.logChange(ctx, tx, st.PolicyID)
-
 	return n, nil
 }
 
