@@ -57,7 +57,7 @@
     "react-redux": "8.0.0",
     "react-transition-group": "4.4.2",
     "react-virtualized-auto-sizer": "1.0.6",
-    "recharts": "2.1.14",
+    "recharts": "2.2.0",
     "redux-thunk": "2.4.0",
     "remark-gfm": "3.0.0",
     "urql": "3.0.1",
