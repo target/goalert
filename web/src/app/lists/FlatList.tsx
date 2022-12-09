@@ -36,6 +36,7 @@ import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
+import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles({
   alert: {
@@ -52,9 +53,6 @@ const useStyles = makeStyles({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  listItemText: {
-    fontStyle: 'italic',
-  },
   slideEnter: {
     maxHeight: '0px',
     opacity: 0,
@@ -160,6 +158,7 @@ export default function FlatList({
     setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
   }, [items])
 
+  const isMobile = useIsWidthDown('md')
   const [dragging, setDragging] = useState(false)
   const [draggable, setDraggable] = useState(false)
   const isFirstAnnouncement = useRef(false)
@@ -345,12 +344,15 @@ export default function FlatList({
     return (
       <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
-          <MUIListItem>
+          <MUIListItem sx={{ width: isMobile ? '100%' : '60%' }}>
             {toggleDnD && (
               <IconButton
                 onClick={() => setDraggable(!draggable)}
                 disabled={draggable && dragging}
-                sx={{ marginRight: (t) => t.spacing(2) }}
+                sx={{
+                  marginRight: (t) => t.spacing(2),
+                  textOverflow: 'wrap',
+                }}
                 aria-label='Toggle Drag and Drop'
               >
                 {draggable ? <DoneIcon /> : <EditIcon />}
@@ -362,10 +364,9 @@ export default function FlatList({
                 secondary={
                   <Typography color='textSecondary'>{headerNote}</Typography>
                 }
-                className={classes.listItemText}
+                sx={{ fontStyle: 'italic' }}
               />
             )}
-            <div style={{ flex: 1 }} />
             {headerAction && (
               <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
             )}
