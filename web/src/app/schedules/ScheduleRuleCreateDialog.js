@@ -34,10 +34,10 @@ export default function ScheduleRuleCreateDialog(props) {
     targetID: '',
     rules: [
       {
-        start: DateTime.local({ zone: data?.schedule.timeZone ?? 'UTC' })
+        start: DateTime.local({ zone: data.schedule.timeZone })
           .startOf('day')
           .toISO(),
-        end: DateTime.local({ zone: data?.schedule.timeZone ?? 'UTC' })
+        end: DateTime.local({ zone: data.schedule.timeZone })
           .plus({ day: 1 })
           .startOf('day')
           .toISO(),
