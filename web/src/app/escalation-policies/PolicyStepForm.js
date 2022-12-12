@@ -240,7 +240,7 @@ function PolicyStepForm(props) {
                     icon={<WebhookIcon />}
                     optional={optionalText}
                     onClick={() =>
-                      handleStepChange(cfg['Slack.Enable'] ? 4 : 3)
+                      handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
                     }
                     tabIndex={-1}
                   >
@@ -250,12 +250,12 @@ function PolicyStepForm(props) {
                     )}
                   </StepButton>
                   <StepContent>
-                    <FormField
+                    {/* <FormField
                       fullWidth
                       name='name'
                       required
                       component={TextField}
-                    />
+                    /> */}
                     <FormField
                       sx={{ marginTop: '0.5rem' }}
                       fieldName='targets'
