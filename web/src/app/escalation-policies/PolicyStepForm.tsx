@@ -24,7 +24,7 @@ import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
 import { ReactNode } from 'react-markdown/lib/react-markdown'
-import { TargetInput } from '../../schema'
+import { TargetInput, TargetType } from '../../schema'
 
 const useStyles = makeStyles({
   badge: {
@@ -66,17 +66,16 @@ function PolicyStepForm(props: PolicyStepFormProps): JSX.Element {
   }
 
   // takes a list of { id, type } targets and return the ids for a specific type
-  const getTargetsByType =
-    (type: string) => (tgts: PolicyStepFormValue['targets']) =>
-      tgts
-        .filter((t) => t.type === type) // only the list of the current type
-        .map((t) => t.id) // array of ID strings
+  const getTargetsByType = (type: TargetType) => (tgts: Array<TargetInput>) =>
+    tgts
+      .filter((t) => t.type === type) // only the list of the current type
+      .map((t) => t.id) // array of ID strings
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
   const makeSetTargetType =
-    (curTgts: PolicyStepFormValue['targets']) =>
-    (type: string) =>
-    (newTgts: PolicyStepFormValue['targets']) =>
+    (curTgts: Array<TargetInput>) =>
+    (type: TargetType) =>
+    (newTgts: Array<TargetInput>) =>
       curTgts
         .filter((t) => t.type !== type) // current targets without any of the current type
         .concat(newTgts.map((id: string) => ({ id, type }))) // add the list of current type to the end
