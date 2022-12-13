@@ -36,6 +36,9 @@ type MessageLog struct {
 
 	ServiceID   string
 	ServiceName string
+
+	SentAt     *time.Time
+	RetryCount int
 }
 
 // SearchOptions allow filtering and paginating the list of messages.
@@ -62,7 +65,8 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	SELECT
 		om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
 		om.src_value, om.alert_id, om.provider_msg_id,
-		om.user_id, u.name, om.contact_method_id, om.channel_id, om.service_id, s.name
+		om.user_id, u.name, om.contact_method_id, om.channel_id, om.service_id, s.name,
+    om.sent_at, om.retry_count
 	FROM outgoing_messages om
 	LEFT JOIN users u ON om.user_id = u.id
 	LEFT JOIN services s ON om.service_id = s.id
@@ -98,7 +102,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		OR (om.created_at = :cursorCreatedAt AND om.id > :afterID)
 	{{end}}
 		AND om.last_status != 'bundled'
-	ORDER BY om.created_at desc, om.id asc
+  ORDER BY (CASE WHEN om.sent_at IS NULL THEN 1 ELSE 0 END) desc, om.created_at desc, om.id asc
 	LIMIT {{.Limit}}
 `))
 
@@ -166,13 +170,14 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 	for rows.Next() {
 		var l MessageLog
 		var alertID sql.NullInt64
+		var retryCount sql.NullInt32
 		var chanID sqlutil.NullUUID
 		var serviceID, svcName sql.NullString
 		var srcValue sql.NullString
 		var userID, userName sql.NullString
 		var cmID sql.NullString
 		var providerID sql.NullString
-		var lastStatusAt sql.NullTime
+		var lastStatusAt, sentAt sql.NullTime
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
@@ -189,6 +194,8 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			&chanID,
 			&serviceID,
 			&svcName,
+			&sentAt,
+			&retryCount,
 		)
 		if err != nil {
 			return nil, err
@@ -211,6 +218,10 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		l.UserName = userName.String
 		l.ContactMethodID = cmID.String
 		l.LastStatusAt = lastStatusAt.Time
+		if sentAt.Valid {
+			l.SentAt = &sentAt.Time
+		}
+		l.RetryCount = int(retryCount.Int32)
 
 		result = append(result, l)
 	}
