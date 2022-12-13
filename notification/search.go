@@ -66,7 +66,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
 		om.src_value, om.alert_id, om.provider_msg_id,
 		om.user_id, u.name, om.contact_method_id, om.channel_id, om.service_id, s.name,
-    om.sent_at, om.retry_count
+		om.sent_at, om.retry_count
 	FROM outgoing_messages om
 	LEFT JOIN users u ON om.user_id = u.id
 	LEFT JOIN services s ON om.service_id = s.id
@@ -102,7 +102,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		OR (om.created_at = :cursorCreatedAt AND om.id > :afterID)
 	{{end}}
 		AND om.last_status != 'bundled'
-  ORDER BY (CASE WHEN om.sent_at IS NULL THEN 1 ELSE 0 END) desc, om.created_at desc, om.id asc
+	ORDER BY (CASE WHEN om.sent_at IS NULL THEN 1 ELSE 0 END) desc, om.created_at desc, om.id asc
 	LIMIT {{.Limit}}
 `))
 
