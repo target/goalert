@@ -29,9 +29,7 @@ function useValidImage(srcURL?: string): boolean {
 }
 
 function useAvatar(
-  Fallback: OverridableComponent<SvgIconTypeMap> & {
-    muiName: string
-  },
+  Fallback: OverridableComponent<SvgIconTypeMap>,
   otherProps: AvatarProps,
   loading = false,
   imgSrc?: string,
