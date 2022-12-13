@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,8 +23,7 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
-	"github.com/target/goalert/switchover"
-	"github.com/target/goalert/switchover/dbsync"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -85,82 +83,58 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 
-		wrappedDriver := sqldrv.NewRetryDriver(&stdlib.Driver{}, 10)
-
-		u, err := url.Parse(cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "parse old URL")
-		}
-		q := u.Query()
-		if cfg.DBURLNext != "" {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
-		} else {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
-		}
-		q.Set("enable_seqscan", "off")
-		u.RawQuery = q.Encode()
-		cfg.DBURL = u.String()
-
-		if cfg.APIOnly {
-			err = migrate.VerifyAll(log.WithDebug(ctx), cfg.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "verify migrations")
+		doMigrations := func(url string) error {
+			if cfg.APIOnly {
+				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				if err != nil {
+					return errors.Wrap(err, "verify migrations")
+				}
+				return nil
 			}
-		} else {
+
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), cfg.DBURL)
+			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
 			if n > 0 {
 				log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
 			}
+
+			return nil
 		}
 
-		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
+		err = doMigrations(cfg.DBURL)
 		if err != nil {
-			return errors.Wrap(err, "connect to postgres")
+			return err
 		}
-		var db *sql.DB
-		var h *switchover.Handler
-		if cfg.DBURLNext != "" {
-			u, err := url.Parse(cfg.DBURLNext)
-			if err != nil {
-				return errors.Wrap(err, "parse next URL")
-			}
-			q := u.Query()
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
-			q.Set("enable_seqscan", "off")
-			u.RawQuery = q.Encode()
-			cfg.DBURLNext = u.String()
 
-			dbcNext, err := wrappedDriver.OpenConnector(cfg.DBURLNext)
+		var db *sql.DB
+		if cfg.DBURLNext != "" {
+			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
-				return errors.Wrap(err, "connect to postres (next)")
+				return errors.Wrap(err, "nextdb")
 			}
-			h, err = switchover.NewHandler(ctx, l, dbc, dbcNext, cfg.DBURL, cfg.DBURLNext)
+
+			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
 			if err != nil {
-				return errors.Wrap(err, "init changeover handler")
+				return errors.Wrap(err, "init switchover handler")
 			}
-			db = h.DB()
+			db = mgr.DB()
+			cfg.SWO = mgr
 		} else {
-			db = sql.OpenDB(dbc)
+			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
 		}
 
 		app, err := NewApp(cfg, db)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
-		if h != nil {
-			h.SetApp(app)
-		}
 
-		go handleShutdown(ctx, func(ctx context.Context) error {
-			if h != nil {
-				h.Abort()
-			}
-			return app.Shutdown(ctx)
-		})
+		go handleShutdown(ctx, app.Shutdown)
 
 		// trigger engine cycles by process signal
 		trigCh := make(chan os.Signal, 1)
@@ -348,23 +322,6 @@ Migration: %s (#%d)
 				return errors.New("one or more checks failed.")
 			}
 			return nil
-		},
-	}
-
-	switchCmd = &cobra.Command{
-		Use:   "switchover-shell",
-		Short: "Start a the switchover shell, used to initiate, control, and monitor a DB switchover operation.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := getConfig(cmd.Context())
-			if err != nil {
-				return err
-			}
-
-			if cfg.DBURLNext == "" {
-				return validation.NewFieldError("DBURLNext", "must not be empty for switchover")
-			}
-
-			return dbsync.RunShell(log.FromContext(cmd.Context()), cfg.DBURL, cfg.DBURLNext)
 		},
 	}
 
@@ -731,7 +688,7 @@ func init() {
 	RootCmd.Flags().String("region-name", def.RegionName, "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
 
 	RootCmd.PersistentFlags().String("db-url", def.DBURL, "Connection string for Postgres.")
-	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switch-over mode).")
+	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switchover mode).")
 
 	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
 	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
@@ -788,7 +745,7 @@ func init() {
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
