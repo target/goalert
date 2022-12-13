@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
 import { gql } from '@apollo/client'
-import { Button } from '@mui/material'
-import { PersonAdd } from '@mui/icons-material'
-
 import { UserAvatar } from '../util/avatars'
 import QueryList from '../lists/QueryList'
 import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
