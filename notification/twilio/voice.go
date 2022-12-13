@@ -35,6 +35,11 @@ type Voice struct {
 	r notification.Receiver
 }
 
+type VoiceMultiString struct {
+	Body         string
+	PauseIndexes []int
+}
+
 const (
 	// Supported call types.
 	CallTypeAlert       = CallType("alert")
@@ -257,10 +262,11 @@ type call struct {
 	Q          url.Values
 
 	// Embedded query fields
-	msgID         string
-	msgSubjectID  int
-	msgBody       string
-	msgPauseIndex []int
+	msgID        string
+	msgSubjectID int
+	msgBody      VoiceMultiString
+	// msgBody       string
+	// msgPauseIndex []int
 }
 
 // doDeadline will ensure a return within 5 seconds, and log
@@ -424,10 +430,12 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		Outbound:   isOutbound,
 		Q:          q,
 
-		msgID:         msgID,
-		msgSubjectID:  subID,
-		msgBody:       string(bodyData),
-		msgPauseIndex: pauseIndexData,
+		msgID:        msgID,
+		msgSubjectID: subID,
+		msgBody: VoiceMultiString{
+			Body:         string(bodyData),
+			PauseIndexes: pauseIndexData,
+		},
 	}, errResp
 }
 
@@ -446,7 +454,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
@@ -471,7 +479,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeVerify))
 		return
 	}
@@ -492,7 +500,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
@@ -557,7 +565,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody, call.msgPauseIndex)
+		v.processSayBody(resp, call.msgBody)
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
@@ -610,26 +618,26 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 }
 
 // processSayBody is a helper function to apply the correct verb types
-func (v *Voice) processSayBody(resp *twiMLResponse, msgBody string, msgPauseIndex []int) {
+func (v *Voice) processSayBody(resp *twiMLResponse, msg VoiceMultiString) {
 	// avoid a panic if the response object or msgBody isn't setup yet
-	if resp == nil || msgBody == "" {
+	if resp == nil || msg.Body == "" {
 		return
 	}
 	// account for legacy method of a single message before pauses existed
-	if len(msgPauseIndex) < 1 {
-		resp.Say(msgBody)
+	if len(msg.PauseIndexes) < 1 {
+		resp.Say(msg.Body)
 		return
 	}
 	var indexCounter int
 	var prevPauseIndex int
-	for i, pauseIndex := range msgPauseIndex {
-		if pauseIndex <= len(msgBody) && indexCounter <= len(msgBody) && pauseIndex >= 0 {
-			if tempSay := msgBody[indexCounter:pauseIndex]; tempSay != "" {
+	for i, pauseIndex := range msg.PauseIndexes {
+		if pauseIndex <= len(msg.Body) && indexCounter <= len(msg.Body) && pauseIndex >= 0 {
+			if tempSay := msg.Body[indexCounter:pauseIndex]; tempSay != "" {
 				resp.Say(tempSay)
 			}
 
 			// only add a pause if it won't be at the end of the message
-			if i < len(msgPauseIndex) {
+			if i < len(msg.PauseIndexes) {
 				resp.Pause()
 			}
 
@@ -639,7 +647,7 @@ func (v *Voice) processSayBody(resp *twiMLResponse, msgBody string, msgPauseInde
 		}
 	}
 	// add the last say verb
-	if tempSay := msgBody[indexCounter:]; tempSay != "" {
+	if tempSay := msg.Body[indexCounter:]; tempSay != "" {
 		resp.Say(tempSay)
 	}
 }

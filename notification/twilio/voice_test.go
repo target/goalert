@@ -231,9 +231,8 @@ func BenchmarkBuildMessage(b *testing.B) {
 
 func TestProcessSayBody(t *testing.T) {
 	type mockInput struct {
-		resp          *twiMLResponse
-		msgBody       string
-		msgPauseIndex []int
+		resp    *twiMLResponse
+		msgBody VoiceMultiString
 	}
 
 	testCases := map[string]struct {
@@ -242,9 +241,11 @@ func TestProcessSayBody(t *testing.T) {
 	}{
 		"with a pause": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{len("Hello")},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{len("Hello")},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -257,7 +258,7 @@ func TestProcessSayBody(t *testing.T) {
 		"legacy with no pause": {
 			input: mockInput{
 				resp:    &twiMLResponse{},
-				msgBody: "Hello World!",
+				msgBody: VoiceMultiString{Body: "Hello World!"},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -267,7 +268,7 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"no response object": {
 			input: mockInput{
-				msgBody: "Hello World!",
+				msgBody: VoiceMultiString{Body: "Hello World!"},
 			},
 		},
 		"no body": {
@@ -278,9 +279,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"with a pause at the beginning": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{0},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{0},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -291,9 +294,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"with a pause at the end": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{len("Hello World!")},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{len("Hello World!")},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -304,9 +309,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"invalid pause index - too big": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{len("Hello World!") + 1},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{len("Hello World!") + 1},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -316,9 +323,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"invalid pause index - too small": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{-1},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{-1},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -328,9 +337,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"with a valid and invalid pause index": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello World!",
-				msgPauseIndex: []int{len("Hello"), -1},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello World!",
+					PauseIndexes: []int{len("Hello"), -1},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -342,9 +353,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"Several pauses": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "Hello, This is GoAlert with your 4-digit verification code. The code is: 0123. Again, your 4-digit verification code is: 0123.",
-				msgPauseIndex: []int{len("Hello, This is GoAlert with your 4-digit verification code."), len("Hello, This is GoAlert with your 4-digit verification code.") + len(" The code is: 0123.")},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "Hello, This is GoAlert with your 4-digit verification code. The code is: 0123. Again, your 4-digit verification code is: 0123.",
+					PauseIndexes: []int{len("Hello, This is GoAlert with your 4-digit verification code."), len("Hello, This is GoAlert with your 4-digit verification code.") + len(" The code is: 0123.")},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -358,9 +371,11 @@ func TestProcessSayBody(t *testing.T) {
 		},
 		"with a pause with ascii characters": {
 			input: mockInput{
-				resp:          &twiMLResponse{},
-				msgBody:       "你好世界！",
-				msgPauseIndex: []int{len("你好")},
+				resp: &twiMLResponse{},
+				msgBody: VoiceMultiString{
+					Body:         "你好世界！",
+					PauseIndexes: []int{len("你好")},
+				},
 			},
 			expected: &twiMLResponse{
 				say: []sayType{
@@ -376,7 +391,7 @@ func TestProcessSayBody(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Arrange / Act
 			v, _ := NewVoice(context.Background(), nil, &Config{})
-			v.processSayBody(tc.input.resp, tc.input.msgBody, tc.input.msgPauseIndex)
+			v.processSayBody(tc.input.resp, tc.input.msgBody)
 
 			// Assert
 			assert.Equal(t, tc.expected, tc.input.resp)
@@ -388,9 +403,13 @@ func BenchmarkProcessSayBody(b *testing.B) {
 	seed := "Hello World"
 	var msgPauseIndex []int
 	for i := 0; i < b.N; i++ {
-		seed = fmt.Sprintf("%s%d", seed, i)
-		msgPauseIndex = append(msgPauseIndex, i)
 		v, _ := NewVoice(context.Background(), nil, &Config{})
-		v.processSayBody(&twiMLResponse{}, seed, msgPauseIndex)
+		v.processSayBody(
+			&twiMLResponse{},
+			VoiceMultiString{
+				Body:         fmt.Sprintf("%s%d", seed, i),
+				PauseIndexes: append(msgPauseIndex, i),
+			},
+		)
 	}
 }
