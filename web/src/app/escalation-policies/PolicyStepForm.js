@@ -25,7 +25,8 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
-import { TextField } from '@mui/material'
+// import { TextField } from '@mui/material'
+import { LabelKeySelect } from '../selection/LabelKeySelect'
 
 const useStyles = makeStyles({
   badge: {
@@ -63,7 +64,6 @@ function PolicyStepForm(props) {
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
   const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
-    console.log(type, ' , ', newTgts)
     if (type === 'webhook') {
       return curTgts
         .filter((t) => t.type !== type)
@@ -101,6 +101,8 @@ function PolicyStepForm(props) {
       Optional
     </Typography>
   )
+
+  const editValueOnly = false
 
   return (
     <FormContainer {...props}>
@@ -256,7 +258,7 @@ function PolicyStepForm(props) {
                       required
                       component={TextField}
                     /> */}
-                    <FormField
+                    {/* <FormField
                       sx={{ marginTop: '0.5rem' }}
                       fieldName='targets'
                       fullWidth
@@ -266,6 +268,23 @@ function PolicyStepForm(props) {
                       placeholder='https://example.com'
                       mapValue={getTargetsByType('webhook')}
                       mapOnChangeValue={setTargetType('webhook')}
+                    /> */}
+                    <FormField
+                      fullWidth
+                      disabled={editValueOnly}
+                      component={LabelKeySelect}
+                      fieldName='targets'
+                      label='Webhook URL'
+                      name='webhooks'
+                      placeholder='https://example.com'
+                      onCreate={
+                        // if create is enabled, allow new keys to be provided
+                        !cfg['General.DisableLabelCreation'] &&
+                        ((webhook) => console.log('creating: ', webhook))
+                        // mapValue={getTargetsByType('webhook')}
+                        // mapOnChangeValue={setTargetType('webhook')})
+                      }
+                      // validate={validateKey}
                     />
                   </StepContent>
                 </Step>
