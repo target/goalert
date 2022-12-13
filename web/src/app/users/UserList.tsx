@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { gql } from '@apollo/client'
+import { Button } from '@mui/material'
+import { PersonAdd } from '@mui/icons-material'
 
 import { UserAvatar } from '../util/avatars'
 import QueryList from '../lists/QueryList'
@@ -7,6 +9,7 @@ import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
 import CreateFAB from '../lists/CreateFAB'
 import UserCreateDialog from './UserCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -26,8 +29,9 @@ const query = gql`
 `
 
 function UserList(): JSX.Element {
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
   const { isAdmin, ready } = useSessionInfo()
+  const isMobile = useIsWidthDown('md')
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   return (
     <React.Fragment>
@@ -49,8 +53,12 @@ function UserList(): JSX.Element {
           return vars
         }}
         searchAdornment={<UserPhoneNumberFilterContainer />}
+        CreateDialog={isAdmin ? UserCreateDialog : undefined}
+        createLabel='User'
       />
-      {ready && isAdmin && (
+
+      {/* rendering here instead of in QueryList since we are also checking if admin */}
+      {ready && isAdmin && isMobile && (
         <CreateFAB
           onClick={() => setShowCreateDialog(true)}
           title='Create User'
