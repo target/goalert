@@ -12,6 +12,22 @@ import (
 	"github.com/target/goalert/devtools/mocktwilio"
 )
 
+func ExampleServer_AddUpdateNumber() {
+	s := mocktwilio.NewServer(mocktwilio.Config{
+		AccountSID: "AC123",
+	})
+
+	s.AddUpdateNumber(mocktwilio.Number{
+		Number: "+12345678901",
+
+		// Set these if you want to process INCOMING messages (TO your app number).
+		//
+		// usually something like testSrv.URL() + "/your-voice-path"
+		VoiceWebhookURL: "https://example.com/voice",
+		SMSWebhookURL:   "https://example.com/sms",
+	})
+}
+
 func TestAssertSMS(t *testing.T) {
 	s := mocktwilio.NewServer(mocktwilio.Config{
 		AccountSID: "AC123",
