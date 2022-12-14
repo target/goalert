@@ -29,6 +29,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/devtools/mocktwilio/twassert"
 	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/devtools/pgmocktime"
 	"github.com/target/goalert/migrate"
@@ -73,7 +74,7 @@ type Harness struct {
 
 	msgSvcID string
 
-	tw     mocktwilio.PhoneAssertions
+	tw     twassert.Assertions
 	mockTw *mocktwilio.Server
 	twS    *httptest.Server
 
@@ -101,7 +102,7 @@ type Harness struct {
 	gqlSessions map[string]string
 }
 
-func (h *Harness) Twilio(t *testing.T) mocktwilio.PhoneAssertions { return h.tw.WithT(t) }
+func (h *Harness) Twilio(t *testing.T) twassert.Assertions { return h.tw.WithT(t) }
 
 func (h *Harness) Config() config.Config {
 	return h.cfg
@@ -286,7 +287,7 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
-	h.tw = mocktwilio.NewAssertions(h.t, mocktwilio.AssertConfig{
+	h.tw = twassert.NewAssertions(h.t, twassert.Config{
 		ServerAPI:      h.mockTw,
 		Timeout:        15 * time.Second,
 		AppPhoneNumber: h.TwilioNumber(""),

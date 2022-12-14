@@ -1,4 +1,4 @@
-package mocktwilio_test
+package twassert_test
 
 import (
 	"io"
@@ -10,23 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/devtools/mocktwilio/twassert"
 )
-
-func ExampleServer_AddUpdateNumber() {
-	s := mocktwilio.NewServer(mocktwilio.Config{
-		AccountSID: "AC123",
-	})
-
-	s.AddUpdateNumber(mocktwilio.Number{
-		Number: "+12345678901",
-
-		// Set these if you want to process INCOMING messages (TO your app number).
-		//
-		// usually something like testSrv.URL() + "/your-voice-path"
-		VoiceWebhookURL: "https://example.com/voice",
-		SMSWebhookURL:   "https://example.com/sms",
-	})
-}
 
 func TestAssertSMS(t *testing.T) {
 	s := mocktwilio.NewServer(mocktwilio.Config{
@@ -38,7 +23,7 @@ func TestAssertSMS(t *testing.T) {
 
 	s.AddUpdateNumber(mocktwilio.Number{Number: "+12345678901"})
 
-	a := mocktwilio.NewAssertions(t, mocktwilio.AssertConfig{
+	a := twassert.NewAssertions(t, twassert.Config{
 		ServerAPI:      s,
 		AppPhoneNumber: "+12345678901",
 	})

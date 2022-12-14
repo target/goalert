@@ -1,23 +1,27 @@
-package mocktwilio
+package twassert
 
-import "testing"
+import (
+	"testing"
 
-// PhoneAssertions is used to assert voice and SMS behavior.
-type PhoneAssertions interface {
+	"github.com/target/goalert/devtools/mocktwilio"
+)
+
+// Assertions is used to assert voice and SMS behavior.
+type Assertions interface {
 	// Device returns a TwilioDevice for the given number.
 	//
 	// It is safe to call multiple times for the same device.
-	Device(number string) PhoneDevice
+	Device(number string) Device
 
 	// WaitAndAssert will fail the test if there are any unexpected messages received.
 	WaitAndAssert()
 
 	// WithT will return a new PhoneAssertions with a separate text context.
-	WithT(*testing.T) PhoneAssertions
+	WithT(*testing.T) Assertions
 }
 
-// A PhoneDevice immitates a device (i.e. a phone) for testing interactions.
-type PhoneDevice interface {
+// A Device immitates a device (i.e. a phone) for testing interactions.
+type Device interface {
 	// SendSMS will send a message to GoAlert from the device.
 	SendSMS(text string)
 
@@ -43,7 +47,7 @@ type PhoneDevice interface {
 type RingingCall interface {
 	Answer() ExpectedCall
 	Reject()
-	RejectWith(FinalCallStatus)
+	RejectWith(mocktwilio.FinalCallStatus)
 }
 
 // ExpectedCall represents a phone call.
