@@ -8,7 +8,7 @@ import (
 
 // Assertions is used to assert voice and SMS behavior.
 type Assertions interface {
-	// Device returns a TwilioDevice for the given number.
+	// Device returns a Device for the given number.
 	//
 	// It is safe to call multiple times for the same device.
 	Device(number string) Device
@@ -16,7 +16,7 @@ type Assertions interface {
 	// WaitAndAssert will fail the test if there are any unexpected messages received.
 	WaitAndAssert()
 
-	// WithT will return a new PhoneAssertions with a separate text context.
+	// WithT will return a new Assertions with a separate test context.
 	WithT(*testing.T) Assertions
 }
 
@@ -55,7 +55,7 @@ type ExpectedCall interface {
 	// Press imitates a user entering a key on the phone.
 	Press(digits string) ExpectedCall
 
-	// IdleForever imitates a user waiting for a timeout (without pressing anything) on the phone.
+	// IdleForever imitates a user waiting for a timeout (without pressing anything) on the phone. It can be used to timeout a Gather.
 	IdleForever() ExpectedCall
 
 	// ExpectSay asserts that the spoken message matches ALL keywords (case-insensitive).
