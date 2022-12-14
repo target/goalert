@@ -36,6 +36,8 @@ export interface Query {
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
+  webhooks: WebhookConnection
+  webhook?: null | Webhook
 }
 
 export interface LinkAccountInfo {
@@ -924,6 +926,18 @@ export interface AuthSubjectInput {
 export interface Webhook {
   value?: null | string
   isFavorite: boolean
+}
+
+export interface WebhookSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface WebhookConnection {
+  nodes: SlackChannel[]
+  pageInfo: PageInfo
 }
 
 export type UserRole = 'unknown' | 'user' | 'admin'

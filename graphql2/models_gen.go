@@ -603,6 +603,18 @@ type Webhook struct {
 	IsFavorite bool    `json:"isFavorite"`
 }
 
+type WebhookConnection struct {
+	Nodes    []slack.Channel `json:"nodes"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+}
+
+type WebhookSearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
+}
+
 type AlertSearchSort string
 
 const (

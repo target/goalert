@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
@@ -289,9 +290,14 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 }
 
 func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
+	webhookUrl, err := url.Parse(webhookTarget.TargetID())
+	if err != nil {
+		return nil, err
+	}
 	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
+
 		Type:  notificationchannel.TypeWebhook,
-		Name:  "test-webhook",
+		Name:  webhookUrl.Hostname(),
 		Value: webhookTarget.TargetID(),
 	})
 	if err != nil {

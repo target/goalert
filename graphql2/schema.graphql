@@ -114,6 +114,12 @@ type Query {
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
+
+  # Returns the list of webhooks available to the current user.
+  webhooks(input: WebhookSearchOptions): WebhookConnection!
+
+  # Returns a webhook with the given ID.
+  webhook(id: ID!): Webhook
 }
 
 type LinkAccountInfo {
@@ -1153,6 +1159,18 @@ input AuthSubjectInput {
 type Webhook {
   value: String
   isFavorite: Boolean!
+}
+
+input WebhookSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type WebhookConnection {
+  nodes: [SlackChannel!]!
+  pageInfo: PageInfo!
 }
 
 enum UserRole {
