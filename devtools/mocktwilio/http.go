@@ -15,11 +15,11 @@ func (srv *Server) basePath() string {
 }
 
 func (srv *Server) initHTTP() {
-	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.HandleNewMessage)
-	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.HandleMessageStatus)
-	srv.mux.HandleFunc(srv.basePath()+"/Calls.json", srv.HandleNewCall)
-	srv.mux.HandleFunc(srv.basePath()+"/Calls/", srv.HandleCallStatus)
-	srv.mux.HandleFunc("/v1/PhoneNumbers/", srv.HandleLookup)
+	srv.mux.HandleFunc(srv.basePath()+"/Messages.json", srv.handleNewMessage)
+	srv.mux.HandleFunc(srv.basePath()+"/Messages/", srv.handleMessageStatus)
+	srv.mux.HandleFunc(srv.basePath()+"/Calls.json", srv.handleNewCall)
+	srv.mux.HandleFunc(srv.basePath()+"/Calls/", srv.handleCallStatus)
+	srv.mux.HandleFunc("/v1/PhoneNumbers/", srv.handleLookup)
 }
 
 func (s *Server) post(ctx context.Context, url string, v url.Values) ([]byte, error) {

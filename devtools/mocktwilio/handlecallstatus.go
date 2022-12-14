@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// HandleCallStatus handles GET requests to /2010-04-01/Accounts/<AccountSid>/Calls/<CallSid>.json
-func (srv *Server) HandleCallStatus(w http.ResponseWriter, r *http.Request) {
+// handleCallStatus handles GET requests to /2010-04-01/Accounts/<AccountSid>/Calls/<CallSid>.json
+func (srv *Server) handleCallStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		respondErr(w, twError{
 			Status:  405,

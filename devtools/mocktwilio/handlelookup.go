@@ -20,8 +20,8 @@ type CarrierInfo struct {
 	MobileNC string `json:"mobile_network_code"`
 }
 
-// HandleLookup is a handler for the Twilio Lookup API at /v1/PhoneNumbers/<number>.
-func (s *Server) HandleLookup(w http.ResponseWriter, req *http.Request) {
+// handleLookup is a handler for the Twilio Lookup API at /v1/PhoneNumbers/<number>.
+func (s *Server) handleLookup(w http.ResponseWriter, req *http.Request) {
 	number := strings.TrimPrefix(req.URL.Path, "/v1/PhoneNumbers/")
 	inclCarrier := req.URL.Query().Get("Type") == "carrier"
 

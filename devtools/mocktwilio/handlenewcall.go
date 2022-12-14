@@ -9,7 +9,7 @@ import (
 )
 
 // HandleNewMessage handles POST requests to  /2010-04-01/Accounts/<AccountSid>/Calls.json
-func (srv *Server) HandleNewCall(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) handleNewCall(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		respondErr(w, twError{
 			Status:  405,

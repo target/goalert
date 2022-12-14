@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// HandleNewMessage handles POST requests to  /2010-04-01/Accounts/<AccountSid>/Messages.json
-func (srv *Server) HandleNewMessage(w http.ResponseWriter, r *http.Request) {
+// handleNewMessage handles POST requests to  /2010-04-01/Accounts/<AccountSid>/Messages.json
+func (srv *Server) handleNewMessage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		respondErr(w, twError{
 			Status:  405,

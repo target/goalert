@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// HandleMessageStatus handles GET requests to /2010-04-01/Accounts/<AccountSid>/Messages/<MessageSid>.json
-func (srv *Server) HandleMessageStatus(w http.ResponseWriter, r *http.Request) {
+// handleMessageStatus handles GET requests to /2010-04-01/Accounts/<AccountSid>/Messages/<MessageSid>.json
+func (srv *Server) handleMessageStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		respondErr(w, twError{
 			Status:  405,
