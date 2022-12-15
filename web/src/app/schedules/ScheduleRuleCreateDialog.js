@@ -25,20 +25,27 @@ const query = gql`
 
 export default function ScheduleRuleCreateDialog(props) {
   const { scheduleID, targetType, onClose } = props
+
+  const { data, ...queryStatus } = useQuery(query, {
+    variables: { id: scheduleID },
+  })
+
   const [value, setValue] = useState({
     targetID: '',
     rules: [
       {
-        start: DateTime.local().startOf('day').toUTC().toISO(),
-        end: DateTime.local().plus({ day: 1 }).startOf('day').toUTC().toISO(),
+        start: DateTime.local({ zone: data.schedule.timeZone })
+          .startOf('day')
+          .toISO(),
+        end: DateTime.local({ zone: data.schedule.timeZone })
+          .plus({ day: 1 })
+          .startOf('day')
+          .toISO(),
         weekdayFilter: [true, true, true, true, true, true, true],
       },
     ],
   })
 
-  const { data, ...queryStatus } = useQuery(query, {
-    variables: { id: scheduleID },
-  })
   const [mutate, mutationStatus] = useMutation(mutation, {
     onCompleted: onClose,
     variables: {
