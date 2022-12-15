@@ -87,7 +87,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   // mapVariables transforms query variables just before submission
   mapVariables?: (vars: OperationVariables) => OperationVariables
 
-  CreateDialog?: ComponentType<{ onClose: () => void }>
+  CreateDialogComponent?: ComponentType<{ onClose: () => void }>
   createLabel?: string
 }
 
@@ -105,7 +105,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     variables = {},
     noSearch,
     mapVariables = (v) => v,
-    CreateDialog,
+    CreateDialogComponent,
     createLabel,
     ...listProps
   } = props
@@ -195,7 +195,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           isLoading={isLoading}
           loadMore={loadMore}
           noSearch={noSearch}
-          CreateDialog={CreateDialog}
+          CreateDialogComponent={CreateDialogComponent}
           createLabel={createLabel}
         />
       )
@@ -236,13 +236,15 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           isLoading={isLoading}
         />
       )}
-      {isMobile && CreateDialog && createLabel && (
+      {isMobile && CreateDialogComponent && createLabel && (
         <React.Fragment>
           <CreateFAB
             onClick={() => setShowCreate(true)}
             title={`Create ${createLabel}`}
           />
-          {showCreate && <CreateDialog onClose={() => setShowCreate(false)} />}
+          {showCreate && (
+            <CreateDialogComponent onClose={() => setShowCreate(false)} />
+          )}
         </React.Fragment>
       )}
     </Grid>

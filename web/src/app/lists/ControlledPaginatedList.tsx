@@ -56,7 +56,7 @@ export interface ControlledPaginatedListProps
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
 
-  CreateDialog?: ComponentType<{ onClose: () => void }>
+  CreateDialogComponent?: ComponentType<{ onClose: () => void }>
   createLabel?: string
 }
 
@@ -91,7 +91,7 @@ export default function ControlledPaginatedList(
   const classes = useStyles()
   const {
     checkboxActions,
-    CreateDialog,
+    CreateDialogComponent,
     createLabel,
     secondaryActions,
     noSearch,
@@ -276,7 +276,7 @@ export default function ControlledPaginatedList(
         )}
         {secondaryActions && <Grid item>{secondaryActions}</Grid>}
 
-        {CreateDialog && !isMobile && (
+        {CreateDialogComponent && !isMobile && (
           <Grid item sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
@@ -286,7 +286,7 @@ export default function ControlledPaginatedList(
               Create {createLabel}
             </Button>
             {showCreate && (
-              <CreateDialog onClose={() => setShowCreate(false)} />
+              <CreateDialogComponent onClose={() => setShowCreate(false)} />
             )}
           </Grid>
         )}
