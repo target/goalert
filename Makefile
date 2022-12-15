@@ -57,6 +57,9 @@ $(BIN_DIR)/tools/sqlc: sqlc.version
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	go run ./devtools/gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
+
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
@@ -156,13 +159,10 @@ check-js: force-yarn generate node_modules
 	yarn run lint
 	yarn workspaces run check
 
-check-go: generate
+check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
-	go vet ./...
-	go fmt ./...
 	# go run ./devtools/ordermigrations -check
-	go run github.com/gordonklaus/ineffassign ./...
-	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+	$(BIN_DIR)/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
