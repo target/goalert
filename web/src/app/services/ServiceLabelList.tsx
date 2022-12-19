@@ -85,7 +85,7 @@ export default function ServiceLabelList(props: {
         data-cy='label-list'
         emptyMessage='No labels exist for this service.'
         items={items}
-        headerNote='Labels are a way associate services with each other throughout GoAlert. Search using the format key1/key2=value'
+        headerNote='Labels are a way to associate services with each other throughout GoAlert. Search using the format key1/key2=value'
         headerAction={
           isMobile ? undefined : (
             <Button
