@@ -71,6 +71,7 @@ const alertQuery = gql`
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
+  '/': AlertsList,
   '/alerts': AlertsList,
   '/alerts/:alertID': AlertDetailPage,
 

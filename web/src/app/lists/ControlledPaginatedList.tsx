@@ -177,6 +177,7 @@ export default function ControlledPaginatedList(
               checkedItems.length > 0 && itemIDs.length !== checkedItems.length
             }
             onChange={handleToggleSelectAll}
+            disabled={items.length === 0}
             sx={{
               ml: '1em', // align with listItem icons
             }}
@@ -190,6 +191,7 @@ export default function ControlledPaginatedList(
         >
           <OtherActions
             IconComponent={ArrowDropDown}
+            disabled={items.length === 0}
             actions={[
               {
                 label: 'All',
