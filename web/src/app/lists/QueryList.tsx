@@ -88,6 +88,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   mapVariables?: (vars: OperationVariables) => OperationVariables
 
   CreateDialogComponent?: ComponentType<{ onClose: () => void }>
+  CreateDialogProps?: Record<string, unknown>
   createLabel?: string
 }
 
@@ -106,6 +107,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     noSearch,
     mapVariables = (v) => v,
     CreateDialogComponent,
+    CreateDialogProps,
     createLabel,
     ...listProps
   } = props
@@ -196,6 +198,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           loadMore={loadMore}
           noSearch={noSearch}
           CreateDialogComponent={CreateDialogComponent}
+          CreateDialogProps={CreateDialogProps}
           createLabel={createLabel}
         />
       )
@@ -243,7 +246,10 @@ export default function QueryList(props: QueryListProps): JSX.Element {
             title={`Create ${createLabel}`}
           />
           {showCreate && (
-            <CreateDialogComponent onClose={() => setShowCreate(false)} />
+            <CreateDialogComponent
+              onClose={() => setShowCreate(false)}
+              {...CreateDialogProps}
+            />
           )}
         </React.Fragment>
       )}

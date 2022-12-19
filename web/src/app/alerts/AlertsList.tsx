@@ -292,6 +292,9 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
               )
             }
             CreateDialogComponent={CreateAlertDialog}
+            CreateDialogProps={{
+              serviceID: props.serviceID,
+            }}
             createLabel='Alert'
             cardHeader={
               <Hidden lgDown>

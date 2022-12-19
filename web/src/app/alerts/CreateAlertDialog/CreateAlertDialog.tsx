@@ -11,8 +11,6 @@ import {
 import { makeStyles } from '@mui/styles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import _ from 'lodash'
-import { useLocation } from 'wouter'
-
 import { useCreateAlerts } from './useCreateAlerts'
 import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -41,10 +39,11 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function CreateAlertDialog(props: {
   onClose: () => void
+  serviceID?: string
 }): JSX.Element {
   const classes = useStyles()
   const [step, setStep] = useState(0)
-  const serviceID = useLocation()[0].split('/')[2] // if exists in URL
+  const serviceID = props.serviceID
 
   const [value, setValue] = useState<Value>({
     summary: '',

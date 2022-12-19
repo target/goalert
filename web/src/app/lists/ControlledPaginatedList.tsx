@@ -57,6 +57,7 @@ export interface ControlledPaginatedListProps
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
 
   CreateDialogComponent?: ComponentType<{ onClose: () => void }>
+  CreateDialogProps?: Record<string, unknown>
   createLabel?: string
 }
 
@@ -92,6 +93,7 @@ export default function ControlledPaginatedList(
   const {
     checkboxActions,
     CreateDialogComponent,
+    CreateDialogProps,
     createLabel,
     secondaryActions,
     noSearch,
@@ -286,7 +288,10 @@ export default function ControlledPaginatedList(
               Create {createLabel}
             </Button>
             {showCreate && (
-              <CreateDialogComponent onClose={() => setShowCreate(false)} />
+              <CreateDialogComponent
+                onClose={() => setShowCreate(false)}
+                {...CreateDialogProps}
+              />
             )}
           </Grid>
         )}
