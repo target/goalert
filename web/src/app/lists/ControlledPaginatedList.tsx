@@ -159,7 +159,6 @@ export default function ControlledPaginatedList(
         aria-label='List Checkbox Controls'
         item
         container
-        spacing={2}
         sx={{
           alignItems: 'center',
           display: 'flex',
