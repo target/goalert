@@ -24,7 +24,7 @@ func TestGraphQLAdminMessageLogs(t *testing.T) {
 			({{uuid "om1"}}, 'test_notification', '2022-01-01 00:01:00', '2022-01-01 00:01:01', {{uuid "cm1"}}, 'delivered', {{uuid "user"}}),
 			({{uuid "om2"}}, 'test_notification', '2022-01-01 00:02:00', '2022-01-01 00:01:02', {{uuid "cm1"}}, 'delivered', {{uuid "user"}}),
 			({{uuid "om3"}}, 'test_notification', '2022-01-01 00:03:00', null, {{uuid "cm1"}}, 'failed', {{uuid "user"}}),
-			({{uuid "om4"}}, 'test_notification', '2022-01-01 00:05:00', '2022-01-01 00:01:05', {{uuid "cm1"}}, 'delivered', {{uuid "user"}}),
+			({{uuid "om4"}}, 'test_notification', '2022-01-01 00:05:00', null, {{uuid "cm1"}}, 'pending', {{uuid "user"}}),
 			({{uuid "om5"}}, 'test_notification', '2022-01-01 00:04:00', '2022-01-01 00:01:04', {{uuid "cm1"}}, 'delivered', {{uuid "user"}});
 	`
 
@@ -70,8 +70,8 @@ func TestGraphQLAdminMessageLogs(t *testing.T) {
 	// tests that the message logs are returned in the correct order
 	// of not sent then most recent to least recent
 	assert.Len(t, logs.MessageLogs.Nodes, 5, "messageLogs query")
-	assert.Equal(t, h.UUID("om3"), logs.MessageLogs.Nodes[0].ID)
-	assert.Equal(t, h.UUID("om4"), logs.MessageLogs.Nodes[1].ID)
+	assert.Equal(t, h.UUID("om4"), logs.MessageLogs.Nodes[0].ID)
+	assert.Equal(t, h.UUID("om3"), logs.MessageLogs.Nodes[1].ID)
 	assert.Equal(t, h.UUID("om5"), logs.MessageLogs.Nodes[2].ID)
 	assert.Equal(t, h.UUID("om2"), logs.MessageLogs.Nodes[3].ID)
 	assert.Equal(t, h.UUID("om1"), logs.MessageLogs.Nodes[4].ID)

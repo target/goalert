@@ -102,7 +102,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		OR (om.created_at = :cursorCreatedAt AND om.id > :afterID)
 	{{end}}
 		AND om.last_status != 'bundled'
-	ORDER BY (CASE WHEN om.sent_at IS NULL THEN 1 ELSE 0 END) desc, om.created_at desc, om.id asc
+	ORDER BY om.last_status = 'pending' desc, coalesce(om.sent_at, om.last_status_at) desc, om.created_at desc, om.id asc
 	LIMIT {{.Limit}}
 `))
 
