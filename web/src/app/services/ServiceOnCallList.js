@@ -10,6 +10,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
+import { Warning } from '../icons'
 
 const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -23,6 +24,16 @@ const query = gql`
   query onCallQuery($id: ID!) {
     service(id: $id) {
       id
+      escalationPolicy {
+        id
+        name
+        steps {
+          stepNumber
+          targets {
+            type
+          }
+        }
+      }
       onCallUsers {
         userID
         userName
@@ -35,7 +46,15 @@ const query = gql`
 const stepText = (s) => {
   return `Step #${s + 1}`
 }
-
+const stepLengthText = (s) => {
+  if (s > 0) {
+    if (s === 1) {
+      return `${s + 1} user assigned`
+    }
+    return `${s + 1} users assigned`
+  }
+  return 'No users assigned'
+}
 export default function ServiceOnCallList({ serviceID }) {
   const classes = useStyles()
   const { data, loading, error } = useQuery(query, {
@@ -68,22 +87,32 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
   } else {
-    const chainedItems = _.chain(data?.service?.onCallUsers)
-    sections = chainedItems
-      .groupBy('stepNumber')
-      .keys()
-      .map((s) => ({ title: stepText(Number(s)) }))
+    const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
+    const sortedItems = _.chain(data?.service?.onCallUsers)
+      .sortBy(['stepNumber', 'userName'])
       .value()
 
-    items = _.chain(data?.service?.onCallUsers)
-      .sortBy(['stepNumber', 'userName'])
-      .map((u) => ({
-        title: u.userName,
-        icon: <UserAvatar userID={u.userID} />,
-        section: stepText(u.stepNumber),
-        url: `/users/${u.userID}`,
-      }))
+    sections = chainedSteps
+      .groupBy('stepNumber')
+      .keys()
+      .map((s) => {
+        const usersAssigned = sortedItems.filter(
+          (item) => item.stepNumber === Number(s),
+        ).length
+        return {
+          title: stepText(Number(s)),
+          subText: stepLengthText(usersAssigned),
+          icon: usersAssigned === 0 && <Warning />,
+        }
+      })
       .value()
+
+    items = sortedItems.map((u) => ({
+      title: u.userName,
+      icon: <UserAvatar userID={u.userID} />,
+      section: stepText(u.stepNumber),
+      url: `/users/${u.userID}`,
+    }))
   }
 
   return (

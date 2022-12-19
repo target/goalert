@@ -115,6 +115,7 @@ export interface FlatListItem {
 export interface SectionTitle {
   title: string
   icon?: JSX.Element | null
+  subText?: JSX.Element | string
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -387,7 +388,7 @@ export default function FlatList({
         <React.Fragment key={idx}>
           <ListItemButton onClick={() => toggleSection(section.title)}>
             {section.icon && <ListItemIcon>{section.icon}</ListItemIcon>}
-            <ListItemText primary={section.title} />
+            <ListItemText primary={section.title} secondary={section.subText} />
             {open ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
           <Collapse in={open} unmountOnExit>
