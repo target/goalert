@@ -4,6 +4,17 @@ import users from '../fixtures/users.json'
 const c = new Chance()
 
 function testMaterialSelect(screen: ScreenFormat): void {
+  it('should display options with punctuation', () => {
+    cy.createRotation().then((r) => {
+      const u = users[3]
+      cy.visit(`rotations/${r.id}`)
+      cy.pageFab()
+      cy.dialogTitle('Add User')
+      cy.get('input[name=users]').click().type(u.name.replace('.', ' '))
+      cy.get('div[role=presentation]').contains(u.name)
+    })
+  })
+
   describe('Clear Optional Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP
