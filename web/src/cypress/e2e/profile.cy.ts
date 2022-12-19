@@ -17,7 +17,7 @@ function countryCodeCheck(
     if (screen === 'mobile') {
       cy.pageFab('Add Contact Method')
     } else {
-      cy.get('button[aria-label="Add contact method"]').click()
+      cy.get('button[title="Add contact method"]').click()
     }
 
     cy.get('input[name=name]').type(name)
@@ -160,7 +160,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Contact Method')
       } else {
-        cy.get('button[aria-label="Add contact method"]').click()
+        cy.get('button[title="Add contact method"]').click()
       }
 
       cy.dialogTitle('Create New Contact Method')
@@ -234,7 +234,7 @@ function testProfile(screen: ScreenFormat): void {
           if (screen === 'mobile') {
             cy.pageFab('Add Contact Method')
           } else {
-            cy.get('button[aria-label="Add contact method"]').click()
+            cy.get('button[title="Add contact method"]').click()
           }
 
           cy.dialogTitle('Create New Contact Method')
@@ -304,9 +304,7 @@ function testProfile(screen: ScreenFormat): void {
           )}] button[role=menuitem]`,
         ).should('be.disabled')
       } else {
-        cy.get('button[aria-label="Add notification rule"]').should(
-          'be.disabled',
-        )
+        cy.get('button[title="Add notification rule"]').should('be.disabled')
       }
     })
 
@@ -322,7 +320,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Contact Method')
       } else {
-        cy.get('button[aria-label="Add contact method"]').click()
+        cy.get('button[title="Add contact method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -338,7 +336,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Contact Method')
       } else {
-        cy.get('button[aria-label="Add contact method"]').click()
+        cy.get('button[title="Add contact method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -356,7 +354,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Contact Method')
       } else {
-        cy.get('button[aria-label="Add contact method"]').click()
+        cy.get('button[title="Add contact method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -404,7 +402,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Notification Rule')
       } else {
-        cy.get('button[aria-label="Add notification rule"]').click()
+        cy.get('button[title="Add notification rule"]').click()
       }
 
       cy.dialogTitle('New Notification Rule')
@@ -436,7 +434,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Notification Rule')
       } else {
-        cy.get('button[aria-label="Add notification rule"]').click()
+        cy.get('button[title="Add notification rule"]').click()
       }
 
       cy.dialogTitle('New Notification Rule')
