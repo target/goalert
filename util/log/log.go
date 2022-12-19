@@ -32,11 +32,19 @@ func NewLogger() *Logger {
 
 	return &Logger{l: l, info: true}
 }
-func (l *Logger) BackgroundContext() context.Context { return WithLogger(context.Background(), l) }
+
+func (l *Logger) BackgroundContext() context.Context {
+	if l == nil {
+		panic("nil logger")
+	}
+
+	return WithLogger(context.Background(), l)
+}
 
 func WithLogger(ctx context.Context, l *Logger) context.Context {
 	return context.WithValue(ctx, logContextKeyLogger, l)
 }
+
 func FromContext(ctx context.Context) *Logger {
 	l, _ := ctx.Value(logContextKeyLogger).(*Logger)
 	if l == nil {
@@ -69,7 +77,6 @@ func (l *Logger) ErrorsOnly() {
 func (l *Logger) EnableDebug() { l.debug = true }
 
 func (l *Logger) entry(ctx context.Context) *logrus.Entry {
-
 	e := logrus.NewEntry(l.l)
 	if ctx == nil {
 		return e

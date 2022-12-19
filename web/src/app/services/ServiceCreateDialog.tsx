@@ -15,6 +15,7 @@ interface InputVar {
   newEscalationPolicy?: {
     name: string
     description: string
+    favorite: boolean
     steps: { delayMinutes: number; targets: { type: string; id: string }[] }[]
   }
 }
@@ -44,6 +45,7 @@ function inputVars(
     vars.newEscalationPolicy = {
       name: attempt ? `${name} Policy ${attempt}` : name + ' Policy',
       description: 'Auto-generated policy for ' + name,
+      favorite: true,
       steps: [
         {
           delayMinutes: 5,

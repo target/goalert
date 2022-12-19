@@ -116,6 +116,51 @@ type Query {
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
+
+  swoStatus: SWOStatus!
+}
+
+type SWOStatus {
+  state: SWOState!
+  lastStatus: String!
+  lastError: String!
+
+  nodes: [SWONode!]!
+
+  mainDBVersion: String!
+  nextDBVersion: String!
+}
+
+enum SWOState {
+  unknown
+  resetting
+  idle
+  syncing
+  pausing
+  executing
+  done
+}
+
+type SWONode {
+  id: ID!
+
+  canExec: Boolean!
+  isLeader: Boolean!
+
+  """
+  The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+  """
+  uptime: String!
+
+  configError: String!
+  connections: [SWOConnection!]
+}
+type SWOConnection {
+  name: String!
+  version: String!
+  type: String!
+  isNext: Boolean!
+  count: Int!
 }
 
 type LinkAccountInfo {
@@ -381,7 +426,13 @@ input SetScheduleShiftInput {
   end: ISOTimestamp!
 }
 
+enum SWOAction {
+  reset
+  execute
+}
+
 type Mutation {
+  swoAction(action: SWOAction!): Boolean!
   linkAccount(token: ID!): Boolean!
 
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
