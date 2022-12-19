@@ -9,7 +9,6 @@ import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -36,7 +35,6 @@ import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
-import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles({
   alert: {
@@ -158,7 +156,6 @@ export default function FlatList({
     setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
   }, [items])
 
-  const isMobile = useIsWidthDown('md')
   const [dragging, setDragging] = useState(false)
   const [draggable, setDraggable] = useState(false)
   const isFirstAnnouncement = useRef(false)
@@ -344,7 +341,7 @@ export default function FlatList({
     return (
       <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
-          <MUIListItem sx={{ width: isMobile ? '100%' : '60%' }}>
+          <MUIListItem>
             {toggleDnD && (
               <IconButton
                 onClick={() => setDraggable(!draggable)}
@@ -364,12 +361,10 @@ export default function FlatList({
                 secondary={
                   <Typography color='textSecondary'>{headerNote}</Typography>
                 }
-                sx={{ fontStyle: 'italic' }}
+                sx={{ fontStyle: 'italic', pr: 2 }}
               />
             )}
-            {headerAction && (
-              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
-            )}
+            {headerAction && <div>{headerAction}</div>}
           </MUIListItem>
         )}
         {!items.length && renderEmptyMessage()}
