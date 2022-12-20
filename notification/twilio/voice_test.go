@@ -78,7 +78,6 @@ func TestBuildMessage(t *testing.T) {
 				Params: url.Values{
 					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix)))},
 					"msgBundle":    []string{"1"},
-					"msgPause":     []string{"41"},
 					"msgSubjectID": []string{"-1"},
 				},
 			},
@@ -104,7 +103,6 @@ func TestBuildMessage(t *testing.T) {
 				CallbackParams: url.Values{"msgID": []string{"2"}},
 				Params: url.Values{
 					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix)))},
-					"msgPause":     []string{"43"},
 					"msgSubjectID": []string{"3"},
 				},
 			},
@@ -131,7 +129,6 @@ func TestBuildMessage(t *testing.T) {
 				CallbackParams: url.Values{"msgID": []string{"2"}},
 				Params: url.Values{
 					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix)))},
-					"msgPause":     []string{"66"},
 					"msgSubjectID": []string{"3"},
 				},
 			},
@@ -155,7 +152,6 @@ func TestBuildMessage(t *testing.T) {
 				CallbackParams: url.Values{"msgID": []string{"2"}},
 				Params: url.Values{
 					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234))))},
-					"msgPause":     []string{"52", "77"},
 					"msgSubjectID": []string{"-1"},
 				},
 			},
