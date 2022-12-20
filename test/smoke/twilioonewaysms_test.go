@@ -49,7 +49,7 @@ func TestTwilioOneWaySMS(t *testing.T) {
 
 	s := d1.ExpectSMS("testing")
 
-	assert.NotContains(t, s.Body(), "ack")
+	assert.NotContains(t, s.Text(), "ack")
 
 	s.ThenReply("a").ThenExpect("disabled")
 }

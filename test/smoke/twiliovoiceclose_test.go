@@ -49,9 +49,11 @@ func TestTwilioVoiceClose(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectVoice("testing").
-		ThenPress("6").
-		ThenExpect("closed")
+	d1.ExpectCall().Answer().
+		ExpectSay("testing").
+		Press("6").
+		ExpectSay("closed").
+		Hangup()
 
 	h.FastForward(time.Hour)
 	// no more messages

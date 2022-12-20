@@ -59,9 +59,11 @@ func TestTwilioSID(t *testing.T) {
 	sms.ThenReply("ack 1").
 		ThenExpect("acknowledged")
 
-	d1.ExpectVoice("testing").
-		ThenPress("6").
-		ThenExpect("closed")
+	d1.ExpectCall().Answer().
+		ExpectSay("testing").
+		Press("6").
+		ExpectSay("closed").
+		Hangup()
 
 	h.FastForward(time.Hour)
 	// no more messages

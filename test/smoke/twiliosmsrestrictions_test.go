@@ -50,16 +50,16 @@ func TestTwilioSMSRestrictions(t *testing.T) {
 
 	// US number supports URLs and 2-way SMS
 	sms := tw.Device(h.PhoneCC("+1", "1")).ExpectSMS("testing")
-	assert.Contains(t, sms.Body(), "ack")
-	assert.Contains(t, sms.Body(), "http")
+	assert.Contains(t, sms.Text(), "ack")
+	assert.Contains(t, sms.Text(), "http")
 
 	// CN number does not support URLs or 2-way SMS
 	sms = tw.Device(h.PhoneCC("+86", "1")).ExpectSMS("testing")
-	assert.NotContains(t, sms.Body(), "ack")
-	assert.NotContains(t, sms.Body(), "http")
+	assert.NotContains(t, sms.Text(), "ack")
+	assert.NotContains(t, sms.Text(), "http")
 
 	// IN supports URLs but not 2-way SMS
 	sms = tw.Device(h.PhoneCC("+91", "1")).ExpectSMS("testing")
-	assert.NotContains(t, sms.Body(), "ack")
-	assert.Contains(t, sms.Body(), "http")
+	assert.NotContains(t, sms.Text(), "ack")
+	assert.Contains(t, sms.Text(), "http")
 }

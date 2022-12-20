@@ -50,11 +50,13 @@ func TestTwilioVoiceStop(t *testing.T) {
 
 	d1 := h.Twilio(t).Device(h.Phone("1"))
 
-	d1.ExpectVoice("testing").
-		ThenPress("1").
-		ThenExpect("unenrollment").
-		ThenPress("3").
-		ThenExpect("goodbye")
+	d1.ExpectCall().Answer().
+		ExpectSay("testing").
+		Press("1").
+		ExpectSay("unenrollment").
+		Press("3").
+		ExpectSay("goodbye").
+		Hangup()
 
 	h.FastForward(30 * time.Minute)
 

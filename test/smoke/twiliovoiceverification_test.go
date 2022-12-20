@@ -65,14 +65,15 @@ func TestTwilioVoiceVerification(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	call := d1.ExpectVoice("verification")
+	call := d1.ExpectCall().Answer().ExpectSay("verification")
+	defer call.Hangup()
 
 	codeStr := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
 		}
 		return -1
-	}, strings.ReplaceAll(call.Body(), "6-digit", ""))
+	}, strings.ReplaceAll(call.Text(), "6-digit", ""))
 
 	// Since verification code is said twice during one Twilio message
 	assert.Len(t, codeStr, 12)

@@ -49,11 +49,11 @@ func TestTwilioSMSStopStart(t *testing.T) {
 	d1 := h.Twilio(t).Device(h.Phone("1"))
 	// disable SMS
 	d1.ExpectSMS("testing").ThenReply("stop")
-	d1.ExpectVoice("testing").Hangup()
+	d1.ExpectVoice("testing")
 
 	// trigger update - only VOICE should still be enabled
 	h.Escalate(1234, 0)
-	d1.ExpectVoice("testing").Hangup()
+	d1.ExpectVoice("testing")
 
 	// re-enable SMS
 	d1.SendSMS("start")
