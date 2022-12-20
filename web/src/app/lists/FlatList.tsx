@@ -9,7 +9,6 @@ import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem from '@mui/material/ListItem'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -59,9 +58,6 @@ const useStyles = makeStyles({
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
-  listItemText: {
-    fontStyle: 'italic',
-  },
   slideEnter: {
     maxHeight: '0px',
     opacity: 0,
@@ -439,7 +435,10 @@ export default function FlatList({
               <IconButton
                 onClick={() => setDraggable(!draggable)}
                 disabled={draggable && dragging}
-                sx={{ marginRight: (t) => t.spacing(2) }}
+                sx={{
+                  marginRight: (t) => t.spacing(2),
+                  textOverflow: 'wrap',
+                }}
                 aria-label='Toggle Drag and Drop'
               >
                 {draggable ? <DoneIcon /> : <EditIcon />}
@@ -451,13 +450,10 @@ export default function FlatList({
                 secondary={
                   <Typography color='textSecondary'>{headerNote}</Typography>
                 }
-                className={classes.listItemText}
+                sx={{ fontStyle: 'italic', pr: 2 }}
               />
             )}
-            <div style={{ flex: 1 }} />
-            {headerAction && (
-              <ListItemSecondaryAction>{headerAction}</ListItemSecondaryAction>
-            )}
+            {headerAction && <div>{headerAction}</div>}
           </MUIListItem>
         )}
         {!items.length && renderEmptyMessage()}
