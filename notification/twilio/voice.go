@@ -35,11 +35,6 @@ type Voice struct {
 	r notification.Receiver
 }
 
-type VoiceMultiString struct {
-	Body         string
-	PauseIndexes []int
-}
-
 const (
 	// Supported call types.
 	CallTypeAlert       = CallType("alert")
@@ -264,9 +259,7 @@ type call struct {
 	// Embedded query fields
 	msgID        string
 	msgSubjectID int
-	msgBody      VoiceMultiString
-	// msgBody       string
-	// msgPauseIndex []int
+	msgBody      string
 }
 
 // doDeadline will ensure a return within 5 seconds, and log
@@ -364,18 +357,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 	subID, _ := strconv.Atoi(q.Get(msgParamSubID))
 	bodyData, _ := b64enc.DecodeString(q.Get(msgParamBody))
 
-	// add pause index values
-	var pauseIndexData []int
-	for _, val := range q[msgParamPause] {
-		if i, err := strconv.Atoi(val); err == nil {
-			pauseIndexData = append(pauseIndexData, i)
-		} else {
-			// bad input, so we need to error out
-			http.Error(w, "", http.StatusBadRequest)
-			return nil, nil, nil
-		}
-	}
-
 	if isOutbound && msgID == "" {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamID))
 	}
@@ -432,10 +413,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 
 		msgID:        msgID,
 		msgSubjectID: subID,
-		msgBody: VoiceMultiString{
-			Body:         string(bodyData),
-			PauseIndexes: pauseIndexData,
-		},
+		msgBody:      string(bodyData),
 	}, errResp
 }
 
@@ -454,7 +432,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody)
+		resp.Say(call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeTest))
 		return
@@ -479,7 +457,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody)
+		resp.Say(call.msgBody)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeVerify))
 		return
 	}
@@ -500,7 +478,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody)
+		resp.Say(call.msgBody)
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlertStatus))
 		return
@@ -529,7 +507,6 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		resp.Sayf("Hello! This is %s. ", cfg.ApplicationName())
-		resp.Pause()
 		resp.Say("Please use the application dashboard to manage alerts.")
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
@@ -565,7 +542,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
-		v.processSayBody(resp, call.msgBody)
+		resp.Say(call.msgBody)
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
@@ -617,41 +594,6 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
 }
 
-// processSayBody is a helper function to apply the correct verb types
-func (v *Voice) processSayBody(resp *twiMLResponse, msg VoiceMultiString) {
-	// avoid a panic if the response object or msgBody isn't setup yet
-	if resp == nil || msg.Body == "" {
-		return
-	}
-	// account for legacy method of a single message before pauses existed
-	if len(msg.PauseIndexes) < 1 {
-		resp.Say(msg.Body)
-		return
-	}
-	var indexCounter int
-	var prevPauseIndex int
-	for i, pauseIndex := range msg.PauseIndexes {
-		if pauseIndex <= len(msg.Body) && indexCounter <= len(msg.Body) && pauseIndex >= 0 {
-			if tempSay := msg.Body[indexCounter:pauseIndex]; tempSay != "" {
-				resp.Say(tempSay)
-			}
-
-			// only add a pause if it won't be at the end of the message
-			if i < len(msg.PauseIndexes) {
-				resp.Pause()
-			}
-
-			// increment the index by the diff of the current index and the previous index
-			indexCounter += pauseIndex - prevPauseIndex
-			prevPauseIndex = pauseIndex
-		}
-	}
-	// add the last say verb
-	if tempSay := msg.Body[indexCounter:]; tempSay != "" {
-		resp.Say(tempSay)
-	}
-}
-
 // buildMessage is a function that will build the VoiceOptions object with the proper message contents
 func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, err error) {
 	if prefix == "" {
@@ -665,12 +607,10 @@ func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, 
 	}
 
 	var message string
-	var pauseIndex []int
 	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
 		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
-		pauseIndex = append(pauseIndex, len(fmt.Sprintf("%s with alert notifications.", prefix)))
 		opts.Params.Set(msgParamBundle, "1")
 		opts.CallType = CallTypeAlert
 	case notification.Alert:
@@ -678,13 +618,11 @@ func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, 
 			t.Summary = "No summary provided"
 		}
 		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
-		pauseIndex = append(pauseIndex, len(fmt.Sprintf("%s with an alert notification.", prefix)))
 		opts.CallType = CallTypeAlert
 		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.LogEntry, "")
 		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
-		pauseIndex = append(pauseIndex, len(fmt.Sprintf("%s with a status update for alert '%s'.", prefix, t.Summary)))
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 	case notification.Test:
@@ -696,8 +634,6 @@ func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, 
 			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
 			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
 		)
-		pauseIndex = append(pauseIndex, len(fmt.Sprintf("%s with your %d-digit verification code.", prefix, count)))
-		pauseIndex = append(pauseIndex, pauseIndex[0]+len(fmt.Sprintf(" The code is: %s.", spellNumber(t.Code))))
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
@@ -708,8 +644,5 @@ func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, 
 	// Encode the body so we don't need to worry about
 	// buggy apps not escaping url params properly.
 	opts.Params.Add(msgParamBody, b64enc.EncodeToString([]byte(message)))
-	for _, val := range pauseIndex {
-		opts.Params.Add(msgParamPause, fmt.Sprintf("%d", val)) // add pause index numbers
-	}
 	return
 }

@@ -12,7 +12,7 @@ import (
 )
 
 type twiMLResponse struct {
-	say []sayType
+	say []string
 
 	voiceName     string
 	voiceLanguage string
@@ -28,11 +28,6 @@ type twiMLResponse struct {
 	sent bool
 
 	w http.ResponseWriter
-}
-
-type sayType struct {
-	pause bool
-	text  string
 }
 
 func newTwiMLResponse(ctx context.Context, w http.ResponseWriter) *twiMLResponse {
@@ -116,7 +111,7 @@ func (t *twiMLResponse) SayUnknownDigit() *twiMLResponse {
 }
 
 func (t *twiMLResponse) Say(text string) *twiMLResponse {
-	t.say = append(t.say, sayType{text: text})
+	t.say = append(t.say, text)
 
 	return t
 }
@@ -131,29 +126,17 @@ func (t *twiMLResponse) Hangup() {
 	t.sendResponse()
 }
 
-func (t *twiMLResponse) Pause() *twiMLResponse {
-	t.say = append(t.say, sayType{pause: true})
-
-	return t
-}
-
 type verbSay struct {
-	XMLName  xml.Name   `xml:"Say"`
-	Language string     `xml:"language,attr,omitempty"`
-	Voice    string     `xml:"voice,attr,omitempty"`
-	Text     string     `xml:"-"`
-	Prosody  *prosody   `xml:"prosody"`
-	Break    *breakType `xml:"break"`
+	XMLName  xml.Name `xml:"Say"`
+	Language string   `xml:"language,attr,omitempty"`
+	Voice    string   `xml:"voice,attr,omitempty"`
+	Text     string   `xml:"-"`
+	Prosody  *prosody `xml:"prosody"`
 }
 type prosody struct {
 	XMLName xml.Name `xml:"prosody"`
 	Text    string   `xml:",chardata"`
 	Rate    string   `xml:"rate,attr"`
-}
-type breakType struct {
-	XMLName  xml.Name `xml:"break"`
-	Strength string   `xml:"strength,attr,omitempty"`
-	Time     string   `xml:"time,attr,omitempty"`
 }
 
 type twimlResponse struct {
@@ -191,29 +174,17 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	var doc twimlResponse
-	for _, s := range t.say {
+	for _, text := range t.say {
 		doc.Verbs = append(
 			doc.Verbs,
-			func() (v verbSay) {
-				if s.pause {
-					return verbSay{
-						Language: t.voiceLanguage,
-						Voice:    t.voiceName,
-						Break: &breakType{
-							Strength: "x-strong",
-							Time:     "700ms",
-						},
-					}
-				}
-				return verbSay{
-					Language: t.voiceLanguage,
-					Voice:    t.voiceName,
-					Prosody: &prosody{
-						Rate: "slow",
-						Text: s.text,
-					},
-				}
-			}(),
+			verbSay{
+				Language: t.voiceLanguage,
+				Voice:    t.voiceName,
+				Prosody: &prosody{
+					Rate: "slow",
+					Text: text,
+				},
+			},
 		)
 	}
 
