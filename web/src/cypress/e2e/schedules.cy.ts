@@ -339,7 +339,7 @@ function testSchedules(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab()
       } else {
-        cy.get('button').contains('Add Override').click()
+        cy.get('button').contains('Create Override').click()
       }
 
       cy.dialogTitle('Choose Override Action')
@@ -360,7 +360,7 @@ function testSchedules(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab()
       } else {
-        cy.get('button').contains('Add Override').click()
+        cy.get('button').contains('Create Override').click()
       }
 
       cy.dialogTitle('Choose Override Action')
@@ -381,7 +381,7 @@ function testSchedules(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab()
       } else {
-        cy.get('button').contains('Add Override').click()
+        cy.get('button').contains('Create Override').click()
       }
 
       cy.dialogTitle('Choose Override Action')
@@ -402,7 +402,7 @@ function testSchedules(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab()
       } else {
-        cy.get('button').contains('Add Override').click()
+        cy.get('button').contains('Create Override').click()
       }
 
       cy.dialogTitle('Choose Override Action')

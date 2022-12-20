@@ -317,7 +317,7 @@ function ScheduleShiftList({ scheduleID }) {
                   }
                   sx={{ ml: 1 }}
                 >
-                  Add Override
+                  Create Override
                 </Button>
               )}
             </React.Fragment>
@@ -326,7 +326,7 @@ function ScheduleShiftList({ scheduleID }) {
       </Card>
       {isMobile && (
         <CreateFAB
-          title='Add Override'
+          title='Create Override'
           onClick={() =>
             setOverrideDialog({
               variantOptions: ['replace', 'remove', 'add', 'temp'],

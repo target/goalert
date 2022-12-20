@@ -184,7 +184,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
                 }
                 sx={{ ml: 1 }}
               >
-                Add Override
+                Create Override
               </Button>
             )}
           </React.Fragment>
@@ -192,7 +192,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
       />
       {isMobile && (
         <CreateFAB
-          title='Add Override'
+          title='Create Override'
           onClick={() =>
             setOverrideDialog({
               variantOptions: ['replace', 'remove', 'add', 'temp'],
