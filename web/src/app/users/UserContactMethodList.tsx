@@ -19,6 +19,7 @@ import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
+import { relativeDate } from '../util/timeFormat'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -31,6 +32,7 @@ const query = gql`
         value
         formattedValue
         disabled
+        cleanupAt
       }
     }
   }
@@ -79,6 +81,10 @@ export default function UserContactMethodList(
     if (props.readOnly) {
       return <Warning message='Contact method disabled' />
     }
+    let msg = 'Contact method disabled'
+    if (cm.cleanupAt) {
+      msg += ` (will be removed on ${relativeDate(cm.cleanupAt)})`
+    }
 
     return (
       <IconButton
@@ -88,7 +94,7 @@ export default function UserContactMethodList(
         disabled={props.readOnly}
         size='large'
       >
-        <Warning message='Contact method disabled' />
+        <Warning message={msg} />
       </IconButton>
     )
   }

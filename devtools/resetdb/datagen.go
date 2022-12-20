@@ -142,11 +142,12 @@ func (d *datagen) NewUser() {
 // NewCM will generate a contact method for the given UserID.
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
-		ID:       gofakeit.UUID(),
-		Type:     contactmethod.TypeSMS,
-		Name:     d.ids.Gen(gofakeit.FirstName, userID),
-		Disabled: true,
-		UserID:   userID,
+		ID:        gofakeit.UUID(),
+		Type:      contactmethod.TypeSMS,
+		Name:      d.ids.Gen(gofakeit.FirstName, userID),
+		Disabled:  true,
+		UserID:    userID,
+		CreatedAt: gofakeit.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
 	}
 	if gofakeit.Bool() {
 		cm.Type = contactmethod.TypeVoice

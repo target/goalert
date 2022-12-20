@@ -1018,6 +1018,7 @@ export interface UserContactMethod {
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  cleanupAt?: null | ISOTimestamp
 }
 
 export interface CreateUserContactMethodInput {
@@ -1077,6 +1078,7 @@ type ConfigID =
   | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
+  | 'Maintenance.ContactMethodCleanupDays'
   | 'Auth.RefererURLs'
   | 'Auth.DisableBasic'
   | 'GitHub.Enable'

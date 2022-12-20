@@ -10,12 +10,13 @@ import (
 
 // ContactMethod stores the information for contacting a user.
 type ContactMethod struct {
-	ID       string
-	Name     string
-	Type     Type
-	Value    string
-	Disabled bool
-	UserID   string
+	ID        string
+	Name      string
+	Type      Type
+	Value     string
+	Disabled  bool
+	UserID    string
+	CreatedAt time.Time
 
 	lastTestVerifyAt sql.NullTime
 }

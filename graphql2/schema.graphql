@@ -291,7 +291,6 @@ input UserOverrideSearchOptions {
   end: ISOTimestamp # end of the window to search for.
 }
 
-
 type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
@@ -1285,6 +1284,8 @@ type UserContactMethod {
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  cleanupAt: ISOTimestamp
 }
 
 input CreateUserContactMethodInput {

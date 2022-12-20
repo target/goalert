@@ -579,6 +579,7 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
+		CleanupAt              func(childComplexity int) int
 		Disabled               func(childComplexity int) int
 		FormattedValue         func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -816,6 +817,7 @@ type UserContactMethodResolver interface {
 
 	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	CleanupAt(ctx context.Context, obj *contactmethod.ContactMethod) (*time.Time, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -3467,6 +3469,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserConnection.PageInfo(childComplexity), true
+
+	case "UserContactMethod.cleanupAt":
+		if e.complexity.UserContactMethod.CleanupAt == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.CleanupAt(childComplexity), true
 
 	case "UserContactMethod.disabled":
 		if e.complexity.UserContactMethod.Disabled == nil {
@@ -12024,6 +12033,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "cleanupAt":
+				return ec.fieldContext_UserContactMethod_cleanupAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -15700,6 +15711,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "cleanupAt":
+				return ec.fieldContext_UserContactMethod_cleanupAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -20586,6 +20599,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "cleanupAt":
+				return ec.fieldContext_UserContactMethod_cleanupAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -21851,6 +21866,47 @@ func (ec *executionContext) fieldContext_UserContactMethod_lastVerifyMessageStat
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_cleanupAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_cleanupAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().CleanupAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_cleanupAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserNotificationRule_id(ctx, field)
 	if err != nil {
@@ -22037,6 +22093,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "cleanupAt":
+				return ec.fieldContext_UserContactMethod_cleanupAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -32899,6 +32957,23 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 					}
 				}()
 				res = ec._UserContactMethod_lastVerifyMessageState(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "cleanupAt":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_cleanupAt(ctx, field, obj)
 				return res
 			}
 

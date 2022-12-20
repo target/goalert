@@ -33,10 +33,11 @@ type Config struct {
 	}
 
 	Maintenance struct {
-		AlertCleanupDays    int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
-		AlertAutoCloseDays  int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
-		APIKeyExpireDays    int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
-		ScheduleCleanupDays int `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
+		AlertCleanupDays         int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+		AlertAutoCloseDays       int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
+		APIKeyExpireDays         int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
+		ScheduleCleanupDays      int `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
+		ContactMethodCleanupDays int `public:"true" info:"Unverified contact methods will be deleted after this many days (0 means disable cleanup)."`
 	}
 
 	Auth struct {
@@ -439,6 +440,7 @@ func (cfg Config) Validate() error {
 		validate.Range("Maintenance.AlertAutoCloseDays", cfg.Maintenance.AlertAutoCloseDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
 		validate.Range("Maintenance.ScheduleCleanupDays", cfg.Maintenance.ScheduleCleanupDays, 0, 9000),
+		validate.Range("Maintenance.ContactMethodCleanupDays", cfg.Maintenance.ContactMethodCleanupDays, 0, 9000),
 		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
 		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
 		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),

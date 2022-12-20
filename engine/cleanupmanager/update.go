@@ -96,6 +96,17 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 	}
+
+	if cfg.Maintenance.ContactMethodCleanupDays > 0 {
+		var dur pgtype.Interval
+		dur.Days = int32(cfg.Maintenance.ContactMethodCleanupDays)
+		dur.Status = pgtype.Present
+		_, err = tx.StmtContext(ctx, db.cleanupContactMethods).ExecContext(ctx, &dur)
+		if err != nil {
+			return err
+		}
+	}
+
 	if cfg.Maintenance.ScheduleCleanupDays > 0 {
 		var dur pgtype.Interval
 		dur.Days = int32(cfg.Maintenance.ScheduleCleanupDays)

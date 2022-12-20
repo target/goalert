@@ -16,10 +16,11 @@ type DB struct {
 
 	now *sql.Stmt
 
-	userIDs        *sql.Stmt
-	cleanupAlerts  *sql.Stmt
-	cleanupAPIKeys *sql.Stmt
-	setTimeout     *sql.Stmt
+	userIDs               *sql.Stmt
+	cleanupAlerts         *sql.Stmt
+	cleanupAPIKeys        *sql.Stmt
+	cleanupContactMethods *sql.Stmt
+	setTimeout            *sql.Stmt
 
 	schedData    *sql.Stmt
 	setSchedData *sql.Stmt
@@ -64,6 +65,11 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 		setTimeout:     p.P(`SET LOCAL statement_timeout = 3000`),
 		cleanupAlerts:  p.P(`delete from alerts where id = any(select id from alerts where status = 'closed' AND created_at < (now() - $1::interval) order by id limit 100 for update skip locked)`),
 		cleanupAPIKeys: p.P(`update user_calendar_subscriptions set disabled = true where id = any(select id from user_calendar_subscriptions where greatest(last_access, last_update) < (now() - $1::interval) order by id limit 100 for update skip locked)`),
+
+		cleanupContactMethods: p.P(`
+			DELETE FROM user_contact_methods 
+			WHERE id = any(SELECT id FROM user_contact_methods WHERE disabled = true AND created_at < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)
+		`),
 
 		schedData: p.P(`
 			select schedule_id, data from schedule_data

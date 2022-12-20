@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"time"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
@@ -35,6 +36,15 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
 	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
+}
+
+func (a *ContactMethod) CleanupAt(ctx context.Context, obj *contactmethod.ContactMethod) (*time.Time, error) {
+	if obj.Disabled {
+		cfg := config.FromContext(ctx)
+		endTime := obj.CreatedAt.Add(time.Duration(cfg.Maintenance.ContactMethodCleanupDays) * 24 * time.Hour)
+		return &endTime, nil
+	}
+	return nil, nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
