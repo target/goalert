@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
   users: UserConnection
@@ -36,6 +37,42 @@ export interface Query {
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
+  swoStatus: SWOStatus
+}
+
+export interface SWOStatus {
+  state: SWOState
+  lastStatus: string
+  lastError: string
+  nodes: SWONode[]
+  mainDBVersion: string
+  nextDBVersion: string
+}
+
+export type SWOState =
+  | 'unknown'
+  | 'resetting'
+  | 'idle'
+  | 'syncing'
+  | 'pausing'
+  | 'executing'
+  | 'done'
+
+export interface SWONode {
+  id: string
+  canExec: boolean
+  isLeader: boolean
+  uptime: string
+  configError: string
+  connections?: null | SWOConnection[]
+}
+
+export interface SWOConnection {
+  name: string
+  version: string
+  type: string
+  isNext: boolean
+  count: number
 }
 
 export interface LinkAccountInfo {
@@ -74,6 +111,20 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+}
+
+export interface MessageLogSearchOptions {
+  first?: null | number
+  after?: null | string
+  createdBefore?: null | ISOTimestamp
+  createdAfter?: null | ISOTimestamp
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface MessageLogConnection {
+  nodes: DebugMessage[]
+  pageInfo: PageInfo
 }
 
 export interface SlackChannelSearchOptions {
@@ -275,7 +326,10 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
+export type SWOAction = 'reset' | 'execute'
+
 export interface Mutation {
+  swoAction: boolean
   linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
@@ -1020,6 +1074,7 @@ type ConfigID =
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
   | 'Maintenance.AlertCleanupDays'
+  | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'

@@ -16,7 +16,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
-import { useIsWidthUp } from '../../util/useWidth'
+import { useIsWidthDown } from '../../util/useWidth'
 
 const useStyles = makeStyles((theme: Theme) => ({
   filterActions: globalStyles(theme).filterActions,
@@ -57,10 +57,11 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
     false,
   )
   const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
-
-  // grabs class for width depending on breakpoints (md or higher uses popover width)
-  const widthClass = useIsWidthUp('md') ? classes.popover : classes.drawer
-  const gridClasses = classnames(classes.grid, widthClass)
+  const isMobile = useIsWidthDown('md')
+  const gridClasses = classnames(
+    classes.grid,
+    isMobile ? classes.drawer : classes.popover,
+  )
 
   function handleOpenFilters(event: MouseEvent<HTMLButtonElement>): void {
     setAnchorEl(event.currentTarget)
@@ -105,34 +106,36 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
               }
               label='Show full timestamps'
             />
-            <RadioGroup
-              aria-label='Alert Status Filters'
-              name='status-filters'
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <FormControlLabel
-                value='active'
-                control={<Radio />}
-                label='Active'
-              />
-              <FormControlLabel
-                value='unacknowledged'
-                control={<Radio />}
-                label='Unacknowledged'
-              />
-              <FormControlLabel
-                value='acknowledged'
-                control={<Radio />}
-                label='Acknowledged'
-              />
-              <FormControlLabel
-                value='closed'
-                control={<Radio />}
-                label='Closed'
-              />
-              <FormControlLabel value='all' control={<Radio />} label='All' />
-            </RadioGroup>
+            {isMobile && (
+              <RadioGroup
+                aria-label='Alert Status Filters'
+                name='status-filters'
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <FormControlLabel
+                  value='active'
+                  control={<Radio />}
+                  label='Active'
+                />
+                <FormControlLabel
+                  value='unacknowledged'
+                  control={<Radio />}
+                  label='Unacknowledged'
+                />
+                <FormControlLabel
+                  value='acknowledged'
+                  control={<Radio />}
+                  label='Acknowledged'
+                />
+                <FormControlLabel
+                  value='closed'
+                  control={<Radio />}
+                  label='Closed'
+                />
+                <FormControlLabel value='all' control={<Radio />} label='All' />
+              </RadioGroup>
+            )}
           </FormControl>
         </Grid>
         <Grid item xs={12} className={classes.filterActions}>
