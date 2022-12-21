@@ -205,8 +205,7 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(201)
-	_, err = w.Write(data)
-	if err != nil {
+	if _, err := w.Write(data); err != nil {
 		panic(err)
 	}
 }
