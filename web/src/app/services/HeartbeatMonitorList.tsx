@@ -128,6 +128,7 @@ export default function HeartbeatMonitorList(props: {
               variant='contained'
               onClick={() => setShowCreateDialog(true)}
               startIcon={<Add />}
+              data-testid='create-monitor'
             >
               Create Heartbeat Monitor
             </Button>

@@ -92,6 +92,7 @@ export default function ServiceLabelList(props: {
               variant='contained'
               onClick={() => setCreate(true)}
               startIcon={<Add />}
+              data-testid='create-label'
             >
               Create Label
             </Button>
