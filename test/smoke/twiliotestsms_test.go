@@ -14,7 +14,7 @@ func TestTwilioSMS(t *testing.T) {
 	sqlQuery := `
 	insert into users (id, name, email, role) 
 	values 
-		({{uuid "user"}}, 'bob', 'joe', 'admin');
+		({{uuid "user"}}, 'bob', 'joe', 'user');
 	insert into user_contact_methods (id, user_id, name, type, value) 
 	values
 	    ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
