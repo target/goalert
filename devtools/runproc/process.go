@@ -129,7 +129,9 @@ func (p *Process) gracefulTerm() {
 		return
 	}
 
-	p.cmd.Process.Signal(os.Interrupt)
+	if err := p.cmd.Process.Signal(os.Interrupt); err != nil {
+		p.logError(err)
+	}
 }
 
 func (p *Process) Kill() {
