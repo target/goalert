@@ -205,9 +205,7 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(201)
-	if _, err := w.Write(data); err != nil {
-		panic(err)
-	}
+	_, _ = w.Write(data)
 }
 
 func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {

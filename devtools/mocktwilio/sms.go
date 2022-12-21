@@ -113,9 +113,7 @@ func (s *Server) serveNewMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(201)
-	if _, err := w.Write(data); err != nil {
-		panic(err)
-	}
+	_, _ = w.Write(data)
 }
 
 func (s *Server) serveMessageStatus(w http.ResponseWriter, req *http.Request) {
