@@ -141,7 +141,9 @@ func (p *Process) Kill() {
 	}
 
 	p.logAction("Killing...")
-	p.cmd.Process.Kill()
+	if err := p.cmd.Process.Kill(); err != nil {
+		p.logError(err)
+	}
 	p.state <- ProcessStateKilling
 
 	<-p.exited

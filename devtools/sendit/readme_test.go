@@ -51,7 +51,11 @@ func TestReadme(t *testing.T) {
 	r, w := io.Pipe()
 	cmd.Stderr = io.MultiWriter(w, os.Stdout)
 	require.NoError(t, cmd.Start())
-	defer cmd.Process.Kill()
+	defer func() {
+		if err := cmd.Process.Kill(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	rd := bufio.NewReader(r)
 	s, err := rd.ReadString('\n')
@@ -78,7 +82,11 @@ func TestReadme(t *testing.T) {
 	cmd.Stderr = w
 	rd = bufio.NewReader(r)
 	require.NoError(t, cmd.Start())
-	defer cmd.Process.Kill()
+	defer func() {
+		if err := cmd.Process.Kill(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	for {
 		s, err = rd.ReadString('\n')
