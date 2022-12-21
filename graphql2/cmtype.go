@@ -4,10 +4,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/target/goalert/user/contactmethod"
-
 	graphql "github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/user/contactmethod"
 )
 
 func MarshalContactMethodType(t contactmethod.Type) graphql.Marshaler {
