@@ -421,7 +421,9 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			} else {
 				w.WriteHeader(400)
 			}
-			io.WriteString(w, err.Error())
+			if _, err := io.WriteString(w, err.Error()); err != nil {
+				log.Log(ctx, errors.Wrap(err, "Issue with handleProvider when using io.WriteString"))
+			}
 			return
 		}
 		http.Redirect(w, req, refU.String(), http.StatusFound)
@@ -502,7 +504,9 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	}
 
 	if noRedirect {
-		io.WriteString(w, tokStr)
+		if _, err := io.WriteString(w, tokStr); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with handleProvider when using io.WriteString"))
+		}
 		return
 	}
 

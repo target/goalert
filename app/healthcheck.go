@@ -59,5 +59,8 @@ func (app *App) engineCycle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	io.WriteString(w, app.Engine.NextCycleID().String())
+	if _, err := io.WriteString(w, app.Engine.NextCycleID().String()); err != nil {
+		http.Error(w, "engine unable to move to next cycle", http.StatusBadRequest)
+		return
+	}
 }

@@ -1,7 +1,8 @@
 package graphql2
 
 import (
-	io "io"
+	"io"
+	"log"
 	"strings"
 	"time"
 
@@ -13,10 +14,14 @@ import (
 func MarshalISOTimestamp(t time.Time) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
 		if t.IsZero() {
-			io.WriteString(w, "null")
+			if _, err := io.WriteString(w, "null"); err != nil {
+				log.Println("ERROR: Issue with MarshalISOTimestamp when using io.WriteString:", err)
+			}
 			return
 		}
-		io.WriteString(w, `"`+t.UTC().Format(time.RFC3339Nano)+`"`)
+		if _, err := io.WriteString(w, `"`+t.UTC().Format(time.RFC3339Nano)+`"`); err != nil {
+			log.Println("ERROR: Issue with MarshalISOTimestamp when using io.WriteString:", err)
+		}
 	})
 }
 func UnmarshalISOTimestamp(v interface{}) (time.Time, error) {

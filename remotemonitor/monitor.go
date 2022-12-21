@@ -76,7 +76,12 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 		m.ServeHTTP(w, req)
 	}), m.tw)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", func(w http.ResponseWriter, req *http.Request) { io.WriteString(w, "ok") })
+	mux.HandleFunc("/health", func(w http.ResponseWriter, req *http.Request) {
+		if _, err := io.WriteString(w, "ok"); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	})
 	m.appCfg.General.PublicURL = cfg.PublicURL
 	m.appCfg.Twilio.Enable = true
 	m.appCfg.Twilio.AccountSID = cfg.Twilio.AccountSID
