@@ -68,7 +68,7 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 
 		cleanupContactMethods: p.P(`
 			DELETE FROM user_contact_methods 
-			WHERE id = any(SELECT id FROM user_contact_methods WHERE disabled = true AND created_at < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)
+			WHERE id = any(SELECT id FROM user_contact_methods WHERE disabled = true AND disabled_since < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)
 		`),
 
 		schedData: p.P(`

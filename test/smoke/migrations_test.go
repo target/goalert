@@ -84,6 +84,10 @@ var ignoreRules = []ignoreRule{
 
 	// Every DB must have a unique ID.
 	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
+
+	// Timestamp will change
+	{MigrationName: "add-timestamps-to-user-contact-methods", TableName: "user_contact_methods", ColumnName: "disabled_since"},
+	{MigrationName: "add-timestamps-to-user-contact-methods", TableName: "user_contact_methods", ColumnName: "created_at"},
 }
 
 const migrateInitData = `
