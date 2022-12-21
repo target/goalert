@@ -2,7 +2,6 @@ package graphql2
 
 import (
 	"io"
-	"log"
 	"strings"
 
 	"github.com/target/goalert/user/contactmethod"
@@ -13,9 +12,7 @@ import (
 
 func MarshalContactMethodType(t contactmethod.Type) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
-		if _, err := io.WriteString(w, `"`+string(t)+`"`); err != nil {
-			log.Println("ERROR with MarshalContactMethodType when using io.WriteString:", err)
-		}
+		_, _ = io.WriteString(w, `"`+string(t)+`"`)
 	})
 }
 func UnmarshalContactMethodType(v interface{}) (contactmethod.Type, error) {

@@ -152,17 +152,11 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string)
 			}
 			for i, v := range vals {
 				if i > 0 {
-					if _, err := io.WriteString(out, "\t"); err != nil {
-						return err
-					}
+					_, _ = io.WriteString(out, "\t")
 				}
-				if _, err := io.WriteString(out, string(*v.(*scannable))); err != nil {
-					return err
-				}
+				_, _ = io.WriteString(out, string(*v.(*scannable)))
 			}
-			if _, err := io.WriteString(out, "\n"); err != nil {
-				return err
-			}
+			_, _ = io.WriteString(out, "\n")
 		}
 		rows.Close()
 

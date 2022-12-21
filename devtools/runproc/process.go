@@ -124,11 +124,11 @@ func (p *Process) Stop() {
 func (p *Process) gracefulTerm() {
 	if p.pty != nil {
 		if _, err := io.WriteString(p.pty, "\x03"); err != nil {
-			p.logError(err)
+			panic(err)
 		}
 		time.Sleep(100 * time.Millisecond)
 		if _, err := io.WriteString(p.pty, "\x03"); err != nil {
-			p.logError(err)
+			panic(err)
 		}
 		return
 	}

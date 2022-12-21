@@ -195,9 +195,7 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	var buf bytes.Buffer
-	if _, err := io.WriteString(&buf, xml.Header); err != nil {
-		panic(err)
-	}
+	_, _ = io.WriteString(&buf, xml.Header)
 	enc := xml.NewEncoder(&buf)
 	enc.Indent("", "\t")
 	err := enc.Encode(doc)
@@ -207,8 +205,5 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	if _, err := io.WriteString(t.w, buf.String()); err != nil {
-		http.Error(t.w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		panic(err)
-	}
+	_, _ = io.WriteString(t.w, buf.String())
 }

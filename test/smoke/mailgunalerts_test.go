@@ -67,12 +67,8 @@ func TestMailgunAlerts(t *testing.T) {
 	v.Set("token", token)
 
 	hm := hmac.New(sha256.New, []byte(cfg.Mailgun.APIKey))
-	if _, err := io.WriteString(hm, timestamp); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := io.WriteString(hm, token); err != nil {
-		t.Fatal(err)
-	}
+	_, _ = io.WriteString(hm, timestamp)
+	_, _ = io.WriteString(hm, token)
 	calculatedSignature := hm.Sum(nil)
 
 	v.Set("signature", hex.EncodeToString(calculatedSignature))

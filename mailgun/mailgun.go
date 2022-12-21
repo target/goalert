@@ -67,12 +67,8 @@ func httpError(ctx context.Context, w http.ResponseWriter, err error) bool {
 // https://documentation.mailgun.com/en/latest/user_manual.html#securing-webhooks
 func validSignature(ctx context.Context, req *http.Request, apikey string) bool {
 	h := hmac.New(sha256.New, []byte(apikey))
-	if _, err := io.WriteString(h, req.FormValue("timestamp")); err != nil {
-		log.Log(ctx, errors.Wrap(err, "Issue with validSignature when using io.WriteString"))
-	}
-	if _, err := io.WriteString(h, req.FormValue("token")); err != nil {
-		log.Log(ctx, errors.Wrap(err, "Issue with validSignature when using io.WriteString"))
-	}
+	_, _ = io.WriteString(h, req.FormValue("timestamp"))
+	_, _ = io.WriteString(h, req.FormValue("token"))
 
 	calculatedSignature := h.Sum(nil)
 	signature, err := hex.DecodeString(req.FormValue("signature"))
