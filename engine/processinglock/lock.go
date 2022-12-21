@@ -54,18 +54,18 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 	var gotAdvLock bool
 	err = tx.StmtContext(ctx, l.advLockStmt).QueryRowContext(ctx, lock.GlobalMigrate).Scan(&gotAdvLock)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback() // not logging error due to an error here isn't exactly relevant to the underlying error
 		return nil, err
 	}
 	if !gotAdvLock {
-		tx.Rollback()
+		_ = tx.Rollback() // not logging error due to an error here isn't exactly relevant to the underlying error
 		return nil, ErrNoLock
 	}
 
 	var dbVersion int
 	err = tx.StmtContext(ctx, l.lockStmt).QueryRowContext(ctx, l.cfg.Type).Scan(&dbVersion)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback() // not logging error due to an error here isn't exactly relevant to the underlying error
 		// 55P03 is lock_not_available (due to the `nowait` in the query)
 		//
 		// https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
@@ -75,7 +75,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		return nil, err
 	}
 	if dbVersion != l.cfg.Version {
-		tx.Rollback()
+		_ = tx.Rollback() // not logging error due to an error here isn't exactly relevant to the underlying error
 		return nil, ErrNoLock
 	}
 

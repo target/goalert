@@ -36,11 +36,18 @@ func TestOverrideConflict(t *testing.T) {
 
 	tx1, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer tx1.Rollback()
-
+	defer func() {
+		if err := tx1.Rollback(); err != nil {
+			t.Error(err)
+		}
+	}()
 	tx2, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer tx2.Rollback()
+	defer func() {
+		if err := tx2.Rollback(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	start := time.Now().Add(-time.Hour)
 	end := start.Add(8 * time.Hour)
