@@ -1,4 +1,4 @@
-import React, { useEffect, MouseEvent, useRef } from 'react'
+import React, { useEffect, MouseEvent, useState } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 
 import Spinner from '../loading/components/Spinner'
@@ -53,14 +53,13 @@ export default function SendTestDialog(
     requestPolicy: 'network-only',
   })
 
-  const now = useRef(DateTime.utc())
+  // We keep a stable timestampe to track how long the dialog has been open
+  const [now] = useState(DateTime.utc())
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
   const cmDestValue = data?.userContactMethod?.formattedValue ?? ''
   const cmType: ContactMethodType = data?.userContactMethod?.type ?? ''
   const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
-  const timeSinceLastVerified = now.current.diff(
-    DateTime.fromISO(lastTestVerifyAt),
-  )
+  const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
   const fromValue =
     data?.userContactMethod?.lastTestMessageState?.formattedSrcValue ?? ''
   const errorMessage = (error?.message || sendTestStatus.error?.message) ?? ''
@@ -77,8 +76,8 @@ export default function SendTestDialog(
     }
   }, [lastTestVerifyAt, fetching])
 
-  let details
-  if (sendTestStatus.data && lastTestVerifyAt > now.current.toISO()) {
+  let details = ''
+  if (sendTestStatus.data && lastTestVerifyAt > now.toISO()) {
     details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   }
 
@@ -107,6 +106,18 @@ export default function SendTestDialog(
     }
   }
 
+  const loading = (): boolean => {
+    // if the sendTestStatus.fetching is true OR there's no details and no error message OR the status is pending, return true
+    if (
+      sendTestStatus.fetching ||
+      (!details && !errorMessage) ||
+      status === 'pending'
+    ) {
+      return true
+    }
+    return false
+  }
+
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -115,15 +126,13 @@ export default function SendTestDialog(
         <DialogContentText>
           GoAlert is sending a test {msg()}.
         </DialogContentText>
-        {(sendTestStatus.fetching || (!details && !errorMessage)) && (
-          <Spinner text='Sending Test...' />
-        )}
+        {loading() && <Spinner text='Sending Test...' />}
         {fromValue && (
           <DialogContentText>
             The test message was sent from {fromValue}.
           </DialogContentText>
         )}
-        {details && (
+        {!!details && (
           <DialogContentText color={getTestStatusColor(status)}>
             {toTitleCase(details)}
           </DialogContentText>

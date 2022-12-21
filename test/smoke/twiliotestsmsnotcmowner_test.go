@@ -26,7 +26,7 @@ func TestTwilioSMSNotCMOwner(t *testing.T) {
 	doQL := func(query string) {
 		g := h.GraphQLQuery2(query)
 		require.Len(t, g.Errors, 1, "errors returned from GraphQL")
-		require.Equal(t, "contact method does not belong to user", g.Errors[0].Message)
+		require.Equal(t, "access denied", g.Errors[0].Message)
 	}
 	cm1 := h.UUID("cm1")
 

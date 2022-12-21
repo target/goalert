@@ -254,8 +254,9 @@ func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
 	}
 
 	// if the contact method user id does not match the current user id, return an error
-	if cmUserID != permission.UserID(ctx) {
-		return validation.NewFieldError("ContactMethod", "contact method does not belong to user")
+	err = permission.LimitCheckAny(ctx, permission.MatchUser(cmUserID))
+	if err != nil {
+		return err
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
