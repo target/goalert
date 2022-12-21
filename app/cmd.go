@@ -517,7 +517,11 @@ Migration: %s (#%d)
 			if err != nil {
 				return errors.Wrap(err, "begin tx")
 			}
-			defer tx.Rollback()
+			defer func() {
+				if err := tx.Rollback(); err != nil {
+					log.Log(ctx, errors.Wrap(err, "Issue with testCmd rollback"))
+				}
+			}()
 
 			if id == "" {
 				u := &user.User{

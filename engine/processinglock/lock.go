@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -85,7 +87,11 @@ func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with _Exec rollback"))
+		}
+	}()
 
 	res, err := tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
 	if err != nil {

@@ -3,16 +3,17 @@ package user
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sync/atomic"
 	"time"
 
 	"github.com/golang/groupcache"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
@@ -326,7 +327,11 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		if err != nil {
 			return err
 		}
-		defer tx.Rollback()
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				log.Log(ctx, errors.Wrap(err, "Issue with DeleteManyTx rollback"))
+			}
+		}()
 	}
 
 	for _, id := range ids {

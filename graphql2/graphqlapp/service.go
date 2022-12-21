@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strconv"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -15,6 +16,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -197,7 +199,11 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 	if err != nil {
 		return false, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with UpdateService rollback"))
+		}
+	}()
 
 	svc, err := a.ServiceStore.FindOneForUpdate(ctx, tx, input.ID)
 	if err != nil {

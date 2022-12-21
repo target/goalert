@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -172,7 +173,11 @@ func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]
 	if err != nil {
 		return nil, 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with LegacySearch rollback"))
+		}
+	}()
 
 	var start, end sqlutil.NullTime
 	if !opts.Start.IsZero() {

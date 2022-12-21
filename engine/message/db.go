@@ -605,7 +605,11 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	if err != nil {
 		return errors.Wrap(err, "begin transaction")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with _SendMessages rollback"))
+		}
+	}()
 
 	_, err = tx.Stmt(db.lockStmt).ExecContext(execCtx)
 	if err != nil {
@@ -760,7 +764,11 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with updateStuckMessages rollback"))
+		}
+	}()
 
 	rows, err := tx.Stmt(db.stuckMessages).QueryContext(ctx)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -177,7 +178,11 @@ func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]
 	if err != nil {
 		return nil, 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with LegacySearch rollback"))
+		}
+	}()
 
 	var total int
 	err = tx.QueryRowContext(ctx, totalQueryStr, queryArgs...).Scan(&total)

@@ -33,7 +33,11 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with update rollback"))
+		}
+	}()
 
 	rows, err := tx.StmtContext(ctx, db.queueMessages).QueryContext(ctx)
 	if err != nil {

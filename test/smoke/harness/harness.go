@@ -385,7 +385,11 @@ func (t testAlert) setStatus(stat alert.Status) {
 		t.h.t.Helper()
 		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
 		require.NoError(t.h.t, err, "begin tx")
-		defer tx.Rollback()
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				t.h.t.Fatalf("Issue with setStatus rollback: %v", err)
+			}
+		}()
 
 		t.a.Status = stat
 
@@ -422,7 +426,11 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 		if err != nil {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
-		defer tx.Rollback()
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				h.t.Fatalf("Issue with CreateAlertWithDetails rollback: %v", err)
+			}
+		}()
 		a := &alert.Alert{
 			ServiceID: serviceID,
 			Summary:   summary,

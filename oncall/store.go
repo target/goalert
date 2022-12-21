@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
@@ -209,7 +210,11 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 	if err != nil {
 		return nil, errors.Wrap(err, "begin transaction")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with HistoryBySchedule rollback"))
+		}
+	}()
 
 	var schedTZ string
 	var now time.Time

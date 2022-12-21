@@ -3,6 +3,7 @@ package notificationrule
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
@@ -56,7 +57,12 @@ func (s *Store) DoTx(f func(*Store) error) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			// since there's no context, using the standard golang logger
+			log.Println("Issue with DoTx rollback:", err)
+		}
+	}()
 
 	err = f(s.WrapTx(tx))
 	if err != nil {

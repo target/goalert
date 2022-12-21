@@ -400,7 +400,11 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with refreshAndRotateKeys rollback"))
+		}
+	}()
 
 	row := tx.Stmt(db.fetchKeys).QueryRowContext(ctx, db.cfg.Name)
 

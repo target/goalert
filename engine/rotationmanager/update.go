@@ -50,7 +50,11 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with update rollback"))
+		}
+	}()
 
 	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
 	if err != nil {

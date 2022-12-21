@@ -39,7 +39,11 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with getSetConfig rollback"))
+		}
+	}()
 
 	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "", "")
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -672,7 +673,11 @@ func (s *Store) withTxLock(ctx context.Context, tx *sql.Tx, f func(*sql.Tx) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with withTxLock rollback"))
+		}
+	}()
 
 	err = s.withTxLock(ctx, tx, f)
 	if err != nil {

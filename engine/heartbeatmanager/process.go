@@ -30,7 +30,11 @@ func (db *DB) processAll(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with processAll rollback"))
+		}
+	}()
 
 	var newAlertCtx []context.Context
 	bad, err := db.unhealthy(ctx, tx)

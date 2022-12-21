@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/config"
@@ -35,7 +35,11 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with update rollback"))
+		}
+	}()
 
 	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -56,7 +57,11 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with UpdateAlertMetrics rollback"))
+		}
+	}()
 
 	var alertIDs []int
 	var lastLogTime, boundNow time.Time

@@ -256,7 +256,11 @@ func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with SendContactMethodTest rollback"))
+		}
+	}()
 
 	// Lock outgoing_messages first, before we modify user_contact methods
 	// to prevent deadlock.
@@ -305,7 +309,11 @@ func (s *Store) SendContactMethodVerification(ctx context.Context, cmID string) 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Log(ctx, errors.Wrap(err, "Issue with SendContactMethodVerification rollback"))
+		}
+	}()
 
 	r, err := tx.StmtContext(ctx, s.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {

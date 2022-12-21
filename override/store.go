@@ -3,17 +3,17 @@ package override
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/google/uuid"
 )
 
 // Store is used to manage active overrides.
@@ -104,7 +104,11 @@ func (s *Store) withTx(ctx context.Context, tx *sql.Tx, fn func(tx *sql.Tx) erro
 		if err != nil {
 			return err
 		}
-		defer tx.Rollback()
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				log.Log(ctx, errors.Wrap(err, "Issue with withTx rollback"))
+			}
+		}()
 		err = s.withTx(ctx, tx, fn)
 		if err != nil {
 			return err
