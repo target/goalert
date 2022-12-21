@@ -233,11 +233,11 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	return conn, err
 }
 
-func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, rotationID string, userIDs []string, updateActive bool) (err error) {
+func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, rotationID string, userIDs []string, updateActive bool, activeUserIndex *int) (isActiveUpdated bool, err error) {
 	// Get current participants
 	currentParticipants, err := m.RotationStore.FindAllParticipantsTx(ctx, tx, rotationID)
 	if err != nil {
-		return err
+		return isActiveUpdated, err
 	}
 
 	var participantIDsToRemove []string
@@ -256,7 +256,7 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 		// Update
 		err = m.RotationStore.UpdateParticipantUserIDTx(ctx, tx, c.ID, userIDs[i])
 		if err != nil {
-			return err
+			return isActiveUpdated, err
 		}
 	}
 
@@ -264,28 +264,28 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 		// Add users
 		err = m.RotationStore.AddRotationUsersTx(ctx, tx, rotationID, userIDs[len(currentParticipants):])
 		if err != nil {
-			return err
+			return isActiveUpdated, err
 		}
 	}
 
 	if len(participantIDsToRemove) == 0 {
-		return nil
+		return isActiveUpdated, nil
 	}
 
 	if len(userIDs) == 0 {
 		// Delete rotation state if all users are going to be deleted as per new input
 		err = m.RotationStore.DeleteStateTx(ctx, tx, rotationID)
 		if err != nil {
-			return err
+			return isActiveUpdated, err
 		}
-	} else if updateActive {
+	} else if updateActive || (activeUserIndex != nil && len(userIDs) == *activeUserIndex) {
 		// get current active participant
 		s, err := m.RotationStore.StateTx(ctx, tx, rotationID)
 		if errors.Is(err, rotation.ErrNoState) {
-			return nil
+			return isActiveUpdated, nil
 		}
 		if err != nil {
-			return err
+			return isActiveUpdated, err
 		}
 
 		// if currently active user is going to be deleted
@@ -293,16 +293,17 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 		if s.Position >= len(userIDs) {
 			err = m.RotationStore.SetActiveIndexTx(ctx, tx, rotationID, 0)
 			if err != nil {
-				return err
+				return isActiveUpdated, err
 			}
+			isActiveUpdated = true
 		}
 	}
 
 	err = m.RotationStore.DeleteRotationParticipantsTx(ctx, tx, participantIDsToRemove)
 	if err != nil {
-		return err
+		return isActiveUpdated, err
 	}
-	return nil
+	return isActiveUpdated, nil
 }
 
 func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRotationInput) (res bool, err error) {
@@ -352,8 +353,11 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 			}
 		}
 
+		// Prevents reupdating if the active user ID has already been updated when updating the participants
+		isActiveUpdated := false
+
 		if input.UserIDs != nil {
-			err = m.updateRotationParticipants(ctx, tx, input.ID, input.UserIDs, input.ActiveUserIndex == nil)
+			isActiveUpdated, err = m.updateRotationParticipants(ctx, tx, input.ID, input.UserIDs, input.ActiveUserIndex == nil, input.ActiveUserIndex)
 			if err != nil {
 				return err
 			}
@@ -361,7 +365,7 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 
 		// Update active participant (in rotation state) if specified by input
 		// This should be applicable regardless of whether or not 'UserIDs' as an input has been specified.
-		if input.ActiveUserIndex != nil {
+		if input.ActiveUserIndex != nil && !isActiveUpdated {
 			err = m.RotationStore.SetActiveIndexTx(ctx, tx, input.ID, *input.ActiveUserIndex)
 			if err != nil {
 				return err
