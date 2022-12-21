@@ -168,7 +168,7 @@ func stopWith(lock bool, sig os.Signal) int {
 	close(stopping)
 
 	if err := cmd.Process.Signal(sig); err != nil {
-		log.Println("ERROR: ", err)
+		panic(err)
 	}
 	t := time.NewTimer(startTimeout)
 	defer t.Stop()

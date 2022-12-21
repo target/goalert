@@ -130,7 +130,7 @@ func (p *Process) gracefulTerm() {
 	}
 
 	if err := p.cmd.Process.Signal(os.Interrupt); err != nil {
-		p.logError(err)
+		panic(err)
 	}
 }
 
@@ -144,7 +144,7 @@ func (p *Process) Kill() {
 
 	p.logAction("Killing...")
 	if err := p.cmd.Process.Kill(); err != nil {
-		p.logError(err)
+		panic(err)
 	}
 	p.state <- ProcessStateKilling
 
