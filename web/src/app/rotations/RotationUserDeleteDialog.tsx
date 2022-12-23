@@ -29,7 +29,7 @@ const RotationUserDeleteDialog = (props: {
   onClose: () => void
 }): JSX.Element => {
   const { rotationID, userIndex, onClose } = props
-  const [, deleteUserMutation] = useMutation(mutation)
+  const [deleteUserMutationStatus, deleteUserMutation] = useMutation(mutation)
   const [{ fetching, data, error }] = useQuery({
     query,
     variables: {
@@ -50,6 +50,9 @@ const RotationUserDeleteDialog = (props: {
         users[userIndex] ? users[userIndex].name : null
       } from this rotation.`}
       onClose={onClose}
+      errors={
+        deleteUserMutationStatus.error ? [deleteUserMutationStatus.error] : []
+      }
       onSubmit={() =>
         deleteUserMutation(
           {
@@ -66,8 +69,8 @@ const RotationUserDeleteDialog = (props: {
           },
           { additionalTypenames: ['Rotation'] },
         ).then((res) => {
-          if (res.error) return
-          onClose()
+          if (res.error) console.log(res.error)
+          // onClose()
         })
       }
     />
