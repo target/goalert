@@ -39,7 +39,7 @@ const RotationUserDeleteDialog = (props: {
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const { userIDs, users, activeUserIndex } = data.rotation
+  const { userIDs, users } = data.rotation
 
   return (
     <FormDialog
