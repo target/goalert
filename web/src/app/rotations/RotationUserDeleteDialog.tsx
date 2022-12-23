@@ -13,7 +13,6 @@ const query = gql`
         id
         name
       }
-      activeUserIndex
     }
   }
 `
@@ -58,10 +57,6 @@ const RotationUserDeleteDialog = (props: {
           {
             input: {
               id: rotationID,
-              activeUserIndex:
-                activeUserIndex > userIndex
-                  ? activeUserIndex - 1
-                  : activeUserIndex,
               userIDs: userIDs.filter(
                 (_: string, index: number) => index !== userIndex,
               ),
@@ -69,8 +64,8 @@ const RotationUserDeleteDialog = (props: {
           },
           { additionalTypenames: ['Rotation'] },
         ).then((res) => {
-          if (res.error) console.log(res.error)
-          // onClose()
+          if (res.error) return
+          onClose()
         })
       }
     />
