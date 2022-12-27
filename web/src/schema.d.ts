@@ -36,8 +36,6 @@ export interface Query {
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
-  webhooks: WebhookConnection
-  webhook?: null | Webhook
 }
 
 export interface LinkAccountInfo {

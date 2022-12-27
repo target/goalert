@@ -114,12 +114,6 @@ type Query {
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
-
-  # Returns the list of webhooks available to the current user.
-  webhooks(input: WebhookSearchOptions): WebhookConnection!
-
-  # Returns a webhook with the given ID.
-  webhook(id: ID!): Webhook
 }
 
 type LinkAccountInfo {
