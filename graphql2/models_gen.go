@@ -599,13 +599,12 @@ type VerifyContactMethodInput struct {
 }
 
 type Webhook struct {
-	Value      *string `json:"value"`
-	IsFavorite bool    `json:"isFavorite"`
+	Value *string `json:"value"`
 }
 
 type WebhookConnection struct {
-	Nodes    []slack.Channel `json:"nodes"`
-	PageInfo *PageInfo       `json:"pageInfo"`
+	Nodes    []Webhook `json:"nodes"`
+	PageInfo *PageInfo `json:"pageInfo"`
 }
 
 type WebhookSearchOptions struct {

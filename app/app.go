@@ -34,6 +34,7 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -90,7 +91,8 @@ type App struct {
 	twilioVoice  *twilio.Voice
 	twilioConfig *twilio.Config
 
-	slackChan *slack.ChannelSender
+	slackChan     *slack.ChannelSender
+	webhookSender *webhook.Sender
 
 	ConfigStore *config.Store
 

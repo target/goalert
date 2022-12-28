@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -74,6 +75,7 @@ type App struct {
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
 	SlackStore        *slack.ChannelSender
+	WebhookStore      *webhook.Sender
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 

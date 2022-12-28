@@ -86,6 +86,9 @@ type Query {
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
+  # Allows searching for webhooks.
+  webhooks(input: WebhookSearchOptions): WebhookConnection!
+
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
 
@@ -1152,7 +1155,6 @@ input AuthSubjectInput {
 
 type Webhook {
   value: String
-  isFavorite: Boolean!
 }
 
 input WebhookSearchOptions {
@@ -1163,7 +1165,7 @@ input WebhookSearchOptions {
 }
 
 type WebhookConnection {
-  nodes: [SlackChannel!]!
+  nodes: [Webhook!]!
   pageInfo: PageInfo!
 }
 

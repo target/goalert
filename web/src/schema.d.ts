@@ -26,6 +26,7 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
+  webhooks: WebhookConnection
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
@@ -923,7 +924,6 @@ export interface AuthSubjectInput {
 
 export interface Webhook {
   value?: null | string
-  isFavorite: boolean
 }
 
 export interface WebhookSearchOptions {
@@ -934,7 +934,7 @@ export interface WebhookSearchOptions {
 }
 
 export interface WebhookConnection {
-  nodes: SlackChannel[]
+  nodes: Webhook[]
   pageInfo: PageInfo
 }
 
