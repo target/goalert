@@ -75,7 +75,7 @@ type App struct {
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
 	SlackStore        *slack.ChannelSender
-	WebhookStore      *webhook.Sender
+	WebhookStore      *webhook.Store
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 

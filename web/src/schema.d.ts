@@ -923,7 +923,9 @@ export interface AuthSubjectInput {
 }
 
 export interface Webhook {
-  value?: null | string
+  id: string
+  name: string
+  value: string
 }
 
 export interface WebhookSearchOptions {

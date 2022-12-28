@@ -29,6 +29,7 @@ import (
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -589,6 +590,8 @@ type ComplexityRoot struct {
 	}
 
 	Webhook struct {
+		ID    func(childComplexity int) int
+		Name  func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
 
@@ -3485,6 +3488,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserSession.UserAgent(childComplexity), true
+
+	case "Webhook.id":
+		if e.complexity.Webhook.ID == nil {
+			break
+		}
+
+		return e.complexity.Webhook.ID(childComplexity), true
+
+	case "Webhook.name":
+		if e.complexity.Webhook.Name == nil {
+			break
+		}
+
+		return e.complexity.Webhook.Name(childComplexity), true
 
 	case "Webhook.value":
 		if e.complexity.Webhook.Value == nil {
@@ -21604,7 +21621,95 @@ func (ec *executionContext) fieldContext_UserSession_lastAccessAt(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Webhook_value(ctx context.Context, field graphql.CollectedField, obj *Webhook) (ret graphql.Marshaler) {
+func (ec *executionContext) _Webhook_id(ctx context.Context, field graphql.CollectedField, obj *webhook.Webhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Webhook_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Webhook_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Webhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Webhook_name(ctx context.Context, field graphql.CollectedField, obj *webhook.Webhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Webhook_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Webhook_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Webhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Webhook_value(ctx context.Context, field graphql.CollectedField, obj *webhook.Webhook) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Webhook_value(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -21625,11 +21730,14 @@ func (ec *executionContext) _Webhook_value(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Webhook_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21671,9 +21779,9 @@ func (ec *executionContext) _WebhookConnection_nodes(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Webhook)
+	res := resTmp.([]webhook.Webhook)
 	fc.Result = res
-	return ec.marshalNWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐWebhookᚄ(ctx, field.Selections, res)
+	return ec.marshalNWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐWebhookᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_WebhookConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21684,6 +21792,10 @@ func (ec *executionContext) fieldContext_WebhookConnection_nodes(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Webhook_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Webhook_name(ctx, field)
 			case "value":
 				return ec.fieldContext_Webhook_value(ctx, field)
 			}
@@ -31586,7 +31698,7 @@ func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionS
 
 var webhookImplementors = []string{"Webhook"}
 
-func (ec *executionContext) _Webhook(ctx context.Context, sel ast.SelectionSet, obj *Webhook) graphql.Marshaler {
+func (ec *executionContext) _Webhook(ctx context.Context, sel ast.SelectionSet, obj *webhook.Webhook) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, webhookImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -31594,10 +31706,27 @@ func (ec *executionContext) _Webhook(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Webhook")
+		case "id":
+
+			out.Values[i] = ec._Webhook_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._Webhook_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "value":
 
 			out.Values[i] = ec._Webhook_value(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34426,11 +34555,11 @@ func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋta
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNWebhook2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐWebhook(ctx context.Context, sel ast.SelectionSet, v Webhook) graphql.Marshaler {
+func (ec *executionContext) marshalNWebhook2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐWebhook(ctx context.Context, sel ast.SelectionSet, v webhook.Webhook) graphql.Marshaler {
 	return ec._Webhook(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []Webhook) graphql.Marshaler {
+func (ec *executionContext) marshalNWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []webhook.Webhook) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -34454,7 +34583,7 @@ func (ec *executionContext) marshalNWebhook2ᚕgithubᚗcomᚋtargetᚋgoalert�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWebhook2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐWebhook(ctx, sel, v[i])
+			ret[i] = ec.marshalNWebhook2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐWebhook(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

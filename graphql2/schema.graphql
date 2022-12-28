@@ -1154,7 +1154,9 @@ input AuthSubjectInput {
 }
 
 type Webhook {
-  value: String
+  id: ID!
+  name: String!
+  value: String!
 }
 
 input WebhookSearchOptions {

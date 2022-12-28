@@ -91,8 +91,8 @@ type App struct {
 	twilioVoice  *twilio.Voice
 	twilioConfig *twilio.Config
 
-	slackChan     *slack.ChannelSender
-	webhookSender *webhook.Sender
+	slackChan    *slack.ChannelSender
+	WebhookStore *webhook.Store
 
 	ConfigStore *config.Store
 

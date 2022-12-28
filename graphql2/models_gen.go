@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
@@ -598,13 +599,9 @@ type VerifyContactMethodInput struct {
 	Code            int    `json:"code"`
 }
 
-type Webhook struct {
-	Value *string `json:"value"`
-}
-
 type WebhookConnection struct {
-	Nodes    []Webhook `json:"nodes"`
-	PageInfo *PageInfo `json:"pageInfo"`
+	Nodes    []webhook.Webhook `json:"nodes"`
+	PageInfo *PageInfo         `json:"pageInfo"`
 }
 
 type WebhookSearchOptions struct {
