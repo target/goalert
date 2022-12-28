@@ -13,7 +13,6 @@ const query = gql`
         id
         name
       }
-      activeUserIndex
     }
   }
 `
@@ -29,7 +28,7 @@ const RotationUserDeleteDialog = (props: {
   onClose: () => void
 }): JSX.Element => {
   const { rotationID, userIndex, onClose } = props
-  const [, deleteUserMutation] = useMutation(mutation)
+  const [deleteUserMutationStatus, deleteUserMutation] = useMutation(mutation)
   const [{ fetching, data, error }] = useQuery({
     query,
     variables: {
@@ -40,7 +39,7 @@ const RotationUserDeleteDialog = (props: {
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const { userIDs, users, activeUserIndex } = data.rotation
+  const { userIDs, users } = data.rotation
 
   return (
     <FormDialog
@@ -50,15 +49,14 @@ const RotationUserDeleteDialog = (props: {
         users[userIndex] ? users[userIndex].name : null
       } from this rotation.`}
       onClose={onClose}
+      errors={
+        deleteUserMutationStatus.error ? [deleteUserMutationStatus.error] : []
+      }
       onSubmit={() =>
         deleteUserMutation(
           {
             input: {
               id: rotationID,
-              activeUserIndex:
-                activeUserIndex > userIndex
-                  ? activeUserIndex - 1
-                  : activeUserIndex,
               userIDs: userIDs.filter(
                 (_: string, index: number) => index !== userIndex,
               ),
