@@ -276,7 +276,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	if errutil.HTTPError(req.Context(), w, err) {
 		return
 	}
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // IdentityProviderHandler will return a handler for the given provider ID.
