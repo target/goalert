@@ -31,6 +31,7 @@ const query = gql`
         value
         formattedValue
         disabled
+        pending
       }
     }
   }
@@ -147,6 +148,9 @@ export default function UserContactMethodList(
           <AppLink to='/docs'>docs</AppLink>)
         </React.Fragment>
       )
+    }
+    if (cm.pending) {
+      return `${cm.formattedValue} - this contact method will be automatically deleted if not verified`
     }
 
     return cm.formattedValue

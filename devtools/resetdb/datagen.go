@@ -147,6 +147,7 @@ func (d *datagen) NewCM(userID string) {
 		Name:     d.ids.Gen(gofakeit.FirstName, userID),
 		Disabled: true,
 		UserID:   userID,
+		Pending:  false,
 	}
 	if gofakeit.Bool() {
 		cm.Type = contactmethod.TypeVoice
