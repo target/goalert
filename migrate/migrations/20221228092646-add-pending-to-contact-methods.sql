@@ -8,7 +8,7 @@ ALTER TABLE user_contact_methods ADD COLUMN pending BOOLEAN NOT NULL DEFAULT FAL
 -- Update default to true for new records
 ALTER TABLE user_contact_methods ALTER COLUMN pending SET DEFAULT TRUE;
 
--- Add a function to set pending to false when disabled is set to false
+-- Add a function to set pending to false when disabled is set to false for compatibility with previous versions
 -- +migrate StatementBegin
 CREATE OR REPLACE FUNCTION set_pending_to_false() RETURNS TRIGGER AS $$
 BEGIN
@@ -29,8 +29,8 @@ COMMIT;
 
 -- +migrate Down
 
--- Drop pending column
 ALTER TABLE user_contact_methods DROP COLUMN pending;
 
--- Drop trigger
+DROP TRIGGER set_pending_to_false ON user_contact_methods;
+
 DROP FUNCTION set_pending_to_false();
