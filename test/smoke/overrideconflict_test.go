@@ -10,12 +10,13 @@ import (
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/test/smoke/harness"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func TestOverrideConflict(t *testing.T) {
 	t.Parallel()
 
-	sql := `
+	sqlstmt := `
 	insert into users (id, name, email) 
 	values
 		({{uuid "u1"}}, 'bob', 'bob@example.com');
@@ -25,7 +26,7 @@ func TestOverrideConflict(t *testing.T) {
 		({{uuid "sid"}}, 'schedule', 'UTC');
 	`
 
-	h := harness.NewHarness(t, sql, "sched-module-v3")
+	h := harness.NewHarness(t, sqlstmt, "sched-module-v3")
 	defer h.Close()
 
 	db := h.App().DB()
@@ -36,18 +37,11 @@ func TestOverrideConflict(t *testing.T) {
 
 	tx1, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer func() {
-		if err := tx1.Rollback(); err != nil {
-			t.Error(err)
-		}
-	}()
+	defer sqlutil.RollbackTest(t, "Smoketest", tx1)
+
 	tx2, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer func() {
-		if err := tx2.Rollback(); err != nil {
-			t.Error(err)
-		}
-	}()
+	defer sqlutil.RollbackTest(t, "Smoketest", tx2)
 
 	start := time.Now().Add(-time.Hour)
 	end := start.Add(8 * time.Hour)

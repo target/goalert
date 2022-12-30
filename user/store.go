@@ -3,13 +3,13 @@ package user
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sync/atomic"
 	"time"
 
 	"github.com/golang/groupcache"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util"

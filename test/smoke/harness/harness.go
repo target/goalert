@@ -3,7 +3,6 @@ package harness
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -386,11 +385,7 @@ func (t testAlert) setStatus(stat alert.Status) {
 		t.h.t.Helper()
 		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
 		require.NoError(t.h.t, err, "begin tx")
-		defer func(tt *sql.Tx) {
-			if err := tt.Rollback(); err != nil {
-				t.h.t.Fatalf("issue with setStatus rollback: %v", err)
-			}
-		}(tx)
+		defer sqlutil.RollbackTest(t.h.t, "setStatus", tx)
 
 		t.a.Status = stat
 
@@ -427,11 +422,8 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 		if err != nil {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
-		defer func(t *sql.Tx) {
-			if err := t.Rollback(); err != nil {
-				h.t.Fatalf("issue with CreateAlertWithDetails rollback: %v", err)
-			}
-		}(tx)
+		defer sqlutil.RollbackTest(h.t, "CreateAlertWithDetails", tx)
+
 		a := &alert.Alert{
 			ServiceID: serviceID,
 			Summary:   summary,

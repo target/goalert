@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"testing"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/util/log"
@@ -13,6 +14,12 @@ import (
 func Rollback(ctx context.Context, errMsg string, tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil {
 		log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
+	}
+}
+
+func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
+	if err := tx.Rollback(); err != nil {
+		t.Errorf("tx rollback issue at %s: %v", errMsg, err)
 	}
 }
 
