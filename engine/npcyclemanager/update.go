@@ -6,6 +6,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -33,11 +34,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with update rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "update", tx)
 
 	rows, err := tx.StmtContext(ctx, db.queueMessages).QueryContext(ctx)
 	if err != nil {

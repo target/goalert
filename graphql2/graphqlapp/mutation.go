@@ -13,7 +13,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -178,11 +178,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with tryDeleteAll rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "tryDeleteAll", tx)
 
 	m := make(map[assignment.TargetType][]string)
 	for _, tgt := range input {

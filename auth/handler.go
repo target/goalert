@@ -458,11 +458,8 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			errRedirect(err)
 			return
 		}
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				log.Log(ctx, errors.Wrap(err, "Issue with handleProvider rollback"))
-			}
-		}()
+		defer sqlutil.Rollback(ctx, "handleProvider", tx)
+
 		u := &user.User{
 			Role:  permission.RoleUser,
 			Name:  validate.SanitizeName(sub.Name),

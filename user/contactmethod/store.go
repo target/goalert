@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -142,11 +141,8 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx,
 		if err != nil {
 			return err
 		}
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				log.Log(ctx, errors.Wrap(err, "Issue with SetCarrierV1MetadataByTypeValue rollback"))
-			}
-		}()
+		defer sqlutil.Rollback(ctx, "SetCarrierV1MetadataByTypeValue", tx)
+
 		ownTx = true
 	}
 	m, err := s.MetadataByTypeValue(ctx, tx, typ, value)

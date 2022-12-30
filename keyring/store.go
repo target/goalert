@@ -18,6 +18,7 @@ import (
 
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -400,11 +401,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with refreshAndRotateKeys rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "refreshAndRotateKeys", tx)
 
 	row := tx.Stmt(db.fetchKeys).QueryRowContext(ctx, db.cfg.Name)
 

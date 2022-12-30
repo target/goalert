@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -50,11 +51,7 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with update rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "update", tx)
 
 	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
 	if err != nil {

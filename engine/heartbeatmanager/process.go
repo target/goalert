@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -30,11 +31,7 @@ func (db *DB) processAll(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with processAll rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "processAll", tx)
 
 	var newAlertCtx []context.Context
 	bad, err := db.unhealthy(ctx, tx)

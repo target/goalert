@@ -28,6 +28,7 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqldrv"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
 	"github.com/target/goalert/web"
@@ -517,11 +518,7 @@ Migration: %s (#%d)
 			if err != nil {
 				return errors.Wrap(err, "begin tx")
 			}
-			defer func() {
-				if err := tx.Rollback(); err != nil {
-					log.Log(ctx, errors.Wrap(err, "Issue with testCmd rollback"))
-				}
-			}()
+			defer sqlutil.Rollback(ctx, "testCmd", tx)
 
 			if id == "" {
 				u := &user.User{

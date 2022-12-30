@@ -308,11 +308,7 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with EscalateMany rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "EscalateMany", tx)
 
 	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
@@ -371,11 +367,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with UpdateStatusByService rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "UpdateStatusByService", tx)
 
 	t := alertlog.TypeAcknowledged
 	if status == StatusClosed {
@@ -424,11 +416,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with UpdateManyAlertStatus rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "UpdateManyAlertStatus", tx)
 
 	t := alertlog.TypeAcknowledged
 	if status == StatusClosed {
@@ -493,11 +481,7 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with Create rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "Create", tx)
 
 	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {
@@ -639,11 +623,7 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with CreateOrUpdate rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "CreateOrUpdate", tx)
 
 	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
@@ -708,11 +688,7 @@ func (s *Store) UpdateStatus(ctx context.Context, id int, stat Status) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Log(ctx, errors.Wrap(err, "Issue with UpdateStatus rollback"))
-		}
-	}()
+	defer sqlutil.Rollback(ctx, "UpdateStatus", tx)
 
 	err = s.UpdateStatusTx(ctx, tx, id, stat)
 	if err != nil {
