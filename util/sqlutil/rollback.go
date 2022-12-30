@@ -13,19 +13,25 @@ import (
 // Rollback perform a DB rollback function
 func Rollback(ctx context.Context, errMsg string, tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil {
-		log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
+		if err != sql.ErrTxDone && err != sql.ErrConnDone {
+			log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
+		}
 	}
 }
 
 func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil {
-		t.Errorf("tx rollback issue at %s: %v", errMsg, err)
+		if err != sql.ErrTxDone && err != sql.ErrConnDone {
+			t.Errorf("tx rollback issue at %s: %v", errMsg, err)
+		}
 	}
 }
 
 // ContextRollback perform a DB rollback function with the context
 func ContextRollback(ctx context.Context, errMsg string, tx pgx.Tx) {
 	if err := tx.Rollback(ctx); err != nil {
-		log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
+		if err != sql.ErrTxDone && err != sql.ErrConnDone {
+			log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
+		}
 	}
 }
