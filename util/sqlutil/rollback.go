@@ -19,6 +19,7 @@ func Rollback(ctx context.Context, errMsg string, tx *sql.Tx) {
 	}
 }
 
+// RollbackTest will perform a DB rollback for use only within tests
 func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil {
 		if err != sql.ErrTxDone && err != sql.ErrConnDone {
