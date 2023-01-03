@@ -36,7 +36,7 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer sqlutil.Rollback(ctx, "update", tx)
+	defer sqlutil.Rollback(ctx, "schedule manager: update", tx)
 
 	log.Debugf(ctx, "Updating schedule rules.")
 
