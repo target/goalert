@@ -85,7 +85,7 @@ func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...
 	if err != nil {
 		return nil, err
 	}
-	defer sqlutil.Rollback(ctx, "_Exec", tx)
+	defer sqlutil.Rollback(ctx, "processing lock: exec", tx)
 
 	res, err := tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
 	if err != nil {
