@@ -16,7 +16,7 @@ import (
 func TestOverrideConflict(t *testing.T) {
 	t.Parallel()
 
-	sqlstmt := `
+	sql := `
 	insert into users (id, name, email) 
 	values
 		({{uuid "u1"}}, 'bob', 'bob@example.com');
@@ -26,7 +26,7 @@ func TestOverrideConflict(t *testing.T) {
 		({{uuid "sid"}}, 'schedule', 'UTC');
 	`
 
-	h := harness.NewHarness(t, sqlstmt, "sched-module-v3")
+	h := harness.NewHarness(t, sql, "sched-module-v3")
 	defer h.Close()
 
 	db := h.App().DB()
