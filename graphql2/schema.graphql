@@ -200,6 +200,8 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+  sentAt: ISOTimestamp
+  retryCount: Int!
 }
 
 input MessageLogSearchOptions {
@@ -290,7 +292,6 @@ input UserOverrideSearchOptions {
   start: ISOTimestamp # start of the window to search for.
   end: ISOTimestamp # end of the window to search for.
 }
-
 
 type UserOverrideConnection {
   nodes: [UserOverride!]!

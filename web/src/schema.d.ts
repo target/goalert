@@ -111,6 +111,8 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+  sentAt?: null | ISOTimestamp
+  retryCount: number
 }
 
 export interface MessageLogSearchOptions {

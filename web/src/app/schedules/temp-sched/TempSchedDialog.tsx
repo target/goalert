@@ -244,6 +244,7 @@ export default function TempSchedDialog({
       onClose={onClose}
       loading={loading}
       errors={errs}
+      disableBackdropClose
       notices={
         !value.start ||
         DateTime.fromISO(value.start, { zone }) >
