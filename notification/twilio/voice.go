@@ -181,52 +181,11 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		"Type":   "TwilioVoice",
 	})
 
-	opts := &VoiceOptions{
-		ValidityPeriod: time.Second * 10,
-		CallbackParams: make(url.Values),
-		Params:         make(url.Values),
+	// prefix is placed here due to the cfg dependancy, making it less complex to test buildMessage
+	opts, err := buildMessage(fmt.Sprintf("Hello! This is %s", cfg.ApplicationName()), msg)
+	if err != nil {
+		return nil, err
 	}
-
-	prefix := fmt.Sprintf("This is %s", cfg.ApplicationName())
-
-	var message string
-	subID := -1
-	switch t := msg.(type) {
-	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
-		opts.Params.Set(msgParamBundle, "1")
-		opts.CallType = CallTypeAlert
-	case notification.Alert:
-		if t.Summary == "" {
-			t.Summary = "No summary provided"
-		}
-		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
-		opts.CallType = CallTypeAlert
-		subID = t.AlertID
-	case notification.AlertStatus:
-		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
-		opts.CallType = CallTypeAlertStatus
-		subID = t.AlertID
-	case notification.Test:
-		message = fmt.Sprintf("%s with a test message.", prefix)
-		opts.CallType = CallTypeTest
-	case notification.Verification:
-		count := int(math.Log10(float64(t.Code)) + 1)
-		message = fmt.Sprintf(
-			"%s with your %d-digit verification code. The code is: %s. Again, your  %d-digit verification code is: %s.",
-			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
-		)
-		opts.CallType = CallTypeVerify
-	default:
-		return nil, errors.Errorf("unhandled message type: %T", t)
-	}
-
-	opts.Params.Set(msgParamSubID, strconv.Itoa(subID))
-	opts.CallbackParams.Set(msgParamID, msg.ID())
-	// Encode the body so we don't need to worry about
-	// buggy apps not escaping url params properly.
-	opts.Params.Set(msgParamBody, b64enc.EncodeToString([]byte(message)))
 
 	voiceResponse, err := v.c.StartVoice(ctx, toNumber, opts)
 	if err != nil {
@@ -637,4 +596,57 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
 	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+}
+
+// buildMessage is a function that will build the VoiceOptions object with the proper message contents
+func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, err error) {
+	if prefix == "" {
+		return nil, errors.New("No prefix provided")
+	}
+
+	opts = &VoiceOptions{
+		ValidityPeriod: time.Second * 10,
+		CallbackParams: make(url.Values),
+		Params:         make(url.Values),
+	}
+
+	var message string
+	subID := -1
+	switch t := msg.(type) {
+	case notification.AlertBundle:
+		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
+		opts.Params.Set(msgParamBundle, "1")
+		opts.CallType = CallTypeAlert
+	case notification.Alert:
+		if t.Summary == "" {
+			t.Summary = "No summary provided"
+		}
+		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
+		opts.CallType = CallTypeAlert
+		subID = t.AlertID
+	case notification.AlertStatus:
+		message = rmParen.ReplaceAllString(t.LogEntry, "")
+		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
+		opts.CallType = CallTypeAlertStatus
+		subID = t.AlertID
+	case notification.Test:
+		message = fmt.Sprintf("%s with a test message.", prefix)
+		opts.CallType = CallTypeTest
+	case notification.Verification:
+		count := int(math.Log10(float64(t.Code)) + 1)
+		message = fmt.Sprintf(
+			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
+			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
+		)
+		opts.CallType = CallTypeVerify
+	default:
+		return nil, errors.Errorf("unhandled message type: %T", t)
+	}
+
+	opts.Params.Set(msgParamSubID, strconv.Itoa(subID))
+	opts.CallbackParams.Set(msgParamID, msg.ID())
+	// Encode the body so we don't need to worry about
+	// buggy apps not escaping url params properly.
+	opts.Params.Add(msgParamBody, b64enc.EncodeToString([]byte(message)))
+	return
 }
