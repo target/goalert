@@ -52,7 +52,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 	var gotAdvLock bool
 	err = tx.StmtContext(ctx, l.advLockStmt).QueryRowContext(ctx, lock.GlobalMigrate).Scan(&gotAdvLock)
 	if err != nil {
-		_ = tx.Rollback() // not logging error due to an error here isn't exactly relevant to the underlying error
+		sqlutil.Rollback(ctx, "processing lock", tx)
 		return nil, err
 	}
 	if !gotAdvLock {
