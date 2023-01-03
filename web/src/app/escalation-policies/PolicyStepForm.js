@@ -57,6 +57,15 @@ function PolicyStepForm(props) {
 
   // takes a list of { id, type } targets and return the ids for a specific type
   const getTargetsByType = (type) => (tgts) => {
+    console.log('getTargets', tgts, type)
+    // if (type === 'webhook' && typeof tgts === 'string') {
+    //   const url = tgts
+    //   tgts.concat({
+    //     type: 'webhook',
+    //     id: url,
+    //   })
+    // }
+    // console.log('getTargets', tgts, type)
     return tgts
       .filter((t) => t.type === type) // only the list of the current type
       .map((t) => t.id) // array of ID strings
@@ -64,11 +73,7 @@ function PolicyStepForm(props) {
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
   const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
-    // if (type === 'webhook') {
-    //   return curTgts
-    //     .filter((t) => t.type !== type)
-    //     .concat({ id: newTgts, type })
-    // }
+    console.log('setTargets', newTgts)
     return curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
@@ -277,16 +282,17 @@ function PolicyStepForm(props) {
                       label='Webhook URL'
                       name='webhooks'
                       multiple
-                      // onCreate={
-                      //   // if create is enabled, allow new keys to be provided
-                      //   !cfg['General.DisableLabelCreation'] &&
-                      //   ((webhook) => console.log('creating: ', webhook))
-                      //   // mapValue={getTargetsByType('webhook')}
-                      //   // mapOnChangeValue={setTargetType('webhook')})
-                      // }
+                      // TODO: maybe add General.DisableWebhookCreation to admin config
+                      onCreate={(webhook) =>
+                        props.onChange({
+                          ...value,
+                          targets: makeSetTargetType(value.targets)('webhook')([
+                            webhook,
+                          ]),
+                        })
+                      }
                       mapValue={getTargetsByType('webhook')}
                       mapOnChangeValue={setTargetType('webhook')}
-                      // validate={validateKey}
                     />
                   </StepContent>
                 </Step>

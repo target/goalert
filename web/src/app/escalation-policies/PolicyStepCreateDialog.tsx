@@ -69,7 +69,10 @@ function PolicyStepCreateDialog(props: {
           errors={fieldErrs}
           disabled={fetching}
           value={value || defaultValue}
-          onChange={(value: Value) => setValue(value)}
+          onChange={(value: Value) => {
+            console.log('onChange', value)
+            setValue(value)
+          }}
         />
       }
     />
