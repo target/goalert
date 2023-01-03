@@ -52,7 +52,7 @@ func TestReadme(t *testing.T) {
 	r, w := io.Pipe()
 	cmd.Stderr = io.MultiWriter(w, os.Stdout)
 	require.NoError(t, cmd.Start())
-	defer mustExit(cmd.Process.Kill())
+	defer mustExit(cmd.Process.Kill)
 
 	rd := bufio.NewReader(r)
 	s, err := rd.ReadString('\n')
@@ -79,7 +79,7 @@ func TestReadme(t *testing.T) {
 	cmd.Stderr = w
 	rd = bufio.NewReader(r)
 	require.NoError(t, cmd.Start())
-	defer mustExit(cmd.Process.Kill())
+	defer mustExit(cmd.Process.Kill)
 
 	for {
 		s, err = rd.ReadString('\n')
@@ -103,7 +103,8 @@ func TestReadme(t *testing.T) {
 }
 
 // mustExit is a helper function to process error handling correctly on exit
-func mustExit(err error) {
+func mustExit(fn func() error) {
+	err := fn()
 	if err != nil && !errors.Is(err, os.ErrProcessDone) {
 		panic(err)
 	}
