@@ -27,6 +27,7 @@ export interface Query {
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   webhooks: WebhookConnection
+  webhook?: null | Webhook
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
@@ -925,7 +926,6 @@ export interface AuthSubjectInput {
 export interface Webhook {
   id: string
   name: string
-  value: string
 }
 
 export interface WebhookSearchOptions {

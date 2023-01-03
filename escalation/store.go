@@ -290,6 +290,7 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 }
 
 func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
+	fmt.Println("webhook target: ", webhookTarget)
 	webhookUrl, err := url.Parse(webhookTarget.TargetID())
 	if err != nil {
 		return nil, err

@@ -55,3 +55,7 @@ func (q *Query) Webhooks(ctx context.Context, input *graphql2.WebhookSearchOptio
 	conn.Nodes = webhooks
 	return conn, err
 }
+
+func (q *Query) Webhook(ctx context.Context, id string) (webhook *webhook.Webhook, err error) {
+	return q.WebhookStore.FindOne(ctx, id)
+}

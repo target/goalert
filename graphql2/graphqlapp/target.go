@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+	"fmt"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
@@ -14,6 +15,7 @@ type Target App
 func (a *App) Target() graphql2.TargetResolver { return (*Target)(a) }
 
 func (t *Target) Name(ctx context.Context, raw *assignment.RawTarget) (string, error) {
+	fmt.Println("raw name: ", raw.Name)
 	if raw.Name != "" {
 		return raw.Name, nil
 	}

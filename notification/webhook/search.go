@@ -31,9 +31,8 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-        id,
-		name,
-        value
+        value,
+		name
 	FROM notification_channels nc
     WHERE true
 	{{if .Omit}}
@@ -122,7 +121,7 @@ func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]Webhook,
 	var result []Webhook
 	var w Webhook
 	for rows.Next() {
-		err = rows.Scan(&w.ID, &w.Name, &w.Value)
+		err = rows.Scan(&w.ID, &w.Name)
 		if err != nil {
 			return nil, err
 		}

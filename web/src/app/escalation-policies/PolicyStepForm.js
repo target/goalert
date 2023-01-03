@@ -14,6 +14,7 @@ import {
   ScheduleSelect,
   SlackChannelSelect,
   UserSelect,
+  WebhookSelect,
 } from '../selection'
 
 import {
@@ -26,7 +27,6 @@ import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
 // import { TextField } from '@mui/material'
-import { LabelKeySelect } from '../selection/LabelKeySelect'
 
 const useStyles = makeStyles({
   badge: {
@@ -64,11 +64,11 @@ function PolicyStepForm(props) {
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
   const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
-    if (type === 'webhook') {
-      return curTgts
-        .filter((t) => t.type !== type)
-        .concat({ id: newTgts, type })
-    }
+    // if (type === 'webhook') {
+    //   return curTgts
+    //     .filter((t) => t.type !== type)
+    //     .concat({ id: newTgts, type })
+    // }
     return curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
@@ -272,18 +272,20 @@ function PolicyStepForm(props) {
                     <FormField
                       fullWidth
                       disabled={editValueOnly}
-                      component={LabelKeySelect}
+                      component={WebhookSelect}
                       fieldName='targets'
                       label='Webhook URL'
                       name='webhooks'
-                      placeholder='https://example.com'
-                      onCreate={
-                        // if create is enabled, allow new keys to be provided
-                        !cfg['General.DisableLabelCreation'] &&
-                        ((webhook) => console.log('creating: ', webhook))
-                        // mapValue={getTargetsByType('webhook')}
-                        // mapOnChangeValue={setTargetType('webhook')})
-                      }
+                      multiple
+                      // onCreate={
+                      //   // if create is enabled, allow new keys to be provided
+                      //   !cfg['General.DisableLabelCreation'] &&
+                      //   ((webhook) => console.log('creating: ', webhook))
+                      //   // mapValue={getTargetsByType('webhook')}
+                      //   // mapOnChangeValue={setTargetType('webhook')})
+                      // }
+                      mapValue={getTargetsByType('webhook')}
+                      mapOnChangeValue={setTargetType('webhook')}
                       // validate={validateKey}
                     />
                   </StepContent>
