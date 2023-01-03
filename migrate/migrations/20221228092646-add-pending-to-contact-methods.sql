@@ -29,8 +29,12 @@ COMMIT;
 
 -- +migrate Down
 
+BEGIN;
+
 ALTER TABLE user_contact_methods DROP COLUMN pending;
 
 DROP TRIGGER set_pending_to_false ON user_contact_methods;
 
 DROP FUNCTION set_pending_to_false();
+
+COMMIT;
