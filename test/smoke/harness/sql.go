@@ -113,7 +113,7 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
-	defer sqlutil.ContextRollback(ctx, "ExecSQLBatch", tx)
+	defer sqlutil.RollbackContext(ctx, "ExecSQLBatch", tx)
 
 	b := &pgx.Batch{}
 	for _, q := range queries {

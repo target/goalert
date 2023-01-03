@@ -28,8 +28,8 @@ func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
 	}
 }
 
-// ContextRollback perform a DB rollback function with the context
-func ContextRollback(ctx context.Context, errMsg string, tx pgx.Tx) {
+// RollbackContext perform a DB rollback function with the context
+func RollbackContext(ctx context.Context, errMsg string, tx pgx.Tx) {
 	if err := tx.Rollback(ctx); err != nil {
 		if err != sql.ErrTxDone && err != sql.ErrConnDone {
 			log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
