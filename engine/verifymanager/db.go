@@ -57,10 +57,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				limit 100
 				for update skip locked
 			), _cms as (
-        delete from user_contact_methods cm
-        using rows
-        where cm.id = rows.contact_method_id and cm.pending = true
-      )
+				delete from user_contact_methods cm
+				using rows
+				where cm.id = rows.contact_method_id and cm.pending = true
+			)
 			delete from user_verification_codes code
 			using rows
 			where code.id = rows.id
