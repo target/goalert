@@ -481,7 +481,7 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer sqlutil.Rollback(ctx, "Create", tx)
+	defer sqlutil.Rollback(ctx, "alert: create", tx)
 
 	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {

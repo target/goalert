@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"database/sql"
 	"strings"
+	"testing"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/util/sqlutil"
@@ -126,4 +128,13 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	}
 
 	return tx.Commit(ctx)
+}
+
+// RollbackTest will perform a DB rollback for use only within tests
+func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
+	if err := tx.Rollback(); err != nil {
+		if err != sql.ErrTxDone && err != sql.ErrConnDone {
+			t.Fatalf("tx rollback issue at %s: %v", errMsg, err)
+		}
+	}
 }

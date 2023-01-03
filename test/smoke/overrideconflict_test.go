@@ -10,7 +10,6 @@ import (
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/test/smoke/harness"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 func TestOverrideConflict(t *testing.T) {
@@ -37,11 +36,11 @@ func TestOverrideConflict(t *testing.T) {
 
 	tx1, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer sqlutil.RollbackTest(t, "Smoketest", tx1)
+	defer harness.RollbackTest(t, "Smoketest", tx1)
 
 	tx2, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer sqlutil.RollbackTest(t, "Smoketest", tx2)
+	defer harness.RollbackTest(t, "Smoketest", tx2)
 
 	start := time.Now().Add(-time.Hour)
 	end := start.Add(8 * time.Hour)

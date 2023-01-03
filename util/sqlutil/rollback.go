@@ -3,36 +3,28 @@ package sqlutil
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"testing"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/target/goalert/util/log"
 )
 
-// Rollback perform a DB rollback function
+// Rollback will roll back the transaction, logging any potential errors other than ErrTxDone and ErrConnDone,
+// which are expected.
+//
+// Primarily, it's intended to be used with defer as an alternative to calling defer tx.Rollback() which
+// ignores ALL errors.
 func Rollback(ctx context.Context, errMsg string, tx *sql.Tx) {
-	if err := tx.Rollback(); err != nil {
-		if err != sql.ErrTxDone && err != sql.ErrConnDone {
-			log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
-		}
+	if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) && !errors.Is(err, sql.ErrConnDone) {
+		log.Log(ctx, fmt.Errorf("%s: tx rollback: %w", errMsg, err))
 	}
 }
 
-// RollbackTest will perform a DB rollback for use only within tests
-func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
-	if err := tx.Rollback(); err != nil {
-		if err != sql.ErrTxDone && err != sql.ErrConnDone {
-			t.Errorf("tx rollback issue at %s: %v", errMsg, err)
-		}
-	}
-}
-
-// RollbackContext perform a DB rollback function with the context
+// RollbackContext provides the same functionality as Rollback, but uses the pgx library rather than the standard
+// sql library
 func RollbackContext(ctx context.Context, errMsg string, tx pgx.Tx) {
-	if err := tx.Rollback(ctx); err != nil {
-		if err != sql.ErrTxDone && err != sql.ErrConnDone {
-			log.Log(ctx, fmt.Errorf("tx rollback issue at %s: %v", errMsg, err))
-		}
+	if err := tx.Rollback(ctx); err != nil && !errors.Is(err, sql.ErrTxDone) && !errors.Is(err, sql.ErrConnDone) {
+		log.Log(ctx, fmt.Errorf("%s: tx rollback: %w", errMsg, err))
 	}
 }
