@@ -81,6 +81,11 @@ export default function SendTestDialog(
     details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   }
 
+  const isLoading =
+    sendTestStatus.fetching ||
+    (!!details && !!errorMessage) ||
+    status === 'pending'
+
   const getTestStatusColor = (status: string): string => {
     switch (status) {
       case 'OK':
@@ -106,18 +111,6 @@ export default function SendTestDialog(
     }
   }
 
-  const loading = (): boolean => {
-    // if the sendTestStatus.fetching is true OR there's no details and no error message OR the status is pending, return true
-    if (
-      sendTestStatus.fetching ||
-      (!details && !errorMessage) ||
-      status === 'pending'
-    ) {
-      return true
-    }
-    return false
-  }
-
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -126,7 +119,7 @@ export default function SendTestDialog(
         <DialogContentText>
           GoAlert is sending a test {msg()}.
         </DialogContentText>
-        {loading() && <Spinner text='Sending Test...' />}
+        {isLoading && <Spinner text='Sending Test...' />}
         {fromValue && (
           <DialogContentText>
             The test message was sent from {fromValue}.

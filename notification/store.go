@@ -253,7 +253,8 @@ func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
 		return err
 	}
 
-	// if the contact method user id does not match the current user id, return an error
+	// due to potential regulations around consent with phone calls and SMS, we
+	// only allow users to send test messages to their own contact methods
 	err = permission.LimitCheckAny(ctx, permission.MatchUser(cmUserID))
 	if err != nil {
 		return err

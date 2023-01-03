@@ -8,7 +8,8 @@ import (
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestTwilioSMS checks that a test SMS is processed.
+// TestTwilioVoiceNotCMOwner checks that a test sent from a user who is not the
+// owner of the contact method returns an error.
 func TestTwilioVoiceNotCMOwner(t *testing.T) {
 	t.Parallel()
 

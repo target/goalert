@@ -8,7 +8,8 @@ import (
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestTwilioSMS checks that a test SMS is processed.
+// TestTwilioSMSNotCMOwner checks that a test sent from a user who is not the
+// owner of the contact method returns an error.
 func TestTwilioSMSNotCMOwner(t *testing.T) {
 	t.Parallel()
 
@@ -23,16 +24,13 @@ func TestTwilioSMSNotCMOwner(t *testing.T) {
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
-	doQL := func(query string) {
-		g := h.GraphQLQuery2(query)
-		require.Len(t, g.Errors, 1, "errors returned from GraphQL")
-		require.Equal(t, "access denied", g.Errors[0].Message)
-	}
 	cm1 := h.UUID("cm1")
 
-	doQL(fmt.Sprintf(`
+	g := h.GraphQLQuery2(fmt.Sprintf(`
 		mutation {
 			testContactMethod(id: "%s")
 		}
 		`, cm1))
+	require.Len(t, g.Errors, 1, "errors returned from GraphQL")
+	require.Equal(t, "access denied", g.Errors[0].Message)
 }
