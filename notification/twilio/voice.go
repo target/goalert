@@ -183,7 +183,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 
-	prefix := fmt.Sprintf("This is %s", cfg.ApplicationName())
+	prefix := fmt.Sprintf("Hello! This is %s", cfg.ApplicationName())
 
 	var message string
 	subID := -1
