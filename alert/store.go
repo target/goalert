@@ -308,7 +308,7 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	if err != nil {
 		return nil, err
 	}
-	defer sqlutil.Rollback(ctx, "EscalateMany", tx)
+	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
 	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
