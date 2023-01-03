@@ -24,7 +24,7 @@ func (l *LogicalReplicator) FullInitialSync(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin src tx: %w", err)
 	}
-	defer sqlutil.ContextRollback(ctx, "src FullInitialSync", srcTx)
+	defer sqlutil.ContextRollback(ctx, "swo: full initial sync: src tx", srcTx)
 
 	_, err = srcTx.Exec(ctx, txInProgressLock)
 	if err != nil {
