@@ -178,7 +178,7 @@ func TestBuildMessage(t *testing.T) {
 					CallbackID: "2",
 				},
 			},
-			expectedErr: errors.New("No prefix provided"),
+			expectedErr: errors.New("no prefix provided"),
 		},
 		"no input": {
 			input: mockInput{

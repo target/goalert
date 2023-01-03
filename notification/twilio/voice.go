@@ -601,7 +601,7 @@ func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error)
 // buildMessage is a function that will build the VoiceOptions object with the proper message contents
 func buildMessage(prefix string, msg notification.Message) (opts *VoiceOptions, err error) {
 	if prefix == "" {
-		return nil, errors.New("No prefix provided")
+		return nil, errors.New("buildMessage: no prefix provided")
 	}
 
 	opts = &VoiceOptions{
