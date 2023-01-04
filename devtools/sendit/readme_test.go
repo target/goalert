@@ -63,7 +63,7 @@ func TestReadme(t *testing.T) {
 
 	testSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/server-prefix/test", r.URL.Path)
-		io.WriteString(w, "Hello, world!")
+		_, _ = io.WriteString(w, "Hello, world!")
 	}))
 	defer testSrv.Close()
 
