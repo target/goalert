@@ -56,13 +56,13 @@ func TestUserVerificationCleanup(t *testing.T) {
 	}
 
 	sql := `
-    insert into users (id, name, email) 
-    values 
-      ({{uuid "user"}}, 'bob', 'joe');
-    insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-    values
-        ({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, false),
-        ({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, true);
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+				({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, false),
+				({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, true);
 	`
 	h := harness.NewHarness(t, sql, "")
 	defer h.Close()
@@ -70,17 +70,17 @@ func TestUserVerificationCleanup(t *testing.T) {
 	createCM := func(t *testing.T, user, name, phone string) (cm *cmCreate) {
 		t.Helper()
 		doQL(t, h, fmt.Sprintf(`
-      mutation {
-        createUserContactMethod(input: {
-          userID: "%s",
-          type: SMS,
-          name: "%s",
-          value: "%s"
-        }) {
-          id
-        }
-      }
-    `, user, name, phone), &cm)
+			mutation {
+				createUserContactMethod(input: {
+					userID: "%s",
+					type: SMS,
+					name: "%s",
+					value: "%s"
+				}) {
+					id
+				}
+			}
+		`, user, name, phone), &cm)
 		return
 	}
 	cm3 := createCM(t, h.UUID("user"), "personal3", h.Phone("3"))
@@ -89,12 +89,12 @@ func TestUserVerificationCleanup(t *testing.T) {
 	verifyCM := func(t *testing.T, cmID string) {
 		t.Helper()
 		doQL(t, h, fmt.Sprintf(`
-      mutation {
-        sendContactMethodVerification(input: {
-          contactMethodID: "%s"
-        })
-      }
-    `, cmID), nil)
+			mutation {
+				sendContactMethodVerification(input: {
+					contactMethodID: "%s"
+				})
+			}
+		`, cmID), nil)
 	}
 	verifyCM(t, cm3.CreateUserContactMethod.ID)
 	verifyCM(t, cm4.CreateUserContactMethod.ID)
@@ -116,12 +116,12 @@ func TestUserVerificationCleanup(t *testing.T) {
 	code, _ := strconv.Atoi(codeStr)
 
 	doQL(t, h, fmt.Sprintf(`
-	  mutation {
-	    verifyContactMethod(input: {
-	      contactMethodID: "%s",
-	      code: %d
-	    })
-	  }
+		mutation {
+			verifyContactMethod(input: {
+				contactMethodID: "%s",
+				code: %d
+			})
+		}
 	`, cm3.CreateUserContactMethod.ID, code), nil)
 
 	h.FastForward(20 * time.Minute)

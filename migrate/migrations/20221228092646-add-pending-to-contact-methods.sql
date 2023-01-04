@@ -7,7 +7,7 @@ ALTER TABLE user_contact_methods ADD COLUMN pending BOOLEAN NOT NULL DEFAULT FAL
 
 ALTER TABLE user_contact_methods ALTER COLUMN pending SET DEFAULT TRUE;
 
--- A contact method is only pending (i.e., subject to cleanup) until disabled is seto to false (e.g., after first verification).
+-- A contact method is only pending (i.e., subject to cleanup) until disabled is set to false (e.g., after first verification).
 -- +migrate StatementBegin
 CREATE OR REPLACE FUNCTION fn_cm_set_not_pending_on_verify() RETURNS TRIGGER AS $$
 BEGIN
