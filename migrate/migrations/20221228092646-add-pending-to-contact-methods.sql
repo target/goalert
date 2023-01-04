@@ -1,40 +1,32 @@
 -- +migrate Up
 
-BEGIN;
-
--- Add pending column with default to false for existing records and update default to true for new records later on
+-- A pending column is being added to user_contact_methods to indicate if a contact method has ever been verified.
+-- This can be used for various purposes such as cleaning up unverified contact methods after a certain period of time.
+-- Defaulting it to false for existing records to preserve existing behavior on existing records.
 ALTER TABLE user_contact_methods ADD COLUMN pending BOOLEAN NOT NULL DEFAULT FALSE;
 
--- Update default to true for new records
 ALTER TABLE user_contact_methods ALTER COLUMN pending SET DEFAULT TRUE;
 
--- Add a function to set pending to false when disabled is set to false for compatibility with previous versions
+-- A contact method is only pending (i.e., subject to cleanup) until disabled is seto to false (e.g., after first verification).
 -- +migrate StatementBegin
-CREATE OR REPLACE FUNCTION set_pending_to_false() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION fn_cm_set_not_pending_on_verify() RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.disabled = FALSE THEN
     NEW.pending = FALSE;
-  END IF;
   RETURN NEW;
 END;
 $$ language plpgsql;
 -- +migrate StatementEnd
 
--- Bind the trigger function to user_contact_methods
-CREATE TRIGGER set_pending_to_false
+CREATE TRIGGER trg_cm_set_not_pending_on_verify
 BEFORE UPDATE OF disabled ON user_contact_methods
-FOR EACH ROW EXECUTE PROCEDURE set_pending_to_false();
-
-COMMIT;
+FOR EACH ROW
+WHEN (NEW.disabled = TRUE)
+EXECUTE PROCEDURE fn_cm_set_not_pending_on_verify();
 
 -- +migrate Down
 
-BEGIN;
-
 ALTER TABLE user_contact_methods DROP COLUMN pending;
 
-DROP TRIGGER set_pending_to_false ON user_contact_methods;
+DROP TRIGGER trg_cm_set_not_pending_on_verify ON user_contact_methods;
 
-DROP FUNCTION set_pending_to_false();
-
-COMMIT;
+DROP FUNCTION fn_cm_set_not_pending_on_verify();

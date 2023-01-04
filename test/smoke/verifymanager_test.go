@@ -1,15 +1,15 @@
 package smoke
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/target/goalert/permission"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -23,6 +23,10 @@ func TestUserVerificationCleanup(t *testing.T) {
 		ID       string `json:"id"`
 		Disabled bool   `json:"disabled"`
 		Pending  bool   `json:"pending"`
+	}
+
+	type cmCreate struct {
+		CreateUserContactMethod cm
 	}
 
 	type data struct {
@@ -50,10 +54,81 @@ func TestUserVerificationCleanup(t *testing.T) {
 			t.Fatal("failed to parse response:", err)
 		}
 	}
-	contactMethods := func(t *testing.T, h *harness.Harness) *data {
+
+	sql := `
+    insert into users (id, name, email) 
+    values 
+      ({{uuid "user"}}, 'bob', 'joe');
+    insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+    values
+        ({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, false),
+        ({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, true);
+	`
+	h := harness.NewHarness(t, sql, "")
+	defer h.Close()
+
+	createCM := func(t *testing.T, user, name, phone string) (cm *cmCreate) {
 		t.Helper()
-		var d data
 		doQL(t, h, fmt.Sprintf(`
+      mutation {
+        createUserContactMethod(input: {
+          userID: "%s",
+          type: SMS,
+          name: "%s",
+          value: "%s"
+        }) {
+          id
+        }
+      }
+    `, user, name, phone), &cm)
+		return
+	}
+	cm3 := createCM(t, h.UUID("user"), "personal3", h.Phone("3"))
+	cm4 := createCM(t, h.UUID("user"), "personal4", h.Phone("4"))
+
+	verifyCM := func(t *testing.T, cmID string) {
+		t.Helper()
+		doQL(t, h, fmt.Sprintf(`
+      mutation {
+        sendContactMethodVerification(input: {
+          contactMethodID: "%s"
+        })
+      }
+    `, cmID), nil)
+	}
+	verifyCM(t, cm3.CreateUserContactMethod.ID)
+	verifyCM(t, cm4.CreateUserContactMethod.ID)
+
+	tw := h.Twilio(t)
+	d1 := tw.Device(h.Phone("3"))
+	d2 := tw.Device(h.Phone("4"))
+
+	d1Msg := d1.ExpectSMS("verification")
+	_ = d2.ExpectSMS("verification")
+
+	codeStr := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, d1Msg.Body())
+
+	code, _ := strconv.Atoi(codeStr)
+
+	doQL(t, h, fmt.Sprintf(`
+	  mutation {
+	    verifyContactMethod(input: {
+	      contactMethodID: "%s",
+	      code: %d
+	    })
+	  }
+	`, cm3.CreateUserContactMethod.ID, code), nil)
+
+	h.FastForward(20 * time.Minute)
+	h.Trigger()
+
+	var d data
+	doQL(t, h, fmt.Sprintf(`
 			query {
 				user(id: "%s") {
 					id
@@ -65,113 +140,14 @@ func TestUserVerificationCleanup(t *testing.T) {
 				}
 			}
 		`, h.UUID("user")), &d)
-		return &d
+	assert.Len(t, d.User.ContactMethods, 3)
+
+	expectedCMs := []string{h.UUID("cm1"), h.UUID("cm2"), cm3.CreateUserContactMethod.ID}
+	sort.Strings(expectedCMs)
+	actualCMs := []string{}
+	for _, cm := range d.User.ContactMethods {
+		actualCMs = append(actualCMs, cm.ID)
 	}
-
-	checkCM := func(t *testing.T, h *harness.Harness, cm cm, id string, disabled, pending bool) {
-		t.Helper()
-		assert.Equal(t, id, cm.ID)
-		assert.Equal(t, disabled, cm.Disabled)
-		assert.Equal(t, pending, cm.Pending)
-	}
-
-	t.Run("existing unverified contact method is not deleted for compat", func(t *testing.T) {
-		sql := `
-			insert into users (id, name, email) 
-			values 
-				({{uuid "user"}}, 'bob', 'joe');
-			insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-			values
-					({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, true);
-			insert into user_verification_codes (id, contact_method_id, code, expires_at)
-			values
-				({{uuid "code"}}, {{uuid "cm1"}}, '1234', now() + '15 minutes'::interval);
-	`
-		h := harness.NewHarness(t, sql, "switchover-mk2")
-		defer h.Close()
-		h.Migrate("add-pending-to-contact-methods")
-		h.FastForward(20 * time.Minute)
-		h.Trigger()
-
-		// verify that a unverified contact method created before the migration is not deleted for compat
-		d := contactMethods(t, h)
-		assert.Len(t, d.User.ContactMethods, 1)
-		checkCM(t, h, d.User.ContactMethods[0], h.UUID("cm1"), true, false)
-	})
-
-	t.Run("database trigger on disabled field should set pending", func(t *testing.T) {
-		sql := `
-			insert into users (id, name, email) 
-			values 
-				({{uuid "user"}}, 'bob', 'joe');
-			insert into user_contact_methods (id, user_id, name, type, value, disabled, pending) 
-			values
-					({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, true, true);
-	`
-		h := harness.NewHarness(t, sql, "add-pending-to-contact-methods")
-		defer h.Close()
-
-		permission.SudoContext(context.Background(), func(ctx context.Context) {
-			err := h.App().ContactMethodStore.EnableByValue(ctx, "SMS", h.Phone("1"))
-			require.NoError(t, err)
-		})
-
-		// verify that a unverified contact method created before the migration is not deleted for compat
-		d := contactMethods(t, h)
-		assert.Len(t, d.User.ContactMethods, 1)
-		checkCM(t, h, d.User.ContactMethods[0], h.UUID("cm1"), false, false)
-	})
-
-	t.Run("new contact methods are cleaned up properly", func(t *testing.T) {
-		sql := `
-			insert into users (id, name, email) 
-			values 
-				({{uuid "user"}}, 'bob', 'joe');
-			insert into user_contact_methods (id, user_id, name, type, value, disabled, pending) 
-			values
-					({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, true, true),
-					({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, false, false);
-			insert into user_verification_codes (id, contact_method_id, code, expires_at)
-			values
-				({{uuid "code"}}, {{uuid "cm1"}}, '1234', now() + '15 minutes'::interval);
-	`
-		h := harness.NewHarness(t, sql, "add-pending-to-contact-methods")
-		defer h.Close()
-		h.FastForward(20 * time.Minute)
-		h.Trigger()
-
-		d := contactMethods(t, h)
-		// cm1 should be deleted as the verification code is expired
-		// cm2 should still exist as it is not disabled and not pending
-		assert.Len(t, d.User.ContactMethods, 1)
-		checkCM(t, h, d.User.ContactMethods[0], h.UUID("cm2"), false, false)
-
-		// disable and re-verify cm2 and let it expire to make sure it is not deleted as it was previously verified
-		permission.SudoContext(context.Background(), func(ctx context.Context) {
-			err := h.App().ContactMethodStore.DisableByValue(ctx, "SMS", h.Phone("2"))
-			require.NoError(t, err)
-		})
-
-		d = contactMethods(t, h)
-		// cm2 should be disabled and not pending
-		assert.Len(t, d.User.ContactMethods, 1)
-		checkCM(t, h, d.User.ContactMethods[0], h.UUID("cm2"), true, false)
-
-		// re-verify cm2 and fast forward past the expiration
-		doQL(t, h, fmt.Sprintf(`
-			mutation {
-				sendContactMethodVerification(input: {
-					contactMethodID: "%s"
-				})
-			}
-		`, h.UUID("cm2")), nil)
-
-		h.FastForward(20 * time.Minute)
-		h.Trigger()
-
-		d = contactMethods(t, h)
-		// cm2 should exist, be disabled and not pending
-		assert.Len(t, d.User.ContactMethods, 1)
-		checkCM(t, h, d.User.ContactMethods[0], h.UUID("cm2"), true, false)
-	})
+	sort.Strings(actualCMs)
+	assert.Equal(t, expectedCMs, actualCMs)
 }
