@@ -85,8 +85,7 @@ func handleSignal(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := cmd.Process.Signal(sig)
-	if err != nil {
+	if err := cmd.Process.Signal(sig); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -168,7 +167,9 @@ func stopWith(lock bool, sig os.Signal) int {
 	log.Println("stopping", flag.Arg(0))
 	close(stopping)
 
-	cmd.Process.Signal(sig)
+	if err := cmd.Process.Signal(sig); err != nil {
+		panic(err)
+	}
 	t := time.NewTimer(startTimeout)
 	defer t.Stop()
 	select {

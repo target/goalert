@@ -2,6 +2,7 @@ package sendit_test
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,7 +52,7 @@ func TestReadme(t *testing.T) {
 	r, w := io.Pipe()
 	cmd.Stderr = io.MultiWriter(w, os.Stdout)
 	require.NoError(t, cmd.Start())
-	defer cmd.Process.Kill()
+	defer mustExit(cmd.Process.Kill)
 
 	rd := bufio.NewReader(r)
 	s, err := rd.ReadString('\n')
@@ -78,7 +79,7 @@ func TestReadme(t *testing.T) {
 	cmd.Stderr = w
 	rd = bufio.NewReader(r)
 	require.NoError(t, cmd.Start())
-	defer cmd.Process.Kill()
+	defer mustExit(cmd.Process.Kill)
 
 	for {
 		s, err = rd.ReadString('\n')
@@ -99,4 +100,12 @@ func TestReadme(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "Hello, world!", string(data))
+}
+
+// mustExit is a helper function to process error handling correctly on exit
+func mustExit(fn func() error) {
+	err := fn()
+	if err != nil && !errors.Is(err, os.ErrProcessDone) {
+		panic(err)
+	}
 }
