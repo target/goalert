@@ -182,6 +182,8 @@ type ComplexityRoot struct {
 		Destination func(childComplexity int) int
 		ID          func(childComplexity int) int
 		ProviderID  func(childComplexity int) int
+		RetryCount  func(childComplexity int) int
+		SentAt      func(childComplexity int) int
 		ServiceID   func(childComplexity int) int
 		ServiceName func(childComplexity int) int
 		Source      func(childComplexity int) int
@@ -1212,6 +1214,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DebugMessage.ProviderID(childComplexity), true
+
+	case "DebugMessage.retryCount":
+		if e.complexity.DebugMessage.RetryCount == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.RetryCount(childComplexity), true
+
+	case "DebugMessage.sentAt":
+		if e.complexity.DebugMessage.SentAt == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.SentAt(childComplexity), true
 
 	case "DebugMessage.serviceID":
 		if e.complexity.DebugMessage.ServiceID == nil {
@@ -7874,6 +7890,91 @@ func (ec *executionContext) fieldContext_DebugMessage_providerID(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_sentAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SentAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_retryCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RetryCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DebugMessageStatusInfo_state(ctx, field)
 	if err != nil {
@@ -9803,6 +9904,10 @@ func (ec *executionContext) fieldContext_MessageLogConnection_nodes(ctx context.
 				return ec.fieldContext_DebugMessage_alertID(ctx, field)
 			case "providerID":
 				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
 		},
@@ -13822,6 +13927,10 @@ func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context
 				return ec.fieldContext_DebugMessage_alertID(ctx, field)
 			case "providerID":
 				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
 		},
@@ -28902,6 +29011,17 @@ func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
 
+		case "sentAt":
+
+			out.Values[i] = ec._DebugMessage_sentAt(ctx, field, obj)
+
+		case "retryCount":
+
+			out.Values[i] = ec._DebugMessage_retryCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
