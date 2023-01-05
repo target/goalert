@@ -123,13 +123,19 @@ func (p *Process) Stop() {
 
 func (p *Process) gracefulTerm() {
 	if p.pty != nil {
-		io.WriteString(p.pty, "\x03")
+		if _, err := io.WriteString(p.pty, "\x03"); err != nil {
+			panic(err)
+		}
 		time.Sleep(100 * time.Millisecond)
-		io.WriteString(p.pty, "\x03")
+		if _, err := io.WriteString(p.pty, "\x03"); err != nil {
+			panic(err)
+		}
 		return
 	}
 
-	p.cmd.Process.Signal(os.Interrupt)
+	if err := p.cmd.Process.Signal(os.Interrupt); err != nil {
+		panic(err)
+	}
 }
 
 func (p *Process) Kill() {
@@ -141,7 +147,9 @@ func (p *Process) Kill() {
 	}
 
 	p.logAction("Killing...")
-	p.cmd.Process.Kill()
+	if err := p.cmd.Process.Kill(); err != nil {
+		panic(err)
+	}
 	p.state <- ProcessStateKilling
 
 	<-p.exited

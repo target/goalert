@@ -425,9 +425,9 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		ChannelID       uuid.UUID
 		ContactMethodID uuid.UUID
 
-		User          *user.User                   `gorm:"references:UserID"`
-		Channel       *notificationchannel.Channel `gorm:"references:ChannelID"`
-		ContactMethod *contactmethod.ContactMethod `gorm:"references:ContactMethodID"`
+		User          *user.User                   `gorm:"foreignKey:UserID;references:ID"`
+		Channel       *notificationchannel.Channel `gorm:"foreignKey:ChannelID;references:ID"`
+		ContactMethod *contactmethod.ContactMethod `gorm:"foreignKey:ContactMethodID;references:ID"`
 	}
 
 	err = db.Table("outgoing_messages").
@@ -494,7 +494,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	var updatedIDs []int
-	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs)
+	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
 	if err != nil {
 		return nil, err
 	}

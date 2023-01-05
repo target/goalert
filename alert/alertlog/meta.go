@@ -16,3 +16,7 @@ type NotificationMetaData struct {
 type CreatedMetaData struct {
 	EPNoSteps bool
 }
+
+type AutoClose struct {
+	AlertAutoCloseDays int
+}

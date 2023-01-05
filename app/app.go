@@ -77,9 +77,8 @@ type App struct {
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
 
-	srv         *http.Server
-	requestLock *contextLocker
-	startupErr  error
+	srv        *http.Server
+	startupErr error
 
 	notificationManager *notification.Manager
 	Engine              *engine.Engine
@@ -183,8 +182,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		db:     db,
 		cfg:    c,
 		doneCh: make(chan struct{}),
-
-		requestLock: newContextLocker(),
 	}
 
 	gCfg := &gorm.Config{
@@ -262,10 +259,4 @@ func (a *App) URL() string {
 // Status returns the current lifecycle status of the App.
 func (a *App) Status() lifecycle.Status {
 	return a.mgr.Status()
-}
-
-// ActiveRequests returns the current number of active
-// requests, not including pending ones during pause.
-func (a *App) ActiveRequests() int {
-	return a.requestLock.RLockCount()
 }

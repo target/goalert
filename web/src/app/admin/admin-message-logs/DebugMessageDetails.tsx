@@ -38,6 +38,12 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
 
   const isOpen = Boolean(log)
 
+  const sentAtText = (): string => {
+    return log?.sentAt
+      ? DateTime.fromISO(log.sentAt).toFormat('fff')
+      : 'Not Sent'
+  }
+
   return (
     <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
       <Drawer
@@ -53,12 +59,12 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
           </Typography>
           <Divider />
           <List disablePadding>
-            {log?.id && (
+            {!!log?.id && (
               <ListItem divider>
                 <ListItemText primary='ID' secondary={log.id} />
               </ListItem>
             )}
-            {log?.createdAt && (
+            {!!log?.createdAt && (
               <ListItem divider>
                 <ListItemText
                   primary='Created At'
@@ -66,7 +72,7 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.updatedAt && (
+            {!!log?.updatedAt && (
               <ListItem divider>
                 <ListItemText
                   primary='Updated At'
@@ -74,7 +80,19 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.type && (
+            <ListItem divider>
+              <ListItemText primary='Sent At' secondary={sentAtText()} />
+            </ListItem>
+            {!!log?.retryCount && (
+              <ListItem divider>
+                <ListItemText
+                  primary='Retry Count'
+                  secondary={log.retryCount}
+                />
+              </ListItem>
+            )}
+
+            {!!log?.type && (
               <ListItem divider>
                 <ListItemText
                   primary='Notification Type'
@@ -82,13 +100,13 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.status && (
+            {!!log?.status && (
               <ListItem divider>
                 <ListItemText primary='Current Status' secondary={log.status} />
               </ListItem>
             )}
 
-            {log?.userID && log?.userName && (
+            {!!log?.userID && !!log?.userName && (
               <ListItem divider>
                 <ListItemText
                   primary='User'
@@ -109,7 +127,7 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.serviceID && log?.serviceName && (
+            {!!log?.serviceID && !!log?.serviceName && (
               <ListItem divider>
                 <ListItemText
                   primary='Service'
@@ -130,7 +148,7 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.alertID && (
+            {!!log?.alertID && (
               <ListItem divider>
                 <ListItemText
                   primary='Alert'
@@ -152,12 +170,12 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
               </ListItem>
             )}
 
-            {log?.source && (
+            {!!log?.source && (
               <ListItem divider>
                 <ListItemText primary='Source' secondary={log.source} />
               </ListItem>
             )}
-            {log?.destination && (
+            {!!log?.destination && (
               <ListItem divider>
                 <ListItemText
                   primary='Destination'
@@ -165,7 +183,7 @@ export default function DebugMessageDetails(props: Props): JSX.Element {
                 />
               </ListItem>
             )}
-            {log?.providerID && (
+            {!!log?.providerID && (
               <ListItem divider>
                 <ListItemText
                   primary='Provider ID'

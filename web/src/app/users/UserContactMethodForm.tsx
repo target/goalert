@@ -16,7 +16,6 @@ type Value = {
 
 export type UserContactMethodFormProps = {
   value: Value
-  disclaimer?: string
 
   errors?: Array<FieldError>
 
@@ -104,13 +103,15 @@ const isPhoneType = (val: Value): boolean =>
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
-  const { value, edit = false, disclaimer, ...other } = props
+  const { value, edit = false, ...other } = props
 
-  const [smsVoiceEnabled, emailEnabled, webhookEnabled] = useConfigValue(
-    'Twilio.Enable',
-    'SMTP.Enable',
-    'Webhook.Enable',
-  )
+  const [smsVoiceEnabled, emailEnabled, webhookEnabled, disclaimer] =
+    useConfigValue(
+      'Twilio.Enable',
+      'SMTP.Enable',
+      'Webhook.Enable',
+      'General.NotificationDisclaimer',
+    )
 
   return (
     <FormContainer

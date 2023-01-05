@@ -1,5 +1,6 @@
 import React, { useState, ReactElement } from 'react'
 import { useQuery, gql } from 'urql'
+import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -15,6 +16,8 @@ import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { HeartbeatMonitor } from '../../schema'
+import { useIsWidthDown } from '../util/useWidth'
+import { Add } from '@mui/icons-material'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
@@ -59,6 +62,7 @@ export default function HeartbeatMonitorList(props: {
   serviceID: string
 }): JSX.Element {
   const classes = useStyles()
+  const isMobile = useIsWidthDown('md')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState<string | null>(
     null,
@@ -118,6 +122,18 @@ export default function HeartbeatMonitorList(props: {
         emptyMessage='No heartbeat monitors exist for this service.'
         headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
+        headerAction={
+          isMobile ? undefined : (
+            <Button
+              variant='contained'
+              onClick={() => setShowCreateDialog(true)}
+              startIcon={<Add />}
+              data-testid='create-monitor'
+            >
+              Create Heartbeat Monitor
+            </Button>
+          )
+        }
       />
     )
   }
@@ -131,10 +147,12 @@ export default function HeartbeatMonitorList(props: {
           </CardContent>
         </Card>
       </Grid>
-      <CreateFAB
-        onClick={() => setShowCreateDialog(true)}
-        title='Create Heartbeat Monitor'
-      />
+      {isMobile && (
+        <CreateFAB
+          onClick={() => setShowCreateDialog(true)}
+          title='Create Heartbeat Monitor'
+        />
+      )}
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
           serviceID={props.serviceID}

@@ -1,4 +1,5 @@
 import React, { ReactElement, useState } from 'react'
+import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -13,6 +14,8 @@ import ServiceLabelEditDialog from './ServiceLabelEditDialog'
 import ServiceLabelDeleteDialog from './ServiceLabelDeleteDialog'
 import { Label } from '../../schema'
 import Spinner from '../loading/components/Spinner'
+import { useIsWidthDown } from '../util/useWidth'
+import { Add } from '@mui/icons-material'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -42,6 +45,7 @@ export default function ServiceLabelList(props: {
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState<string | null>(null)
   const [deleteKey, setDeleteKey] = useState<string | null>(null)
+  const isMobile = useIsWidthDown('md')
   const classes = useStyles()
 
   const [{ data, fetching }] = useQuery({
@@ -81,6 +85,19 @@ export default function ServiceLabelList(props: {
         data-cy='label-list'
         emptyMessage='No labels exist for this service.'
         items={items}
+        headerNote='Labels are a way to associate services with each other throughout GoAlert. Search using the format key1/key2=value'
+        headerAction={
+          isMobile ? undefined : (
+            <Button
+              variant='contained'
+              onClick={() => setCreate(true)}
+              startIcon={<Add />}
+              data-testid='create-label'
+            >
+              Create Label
+            </Button>
+          )
+        }
       />
     )
   }
@@ -92,7 +109,9 @@ export default function ServiceLabelList(props: {
           <CardContent>{renderList(data.service.labels)}</CardContent>
         </Card>
       </Grid>
-      <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
+      {isMobile && (
+        <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
+      )}
       {create && (
         <ServiceLabelSetDialog
           serviceID={props.serviceID}

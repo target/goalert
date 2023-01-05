@@ -276,7 +276,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	if errutil.HTTPError(req.Context(), w, err) {
 		return
 	}
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // IdentityProviderHandler will return a handler for the given provider ID.
@@ -421,7 +421,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			} else {
 				w.WriteHeader(400)
 			}
-			io.WriteString(w, err.Error())
+			_, _ = io.WriteString(w, err.Error())
 			return
 		}
 		http.Redirect(w, req, refU.String(), http.StatusFound)
@@ -502,7 +502,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	}
 
 	if noRedirect {
-		io.WriteString(w, tokStr)
+		_, _ = io.WriteString(w, tokStr)
 		return
 	}
 
@@ -631,6 +631,10 @@ func (h *Handler) tryAuthUser(ctx context.Context, w http.ResponseWriter, req *h
 // Updating and clearing the session cookie is automatically handled.
 func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/api/v2/slack") {
+			wrapped.ServeHTTP(w, req)
+			return
+		}
 		if req.URL.Path == "/api/v2/mailgun/incoming" || req.URL.Path == "/v1/webhooks/mailgun" {
 			// Mailgun handles it's own auth and has special
 			// requirements on status codes, so we pass it through

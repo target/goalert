@@ -69,11 +69,13 @@ export interface PaginatedListProps {
 export interface PaginatedListItemProps {
   url?: string
   title: string
-  subText?: string
+  subText?: ReactNode
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
   status?: 'ok' | 'warn' | 'err'
+  onClick?: () => void
+  selected?: boolean
 }
 
 export function PaginatedList(props: PaginatedListProps): JSX.Element {
@@ -141,10 +143,17 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     const urlProps = item.url && {
       component: AppLinkListItem,
 
-      // NOTE button: false? not assignable to true
+      // NOTE: needed for error: button: false? not assignable to type 'true'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
       to: item.url,
+    }
+    const onClickProps = item.onClick && {
+      onClick: item.onClick,
+
+      // NOTE: needed for error: button: false? not assignable to type 'true'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      button: true as any,
     }
 
     return (
@@ -154,7 +163,9 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         }}
         dense={!fullScreen}
         key={'list_' + idx}
+        selected={item.selected}
         {...urlProps}
+        {...onClickProps}
       >
         {item.icon && <ListItemAvatar>{item.icon}</ListItemAvatar>}
         <ListItemText
@@ -193,7 +204,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderList(): ReactElement {
-    return <List data-cy='apollo-list'>{renderListItems()}</List>
+    const dataCy = isLoading ? 'paginated-list-loading' : 'paginated-list'
+    return <List data-cy={dataCy}>{renderListItems()}</List>
   }
 
   function renderAsInfiniteScroll(): ReactElement {

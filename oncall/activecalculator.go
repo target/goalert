@@ -136,7 +136,7 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 
 // Done implements the SubIterator.Done method.
 func (act *ActiveCalculator) Done() {
-	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
+	//nolint:all SA6002 not worth the overhead to avoid the slice-struct allocation
 	activeCalcValuePool.Put(act.states[:0])
 
 	act.states = nil
