@@ -390,7 +390,7 @@ type ComplexityRoot struct {
 		UserOverride             func(childComplexity int, id string) int
 		UserOverrides            func(childComplexity int, input *UserOverrideSearchOptions) int
 		Users                    func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
-		Webhook                  func(childComplexity int, url string) int
+		Webhook                  func(childComplexity int, id string) int
 		Webhooks                 func(childComplexity int, input *WebhookSearchOptions) int
 	}
 
@@ -719,7 +719,7 @@ type QueryResolver interface {
 	IntegrationKeys(ctx context.Context, input *IntegrationKeySearchOptions) (*IntegrationKeyConnection, error)
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
 	Webhooks(ctx context.Context, input *WebhookSearchOptions) (*WebhookConnection, error)
-	Webhook(ctx context.Context, url string) (*webhook.Webhook, error)
+	Webhook(ctx context.Context, id string) (*webhook.Webhook, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
@@ -2626,7 +2626,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Webhook(childComplexity, args["url"].(string)), true
+		return e.complexity.Query.Webhook(childComplexity, args["id"].(string)), true
 
 	case "Query.webhooks":
 		if e.complexity.Query.Webhooks == nil {
@@ -4882,14 +4882,14 @@ func (ec *executionContext) field_Query_webhook_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["url"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["url"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -15049,7 +15049,7 @@ func (ec *executionContext) _Query_webhook(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Webhook(rctx, fc.Args["url"].(string))
+		return ec.resolvers.Query().Webhook(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
