@@ -4,12 +4,13 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
 
+interface Target {
+  id: string
+  type: string
+  name?: null | string
+}
 interface Value {
-  targets?: {
-    id: string
-    type: string
-    name?: null | string
-  }
+  targets?: Target[]
   delayMinutes: string
 }
 
@@ -69,10 +70,7 @@ function PolicyStepCreateDialog(props: {
           errors={fieldErrs}
           disabled={fetching}
           value={value || defaultValue}
-          onChange={(value: Value) => {
-            console.log('onChange', value)
-            setValue(value)
-          }}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />

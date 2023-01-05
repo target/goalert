@@ -66,7 +66,6 @@ function makeUseValues(query, mapNode) {
     if (!value.length) {
       return [null, error]
     }
-    console.log('Value', value)
 
     const result = value.map((v, i) => {
       const name = 'data' + i

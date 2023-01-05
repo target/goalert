@@ -254,14 +254,15 @@ function PolicyStepForm(props) {
                       name='webhooks'
                       multiple
                       // TODO: maybe add General.DisableWebhookCreation to admin config
-                      onCreate={(webhook) =>
+                      onCreate={(webhook) => {
+                        const tgts = makeSetTargetType(value.targets)(
+                          'webhook',
+                        )([webhook])
                         props.onChange({
                           ...value,
-                          targets: makeSetTargetType(value.targets)('webhook')([
-                            webhook,
-                          ]),
+                          targets: tgts.concat(value.targets),
                         })
-                      }
+                      }}
                       mapValue={getTargetsByType('webhook')}
                       mapOnChangeValue={setTargetType('webhook')}
                     />
