@@ -94,6 +94,7 @@ func (a *Query) formatDest(ctx context.Context, dst notification.Dest) (string, 
 		str.WriteString(" (Email)")
 	case notification.DestTypeVoice:
 		str.WriteString(" (Voice)")
+	case notification.DestTypeWebhook:
 	case notification.DestTypeUserWebhook:
 		str.Reset()
 		str.WriteString("Webhook")
