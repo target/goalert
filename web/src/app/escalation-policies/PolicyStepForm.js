@@ -56,28 +56,16 @@ function PolicyStepForm(props) {
   }
 
   // takes a list of { id, type } targets and return the ids for a specific type
-  const getTargetsByType = (type) => (tgts) => {
-    console.log('getTargets', tgts, type)
-    // if (type === 'webhook' && typeof tgts === 'string') {
-    //   const url = tgts
-    //   tgts.concat({
-    //     type: 'webhook',
-    //     id: url,
-    //   })
-    // }
-    // console.log('getTargets', tgts, type)
-    return tgts
+  const getTargetsByType = (type) => (tgts) =>
+    tgts
       .filter((t) => t.type === type) // only the list of the current type
       .map((t) => t.id) // array of ID strings
-  }
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-  const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
-    console.log('setTargets', newTgts)
-    return curTgts
+  const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
+    curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
-  }
 
   // then form fields would all point to `targets` but can map values
   const setTargetType = makeSetTargetType(value.targets)
@@ -257,23 +245,6 @@ function PolicyStepForm(props) {
                     )}
                   </StepButton>
                   <StepContent>
-                    {/* <FormField
-                      fullWidth
-                      name='name'
-                      required
-                      component={TextField}
-                    /> */}
-                    {/* <FormField
-                      sx={{ marginTop: '0.5rem' }}
-                      fieldName='targets'
-                      fullWidth
-                      component={TextField}
-                      label='Webhook URL'
-                      name='webhooks'
-                      placeholder='https://example.com'
-                      mapValue={getTargetsByType('webhook')}
-                      mapOnChangeValue={setTargetType('webhook')}
-                    /> */}
                     <FormField
                       fullWidth
                       disabled={editValueOnly}
