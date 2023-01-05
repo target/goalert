@@ -56,7 +56,7 @@ func (s *Store) DoTx(ctx context.Context, f func(*Store) error) error {
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "DoTx", tx)
+	defer sqlutil.Rollback(ctx, "notification rule: doTx", tx)
 
 	err = f(s.WrapTx(tx))
 	if err != nil {

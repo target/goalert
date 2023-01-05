@@ -172,7 +172,7 @@ func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]
 	if err != nil {
 		return nil, 0, err
 	}
-	defer sqlutil.Rollback(ctx, "LegacySearch", tx)
+	defer sqlutil.Rollback(ctx, "alertlog: legacy search", tx)
 
 	var start, end sqlutil.NullTime
 	if !opts.Start.IsZero() {

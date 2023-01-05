@@ -401,7 +401,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "refreshAndRotateKeys", tx)
+	defer sqlutil.Rollback(ctx, "key ring: refreshAndRotateKeys", tx)
 
 	row := tx.Stmt(db.fetchKeys).QueryRowContext(ctx, db.cfg.Name)
 

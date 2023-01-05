@@ -33,7 +33,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer sqlutil.Rollback(ctx, "update", tx)
+	defer sqlutil.Rollback(ctx, "np cycle manager: update", tx)
 
 	rows, err := tx.StmtContext(ctx, db.queueMessages).QueryContext(ctx)
 	if err != nil {

@@ -404,7 +404,7 @@ func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer sqlutil.RollbackContext(ctx, "apply", tx)
+	defer sqlutil.RollbackContext(ctx, "migrate: apply", tx)
 
 	// tx applies to the connection, so NoTx
 	// will execute correctly.

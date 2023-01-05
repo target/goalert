@@ -103,7 +103,7 @@ func (s *Store) withTx(ctx context.Context, tx *sql.Tx, fn func(tx *sql.Tx) erro
 		if err != nil {
 			return err
 		}
-		defer sqlutil.Rollback(ctx, "withTx", tx)
+		defer sqlutil.Rollback(ctx, "override: withTx", tx)
 
 		err = s.withTx(ctx, tx, fn)
 		if err != nil {

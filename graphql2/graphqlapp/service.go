@@ -198,7 +198,7 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 	if err != nil {
 		return false, err
 	}
-	defer sqlutil.Rollback(ctx, "UpdateService", tx)
+	defer sqlutil.Rollback(ctx, "graphqlapp: updateService", tx)
 
 	svc, err := a.ServiceStore.FindOneForUpdate(ctx, tx, input.ID)
 	if err != nil {

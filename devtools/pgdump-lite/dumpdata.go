@@ -86,7 +86,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer sqlutil.RollbackContext(ctx, "DumpData", tx)
+	defer sqlutil.RollbackContext(ctx, "pgdump-lie: dumpData", tx)
 
 	tables, err := queryStrings(ctx, tx, "select table_name from information_schema.tables where table_schema = 'public'")
 	if err != nil {

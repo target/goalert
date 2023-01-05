@@ -518,7 +518,7 @@ Migration: %s (#%d)
 			if err != nil {
 				return errors.Wrap(err, "begin tx")
 			}
-			defer sqlutil.Rollback(ctx, "add-user", tx)
+			defer sqlutil.Rollback(ctx, "app: add-user", tx)
 
 			if id == "" {
 				u := &user.User{

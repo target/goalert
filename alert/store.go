@@ -367,7 +367,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "UpdateStatusByService", tx)
+	defer sqlutil.Rollback(ctx, "alert: update status by service", tx)
 
 	t := alertlog.TypeAcknowledged
 	if status == StatusClosed {
@@ -416,7 +416,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	if err != nil {
 		return nil, err
 	}
-	defer sqlutil.Rollback(ctx, "UpdateManyAlertStatus", tx)
+	defer sqlutil.Rollback(ctx, "alert: update many alert atatus", tx)
 
 	t := alertlog.TypeAcknowledged
 	if status == StatusClosed {
@@ -623,7 +623,7 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer sqlutil.Rollback(ctx, "CreateOrUpdate", tx)
+	defer sqlutil.Rollback(ctx, "alert: create or update", tx)
 
 	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
@@ -688,7 +688,7 @@ func (s *Store) UpdateStatus(ctx context.Context, id int, stat Status) error {
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "UpdateStatus", tx)
+	defer sqlutil.Rollback(ctx, "alert: update status", tx)
 
 	err = s.UpdateStatusTx(ctx, tx, id, stat)
 	if err != nil {

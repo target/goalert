@@ -34,7 +34,7 @@ func withContextTx(ctx context.Context, db *sql.DB, fn func(context.Context, *sq
 		if err != nil {
 			return err
 		}
-		defer sqlutil.Rollback(ctx, "withContextTx", tx)
+		defer sqlutil.Rollback(ctx, "graphqlapp: withContextTx", tx)
 
 		err = fn(context.WithValue(ctx, txKey, tx), tx)
 		if err != nil {

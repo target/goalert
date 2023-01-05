@@ -178,7 +178,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "tryDeleteAll", tx)
+	defer sqlutil.Rollback(ctx, "graphql app: tryDeleteAll", tx)
 
 	m := make(map[assignment.TargetType][]string)
 	for _, tgt := range input {

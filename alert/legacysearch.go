@@ -178,7 +178,7 @@ func (s *Store) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]
 	if err != nil {
 		return nil, 0, err
 	}
-	defer sqlutil.Rollback(ctx, "LegacySearch", tx)
+	defer sqlutil.Rollback(ctx, "alert: legacy search", tx)
 
 	var total int
 	err = tx.QueryRowContext(ctx, totalQueryStr, queryArgs...).Scan(&total)

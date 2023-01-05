@@ -56,7 +56,7 @@ func (db *DB) UpdateAlertMetrics(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer sqlutil.Rollback(ctx, "UpdateAlertMetrics", tx)
+	defer sqlutil.Rollback(ctx, "metrics manager: updateAlertMetrics", tx)
 
 	var alertIDs []int
 	var lastLogTime, boundNow time.Time

@@ -264,7 +264,7 @@ func (s *Store) UpdateConfig(ctx context.Context, fn func(Config) (Config, error
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "UpdateConfig", tx)
+	defer sqlutil.Rollback(ctx, "config: updateConfig", tx)
 
 	id, err := s.updateConfigTx(ctx, tx, fn)
 	if err != nil {

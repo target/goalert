@@ -30,7 +30,7 @@ func (db *DB) processAll(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer sqlutil.Rollback(ctx, "processAll", tx)
+	defer sqlutil.Rollback(ctx, "heartbeat manager: processAll", tx)
 
 	var newAlertCtx []context.Context
 	bad, err := db.unhealthy(ctx, tx)

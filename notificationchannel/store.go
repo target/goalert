@@ -133,7 +133,7 @@ func (s *Store) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID,
 		if err != nil {
 			return uuid.UUID{}, fmt.Errorf("start tx: %w", err)
 		}
-		defer sqlutil.Rollback(ctx, "MapToID", tx)
+		defer sqlutil.Rollback(ctx, "notification channel: mapToID", tx)
 	}
 
 	_, err = tx.StmtContext(ctx, s.lock).ExecContext(ctx)

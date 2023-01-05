@@ -458,7 +458,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			errRedirect(err)
 			return
 		}
-		defer sqlutil.Rollback(ctx, "handleProvider", tx)
+		defer sqlutil.Rollback(ctx, "auth: handleProvider", tx)
 
 		u := &user.User{
 			Role:  permission.RoleUser,

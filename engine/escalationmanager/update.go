@@ -29,7 +29,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer sqlutil.Rollback(ctx, "update", tx)
+	defer sqlutil.Rollback(ctx, "escalation manager: update", tx)
 
 	_, err = tx.StmtContext(ctx, db.lockStmt).ExecContext(ctx)
 	if err != nil {
@@ -92,7 +92,7 @@ func (db *DB) processEscalations(ctx context.Context, stmt *sql.Stmt, scan func(
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "processEscalations", tx)
+	defer sqlutil.Rollback(ctx, "escalation manager: processEscalations", tx)
 
 	rows, err := tx.StmtContext(ctx, stmt).QueryContext(ctx)
 	if err != nil {

@@ -91,7 +91,7 @@ func (db *dbSMS) insertDB(ctx context.Context, phoneNumber, callbackID string, a
 	if err != nil {
 		return 0, err
 	}
-	defer sqlutil.Rollback(ctx, "insertDB", tx)
+	defer sqlutil.Rollback(ctx, "twilio: insertDB", tx)
 
 	_, err = tx.StmtContext(ctx, db.lock).ExecContext(ctx)
 	if err != nil {
