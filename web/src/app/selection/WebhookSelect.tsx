@@ -21,7 +21,13 @@ const valueQuery = gql`
   }
 `
 
+function mapCreatedURLS(val: string): { value: string; label: string } {
+  const url = new URL(val)
+  return { value: val, label: url.hostname }
+}
+
 export const WebhookSelect = makeQuerySelect('WebhookSelect', {
   query,
   valueQuery,
+  mapOnCreate: (val: string) => mapCreatedURLS(val),
 })

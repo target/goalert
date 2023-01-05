@@ -253,6 +253,7 @@ function PolicyStepForm(props) {
                       label='Webhook URL'
                       name='webhooks'
                       multiple
+                      formatInputOnChange={(val) => val.trim()}
                       // TODO: maybe add General.DisableWebhookCreation to admin config
                       onCreate={(webhook) => {
                         const tgts = makeSetTargetType(value.targets)(
