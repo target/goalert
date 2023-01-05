@@ -31,12 +31,12 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			name
 		FROM notification_channels
 		WHERE type = 'WEBHOOK'
-		AND id = $1`),
+		AND value = $1`),
 	}, p.Err
 }
 
-func (store *Store) FindOne(ctx context.Context, id string) (*Webhook, error) {
-	err := validate.UUID("webhook_id", id)
+func (store *Store) FindOne(ctx context.Context, url string) (*Webhook, error) {
+	err := validate.URL("webhookURL", url)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (store *Store) FindOne(ctx context.Context, id string) (*Webhook, error) {
 		return nil, err
 	}
 
-	row := store.findOne.QueryRowContext(ctx, id)
+	row := store.findOne.QueryRowContext(ctx, url)
 
 	var webhook Webhook
 

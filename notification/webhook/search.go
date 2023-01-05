@@ -31,10 +31,10 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-        value,
+		value,
 		name
 	FROM notification_channels nc
-    WHERE true
+	WHERE true
 	{{if .Omit}}
 		AND not nc.name = any(:omit)
 	{{end}}
@@ -44,7 +44,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .After.Name}}
 		AND lower(nc.name) > lower(:afterName)
 	{{end}}
-    AND nc.type = 'WEBHOOK'
+	AND nc.type = 'WEBHOOK'
 	ORDER BY lower(nc.name)
 	LIMIT {{.Limit}}
 `))

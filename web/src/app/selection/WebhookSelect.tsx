@@ -13,7 +13,7 @@ const query = gql`
 `
 
 const valueQuery = gql`
-  query ($id: ID!) {
+  query ($id: String!) {
     webhook(id: $id) {
       id
       name

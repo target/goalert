@@ -89,8 +89,8 @@ type Query {
   # Allows searching for webhooks.
   webhooks(input: WebhookSearchOptions): WebhookConnection!
 
-  # Returns a single webhook with the given ID.
-  webhook(id: ID!): Webhook
+  # Returns a single webhook with the given URL.
+  webhook(url: String!): Webhook
 
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride

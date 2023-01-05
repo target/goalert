@@ -3,7 +3,6 @@ package escalation
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/url"
 
 	"github.com/target/goalert/alert/alertlog"
@@ -189,7 +188,6 @@ func (s *Store) logChange(ctx context.Context, tx *sql.Tx, policyID string) {
 }
 
 func validStepTarget(tgt assignment.Target) error {
-	fmt.Print("\n", tgt.TargetType(), "\n")
 	return validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.OneOf("TargetType", tgt.TargetType(),
@@ -295,7 +293,6 @@ func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assign
 		return nil, err
 	}
 	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
-
 		Type:  notificationchannel.TypeWebhook,
 		Name:  webhookUrl.Hostname(),
 		Value: webhookTarget.TargetID(),
