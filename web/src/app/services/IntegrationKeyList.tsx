@@ -157,6 +157,7 @@ export default function IntegrationKeyList(props: {
                     variant='contained'
                     onClick={(): void => setCreate(true)}
                     startIcon={<Add />}
+                    data-testid='create-key'
                   >
                     Create Integration Key
                   </Button>
