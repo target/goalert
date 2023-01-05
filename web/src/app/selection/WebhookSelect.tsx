@@ -30,4 +30,10 @@ export const WebhookSelect = makeQuerySelect('WebhookSelect', {
   query,
   valueQuery,
   mapOnCreate: (val: string) => mapCreatedURLS(val),
+  mapDataNode: (webhook: { id: string; name: string }) => ({
+    value: webhook.id,
+    label: webhook.name,
+    key: webhook.id,
+    subText: webhook.id,
+  }),
 })

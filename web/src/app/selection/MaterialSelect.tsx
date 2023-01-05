@@ -54,6 +54,7 @@ interface SelectOption {
   icon?: ReactElement
   subText?: string
   isCreate?: boolean
+  key?: string
   label: string
   value: string
 }
@@ -229,11 +230,12 @@ export default function MaterialSelect(
           />
         )
       }}
-      renderOption={(props, { label, subText, icon, value }) => (
+      renderOption={(props, { label, subText, icon, value, key }) => (
         <MenuItem
           {...props}
           component='span'
           className={classes.menuItem}
+          key={key}
           selected={isSelected(value)}
           data-cy='search-select-item'
         >
