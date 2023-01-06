@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { Layers, RotateRight, Today, VpnKey, Person } from '@mui/icons-material'
+import {
+  Layers,
+  RotateRight,
+  Today,
+  VpnKey,
+  Person,
+  SvgIconComponent,
+} from '@mui/icons-material'
 import { useSessionInfo } from './RequireConfig'
-import { Avatar, SvgIconProps, AvatarProps, Skeleton } from '@mui/material'
+import { Avatar, AvatarProps, Skeleton } from '@mui/material'
 import { pathPrefix } from '../env'
 
-type IconProps = (props: SvgIconProps) => JSX.Element
 interface UserAvatarProps extends AvatarProps {
   userID: string
 }
@@ -29,7 +35,7 @@ function useValidImage(srcURL?: string): boolean {
 }
 
 function useAvatar(
-  Fallback: IconProps,
+  Fallback: SvgIconComponent,
   otherProps: AvatarProps,
   loading = false,
   imgSrc?: string,
