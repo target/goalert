@@ -421,7 +421,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			} else {
 				w.WriteHeader(400)
 			}
-			io.WriteString(w, err.Error())
+			_, _ = io.WriteString(w, err.Error())
 			return
 		}
 		http.Redirect(w, req, refU.String(), http.StatusFound)
@@ -502,7 +502,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	}
 
 	if noRedirect {
-		io.WriteString(w, tokStr)
+		_, _ = io.WriteString(w, tokStr)
 		return
 	}
 
