@@ -933,6 +933,7 @@ export interface WebhookSearchOptions {
   after?: null | string
   search?: null | string
   omit?: null | string[]
+  escalationPolicyID?: null | string
 }
 
 export interface WebhookConnection {

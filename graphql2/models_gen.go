@@ -605,10 +605,11 @@ type WebhookConnection struct {
 }
 
 type WebhookSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First              *int     `json:"first"`
+	After              *string  `json:"after"`
+	Search             *string  `json:"search"`
+	Omit               []string `json:"omit"`
+	EscalationPolicyID *string  `json:"escalationPolicyID"`
 }
 
 type AlertSearchSort string

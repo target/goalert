@@ -1166,6 +1166,7 @@ input WebhookSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  escalationPolicyID: ID
 }
 
 type WebhookConnection {

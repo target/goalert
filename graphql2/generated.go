@@ -26847,6 +26847,14 @@ func (ec *executionContext) unmarshalInputWebhookSearchOptions(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "escalationPolicyID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("escalationPolicyID"))
+			it.EscalationPolicyID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 

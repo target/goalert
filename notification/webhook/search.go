@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"text/template"
 
@@ -22,6 +23,8 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
+
+	EscalationPolicyID string `json:"e,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -34,6 +37,10 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		value,
 		name
 	FROM notification_channels nc
+	JOIN escalation_policy_actions epa
+	ON nc.id = epa.channel_id
+	JOIN escalation_policy_steps eps
+	ON epa.escalation_policy_step_id = eps.id
 	WHERE true
 	{{if .Omit}}
 		AND not nc.name = any(:omit)
@@ -43,6 +50,9 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 	{{if .After.Name}}
 		AND lower(nc.name) > lower(:afterName)
+	{{end}}
+	{{if .EscalationPolicyID}}
+		AND eps.escalation_policy_id = :escalationPolicyID
 	{{end}}
 	AND nc.type = 'WEBHOOK'
 	ORDER BY lower(nc.name)
@@ -72,6 +82,9 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Text("After.Name", opts.After.Name, 1, 255))
 	}
+	if opts.EscalationPolicyID != "" {
+		err = validate.UUID("EscalationPolicyID", opts.EscalationPolicyID)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +103,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.StringArray(opts.Omit)),
 		sql.Named("limit", opts.Limit),
+		sql.Named("escalationPolicyID", opts.EscalationPolicyID),
 	}
 }
 
@@ -106,6 +120,7 @@ func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]Webhook,
 		return nil, err
 	}
 	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
+	fmt.Println(query, data)
 	if err != nil {
 		return nil, errors.Wrap(err, "render query")
 	}

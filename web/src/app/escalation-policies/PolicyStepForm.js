@@ -26,7 +26,6 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
-// import { TextField } from '@mui/material'
 
 const useStyles = makeStyles({
   badge: {

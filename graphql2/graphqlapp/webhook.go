@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	_ "embed"
+	"fmt"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/webhook"
@@ -30,6 +31,12 @@ func (q *Query) Webhooks(ctx context.Context, input *graphql2.WebhookSearchOptio
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
 	}
+
+	if input.EscalationPolicyID != nil {
+		searchOpts.EscalationPolicyID = *input.EscalationPolicyID
+	}
+
+	fmt.Println(searchOpts)
 
 	webhooks, err := q.WebhookStore.Search(ctx, &searchOpts)
 	if err != nil {
