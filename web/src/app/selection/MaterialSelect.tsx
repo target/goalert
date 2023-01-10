@@ -170,6 +170,7 @@ export default function MaterialSelect(
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
+      filterOptions={(o) => o}
       isOptionEqualToValue={(opt, val) => opt.value === val.value}
       noOptionsText={
         noOptionsError ? (

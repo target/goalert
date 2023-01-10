@@ -31,7 +31,7 @@ export default function RotationList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      createForm={<RotationCreateDialog />}
+      createDialogComponent={RotationCreateDialog}
       createLabel='Rotation'
     />
   )

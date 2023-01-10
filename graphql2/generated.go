@@ -183,6 +183,8 @@ type ComplexityRoot struct {
 		Destination func(childComplexity int) int
 		ID          func(childComplexity int) int
 		ProviderID  func(childComplexity int) int
+		RetryCount  func(childComplexity int) int
+		SentAt      func(childComplexity int) int
 		ServiceID   func(childComplexity int) int
 		ServiceName func(childComplexity int) int
 		Source      func(childComplexity int) int
@@ -266,6 +268,11 @@ type ComplexityRoot struct {
 		UserDetails    func(childComplexity int) int
 	}
 
+	MessageLogConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AddAuthSubject                     func(childComplexity int, input user.AuthSubject) int
 		ClearTemporarySchedules            func(childComplexity int, input ClearTemporarySchedulesInput) int
@@ -296,6 +303,7 @@ type ComplexityRoot struct {
 		SetScheduleOnCallNotificationRules func(childComplexity int, input SetScheduleOnCallNotificationRulesInput) int
 		SetSystemLimits                    func(childComplexity int, input []SystemLimitInput) int
 		SetTemporarySchedule               func(childComplexity int, input SetTemporaryScheduleInput) int
+		SwoAction                          func(childComplexity int, action SWOAction) int
 		TestContactMethod                  func(childComplexity int, id string) int
 		UpdateAlerts                       func(childComplexity int, input UpdateAlertsInput) int
 		UpdateAlertsByService              func(childComplexity int, input UpdateAlertsByServiceInput) int
@@ -373,6 +381,7 @@ type ComplexityRoot struct {
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
 		LinkAccountInfo          func(childComplexity int, token string) int
+		MessageLogs              func(childComplexity int, input *MessageLogSearchOptions) int
 		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
@@ -382,6 +391,7 @@ type ComplexityRoot struct {
 		Services                 func(childComplexity int, input *ServiceSearchOptions) int
 		SlackChannel             func(childComplexity int, id string) int
 		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
+		SwoStatus                func(childComplexity int) int
 		SystemLimits             func(childComplexity int) int
 		TimeZones                func(childComplexity int, input *TimeZoneSearchOptions) int
 		User                     func(childComplexity int, id *string) int
@@ -412,6 +422,32 @@ type ComplexityRoot struct {
 	RotationConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	SWOConnection struct {
+		Count   func(childComplexity int) int
+		IsNext  func(childComplexity int) int
+		Name    func(childComplexity int) int
+		Type    func(childComplexity int) int
+		Version func(childComplexity int) int
+	}
+
+	SWONode struct {
+		CanExec     func(childComplexity int) int
+		ConfigError func(childComplexity int) int
+		Connections func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsLeader    func(childComplexity int) int
+		Uptime      func(childComplexity int) int
+	}
+
+	SWOStatus struct {
+		LastError     func(childComplexity int) int
+		LastStatus    func(childComplexity int) int
+		MainDBVersion func(childComplexity int) int
+		NextDBVersion func(childComplexity int) int
+		Nodes         func(childComplexity int) int
+		State         func(childComplexity int) int
 	}
 
 	Schedule struct {
@@ -641,6 +677,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
+	SwoAction(ctx context.Context, action SWOAction) (bool, error)
 	LinkAccount(ctx context.Context, token string) (bool, error)
 	SetTemporarySchedule(ctx context.Context, input SetTemporaryScheduleInput) (bool, error)
 	ClearTemporarySchedules(ctx context.Context, input ClearTemporarySchedulesInput) (bool, error)
@@ -694,6 +731,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
 	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
@@ -730,6 +768,7 @@ type QueryResolver interface {
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
+	SwoStatus(ctx context.Context) (*SWOStatus, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -1191,6 +1230,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugMessage.ProviderID(childComplexity), true
 
+	case "DebugMessage.retryCount":
+		if e.complexity.DebugMessage.RetryCount == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.RetryCount(childComplexity), true
+
+	case "DebugMessage.sentAt":
+		if e.complexity.DebugMessage.SentAt == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.SentAt(childComplexity), true
+
 	case "DebugMessage.serviceID":
 		if e.complexity.DebugMessage.ServiceID == nil {
 			break
@@ -1526,6 +1579,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LinkAccountInfo.UserDetails(childComplexity), true
+
+	case "MessageLogConnection.nodes":
+		if e.complexity.MessageLogConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.Nodes(childComplexity), true
+
+	case "MessageLogConnection.pageInfo":
+		if e.complexity.MessageLogConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.PageInfo(childComplexity), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -1869,6 +1936,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetTemporarySchedule(childComplexity, args["input"].(SetTemporaryScheduleInput)), true
+
+	case "Mutation.swoAction":
+		if e.complexity.Mutation.SwoAction == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_swoAction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SwoAction(childComplexity, args["action"].(SWOAction)), true
 
 	case "Mutation.testContactMethod":
 		if e.complexity.Mutation.TestContactMethod == nil {
@@ -2417,6 +2496,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.LinkAccountInfo(childComplexity, args["token"].(string)), true
 
+	case "Query.messageLogs":
+		if e.complexity.Query.MessageLogs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messageLogs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessageLogs(childComplexity, args["input"].(*MessageLogSearchOptions)), true
+
 	case "Query.phoneNumberInfo":
 		if e.complexity.Query.PhoneNumberInfo == nil {
 			break
@@ -2524,6 +2615,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SlackChannels(childComplexity, args["input"].(*SlackChannelSearchOptions)), true
+
+	case "Query.swoStatus":
+		if e.complexity.Query.SwoStatus == nil {
+			break
+		}
+
+		return e.complexity.Query.SwoStatus(childComplexity), true
 
 	case "Query.systemLimits":
 		if e.complexity.Query.SystemLimits == nil {
@@ -2742,6 +2840,125 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RotationConnection.PageInfo(childComplexity), true
+
+	case "SWOConnection.count":
+		if e.complexity.SWOConnection.Count == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Count(childComplexity), true
+
+	case "SWOConnection.isNext":
+		if e.complexity.SWOConnection.IsNext == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.IsNext(childComplexity), true
+
+	case "SWOConnection.name":
+		if e.complexity.SWOConnection.Name == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Name(childComplexity), true
+
+	case "SWOConnection.type":
+		if e.complexity.SWOConnection.Type == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Type(childComplexity), true
+
+	case "SWOConnection.version":
+		if e.complexity.SWOConnection.Version == nil {
+			break
+		}
+
+		return e.complexity.SWOConnection.Version(childComplexity), true
+
+	case "SWONode.canExec":
+		if e.complexity.SWONode.CanExec == nil {
+			break
+		}
+
+		return e.complexity.SWONode.CanExec(childComplexity), true
+
+	case "SWONode.configError":
+		if e.complexity.SWONode.ConfigError == nil {
+			break
+		}
+
+		return e.complexity.SWONode.ConfigError(childComplexity), true
+
+	case "SWONode.connections":
+		if e.complexity.SWONode.Connections == nil {
+			break
+		}
+
+		return e.complexity.SWONode.Connections(childComplexity), true
+
+	case "SWONode.id":
+		if e.complexity.SWONode.ID == nil {
+			break
+		}
+
+		return e.complexity.SWONode.ID(childComplexity), true
+
+	case "SWONode.isLeader":
+		if e.complexity.SWONode.IsLeader == nil {
+			break
+		}
+
+		return e.complexity.SWONode.IsLeader(childComplexity), true
+
+	case "SWONode.uptime":
+		if e.complexity.SWONode.Uptime == nil {
+			break
+		}
+
+		return e.complexity.SWONode.Uptime(childComplexity), true
+
+	case "SWOStatus.lastError":
+		if e.complexity.SWOStatus.LastError == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.LastError(childComplexity), true
+
+	case "SWOStatus.lastStatus":
+		if e.complexity.SWOStatus.LastStatus == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.LastStatus(childComplexity), true
+
+	case "SWOStatus.mainDBVersion":
+		if e.complexity.SWOStatus.MainDBVersion == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.MainDBVersion(childComplexity), true
+
+	case "SWOStatus.nextDBVersion":
+		if e.complexity.SWOStatus.NextDBVersion == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.NextDBVersion(childComplexity), true
+
+	case "SWOStatus.nodes":
+		if e.complexity.SWOStatus.Nodes == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.Nodes(childComplexity), true
+
+	case "SWOStatus.state":
+		if e.complexity.SWOStatus.State == nil {
+			break
+		}
+
+		return e.complexity.SWOStatus.State(childComplexity), true
 
 	case "Schedule.assignedTo":
 		if e.complexity.Schedule.AssignedTo == nil {
@@ -3567,6 +3784,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
 		ec.unmarshalInputLabelValueSearchOptions,
+		ec.unmarshalInputMessageLogSearchOptions,
 		ec.unmarshalInputOnCallNotificationRuleInput,
 		ec.unmarshalInputRotationSearchOptions,
 		ec.unmarshalInputScheduleRuleInput,
@@ -4113,6 +4331,21 @@ func (ec *executionContext) field_Mutation_setTemporarySchedule_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_swoAction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 SWOAction
+	if tmp, ok := rawArgs["action"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
+		arg0, err = ec.unmarshalNSWOAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOAction(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["action"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4608,6 +4841,21 @@ func (ec *executionContext) field_Query_linkAccountInfo_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_messageLogs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *MessageLogSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -7740,6 +7988,91 @@ func (ec *executionContext) fieldContext_DebugMessage_providerID(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_sentAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SentAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_retryCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RetryCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DebugMessageStatusInfo_state(ctx, field)
 	if err != nil {
@@ -9600,6 +9933,187 @@ func (ec *executionContext) fieldContext_LinkAccountInfo_alertNewStatus(ctx cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AlertStatus does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]DebugMessage)
+	fc.Result = res
+	return ec.marshalNDebugMessage2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugMessageᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DebugMessage_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_DebugMessage_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_DebugMessage_updatedAt(ctx, field)
+			case "type":
+				return ec.fieldContext_DebugMessage_type(ctx, field)
+			case "status":
+				return ec.fieldContext_DebugMessage_status(ctx, field)
+			case "userID":
+				return ec.fieldContext_DebugMessage_userID(ctx, field)
+			case "userName":
+				return ec.fieldContext_DebugMessage_userName(ctx, field)
+			case "source":
+				return ec.fieldContext_DebugMessage_source(ctx, field)
+			case "destination":
+				return ec.fieldContext_DebugMessage_destination(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_DebugMessage_serviceID(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_DebugMessage_serviceName(ctx, field)
+			case "alertID":
+				return ec.fieldContext_DebugMessage_alertID(ctx, field)
+			case "providerID":
+				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_swoAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_swoAction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SwoAction(rctx, fc.Args["action"].(SWOAction))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_swoAction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_swoAction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -13385,6 +13899,67 @@ func (ec *executionContext) fieldContext_Query_phoneNumberInfo(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_messageLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_messageLogs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MessageLogs(rctx, fc.Args["input"].(*MessageLogSearchOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*MessageLogConnection)
+	fc.Result = res
+	return ec.marshalNMessageLogConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_messageLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "nodes":
+				return ec.fieldContext_MessageLogConnection_nodes(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_messageLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_debugMessages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_debugMessages(ctx, field)
 	if err != nil {
@@ -13450,6 +14025,10 @@ func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context
 				return ec.fieldContext_DebugMessage_alertID(ctx, field)
 			case "providerID":
 				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
 		},
@@ -15690,6 +16269,64 @@ func (ec *executionContext) fieldContext_Query_linkAccountInfo(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_swoStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_swoStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SwoStatus(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*SWOStatus)
+	fc.Result = res
+	return ec.marshalNSWOStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_swoStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "state":
+				return ec.fieldContext_SWOStatus_state(ctx, field)
+			case "lastStatus":
+				return ec.fieldContext_SWOStatus_lastStatus(ctx, field)
+			case "lastError":
+				return ec.fieldContext_SWOStatus_lastError(ctx, field)
+			case "nodes":
+				return ec.fieldContext_SWOStatus_nodes(ctx, field)
+			case "mainDBVersion":
+				return ec.fieldContext_SWOStatus_mainDBVersion(ctx, field)
+			case "nextDBVersion":
+				return ec.fieldContext_SWOStatus_nextDBVersion(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SWOStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -16499,6 +17136,777 @@ func (ec *executionContext) fieldContext_RotationConnection_pageInfo(ctx context
 				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_name(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_version(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_type(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_isNext(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_isNext(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsNext, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_isNext(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOConnection_count(ctx context.Context, field graphql.CollectedField, obj *SWOConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOConnection_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOConnection_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_id(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_canExec(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_canExec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CanExec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_canExec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_isLeader(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_isLeader(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsLeader, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_isLeader(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_uptime(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_uptime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Uptime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_uptime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_configError(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_configError(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConfigError, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_configError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWONode_connections(ctx context.Context, field graphql.CollectedField, obj *SWONode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWONode_connections(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Connections, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]SWOConnection)
+	fc.Result = res
+	return ec.marshalOSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWONode_connections(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWONode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SWOConnection_name(ctx, field)
+			case "version":
+				return ec.fieldContext_SWOConnection_version(ctx, field)
+			case "type":
+				return ec.fieldContext_SWOConnection_type(ctx, field)
+			case "isNext":
+				return ec.fieldContext_SWOConnection_isNext(ctx, field)
+			case "count":
+				return ec.fieldContext_SWOConnection_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SWOConnection", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_state(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_state(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(SWOState)
+	fc.Result = res
+	return ec.marshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_state(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SWOState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_lastStatus(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_lastStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_lastStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_lastError(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_lastError(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastError, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_lastError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_nodes(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]SWONode)
+	fc.Result = res
+	return ec.marshalNSWONode2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONodeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SWONode_id(ctx, field)
+			case "canExec":
+				return ec.fieldContext_SWONode_canExec(ctx, field)
+			case "isLeader":
+				return ec.fieldContext_SWONode_isLeader(ctx, field)
+			case "uptime":
+				return ec.fieldContext_SWONode_uptime(ctx, field)
+			case "configError":
+				return ec.fieldContext_SWONode_configError(ctx, field)
+			case "connections":
+				return ec.fieldContext_SWONode_connections(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SWONode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_mainDBVersion(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_mainDBVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MainDBVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_mainDBVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SWOStatus_nextDBVersion(ctx context.Context, field graphql.CollectedField, obj *SWOStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SWOStatus_nextDBVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextDBVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SWOStatus_nextDBVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SWOStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23668,7 +25076,12 @@ func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"rInterval", "filterByServiceID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "rInterval":
 			var err error
@@ -23703,7 +25116,12 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 		asMap["after"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"limit", "after"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "limit":
 			var err error
@@ -23753,7 +25171,12 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		asMap["sort"] = "statusID"
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"filterByStatus", "filterByServiceID", "search", "first", "after", "favoritesOnly", "includeNotified", "omit", "sort", "createdBefore", "notCreatedBefore", "closedBefore", "notClosedBefore"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "filterByStatus":
 			var err error
@@ -23872,7 +25295,12 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "providerID", "subjectID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -23911,7 +25339,12 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLengthHours", "count"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "handoff":
 			var err error
@@ -23966,7 +25399,12 @@ func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -24005,7 +25443,12 @@ func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -24036,7 +25479,12 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"summary", "details", "serviceID", "sanitize"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "summary":
 			var err error
@@ -24090,7 +25538,12 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 		asMap["repeat"] = 3
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "repeat", "favorite", "steps"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -24145,7 +25598,12 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "escalationPolicyID":
 			var err error
@@ -24200,7 +25658,12 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -24239,7 +25702,12 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "type", "name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -24282,7 +25750,12 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 		asMap["shiftLength"] = 1
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "start", "favorite", "type", "shiftLength", "userIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -24361,7 +25834,12 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "favorite", "targets", "newUserOverrides"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -24428,7 +25906,12 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 		asMap["description"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "description", "favorite", "escalationPolicyID", "newEscalationPolicy", "newIntegrationKeys", "labels", "newHeartbeatMonitors"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -24507,7 +25990,12 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"name", "reminderMinutes", "scheduleID", "disabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "name":
 			var err error
@@ -24554,7 +26042,12 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "type", "name", "value", "newUserNotificationRule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -24609,7 +26102,12 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"username", "password", "name", "email", "role", "favorite"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "username":
 			var err error
@@ -24672,7 +26170,12 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "contactMethodID", "delayMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -24711,7 +26214,12 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "start", "end", "addUserID", "removeUserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -24766,7 +26274,12 @@ func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"number"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "number":
 			var err error
@@ -24789,7 +26302,12 @@ func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"providerMessageID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "providerMessageID":
 			var err error
@@ -24816,7 +26334,12 @@ func (ec *executionContext) unmarshalInputDebugMessagesInput(ctx context.Context
 		asMap["first"] = 15
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "createdBefore", "createdAfter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -24855,7 +26378,12 @@ func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"from", "to", "body"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "from":
 			var err error
@@ -24910,7 +26438,12 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -24983,7 +26516,12 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25040,7 +26578,12 @@ func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Cont
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25100,7 +26643,12 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 		asMap["uniqueKeys"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "uniqueKeys", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25165,7 +26713,12 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"key", "first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "key":
 			var err error
@@ -25213,6 +26766,84 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMessageLogSearchOptions(ctx context.Context, obj interface{}) (MessageLogSearchOptions, error) {
+	var it MessageLogSearchOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 50
+	}
+	if _, present := asMap["after"]; !present {
+		asMap["after"] = ""
+	}
+	if _, present := asMap["search"]; !present {
+		asMap["search"] = ""
+	}
+
+	fieldsInOrder := [...]string{"first", "after", "createdBefore", "createdAfter", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
+			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdAfter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
+			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "search":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "omit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
+			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx context.Context, obj interface{}) (OnCallNotificationRuleInput, error) {
 	var it OnCallNotificationRuleInput
 	asMap := map[string]interface{}{}
@@ -25220,7 +26851,12 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "target", "time", "weekdayFilter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -25283,7 +26919,12 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25346,7 +26987,12 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "start", "end", "weekdayFilter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -25409,7 +27055,12 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25472,7 +27123,12 @@ func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "target", "newRotation", "rules"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -25519,7 +27175,12 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"contactMethodID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "contactMethodID":
 			var err error
@@ -25558,7 +27219,12 @@ func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Conte
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25621,7 +27287,12 @@ func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"target", "favorite"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "target":
 			var err error
@@ -25652,7 +27323,12 @@ func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"target", "key", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "target":
 			var err error
@@ -25691,7 +27367,12 @@ func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInpu
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "rules"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -25722,7 +27403,12 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"userID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "userID":
 			var err error
@@ -25761,7 +27447,12 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"scheduleID", "clearStart", "clearEnd", "start", "end", "shifts"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "scheduleID":
 			var err error
@@ -25834,7 +27525,12 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -25881,7 +27577,12 @@ func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -25912,7 +27613,12 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "type"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -25953,7 +27659,12 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26000,7 +27711,12 @@ func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"serviceID", "newStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "serviceID":
 			var err error
@@ -26031,7 +27747,12 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"alertIDs", "newStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "alertIDs":
 			var err error
@@ -26062,7 +27783,12 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "repeat", "stepIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26117,7 +27843,12 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "delayMinutes", "targets"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26156,7 +27887,12 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26195,7 +27931,12 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "activeUserIndex", "userIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26282,7 +28023,12 @@ func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26329,7 +28075,12 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "description", "escalationPolicyID", "maintenanceExpiresAt"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26384,7 +28135,12 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "reminderMinutes", "disabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26431,7 +28187,12 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26470,7 +28231,12 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "name", "email", "role", "statusUpdateContactMethodID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26525,7 +28291,12 @@ func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"id", "start", "end", "addUserID", "removeUserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "id":
 			var err error
@@ -26587,7 +28358,12 @@ func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.
 		asMap["after"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "omit", "scheduleID", "filterAddUserID", "filterRemoveUserID", "filterAnyUserID", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26693,7 +28469,12 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		asMap["favoritesFirst"] = false
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "CMValue", "CMType", "favoritesOnly", "favoritesFirst"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -26772,7 +28553,12 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"contactMethodID", "code"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "contactMethodID":
 			var err error
@@ -26813,7 +28599,12 @@ func (ec *executionContext) unmarshalInputWebhookSearchOptions(ctx context.Conte
 		asMap["search"] = ""
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "escalationPolicyID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "first":
 			var err error
@@ -27695,6 +29486,17 @@ func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
 
+		case "sentAt":
+
+			out.Values[i] = ec._DebugMessage_sentAt(ctx, field, obj)
+
+		case "retryCount":
+
+			out.Values[i] = ec._DebugMessage_retryCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28335,6 +30137,41 @@ func (ec *executionContext) _LinkAccountInfo(ctx context.Context, sel ast.Select
 	return out
 }
 
+var messageLogConnectionImplementors = []string{"MessageLogConnection"}
+
+func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.SelectionSet, obj *MessageLogConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLogConnection")
+		case "nodes":
+
+			out.Values[i] = ec._MessageLogConnection_nodes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._MessageLogConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -28354,6 +30191,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "swoAction":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_swoAction(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "linkAccount":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -29043,6 +30889,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "messageLogs":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_messageLogs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -29839,6 +31708,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "swoStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_swoStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -30065,6 +31957,185 @@ func (ec *executionContext) _RotationConnection(ctx context.Context, sel ast.Sel
 		case "pageInfo":
 
 			out.Values[i] = ec._RotationConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sWOConnectionImplementors = []string{"SWOConnection"}
+
+func (ec *executionContext) _SWOConnection(ctx context.Context, sel ast.SelectionSet, obj *SWOConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sWOConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SWOConnection")
+		case "name":
+
+			out.Values[i] = ec._SWOConnection_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "version":
+
+			out.Values[i] = ec._SWOConnection_version(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._SWOConnection_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isNext":
+
+			out.Values[i] = ec._SWOConnection_isNext(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._SWOConnection_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sWONodeImplementors = []string{"SWONode"}
+
+func (ec *executionContext) _SWONode(ctx context.Context, sel ast.SelectionSet, obj *SWONode) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sWONodeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SWONode")
+		case "id":
+
+			out.Values[i] = ec._SWONode_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "canExec":
+
+			out.Values[i] = ec._SWONode_canExec(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isLeader":
+
+			out.Values[i] = ec._SWONode_isLeader(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "uptime":
+
+			out.Values[i] = ec._SWONode_uptime(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "configError":
+
+			out.Values[i] = ec._SWONode_configError(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "connections":
+
+			out.Values[i] = ec._SWONode_connections(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sWOStatusImplementors = []string{"SWOStatus"}
+
+func (ec *executionContext) _SWOStatus(ctx context.Context, sel ast.SelectionSet, obj *SWOStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sWOStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SWOStatus")
+		case "state":
+
+			out.Values[i] = ec._SWOStatus_state(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lastStatus":
+
+			out.Values[i] = ec._SWOStatus_lastStatus(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lastError":
+
+			out.Values[i] = ec._SWOStatus_lastError(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nodes":
+
+			out.Values[i] = ec._SWOStatus_nodes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mainDBVersion":
+
+			out.Values[i] = ec._SWOStatus_mainDBVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextDBVersion":
+
+			out.Values[i] = ec._SWOStatus_nextDBVersion(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -33201,6 +35272,20 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._LabelConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMessageLogConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v MessageLogConnection) graphql.Marshaler {
+	return ec._MessageLogConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMessageLogConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v *MessageLogConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageLogConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
 	return ec._Notice(ctx, sel, &v)
 }
@@ -33467,6 +35552,92 @@ func (ec *executionContext) unmarshalNRotationType2githubᚗcomᚋtargetᚋgoale
 
 func (ec *executionContext) marshalNRotationType2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx context.Context, sel ast.SelectionSet, v rotation.Type) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNSWOAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOAction(ctx context.Context, v interface{}) (SWOAction, error) {
+	var res SWOAction
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSWOAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOAction(ctx context.Context, sel ast.SelectionSet, v SWOAction) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx context.Context, sel ast.SelectionSet, v SWOConnection) graphql.Marshaler {
+	return ec._SWOConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSWONode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONode(ctx context.Context, sel ast.SelectionSet, v SWONode) graphql.Marshaler {
+	return ec._SWONode(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSWONode2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONodeᚄ(ctx context.Context, sel ast.SelectionSet, v []SWONode) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSWONode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWONode(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx context.Context, v interface{}) (SWOState, error) {
+	var res SWOState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSWOState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOState(ctx context.Context, sel ast.SelectionSet, v SWOState) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNSWOStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOStatus(ctx context.Context, sel ast.SelectionSet, v SWOStatus) graphql.Marshaler {
+	return ec._SWOStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSWOStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOStatus(ctx context.Context, sel ast.SelectionSet, v *SWOStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SWOStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSchedule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx context.Context, sel ast.SelectionSet, v schedule.Schedule) graphql.Marshaler {
@@ -35559,6 +37730,14 @@ func (ec *executionContext) marshalOLinkAccountInfo2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._LinkAccountInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx context.Context, v interface{}) (*MessageLogSearchOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputMessageLogSearchOptions(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -35618,6 +37797,53 @@ func (ec *executionContext) marshalORotationType2ᚖgithubᚗcomᚋtargetᚋgoal
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnectionᚄ(ctx context.Context, sel ast.SelectionSet, v []SWOConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx context.Context, sel ast.SelectionSet, v *schedule.Schedule) graphql.Marshaler {
