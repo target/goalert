@@ -32,7 +32,7 @@ type Store struct {
 	ncStore *notificationchannel.Store
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
-	findSlackChan *sql.Stmt
+	findNotifChan *sql.Stmt
 
 	findOnePolicy          *sql.Stmt
 	findOnePolicyForUpdate *sql.Stmt
@@ -65,13 +65,13 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		slackFn: cfg.SlackLookupFunc,
 		ncStore: cfg.NCStore,
 
-		findSlackChan: p.P(`
+		findNotifChan: p.P(`
 			SELECT chan.id
 			FROM notification_channels chan
 			JOIN escalation_policy_actions act ON
 				act.escalation_policy_step_id = $1 AND
 				act.channel_id = chan.id
-			WHERE chan.value = $2 and chan.type = 'SLACK'
+			WHERE chan.value = $2 and chan.type = $3
 		`),
 
 		findOnePolicy: p.P(`
@@ -321,9 +321,9 @@ func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID str
 	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
 
-func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
+func (s *Store) lookupNotifChannel(ctx context.Context, tx *sql.Tx, stepID, chanID, chanType string) (assignment.Target, error) {
 	var notifChanID string
-	err := tx.StmtContext(ctx, s.findSlackChan).QueryRowContext(ctx, stepID, slackChanID).Scan(&notifChanID)
+	err := tx.StmtContext(ctx, s.findNotifChan).QueryRowContext(ctx, stepID, chanID, chanType).Scan(&notifChanID)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +354,14 @@ func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, 
 func (s *Store) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
 		var err error
-		tgt, err = s.lookupSlackChannel(ctx, tx, stepID, tgt.TargetID())
+		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "SLACK")
+		if err != nil {
+			return err
+		}
+	}
+	if tgt.TargetType() == assignment.TargetTypeWebhook {
+		var err error
+		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "WEBHOOK")
 		if err != nil {
 			return err
 		}

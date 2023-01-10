@@ -3,7 +3,6 @@ package webhook
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -39,7 +38,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 func (store *Store) FindOne(ctx context.Context, url string) (*Webhook, error) {
 	err := validate.URL("webhookURL", url)
 	if err != nil {
-		fmt.Println("validate URL error: ", url)
 		return nil, err
 	}
 

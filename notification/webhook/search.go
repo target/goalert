@@ -3,7 +3,6 @@ package webhook
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strconv"
 	"text/template"
 
@@ -120,7 +119,6 @@ func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]Webhook,
 		return nil, err
 	}
 	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
-	fmt.Println(query, data)
 	if err != nil {
 		return nil, errors.Wrap(err, "render query")
 	}

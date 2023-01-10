@@ -22,7 +22,6 @@ const valueQuery = gql`
 `
 
 const epID = window.location.pathname.split('/')[2]
-console.log('epID ', epID)
 
 function mapCreatedURLS(val: string): { value: string; label: string } {
   const url = new URL(val)

@@ -159,6 +159,57 @@ function testSteps(): void {
       cy.get('div[data-cy=slack-chip]').should('not.contain', '#foobar')
     })
 
+    it.only('should add, click, and remove a webhook', () => {
+      cy.updateConfig({ Webhook: { Enable: true } })
+      cy.reload()
+
+      cy.pageFab()
+      cy.dialogTitle('Create Step')
+
+      // expand webhook section
+      cy.get('button[data-cy="webhook-step"]').click()
+
+      // add webhook
+      cy.dialogForm({
+        webhooks: ['https://webhook.site', 'https://example.com'],
+      })
+      cy.dialogFinish('Submit')
+
+      // verify data integrity
+      cy.get('body').should('contain', 'Notify the following:')
+      cy.get('body').should('contain', 'Step #1:')
+      cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
+      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+
+      // verify clickability
+      cy.window().then((win) => {
+        cy.stub(win, 'open').as('webhookRedirect')
+      })
+      cy.get('div[data-cy=webhook-chip][data-clickable=true]').first().click()
+      cy.get('@webhookRedirect').should('be.called')
+
+      // open edit step dialog
+      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+        .find('button[data-cy=other-actions]')
+        .menu('Edit')
+
+      cy.dialogTitle('Edit Step')
+
+      // expand webhook section
+      cy.get('button[data-cy="webhook-step"]').click()
+
+      // delete webhook.site webhook
+      cy.get('input[name=webhooks]').multiRemoveByLabel('webhook.site')
+
+      cy.dialogFinish('Submit')
+
+      // verify data integrity
+      cy.get('body').should('contain', 'Notify the following:')
+      cy.get('body').should('contain', 'Step #1:')
+      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+      cy.get('div[data-cy=webhook-chip]').should('not.contain', 'webhook.site')
+    })
+
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
       cy.get('ul[data-cy=steps-list] :nth-child(1) li')

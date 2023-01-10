@@ -170,8 +170,6 @@ export function makeQuerySelect(displayName, options) {
     mapOnCreate = (value) => value,
   } = options
 
-  console.log('variables: ', variables)
-
   const useValues = makeUseValues(valueQuery, mapDataNode, mapOnCreate)
   const useOptions = makeUseOptions(
     query,
