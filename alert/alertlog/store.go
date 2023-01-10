@@ -341,11 +341,10 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			case notification.DestTypeUserEmail:
 				r.subject.classifier = "Email"
 			case notification.DestTypeUserWebhook:
+			case notification.DestTypeWebhook:
 				r.subject.classifier = "Webhook"
 			case notification.DestTypeSlackChannel:
 				r.subject.classifier = "Slack"
-			case notification.DestTypeWebhook:
-				r.subject.classifier = "Webhook"
 			}
 			r.subject.userID.String = permission.UserID(ctx)
 			if r.subject.userID.String != "" {

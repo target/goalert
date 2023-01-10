@@ -21,8 +21,6 @@ const valueQuery = gql`
   }
 `
 
-const epID = window.location.pathname.split('/')[2]
-
 function mapCreatedURLS(val: string): { value: string; label: string } {
   const url = new URL(val)
   return { value: val, label: url.hostname }
@@ -50,8 +48,4 @@ export const WebhookSelect = makeQuerySelect('WebhookSelect', {
     key: webhook.id,
     subText: webhook.id,
   }),
-  variables: { escalationPolicyID: epID },
-  defaultQueryVariables: {
-    escalationPolicyID: epID,
-  },
 })

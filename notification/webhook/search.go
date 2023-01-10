@@ -13,12 +13,12 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// SearchOptions allow filtering and paginating the list of timezones.
+// SearchOptions allow filtering and paginating the list of webhooks.
 type SearchOptions struct {
 	Search string       `json:"s,omitempty"`
 	After  SearchCursor `json:"a,omitempty"`
 
-	// Omit specifies a list of timezone names to exclude from the results.
+	// Omit specifies a list of webhook names to exclude from the results.
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`

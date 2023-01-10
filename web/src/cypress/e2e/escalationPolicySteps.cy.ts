@@ -159,7 +159,7 @@ function testSteps(): void {
       cy.get('div[data-cy=slack-chip]').should('not.contain', '#foobar')
     })
 
-    it.only('should add, click, and remove a webhook', () => {
+    it('should add, click, and remove a webhook', () => {
       cy.updateConfig({ Webhook: { Enable: true } })
       cy.reload()
 

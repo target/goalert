@@ -96,8 +96,6 @@ function PolicyStepForm(props) {
     </Typography>
   )
 
-  const editValueOnly = false
-
   return (
     <FormContainer {...props}>
       <Grid container spacing={2}>
@@ -249,7 +247,7 @@ function PolicyStepForm(props) {
                     <StepContent>
                       <FormField
                         fullWidth
-                        disabled={editValueOnly}
+                        disabled={disabled}
                         component={WebhookSelect}
                         fieldName='targets'
                         label='Webhook URL'
