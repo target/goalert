@@ -141,19 +141,20 @@ export default function UserContactMethodList(
   }
 
   function getSubText(cm: UserContactMethod): JSX.Element | string {
+    let cmText = cm.formattedValue
+    if (cm.pending) {
+      cmText = `${cm.formattedValue} - this contact method will be automatically deleted if not verified`
+    }
     if (cm.type === 'WEBHOOK') {
       return (
         <React.Fragment>
-          {`${cm.formattedValue} (`}
+          {`${cmText} (`}
           <AppLink to='/docs'>docs</AppLink>)
         </React.Fragment>
       )
     }
-    if (cm.pending) {
-      return `${cm.formattedValue} - this contact method will be automatically deleted if not verified`
-    }
 
-    return cm.formattedValue
+    return cmText
   }
 
   return (
