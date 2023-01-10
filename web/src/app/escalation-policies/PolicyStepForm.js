@@ -227,50 +227,51 @@ function PolicyStepForm(props) {
                     />
                   </StepContent>
                 </Step>
-                <Step>
-                  <StepButton
-                    aria-expanded={(
-                      step === (cfg['Webhook.Enable'] ? 4 : 3)
-                    ).toString()}
-                    data-cy='webhook-step'
-                    icon={<WebhookIcon />}
-                    optional={optionalText}
-                    onClick={() =>
-                      handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
-                    }
-                    tabIndex={-1}
-                  >
-                    {badgeMeUpScotty(
-                      getTargetsByType('webhook')(value.targets).length,
-                      'Add Webhook',
-                    )}
-                  </StepButton>
-                  <StepContent>
-                    <FormField
-                      fullWidth
-                      disabled={editValueOnly}
-                      component={WebhookSelect}
-                      fieldName='targets'
-                      label='Webhook URL'
-                      name='webhooks'
-                      multiple
-                      escalationPolicyID={path.split('/')[2]}
-                      formatInputOnChange={(val) => val.trim()}
-                      // TODO: maybe add General.DisableWebhookCreation to admin config
-                      onCreate={(webhook) => {
-                        const tgts = makeSetTargetType(value.targets)(
-                          'webhook',
-                        )([webhook])
-                        props.onChange({
-                          ...value,
-                          targets: tgts.concat(value.targets),
-                        })
-                      }}
-                      mapValue={getTargetsByType('webhook')}
-                      mapOnChangeValue={setTargetType('webhook')}
-                    />
-                  </StepContent>
-                </Step>
+                {cfg['Webhook.Enable'] && (
+                  <Step>
+                    <StepButton
+                      aria-expanded={(
+                        step === (cfg['Webhook.Enable'] ? 4 : 3)
+                      ).toString()}
+                      data-cy='webhook-step'
+                      icon={<WebhookIcon />}
+                      optional={optionalText}
+                      onClick={() =>
+                        handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
+                      }
+                      tabIndex={-1}
+                    >
+                      {badgeMeUpScotty(
+                        getTargetsByType('webhook')(value.targets).length,
+                        'Add Webhook',
+                      )}
+                    </StepButton>
+                    <StepContent>
+                      <FormField
+                        fullWidth
+                        disabled={editValueOnly}
+                        component={WebhookSelect}
+                        fieldName='targets'
+                        label='Webhook URL'
+                        name='webhooks'
+                        multiple
+                        escalationPolicyID={path.split('/')[2]}
+                        formatInputOnChange={(val) => val.trim()}
+                        onCreate={(webhook) => {
+                          const tgts = makeSetTargetType(value.targets)(
+                            'webhook',
+                          )([webhook])
+                          props.onChange({
+                            ...value,
+                            targets: tgts.concat(value.targets),
+                          })
+                        }}
+                        mapValue={getTargetsByType('webhook')}
+                        mapOnChangeValue={setTargetType('webhook')}
+                      />
+                    </StepContent>
+                  </Step>
+                )}
               </Stepper>
             )}
           </Config>
