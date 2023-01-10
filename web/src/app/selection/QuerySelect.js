@@ -213,6 +213,7 @@ export function makeQuerySelect(displayName, options) {
         isCreate: true,
         value: searchInput,
         label: `Create "${searchInput}"`,
+        key: searchInput,
       })
     }
 

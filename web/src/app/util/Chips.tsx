@@ -8,6 +8,7 @@ import {
   Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import Avatar from '@mui/material/Avatar'
+import { Tooltip } from '@mui/material'
 
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
@@ -169,11 +170,6 @@ export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
   })
   const hostname = data?.webhook?.name
   const webhookURL = data?.webhook?.id
-  // console.log('url', webhookURL)
-  // let hostname = ''
-  // if (webhookURL?.length) {
-  //   hostname = new URL(webhookURL).hostname
-  // }
 
   if (error) {
     console.error(`Error querying webhook ${hostname}:`, error)
@@ -185,15 +181,17 @@ export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
   }
 
   return (
-    <Chip
-      data-cy='webhook-chip'
-      data-clickable={clickable}
-      avatar={
-        <Avatar>
-          <WebhookIcon />
-        </Avatar>
-      }
-      {...rest}
-    />
+    <Tooltip title={webhookURL || ''}>
+      <Chip
+        data-cy='webhook-chip'
+        data-clickable={clickable}
+        avatar={
+          <Avatar>
+            <WebhookIcon />
+          </Avatar>
+        }
+        {...rest}
+      />
+    </Tooltip>
   )
 }
