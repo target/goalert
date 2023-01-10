@@ -29,9 +29,21 @@ function mapCreatedURLS(val: string): { value: string; label: string } {
   return { value: val, label: url.hostname }
 }
 
+interface WebhookSearchProps {
+  label: string
+  name: string
+}
+
 export const WebhookSelect = makeQuerySelect('WebhookSelect', {
   query,
   valueQuery,
+  extraVariablesFunc: ({
+    escalationPolicyID,
+    ...props
+  }: {
+    escalationPolicyID: string
+    props: WebhookSearchProps
+  }) => [props, { escalationPolicyID }],
   mapOnCreate: (val: string) => mapCreatedURLS(val),
   mapDataNode: (webhook: { id: string; name: string }) => ({
     value: webhook.id,

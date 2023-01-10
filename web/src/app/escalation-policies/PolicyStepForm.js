@@ -26,6 +26,7 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import { useLocation } from 'wouter'
 
 const useStyles = makeStyles({
   badge: {
@@ -45,6 +46,7 @@ function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
   const { disabled, value } = props
   const classes = useStyles()
+  const [path] = useLocation()
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
@@ -252,6 +254,7 @@ function PolicyStepForm(props) {
                       label='Webhook URL'
                       name='webhooks'
                       multiple
+                      escalationPolicyID={path.split('/')[2]}
                       formatInputOnChange={(val) => val.trim()}
                       // TODO: maybe add General.DisableWebhookCreation to admin config
                       onCreate={(webhook) => {
