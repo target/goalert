@@ -38,7 +38,7 @@
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-promise": "6.1.0",
-    "eslint-plugin-react": "7.31.1",
+    "eslint-plugin-react": "7.32.0",
     "eslint-plugin-react-hooks": "4.6.0",
     "playwright": "1.29.0",
     "prettier": "2.8.0",
