@@ -760,7 +760,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "message: updateStuckMessages", tx)
+	defer sqlutil.Rollback(ctx, "message: update stuck messages", tx)
 
 	rows, err := tx.Stmt(db.stuckMessages).QueryContext(ctx)
 	if err != nil {
