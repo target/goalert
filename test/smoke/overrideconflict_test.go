@@ -36,11 +36,11 @@ func TestOverrideConflict(t *testing.T) {
 
 	tx1, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer harness.SQLRollback(t, "smoke: Smoketest", tx1)
+	defer harness.SQLRollback(t, "override conflict tx1", tx1)
 
 	tx2, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	defer harness.SQLRollback(t, "smoke: Smoketest", tx2)
+	defer harness.SQLRollback(t, "override conflict tx2", tx2)
 
 	start := time.Now().Add(-time.Hour)
 	end := start.Add(8 * time.Hour)
