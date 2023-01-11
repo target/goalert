@@ -16,15 +16,24 @@ import (
 // Primarily, it's intended to be used with defer as an alternative to calling defer tx.Rollback() which
 // ignores ALL errors.
 func Rollback(ctx context.Context, errMsg string, tx *sql.Tx) {
-	if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) && !errors.Is(err, sql.ErrConnDone) {
+	err := tx.Rollback()
+	switch {
+	case err == nil:
+	case errors.Is(err, sql.ErrTxDone):
+	case errors.Is(err, sql.ErrConnDone):
+	default:
 		log.Log(ctx, fmt.Errorf("%s: tx rollback: %w", errMsg, err))
 	}
 }
 
-// RollbackContext provides the same functionality as Rollback, but uses the pgx library rather than the standard
-// sql library
+// RollbackContext provides the same functionality as Rollback, but for a pgx.Tx.
 func RollbackContext(ctx context.Context, errMsg string, tx pgx.Tx) {
-	if err := tx.Rollback(ctx); err != nil && !errors.Is(err, sql.ErrTxDone) && !errors.Is(err, sql.ErrConnDone) {
+	err := tx.Rollback(ctx)
+	switch {
+	case err == nil:
+	case errors.Is(err, context.Canceled):
+	case errors.Is(err, pgx.ErrTxClosed):
+	default:
 		log.Log(ctx, fmt.Errorf("%s: tx rollback: %w", errMsg, err))
 	}
 }
