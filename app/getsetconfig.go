@@ -40,7 +40,7 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer sqlutil.Rollback(ctx, "app: getSetConfig", tx)
+	defer sqlutil.Rollback(ctx, "app: get/set config", tx)
 
 	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "", "")
 	if err != nil {

@@ -103,7 +103,9 @@ func (s *Store) withTx(ctx context.Context, tx *sql.Tx, fn func(tx *sql.Tx) erro
 		if err != nil {
 			return err
 		}
-		defer sqlutil.Rollback(ctx, "override: withTx", tx)
+		// Since this is a helper method, we don't
+		// have much context to work with.
+		defer sqlutil.Rollback(ctx, "override", tx)
 
 		err = s.withTx(ctx, tx, fn)
 		if err != nil {

@@ -58,7 +58,7 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer sqlutil.Rollback(ctx, "status update manager: update", tx)
+	defer sqlutil.Rollback(ctx, "status update manager", tx)
 
 	var id, alertID int
 	var chanID, cmID sql.NullString

@@ -43,7 +43,7 @@ func (store *Store) updateScheduleData(ctx context.Context, tx *sql.Tx, schedule
 		if err != nil {
 			return err
 		}
-		defer sqlutil.Rollback(ctx, "schedule: updateScheduleData", tx)
+		defer sqlutil.Rollback(ctx, "schedule: update data", tx)
 	}
 
 	var rawData json.RawMessage

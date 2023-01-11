@@ -29,6 +29,7 @@ func (a *App) Service() graphql2.ServiceResolver { return (*Service)(a) }
 func (q *Query) Service(ctx context.Context, id string) (*service.Service, error) {
 	return (*App)(q).FindOneService(ctx, id)
 }
+
 func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOptions) (conn *graphql2.ServiceConnection, err error) {
 	if opts == nil {
 		opts = &graphql2.ServiceSearchOptions{}
@@ -92,6 +93,7 @@ func (s *Service) Labels(ctx context.Context, raw *service.Service) ([]label.Lab
 func (s *Service) EscalationPolicy(ctx context.Context, raw *service.Service) (*escalation.Policy, error) {
 	return (*App)(s).FindOnePolicy(ctx, raw.EscalationPolicyID)
 }
+
 func (s *Service) IsFavorite(ctx context.Context, raw *service.Service) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }
@@ -99,6 +101,7 @@ func (s *Service) IsFavorite(ctx context.Context, raw *service.Service) (bool, e
 func (s *Service) OnCallUsers(ctx context.Context, raw *service.Service) ([]oncall.ServiceOnCallUser, error) {
 	return s.OnCallStore.OnCallUsersByService(ctx, raw.ID)
 }
+
 func (s *Service) IntegrationKeys(ctx context.Context, raw *service.Service) ([]integrationkey.IntegrationKey, error) {
 	return s.IntKeyStore.FindAllByService(ctx, raw.ID)
 }
@@ -198,7 +201,7 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 	if err != nil {
 		return false, err
 	}
-	defer sqlutil.Rollback(ctx, "graphqlapp: updateService", tx)
+	defer sqlutil.Rollback(ctx, "graphql: update service", tx)
 
 	svc, err := a.ServiceStore.FindOneForUpdate(ctx, tx, input.ID)
 	if err != nil {

@@ -36,7 +36,7 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer sqlutil.Rollback(ctx, "cleanup manager: update", tx)
+	defer sqlutil.Rollback(ctx, "cleanup manager", tx)
 
 	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
 	if err != nil {

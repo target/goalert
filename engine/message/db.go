@@ -605,7 +605,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	if err != nil {
 		return errors.Wrap(err, "begin transaction")
 	}
-	defer sqlutil.Rollback(ctx, "message: _SendMessages", tx)
+	defer sqlutil.Rollback(ctx, "engine: message: send", tx)
 
 	_, err = tx.Stmt(db.lockStmt).ExecContext(execCtx)
 	if err != nil {

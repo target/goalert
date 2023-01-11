@@ -209,7 +209,7 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 	if err != nil {
 		return nil, errors.Wrap(err, "begin transaction")
 	}
-	defer sqlutil.Rollback(ctx, "on call: historyBySchedule", tx)
+	defer sqlutil.Rollback(ctx, "oncall: fetch schedule history", tx)
 
 	var schedTZ string
 	var now time.Time

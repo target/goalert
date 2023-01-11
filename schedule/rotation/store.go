@@ -672,7 +672,7 @@ func (s *Store) withTxLock(ctx context.Context, tx *sql.Tx, f func(*sql.Tx) erro
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "rotation: withTxLock", tx)
+	defer sqlutil.Rollback(ctx, "rotation: lock participants", tx)
 
 	err = s.withTxLock(ctx, tx, f)
 	if err != nil {

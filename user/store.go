@@ -326,7 +326,7 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		if err != nil {
 			return err
 		}
-		defer sqlutil.Rollback(ctx, "user: deleteManyTx", tx)
+		defer sqlutil.Rollback(ctx, "user: delete", tx)
 	}
 
 	for _, id := range ids {

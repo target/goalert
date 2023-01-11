@@ -125,7 +125,7 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 	if err != nil {
 		return err
 	}
-	defer sqlutil.Rollback(ctx, "authlink: linkAccount", tx)
+	defer sqlutil.Rollback(ctx, "authlink: link auth subject", tx)
 
 	var providerID, subjectID string
 	err = tx.StmtContext(ctx, s.rmLink).QueryRowContext(ctx, tokID).Scan(&providerID, &subjectID)

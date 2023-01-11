@@ -50,7 +50,7 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
-	defer sqlutil.Rollback(ctx, "rotation manager: update", tx)
+	defer sqlutil.Rollback(ctx, "rotation manager", tx)
 
 	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
 	if err != nil {

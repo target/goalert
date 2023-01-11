@@ -35,7 +35,7 @@ func (l *LogicalReplicator) FullInitialSync(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin dst tx: %w", err)
 	}
-	defer sqlutil.RollbackContext(ctx, "swo: dst FullInitialSync", dstTx)
+	defer sqlutil.RollbackContext(ctx, "swo: full initial sync: dst tx", dstTx)
 
 	_, err = dstTx.Exec(ctx, "set constraints all deferred")
 	if err != nil {
