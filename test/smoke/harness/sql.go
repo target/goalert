@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 	"testing"
 
@@ -36,6 +37,7 @@ func sqlSplitBlock(blockIdx int, data []byte, atEOF bool) (advance int, token []
 
 	return next + advance, data[:next+len(token)], nil
 }
+
 func sqlSplitQuery(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
@@ -115,7 +117,7 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
-	defer sqlutil.RollbackContext(ctx, "harness: execSQLBatch", tx)
+	defer sqlutil.RollbackContext(ctx, "harness: exec sql", tx)
 
 	b := &pgx.Batch{}
 	for _, q := range queries {
@@ -130,11 +132,14 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	return tx.Commit(ctx)
 }
 
-// RollbackTest will perform a DB rollback for use only within tests
-func RollbackTest(t *testing.T, errMsg string, tx *sql.Tx) {
-	if err := tx.Rollback(); err != nil {
-		if err != sql.ErrTxDone && err != sql.ErrConnDone {
-			t.Fatalf("tx rollback issue at %s: %v", errMsg, err)
-		}
+// SQLRollback will rollback the transaction for cleanup, failing the test on error.
+func SQLRollback(t *testing.T, errMsg string, tx *sql.Tx) {
+	err := tx.Rollback()
+	switch {
+	case err == nil:
+	case errors.Is(err, sql.ErrTxDone):
+	case errors.Is(err, sql.ErrConnDone):
+	default:
+		t.Fatalf("ERROR: %s: tx rollback: %v", errMsg, err)
 	}
 }
