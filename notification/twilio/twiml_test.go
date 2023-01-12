@@ -39,7 +39,7 @@ func TestTwiMLResponse(t *testing.T) {
 	})
 
 	t.Run("redirect", func(t *testing.T) {
-		mockConfig := config.Config{}
+		var mockConfig config.Config
 		mockConfig.Twilio.VoiceLanguage = "en-US"
 		ctx := mockConfig.Context(context.Background())
 		rec := httptest.NewRecorder()
@@ -63,7 +63,7 @@ func TestTwiMLResponse(t *testing.T) {
 	})
 
 	t.Run("redirect-pause", func(t *testing.T) {
-		mockConfig := config.Config{}
+		var mockConfig config.Config
 		mockConfig.Twilio.VoiceName = "Polly.Joanna-Neural"
 		mockConfig.Twilio.VoiceLanguage = "en-US"
 		ctx := mockConfig.Context(context.Background())
@@ -89,7 +89,7 @@ func TestTwiMLResponse(t *testing.T) {
 	})
 
 	t.Run("unknown-gather", func(t *testing.T) {
-		mockConfig := config.Config{}
+		var mockConfig config.Config
 		ctx := mockConfig.Context(context.Background())
 		rec := httptest.NewRecorder()
 
@@ -123,7 +123,7 @@ func TestTwiMLResponse(t *testing.T) {
 	})
 
 	t.Run("ack test", func(t *testing.T) {
-		mockConfig := config.Config{}
+		var mockConfig config.Config
 		ctx := mockConfig.Context(context.Background())
 		rec := httptest.NewRecorder()
 
