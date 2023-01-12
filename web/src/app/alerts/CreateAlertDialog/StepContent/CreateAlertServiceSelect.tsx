@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormControl,
   Box,
+  Theme,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
@@ -27,6 +28,8 @@ import getServiceFilters from '../../../util/getServiceFilters'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 
 import { allErrors } from '../../../util/errutil'
+import { OnChange } from '../../../forms'
+import { Service } from '../../../../schema'
 
 const query = gql`
   query ($input: ServiceSearchOptions) {
@@ -40,7 +43,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   addAll: {
     marginRight: '0.25em',
   },
@@ -68,7 +71,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export function CreateAlertServiceSelect(props) {
+interface CreateAlertServiceSelectProps {
+  onChange: OnChange
+  value: string[]
+  error: Error
+}
+
+export function CreateAlertServiceSelect(
+  props: CreateAlertServiceSelectProps,
+): JSX.Element {
   const { value, onChange } = props
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
@@ -90,8 +101,8 @@ export function CreateAlertServiceSelect(props) {
 
   const fieldRef = useRef()
   const classes = useStyles()
-  const searchResults = _.get(data, 'services.nodes', []).filter(
-    ({ id }) => !value.includes(id),
+  const searchResults: Service[] = _.get(data, 'services.nodes', []).filter(
+    ({ id }: { id: string }) => !value.includes(id),
   )
 
   const queryErrorMsg = allErrors(queryError)
@@ -121,7 +132,7 @@ export function CreateAlertServiceSelect(props) {
   const addAll = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    const resultIDs = searchResults.map((s) => s.id)
+    const resultIDs = searchResults?.map((s) => s.id) ?? ([] as Service[])
 
     props.onChange(
       _.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT),
@@ -136,7 +147,7 @@ export function CreateAlertServiceSelect(props) {
         id={id}
         className={classes.serviceChip}
         onClick={(e) => e.preventDefault()}
-        onDelete={() => props.onChange(value.filter((v) => v !== id))}
+        onDelete={() => props.onChange(value.filter((v) => v !== id)[0])}
       />
     )
   })
