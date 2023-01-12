@@ -435,6 +435,8 @@ func (cfg Config) Validate() error {
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
 		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
+		validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 0, 50),
+		validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
@@ -448,6 +450,10 @@ func (cfg Config) Validate() error {
 		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
+
+	if cfg.Twilio.VoiceName != "" && cfg.Twilio.VoiceLanguage == "" {
+		err = validate.Many(err, validation.NewFieldError("Twilio.VoiceLanguage", "required when Twilio.VoiceName is set"))
+	}
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))
@@ -513,21 +519,6 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL("Feedback.OverrideURL", cfg.Feedback.OverrideURL),
-		)
-	}
-
-	if cfg.Twilio.VoiceName != "" {
-		err = validate.Many(
-			err,
-			validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 1, 50),
-			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 1, 10), // language is required when a voice name is set
-		)
-	}
-
-	if cfg.Twilio.VoiceLanguage != "" {
-		err = validate.Many(
-			err,
-			validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 1, 10),
 		)
 	}
 
