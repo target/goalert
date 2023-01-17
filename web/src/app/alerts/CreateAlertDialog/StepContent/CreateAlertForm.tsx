@@ -10,9 +10,10 @@ interface CreateAlertFormProps {
   activeStep: number
   value: Value
 
-  errors: Error[]
+  errors?: Error[]
+  error?: Error
 
-  onChange?: (newValue: Value) => void
+  onChange: (newValue: Value) => void
   disabled?: boolean
 
   mapValue?: () => void
@@ -37,8 +38,9 @@ export function CreateAlertForm({
           required
           render={(props) => (
             <CreateAlertServiceSelect
+              value={props.value}
               onChange={props.onChange}
-              error={props.error}
+              error={props.error as Error}
             />
           )}
           name='serviceIDs'

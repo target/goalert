@@ -1,16 +1,13 @@
 import React from 'react'
 import { FieldError } from '../util/errutil'
-import { MapOnChangeValue } from './FormField'
+import { MapFuncType, Validate } from './FormField'
 
-type AddField = (
-  field?: string,
-  validate?: (value: unknown) => boolean | Error | void,
-) => void
+type AddField = (field?: string, validate?: Validate) => void
 
 export const FormContainerContext = React.createContext({
   onChange: (() => {}) as (
     fieldName: string,
-    mapOnChangeValue?: MapOnChangeValue,
+    mapOnChangeValue?: MapFuncType,
   ) => void,
   disabled: false as boolean,
   errors: [] as FieldError[],

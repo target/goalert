@@ -72,7 +72,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 interface CreateAlertServiceSelectProps {
-  onChange: OnChange
+  onChange?: OnChange
   value: string[]
   error: Error
 }
@@ -80,7 +80,7 @@ interface CreateAlertServiceSelectProps {
 export function CreateAlertServiceSelect(
   props: CreateAlertServiceSelectProps,
 ): JSX.Element {
-  const { value, onChange } = props
+  const { value, onChange = () => {} } = props
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 
@@ -99,7 +99,7 @@ export function CreateAlertServiceSelect(
     },
   })
 
-  const fieldRef = useRef()
+  const fieldRef = useRef<HTMLElement>()
   const classes = useStyles()
   const searchResults: Service[] = _.get(data, 'services.nodes', []).filter(
     ({ id }: { id: string }) => !value.includes(id),
@@ -127,16 +127,12 @@ export function CreateAlertServiceSelect(
     return () => clearTimeout(t)
   }, [searchUserInput])
 
-  const { labelKey, labelValue } = getServiceFilters(searchUserInput)
+  const { labelKey, labelValue, integrationKey } =
+    getServiceFilters(searchUserInput)
 
-  const addAll = (e) => {
-    e.stopPropagation()
-    e.preventDefault()
+  const addAll = () => {
     const resultIDs = searchResults?.map((s) => s.id) ?? ([] as Service[])
-
-    props.onChange(
-      _.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT),
-    )
+    onChange(_.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT))
   }
 
   const selectedServiceChips = value.map((id) => {
@@ -147,7 +143,7 @@ export function CreateAlertServiceSelect(
         id={id}
         className={classes.serviceChip}
         onClick={(e) => e.preventDefault()}
-        onDelete={() => props.onChange(value.filter((v) => v !== id)[0])}
+        onDelete={() => onChange(value.filter((v) => v !== id)[0])}
       />
     )
   })
@@ -213,7 +209,7 @@ export function CreateAlertServiceSelect(
                   />
                 )}
               <ServiceLabelFilterContainer
-                value={{ labelKey, labelValue }}
+                value={{ labelKey, labelValue, integrationKey }}
                 onChange={({ labelKey, labelValue }) =>
                   setSearchUserInput(
                     labelKey ? `${labelKey}=${labelValue}` : '',

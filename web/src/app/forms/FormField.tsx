@@ -9,13 +9,22 @@ import { FormContainerContext } from './context'
 import { InputLabelProps, InputProps } from '@mui/material'
 import { FieldError } from '../util/errutil'
 
-export type MapOnChangeValue = (value: unknown, value2?: unknown) => unknown
+// children components will define the value types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type MapFuncType = (value: any, value2?: any) => any
+
 export type OnChange = (
-  fieldName: string,
-  mapOnChangeValue?: MapOnChangeValue,
+  fieldName: string | string[],
+  mapOnChangeValue?: MapFuncType,
 ) => void
 
-type Validate = () => boolean | Error | void
+type ValidateResult = boolean | Error | void | null
+export type Validate = (value: unknown) => ValidateResult
+
+type Option = {
+  label: string
+  value: string
+}
 
 interface CustomError {
   message: string
@@ -32,11 +41,11 @@ interface FormFieldProps {
   render?: (props: Partial<FormFieldProps>) => JSX.Element
 
   // mapValue can be used to map a value before it's passed to the form component
-  mapValue?: (value: unknown, value2?: unknown) => unknown
+  mapValue?: MapFuncType
 
   // mapOnChangeValue can be used to map a changed value from the component, before it's
   // passed to the parent form's state.
-  mapOnChangeValue?: MapOnChangeValue
+  mapOnChangeValue?: MapFuncType
 
   // Adjusts props for usage with a Checkbox component.
   checkbox?: boolean
@@ -97,14 +106,13 @@ interface FormFieldProps {
 
   userID?: string
 
-  value?: unknown
+  // children components will define the value types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value?: any
 
   multiple?: boolean
 
-  options?: {
-    label: string
-    value: string
-  }
+  options?: Option | Option[]
 
   // FieldProps - todo: use seperate type that inherits needed props from above?
   error?: FieldError | Error | CustomError
@@ -147,7 +155,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
 
   const fieldName = _fieldName || name
 
-  const validateField = (value: unknown): boolean | Error | void => {
+  const validateField = (value: unknown): ValidateResult => {
     if (
       required &&
       !['boolean', 'number'].includes(typeof value) &&
@@ -188,24 +196,33 @@ export function FormField(props: FormFieldProps): JSX.Element {
     ..._inputProps,
   }
 
+  type VE = React.ChangeEvent<HTMLInputElement> | string | string[]
   // mutable function
-  let getValueOf = (
-    e: React.ChangeEvent<HTMLInputElement> | string,
-  ): unknown => {
-    return typeof e === 'string' ? e : e.target.value
+  let getValueOf = (e: VE): unknown => {
+    if (typeof e === 'string' || e instanceof Array) {
+      return e
+    }
+    return e.target.value
   }
 
   if (checkbox) {
     fieldProps.checked = fieldProps.value as boolean
     fieldProps.value = fieldProps.value ? 'true' : 'false'
-    getValueOf = (e: React.ChangeEvent<HTMLInputElement> | string) =>
-      typeof e === 'string' ? e : e.target.checked
+    getValueOf = (e: VE) => {
+      if (typeof e === 'string' || e instanceof Array) {
+        return e
+      }
+      return e.target.checked
+    }
   } else if (otherFieldProps.type === 'number') {
     fieldProps.label = label
     fieldProps.value = (fieldProps.value as number).toString()
     fieldProps.InputLabelProps = InputLabelProps
-    getValueOf = (e: React.ChangeEvent<HTMLInputElement> | string) => {
-      const v = typeof e === 'string' ? e : e.target.value
+    getValueOf = (e: VE) => {
+      if (typeof e === 'string' || e instanceof Array) {
+        return e
+      }
+      const v = e.target.value
       return float ? parseFloat(v) : parseInt(v, 10)
     }
   } else {
