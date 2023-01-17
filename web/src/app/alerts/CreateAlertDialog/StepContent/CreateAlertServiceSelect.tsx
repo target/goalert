@@ -130,7 +130,7 @@ export function CreateAlertServiceSelect(
   const { labelKey, labelValue, integrationKey } =
     getServiceFilters(searchUserInput)
 
-  const addAll = () => {
+  const addAll = (): void => {
     const resultIDs = searchResults?.map((s) => s.id) ?? ([] as Service[])
     onChange(_.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT))
   }
