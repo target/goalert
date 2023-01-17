@@ -109,19 +109,25 @@ func (h *Harness) Config() config.Config {
 
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
-func NewHarness(t *testing.T, initSQL, migrationName string, expFlags ...expflag.Flag) *Harness {
+func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+	t.Helper()
+	return NewHarnessWithFlags(t, initSQL, migrationName, nil)
+}
+
+// NewHarnessWithFlags is the same as NewHarness, but allows passing in a set of experimental flags to be used for the test.
+func NewHarnessWithFlags(t *testing.T, initSQL, migrationName string, fs expflag.FlagSet) *Harness {
 	stdlog.SetOutput(io.Discard)
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName, expFlags...)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Start()
 	return h
 }
 
 func (h *Harness) App() *app.App { return h.backend }
 
-func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags ...expflag.Flag) *Harness {
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, sqlData, migrationName, expFlags...)
+	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
 	h.Start()
 	return h
 }
@@ -130,9 +136,9 @@ func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migra
 // migrations have been run. It is used to debug data & queries from a smoketest.
 //
 // Note that the now() function will be locked to the init timestamp for inspection.
-func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string, expFlags ...expflag.Flag) *Harness {
+func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName, expFlags...)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Migrate("")
 
 	t.Fatal("DEBUG DB ::", h.dbURL)
@@ -148,6 +154,14 @@ const (
 // NewStoppedHarness will create a NewHarness, but will not call Start.
 func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags ...expflag.Flag) *Harness {
 	t.Helper()
+	return NewStoppedHarnessWithFlags(t, initSQL, sqlData, migrationName, nil)
+}
+
+// NewStoppedHarnessWithFlags is the same as NewStoppedHarness, but allows
+// passing in a set of experimental flags to be used for the test.
+func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{}, migrationName string, fs expflag.FlagSet) *Harness {
+	t.Helper()
+
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
 	}
