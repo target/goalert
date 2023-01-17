@@ -90,6 +90,7 @@ module.exports = (on, config) => {
     'db:resettime': () => fastForwardDB(),
     'engine:setexpflags': (flags) => {
       expFlags = flags
+      return null
     },
     'engine:start': startBackend,
     'engine:stop': stopBackend,
