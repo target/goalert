@@ -119,7 +119,7 @@ help: ## Show all valid options
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
