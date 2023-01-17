@@ -19,24 +19,14 @@ type (
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
-func (a *Query) ExperimentalFlags(ctx context.Context, input *graphql2.ExperimentalFlagsOptions) ([]graphql2.ExperimentalFlag, error) {
-	if input == nil {
-		input = &graphql2.ExperimentalFlagsOptions{}
-	}
-	var flags []graphql2.ExperimentalFlag
+func (a *Query) ExperimentalFlags(ctx context.Context) ([]string, error) {
+	var flags []string
 	for _, f := range expflag.AllFlags() {
-		switch {
-		case input.IncludeDisabled != nil && *input.IncludeDisabled:
-		case expflag.ContextHas(ctx, f):
-		default:
+		if !expflag.ContextHas(ctx, f) {
 			continue
 		}
 
-		flags = append(flags, graphql2.ExperimentalFlag{
-			ID:          string(f),
-			Description: expflag.Description(f),
-			Enabled:     expflag.ContextHas(ctx, f),
-		})
+		flags = append(flags, string(f))
 	}
 
 	return flags, nil

@@ -275,16 +275,6 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
-type ExperimentalFlag struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
-	Enabled     bool   `json:"enabled"`
-}
-
-type ExperimentalFlagsOptions struct {
-	IncludeDisabled *bool `json:"includeDisabled"`
-}
-
 type IntegrationKeyConnection struct {
 	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
 	PageInfo *PageInfo                       `json:"pageInfo"`

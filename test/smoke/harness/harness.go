@@ -159,7 +159,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 // NewStoppedHarnessWithFlags is the same as NewStoppedHarness, but allows
 // passing in a set of experimental flags to be used for the test.
-func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{}, migrationName string, fs expflag.FlagSet) *Harness {
+func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags expflag.FlagSet) *Harness {
 	t.Helper()
 
 	if testing.Short() {
