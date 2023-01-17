@@ -8,7 +8,7 @@ import { Value } from '../CreateAlertDialog'
 // TODO: extend FormContainer once that file has been converted to typescript
 interface CreateAlertFormProps {
   activeStep: number
-  value: Value
+  value: string[]
 
   errors?: Error[]
   error?: Error
@@ -38,7 +38,7 @@ export function CreateAlertForm({
           required
           render={(props) => (
             <CreateAlertServiceSelect
-              value={props.value}
+              value={props.value as string[]}
               onChange={props.onChange}
               error={props.error as Error}
             />
