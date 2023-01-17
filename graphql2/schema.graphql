@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags(input: ExperimentalFlagsOptions): [ExperimentalFlag!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -118,6 +120,16 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+}
+
+input ExperimentalFlagsOptions {
+  includeDisabled: Boolean = false
+}
+
+type ExperimentalFlag {
+  id: ID!
+  description: String!
+  enabled: Boolean!
 }
 
 type SWOStatus {

@@ -228,6 +228,12 @@ type ComplexityRoot struct {
 		Targets          func(childComplexity int) int
 	}
 
+	ExperimentalFlag struct {
+		Description func(childComplexity int) int
+		Enabled     func(childComplexity int) int
+		ID          func(childComplexity int) int
+	}
+
 	HeartbeatMonitor struct {
 		Href           func(childComplexity int) int
 		ID             func(childComplexity int) int
@@ -372,6 +378,7 @@ type ComplexityRoot struct {
 		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
+		ExperimentalFlags        func(childComplexity int, input *ExperimentalFlagsOptions) int
 		GenerateSlackAppManifest func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
 		IntegrationKey           func(childComplexity int, id string) int
@@ -718,6 +725,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	ExperimentalFlags(ctx context.Context, input *ExperimentalFlagsOptions) ([]ExperimentalFlag, error)
 	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
 	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
@@ -1417,6 +1425,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EscalationPolicyStep.Targets(childComplexity), true
+
+	case "ExperimentalFlag.description":
+		if e.complexity.ExperimentalFlag.Description == nil {
+			break
+		}
+
+		return e.complexity.ExperimentalFlag.Description(childComplexity), true
+
+	case "ExperimentalFlag.enabled":
+		if e.complexity.ExperimentalFlag.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ExperimentalFlag.Enabled(childComplexity), true
+
+	case "ExperimentalFlag.id":
+		if e.complexity.ExperimentalFlag.ID == nil {
+			break
+		}
+
+		return e.complexity.ExperimentalFlag.ID(childComplexity), true
 
 	case "HeartbeatMonitor.href":
 		if e.complexity.HeartbeatMonitor.Href == nil {
@@ -2389,6 +2418,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.EscalationPolicy(childComplexity, args["id"].(string)), true
+
+	case "Query.experimentalFlags":
+		if e.complexity.Query.ExperimentalFlags == nil {
+			break
+		}
+
+		args, err := ec.field_Query_experimentalFlags_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ExperimentalFlags(childComplexity, args["input"].(*ExperimentalFlagsOptions)), true
 
 	case "Query.generateSlackAppManifest":
 		if e.complexity.Query.GenerateSlackAppManifest == nil {
@@ -3713,6 +3754,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDebugMessagesInput,
 		ec.unmarshalInputDebugSendSMSInput,
 		ec.unmarshalInputEscalationPolicySearchOptions,
+		ec.unmarshalInputExperimentalFlagsOptions,
 		ec.unmarshalInputIntegrationKeySearchOptions,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
@@ -4668,6 +4710,21 @@ func (ec *executionContext) field_Query_escalationPolicy_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_experimentalFlags_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ExperimentalFlagsOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOExperimentalFlagsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlagsOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -8889,6 +8946,138 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_escalationPolicy(c
 				return ec.fieldContext_EscalationPolicy_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicy", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExperimentalFlag_id(ctx context.Context, field graphql.CollectedField, obj *ExperimentalFlag) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExperimentalFlag_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExperimentalFlag_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExperimentalFlag",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExperimentalFlag_description(ctx context.Context, field graphql.CollectedField, obj *ExperimentalFlag) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExperimentalFlag_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExperimentalFlag_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExperimentalFlag",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ExperimentalFlag_enabled(ctx context.Context, field graphql.CollectedField, obj *ExperimentalFlag) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ExperimentalFlag_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ExperimentalFlag_enabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ExperimentalFlag",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13795,6 +13984,69 @@ func (ec *executionContext) fieldContext_Query_phoneNumberInfo(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_phoneNumberInfo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_experimentalFlags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExperimentalFlags(rctx, fc.Args["input"].(*ExperimentalFlagsOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]ExperimentalFlag)
+	fc.Result = res
+	return ec.marshalNExperimentalFlag2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlagᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ExperimentalFlag_id(ctx, field)
+			case "description":
+				return ec.fieldContext_ExperimentalFlag_description(ctx, field)
+			case "enabled":
+				return ec.fieldContext_ExperimentalFlag_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExperimentalFlag", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_experimentalFlags_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -26094,6 +26346,38 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputExperimentalFlagsOptions(ctx context.Context, obj interface{}) (ExperimentalFlagsOptions, error) {
+	var it ExperimentalFlagsOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["includeDisabled"]; !present {
+		asMap["includeDisabled"] = false
+	}
+
+	fieldsInOrder := [...]string{"includeDisabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "includeDisabled":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDisabled"))
+			it.IncludeDisabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx context.Context, obj interface{}) (IntegrationKeySearchOptions, error) {
 	var it IntegrationKeySearchOptions
 	asMap := map[string]interface{}{}
@@ -29346,6 +29630,48 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 	return out
 }
 
+var experimentalFlagImplementors = []string{"ExperimentalFlag"}
+
+func (ec *executionContext) _ExperimentalFlag(ctx context.Context, sel ast.SelectionSet, obj *ExperimentalFlag) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, experimentalFlagImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExperimentalFlag")
+		case "id":
+
+			out.Values[i] = ec._ExperimentalFlag_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+
+			out.Values[i] = ec._ExperimentalFlag_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "enabled":
+
+			out.Values[i] = ec._ExperimentalFlag_enabled(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var heartbeatMonitorImplementors = []string{"HeartbeatMonitor"}
 
 func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.SelectionSet, obj *heartbeat.Monitor) graphql.Marshaler {
@@ -30414,6 +30740,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "experimentalFlags":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_experimentalFlags(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -34299,6 +34648,54 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 	return ret
 }
 
+func (ec *executionContext) marshalNExperimentalFlag2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlag(ctx context.Context, sel ast.SelectionSet, v ExperimentalFlag) graphql.Marshaler {
+	return ec._ExperimentalFlag(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNExperimentalFlag2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlagᚄ(ctx context.Context, sel ast.SelectionSet, v []ExperimentalFlag) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNExperimentalFlag2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlag(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNHeartbeatMonitor2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐMonitor(ctx context.Context, sel ast.SelectionSet, v heartbeat.Monitor) graphql.Marshaler {
 	return ec._HeartbeatMonitor(ctx, sel, &v)
 }
@@ -36881,6 +37278,14 @@ func (ec *executionContext) marshalOEscalationPolicyStep2ᚖgithubᚗcomᚋtarge
 		return graphql.Null
 	}
 	return ec._EscalationPolicyStep(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOExperimentalFlagsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExperimentalFlagsOptions(ctx context.Context, v interface{}) (*ExperimentalFlagsOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputExperimentalFlagsOptions(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOHeartbeatMonitor2ᚖgithubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐMonitor(ctx context.Context, sel ast.SelectionSet, v *heartbeat.Monitor) graphql.Marshaler {

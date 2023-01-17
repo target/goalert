@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: ExperimentalFlag[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -38,6 +39,16 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+}
+
+export interface ExperimentalFlagsOptions {
+  includeDisabled?: null | boolean
+}
+
+export interface ExperimentalFlag {
+  id: string
+  description: string
+  enabled: boolean
 }
 
 export interface SWOStatus {
