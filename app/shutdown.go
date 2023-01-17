@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/util/log"
 )
 
 // Shutdown will cause the App to begin a graceful shutdown, using
 // the provided context for any cleanup operations.
 func (app *App) Shutdown(ctx context.Context) error {
-	return app.mgr.Shutdown(log.WithLogger(ctx, app.cfg.Logger))
+	return app.mgr.Shutdown(app.Context(ctx))
 }
 
 func (app *App) _Shutdown(ctx context.Context) error {
