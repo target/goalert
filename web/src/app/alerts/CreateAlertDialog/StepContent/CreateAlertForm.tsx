@@ -8,7 +8,7 @@ import { Value } from '../CreateAlertDialog'
 // TODO: extend FormContainer once that file has been converted to typescript
 interface CreateAlertFormProps {
   activeStep: number
-  value: string[]
+  value: Value
 
   errors?: Error[]
   error?: Error
