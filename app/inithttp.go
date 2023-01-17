@@ -9,6 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
@@ -23,6 +24,14 @@ import (
 
 func (app *App) initHTTP(ctx context.Context) error {
 	middleware := []func(http.Handler) http.Handler{
+		// Add feature flags to request context first before anything else
+		// that might possibly use them.
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r.WithContext(expflag.Context(r.Context(), app.cfg.ExpFlags)))
+			})
+		},
+
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				next.ServeHTTP(w, req.WithContext(log.WithLogger(req.Context(), app.cfg.Logger)))
