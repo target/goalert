@@ -152,7 +152,7 @@ const (
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
-func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags ...expflag.Flag) *Harness {
+func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	return NewStoppedHarnessWithFlags(t, initSQL, sqlData, migrationName, nil)
 }
