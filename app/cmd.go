@@ -68,16 +68,19 @@ var RootCmd = &cobra.Command{
 		}
 
 		if viper.GetBool("list-experimental") {
-			fmt.Print(`Experimental Flags:
+			fmt.Print(`Usage: goalert --experimental=<flag1>,<flag2> ...
 
-	These flags are not guaranteed to be stable and may change or be removed at 
-	any time. They are used to enable new features and are not intended for 
-	production use.
+These flags are not guaranteed to be stable and may change or be removed at any
+time. They are used to enable in-development features and are not intended for 
+production use.
+
+
+Available Flags:
 
 `)
 
 			for _, f := range expflag.AllFlags() {
-				fmt.Printf("\t%s: %s", f, expflag.Description(f))
+				fmt.Printf("\t%s\t\t%s", f, expflag.Description(f))
 			}
 
 			return nil
