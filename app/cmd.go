@@ -637,7 +637,11 @@ func getConfig(ctx context.Context) (Config, error) {
 
 	var fs expflag.FlagSet
 	strict := viper.GetBool("strict-experimental")
-	for _, f := range viper.GetStringSlice("experimental") {
+	s := viper.GetStringSlice("experimental")
+	if len(s) == 1 {
+		s = strings.Split(s[0], ",")
+	}
+	for _, f := range s {
 		if strict && expflag.Description(expflag.Flag(f)) == "" {
 			return cfg, errors.Errorf("unknown experimental flag: %s", f)
 		}
