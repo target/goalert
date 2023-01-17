@@ -12,14 +12,14 @@ import { FieldError } from '../util/errutil'
 // children components will define the value types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MapFuncType = (value: any, value2?: any) => any
-
+export type Value = unknown
 export type OnChange = (
   fieldName: string | string[],
   mapOnChangeValue?: MapFuncType,
 ) => void
 
 type ValidateResult = boolean | Error | void | null
-export type Validate = (value: unknown) => ValidateResult
+export type Validate = (value: Value) => ValidateResult
 
 type Option = {
   label: string
@@ -106,9 +106,7 @@ interface FormFieldProps {
 
   userID?: string
 
-  // children components will define the value types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value?: any
+  value?: Value
 
   multiple?: boolean
 
@@ -134,7 +132,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
     errorName,
     name,
     noError,
-    component: Component = 'div',
+    component: Component = React.Fragment,
     render,
     fieldName: _fieldName,
     formLabel,
@@ -155,7 +153,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
 
   const fieldName = _fieldName || name
 
-  const validateField = (value: unknown): ValidateResult => {
+  const validateField = (value: Value): ValidateResult => {
     if (
       required &&
       !['boolean', 'number'].includes(typeof value) &&
@@ -237,7 +235,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
     if (fieldProps.type === 'number' && typeof fieldProps.max === 'number')
       newValue = Math.min(fieldProps.max, newValue as number)
 
-    onChange(fieldName, () => mapOnChangeValue(newValue, value))
+    onChange(fieldName, mapOnChangeValue(newValue, value))
   }
 
   function renderFormHelperText(

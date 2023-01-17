@@ -1,6 +1,6 @@
 import React from 'react'
 import { FieldError } from '../util/errutil'
-import { MapFuncType, Validate } from './FormField'
+import { MapFuncType, Validate, Value } from './FormField'
 
 type AddField = (field?: string, validate?: Validate) => void
 
@@ -11,7 +11,7 @@ export const FormContainerContext = React.createContext({
   ) => void,
   disabled: false as boolean,
   errors: [] as FieldError[],
-  value: {} as unknown,
+  value: {} as Value,
   addField: (() => () => {}) as AddField,
   optionalLabels: false as boolean,
 })
