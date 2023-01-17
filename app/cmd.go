@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
@@ -64,6 +65,22 @@ var RootCmd = &cobra.Command{
 		}
 		if viper.GetBool("log-errors-only") {
 			l.ErrorsOnly()
+		}
+
+		if viper.GetBool("list-experimental") {
+			fmt.Print(`Experimental Flags:
+
+	These flags are not guaranteed to be stable and may change or be removed at 
+	any time. They are used to enable new features and are not intended for 
+	production use.
+
+`)
+
+			for _, f := range expflag.AllFlags() {
+				fmt.Printf("\t%s: %s", f, expflag.Description(f))
+			}
+
+			return nil
 		}
 
 		err := viper.ReadInConfig()
@@ -618,6 +635,17 @@ func getConfig(ctx context.Context) (Config, error) {
 		UIDir: viper.GetString("ui-dir"),
 	}
 
+	var fs expflag.FlagSet
+	strict := viper.GetBool("strict-experimental")
+	for _, f := range viper.GetStringSlice("experimental") {
+		if strict && expflag.Description(expflag.Flag(f)) == "" {
+			return cfg, errors.Errorf("unknown experimental flag: %s", f)
+		}
+
+		fs = append(fs, expflag.Flag(f))
+	}
+	cfg.ExpFlags = fs
+
 	if cfg.PublicURL != "" {
 		u, err := url.Parse(cfg.PublicURL)
 		if err != nil {
@@ -653,6 +681,11 @@ func init() {
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
 	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
+
+	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
+	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
+	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
 	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-ca-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.")
