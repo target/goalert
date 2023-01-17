@@ -137,7 +137,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
     fieldName: _fieldName,
     formLabel,
     required,
-    validate = (value: unknown): boolean => Boolean(value),
+    validate = () => {},
     disabled: fieldDisabled,
     hint,
     label: _label,
