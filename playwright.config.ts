@@ -20,7 +20,7 @@ const config: PlaywrightTestConfig = {
       name: 'chromium-wide',
       use: {
         ...devices['Desktop Chrome'],
-        headless: false,
+        headless: true,
         viewport: { width: 1440, height: 900 },
       },
     },
@@ -28,6 +28,7 @@ const config: PlaywrightTestConfig = {
       name: 'chromium-mobile',
       use: {
         ...devices['Pixel 5'],
+        headless: true,
         viewport: { width: 375, height: 667 },
       },
     },
