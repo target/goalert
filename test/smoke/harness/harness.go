@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/devtools/pgmocktime"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -73,6 +74,7 @@ type Harness struct {
 	closing                 bool
 
 	msgSvcID string
+	expFlags expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -107,19 +109,19 @@ func (h *Harness) Config() config.Config {
 
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
-func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+func NewHarness(t *testing.T, initSQL, migrationName string, expFlags ...expflag.Flag) *Harness {
 	stdlog.SetOutput(io.Discard)
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName, expFlags...)
 	h.Start()
 	return h
 }
 
 func (h *Harness) App() *app.App { return h.backend }
 
-func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags ...expflag.Flag) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
+	h := NewStoppedHarness(t, initSQL, sqlData, migrationName, expFlags...)
 	h.Start()
 	return h
 }
@@ -128,9 +130,9 @@ func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migra
 // migrations have been run. It is used to debug data & queries from a smoketest.
 //
 // Note that the now() function will be locked to the init timestamp for inspection.
-func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
+func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string, expFlags ...expflag.Flag) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName, expFlags...)
 	h.Migrate("")
 
 	t.Fatal("DEBUG DB ::", h.dbURL)
@@ -144,7 +146,7 @@ const (
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
-func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags ...expflag.Flag) *Harness {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
@@ -189,6 +191,8 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		pgTime:   pgTime,
 
 		gqlSessions: make(map[string]string),
+
+		expFlags: expFlags,
 
 		t: t,
 	}
@@ -265,6 +269,7 @@ func (h *Harness) Start() {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ExpFlags = h.expFlags
 	appCfg.Logger = log.NewLogger()
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
