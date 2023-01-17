@@ -118,7 +118,7 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 func NewHarnessWithFlags(t *testing.T, initSQL, migrationName string, fs expflag.FlagSet) *Harness {
 	stdlog.SetOutput(io.Discard)
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h := NewStoppedHarnessWithFlags(t, initSQL, nil, migrationName, fs)
 	h.Start()
 	return h
 }
