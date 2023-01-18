@@ -28,6 +28,10 @@ SIZE:=1
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
+# used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
+EXPERIMENTAL :=
+export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
@@ -115,7 +119,7 @@ help: ## Show all valid options
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
