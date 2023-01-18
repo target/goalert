@@ -124,18 +124,6 @@ export function screenName(): string {
   return 'Wide'
 }
 
-// testScreenWithFlags is a convenience function for testing a screen with
-// different experimental flags.
-//
-// It is equivalent to calling testScreen(label, fn, false, false, expFlags)
-export function testScreenWithFlags(
-  label: string,
-  fn: (screen: ScreenFormat) => void,
-  expFlags: string[],
-): void {
-  testScreen(label, fn, false, false, expFlags)
-}
-
 export function testScreen(
   label: string,
   fn: (screen: ScreenFormat) => void,
@@ -172,4 +160,16 @@ export function testScreen(
 
     describe(screenName(), () => fn(screen()))
   })
+}
+
+// testScreenWithFlags is a convenience function for testing a screen with
+// different experimental flags.
+//
+// It is equivalent to calling testScreen(label, fn, false, false, expFlags)
+export function testScreenWithFlags(
+  label: string,
+  fn: (screen: ScreenFormat) => void,
+  expFlags: string[],
+): void {
+  testScreen(label, fn, false, false, expFlags)
 }
