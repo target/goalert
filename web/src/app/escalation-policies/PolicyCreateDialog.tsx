@@ -30,7 +30,6 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
         favorite: true,
       },
     },
-    onCompleted: props.onClose,
   })
 
   const { loading, data, error } = createPolicyStatus
