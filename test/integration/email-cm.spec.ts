@@ -68,7 +68,7 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
     .locator('li', { hasText: email })
     .locator('[aria-label="Other Actions"]')
     .click()
-  await page.locator('[role=menuitem]', { hasText: 'Delete' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.locator('button[type=submit]', { hasText: 'Confirm' }).click()
   await page
     .locator('.MuiCard-root', {
