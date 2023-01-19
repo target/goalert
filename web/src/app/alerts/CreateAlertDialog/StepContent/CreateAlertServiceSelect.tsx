@@ -80,7 +80,7 @@ interface CreateAlertServiceSelectProps {
 export function CreateAlertServiceSelect(
   props: CreateAlertServiceSelectProps,
 ): JSX.Element {
-  const { value, onChange = () => {} } = props
+  const { value = [], onChange = () => {} } = props
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 

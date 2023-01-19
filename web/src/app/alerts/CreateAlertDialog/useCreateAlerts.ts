@@ -36,21 +36,23 @@ const getAliasedMutation = (
 export const useCreateAlerts = (
   value: Value,
 ): [MutationFunction, MutationResult, (alias: string | number) => string] => {
+  const sids = value?.serviceIDs ?? []
+
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
-  for (let i = 1; i < value.serviceIDs.length; i++) {
+  for (let i = 1; i < sids.length ?? 0; i++) {
     m = mergeFields(m, getAliasedMutation(baseMutation, i))
   }
 
   // 2. build variables, alias -> service ID map
   const variables: { [key: string]: Variable } = {}
   const aliasIDMap: { [key: string]: string } = {}
-  value.serviceIDs.forEach((svcID, i) => {
-    aliasIDMap['alias' + i] = svcID
+  sids.forEach((sid, i) => {
+    aliasIDMap['alias' + i] = sid
     variables[`input${i}`] = {
       summary: value.summary.trim(),
       details: value.details.trim(),
-      serviceID: svcID,
+      serviceID: sid,
     }
   })
 
