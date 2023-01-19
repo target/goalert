@@ -31,7 +31,7 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
     },
   })
 
-  if (data.createEscalationPolicy) {
+  if (data?.createEscalationPolicy) {
     return (
       <Redirect to={`/escalation-policies/${data.createEscalationPolicy.id}`} />
     )

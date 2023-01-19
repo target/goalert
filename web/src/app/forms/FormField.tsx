@@ -194,19 +194,22 @@ export function FormField(props: FormFieldProps): JSX.Element {
     ..._inputProps,
   }
 
-  type VE = React.ChangeEvent<HTMLInputElement> | string | string[]
+  // unknown event value
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type E = any
+
   // mutable function
-  let getValueOf = (e: VE): unknown => {
-    if (typeof e === 'string' || e instanceof Array) {
-      return e
+  let getValueOf = (e: E): unknown => {
+    if (e && e.target && e.target.value) {
+      return e.target.value
     }
-    return e.target.value
+    return e
   }
 
   if (checkbox) {
     fieldProps.checked = fieldProps.value as boolean
     fieldProps.value = fieldProps.value ? 'true' : 'false'
-    getValueOf = (e: VE) => {
+    getValueOf = (e: E) => {
       if (typeof e === 'string' || e instanceof Array) {
         return e
       }
@@ -216,7 +219,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
     fieldProps.label = label
     fieldProps.value = (fieldProps.value as number).toString()
     fieldProps.InputLabelProps = InputLabelProps
-    getValueOf = (e: VE) => {
+    getValueOf = (e: E) => {
       if (typeof e === 'string' || e instanceof Array) {
         return e
       }
