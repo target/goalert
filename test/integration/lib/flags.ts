@@ -2,7 +2,7 @@ import { test } from '@playwright/test'
 import http from 'http'
 
 const base = 'http://127.0.0.1:6133'
-function fetch(path: string) {
+function fetch(path: string): Promise<string> {
   return new Promise((resolve, reject) => {
     http.get(base + path, (res) => {
       if (res.statusCode !== 200) {
@@ -26,7 +26,7 @@ function fetch(path: string) {
   })
 }
 
-export function configureExpFlags(flags: string[]) {
+export function configureExpFlags(flags: string[]): void {
   test.describe.configure({ mode: 'serial' })
 
   test.beforeAll(async () => {

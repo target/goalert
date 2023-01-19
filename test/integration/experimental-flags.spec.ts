@@ -7,7 +7,7 @@ test.describe(() => {
   configureExpFlags(['example'])
 
   // test a query for the current experimental flags (when example is set)
-  test('example experimental flag set', async ({ page, browser, isMobile }) => {
+  test('example experimental flag set', async ({ page }) => {
     await page.goto('./api/graphql/explore')
     await page.click('.graphiql-editor')
     await page.keyboard.down('Control')
@@ -27,7 +27,7 @@ test.describe(() => {
 })
 
 // test a query for the current experimental flags (when none are set)
-test('no experimental flags set', async ({ page, browser, isMobile }) => {
+test('no experimental flags set', async ({ page }) => {
   await page.goto('./api/graphql/explore')
   await page.click('.graphiql-editor')
   await page.keyboard.down('Control')
