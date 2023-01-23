@@ -135,7 +135,7 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/sr
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	./bin/goalert --db-url "$(INT_DB_URL)" migrate
