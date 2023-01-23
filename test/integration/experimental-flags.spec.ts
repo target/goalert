@@ -1,23 +1,19 @@
 import { test, expect } from '@playwright/test'
 import { baseURLFromFlags, userSessionFile } from './lib'
 
-import { platform } from 'os'
-const isMacOS = platform() === 'darwin'
-
 test.use({ storageState: userSessionFile })
 
 test.describe(() => {
   // test a query for the current experimental flags (when example is set)
-  test('example experimental flag set', async ({ page }) => {
+  test('example experimental flag set', async ({ page, isMobile }) => {
+    test.skip(!!isMobile, 'mobile not supported for GraphQL explorer')
+
     await page.goto(baseURLFromFlags(['example']) + '/api/graphql/explore')
+
+    await page.click('button[aria-label="Add tab"]')
     await page.click('.graphiql-editor')
-
-    await page.keyboard.press(isMacOS ? 'Meta+A' : 'Control+A')
     await page.keyboard.type(`{experimentalFlags`) // trailing curly brace will be added by the autocomplete
-
-    await page.keyboard.down('Control')
-    await page.keyboard.press('Enter')
-    await page.keyboard.up('Control')
+    await page.click('button.graphiql-execute-button')
 
     expect(page.locator('.result-window')).toContainText('experimentalFlags')
 
@@ -27,16 +23,16 @@ test.describe(() => {
 })
 
 // test a query for the current experimental flags (when none are set)
-test('no experimental flags set', async ({ page }) => {
+test('no experimental flags set', async ({ page, isMobile }) => {
+  test.skip(!!isMobile, 'mobile not supported for GraphQL explorer')
+
   await page.goto('./api/graphql/explore')
   await page.click('.graphiql-editor')
 
-  await page.keyboard.press(isMacOS ? 'Meta+A' : 'Control+A')
+  await page.click('button[aria-label="Add tab"]')
+  await page.click('.graphiql-editor')
   await page.keyboard.type(`{experimentalFlags`) // trailing curly brace will be added by the autocomplete
-
-  await page.keyboard.down('Control')
-  await page.keyboard.press('Enter')
-  await page.keyboard.up('Control')
+  await page.click('button.graphiql-execute-button')
 
   expect(page.locator('.result-window')).toContainText('experimentalFlags')
 
