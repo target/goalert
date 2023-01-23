@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test'
 import { baseURLFromFlags, userSessionFile } from './lib'
 
+import { platform } from 'os'
+const isMacOS = platform() === 'darwin'
+
 test.use({ storageState: userSessionFile })
 
 test.describe(() => {
@@ -8,9 +11,8 @@ test.describe(() => {
   test('example experimental flag set', async ({ page }) => {
     await page.goto(baseURLFromFlags(['example']) + '/api/graphql/explore')
     await page.click('.graphiql-editor')
-    await page.keyboard.down('Control')
-    await page.keyboard.press('KeyA')
-    await page.keyboard.up('Control')
+
+    await page.keyboard.press(isMacOS ? 'Meta+A' : 'Control+A')
     await page.keyboard.type(`{experimentalFlags`) // trailing curly brace will be added by the autocomplete
 
     await page.keyboard.down('Control')
@@ -28,9 +30,8 @@ test.describe(() => {
 test('no experimental flags set', async ({ page }) => {
   await page.goto('./api/graphql/explore')
   await page.click('.graphiql-editor')
-  await page.keyboard.down('Control')
-  await page.keyboard.press('KeyA')
-  await page.keyboard.up('Control')
+
+  await page.keyboard.press(isMacOS ? 'Meta+A' : 'Control+A')
   await page.keyboard.type(`{experimentalFlags`) // trailing curly brace will be added by the autocomplete
 
   await page.keyboard.down('Control')
