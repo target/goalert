@@ -58,11 +58,11 @@ const config = {
 
     // generate a web server for each unique flag combination
     ...scanUniqueFlagCombos().map((flagStr, i) => ({
-      command: `./bin/goalert -l=localhost:613${
-        i + 1
-      } --public-url=http://localhost:613${i + 1} --experimental=${flagStr}`,
+      command: `./bin/goalert -l=localhost:${
+        i + 6131
+      } --public-url=http://localhost:${i + 6131} --experimental=${flagStr}`,
       env: wsEnv,
-      url: `http://localhost:613${i + 1}/health`,
+      url: `http://localhost:${i + 6131}/health`,
     })),
   ],
 }
