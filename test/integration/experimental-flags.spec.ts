@@ -1,14 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { configureExpFlags, userSessionFile } from './lib'
+import { baseURLFromFlags, userSessionFile } from './lib'
 
 test.use({ storageState: userSessionFile })
 
 test.describe(() => {
-  configureExpFlags(['example'])
-
   // test a query for the current experimental flags (when example is set)
   test('example experimental flag set', async ({ page }) => {
-    await page.goto('./api/graphql/explore')
+    await page.goto(baseURLFromFlags(['example']) + '/api/graphql/explore')
     await page.click('.graphiql-editor')
     await page.keyboard.down('Control')
     await page.keyboard.press('KeyA')
