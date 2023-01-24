@@ -3,7 +3,7 @@ import { baseURLFromFlags, userSessionFile } from './lib'
 
 test.use({ storageState: userSessionFile })
 
-async function getFlags(page: Page, base: string = ''): Promise<string[]> {
+async function getFlags(page: Page, base = ''): Promise<string[]> {
   await page.goto(base + '/api/graphql/explore')
 
   // We need to wait for the explorer to be "ready"
