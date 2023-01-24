@@ -75,6 +75,7 @@ function testRotations(): void {
       cy.get('ul[data-cy=users]').find('li').as('parts')
       cy.get('@parts').eq(1).should('contain', rot.users[0].name)
       cy.get('@parts').eq(2).should('contain', rot.users[1].name)
+      cy.get('@parts').eq(3).should('contain', rot.users[2].name)
     })
 
     it('should allow removing a user', () => {

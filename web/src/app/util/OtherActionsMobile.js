@@ -6,6 +6,8 @@ import ListItemText from '@mui/material/ListItemText'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 
 export default function OtherActionsMobile({ isOpen, onClose, actions }) {
+  // if (!isOpen) return null
+
   return (
     <SwipeableDrawer
       anchor='bottom'
@@ -14,19 +16,26 @@ export default function OtherActionsMobile({ isOpen, onClose, actions }) {
       open={isOpen}
       onOpen={() => null}
       onClose={onClose}
+      SlideProps={{
+        unmountOnExit: true,
+      }}
     >
       <List data-cy='mobile-actions' role='menu'>
         {actions.map((o, idx) => (
           <ListItem
             key={idx}
-            button
             role='menuitem'
             onClick={() => {
-              onClose()
               o.onClick()
+              onClose()
             }}
           >
-            <ListItemText primary={o.label} />
+            <ListItemText
+              primary={o.label}
+              primaryTypographyProps={{
+                'data-testid': o.label,
+              }}
+            />
           </ListItem>
         ))}
       </List>
