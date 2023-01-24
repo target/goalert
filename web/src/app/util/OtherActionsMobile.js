@@ -30,12 +30,7 @@ export default function OtherActionsMobile({ isOpen, onClose, actions }) {
               onClose()
             }}
           >
-            <ListItemText
-              primary={o.label}
-              primaryTypographyProps={{
-                'data-testid': o.label,
-              }}
-            />
+            <ListItemText primary={o.label} />
           </ListItem>
         ))}
       </List>

@@ -24,11 +24,7 @@ function menu(sub: JQuery<HTMLElement>, s: string): Cypress.Chainable {
     cy.wrap(sub).click()
 
     // click menu item
-    cy.get('[role=menu]')
-      .find('[role=menuitem]')
-      .find(`[data-testid=${s}]`)
-      .click()
-
+    cy.get('ul[role=menu]').contains('[role=menuitem]', s).click()
     cy.get('[role=menu]').should('not.exist')
   })
 }
