@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/devtools/pgmocktime"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -73,6 +74,7 @@ type Harness struct {
 	closing                 bool
 
 	msgSvcID string
+	expFlags expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -108,9 +110,15 @@ func (h *Harness) Config() config.Config {
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+	t.Helper()
+	return NewHarnessWithFlags(t, initSQL, migrationName, nil)
+}
+
+// NewHarnessWithFlags is the same as NewHarness, but allows passing in a set of experimental flags to be used for the test.
+func NewHarnessWithFlags(t *testing.T, initSQL, migrationName string, fs expflag.FlagSet) *Harness {
 	stdlog.SetOutput(io.Discard)
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h := NewStoppedHarnessWithFlags(t, initSQL, nil, migrationName, fs)
 	h.Start()
 	return h
 }
@@ -146,6 +154,14 @@ const (
 // NewStoppedHarness will create a NewHarness, but will not call Start.
 func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
+	return NewStoppedHarnessWithFlags(t, initSQL, sqlData, migrationName, nil)
+}
+
+// NewStoppedHarnessWithFlags is the same as NewStoppedHarness, but allows
+// passing in a set of experimental flags to be used for the test.
+func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags expflag.FlagSet) *Harness {
+	t.Helper()
+
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
 	}
@@ -189,6 +205,8 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		pgTime:   pgTime,
 
 		gqlSessions: make(map[string]string),
+
+		expFlags: expFlags,
 
 		t: t,
 	}
@@ -265,6 +283,7 @@ func (h *Harness) Start() {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ExpFlags = h.expFlags
 	appCfg.Logger = log.NewLogger()
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
