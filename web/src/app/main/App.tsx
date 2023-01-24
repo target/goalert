@@ -108,6 +108,9 @@ export default function App(): JSX.Element {
               open={showMobile}
               onOpen={() => setShowMobile(true)}
               onClose={() => setShowMobile(false)}
+              SlideProps={{
+                unmountOnExit: true,
+              }}
             >
               <NavBar />
             </SwipeableDrawer>
