@@ -174,7 +174,8 @@ function testSchedules(screen: ScreenFormat): void {
         })
         .then((s: ScheduleTarget) => {
           sched = s
-          return cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          return cy.get('[role="progressbar"]').should('not.exist')
         })
     })
 
