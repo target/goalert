@@ -257,4 +257,5 @@ export function CreateAlertServiceSelect(props) {
 CreateAlertServiceSelect.propTypes = {
   onChange: p.func.isRequired,
   error: p.object,
+  value: p.arrayOf(p.string),
 }
