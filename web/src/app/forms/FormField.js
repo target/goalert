@@ -1,4 +1,5 @@
-import React, { ElementType, useContext, useEffect, ReactNode } from 'react'
+import React, { useContext, useEffect } from 'react'
+import p from 'prop-types'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormLabel from '@mui/material/FormLabel'
@@ -6,119 +7,8 @@ import { get, isEmpty, startCase } from 'lodash'
 import shrinkWorkaround from '../util/shrinkWorkaround'
 import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
-import { InputLabelProps, InputProps } from '@mui/material'
-import { FieldError } from '../util/errutil'
 
-// children components will define the value types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type MapFuncType = (value: any, value2?: any) => any
-export type Value = unknown
-export type OnChange = (
-  fieldName: string | string[],
-  mapOnChangeValue?: MapFuncType,
-) => void
-
-type ValidateResult = boolean | Error | void | null
-export type Validate = (value: Value) => ValidateResult
-
-type Option = {
-  label: string
-  value: string
-}
-
-interface CustomError {
-  message: string
-  field: string
-  helpLink?: string
-}
-
-interface FormFieldProps {
-  // pass select dropdown items as children
-  children?: ReactNode | ReactNode[]
-
-  // one of component or render must be provided
-  component?: ElementType
-  render?: (props: Partial<FormFieldProps>) => JSX.Element
-
-  // mapValue can be used to map a value before it's passed to the form component
-  mapValue?: MapFuncType
-
-  // mapOnChangeValue can be used to map a changed value from the component, before it's
-  // passed to the parent form's state.
-  mapOnChangeValue?: MapFuncType
-
-  // Adjusts props for usage with a Checkbox component.
-  checkbox?: boolean
-
-  // Allows entering decimal number into a numeric field.
-  float?: boolean
-
-  // fieldName specifies the field used for
-  // checking errors, change handlers, and value.
-  //
-  // If unset, it defaults to `name`.
-  name: string
-  fieldName?: string
-
-  // min and max values specify the range to clamp a int value
-  // expects an ISO timestamp, if string
-  min?: number | string
-  max?: number | string
-
-  // used if name is set,
-  // but the error name is different from graphql responses
-  errorName?: string
-
-  // label above form component
-  label?: ReactNode
-  formLabel?: boolean // use formLabel instead of label if true
-
-  // required indicates the field may not be left blank.
-  required?: boolean
-
-  // validate can be used to provide client-side validation of a
-  // field.
-  validate?: Validate
-
-  // a hint for the user on a form field. errors take priority
-  hint?: ReactNode
-
-  // disable the form helper text for errors.
-  noError?: boolean
-
-  step?: number | string
-
-  InputProps?: InputProps
-  InputLabelProps?: InputLabelProps
-
-  disabled?: boolean
-
-  multiline?: boolean
-  autoComplete?: string
-
-  fullWidth?: boolean
-
-  placeholder?: string
-
-  type?: string
-  select?: boolean
-  timeZone?: string
-
-  userID?: string
-
-  value?: Value
-
-  multiple?: boolean
-
-  options?: Option | Option[]
-
-  // FieldProps - todo: use seperate type that inherits needed props from above?
-  error?: FieldError | Error | CustomError
-  checked?: boolean
-  onChange?: OnChange
-}
-
-export function FormField(props: FormFieldProps): JSX.Element {
+export function FormField(props) {
   const {
     errors,
     value,
@@ -153,7 +43,7 @@ export function FormField(props: FormFieldProps): JSX.Element {
 
   const fieldName = _fieldName || name
 
-  const validateField = (value: Value): ValidateResult => {
+  const validateField = (value) => {
     if (
       required &&
       !['boolean', 'number'].includes(typeof value) &&
@@ -173,14 +63,12 @@ export function FormField(props: FormFieldProps): JSX.Element {
   const label =
     !required && optionalLabels ? baseLabel + ' (optional)' : baseLabel
 
-  const fieldProps: Partial<FormFieldProps> = {
+  const fieldProps = {
     ...otherFieldProps,
     name,
     required,
     disabled: containerDisabled || fieldDisabled,
-    error: errors.find(
-      (err) => err.field === (errorName || fieldName),
-    ) as CustomError,
+    error: errors.find((err) => err.field === (errorName || fieldName)),
     hint,
     value: mapValue(get(value, fieldName), value),
     min,
@@ -194,12 +82,8 @@ export function FormField(props: FormFieldProps): JSX.Element {
     ..._inputProps,
   }
 
-  // unknown event value
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type E = any
-
   // mutable function
-  let getValueOf = (e: E): unknown => {
+  let getValueOf = (e) => {
     if (e && e.target && e.target.value) {
       return e.target.value
     }
@@ -207,9 +91,9 @@ export function FormField(props: FormFieldProps): JSX.Element {
   }
 
   if (checkbox) {
-    fieldProps.checked = fieldProps.value as boolean
+    fieldProps.checked = fieldProps.value
     fieldProps.value = fieldProps.value ? 'true' : 'false'
-    getValueOf = (e: E) => {
+    getValueOf = (e) => {
       if (typeof e === 'string' || e instanceof Array) {
         return e
       }
@@ -217,9 +101,9 @@ export function FormField(props: FormFieldProps): JSX.Element {
     }
   } else if (otherFieldProps.type === 'number') {
     fieldProps.label = label
-    fieldProps.value = (fieldProps.value as number).toString()
+    fieldProps.value = fieldProps.value.toString()
     fieldProps.InputLabelProps = InputLabelProps
-    getValueOf = (e: E) => {
+    getValueOf = (e) => {
       if (typeof e === 'string' || e instanceof Array) {
         return e
       }
@@ -234,17 +118,14 @@ export function FormField(props: FormFieldProps): JSX.Element {
   fieldProps.onChange = (_value) => {
     let newValue = getValueOf(_value)
     if (fieldProps.type === 'number' && typeof fieldProps.min === 'number')
-      newValue = Math.max(fieldProps.min, newValue as number)
+      newValue = Math.max(fieldProps.min, newValue)
     if (fieldProps.type === 'number' && typeof fieldProps.max === 'number')
-      newValue = Math.min(fieldProps.max, newValue as number)
+      newValue = Math.min(fieldProps.max, newValue)
 
     onChange(fieldName, mapOnChangeValue(newValue, value))
   }
 
-  function renderFormHelperText(
-    error: CustomError,
-    hint: ReactNode,
-  ): ReactNode {
+  function renderFormHelperText(error, hint) {
     if (!error && !hint) return
 
     if (!noError) {
@@ -290,7 +171,90 @@ export function FormField(props: FormFieldProps): JSX.Element {
       >
         {fieldProps.children}
       </Component>
-      {renderFormHelperText(fieldProps.error as CustomError, fieldProps.hint)}
+      {renderFormHelperText(fieldProps.error, fieldProps.hint)}
     </FormControl>
   )
+}
+
+FormField.propTypes = {
+  // pass select dropdown items as children
+  children: p.node,
+
+  // one of component or render must be provided
+  component: p.any,
+  render: p.func,
+
+  // mapValue can be used to map a value before it's passed to the form component
+  mapValue: p.func,
+
+  // mapOnChangeValue can be used to map a changed value from the component, before it's
+  // passed to the parent form's state.
+  mapOnChangeValue: p.func,
+
+  // Adjusts props for usage with a Checkbox component.
+  checkbox: p.bool,
+
+  // Allows entering decimal number into a numeric field.
+  float: p.bool,
+
+  // fieldName specifies the field used for
+  // checking errors, change handlers, and value.
+  //
+  // If unset, it defaults to `name`.
+  name: p.string.isRequired,
+  fieldName: p.string,
+
+  // min and max values specify the range to clamp a int value
+  // expects an ISO timestamp, if string
+  min: p.oneOfType([p.number, p.string]),
+  max: p.oneOfType([p.number, p.string]),
+
+  // used if name is set,
+  // but the error name is different from graphql responses
+  errorName: p.string,
+
+  // label above form component
+  label: p.node,
+  formLabel: p.bool, // use formLabel instead of label if true
+
+  // required indicates the field may not be left blank.
+  required: p.bool,
+
+  // validate can be used to provide client-side validation of a
+  // field.
+  validate: p.func,
+
+  // a hint for the user on a form field. errors take priority
+  hint: p.node,
+
+  // disable the form helper text for errors.
+  noError: p.bool,
+
+  step: p.oneOfType([p.number, p.string]),
+
+  InputProps: p.object,
+
+  disabled: p.bool,
+
+  multiline: p.bool,
+  autoComplete: p.string,
+
+  fullWidth: p.bool,
+
+  placeholder: p.string,
+
+  type: p.string,
+  select: p.bool,
+  timeZone: p.string,
+
+  userID: p.string,
+
+  value: p.oneOfType([p.string, p.arrayOf(p.string)]),
+
+  multiple: p.bool,
+
+  options: p.shape({
+    label: p.string,
+    value: p.string,
+  }),
 }

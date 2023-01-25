@@ -15,7 +15,6 @@ import {
   FormLabel,
   FormControl,
   Box,
-  Theme,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
@@ -28,8 +27,6 @@ import getServiceFilters from '../../../util/getServiceFilters'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 
 import { allErrors } from '../../../util/errutil'
-import { OnChange } from '../../../forms'
-import { Service } from '../../../../schema'
 
 const query = gql`
   query ($input: ServiceSearchOptions) {
@@ -43,7 +40,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles((theme) => ({
   addAll: {
     marginRight: '0.25em',
   },
@@ -71,15 +68,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-interface CreateAlertServiceSelectProps {
-  onChange?: OnChange
-  value: string[]
-  error: Error
-}
-
-export function CreateAlertServiceSelect(
-  props: CreateAlertServiceSelectProps,
-): JSX.Element {
+export function CreateAlertServiceSelect(props) {
   const { value = [], onChange = () => {} } = props
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
@@ -99,10 +88,10 @@ export function CreateAlertServiceSelect(
     },
   })
 
-  const fieldRef = useRef<HTMLElement>()
+  const fieldRef = useRef()
   const classes = useStyles()
-  const searchResults: Service[] = _.get(data, 'services.nodes', []).filter(
-    ({ id }: { id: string }) => !value.includes(id),
+  const searchResults = _.get(data, 'services.nodes', []).filter(
+    ({ id }) => !value.includes(id),
   )
 
   const queryErrorMsg = allErrors(queryError)
@@ -130,8 +119,8 @@ export function CreateAlertServiceSelect(
   const { labelKey, labelValue, integrationKey } =
     getServiceFilters(searchUserInput)
 
-  const addAll = (): void => {
-    const resultIDs = searchResults?.map((s) => s.id) ?? ([] as Service[])
+  const addAll = () => {
+    const resultIDs = searchResults?.map((s) => s.id) ?? []
     onChange(_.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT))
   }
 

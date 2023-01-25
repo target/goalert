@@ -25,7 +25,7 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
       input: {
         name: value.name,
         description: value.description,
-        repeat: value.repeat?.value ?? 3,
+        repeat: value.repeat.value,
         favorite: true,
       },
     },

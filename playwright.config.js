@@ -1,7 +1,6 @@
 import { devices } from '@playwright/test'
-import type { PlaywrightTestConfig } from '@playwright/test'
 
-const config: PlaywrightTestConfig = {
+const config = {
   testDir: './test/integration',
   globalSetup: require.resolve('./test/integration/setup/global-setup.ts'),
   retries: 3,
@@ -20,7 +19,6 @@ const config: PlaywrightTestConfig = {
       name: 'chromium-wide',
       use: {
         ...devices['Desktop Chrome'],
-        headless: true,
         viewport: { width: 1440, height: 900 },
       },
     },
@@ -28,14 +26,13 @@ const config: PlaywrightTestConfig = {
       name: 'chromium-mobile',
       use: {
         ...devices['Pixel 5'],
-        headless: true,
         viewport: { width: 375, height: 667 },
       },
     },
   ],
   webServer: {
     command: 'make start-integration CI=1',
-    url: 'http://localhost:6130',
+    url: 'http://localhost:6130/health',
     reuseExistingServer: true,
   },
 }

@@ -6,8 +6,6 @@ import ListItemText from '@mui/material/ListItemText'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 
 export default function OtherActionsMobile({ isOpen, onClose, actions }) {
-  // if (!isOpen) return null
-
   return (
     <SwipeableDrawer
       anchor='bottom'
