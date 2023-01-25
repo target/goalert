@@ -28,6 +28,10 @@ SIZE:=1
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
+# used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
+EXPERIMENTAL :=
+export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
@@ -56,6 +60,9 @@ $(BIN_DIR)/tools/sqlc: sqlc.version
 
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
+
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	go run ./devtools/gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -112,7 +119,7 @@ help: ## Show all valid options
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
@@ -128,7 +135,7 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/sr
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	./bin/goalert --db-url "$(INT_DB_URL)" migrate
@@ -156,13 +163,10 @@ check-js: force-yarn generate node_modules
 	yarn run lint
 	yarn workspaces run check
 
-check-go: generate
+check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
-	go vet ./...
-	go fmt ./...
 	# go run ./devtools/ordermigrations -check
-	go run github.com/gordonklaus/ineffassign ./...
-	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+	$(BIN_DIR)/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2

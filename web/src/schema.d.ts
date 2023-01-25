@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -111,6 +112,8 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+  sentAt?: null | ISOTimestamp
+  retryCount: number
 }
 
 export interface MessageLogSearchOptions {

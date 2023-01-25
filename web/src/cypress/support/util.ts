@@ -129,6 +129,7 @@ export function testScreen(
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
+  expFlags: string[] = [],
 ): void {
   describe(label, () => {
     before(function () {
@@ -147,6 +148,7 @@ export function testScreen(
       cy.task('engine:stop')
         .sql(resetQuery)
         .task('db:resettime')
+        .task('engine:setexpflags', expFlags)
         .task('engine:start')
     })
     it('reset db', () => {}) // required due to mocha skip bug
@@ -158,4 +160,16 @@ export function testScreen(
 
     describe(screenName(), () => fn(screen()))
   })
+}
+
+// testScreenWithFlags is a convenience function for testing a screen with
+// different experimental flags.
+//
+// It is equivalent to calling testScreen(label, fn, false, false, expFlags)
+export function testScreenWithFlags(
+  label: string,
+  fn: (screen: ScreenFormat) => void,
+  expFlags: string[],
+): void {
+  testScreen(label, fn, false, false, expFlags)
 }
