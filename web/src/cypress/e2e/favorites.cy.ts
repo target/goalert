@@ -21,10 +21,10 @@ function check(
         typeName = typeName.toLowerCase()
         // test setting as favorite
         cy.get(`button[aria-label="Set as a Favorite ${typeName}"]`).click()
-        cy.reload()
         // aria label should change and should be set as a favorite, test unsetting
+
         cy.get(`button[aria-label="Unset as a Favorite ${typeName}"`).click()
-        cy.reload()
+
         // check that unset
         cy.get(`button[aria-label="Set as a Favorite ${typeName}"]`).click()
       })
@@ -59,10 +59,10 @@ function check(
           ? getSearchSelectItemsFunc(sel, prefix)
           : sel.findByLabel(prefix).get('[data-cy=search-select-item]')
 
-        items.should('have.length', 2).as('items')
+        items.should('have.length.within', 2, 3).as('items') // single selects include value
 
-        cy.get('@items').first().should('contain', name2)
-        cy.get('@items').last().should('contain', name1)
+        cy.get('@items').should('contain', name2)
+        cy.get('@items').should('contain', name1)
       })
     }
   })

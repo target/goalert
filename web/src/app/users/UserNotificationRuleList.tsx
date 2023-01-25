@@ -61,7 +61,7 @@ export default function UserNotificationRuleList(props: {
             action={
               !mobile ? (
                 <IconButton
-                  aria-label='Add notification rule'
+                  title='Add notification rule'
                   onClick={() => setShowAddDialog(true)}
                   disabled={user.contactMethods.length === 0}
                   size='large'

@@ -19,9 +19,9 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 	mux.HandleFunc("/api/users.conversations", func(w http.ResponseWriter, r *http.Request) {
 		switch r.FormValue("cursor") {
 		case "":
-			io.WriteString(w, `{"ok":true,"channels":[{"id":"C1","name":"channel1"},{"id":"C2","name":"channel2"}],"response_metadata":{"next_cursor":"cursor_1"}}`)
+			_, _ = io.WriteString(w, `{"ok":true,"channels":[{"id":"C1","name":"channel1"},{"id":"C2","name":"channel2"}],"response_metadata":{"next_cursor":"cursor_1"}}`)
 		case "cursor_1":
-			io.WriteString(w, `{"ok":true,"channels":[{"id":"C3","name":"channel3"},{"id":"C4","name":"channel4"}],"response_metadata":{"next_cursor":"cursor_2"}}`)
+			_, _ = io.WriteString(w, `{"ok":true,"channels":[{"id":"C3","name":"channel3"},{"id":"C4","name":"channel4"}],"response_metadata":{"next_cursor":"cursor_2"}}`)
 		case "cursor_2":
 			// ensure retry/delay logic works
 			if waitUntil.IsZero() {
@@ -33,13 +33,13 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 			if time.Until(waitUntil) > 0 {
 				t.Error("failed to respect Retry-After value")
 			}
-			io.WriteString(w, `{"ok":true,"channels":[{"id":"C5","name":"channel5"}]}`)
+			_, _ = io.WriteString(w, `{"ok":true,"channels":[{"id":"C5","name":"channel5"}]}`)
 		default:
 			t.Errorf("unexpected cursor value '%s'", r.FormValue("cursor"))
 		}
 	})
 	mux.HandleFunc("/api/auth.test", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, `{"ok":true,"team_id":"team_1"}`)
+		_, _ = io.WriteString(w, `{"ok":true,"team_id":"team_1"}`)
 	})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Log("Request:", r.URL.String())

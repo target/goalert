@@ -49,13 +49,13 @@ export default function NavBar(): JSX.Element {
 
   return (
     <React.Fragment>
-      <div aria-hidden className={classes.logoDiv}>
+      <a href='/' aria-hidden className={classes.logoDiv}>
         <img
           height={38}
           src={theme.palette.mode === 'dark' ? darkModeLogo : logo}
           alt='GoAlert Logo'
         />
-      </div>
+      </a>
       <Divider />
       <nav>
         <List role='navigation' className={classes.list} data-cy='nav-list'>
