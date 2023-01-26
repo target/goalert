@@ -32,14 +32,14 @@ const config = {
       name: 'chromium-wide',
       use: {
         ...devices['Desktop Chrome'],
-        viewportSize: { width: 1440, height: 900 },
+        viewport: { width: 1440, height: 900 },
       },
     },
     {
       name: 'chromium-mobile',
       use: {
         ...devices['Pixel 5'],
-        viewportSize: { width: 375, height: 667 },
+        viewport: { width: 375, height: 667 },
       },
     },
   ],
