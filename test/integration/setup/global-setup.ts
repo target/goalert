@@ -38,7 +38,9 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
       await page.context().tracing.start({ screenshots: true, snapshots: true })
       await page.goto('./profile')
       await login(page, c.user, c.pass)
-      await expect(page.getByRole('link', { name: c.name })).toBeVisible()
+      await expect(page.getByRole('link', { name: c.name })).toBeVisible({
+        timeout: 30000,
+      })
       await page.context().storageState({ path })
       await page.context().tracing.stop()
       await page.close()
