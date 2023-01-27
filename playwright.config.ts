@@ -1,10 +1,9 @@
 import { devices } from '@playwright/test'
 import { scanUniqueFlagCombos } from './test/integration/setup/scan-flags'
 
-const dbURL =
-  process.env.DB_URL ||
-  process.env.GOALERT_DB_URL ||
-  'postgres://goalert@localhost:5432/goalert_integration'
+const dbURL = process.env.CI
+  ? 'postgres://postgres@/goalert_integration?client_encoding=UTF8'
+  : 'postgres://goalert:goalert@localhost:5432/goalert_integration?client_encoding=UTF8'
 
 const wsEnv = {
   GOALERT_DB_URL: dbURL,
@@ -45,9 +44,9 @@ const config = {
   ],
   webServer: [
     {
-      command: 'make start-integration CI=1',
+      command:
+        './bin/MailHog -ui-bind-addr=localhost:6125 -api-bind-addr=localhost:6125 -smtp-bind-addr=localhost:6105 >/dev/null 2>&1',
       port: 6125,
-      reuseExistingServer: true,
     },
     {
       command:
