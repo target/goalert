@@ -31,8 +31,8 @@ const dynamicPublicPathPlugin = {
   },
 }
 
-require('esbuild')
-  .build({
+async function run() {
+  const ctx = await require('esbuild').context({
     entryPoints: {
       explore: 'explore/explore.tsx',
       app: 'app/index.tsx',
@@ -59,9 +59,16 @@ require('esbuild')
       '.svg': 'dataurl',
       '.md': 'text',
     },
-    watch: process.argv.includes('--watch'),
   })
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+
+  if (process.argv.includes('--watch')) {
+    await ctx.watch()
+  } else {
+    await ctx.dispose()
+  }
+}
+
+run().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})
