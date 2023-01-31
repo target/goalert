@@ -124,6 +124,8 @@ export function screenName(): string {
   return 'Wide'
 }
 
+let testN = 0
+
 export function testScreen(
   label: string,
   fn: (screen: ScreenFormat) => void,
@@ -153,11 +155,10 @@ export function testScreen(
     })
     it('reset db', () => {}) // required due to mocha skip bug
 
-    const loginType = adminLogin ? 'adminLogin' : 'login'
     if (!skipLogin) {
       beforeEach(() => {
-        cy.session(loginType, () => {
-          cy.resetConfig()[loginType]()
+        cy.session('testScreen_' + ++testN, () => {
+          cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
         })
       })
       it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
