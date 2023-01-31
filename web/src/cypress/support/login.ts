@@ -48,8 +48,6 @@ function login(
       })
   }
 
-  cy.clearCookie('goalert_session.2')
-
   return cy
     .request({
       url: '/api/v2/identity/providers/basic',
