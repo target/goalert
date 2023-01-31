@@ -157,7 +157,7 @@ export function testScreen(
 
     if (!skipLogin) {
       beforeEach(() => {
-        cy.session('testScreen_' + ++testN, () => {
+        cy.session({ n: testN++, ts: new Date() }, () => {
           cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
         })
       })
