@@ -25,6 +25,8 @@ function testPaginating(
 
   describe(label, () => {
     before(() => {
+      login()
+
       names = []
       nameSubstr = c.word({ length: 12 })
       for (let i = 0; i < 45; i++) {
@@ -120,4 +122,4 @@ function testPagination(): void {
   testPaginating('Users', 'users', cy.createManyUsers)
 }
 
-testScreen('Pagination', testPagination)
+const login = testScreen('Pagination', testPagination)
