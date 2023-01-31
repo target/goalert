@@ -141,6 +141,10 @@ export function testScreen(
   adminLogin = false,
   expFlags: string[] = [],
 ): void {
+  after(() => {
+    loginFn = null
+  })
+
   if (!skipLogin) {
     const sessID = { n: testN++, ts: new Date() }
     loginFn = () => {
@@ -148,6 +152,8 @@ export function testScreen(
         cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
       })
     }
+  } else {
+    loginFn = null
   }
 
   describe(label, () => {
@@ -178,8 +184,6 @@ export function testScreen(
 
     describe(screenName(), () => fn(screen()))
   })
-
-  loginFn = null
 }
 
 // testScreenWithFlags is a convenience function for testing a screen with
