@@ -153,8 +153,13 @@ export function testScreen(
     })
     it('reset db', () => {}) // required due to mocha skip bug
 
+    const loginType = adminLogin ? 'adminLogin' : 'login'
     if (!skipLogin) {
-      before(() => cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']())
+      beforeEach(() => {
+        cy.session(loginType, () => {
+          cy.resetConfig()[loginType]()
+        })
+      })
       it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
     }
 
