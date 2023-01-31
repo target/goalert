@@ -692,7 +692,7 @@ function testServices(screen: ScreenFormat): void {
     })
   })
 
-  describe.only('Metrics', () => {
+  describe('Metrics', () => {
     let closedAlert: Alert
     let openAlert: Alert
     beforeEach(() =>
