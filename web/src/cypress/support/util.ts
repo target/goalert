@@ -132,7 +132,18 @@ export function testScreen(
   skipLogin = false,
   adminLogin = false,
   expFlags: string[] = [],
-): void {
+): () => void {
+  let loginFn = () => {}
+
+  if (!skipLogin) {
+    const sessID = { n: testN++, ts: new Date() }
+    loginFn = () => {
+      cy.session(sessID, () => {
+        cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
+      })
+    }
+  }
+
   describe(label, () => {
     before(function () {
       cy.task('check:abort').then((abort) => {
@@ -154,16 +165,12 @@ export function testScreen(
     })
     it('reset db', () => {}) // required due to mocha skip bug
 
-    if (!skipLogin) {
-      beforeEach(() => {
-        cy.session({ n: testN++, ts: new Date() }, () => {
-          cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
-        })
-      })
-    }
+    if (!skipLogin) beforeEach(loginFn)
 
     describe(screenName(), () => fn(screen()))
   })
+
+  return loginFn
 }
 
 // testScreenWithFlags is a convenience function for testing a screen with
@@ -174,6 +181,6 @@ export function testScreenWithFlags(
   label: string,
   fn: (screen: ScreenFormat) => void,
   expFlags: string[],
-): void {
-  testScreen(label, fn, false, false, expFlags)
+): () => void {
+  return testScreen(label, fn, false, false, expFlags)
 }

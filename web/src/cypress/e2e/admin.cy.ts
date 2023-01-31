@@ -249,10 +249,14 @@ function testAdmin(): void {
     let debugMessage: DebugMessage
 
     before(() => {
+      login() // required for before hooks
+
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
-        cy.visit('/admin/message-logs')
       })
+    })
+    beforeEach(() => {
+      cy.visit('/admin/message-logs')
     })
 
     it('should view the logs list with one log', () => {
@@ -339,4 +343,4 @@ function testAdmin(): void {
   })
 }
 
-testScreen('Admin', testAdmin, false, true)
+const login = testScreen('Admin', testAdmin, false, true)
