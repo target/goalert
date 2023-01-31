@@ -146,7 +146,6 @@ export function testScreen(
       cy.intercept('/_cy_test_reset', '<html></html>')
       cy.visit('/_cy_test_reset')
 
-      cy.clearCookie('goalert_session.2')
       cy.task('engine:stop')
         .sql(resetQuery)
         .task('db:resettime')
@@ -161,7 +160,6 @@ export function testScreen(
           cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
         })
       })
-      it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
     }
 
     describe(screenName(), () => fn(screen()))
