@@ -25,7 +25,8 @@
   },
   "devDependencies": {
     "@playwright/test": "1.29.0",
-    "@typescript-eslint/eslint-plugin": "5.48.0",
+    "@types/glob": "8.0.1",
+    "@typescript-eslint/eslint-plugin": "5.50.0",
     "@typescript-eslint/parser": "5.49.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.6.0",
@@ -40,6 +41,7 @@
     "eslint-plugin-promise": "6.1.0",
     "eslint-plugin-react": "7.32.0",
     "eslint-plugin-react-hooks": "4.6.0",
+    "glob": "8.1.0",
     "playwright": "1.29.0",
     "prettier": "2.8.0",
     "stylelint": "14.16.0",
