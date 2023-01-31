@@ -126,15 +126,21 @@ export function screenName(): string {
 
 let testN = 0
 
+let loginFn: (() => void) | null = null
+
+export function login(): void {
+  if (!loginFn) throw new Error('only valid within a testScreen block')
+
+  loginFn()
+}
+
 export function testScreen(
   label: string,
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
   expFlags: string[] = [],
-): () => void {
-  let loginFn = () => {}
-
+): void {
   if (!skipLogin) {
     const sessID = { n: testN++, ts: new Date() }
     loginFn = () => {
@@ -165,12 +171,15 @@ export function testScreen(
     })
     it('reset db', () => {}) // required due to mocha skip bug
 
-    if (!skipLogin) beforeEach(loginFn)
+    if (!skipLogin) {
+      if (!loginFn) throw new Error('loginFn not set')
+      beforeEach(loginFn)
+    }
 
     describe(screenName(), () => fn(screen()))
   })
 
-  return loginFn
+  loginFn = null
 }
 
 // testScreenWithFlags is a convenience function for testing a screen with
@@ -181,6 +190,6 @@ export function testScreenWithFlags(
   label: string,
   fn: (screen: ScreenFormat) => void,
   expFlags: string[],
-): () => void {
-  return testScreen(label, fn, false, false, expFlags)
+): void {
+  testScreen(label, fn, false, false, expFlags)
 }

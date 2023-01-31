@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support/e2e'
+import { testScreen, login } from '../support/e2e'
 const c = new Chance()
 
 const itemsPerPage = 15
@@ -122,4 +122,4 @@ function testPagination(): void {
   testPaginating('Users', 'users', cy.createManyUsers)
 }
 
-const login = testScreen('Pagination', testPagination)
+testScreen('Pagination', testPagination)
