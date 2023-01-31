@@ -736,7 +736,7 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', 'Alert Count: 1')
         .should('contain', 'Escalated: 0') // no ep steps
 
-      cy.get(`.recharts-line-dots circle`).last().trigger('mouseover')
+      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
         .should('contain', 'Avg. Ack: 1 min')
