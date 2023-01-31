@@ -231,9 +231,7 @@ function testAdmin(): void {
         minute: 'numeric',
       })
 
-      cy.get(`[data-cy="${svc1.name}-${now}"]`).trigger('mouseover', 0, 0, {
-        force: true,
-      })
+      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=alert-count-graph]')
         .should('contain', now)
         .should('contain', `${svc1.name}: 1`)
