@@ -59,7 +59,7 @@ export default function App(): JSX.Element {
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
   const urlKey = useURLKey()
-  const exampleFlag = useExpFlag('example')
+  const hasExampleFlag = useExpFlag('example')
 
   useLayoutEffect(() => {
     setShowMobile(false)
@@ -119,7 +119,7 @@ export default function App(): JSX.Element {
             id='content'
             className={classes.main}
             style={{ marginLeft }}
-            data-exp-flag-example={String(exampleFlag)}
+            data-exp-flag-example={String(hasExampleFlag)}
           >
             <ErrorBoundary>
               <LazyNewUserSetup />
