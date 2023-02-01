@@ -15,7 +15,7 @@ test.describe(() => {
 })
 
 // test a query for the current experimental flags (when none are set)
-test('no experimental flags set', async ({ page, isMobile }) => {
+test('no experimental flags set', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('#content')).toHaveAttribute(
     'data-exp-flag-example',
