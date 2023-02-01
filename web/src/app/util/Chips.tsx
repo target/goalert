@@ -5,10 +5,8 @@ import { useQuery, gql } from 'urql'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
-  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import Avatar from '@mui/material/Avatar'
-import { Tooltip } from '@mui/material'
 
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
@@ -148,50 +146,5 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
       }
       {...rest}
     />
-  )
-}
-
-export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
-  const { id: url, ...rest } = props
-
-  const query = gql`
-    query ($id: String!) {
-      webhook(id: $id) {
-        id
-        name
-      }
-    }
-  `
-
-  const [{ data, error }] = useQuery<Query>({
-    query,
-    variables: { id: url },
-    requestPolicy: 'cache-first',
-  })
-  const hostname = data?.webhook?.name
-  const webhookURL = data?.webhook?.id
-
-  if (error) {
-    console.error(`Error querying webhook ${hostname}:`, error)
-  }
-
-  const clickable = Boolean(webhookURL)
-  if (clickable) {
-    rest.onClick = () => window.open(`${webhookURL}`)
-  }
-
-  return (
-    <Tooltip title={webhookURL || ''}>
-      <Chip
-        data-cy='webhook-chip'
-        data-clickable={clickable}
-        avatar={
-          <Avatar>
-            <WebhookIcon />
-          </Avatar>
-        }
-        {...rest}
-      />
-    </Tooltip>
   )
 }
