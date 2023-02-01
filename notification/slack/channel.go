@@ -10,7 +10,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackutilsx"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -50,8 +49,8 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
 		cfg: cfg,
 
-		listCache:     newTTLCache[string, []Channel](250, time.Minute),
-		chanCache:     newTTLCache[string, *Channel](1000, 15*time.Minute),
+		listCache: newTTLCache[string, []Channel](250, time.Minute),
+		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
 		userInfoCache: newTTLCache[string, *slack.User](1000, 24*time.Hour),
 	}, nil
 }
@@ -309,10 +308,6 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, log
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
-
-	if !expflag.ContextHas(ctx, expflag.SlackDM) && msg.Destination().Type == notification.DestTypeSlackDM {
-		return nil, errors.New("Slack DMs are disabled")
-	}
 
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
