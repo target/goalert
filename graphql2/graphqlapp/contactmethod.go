@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -81,6 +83,16 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
 		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
+	}
+
+	if input.Type == contactmethod.TypeSlackDM {
+		if !expflag.ContextHas(ctx, expflag.SlackDM) {
+			return nil, validation.NewFieldError("type", "Slack DMs are not enabled")
+		}
+		formatted := m.FormatDestFunc(ctx, notification.DestTypeSlackDM, input.Value)
+		if !strings.HasPrefix(formatted, "@") {
+			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
+		}
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
