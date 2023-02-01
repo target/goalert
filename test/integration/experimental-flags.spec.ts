@@ -5,7 +5,7 @@ test.use({ storageState: userSessionFile })
 
 test.describe(() => {
   // test a query for the current experimental flags (when example is set)
-  test('example experimental flag set', async ({ page, isMobile }) => {
+  test('example experimental flag set', async ({ page }) => {
     await page.goto(baseURLFromFlags(['example']))
     await expect(page.locator('#content')).toHaveAttribute(
       'data-exp-flag-example',
