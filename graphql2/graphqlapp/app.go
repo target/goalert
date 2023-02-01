@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -39,6 +40,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -74,6 +76,7 @@ type App struct {
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
 	SlackStore        *slack.ChannelSender
+	WebhookStore      *webhook.Store
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 
@@ -87,6 +90,8 @@ type App struct {
 	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store
+
+	SWO *swo.Manager
 
 	FormatDestFunc func(context.Context, notification.DestType, string) string
 }

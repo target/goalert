@@ -200,6 +200,7 @@ func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta inter
 	s.MustLogTx(ctx, nil, alertID, _type, meta)
 }
 func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
+
 	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
@@ -285,6 +286,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			switch ncType {
 			case notificationchannel.TypeSlack:
 				r.subject.classifier = "Slack"
+			case notificationchannel.TypeWebhook:
+				r.subject.classifier = "Webhook"
 			}
 			r.subject.channelID.String = src.ID
 			r.subject.channelID.Valid = true
@@ -338,6 +341,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			case notification.DestTypeUserEmail:
 				r.subject.classifier = "Email"
 			case notification.DestTypeUserWebhook:
+			case notification.DestTypeWebhook:
 				r.subject.classifier = "Webhook"
 			case notification.DestTypeSlackChannel:
 				r.subject.classifier = "Slack"
@@ -346,6 +350,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			if r.subject.userID.String != "" {
 				r.subject.userID.Valid = true
 			}
+
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
 			var minutes int
@@ -405,6 +410,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 	}
 
 	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
+
 	return err
 }
 func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {

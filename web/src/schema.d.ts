@@ -2,6 +2,8 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
+  messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
   users: UserConnection
@@ -26,6 +28,8 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
+  webhooks: WebhookConnection
+  webhook?: null | Webhook
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
@@ -36,6 +40,42 @@ export interface Query {
   slackChannel?: null | SlackChannel
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
+  swoStatus: SWOStatus
+}
+
+export interface SWOStatus {
+  state: SWOState
+  lastStatus: string
+  lastError: string
+  nodes: SWONode[]
+  mainDBVersion: string
+  nextDBVersion: string
+}
+
+export type SWOState =
+  | 'unknown'
+  | 'resetting'
+  | 'idle'
+  | 'syncing'
+  | 'pausing'
+  | 'executing'
+  | 'done'
+
+export interface SWONode {
+  id: string
+  canExec: boolean
+  isLeader: boolean
+  uptime: string
+  configError: string
+  connections?: null | SWOConnection[]
+}
+
+export interface SWOConnection {
+  name: string
+  version: string
+  type: string
+  isNext: boolean
+  count: number
 }
 
 export interface LinkAccountInfo {
@@ -74,6 +114,22 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+  sentAt?: null | ISOTimestamp
+  retryCount: number
+}
+
+export interface MessageLogSearchOptions {
+  first?: null | number
+  after?: null | string
+  createdBefore?: null | ISOTimestamp
+  createdAfter?: null | ISOTimestamp
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface MessageLogConnection {
+  nodes: DebugMessage[]
+  pageInfo: PageInfo
 }
 
 export interface SlackChannelSearchOptions {
@@ -275,7 +331,10 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
+export type SWOAction = 'reset' | 'execute'
+
 export interface Mutation {
+  swoAction: boolean
   linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
@@ -878,6 +937,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'webhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -918,6 +978,24 @@ export interface AuthSubjectInput {
   userID: string
   providerID: string
   subjectID: string
+}
+
+export interface Webhook {
+  id: string
+  name: string
+}
+
+export interface WebhookSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+  escalationPolicyID?: null | string
+}
+
+export interface WebhookConnection {
+  nodes: Webhook[]
+  pageInfo: PageInfo
 }
 
 export type UserRole = 'unknown' | 'user' | 'admin'
@@ -1020,6 +1098,7 @@ type ConfigID =
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
   | 'Maintenance.AlertCleanupDays'
+  | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'

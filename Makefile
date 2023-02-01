@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release force-yarn
+.PHONY: goalert-container demo-container release force-yarn reset-integration
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -28,14 +28,14 @@ SIZE:=1
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
+# used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
+EXPERIMENTAL :=
+export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
 
-INT_PROC = Procfile.integration
-ifeq ($(CI), 1)
-INT_PROC = Procfile.integration.ci
-endif
 
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
@@ -51,8 +51,14 @@ Makefile.binaries.mk: devtools/genmake/*
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 
+$(BIN_DIR)/tools/sqlc: sqlc.version
+	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
+
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
+
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	go run ./devtools/gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -98,6 +104,9 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
+swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql
+	$(BIN_DIR)/tools/sqlc generate
+
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
@@ -106,7 +115,7 @@ help: ## Show all valid options
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
@@ -114,7 +123,15 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
+
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
+	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
+	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
+
+reset-integration: bin/waitfor bin/goalert bin/psql-lite
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	./bin/goalert --db-url "$(INT_DB_URL)" migrate
@@ -123,7 +140,9 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
 	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
-	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f $(INT_PROC)
+
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
+	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
@@ -142,13 +161,10 @@ check-js: force-yarn generate node_modules
 	yarn run lint
 	yarn workspaces run check
 
-check-go: generate
+check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
-	go vet ./...
-	go fmt ./...
 	# go run ./devtools/ordermigrations -check
-	go run github.com/gordonklaus/ineffassign ./...
-	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+	$(BIN_DIR)/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
@@ -164,7 +180,8 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
+generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
+	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
 
@@ -173,7 +190,10 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 
-playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+bin/MailHog: go.mod go.sum
+	go build -o bin/MailHog github.com/mailhog/MailHog
+
+playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	yarn playwright test
 
 smoketest:
@@ -228,6 +248,7 @@ postgres: bin/waitfor
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
+		--shm-size 1g \
 		-p 5432:5432 \
 		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 

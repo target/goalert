@@ -34,6 +34,7 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -77,9 +78,8 @@ type App struct {
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
 
-	srv         *http.Server
-	requestLock *contextLocker
-	startupErr  error
+	srv        *http.Server
+	startupErr error
 
 	notificationManager *notification.Manager
 	Engine              *engine.Engine
@@ -90,7 +90,8 @@ type App struct {
 	twilioVoice  *twilio.Voice
 	twilioConfig *twilio.Config
 
-	slackChan *slack.ChannelSender
+	slackChan    *slack.ChannelSender
+	WebhookStore *webhook.Store
 
 	ConfigStore *config.Store
 
@@ -183,8 +184,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		db:     db,
 		cfg:    c,
 		doneCh: make(chan struct{}),
-
-		requestLock: newContextLocker(),
 	}
 
 	gCfg := &gorm.Config{
@@ -248,7 +247,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
 func (a *App) WaitForStartup(ctx context.Context) error {
-	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+	return a.mgr.WaitForStartup(a.Context(ctx))
 }
 
 // DB returns the sql.DB instance used by the application.
@@ -262,10 +261,4 @@ func (a *App) URL() string {
 // Status returns the current lifecycle status of the App.
 func (a *App) Status() lifecycle.Status {
 	return a.mgr.Status()
-}
-
-// ActiveRequests returns the current number of active
-// requests, not including pending ones during pause.
-func (a *App) ActiveRequests() int {
-	return a.requestLock.RLockCount()
 }
