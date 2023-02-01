@@ -26,6 +26,7 @@ const query = gql`
           state {
             details
             status
+            timestamp
           }
         }
         pageInfo {
@@ -119,6 +120,7 @@ export default function AlertDetailLogs(props) {
   const renderItem = (event, idx) => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
+    const ts = event?.state?.timestamp ?? ''
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
@@ -126,6 +128,15 @@ export default function AlertDetailLogs(props) {
         DateTime.DATETIME_FULL,
       )
     }
+
+    console.log(props.alertID)
+    console.log(
+      event?.message,
+      '\nevent time: ',
+      event?.timestamp,
+      '\nstatus time: ',
+      ts,
+    )
 
     return (
       <ListItem key={idx} divider>

@@ -820,6 +820,7 @@ export interface NotificationState {
   details: string
   status?: null | NotificationStatus
   formattedSrcValue: string
+  timestamp: ISOTimestamp
 }
 
 export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
