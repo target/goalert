@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../schema'
-import { testScreen, Config, pathPrefix } from '../support/e2e'
+import { testScreen, login, Config, pathPrefix } from '../support/e2e'
 const c = new Chance()
 
 function testAdmin(): void {
@@ -231,9 +231,7 @@ function testAdmin(): void {
         minute: 'numeric',
       })
 
-      cy.get(`[data-cy="${svc1.name}-${now}"]`).trigger('mouseover', 0, 0, {
-        force: true,
-      })
+      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=alert-count-graph]')
         .should('contain', now)
         .should('contain', `${svc1.name}: 1`)
@@ -249,10 +247,14 @@ function testAdmin(): void {
     let debugMessage: DebugMessage
 
     before(() => {
+      login() // required for before hooks
+
       cy.createOutgoingMessage().then((msg: DebugMessage) => {
         debugMessage = msg
-        cy.visit('/admin/message-logs')
       })
+    })
+    beforeEach(() => {
+      cy.visit('/admin/message-logs')
     })
 
     it('should view the logs list with one log', () => {
