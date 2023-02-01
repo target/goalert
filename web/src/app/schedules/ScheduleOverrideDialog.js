@@ -146,11 +146,11 @@ export default function ScheduleOverrideDialog(props) {
   )
 }
 
-ScheduleCalendarOverrideDialog.defaultProps = {
+ScheduleOverrideDialog.defaultProps = {
   defaultValue: {},
 }
 
-ScheduleCalendarOverrideDialog.propTypes = {
+ScheduleOverrideDialog.propTypes = {
   scheduleID: p.string.isRequired,
   onClose: p.func,
   removeUserReadOnly: p.bool,
