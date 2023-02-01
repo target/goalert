@@ -6,10 +6,12 @@ type Flag string
 
 const (
 	Example Flag = "example"
+	SlackDM Flag = "slack-dm"
 )
 
 var desc = map[Flag]string{
 	Example: "An example experimental flag to demonstrate usage.",
+	SlackDM: "Enables sending notifications to Slack DMs as a user contact method.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.
