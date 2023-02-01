@@ -14,28 +14,34 @@ const mutation = gql`
 `
 
 function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
-  const [value, setValue] = useState<PolicyFormValue>({
+  const defaultValue = {
     name: '',
     description: '',
     repeat: { label: '3', value: '3' },
     favorite: true,
-  })
-  const [createPolicy, { loading, data, error }] = useMutation(mutation, {
+  }
+  const [value, setValue] = useState<PolicyFormValue>(defaultValue)
+  const [createPolicy, createPolicyStatus] = useMutation(mutation, {
     variables: {
       input: {
-        name: value.name,
-        description: value.description,
-        repeat: value.repeat.value,
+        name: value && value.name,
+        description: value && value.description,
+        repeat: value && value.repeat.value,
         favorite: true,
       },
     },
+    onCompleted: props.onClose,
   })
 
-  if (data?.createEscalationPolicy) {
+  const { loading, data, error } = createPolicyStatus
+
+  if (data && data.createEscalationPolicy) {
     return (
       <Redirect to={`/escalation-policies/${data.createEscalationPolicy.id}`} />
     )
   }
+
+  const fieldErrs = fieldErrors(error)
 
   return (
     <FormDialog
@@ -46,7 +52,7 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
       onSubmit={() => createPolicy()}
       form={
         <PolicyForm
-          errors={fieldErrors(error)}
+          errors={fieldErrs}
           disabled={loading}
           value={value}
           onChange={(value: PolicyFormValue) => setValue(value)}

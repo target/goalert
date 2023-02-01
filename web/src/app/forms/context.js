@@ -14,5 +14,4 @@ export const FormContext = React.createContext({
   disabled: false,
   addSubmitCheck: () => () => {},
 })
-
 FormContext.displayName = 'FormContext'

@@ -10,10 +10,9 @@ interface CreateAlertFormProps {
   activeStep: number
   value: Value
 
-  errors?: Error[]
-  error?: Error
+  errors: Error[]
 
-  onChange: (newValue: Value) => void
+  onChange?: (newValue: Value) => void
   disabled?: boolean
 
   mapValue?: () => void
@@ -25,6 +24,11 @@ interface CreateAlertFormProps {
 }
 
 // TODO: remove this interface once FormContainer.js has been converted to TS
+interface Error {
+  message: string
+  field: string
+  helpLink?: string
+}
 
 export function CreateAlertForm({
   activeStep,
@@ -36,13 +40,7 @@ export function CreateAlertForm({
       {activeStep === 1 && (
         <FormField
           required
-          render={(props) => (
-            <CreateAlertServiceSelect
-              value={props.value as string[]}
-              onChange={props.onChange}
-              error={props.error as Error}
-            />
-          )}
+          render={(props) => <CreateAlertServiceSelect {...props} />}
           name='serviceIDs'
         />
       )}

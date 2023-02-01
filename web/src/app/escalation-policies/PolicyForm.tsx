@@ -12,7 +12,6 @@ export interface PolicyFormValue {
     label: string
     value: string
   }
-  favorite?: boolean
 }
 
 interface PolicyFormProps {
