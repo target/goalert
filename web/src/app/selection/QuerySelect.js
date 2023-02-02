@@ -32,7 +32,7 @@ const mapValueQuery = (query, index) =>
 
 // makeUseValues will return a hook that will fetch select values for the
 // given ids.
-function makeUseValues(query, mapNode, mapCreate) {
+function makeUseValues(query, mapNode) {
   if (!query) {
     // no value query, so always use the map function
     return function useValuesNoQuery(_value) {
@@ -69,12 +69,8 @@ function makeUseValues(query, mapNode, mapCreate) {
 
     const result = value.map((v, i) => {
       const name = 'data' + i
-      if (!data || _.isEmpty(data[name])) {
-        if (mapCreate) {
-          return mapCreate(v)
-        }
+      if (!data || _.isEmpty(data[name]))
         return { value: v, label: 'Loading...' }
-      }
 
       return mapNode(data[name])
     })
@@ -165,12 +161,9 @@ export function makeQuerySelect(displayName, options) {
     // but has no search parameter. It is useful for showing favorites before the user
     // enters a search term.
     defaultQueryVariables = {},
-
-    // mapOnCreate is an optional function that will map selected input on creation
-    mapOnCreate = (value) => value,
   } = options
 
-  const useValues = makeUseValues(valueQuery, mapDataNode, mapOnCreate)
+  const useValues = makeUseValues(valueQuery, mapDataNode)
   const useOptions = makeUseOptions(
     query,
     mapDataNode,
@@ -211,7 +204,6 @@ export function makeQuerySelect(displayName, options) {
         isCreate: true,
         value: searchInput,
         label: `Create "${searchInput}"`,
-        key: searchInput,
       })
     }
 

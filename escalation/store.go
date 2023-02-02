@@ -3,7 +3,6 @@ package escalation
 import (
 	"context"
 	"database/sql"
-	"net/url"
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
@@ -32,7 +31,7 @@ type Store struct {
 	ncStore *notificationchannel.Store
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
-	findNotifChan *sql.Stmt
+	findSlackChan *sql.Stmt
 
 	findOnePolicy          *sql.Stmt
 	findOnePolicyForUpdate *sql.Stmt
@@ -65,13 +64,13 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		slackFn: cfg.SlackLookupFunc,
 		ncStore: cfg.NCStore,
 
-		findNotifChan: p.P(`
+		findSlackChan: p.P(`
 			SELECT chan.id
 			FROM notification_channels chan
 			JOIN escalation_policy_actions act ON
 				act.escalation_policy_step_id = $1 AND
 				act.channel_id = chan.id
-			WHERE chan.value = $2 and chan.type = $3
+			WHERE chan.value = $2 and chan.type = 'SLACK'
 		`),
 
 		findOnePolicy: p.P(`
@@ -287,22 +286,6 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 	return err
 }
 
-func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
-	webhookUrl, err := url.Parse(webhookTarget.TargetID())
-	if err != nil {
-		return nil, err
-	}
-	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
-		Type:  notificationchannel.TypeWebhook,
-		Name:  webhookUrl.Hostname(),
-		Value: webhookTarget.TargetID(),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return assignment.NotificationChannelTarget(notifID.String()), nil
-}
-
 func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID string) (assignment.Target, error) {
 	ch, err := s.slackFn(ctx, slackChanID)
 	if err != nil {
@@ -321,9 +304,9 @@ func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID str
 	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
 
-func (s *Store) lookupNotifChannel(ctx context.Context, tx *sql.Tx, stepID, chanID, chanType string) (assignment.Target, error) {
+func (s *Store) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
 	var notifChanID string
-	err := tx.StmtContext(ctx, s.findNotifChan).QueryRowContext(ctx, stepID, chanID, chanType).Scan(&notifChanID)
+	err := tx.StmtContext(ctx, s.findSlackChan).QueryRowContext(ctx, stepID, slackChanID).Scan(&notifChanID)
 	if err != nil {
 		return nil, err
 	}
@@ -340,13 +323,6 @@ func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, 
 			return err
 		}
 	}
-	if tgt.TargetType() == assignment.TargetTypeWebhook {
-		var err error
-		tgt, err = s.newWebhook(ctx, tx, tgt)
-		if err != nil {
-			return err
-		}
-	}
 	return s._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, s.addStepTarget), true)
 }
 
@@ -354,14 +330,7 @@ func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, 
 func (s *Store) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
 	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
 		var err error
-		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "SLACK")
-		if err != nil {
-			return err
-		}
-	}
-	if tgt.TargetType() == assignment.TargetTypeWebhook {
-		var err error
-		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "WEBHOOK")
+		tgt, err = s.lookupSlackChannel(ctx, tx, stepID, tgt.TargetID())
 		if err != nil {
 			return err
 		}
@@ -420,9 +389,6 @@ func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID str
 			case notificationchannel.TypeSlack:
 				tgt.ID = chValue.String
 				tgt.Type = assignment.TargetTypeSlackChannel
-			case notificationchannel.TypeWebhook:
-				tgt.ID = chValue.String
-				tgt.Type = assignment.TargetTypeWebhook
 			default:
 				tgt.ID = ch.String
 				tgt.Type = assignment.TargetTypeNotificationChannel
@@ -712,6 +678,7 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 	}
 
 	s.logChange(ctx, tx, st.PolicyID)
+
 	return n, nil
 }
 

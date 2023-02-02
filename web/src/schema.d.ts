@@ -51,14 +51,7 @@ export interface SWOStatus {
   nextDBVersion: string
 }
 
-export type SWOState =
-  | 'unknown'
-  | 'resetting'
-  | 'idle'
-  | 'syncing'
-  | 'pausing'
-  | 'executing'
-  | 'done'
+export type SWOState =  | 'unknown' | 'resetting' | 'idle' | 'syncing' | 'pausing' | 'executing' | 'done'
 
 export interface SWONode {
   id: string
@@ -174,21 +167,9 @@ export interface ConfigHint {
   value: string
 }
 
-export type ConfigType = 'string' | 'stringList' | 'integer' | 'boolean'
+export type ConfigType =  | 'string' | 'stringList' | 'integer' | 'boolean'
 
-export type SystemLimitID =
-  | 'CalendarSubscriptionsPerUser'
-  | 'NotificationRulesPerUser'
-  | 'ContactMethodsPerUser'
-  | 'EPStepsPerPolicy'
-  | 'EPActionsPerStep'
-  | 'ParticipantsPerRotation'
-  | 'RulesPerSchedule'
-  | 'IntegrationKeysPerService'
-  | 'UnackedAlertsPerService'
-  | 'TargetsPerSchedule'
-  | 'HeartbeatMonitorsPerService'
-  | 'UserOverridesPerSchedule'
+export type SystemLimitID =  | 'CalendarSubscriptionsPerUser' | 'NotificationRulesPerUser' | 'ContactMethodsPerUser' | 'EPStepsPerPolicy' | 'EPActionsPerStep' | 'ParticipantsPerRotation' | 'RulesPerSchedule' | 'IntegrationKeysPerService' | 'UnackedAlertsPerService' | 'TargetsPerSchedule' | 'HeartbeatMonitorsPerService' | 'UserOverridesPerSchedule'
 
 export interface UserOverrideSearchOptions {
   first?: null | number
@@ -330,7 +311,7 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
-export type SWOAction = 'reset' | 'execute'
+export type SWOAction =  | 'reset' | 'execute'
 
 export interface Mutation {
   swoAction: boolean
@@ -663,7 +644,7 @@ export interface Rotation {
   nextHandoffTimes: ISOTimestamp[]
 }
 
-export type RotationType = 'weekly' | 'daily' | 'hourly'
+export type RotationType =  | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
@@ -753,7 +734,7 @@ export interface AlertSearchOptions {
   notClosedBefore?: null | ISOTimestamp
 }
 
-export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
+export type AlertSearchSort =  | 'statusID' | 'dateID' | 'dateIDReverse'
 
 export type ISODuration = string
 
@@ -763,15 +744,7 @@ export type ISOTimestamp = string
 
 export type ClockTime = string
 
-export type WeekdayFilter = [
-  boolean,
-  boolean,
-  boolean,
-  boolean,
-  boolean,
-  boolean,
-  boolean,
-]
+export type WeekdayFilter = [boolean, boolean, boolean, boolean, boolean, boolean, boolean]
 
 export interface Alert {
   id: string
@@ -822,7 +795,7 @@ export interface NotificationState {
   formattedSrcValue: string
 }
 
-export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
+export type NotificationStatus =  | 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp
@@ -862,7 +835,7 @@ export interface UpdateHeartbeatMonitorInput {
   timeoutMinutes?: null | number
 }
 
-export type HeartbeatMonitorState = 'inactive' | 'healthy' | 'unhealthy'
+export type HeartbeatMonitorState =  | 'inactive' | 'healthy' | 'unhealthy'
 
 export interface HeartbeatMonitor {
   id: string
@@ -887,12 +860,7 @@ export interface IntegrationKey {
   href: string
 }
 
-export type IntegrationKeyType =
-  | 'generic'
-  | 'grafana'
-  | 'site24x7'
-  | 'prometheusAlertmanager'
-  | 'email'
+export type IntegrationKeyType =  | 'generic' | 'grafana' | 'site24x7' | 'prometheusAlertmanager' | 'email'
 
 export interface ServiceOnCallUser {
   userID: string
@@ -911,10 +879,7 @@ export interface EscalationPolicy {
   notices: Notice[]
 }
 
-export type AlertStatus =
-  | 'StatusAcknowledged'
-  | 'StatusClosed'
-  | 'StatusUnacknowledged'
+export type AlertStatus =  | 'StatusAcknowledged' | 'StatusClosed' | 'StatusUnacknowledged'
 
 export interface Target {
   id: string
@@ -927,23 +892,7 @@ export interface TargetInput {
   type: TargetType
 }
 
-export type TargetType =
-  | 'escalationPolicy'
-  | 'notificationChannel'
-  | 'slackChannel'
-  | 'notificationPolicy'
-  | 'rotation'
-  | 'service'
-  | 'schedule'
-  | 'user'
-  | 'webhook'
-  | 'integrationKey'
-  | 'userOverride'
-  | 'notificationRule'
-  | 'contactMethod'
-  | 'heartbeatMonitor'
-  | 'calendarSubscription'
-  | 'userSession'
+export type TargetType =  | 'escalationPolicy' | 'notificationChannel' | 'slackChannel' | 'notificationPolicy' | 'rotation' | 'service' | 'schedule' | 'user' | 'webhook' | 'integrationKey' | 'userOverride' | 'notificationRule' | 'contactMethod' | 'heartbeatMonitor' | 'calendarSubscription' | 'userSession'
 
 export interface ServiceConnection {
   nodes: Service[]
@@ -997,7 +946,7 @@ export interface WebhookConnection {
   pageInfo: PageInfo
 }
 
-export type UserRole = 'unknown' | 'user' | 'admin'
+export type UserRole =  | 'unknown' | 'user' | 'admin'
 
 export interface User {
   id: string
@@ -1029,7 +978,7 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =  | 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string
@@ -1084,67 +1033,7 @@ export interface Notice {
   details: string
 }
 
-export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
+export type NoticeType =  | 'WARNING' | 'ERROR' | 'INFO'
 
-type ConfigID =
-  | 'General.ApplicationName'
-  | 'General.PublicURL'
-  | 'General.GoogleAnalyticsID'
-  | 'General.NotificationDisclaimer'
-  | 'General.DisableMessageBundles'
-  | 'General.ShortURL'
-  | 'General.DisableSMSLinks'
-  | 'General.DisableLabelCreation'
-  | 'General.DisableCalendarSubscriptions'
-  | 'Maintenance.AlertCleanupDays'
-  | 'Maintenance.AlertAutoCloseDays'
-  | 'Maintenance.APIKeyExpireDays'
-  | 'Maintenance.ScheduleCleanupDays'
-  | 'Auth.RefererURLs'
-  | 'Auth.DisableBasic'
-  | 'GitHub.Enable'
-  | 'GitHub.NewUsers'
-  | 'GitHub.ClientID'
-  | 'GitHub.ClientSecret'
-  | 'GitHub.AllowedUsers'
-  | 'GitHub.AllowedOrgs'
-  | 'GitHub.EnterpriseURL'
-  | 'OIDC.Enable'
-  | 'OIDC.NewUsers'
-  | 'OIDC.OverrideName'
-  | 'OIDC.IssuerURL'
-  | 'OIDC.ClientID'
-  | 'OIDC.ClientSecret'
-  | 'OIDC.Scopes'
-  | 'OIDC.UserInfoEmailPath'
-  | 'OIDC.UserInfoEmailVerifiedPath'
-  | 'OIDC.UserInfoNamePath'
-  | 'Mailgun.Enable'
-  | 'Mailgun.APIKey'
-  | 'Mailgun.EmailDomain'
-  | 'Slack.Enable'
-  | 'Slack.ClientID'
-  | 'Slack.ClientSecret'
-  | 'Slack.AccessToken'
-  | 'Slack.SigningSecret'
-  | 'Slack.InteractiveMessages'
-  | 'Twilio.Enable'
-  | 'Twilio.AccountSID'
-  | 'Twilio.AuthToken'
-  | 'Twilio.AlternateAuthToken'
-  | 'Twilio.FromNumber'
-  | 'Twilio.MessagingServiceSID'
-  | 'Twilio.DisableTwoWaySMS'
-  | 'Twilio.SMSCarrierLookup'
-  | 'Twilio.SMSFromNumberOverride'
-  | 'SMTP.Enable'
-  | 'SMTP.From'
-  | 'SMTP.Address'
-  | 'SMTP.DisableTLS'
-  | 'SMTP.SkipVerify'
-  | 'SMTP.Username'
-  | 'SMTP.Password'
-  | 'Webhook.Enable'
-  | 'Webhook.AllowedURLs'
-  | 'Feedback.Enable'
-  | 'Feedback.OverrideURL'
+
+type ConfigID = 'General.ApplicationName'|'General.PublicURL'|'General.GoogleAnalyticsID'|'General.NotificationDisclaimer'|'General.DisableMessageBundles'|'General.ShortURL'|'General.DisableSMSLinks'|'General.DisableLabelCreation'|'General.DisableCalendarSubscriptions'|'Maintenance.AlertCleanupDays'|'Maintenance.AlertAutoCloseDays'|'Maintenance.APIKeyExpireDays'|'Maintenance.ScheduleCleanupDays'|'Auth.RefererURLs'|'Auth.DisableBasic'|'GitHub.Enable'|'GitHub.NewUsers'|'GitHub.ClientID'|'GitHub.ClientSecret'|'GitHub.AllowedUsers'|'GitHub.AllowedOrgs'|'GitHub.EnterpriseURL'|'OIDC.Enable'|'OIDC.NewUsers'|'OIDC.OverrideName'|'OIDC.IssuerURL'|'OIDC.ClientID'|'OIDC.ClientSecret'|'OIDC.Scopes'|'OIDC.UserInfoEmailPath'|'OIDC.UserInfoEmailVerifiedPath'|'OIDC.UserInfoNamePath'|'Mailgun.Enable'|'Mailgun.APIKey'|'Mailgun.EmailDomain'|'Slack.Enable'|'Slack.ClientID'|'Slack.ClientSecret'|'Slack.AccessToken'|'Slack.SigningSecret'|'Slack.InteractiveMessages'|'Twilio.Enable'|'Twilio.AccountSID'|'Twilio.AuthToken'|'Twilio.AlternateAuthToken'|'Twilio.FromNumber'|'Twilio.MessagingServiceSID'|'Twilio.DisableTwoWaySMS'|'Twilio.SMSCarrierLookup'|'Twilio.SMSFromNumberOverride'|'SMTP.Enable'|'SMTP.From'|'SMTP.Address'|'SMTP.DisableTLS'|'SMTP.SkipVerify'|'SMTP.Username'|'SMTP.Password'|'Webhook.Enable'|'Webhook.AllowedURLs'|'Feedback.Enable'|'Feedback.OverrideURL'
