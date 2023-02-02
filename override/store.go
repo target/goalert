@@ -6,14 +6,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/google/uuid"
 )
 
 // Store is used to manage active overrides.
@@ -104,7 +103,10 @@ func (s *Store) withTx(ctx context.Context, tx *sql.Tx, fn func(tx *sql.Tx) erro
 		if err != nil {
 			return err
 		}
-		defer tx.Rollback()
+		// Since this is a helper method, we don't
+		// have much context to work with.
+		defer sqlutil.Rollback(ctx, "override", tx)
+
 		err = s.withTx(ctx, tx, fn)
 		if err != nil {
 			return err

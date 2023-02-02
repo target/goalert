@@ -256,7 +256,7 @@ func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "notification: send test message", tx)
 
 	// Lock outgoing_messages first, before we modify user_contact methods
 	// to prevent deadlock.
@@ -305,7 +305,7 @@ func (s *Store) SendContactMethodVerification(ctx context.Context, cmID string) 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "notification: send verification message", tx)
 
 	r, err := tx.StmtContext(ctx, s.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
