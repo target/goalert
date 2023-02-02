@@ -40,7 +40,6 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		FormatDestFunc:      app.notificationManager.FormatDestValue,
 		NotificationManager: app.notificationManager,
 		AuthLinkStore:       app.AuthLinkStore,
-		WebhookStore:        app.WebhookStore,
 		SWO:                 app.cfg.SWO,
 	}
 

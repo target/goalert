@@ -27,8 +27,6 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
-  webhooks: WebhookConnection
-  webhook?: null | Webhook
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
@@ -977,24 +975,6 @@ export interface AuthSubjectInput {
   userID: string
   providerID: string
   subjectID: string
-}
-
-export interface Webhook {
-  id: string
-  name: string
-}
-
-export interface WebhookSearchOptions {
-  first?: null | number
-  after?: null | string
-  search?: null | string
-  omit?: null | string[]
-  escalationPolicyID?: null | string
-}
-
-export interface WebhookConnection {
-  nodes: Webhook[]
-  pageInfo: PageInfo
 }
 
 export type UserRole = 'unknown' | 'user' | 'admin'

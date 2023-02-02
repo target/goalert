@@ -100,8 +100,6 @@ models:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
   AlertMetric:
     model: github.com/target/goalert/alert/alertmetrics.Metric
-  Webhook:
-    model: github.com/target/goalert/notification/webhook.Webhook
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
