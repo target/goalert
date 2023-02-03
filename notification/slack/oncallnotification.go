@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/slack-go/slack/slackutilsx"
@@ -49,6 +50,15 @@ func (s *ChannelSender) onCallNotificationText(ctx context.Context, t notificati
 // If a user's ID is available in userSlackIDs, an `@` user mention will be used in place of a link to the GoAlert user's detail page.
 func renderOnCallNotificationMessage(msg notification.ScheduleOnCallUsers, userSlackIDs map[string]string) string {
 	suffix := fmt.Sprintf("on-call for <%s|%s>", slackutilsx.EscapeMessage(msg.ScheduleURL), slackutilsx.EscapeMessage(msg.ScheduleName))
+
+	sort.Slice(msg.Users, func(i, j int) bool {
+		ui, uj := msg.Users[i], msg.Users[j]
+		if ui.Name == uj.Name {
+			return ui.ID < uj.ID
+		}
+
+		return ui.Name < uj.Name
+	})
 
 	var userLinks []string
 	for _, u := range msg.Users {

@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/search"
@@ -17,6 +18,19 @@ type (
 )
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
+
+func (a *Query) ExperimentalFlags(ctx context.Context) ([]string, error) {
+	var flags []string
+	for _, f := range expflag.AllFlags() {
+		if !expflag.ContextHas(ctx, f) {
+			continue
+		}
+
+		flags = append(flags, string(f))
+	}
+
+	return flags, nil
+}
 
 func (a *Query) LinkAccountInfo(ctx context.Context, token string) (*graphql2.LinkAccountInfo, error) {
 	m, err := a.AuthLinkStore.FindLinkMetadata(ctx, token)

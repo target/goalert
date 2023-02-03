@@ -28,8 +28,10 @@ import (
 )
 
 // CookieName is the name of the auth session cookie.
-const CookieName = "goalert_session.2"
-const v1CookieName = "goalert_session"
+const (
+	CookieName   = "goalert_session.2"
+	v1CookieName = "goalert_session"
+)
 
 type registeredProvider struct {
 	// ID is the unique identifier of the provider.
@@ -421,7 +423,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			} else {
 				w.WriteHeader(400)
 			}
-			io.WriteString(w, err.Error())
+			_, _ = io.WriteString(w, err.Error())
 			return
 		}
 		http.Redirect(w, req, refU.String(), http.StatusFound)
@@ -458,7 +460,8 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			errRedirect(err)
 			return
 		}
-		defer tx.Rollback()
+		defer sqlutil.Rollback(ctx, "auth: create user", tx)
+
 		u := &user.User{
 			Role:  permission.RoleUser,
 			Name:  validate.SanitizeName(sub.Name),
@@ -502,7 +505,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	}
 
 	if noRedirect {
-		io.WriteString(w, tokStr)
+		_, _ = io.WriteString(w, tokStr)
 		return
 	}
 

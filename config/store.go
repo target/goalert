@@ -13,14 +13,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
-
-	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // Store handles saving and loading configuration from a postgres database.
@@ -264,7 +264,8 @@ func (s *Store) UpdateConfig(ctx context.Context, fn func(Config) (Config, error
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "config: update", tx)
+
 	id, err := s.updateConfigTx(ctx, tx, fn)
 	if err != nil {
 		return err

@@ -123,13 +123,16 @@ func (p *Process) Stop() {
 
 func (p *Process) gracefulTerm() {
 	if p.pty != nil {
-		io.WriteString(p.pty, "\x03")
+		// Since this could be called after the process exits, we can ignore the error.
+		_, _ = io.WriteString(p.pty, "\x03")
 		time.Sleep(100 * time.Millisecond)
-		io.WriteString(p.pty, "\x03")
+
+		_, _ = io.WriteString(p.pty, "\x03")
 		return
 	}
 
-	p.cmd.Process.Signal(os.Interrupt)
+	// The process may have already terminated and we can ignore the error.
+	_ = p.cmd.Process.Signal(os.Interrupt)
 }
 
 func (p *Process) Kill() {
@@ -141,7 +144,9 @@ func (p *Process) Kill() {
 	}
 
 	p.logAction("Killing...")
-	p.cmd.Process.Kill()
+
+	// The process may have already terminated and we can ignore the error.
+	_ = p.cmd.Process.Kill()
 	p.state <- ProcessStateKilling
 
 	<-p.exited

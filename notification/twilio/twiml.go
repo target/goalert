@@ -210,7 +210,7 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	var buf bytes.Buffer
-	io.WriteString(&buf, xml.Header)
+	_, _ = io.WriteString(&buf, xml.Header)
 	enc := xml.NewEncoder(&buf)
 	enc.Indent("", "\t")
 	err := enc.Encode(doc)
@@ -220,5 +220,5 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	io.WriteString(t.w, buf.String())
+	_, _ = io.WriteString(t.w, buf.String())
 }
