@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +17,18 @@ import (
 // are cleaned up with the verification code.
 func TestUserVerificationCleanup(t *testing.T) {
 	t.Parallel()
+
+	sql := `
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+				({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, false),
+				({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, true);
+	`
+	h := harness.NewHarness(t, sql, "")
+	defer h.Close()
 
 	type cm struct {
 		ID       string `json:"id"`
@@ -54,18 +65,6 @@ func TestUserVerificationCleanup(t *testing.T) {
 			t.Fatal("failed to parse response:", err)
 		}
 	}
-
-	sql := `
-		insert into users (id, name, email) 
-		values 
-			({{uuid "user"}}, 'bob', 'joe');
-		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-		values
-				({{uuid "cm1"}}, {{uuid "user"}}, 'personal1', 'SMS', {{phone "1"}}, false),
-				({{uuid "cm2"}}, {{uuid "user"}}, 'personal2', 'SMS', {{phone "2"}}, true);
-	`
-	h := harness.NewHarness(t, sql, "")
-	defer h.Close()
 
 	createCM := func(t *testing.T, user, name, phone string) (cm *cmCreate) {
 		t.Helper()
@@ -104,22 +103,20 @@ func TestUserVerificationCleanup(t *testing.T) {
 	d2 := tw.Device(h.Phone("4"))
 
 	d1Msg := d1.ExpectSMS("verification")
-	_ = d2.ExpectSMS("verification")
+	d2.ExpectSMS("verification")
 
-	codeStr := strings.Map(func(r rune) rune {
+	code := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
 		}
 		return -1
 	}, d1Msg.Body())
 
-	code, _ := strconv.Atoi(codeStr)
-
 	doQL(t, h, fmt.Sprintf(`
 		mutation {
 			verifyContactMethod(input: {
 				contactMethodID: "%s",
-				code: %d
+				code: %s
 			})
 		}
 	`, cm3.CreateUserContactMethod.ID, code), nil)
@@ -144,7 +141,7 @@ func TestUserVerificationCleanup(t *testing.T) {
 
 	expectedCMs := []string{h.UUID("cm1"), h.UUID("cm2"), cm3.CreateUserContactMethod.ID}
 	sort.Strings(expectedCMs)
-	actualCMs := []string{}
+	var actualCMs []string
 	for _, cm := range d.User.ContactMethods {
 		actualCMs = append(actualCMs, cm.ID)
 	}

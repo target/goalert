@@ -20,13 +20,13 @@ $$ language plpgsql;
 CREATE TRIGGER trg_cm_set_not_pending_on_verify
 BEFORE UPDATE OF disabled ON user_contact_methods
 FOR EACH ROW
-WHEN (NEW.disabled = TRUE)
+WHEN (NOT NEW.disabled AND OLD.pending)
 EXECUTE PROCEDURE fn_cm_set_not_pending_on_verify();
 
 -- +migrate Down
 
-ALTER TABLE user_contact_methods DROP COLUMN pending;
-
 DROP TRIGGER trg_cm_set_not_pending_on_verify ON user_contact_methods;
 
 DROP FUNCTION fn_cm_set_not_pending_on_verify();
+
+ALTER TABLE user_contact_methods DROP COLUMN pending;
