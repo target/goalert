@@ -39,13 +39,9 @@ import './form'
 import './dialog'
 import './limits'
 
-Cypress.Cookies.defaults({
-  preserve: 'goalert_session.2',
-})
 Cypress.Keyboard.defaults({
   keystrokeDelay: 0,
 })
-Cypress.Cookies.debug(true)
 
 export * from './config'
 export * from './util'

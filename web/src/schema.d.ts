@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User

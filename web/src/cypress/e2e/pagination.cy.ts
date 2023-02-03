@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support/e2e'
+import { testScreen, login } from '../support/e2e'
 const c = new Chance()
 
 const itemsPerPage = 15
@@ -25,6 +25,8 @@ function testPaginating(
 
   describe(label, () => {
     before(() => {
+      login()
+
       names = []
       nameSubstr = c.word({ length: 12 })
       for (let i = 0; i < 45; i++) {
