@@ -404,7 +404,7 @@ func (t testAlert) setStatus(stat alert.Status) {
 		t.h.t.Helper()
 		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
 		require.NoError(t.h.t, err, "begin tx")
-		defer tx.Rollback()
+		defer SQLRollback(t.h.t, "harness: set alert status", tx)
 
 		t.a.Status = stat
 
@@ -441,7 +441,8 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 		if err != nil {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
-		defer tx.Rollback()
+		defer SQLRollback(h.t, "harness: create alert", tx)
+
 		a := &alert.Alert{
 			ServiceID: serviceID,
 			Summary:   summary,

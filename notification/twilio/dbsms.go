@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type dbSMS struct {
@@ -90,7 +91,8 @@ func (db *dbSMS) insertDB(ctx context.Context, phoneNumber, callbackID string, a
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "twilio: insert SMS callback", tx)
+
 	_, err = tx.StmtContext(ctx, db.lock).ExecContext(ctx)
 	if err != nil {
 		return 0, err
@@ -181,6 +183,7 @@ func (db *dbSMS) LookupByCode(ctx context.Context, phoneNumber string, code int)
 	err := info.scanFrom(row)
 	return info, err
 }
+
 func (db *dbSMS) LookupByAlertID(ctx context.Context, phoneNumber string, searchID int) (*codeInfo, error) {
 	row := db.lookupByAlert.QueryRowContext(ctx, phoneNumber, searchID)
 
@@ -188,6 +191,7 @@ func (db *dbSMS) LookupByAlertID(ctx context.Context, phoneNumber string, search
 	err := info.scanFrom(row)
 	return info, err
 }
+
 func (db *dbSMS) LookupSvcByCode(ctx context.Context, phoneNumber string, code int) (*codeInfo, error) {
 	row := db.lookupSvcByCode.QueryRowContext(ctx, phoneNumber, code)
 

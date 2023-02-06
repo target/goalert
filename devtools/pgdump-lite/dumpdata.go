@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func sortColumns(columns []string) {
@@ -85,7 +86,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer sqlutil.RollbackContext(ctx, "pgdump-lite: dump data", tx)
 
 	tables, err := queryStrings(ctx, tx, "select table_name from information_schema.tables where table_schema = 'public'")
 	if err != nil {
