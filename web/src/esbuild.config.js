@@ -32,7 +32,9 @@ const dynamicPublicPathPlugin = {
 }
 
 async function run() {
-  const ctx = await require('esbuild').context({
+  const method = process.argv.includes('--watch') ? 'context' : 'build'
+
+  const ctx = await require('esbuild')[method]({
     entryPoints: {
       explore: 'explore/explore.tsx',
       app: 'app/index.tsx',
@@ -63,8 +65,6 @@ async function run() {
 
   if (process.argv.includes('--watch')) {
     await ctx.watch()
-  } else {
-    await ctx.dispose()
   }
 }
 
