@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will update the state of all active escalation policies.
@@ -35,7 +36,7 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "cleanup manager", tx)
 
 	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
 	if err != nil {

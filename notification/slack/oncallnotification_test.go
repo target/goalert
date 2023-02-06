@@ -49,7 +49,7 @@ func TestRenderOnCallNotification(t *testing.T) {
 		[]string{"slack.1", "slack.2", "slack.3"})
 
 	check("3 users with fallback",
-		"<@slack.1.SLACKID>, <foo.url|foo.name>, and <@slack.3.SLACKID> are on-call for <schedule.url|schedule.name>",
+		"<foo.url|foo.name>, <@slack.1.SLACKID>, and <@slack.3.SLACKID> are on-call for <schedule.url|schedule.name>",
 		[]string{"slack.1", "foo", "slack.3"})
 
 	t.Run("no panic on nil map", func(t *testing.T) {
@@ -63,5 +63,4 @@ func TestRenderOnCallNotification(t *testing.T) {
 
 		assert.Equal(t, "<foo.url|foo.name> is on-call for <schedule.url|schedule.name>", renderOnCallNotificationMessage(msg, nil))
 	})
-
 }
