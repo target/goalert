@@ -340,8 +340,9 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 				r.subject.classifier = "SMS"
 			case notification.DestTypeUserEmail:
 				r.subject.classifier = "Email"
-			case notification.DestTypeUserWebhook:
 			case notification.DestTypeWebhook:
+				fallthrough
+			case notification.DestTypeUserWebhook:
 				r.subject.classifier = "Webhook"
 			case notification.DestTypeSlackChannel:
 				r.subject.classifier = "Slack"
