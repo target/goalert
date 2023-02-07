@@ -2,11 +2,9 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/target/goalert/app/lifecycle"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/webhook"
@@ -28,13 +26,6 @@ func (app *App) initStartup(ctx context.Context, label string, fn func(context.C
 }
 
 func (app *App) startup(ctx context.Context) error {
-	for _, f := range app.cfg.ExpFlags {
-		if expflag.Description(f) == "" {
-			log.Log(log.WithField(ctx, "flag", f), fmt.Errorf("unknown experimental flag"))
-		} else {
-			log.Logf(log.WithField(ctx, "flag", f), "Experimental flag enabled: %s", expflag.Description(f))
-		}
-	}
 
 	app.initStartup(ctx, "Startup.TestDBConn", func(ctx context.Context) error {
 		err := app.db.PingContext(ctx)

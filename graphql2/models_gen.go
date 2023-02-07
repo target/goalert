@@ -16,7 +16,6 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
@@ -641,19 +640,6 @@ type UserSearchOptions struct {
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`
-}
-
-type WebhookConnection struct {
-	Nodes    []webhook.Webhook `json:"nodes"`
-	PageInfo *PageInfo         `json:"pageInfo"`
-}
-
-type WebhookSearchOptions struct {
-	First              *int     `json:"first"`
-	After              *string  `json:"after"`
-	Search             *string  `json:"search"`
-	Omit               []string `json:"omit"`
-	EscalationPolicyID *string  `json:"escalationPolicyID"`
 }
 
 type AlertSearchSort string
