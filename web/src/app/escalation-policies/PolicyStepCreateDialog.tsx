@@ -4,13 +4,12 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
 
-interface Target {
-  id: string
-  type: string
-  name?: null | string
-}
 interface Value {
-  targets?: Target[]
+  targets?: {
+    id: string
+    type: string
+    name?: null | string
+  }
   delayMinutes: string
 }
 

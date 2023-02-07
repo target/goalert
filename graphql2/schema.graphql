@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags: [ID!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -87,12 +89,6 @@ type Query {
 
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
-
-  # Allows searching for webhooks.
-  webhooks(input: WebhookSearchOptions): WebhookConnection!
-
-  # Returns a single webhook with the given URL.
-  webhook(id: String!): Webhook
 
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
@@ -1181,7 +1177,6 @@ enum TargetType {
   service
   schedule
   user
-  webhook
   integrationKey
   userOverride
   notificationRule
@@ -1224,24 +1219,6 @@ input AuthSubjectInput {
   userID: ID!
   providerID: ID!
   subjectID: ID!
-}
-
-type Webhook {
-  id: String!
-  name: String!
-}
-
-input WebhookSearchOptions {
-  first: Int = 15
-  after: String = ""
-  search: String = ""
-  omit: [ID!]
-  escalationPolicyID: ID
-}
-
-type WebhookConnection {
-  nodes: [Webhook!]!
-  pageInfo: PageInfo!
 }
 
 enum UserRole {

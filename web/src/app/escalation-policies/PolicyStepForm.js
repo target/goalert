@@ -14,19 +14,16 @@ import {
   ScheduleSelect,
   SlackChannelSelect,
   UserSelect,
-  WebhookSelect,
 } from '../selection'
 
 import {
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   Group as UsersIcon,
-  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
-import { useLocation } from 'wouter'
 
 const useStyles = makeStyles({
   badge: {
@@ -46,7 +43,6 @@ function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
   const { disabled, value } = props
   const classes = useStyles()
-  const [path] = useLocation()
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
@@ -225,51 +221,6 @@ function PolicyStepForm(props) {
                     />
                   </StepContent>
                 </Step>
-                {cfg['Webhook.Enable'] && (
-                  <Step>
-                    <StepButton
-                      aria-expanded={(
-                        step === (cfg['Webhook.Enable'] ? 4 : 3)
-                      ).toString()}
-                      data-cy='webhook-step'
-                      icon={<WebhookIcon />}
-                      optional={optionalText}
-                      onClick={() =>
-                        handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
-                      }
-                      tabIndex={-1}
-                    >
-                      {badgeMeUpScotty(
-                        getTargetsByType('webhook')(value.targets).length,
-                        'Add Webhook',
-                      )}
-                    </StepButton>
-                    <StepContent>
-                      <FormField
-                        fullWidth
-                        disabled={disabled}
-                        component={WebhookSelect}
-                        fieldName='targets'
-                        label='Webhook URL'
-                        name='webhooks'
-                        multiple
-                        escalationPolicyID={path.split('/')[2]}
-                        formatInputOnChange={(val) => val.trim()}
-                        onCreate={(webhook) => {
-                          const tgts = makeSetTargetType(value.targets)(
-                            'webhook',
-                          )([webhook])
-                          props.onChange({
-                            ...value,
-                            targets: tgts.concat(value.targets),
-                          })
-                        }}
-                        mapValue={getTargetsByType('webhook')}
-                        mapOnChangeValue={setTargetType('webhook')}
-                      />
-                    </StepContent>
-                  </Step>
-                )}
               </Stepper>
             )}
           </Config>

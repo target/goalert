@@ -10,7 +10,6 @@ type Type string
 const (
 	TypeUnknown Type = ""
 	TypeSlack   Type = "SLACK"
-	TypeWebhook Type = "WEBHOOK"
 )
 
 // Valid returns true if t is a known Type.
