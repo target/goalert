@@ -141,7 +141,8 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx,
 		if err != nil {
 			return err
 		}
-		defer tx.Rollback()
+		defer sqlutil.Rollback(ctx, "cm: set carrier metadata", tx)
+
 		ownTx = true
 	}
 	m, err := s.MetadataByTypeValue(ctx, tx, typ, value)

@@ -22,8 +22,8 @@ type ChannelSender struct {
 	teamID string
 	token  string
 
-	chanCache *ttlCache
-	listCache *ttlCache
+	chanCache *ttlCache[string, *Channel]
+	listCache *ttlCache[string, []Channel]
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
@@ -47,8 +47,8 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
 		cfg: cfg,
 
-		listCache: newTTLCache(250, time.Minute),
-		chanCache: newTTLCache(1000, 15*time.Minute),
+		listCache: newTTLCache[string, []Channel](250, time.Minute),
+		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
 	}, nil
 }
 
@@ -106,7 +106,7 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 		return nil, err
 	}
 
-	return res.(*Channel), nil
+	return res, nil
 }
 
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
@@ -179,9 +179,8 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 		return nil, err
 	}
 
-	chs := res.([]Channel)
-	cpy := make([]Channel, len(chs))
-	copy(cpy, chs)
+	cpy := make([]Channel, len(res))
+	copy(cpy, res)
 
 	return cpy, nil
 }
