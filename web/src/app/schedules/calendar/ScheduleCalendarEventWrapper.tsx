@@ -5,7 +5,7 @@ import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import { ScheduleCalendarContext } from '../ScheduleDetails'
+import { OverrideDialogContext } from '../ScheduleDetails'
 import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
@@ -48,7 +48,7 @@ export default function ScheduleCalendarEventWrapper({
   const [showDeleteDialog, setShowDeleteDialog] = useState('')
 
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
-    ScheduleCalendarContext,
+    OverrideDialogContext,
   )
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined

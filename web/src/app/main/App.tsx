@@ -24,6 +24,7 @@ import AppRoutes from './AppRoutes'
 import { useURLKey } from '../actions'
 import NavBar from './NavBar'
 import AuthLink from './components/AuthLink'
+import { useExpFlag } from '../util/useExpFlag'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -58,6 +59,7 @@ export default function App(): JSX.Element {
   const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
   const urlKey = useURLKey()
+  const hasExampleFlag = useExpFlag('example')
 
   useLayoutEffect(() => {
     setShowMobile(false)
@@ -113,7 +115,12 @@ export default function App(): JSX.Element {
             </SwipeableDrawer>
           </Hidden>
 
-          <main id='content' className={classes.main} style={{ marginLeft }}>
+          <main
+            id='content'
+            className={classes.main}
+            style={{ marginLeft }}
+            data-exp-flag-example={String(hasExampleFlag)}
+          >
             <ErrorBoundary>
               <LazyNewUserSetup />
               <AuthLink />
