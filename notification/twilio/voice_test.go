@@ -3,9 +3,7 @@ package twilio
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/notification"
@@ -25,7 +23,7 @@ func TestBuildMessage(t *testing.T) {
 
 	testCases := map[string]struct {
 		input       mockInput
-		expected    *VoiceOptions
+		expected    string
 		expectedErr error
 	}{
 		"Test Notification": {
@@ -40,15 +38,7 @@ func TestBuildMessage(t *testing.T) {
 					CallbackID: "2",
 				},
 			},
-			expected: &VoiceOptions{
-				ValidityPeriod: time.Second * 10,
-				CallType:       CallTypeTest,
-				CallbackParams: url.Values{"msgID": []string{"2"}},
-				Params: url.Values{
-					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with a test message.", prefix)))},
-					"msgSubjectID": []string{"-1"},
-				},
-			},
+			expected: fmt.Sprintf("%s with a test message.", prefix),
 		},
 		"AlertBundle Notification": {
 			input: mockInput{
@@ -65,16 +55,7 @@ func TestBuildMessage(t *testing.T) {
 					Count:       5,
 				},
 			},
-			expected: &VoiceOptions{
-				ValidityPeriod: time.Second * 10,
-				CallType:       CallTypeAlert,
-				CallbackParams: url.Values{"msgID": []string{"2"}},
-				Params: url.Values{
-					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix)))},
-					"msgBundle":    []string{"1"},
-					"msgSubjectID": []string{"-1"},
-				},
-			},
+			expected: fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix),
 		},
 		"Alert Notification": {
 			input: mockInput{
@@ -91,15 +72,7 @@ func TestBuildMessage(t *testing.T) {
 					Details:    "Oh No!",
 				},
 			},
-			expected: &VoiceOptions{
-				ValidityPeriod: time.Second * 10,
-				CallType:       CallTypeAlert,
-				CallbackParams: url.Values{"msgID": []string{"2"}},
-				Params: url.Values{
-					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix)))},
-					"msgSubjectID": []string{"3"},
-				},
-			},
+			expected: fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix),
 		},
 		"AlertStatus Notification": {
 			input: mockInput{
@@ -117,15 +90,7 @@ func TestBuildMessage(t *testing.T) {
 					LogEntry:   "Something is Wrong",
 				},
 			},
-			expected: &VoiceOptions{
-				ValidityPeriod: time.Second * 10,
-				CallType:       CallTypeAlertStatus,
-				CallbackParams: url.Values{"msgID": []string{"2"}},
-				Params: url.Values{
-					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix)))},
-					"msgSubjectID": []string{"3"},
-				},
-			},
+			expected: fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix),
 		},
 		"Verification Notification": {
 			input: mockInput{
@@ -140,15 +105,7 @@ func TestBuildMessage(t *testing.T) {
 					Code:       1234,
 				},
 			},
-			expected: &VoiceOptions{
-				ValidityPeriod: time.Second * 10,
-				CallType:       CallTypeVerify,
-				CallbackParams: url.Values{"msgID": []string{"2"}},
-				Params: url.Values{
-					"msgBody":      []string{b64enc.EncodeToString([]byte(fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234))))},
-					"msgSubjectID": []string{"-1"},
-				},
-			},
+			expected: fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)),
 		},
 		"Bad Type": {
 			input: mockInput{
@@ -178,7 +135,7 @@ func TestBuildMessage(t *testing.T) {
 					CallbackID: "2",
 				},
 			},
-			expectedErr: errors.New("no prefix provided"),
+			expectedErr: errors.New("buildMessage error: no prefix provided"),
 		},
 		"no input": {
 			input: mockInput{
@@ -191,10 +148,10 @@ func TestBuildMessage(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			// Arrange / Act
-			otps, err := buildMessage(tc.input.prefix, tc.input.msg)
+			result, err := buildMessage(tc.input.prefix, tc.input.msg)
 
 			// Assert
-			assert.Equal(t, tc.expected, otps)
+			assert.Equal(t, tc.expected, result)
 			if tc.expectedErr != nil || err != nil {
 				// have to do it this way since errors.Errorf will never match due to memory alocations.
 				assert.Equal(t, tc.expectedErr.Error(), err.Error())
