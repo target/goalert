@@ -204,6 +204,9 @@ func (voice *VoiceOptions) setMsgParams(msg notification.Message) (err error) {
 	if voice.CallbackParams == nil {
 		voice.CallbackParams = make(url.Values)
 	}
+	if voice.Params == nil {
+		voice.Params = make(url.Values)
+	}
 
 	subID := -1
 	switch t := msg.(type) {

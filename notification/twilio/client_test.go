@@ -1,7 +1,8 @@
 package twilio
 
 import (
-	"fmt"
+	"errors"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,139 +10,132 @@ import (
 )
 
 func TestSetMsgParams(t *testing.T) {
-	prefix := "This is GoAlert"
-	type mockInput struct {
-		msg notification.Message
-	}
-
 	testCases := map[string]struct {
-		input       mockInput
+		input       notification.Message
 		expected    VoiceOptions
 		expectedErr error
 	}{
 		"Test Notification": {
-			input: mockInput{
-				msg: notification.Test{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
+			input: notification.Test{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID: "2",
+			},
+			expected: VoiceOptions{
+				CallType:       "test",
+				CallbackParams: url.Values{"msgID": []string{"2"}},
+				Params:         url.Values{"msgSubjectID": []string{"-1"}},
+			},
+		},
+		"AlertBundle Notification": {
+			input: notification.AlertBundle{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID:  "2",
+				ServiceID:   "3",
+				ServiceName: "Widget",
+				Count:       5,
+			},
+			expected: VoiceOptions{
+				CallType:       "alert",
+				CallbackParams: url.Values{"msgID": []string{"2"}},
+				Params: url.Values{
+					"msgBundle":    []string{"1"},
+					"msgSubjectID": []string{"-1"},
 				},
 			},
-			expected: fmt.Sprintf("%s with a test message.", prefix),
 		},
-		// "AlertBundle Notification": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 		msg: notification.AlertBundle{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID:  "2",
-		// 			ServiceID:   "3",
-		// 			ServiceName: "Widget",
-		// 			Count:       5,
-		// 		},
-		// 	},
-		// 	expected: fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix),
-		// },
-		// "Alert Notification": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 		msg: notification.Alert{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID: "2",
-		// 			AlertID:    3,
-		// 			Summary:    "Widget is Broken",
-		// 			Details:    "Oh No!",
-		// 		},
-		// 	},
-		// 	expected: fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix),
-		// },
-		// "AlertStatus Notification": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 		msg: notification.AlertStatus{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID: "2",
-		// 			AlertID:    3,
-		// 			Summary:    "Widget is Broken",
-		// 			Details:    "Oh No!",
-		// 			LogEntry:   "Something is Wrong",
-		// 		},
-		// 	},
-		// 	expected: fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix),
-		// },
-		// "Verification Notification": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 		msg: notification.Verification{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID: "2",
-		// 			Code:       1234,
-		// 		},
-		// 	},
-		// 	expected: fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)),
-		// },
-		// "Bad Type": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 		msg: notification.ScheduleOnCallUsers{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID:   "2",
-		// 			ScheduleID:   "3",
-		// 			ScheduleName: "4",
-		// 			ScheduleURL:  "5",
-		// 		},
-		// 	},
-		// 	expectedErr: errors.New("unhandled message type: notification.ScheduleOnCallUsers"),
-		// },
-		// "Missing prefix": {
-		// 	input: mockInput{
-		// 		msg: notification.Test{
-		// 			Dest: notification.Dest{
-		// 				ID:    "1",
-		// 				Type:  notification.DestTypeVoice,
-		// 				Value: "+16125551234",
-		// 			},
-		// 			CallbackID: "2",
-		// 		},
-		// 	},
-		// 	expectedErr: errors.New("buildMessage error: no prefix provided"),
-		// },
-		// "no input": {
-		// 	input: mockInput{
-		// 		prefix: prefix,
-		// 	},
-		// 	expectedErr: errors.New("unhandled message type: <nil>"),
-		// },
+		"Alert Notification": {
+			input: notification.Alert{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID: "2",
+				AlertID:    3,
+				Summary:    "Widget is Broken",
+				Details:    "Oh No!",
+			},
+			expected: VoiceOptions{
+				CallType:       "alert",
+				CallbackParams: url.Values{"msgID": []string{"2"}},
+				Params:         url.Values{"msgSubjectID": []string{"3"}},
+			},
+		},
+		"AlertStatus Notification": {
+			input: notification.AlertStatus{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID: "2",
+				AlertID:    3,
+				Summary:    "Widget is Broken",
+				Details:    "Oh No!",
+				LogEntry:   "Something is Wrong",
+			},
+			expected: VoiceOptions{
+				CallType:       "alert-status",
+				CallbackParams: url.Values{"msgID": []string{"2"}},
+				Params:         url.Values{"msgSubjectID": []string{"3"}},
+			},
+		},
+		"Verification Notification": {
+			input: notification.Verification{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID: "2",
+				Code:       1234,
+			},
+			expected: VoiceOptions{
+				CallType:       "verify",
+				CallbackParams: url.Values{"msgID": []string{"2"}},
+				Params:         url.Values{"msgSubjectID": []string{"-1"}},
+			},
+		},
+		"Bad Type": {
+			input: notification.ScheduleOnCallUsers{
+				Dest: notification.Dest{
+					ID:    "1",
+					Type:  notification.DestTypeVoice,
+					Value: "+16125551234",
+				},
+				CallbackID:   "2",
+				ScheduleID:   "3",
+				ScheduleName: "4",
+				ScheduleURL:  "5",
+			},
+			expected: VoiceOptions{
+				CallbackParams: url.Values{},
+				Params:         url.Values{},
+			},
+			expectedErr: errors.New("unhandled message type: notification.ScheduleOnCallUsers"),
+		},
+		"no input": {
+			expected: VoiceOptions{
+				CallbackParams: url.Values{},
+				Params:         url.Values{},
+			},
+			expectedErr: errors.New("unhandled message type: <nil>"),
+		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			// Arrange / Act
 			result := &VoiceOptions{}
-			err := result.setMsgParams(tc.input.msg)
+			err := result.setMsgParams(tc.input)
 
 			// Assert
 			assert.Equal(t, tc.expected, *result)
@@ -153,17 +147,32 @@ func TestSetMsgParams(t *testing.T) {
 	}
 }
 
-// func BenchmarkBuildMessage(b *testing.B) {
-// 	for i := 0; i < b.N; i++ {
-// 		_, _ = buildMessage(
-// 			fmt.Sprintf("%d", i),
-// 			notification.Test{
-// 				Dest: notification.Dest{
-// 					ID:    "1",
-// 					Type:  notification.DestTypeVoice,
-// 					Value: fmt.Sprintf("+1612555123%d", i),
-// 				},
-// 				CallbackID: "2",
-// 			})
-// 	}
-// }
+func TestSetMsgBody(t *testing.T) {
+	testCases := map[string]struct {
+		input    string
+		expected VoiceOptions
+	}{
+		"Test Notification": {
+			input: "This is GoAlert with a test message.",
+			expected: VoiceOptions{
+				Params: url.Values{"msgBody": []string{b64enc.EncodeToString([]byte("This is GoAlert with a test message."))}},
+			},
+		},
+		"no input": {
+			expected: VoiceOptions{
+				Params: url.Values{"msgBody": []string{b64enc.EncodeToString([]byte(""))}},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			// Arrange / Act
+			result := &VoiceOptions{}
+			result.setMsgBody(tc.input)
+
+			// Assert
+			assert.Equal(t, tc.expected, *result)
+		})
+	}
+}
