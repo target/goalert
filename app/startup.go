@@ -72,7 +72,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.notificationManager.RegisterSender(notification.DestTypeUserEmail, "smtp", email.NewSender(ctx))
 	app.notificationManager.RegisterSender(notification.DestTypeUserWebhook, "userWebhook", webhook.NewSender(ctx))
 	if expflag.ContextHas(ctx, expflag.ChanWebhook) {
-		app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "chanwebhook", webhook.NewSender(ctx))
+		app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "chanWebhook", webhook.NewSender(ctx))
 	}
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
