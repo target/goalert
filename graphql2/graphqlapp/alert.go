@@ -139,6 +139,8 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		return nil, nil
 	}
 
+	fmt.Println("notification sent state time: ", obj.Timestamp())
+
 	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue)), nil
 }
 
@@ -161,7 +163,6 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 	case alertlog.TypeCreated:
 		return a.createdState(ctx, obj)
 	case alertlog.TypeNotificationSent:
-		fmt.Println("notification sent state time: ", obj.Timestamp())
 		return a.notificationSentState(ctx, obj)
 	case alertlog.TypeEscalated:
 		return a.escalationState(ctx, obj)
