@@ -25,7 +25,7 @@ const (
 	TargetTypeUser
 	TargetTypeNotificationChannel
 	TargetTypeSlackChannel
-	TargetTypeWebhook
+	TargetTypeChanWebhook
 	TargetTypeIntegrationKey
 	TargetTypeUserOverride
 	TargetTypeNotificationRule
@@ -63,7 +63,7 @@ func (tt *TargetType) UnmarshalText(data []byte) error {
 	case "slackChannel":
 		*tt = TargetTypeSlackChannel
 	case "webhook":
-		*tt = TargetTypeWebhook
+		*tt = TargetTypeChanWebhook
 	case "userOverride":
 		*tt = TargetTypeUserOverride
 	case "contactMethod":
@@ -114,7 +114,7 @@ func (tt TargetType) MarshalText() ([]byte, error) {
 		return []byte("notificationChannel"), nil
 	case TargetTypeSlackChannel:
 		return []byte("slackChannel"), nil
-	case TargetTypeWebhook:
+	case TargetTypeChanWebhook:
 		return []byte("webhook"), nil
 	case TargetTypeContactMethod:
 		return []byte("contactMethod"), nil

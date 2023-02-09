@@ -71,8 +71,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
 	app.notificationManager.RegisterSender(notification.DestTypeUserEmail, "smtp", email.NewSender(ctx))
 	app.notificationManager.RegisterSender(notification.DestTypeUserWebhook, "userWebhook", webhook.NewSender(ctx))
-	if expflag.ContextHas(ctx, expflag.WebhookNC) {
-		app.notificationManager.RegisterSender(notification.DestTypeWebhook, "webhook", webhook.NewSender(ctx))
+	if expflag.ContextHas(ctx, expflag.ChanWebhook) {
+		app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "webhook", webhook.NewSender(ctx))
 	}
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
