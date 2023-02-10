@@ -83,6 +83,7 @@ function renderSlackField(edit: boolean): JSX.Element {
       placeholder='member ID'
       component={TextField}
       disabled={edit}
+      // @ts-expect-error TS2322 -- FormField has not been converted to ts, and inferred type is incorrect.
       helperText='Go to your Slack profile, click the three dots, and select "Copy member ID".'
     />
   )
