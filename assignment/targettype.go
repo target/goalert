@@ -62,7 +62,7 @@ func (tt *TargetType) UnmarshalText(data []byte) error {
 		*tt = TargetTypeNotificationChannel
 	case "slackChannel":
 		*tt = TargetTypeSlackChannel
-	case "webhook":
+	case "chanWebhook":
 		*tt = TargetTypeChanWebhook
 	case "userOverride":
 		*tt = TargetTypeUserOverride
