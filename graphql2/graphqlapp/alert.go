@@ -64,7 +64,7 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(ctx), nil
 }
 
-func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {
+func notificationStateFromSendResult(s notification.Status, formattedSrc string, ts ...time.Time) *graphql2.NotificationState {
 	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.StateFailedTemp, notification.StateFailedPerm:
@@ -96,16 +96,16 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		details = prefix + ": " + details
 	}
 
-	// t, err := obj.Timestamp(ctx, obj)
-	// if err != nil {
-	// 	t = nil
-	// }
+	var timestamp time.Time
+	if len(ts) > 0 {
+		timestamp = ts[0]
+	}
 
 	return &graphql2.NotificationState{
 		Details:           details,
 		Status:            &status,
 		FormattedSrcValue: formattedSrc,
-		//Timestamp:         ,
+		Timestamp:         timestamp,
 	}
 }
 
@@ -139,9 +139,9 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		return nil, nil
 	}
 
-	fmt.Println("notification sent state time: ", obj.Timestamp())
+	ts := e.Timestamp()
 
-	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue)), nil
+	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue), ts), nil
 }
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {

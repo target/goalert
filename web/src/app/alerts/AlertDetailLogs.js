@@ -129,12 +129,12 @@ export default function AlertDetailLogs(props) {
       )
     }
 
-    console.log(props.alertID)
+    console.log(event?.id)
     console.log(
       event?.message,
       '\nevent time: ',
       event?.timestamp,
-      '\nstatus time: ',
+      '\nsent time: ',
       ts,
     )
 
