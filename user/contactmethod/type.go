@@ -16,11 +16,12 @@ const (
 	TypeEmail   Type = "EMAIL"
 	TypePush    Type = "PUSH"
 	TypeWebhook Type = "WEBHOOK"
+	TypeSlackDM Type = "SLACK_DM"
 )
 
 // Valid returns true if t is a known Type.
 func (t Type) Valid() bool {
-	return t == TypeVoice || t == TypeSMS || t == TypeEmail || t == TypePush || t == TypeWebhook
+	return t == TypeVoice || t == TypeSMS || t == TypeEmail || t == TypePush || t == TypeWebhook || t == TypeSlackDM
 }
 
 func (t Type) Value() (driver.Value, error) {

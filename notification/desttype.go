@@ -40,6 +40,7 @@ const (
 	DestTypeVoice
 	DestTypeSMS
 	DestTypeSlackChannel
+	DestTypeSlackDM
 	DestTypeUserEmail
 	DestTypeUserWebhook
 	DestTypeChanWebhook
@@ -70,6 +71,8 @@ func (t ScannableDestType) DestType() DestType {
 		return DestTypeUserEmail
 	case contactmethod.TypeWebhook:
 		return DestTypeUserWebhook
+	case contactmethod.TypeSlackDM:
+		return DestTypeSlackDM
 	}
 
 	switch t.NC {
@@ -105,6 +108,8 @@ func (t DestType) CMType() contactmethod.Type {
 		return contactmethod.TypeEmail
 	case DestTypeUserWebhook:
 		return contactmethod.TypeWebhook
+	case DestTypeSlackDM:
+		return contactmethod.TypeSlackDM
 	}
 
 	return contactmethod.TypeUnknown
