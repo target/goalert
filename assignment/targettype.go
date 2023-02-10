@@ -115,7 +115,7 @@ func (tt TargetType) MarshalText() ([]byte, error) {
 	case TargetTypeSlackChannel:
 		return []byte("slackChannel"), nil
 	case TargetTypeChanWebhook:
-		return []byte("webhook"), nil
+		return []byte("chanWebhook"), nil
 	case TargetTypeContactMethod:
 		return []byte("contactMethod"), nil
 	case TargetTypeNotificationRule:
