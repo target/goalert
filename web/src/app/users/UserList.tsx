@@ -50,7 +50,11 @@ function UserList(): JSX.Element {
           return vars
         }}
         searchAdornment={<UserPhoneNumberFilterContainer />}
-        CreateDialogComponent={isAdmin ? UserCreateDialog : undefined}
+        renderCreateDialog={(onClose) => {
+          if (isAdmin) {
+            return <UserCreateDialog onClose={onClose} />
+          }
+        }}
         createLabel='User'
       />
 

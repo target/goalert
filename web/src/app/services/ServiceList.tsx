@@ -38,7 +38,9 @@ export default function ServiceList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      CreateDialogComponent={ServiceCreateDialog}
+      renderCreateDialog={(onClose) => (
+        <ServiceCreateDialog onClose={onClose} />
+      )}
       createLabel='Service'
       searchAdornment={
         <ServiceFilterContainer

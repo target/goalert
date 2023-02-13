@@ -31,7 +31,9 @@ export default function RotationList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      CreateDialogComponent={RotationCreateDialog}
+      renderCreateDialog={(onClose) => (
+        <RotationCreateDialog onClose={onClose} />
+      )}
       createLabel='Rotation'
     />
   )

@@ -58,6 +58,8 @@ export interface ControlledPaginatedListProps
 
   CreateDialogComponent?: ComponentType<{ onClose: () => void }>
   CreateDialogProps?: Record<string, unknown>
+  renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
+
   createLabel?: string
 }
 
@@ -97,6 +99,7 @@ export default function ControlledPaginatedList(
     createLabel,
     secondaryActions,
     noSearch,
+    renderCreateDialog,
     searchAdornment,
     items,
     listHeader,
@@ -279,7 +282,7 @@ export default function ControlledPaginatedList(
         )}
         {secondaryActions && <Grid item>{secondaryActions}</Grid>}
 
-        {CreateDialogComponent && !isMobile && (
+        {renderCreateDialog && !isMobile && (
           <Grid item sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
@@ -288,12 +291,7 @@ export default function ControlledPaginatedList(
             >
               Create {createLabel}
             </Button>
-            {showCreate && (
-              <CreateDialogComponent
-                onClose={() => setShowCreate(false)}
-                {...CreateDialogProps}
-              />
-            )}
+            {showCreate && renderCreateDialog(() => setShowCreate(false))}
           </Grid>
         )}
       </Grid>

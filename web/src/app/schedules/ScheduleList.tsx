@@ -31,7 +31,9 @@ export default function ScheduleList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      CreateDialogComponent={ScheduleCreateDialog}
+      renderCreateDialog={(onClose) => (
+        <ScheduleCreateDialog onClose={onClose} />
+      )}
       createLabel='Schedule'
     />
   )
