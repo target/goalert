@@ -132,7 +132,7 @@ export function CreateAlertServiceSelect(props) {
         id={id}
         className={classes.serviceChip}
         onClick={(e) => e.preventDefault()}
-        onDelete={() => onChange(value.filter((v) => v !== id)[0])}
+        onDelete={() => onChange(value.find((v) => v !== id))}
       />
     )
   })

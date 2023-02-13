@@ -94,7 +94,8 @@ export function FormField(props) {
     fieldProps.checked = fieldProps.value
     fieldProps.value = fieldProps.value ? 'true' : 'false'
     getValueOf = (e) => {
-      if (typeof e === 'string' || e instanceof Array) {
+      // handle single and multi inputs
+      if (typeof e === 'string' || Array.isArray(e)) {
         return e
       }
       return e.target.checked
@@ -104,7 +105,8 @@ export function FormField(props) {
     fieldProps.value = fieldProps.value.toString()
     fieldProps.InputLabelProps = InputLabelProps
     getValueOf = (e) => {
-      if (typeof e === 'string' || e instanceof Array) {
+      // extra type safety
+      if (typeof e === 'string' || Array.isArray(e)) {
         return e
       }
       const v = e.target.value

@@ -40,7 +40,7 @@ export const useCreateAlerts = (
 
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
-  for (let i = 1; i < sids.length ?? 0; i++) {
+  for (let i = 1; i < sids.length; i++) {
     m = mergeFields(m, getAliasedMutation(baseMutation, i))
   }
 
