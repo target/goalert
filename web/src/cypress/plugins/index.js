@@ -2,9 +2,10 @@
 const http = require('http')
 const { exec } = require('child_process')
 
-function makeDoCall(path, base = 'http://127.0.0.1:3033') {
+function makeDoCall(pathVal, base = 'http://127.0.0.1:3033') {
   return () =>
     new Promise((resolve, reject) => {
+      const path = typeof pathVal === 'function' ? pathVal() : pathVal
       http.get(base + path, (res) => {
         if (res.statusCode !== 200) {
           reject(
@@ -56,6 +57,14 @@ function fastForwardDB(duration) {
 
   return pgmocktime('-a ' + duration)
 }
+let expFlags = []
+function flagsQ() {
+  if (expFlags.length === 0) {
+    return ''
+  }
+
+  return `?extra-arg=--experimental&extra-arg=${expFlags.join(',')}`
+}
 
 let failed = false
 module.exports = (on, config) => {
@@ -67,7 +76,7 @@ module.exports = (on, config) => {
   }
 
   const stopBackend = makeDoCall('/stop')
-  const startBackend = makeDoCall('/start')
+  const startBackend = makeDoCall(() => '/start' + flagsQ())
   async function fastForward(dur) {
     await fastForwardDB(dur)
     await engineCycle()
@@ -79,6 +88,10 @@ module.exports = (on, config) => {
     'db:setTimeSpeed': (speed) => pgmocktime('-s ' + speed),
     'db:fastforward': fastForward,
     'db:resettime': () => fastForwardDB(),
+    'engine:setexpflags': (flags) => {
+      expFlags = flags
+      return null
+    },
     'engine:start': startBackend,
     'engine:stop': stopBackend,
     'check:abort': () => failed,

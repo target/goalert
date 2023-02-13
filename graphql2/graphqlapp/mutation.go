@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -177,7 +178,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "graphql: delete all", tx)
 
 	m := make(map[assignment.TargetType][]string)
 	for _, tgt := range input {

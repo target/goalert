@@ -162,7 +162,7 @@ export default function UserContactMethodList(
           action={
             !mobile ? (
               <IconButton
-                aria-label='Add contact method'
+                title='Add contact method'
                 onClick={() => setShowAddDialog(true)}
                 size='large'
               >

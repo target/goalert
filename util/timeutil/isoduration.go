@@ -164,11 +164,11 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 
 func (dur ISODuration) MarshalGQL(w io.Writer) {
 	if dur == (ISODuration{}) {
-		io.WriteString(w, "null")
+		_, _ = io.WriteString(w, "null")
 		return
 	}
 
-	io.WriteString(w, `"`+dur.String()+`"`)
+	_, _ = io.WriteString(w, `"`+dur.String()+`"`)
 }
 
 func (dur *ISODuration) UnmarshalGQL(v interface{}) error {

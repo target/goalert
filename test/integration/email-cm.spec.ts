@@ -17,7 +17,7 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
     await page.click('[aria-label="Add Items"]')
     await page.click('[aria-label="Add Contact Method"]')
   } else {
-    await page.click('[aria-label="Add contact method"]')
+    await page.click('[title="Add contact method"]')
   }
 
   await page.fill('input[name=name]', name)

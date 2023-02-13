@@ -108,12 +108,10 @@ func sendMail(ctx context.Context, conn net.Conn, host string, a NegotiateAuth, 
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(msg)
-	if err != nil {
+	if _, err := w.Write(msg); err != nil {
 		return err
 	}
-	err = w.Close()
-	if err != nil {
+	if err := w.Close(); err != nil {
 		return err
 	}
 

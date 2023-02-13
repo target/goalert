@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags: [ID!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -200,6 +202,8 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+  sentAt: ISOTimestamp
+  retryCount: Int!
 }
 
 input MessageLogSearchOptions {
@@ -290,7 +294,6 @@ input UserOverrideSearchOptions {
   start: ISOTimestamp # start of the window to search for.
   end: ISOTimestamp # end of the window to search for.
 }
-
 
 type UserOverrideConnection {
   nodes: [UserOverride!]!
@@ -1269,6 +1272,7 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
+  SLACK_DM
 }
 
 # A method of contacting a user.

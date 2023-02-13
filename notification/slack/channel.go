@@ -22,8 +22,10 @@ type ChannelSender struct {
 	teamID string
 	token  string
 
-	chanCache *ttlCache
-	listCache *ttlCache
+	chanCache *ttlCache[string, *Channel]
+	listCache *ttlCache[string, []Channel]
+
+	userInfoCache *ttlCache[string, *slack.User]
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
@@ -47,8 +49,9 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
 		cfg: cfg,
 
-		listCache: newTTLCache(250, time.Minute),
-		chanCache: newTTLCache(1000, 15*time.Minute),
+		listCache: newTTLCache[string, []Channel](250, time.Minute),
+		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
+		userInfoCache: newTTLCache[string, *slack.User](1000, 24*time.Hour),
 	}, nil
 }
 
@@ -58,6 +61,13 @@ func (s *ChannelSender) SetReceiver(r notification.Receiver) {
 
 // Channel contains information about a Slack channel.
 type Channel struct {
+	ID     string
+	Name   string
+	TeamID string
+}
+
+// User contains information about a Slack user.
+type User struct {
 	ID     string
 	Name   string
 	TeamID string
@@ -106,7 +116,7 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 		return nil, err
 	}
 
-	return res.(*Channel), nil
+	return res, nil
 }
 
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
@@ -179,9 +189,8 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 		return nil, err
 	}
 
-	chs := res.([]Channel)
-	cpy := make([]Channel, len(chs))
-	copy(cpy, chs)
+	cpy := make([]Channel, len(res))
+	copy(cpy, res)
 
 	return cpy, nil
 }
@@ -305,6 +314,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	var opts []slack.MsgOption
 	var isUpdate bool
 	switch t := msg.(type) {
+	case notification.Test:
+		opts = append(opts, slack.MsgOptionText("This is a test message.", false))
+	case notification.Verification:
+		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %06d", t.Code), false))
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.

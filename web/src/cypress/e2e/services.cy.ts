@@ -60,7 +60,7 @@ function testServices(screen: ScreenFormat): void {
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
-    describe.only('Filtering', () => {
+    describe('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
       let intKey: IntegrationKey
@@ -385,7 +385,11 @@ function testServices(screen: ScreenFormat): void {
       const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
       const invalidName = 'a'
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-monitor"]').click()
+      }
 
       cy.dialogForm({ name: invalidName, timeoutMinutes })
       cy.dialogClick('Submit')
@@ -432,7 +436,11 @@ function testServices(screen: ScreenFormat): void {
 
     it('should handle canceling', () => {
       // cancel out of create
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-monitor"]').click()
+      }
       cy.dialogTitle('Create New Heartbeat Monitor')
       cy.dialogFinish('Cancel')
 
@@ -464,7 +472,11 @@ function testServices(screen: ScreenFormat): void {
     )
 
     const createKey = (type: string, name: string): void => {
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-key"]').click()
+      }
       cy.dialogForm({ name, type })
       cy.dialogFinish('Submit')
     }
@@ -521,7 +533,11 @@ function testServices(screen: ScreenFormat): void {
       )
 
       // check that dropdown type is hidden
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-key"]').click()
+      }
       cy.get('input[name=type]').findByLabel('Email').should('not.exist')
     })
   })
@@ -589,7 +605,11 @@ function testServices(screen: ScreenFormat): void {
       const key = label.key
       const value = c.word({ length: 10 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-label"]').click()
+      }
       cy.dialogForm({ key, value })
       cy.dialogFinish('Submit')
       cy.get('li').should('contain', key)
@@ -603,7 +623,11 @@ function testServices(screen: ScreenFormat): void {
         cy.visit(`/services/${svc.id}/labels`)
       })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-label"]').click()
+      }
       cy.dialogForm({ key, value })
       cy.dialogFinish('Submit')
 
@@ -663,7 +687,11 @@ function testServices(screen: ScreenFormat): void {
       const randomWord = c.word({
         length: 7,
       })
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-label"]').click()
+      }
       cy.get('input[name=key]').findByLabel(`Create "${randomWord}"`)
 
       cy.updateConfig({
@@ -673,7 +701,11 @@ function testServices(screen: ScreenFormat): void {
       })
       cy.reload()
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button[data-testid="create-label"]').click()
+      }
       cy.get('input[name=key]').type(`Create "${randomWord}"`)
       cy.get('[data-cy="select-dropdown"]').should('contain', 'No options')
     })
@@ -723,9 +755,7 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', 'Alert Count: 1')
         .should('contain', 'Escalated: 0') // no ep steps
 
-      cy.get(`[data-cy="avgTimeToClose-${now}"]`).trigger('mouseover', 0, 0, {
-        force: true,
-      })
+      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
         .should('contain', 'Avg. Ack: 1 min')
