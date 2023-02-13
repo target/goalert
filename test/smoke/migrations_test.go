@@ -571,7 +571,7 @@ func TestMigrations(t *testing.T) {
 		start = env
 		skipTo = true
 	} else {
-		start = "add-alert-metrics" // default skip_to
+		start = "switchover-mk2" // default skip_to
 		skipTo = true
 	}
 	var idx int
