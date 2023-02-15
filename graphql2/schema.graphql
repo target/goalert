@@ -1045,6 +1045,7 @@ type NotificationState {
   details: String!
   status: NotificationStatus
   formattedSrcValue: String!
+  timestamp: ISOTimestamp!
 }
 
 enum NotificationStatus {
