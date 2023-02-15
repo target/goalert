@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notification"
@@ -30,11 +31,12 @@ type Store struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupCallbackType *sql.Stmt
-	lookupIKeyType     *sql.Stmt
-	lookupCMType       *sql.Stmt
-	lookupNCTypeName   *sql.Stmt
-	lookupHBInterval   *sql.Stmt
+	lookupDeliveredTime *sql.Stmt
+	lookupCallbackType  *sql.Stmt
+	lookupIKeyType      *sql.Stmt
+	lookupCMType        *sql.Stmt
+	lookupNCTypeName    *sql.Stmt
+	lookupHBInterval    *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -42,6 +44,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
+		lookupDeliveredTime: p.P(`
+			select last_status_at
+			from outgoing_messages
+			where alert_id = $1
+		`),
 		lookupCallbackType: p.P(`
 			select cm."type", ch."type"
 			from outgoing_messages log
@@ -194,6 +201,17 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			limit 1
 		`),
 	}, p.Err
+}
+
+func (s *Store) LookupDeliveredTime(ctx context.Context, alertID int) (*time.Time, error) {
+	// err := permission.LimitCheckAny(ctx, permission.System)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	var ts *time.Time
+	err := s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&ts)
+	return ts, err
 }
 
 func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {

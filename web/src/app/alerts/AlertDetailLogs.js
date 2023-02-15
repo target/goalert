@@ -120,7 +120,6 @@ export default function AlertDetailLogs(props) {
   const renderItem = (event, idx) => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
-    const ts = event?.state?.timestamp ?? ''
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
@@ -128,15 +127,6 @@ export default function AlertDetailLogs(props) {
         DateTime.DATETIME_FULL,
       )
     }
-
-    console.log(event?.id)
-    console.log(
-      event?.message,
-      '\nevent time: ',
-      event?.timestamp,
-      '\nsent time: ',
-      ts,
-    )
 
     return (
       <ListItem key={idx} divider>

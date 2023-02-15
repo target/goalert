@@ -64,7 +64,7 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(ctx), nil
 }
 
-func notificationStateFromSendResult(s notification.Status, formattedSrc string, ts ...time.Time) *graphql2.NotificationState {
+func notificationStateFromSendResult(s notification.Status, formattedSrc string) *graphql2.NotificationState {
 	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.StateFailedTemp, notification.StateFailedPerm:
@@ -96,16 +96,10 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string,
 		details = prefix + ": " + details
 	}
 
-	var timestamp time.Time
-	if len(ts) > 0 {
-		timestamp = ts[0]
-	}
-
 	return &graphql2.NotificationState{
 		Details:           details,
 		Status:            &status,
 		FormattedSrcValue: formattedSrc,
-		Timestamp:         timestamp,
 	}
 }
 
@@ -138,10 +132,11 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	if s == nil {
 		return nil, nil
 	}
-
-	ts := e.Timestamp()
-
-	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue), ts), nil
+	s.Status.Details, err = a.deliveryDelayCheck(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue)), nil
 }
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -417,6 +412,55 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 	conn.Nodes = logs
 	return conn, err
+}
+
+func formatDelay(delay int) string {
+	days := int(delay / 1440)
+	hours := int((delay % 1440) / 60)
+	mins := (delay % 1440) % 60
+	res := "(after "
+	s := ""
+	if days > 0 {
+		if days > 1 {
+			s = "s"
+		}
+		if hours > 0 || mins > 0 {
+			s += ","
+		}
+		res = res + fmt.Sprintf("%d day%s ", days, s)
+		s = ""
+	}
+	if hours > 0 {
+		if hours > 1 {
+			s = "s"
+		}
+		res = res + fmt.Sprintf("%d hr%s", hours, s)
+		s = ""
+	}
+	if mins > 0 {
+		if mins > 1 {
+			s = "s"
+		}
+		if days > 0 || hours > 0 {
+			res += " and"
+		}
+		res = res + fmt.Sprintf(" %d min%s", mins, s)
+	}
+	res += ")"
+	fmt.Println(res)
+	return res
+}
+
+// Calculate delivery delay if necessary
+func (a *AlertLogEntry) deliveryDelayCheck(ctx context.Context, obj *alertlog.Entry) (string, error) {
+	timeDelivered, err := a.AlertLogStore.LookupDeliveredTime(ctx, obj.AlertID())
+	timeSent := obj.Timestamp()
+	deliveryDelay := int(timeDelivered.Sub(timeSent).Minutes())
+	res := ""
+	if deliveryDelay > 2 {
+		res = formatDelay(deliveryDelay)
+	}
+	return res, err
 }
 
 // PendingNotifications returns a list of notifications that are waiting to be sent
