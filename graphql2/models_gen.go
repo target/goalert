@@ -339,7 +339,6 @@ type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status"`
 	FormattedSrcValue string              `json:"formattedSrcValue"`
-	Timestamp         time.Time           `json:"timestamp"`
 }
 
 type PageInfo struct {

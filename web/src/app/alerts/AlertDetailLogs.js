@@ -26,7 +26,6 @@ const query = gql`
           state {
             details
             status
-            timestamp
           }
         }
         pageInfo {
