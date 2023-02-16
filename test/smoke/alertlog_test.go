@@ -32,6 +32,7 @@ func TestAlertLog(t *testing.T) {
 		NR         bool
 		EPStep     bool
 		EPStepUser bool
+		Delay      bool
 	}
 
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
@@ -112,6 +113,10 @@ func TestAlertLog(t *testing.T) {
 			}
 			h.Trigger()
 
+			if c.Delay {
+				h.FastForward(time.Minute * 10)
+			}
+
 			// get logs
 			var l alertLogs
 			doQL(t, h, fmt.Sprintf(`
@@ -156,7 +161,7 @@ func TestAlertLog(t *testing.T) {
 		EPStepUser: true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "Failed")
+		assert.Contains(t, details, "contact method disabled")
 	})
 
 	// test SMS failure
@@ -172,7 +177,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "Failed", details)
+		assert.Equal(t, "failed", details)
 	})
 
 	// test VOICE failure
@@ -188,7 +193,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "Failed", details)
+		assert.Equal(t, "failed", details)
 	})
 
 	// test no immediate notification rule
@@ -234,10 +239,14 @@ func TestAlertLog(t *testing.T) {
 		NR:         true,
 		EPStep:     true,
 		EPStepUser: true,
+		Delay:      true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		h.FastForward(10 * time.Minute)
+		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
+		h.FastForward(10 * time.Minute)
+		h.Trigger()
+		h.Trigger()
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		h.FastForward(time.Minute * 3)
-		fmt.Println("\n\n\n!!! Nodes: ", l.Alert.RecentEvents.Nodes[0], l.Alert.RecentEvents.Nodes[1], l.Alert.RecentEvents.Nodes[2])
-		assert.Contains(t, details, "(after 3 mins)")
+		assert.Contains(t, details, "(after 10 mins)")
 	})
 }
