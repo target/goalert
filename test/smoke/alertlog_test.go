@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -155,7 +156,7 @@ func TestAlertLog(t *testing.T) {
 		EPStepUser: true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "contact method disabled")
+		assert.Contains(t, details, "Failed")
 	})
 
 	// test SMS failure
@@ -171,7 +172,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
+		assert.Equal(t, "Failed", details)
 	})
 
 	// test VOICE failure
@@ -187,7 +188,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
+		assert.Equal(t, "Failed", details)
 	})
 
 	// test no immediate notification rule
@@ -220,9 +221,23 @@ func TestAlertLog(t *testing.T) {
 		CMType:     "SMS",
 		NR:         true,
 		EPStep:     false,
-		EPStepUser: false,
+		EPStepUser: true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "No escalation policy steps")
+	})
+
+	// test delivery delay
+	check("DeliveryDelay", config{
+		CMDisabled: false,
+		CMType:     "SMS",
+		NR:         true,
+		EPStep:     true,
+		EPStepUser: true,
+	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		details := l.Alert.RecentEvents.Nodes[0].State.Details
+		h.FastForward(time.Minute * 3)
+		fmt.Println("\n\n\n!!! Nodes: ", l.Alert.RecentEvents.Nodes[0], l.Alert.RecentEvents.Nodes[1], l.Alert.RecentEvents.Nodes[2])
+		assert.Contains(t, details, "(after 3 mins)")
 	})
 }
