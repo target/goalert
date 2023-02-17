@@ -44,10 +44,16 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
+		// lookupDeliveredTime: p.P(`
+		// 	select last_status_at
+		// 	from outgoing_messages
+		// 	where alert_id = $1
+		// `),
 		lookupDeliveredTime: p.P(`
-			select last_status_at
-			from outgoing_messages
-			where alert_id = $1
+			select outgoing_messages.last_status_at, alert_logs.timestamp
+			from outgoing_messages full outer join alert_logs on outgoing_messages.alert_id = alert_logs.alert_id
+			where outgoing_messages.id = $1
+			and alert_logs.event = 'notification_sent'
 		`),
 		lookupCallbackType: p.P(`
 			select cm."type", ch."type"
@@ -203,15 +209,17 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	}, p.Err
 }
 
-func (s *Store) LookupDeliveredTime(ctx context.Context, alertID int) (*time.Time, error) {
-	// err := permission.LimitCheckAny(ctx, permission.System)
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (s *Store) LookupDeliveredTime(ctx context.Context, alertID string) (*time.Time, *time.Time, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	var ts *time.Time
-	err := s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&ts)
-	return ts, err
+	var tsSent *time.Time
+	var tsDelivered *time.Time
+	err = s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&tsDelivered, &tsSent)
+	fmt.Println("time send and delivered: ", tsSent, tsDelivered)
+	return tsSent, tsDelivered, err
 }
 
 func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {

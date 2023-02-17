@@ -499,6 +499,7 @@ func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.Send
 }
 
 func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.SendResult) error {
+	fmt.Println("updating message status")
 	if status == nil {
 		// nothing to do
 		return nil
@@ -537,9 +538,56 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		srcValue.Valid = true
 		srcValue.String = status.SrcValue
 	}
+	delayStr, err := db.deliveryDelayCheck(ctx, cbID.String)
+	fmt.Println("new details: ", delayStr)
+	if err != nil {
+		return err
+	}
+	if delayStr != "" {
+		status.Details = delayStr
+	}
 
 	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details, srcValue)
 	return err
+}
+
+func formatDelay(delay int) string {
+	hours := int(delay / 60)
+	mins := delay % 60
+	res := "(after "
+	s := ""
+	if hours > 0 {
+		if hours > 1 {
+			s = "s"
+		}
+		res = res + fmt.Sprintf("%d hr%s", hours, s)
+		s = ""
+	}
+	if mins > 0 {
+		if mins > 1 {
+			s = "s"
+		}
+		if hours > 0 {
+			res += " and "
+		}
+		res = res + fmt.Sprintf("%d min%s", mins, s)
+	}
+	res += ")"
+	return res
+}
+
+// Calculate delivery delay if necessary
+func (db *DB) deliveryDelayCheck(ctx context.Context, id string) (string, error) {
+	timeSent, timeDelivered, err := db.alertlogstore.LookupDeliveredTime(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	deliveryDelay := int(timeDelivered.Sub(*timeSent).Minutes())
+	fmt.Println("delay: ", deliveryDelay)
+	if deliveryDelay > 2 {
+		return formatDelay(deliveryDelay), nil
+	}
+	return "", nil
 }
 
 // SendFunc defines a function that sends messages.
@@ -791,7 +839,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	for _, m := range toCheck {
 		go db.refreshMessageState(ctx, statusFn, m.id, m.providerID, ch)
 	}
-
+	fmt.Println("messages to check (calls update message status) ", toCheck)
 	for range toCheck {
 		err := db._UpdateMessageStatus(ctx, <-ch)
 		if err != nil {
