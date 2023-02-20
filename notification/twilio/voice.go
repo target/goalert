@@ -54,6 +54,7 @@ const (
 	digitConfirm  = "3"
 	digitOldAck   = "8"
 	digitOldClose = "9"
+	digitEsc      = "5"
 
 	sayRepeat = "star"
 )
@@ -591,7 +592,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
-			resp.AddOptions(optionAck, optionClose)
+			resp.AddOptions(optionAck, optionEsc, optionClose)
 		}
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlert))
@@ -602,12 +603,15 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 
-	case digitAck, digitClose: // Acknowledge and Close cases
+	case digitAck, digitClose, digitEsc: // Acknowledge , Escalate and Close cases
 		var result notification.Result
 		var msg string
 		if call.Digits == digitClose {
 			result = notification.ResultResolve
 			msg = "Closed"
+		} else if call.Digits == digitEsc {
+			result = notification.ResultEscalate
+			msg = "Escalated"
 		} else {
 			result = notification.ResultAcknowledge
 			msg = "Acknowledged"

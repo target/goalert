@@ -321,6 +321,10 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		newStatus = alert.StatusTriggered
+		alertIDS := []int{cb.AlertID}
+		p.a.EscalateMany(ctx, alertIDS)
 	default:
 		return errors.New("unknown result type")
 	}

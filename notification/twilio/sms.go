@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*'?$`)
-	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a)\s*'?$`)
-	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
+	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|e|ack[a-z]*)\s*'?$`)
+	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a|e)\s*'?$`)
+	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|e|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
 
 	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
@@ -303,6 +303,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[1], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -310,6 +312,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if m := shortReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[2], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -323,6 +327,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if m := alertReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[1], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -337,6 +343,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		isSvc = true
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[2], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -359,6 +367,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	var prefix string
 	if result == notification.ResultAcknowledge {
 		prefix = "Acknowledged"
+	} else if result == notification.ResultEscalate {
+		prefix = "Escalated"
 	} else {
 		prefix = "Closed"
 	}

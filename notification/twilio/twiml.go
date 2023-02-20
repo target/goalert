@@ -48,6 +48,7 @@ const (
 	optionCancel
 	optionConfirmStop
 	optionAck
+	optionEsc
 	optionClose
 	optionAckAll
 	optionCloseAll
@@ -72,6 +73,9 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 		case optionAck:
 			t.expectResponse = true
 			t.Sayf("To acknowledge, press %s.", digitAck)
+		case optionEsc:
+			t.expectResponse = true
+			t.Sayf("To escalate, press %s.", digitEsc)
 		case optionClose:
 			t.expectResponse = true
 			t.Sayf("To close, press %s.", digitClose)
