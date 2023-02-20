@@ -31,24 +31,6 @@ const (
 	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
 	// Maximum number of calendar subscriptions per user.
 	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
-	// SMS Limit for alert notifications per 15 minutes.
-	MaxSMSPer15Minutes ID = "max_sms_per_15_minutes"
-	// SMS  Limit for alert notifications per hour.
-	MaxSMSPerHour ID = "max_sms_per_hour"
-	// SMS Limit for alert notifications per 3 hours.
-	MaxSMSPer3Hours ID = "max_sms_per_3_hours"
-	// Voice Limit for alert notifications per 15 minutes.
-	MaxVoicePer15Minutes ID = "max_voice_per_15_minutes"
-	// Voice Limit for alert notifications per hour.
-	MaxVoicePerHour ID = "max_voice_per_hour"
-	// Voice Limit for alert notifications per 3 hours.
-	MaxVoicePer3Hours ID = "max_voice_per_3_hours"
-	// All Message Type Limit for alert notifications per 3 minutes.
-	MaxAllForAlertStatusPer3Minutes ID = "max_all_for_alert_status_per_3_minutes"
-	// All Message Type Limit for alert notifications per 2 hours.
-	MaxAllForAlertStatusPer2Hours ID = "max_all_for_alert_status_per_2_hours"
-	// All Message Type Limit for alert notifications per 20 minutes.
-	MaxAllForAlertStatusPer20Minutes ID = "max_all_for_alert_status_per_20_minutes"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
@@ -66,14 +48,5 @@ func (id ID) Valid() error {
 		HeartbeatMonitorsPerService,
 		UserOverridesPerSchedule,
 		CalendarSubscriptionsPerUser,
-		MaxSMSPer15Minutes,
-		MaxSMSPerHour,
-		MaxSMSPer3Hours,
-		MaxVoicePer15Minutes,
-		MaxVoicePerHour,
-		MaxVoicePer3Hours,
-		MaxAllForAlertStatusPer3Minutes,
-		MaxAllForAlertStatusPer2Hours,
-		MaxAllForAlertStatusPer20Minutes,
 	)
 }
