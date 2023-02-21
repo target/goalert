@@ -319,8 +319,11 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		newStatus = alert.StatusClosed
 	case notification.ResultEscalate:
 		newStatus = alert.StatusTriggered
-		alertIDS := []int{cb.AlertID}
-		p.a.EscalateMany(ctx, alertIDS)
+		alertIds, err := p.a.EscalateMany(ctx, []int{cb.AlertID})
+		if err != nil {
+			log.Logf(ctx, "Error while escalating "+err.Error())
+		}
+		cb.AlertID = alertIds[0]
 	default:
 		return errors.New("unknown result type")
 	}

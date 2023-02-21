@@ -13,7 +13,6 @@ var GlobalCMThrottle ThrottleConfig = ThrottleRules{{Count: 5, Per: 5 * time.Sec
 var PerCMThrottle ThrottleConfig
 
 func init() {
-
 	var perCM ThrottleConfigBuilder
 
 	// Rate limit sms, voice and email types
@@ -38,6 +37,7 @@ func init() {
 			{Count: 3, Per: 20 * time.Minute},
 			{Count: 8, Per: 120 * time.Minute, Smooth: true},
 		})
+
 	// alert notifications
 	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
 
