@@ -53,7 +53,7 @@ export default function SendTestDialog(
     requestPolicy: 'network-only',
   })
 
-  // We keep a stable timestampe to track how long the dialog has been open
+  // We keep a stable timestamp to track how long the dialog has been open
   const [now] = useState(DateTime.utc())
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
   const cmDestValue = data?.userContactMethod?.formattedValue ?? ''
