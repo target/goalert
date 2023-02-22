@@ -1,4 +1,4 @@
-import React, { ComponentType, ReactElement, ReactNode, useState } from 'react'
+import React, { ReactElement, ReactNode, useState } from 'react'
 import {
   Button,
   Card,
@@ -56,8 +56,6 @@ export interface ControlledPaginatedListProps
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
 
-  CreateDialogComponent?: ComponentType<{ onClose: () => void }>
-  CreateDialogProps?: Record<string, unknown>
   renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
 
   createLabel?: string
@@ -94,8 +92,6 @@ export default function ControlledPaginatedList(
   const classes = useStyles()
   const {
     checkboxActions,
-    CreateDialogComponent,
-    CreateDialogProps,
     createLabel,
     secondaryActions,
     noSearch,
