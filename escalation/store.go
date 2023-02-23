@@ -7,12 +7,14 @@ import (
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -287,7 +289,7 @@ func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assign
 	return err
 }
 
-func (s *Store) newWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
+func (s *Store) chanWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
 	webhookUrl, err := url.Parse(webhookTarget.TargetID())
 	if err != nil {
 		return nil, err
@@ -341,8 +343,11 @@ func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, 
 		}
 	}
 	if tgt.TargetType() == assignment.TargetTypeChanWebhook {
+		if !expflag.ContextHas(ctx, expflag.ChanWebhook) {
+			return validation.NewFieldError("type", "Webhook notification channels are not enabled")
+		}
 		var err error
-		tgt, err = s.newWebhook(ctx, tx, tgt)
+		tgt, err = s.chanWebhook(ctx, tx, tgt)
 		if err != nil {
 			return err
 		}
