@@ -175,14 +175,14 @@ export default function UserContactMethodForm(
           >
             {(edit || smsVoiceEnabled) && <MenuItem value='SMS'>SMS</MenuItem>}
             {(edit || smsVoiceEnabled) && (
-              <MenuItem value='VOICE'>Voice</MenuItem>
+              <MenuItem value='VOICE'>VOICE</MenuItem>
             )}
-            {(edit || emailEnabled) && <MenuItem value='EMAIL'>Email</MenuItem>}
+            {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
             {(edit || webhookEnabled) && (
-              <MenuItem value='WEBHOOK'>Webhook</MenuItem>
+              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
             )}
             {(edit || (slackEnabled && slackDMEnabled)) && (
-              <MenuItem value='SLACK_DM'>Slack DM</MenuItem>
+              <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
             )}
           </FormField>
         </Grid>
