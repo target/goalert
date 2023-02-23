@@ -42,6 +42,7 @@ export default function IntegrationKeyForm(
         <Grid item xs={12}>
           <Config>
             {(cfg: { [x: string]: unknown }): ReactElement => (
+              // @ts-expect-error TS2746 -- FormField hasn't been converted to ts yet, and the inferred type is wrong.
               <FormField
                 fullWidth
                 component={TextField}

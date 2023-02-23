@@ -1114,6 +1114,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'
