@@ -84,7 +84,7 @@ export function FormField(props) {
 
   // mutable function
   let getValueOf = (e) => {
-    if (e && e.target && e.target.value) {
+    if (e && e.target) {
       return e.target.value
     }
     return e
