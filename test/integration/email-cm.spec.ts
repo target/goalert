@@ -7,13 +7,18 @@ test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, verify, and delete of an EMAIL contact method
-test('EMAIL contact method', async ({ page, browser }) => {
+test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   const name = 'pw-email ' + c.name()
   const email = 'pw-email-' + c.email()
 
   await page.goto('./profile')
-  await page.click('[aria-label="Add Items"]')
-  await page.click('[aria-label="Add Contact Method"]')
+
+  if (isMobile) {
+    await page.click('[aria-label="Add Items"]')
+    await page.click('[aria-label="Add Contact Method"]')
+  } else {
+    await page.click('[title="Add contact method"]')
+  }
 
   await page.fill('input[name=name]', name)
   await page.fill('input[name=type]', 'EMAIL')

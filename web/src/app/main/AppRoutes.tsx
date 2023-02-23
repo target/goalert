@@ -6,6 +6,7 @@ import AdminAlertCounts from '../admin/admin-alert-counts/AdminAlertCounts'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
+import AdminSwitchover from '../admin/switchover/AdminSwitchover'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
 import Documentation from '../documentation/Documentation'
@@ -70,6 +71,7 @@ const alertQuery = gql`
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
+  '/': AlertsList,
   '/alerts': AlertsList,
   '/alerts/:alertID': AlertDetailPage,
 
@@ -113,6 +115,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/toolbox': AdminToolbox,
   '/admin/message-logs': AdminDebugMessagesLayout,
   '/admin/alert-counts': AdminAlertCounts,
+  '/admin/switchover': AdminSwitchover,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,

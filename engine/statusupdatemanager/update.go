@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will update all schedule rules.
@@ -57,7 +58,7 @@ func (db *DB) update(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "status update manager", tx)
 
 	var id, alertID int
 	var chanID, cmID sql.NullString

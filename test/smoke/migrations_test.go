@@ -81,6 +81,9 @@ var ignoreRules = []ignoreRule{
 
 	// System default limits once set are not unset
 	{MigrationName: "set-default-system-limits", TableName: "config_limits", ExtraRows: true},
+
+	// Every DB must have a unique ID.
+	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
 }
 
 const migrateInitData = `
@@ -568,7 +571,7 @@ func TestMigrations(t *testing.T) {
 		start = env
 		skipTo = true
 	} else {
-		start = "add-alert-metrics" // default skip_to
+		start = "switchover-mk2" // default skip_to
 		skipTo = true
 	}
 	var idx int

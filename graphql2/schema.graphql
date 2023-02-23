@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags: [ID!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -116,6 +118,51 @@ type Query {
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
+
+  swoStatus: SWOStatus!
+}
+
+type SWOStatus {
+  state: SWOState!
+  lastStatus: String!
+  lastError: String!
+
+  nodes: [SWONode!]!
+
+  mainDBVersion: String!
+  nextDBVersion: String!
+}
+
+enum SWOState {
+  unknown
+  resetting
+  idle
+  syncing
+  pausing
+  executing
+  done
+}
+
+type SWONode {
+  id: ID!
+
+  canExec: Boolean!
+  isLeader: Boolean!
+
+  """
+  The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+  """
+  uptime: String!
+
+  configError: String!
+  connections: [SWOConnection!]
+}
+type SWOConnection {
+  name: String!
+  version: String!
+  type: String!
+  isNext: Boolean!
+  count: Int!
 }
 
 type LinkAccountInfo {
@@ -155,6 +202,8 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+  sentAt: ISOTimestamp
+  retryCount: Int!
 }
 
 input MessageLogSearchOptions {
@@ -245,7 +294,6 @@ input UserOverrideSearchOptions {
   start: ISOTimestamp # start of the window to search for.
   end: ISOTimestamp # end of the window to search for.
 }
-
 
 type UserOverrideConnection {
   nodes: [UserOverride!]!
@@ -381,7 +429,13 @@ input SetScheduleShiftInput {
   end: ISOTimestamp!
 }
 
+enum SWOAction {
+  reset
+  execute
+}
+
 type Mutation {
+  swoAction(action: SWOAction!): Boolean!
   linkAccount(token: ID!): Boolean!
 
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
@@ -1218,6 +1272,7 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
+  SLACK_DM
 }
 
 # A method of contacting a user.

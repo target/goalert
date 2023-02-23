@@ -4,6 +4,7 @@ import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
+import { Add } from '@mui/icons-material'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
@@ -17,6 +18,7 @@ import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
+import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -52,7 +54,9 @@ export default function UserContactMethodList(
   props: UserContactMethodListProps,
 ): JSX.Element {
   const classes = useStyles()
-  const fullScreen = useIsWidthDown('md')
+  const mobile = useIsWidthDown('md')
+
+  const [showAddDialog, setShowAddDialog] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
@@ -115,7 +119,7 @@ export default function UserContactMethodList(
   function getSecondaryAction(cm: UserContactMethod): JSX.Element {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
-        {cm.disabled && !props.readOnly && !fullScreen && (
+        {cm.disabled && !props.readOnly && !mobile && (
           <Grid item>
             <Button
               aria-label='Reactivate contact method'
@@ -155,6 +159,17 @@ export default function UserContactMethodList(
           className={classes.cardHeader}
           titleTypographyProps={{ component: 'h2', variant: 'h5' }}
           title='Contact Methods'
+          action={
+            !mobile ? (
+              <IconButton
+                title='Add contact method'
+                onClick={() => setShowAddDialog(true)}
+                size='large'
+              >
+                <Add fontSize='large' />
+              </IconButton>
+            ) : null
+          }
         />
         <FlatList
           data-cy='contact-methods'
@@ -166,6 +181,15 @@ export default function UserContactMethodList(
           }))}
           emptyMessage='No contact methods'
         />
+        {showAddDialog && (
+          <UserContactMethodCreateDialog
+            userID={props.userID}
+            onClose={(contactMethodID = '') => {
+              setShowAddDialog(false)
+              setShowVerifyDialogByID(contactMethodID)
+            }}
+          />
+        )}
         {showVerifyDialogByID && (
           <UserContactMethodVerificationDialog
             contactMethodID={showVerifyDialogByID}

@@ -199,13 +199,14 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {
 	s.MustLogTx(ctx, nil, alertID, _type, meta)
 }
-func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
 
+func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
 	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
 	}
 }
+
 func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error {
 	err := validate.UUID("EscalationPolicyID", epID)
 	if err != nil {
@@ -213,6 +214,7 @@ func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type
 	}
 	return s.logAny(ctx, tx, s.insertEP, epID, _type, meta)
 }
+
 func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error {
 	err := validate.UUID("ServiceID", serviceID)
 	if err != nil {
@@ -239,12 +241,14 @@ func (s *Store) Log(ctx context.Context, alertID int, _type Type, meta interface
 func (s *Store) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
 	return s.logAny(ctx, tx, s.insert, alertID, _type, meta)
 }
+
 func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	if tx == nil {
 		return stmt
 	}
 	return tx.StmtContext(ctx, stmt)
 }
+
 func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -322,6 +326,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 				r.subject.classifier = "Email"
 			case contactmethod.TypeWebhook:
 				r.subject.classifier = "Webhook"
+			case contactmethod.TypeSlackDM:
+				r.subject.classifier = "Slack"
 			}
 
 		case permission.SourceTypeNotificationCallback:
@@ -410,6 +416,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 
 	return err
 }
+
 func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -425,6 +432,7 @@ func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {
 
 	return &e, nil
 }
+
 func (s *Store) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {

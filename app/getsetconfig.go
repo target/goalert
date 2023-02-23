@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
@@ -39,7 +40,7 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "app: get/set config", tx)
 
 	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "", "")
 	if err != nil {
