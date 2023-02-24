@@ -935,6 +935,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
