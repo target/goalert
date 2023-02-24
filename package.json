@@ -27,7 +27,7 @@
     "@playwright/test": "1.30.0",
     "@types/glob": "8.0.1",
     "@typescript-eslint/eslint-plugin": "5.51.0",
-    "@typescript-eslint/parser": "5.51.0",
+    "@typescript-eslint/parser": "5.53.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.6.0",
     "eslint-config-standard": "17.0.0",
