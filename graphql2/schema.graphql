@@ -1,8 +1,6 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
-  experimentalFlags: [ID!]!
-
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -89,6 +87,12 @@ type Query {
 
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
+
+  # Allows searching for webhook notification channels.
+  chanWebhooks(input: ChanWebhookSearchOptions): ChanWebhookConnection!
+
+  # Returns a single webhook notification channel with the given URL.
+  chanWebhook(id: String!): ChanWebhook
 
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
@@ -1221,6 +1225,24 @@ input AuthSubjectInput {
   subjectID: ID!
 }
 
+type ChanWebhook {
+  id: String!
+  name: String!
+}
+
+input ChanWebhookSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+  escalationPolicyID: ID
+}
+
+type ChanWebhookConnection {
+  nodes: [ChanWebhook!]!
+  pageInfo: PageInfo!
+}
+
 enum UserRole {
   unknown
   user
@@ -1273,7 +1295,6 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
-  SLACK_DM
 }
 
 # A method of contacting a user.

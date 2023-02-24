@@ -2,7 +2,6 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
-  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -28,6 +27,8 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
+  chanWebhooks: ChanWebhookConnection
+  chanWebhook?: null | ChanWebhook
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
@@ -978,6 +979,24 @@ export interface AuthSubjectInput {
   subjectID: string
 }
 
+export interface ChanWebhook {
+  id: string
+  name: string
+}
+
+export interface ChanWebhookSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+  escalationPolicyID?: null | string
+}
+
+export interface ChanWebhookConnection {
+  nodes: ChanWebhook[]
+  pageInfo: PageInfo
+}
+
 export type UserRole = 'unknown' | 'user' | 'admin'
 
 export interface User {
@@ -1010,12 +1029,7 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType =
-  | 'SMS'
-  | 'VOICE'
-  | 'EMAIL'
-  | 'WEBHOOK'
-  | 'SLACK_DM'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string

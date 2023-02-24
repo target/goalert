@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -288,6 +289,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notice store")
+	}
+
+	if app.WebhookStore == nil {
+		app.WebhookStore, err = webhook.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init webhook store")
 	}
 
 	return nil
