@@ -69,6 +69,19 @@ func TestAlertLog(t *testing.T) {
 		)
 	}
 
+	updateLastStatusAtTimestamp := func(h *harness.Harness) string {
+		return fmt.Sprintf(
+			`update outgoing_messages
+			set
+				last_status = 'delivered',
+				last_status_at = now() + '10 Minute,
+				sent_at = now()
+			where id = $1
+			`,
+			h.UUID("sid"),
+		)
+	}
+
 	const alertLogSQLTmpl = `
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
@@ -242,6 +255,7 @@ func TestAlertLog(t *testing.T) {
 		Delay:      true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		h.FastForward(10 * time.Minute)
+		doQL(t, h, updateLastStatusAtTimestamp(h), nil)
 		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
 		h.FastForward(10 * time.Minute)
 		h.Trigger()
