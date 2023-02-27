@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -53,6 +54,13 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 		// require the full Slack ID format (which is a bit more complex)
 		// as it may change in the future.
 		err = validate.Many(err, validate.ASCII("Value", c.Value, 3, 128))
+	}
+
+	if c.Type.StatusUpdatesAlways() && !c.StatusUpdates {
+		err = validate.Many(err, validation.NewFieldErrorf("StatusUpdates", "must be enabled for %s", c.Type))
+	}
+	if c.Type.StatusUpdatesNever() && c.StatusUpdates {
+		err = validate.Many(err, validation.NewFieldErrorf("StatusUpdates", "must be disabled for %s", c.Type))
 	}
 
 	if err != nil {
