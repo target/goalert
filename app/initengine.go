@@ -38,6 +38,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		OnCallStore:         app.OnCallStore,
 		ScheduleStore:       app.ScheduleStore,
 		AuthLinkStore:       app.AuthLinkStore,
+		SlackStore:          app.slackChan,
 
 		ConfigSource: app.ConfigStore,
 
