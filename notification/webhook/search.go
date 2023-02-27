@@ -106,7 +106,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]ChanWebhook, error) {
+func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]Webhook, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -131,8 +131,8 @@ func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]ChanWebh
 	}
 	defer rows.Close()
 
-	var result []ChanWebhook
-	var w ChanWebhook
+	var result []Webhook
+	var w Webhook
 	for rows.Next() {
 		err = rows.Scan(&w.ID, &w.Name)
 		if err != nil {

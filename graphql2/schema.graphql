@@ -88,11 +88,11 @@ type Query {
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
-  # Allows searching for webhook notification channels.
-  chanWebhooks(input: ChanWebhookSearchOptions): ChanWebhookConnection!
+  # Allows searching for webhooks.
+  webhooks(input: WebhookSearchOptions): WebhookConnection!
 
-  # Returns a single webhook notification channel with the given URL.
-  chanWebhook(id: String!): ChanWebhook
+  # Returns a single webhook with the given URL.
+  webhook(id: String!): Webhook
 
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
@@ -1225,12 +1225,12 @@ input AuthSubjectInput {
   subjectID: ID!
 }
 
-type ChanWebhook {
+type Webhook {
   id: String!
   name: String!
 }
 
-input ChanWebhookSearchOptions {
+input WebhookSearchOptions {
   first: Int = 15
   after: String = ""
   search: String = ""
@@ -1238,8 +1238,8 @@ input ChanWebhookSearchOptions {
   escalationPolicyID: ID
 }
 
-type ChanWebhookConnection {
-  nodes: [ChanWebhook!]!
+type WebhookConnection {
+  nodes: [Webhook!]!
   pageInfo: PageInfo!
 }
 

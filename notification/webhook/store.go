@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type ChanWebhook struct {
+type Webhook struct {
 	ID   string
 	Name string
 }
@@ -35,7 +35,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	}, p.Err
 }
 
-func (store *Store) FindOne(ctx context.Context, url string) (*ChanWebhook, error) {
+func (store *Store) FindOne(ctx context.Context, url string) (*Webhook, error) {
 	err := validate.URL("webhookURL", url)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (store *Store) FindOne(ctx context.Context, url string) (*ChanWebhook, erro
 
 	row := store.findOne.QueryRowContext(ctx, url)
 
-	var webhook ChanWebhook
+	var webhook Webhook
 
 	err = row.Scan(&webhook.ID, &webhook.Name)
 	if err != nil {

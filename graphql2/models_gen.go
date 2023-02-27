@@ -84,24 +84,6 @@ type CalcRotationHandoffTimesInput struct {
 	Count            int        `json:"count"`
 }
 
-type ChanWebhook struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type ChanWebhookConnection struct {
-	Nodes    []ChanWebhook `json:"nodes"`
-	PageInfo *PageInfo     `json:"pageInfo"`
-}
-
-type ChanWebhookSearchOptions struct {
-	First              *int     `json:"first"`
-	After              *string  `json:"after"`
-	Search             *string  `json:"search"`
-	Omit               []string `json:"omit"`
-	EscalationPolicyID *string  `json:"escalationPolicyID"`
-}
-
 type ClearTemporarySchedulesInput struct {
 	ScheduleID string    `json:"scheduleID"`
 	Start      time.Time `json:"start"`
@@ -657,6 +639,24 @@ type UserSearchOptions struct {
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`
+}
+
+type Webhook struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type WebhookConnection struct {
+	Nodes    []Webhook `json:"nodes"`
+	PageInfo *PageInfo `json:"pageInfo"`
+}
+
+type WebhookSearchOptions struct {
+	First              *int     `json:"first"`
+	After              *string  `json:"after"`
+	Search             *string  `json:"search"`
+	Omit               []string `json:"omit"`
+	EscalationPolicyID *string  `json:"escalationPolicyID"`
 }
 
 type AlertSearchSort string
