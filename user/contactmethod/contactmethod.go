@@ -17,6 +17,8 @@ type ContactMethod struct {
 	Disabled bool
 	UserID   string
 
+	StatusUpdates bool
+
 	lastTestVerifyAt sql.NullTime
 }
 
