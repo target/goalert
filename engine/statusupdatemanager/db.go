@@ -19,8 +19,7 @@ type DB struct {
 	deleteSub      *sql.Stmt
 	cmWantsUpdates *sql.Stmt
 
-	cmUnsub  *sql.Stmt
-	usrUnsub *sql.Stmt
+	cmUnsub *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -41,32 +40,18 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		lock: lock,
 
 		cmUnsub: p.P(`
-			delete from alert_status_subscriptions where id in (
-				select stat.id from alert_status_subscriptions stat
-				where stat.contact_method_id notnull and exists (
-					select true from user_contact_methods cm where cm.id = stat.contact_method_id and cm.disabled
+			delete from alert_status_subscriptions sub
+			using user_contact_methods cm
+			where
+				sub.contact_method_id = cm.id and (
+					cm.disabled or not cm.enable_status_updates
 				)
-				limit 100
-				for update skip locked
-			)
-		`),
-
-		usrUnsub: p.P(`
-			delete from alert_status_subscriptions where id in (
-				select stat.id from alert_status_subscriptions stat
-				where stat.contact_method_id notnull and not exists (
-					select true from users u where u.alert_status_log_contact_method_id = stat.contact_method_id
-				)
-				limit 100
-				for update skip locked
-			)
 		`),
 
 		cmWantsUpdates: p.P(`
-			select u.id
-			from user_contact_methods cm
-			join users u on u.id = cm.user_id and u.alert_status_log_contact_method_id = $1
-			where cm.id = $1 and not cm.disabled
+			select user_id
+			from user_contact_methods
+			where id = $1 and not disabled and enable_status_updates
 		`),
 
 		needsUpdate: p.P(`
