@@ -12,9 +12,9 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-		insert into users (id, name, email) 
+		insert into users (id, name, email, role) 
 		values 
-			({{uuid "user"}}, 'bob', 'joe');
+			({{uuid "user"}}, 'bob', 'joe', 'user');
 		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
 		values
 			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
@@ -30,7 +30,7 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, expectErr bool) {
-		g := h.GraphQLQuery2(query)
+		g := h.GraphQLQueryUserT(t, h.UUID("user"), query)
 		if expectErr {
 			if len(g.Errors) == 0 {
 				t.Fatal("expected error")
