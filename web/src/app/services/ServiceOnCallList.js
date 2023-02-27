@@ -10,6 +10,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
+import { Warning } from '../icons'
 
 const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -23,6 +24,16 @@ const query = gql`
   query onCallQuery($id: ID!) {
     service(id: $id) {
       id
+      escalationPolicy {
+        id
+        name
+        steps {
+          stepNumber
+          targets {
+            type
+          }
+        }
+      }
       onCallUsers {
         userID
         userName
@@ -32,21 +43,18 @@ const query = gql`
   }
 `
 
-const stepsText = (_steps) => {
-  const steps = _.chain(_steps)
-    .sort()
-    .map((s) => `#${s + 1}`)
-    .value()
-  if (steps.length === 1) {
-    return 'Step ' + steps[0]
-  }
-
-  const last = steps.pop()
-  return (
-    `Steps ` + steps.join(', ') + (steps.length > 2 ? ', and ' : ' and ') + last
-  )
+const stepText = (s) => {
+  return `Step #${s + 1}`
 }
-
+const stepLengthText = (s) => {
+  if (s > 0) {
+    if (s === 1) {
+      return `${s + 1} user assigned`
+    }
+    return `${s + 1} users assigned`
+  }
+  return 'No users assigned'
+}
 export default function ServiceOnCallList({ serviceID }) {
   const classes = useStyles()
   const { data, loading, error } = useQuery(query, {
@@ -54,6 +62,7 @@ export default function ServiceOnCallList({ serviceID }) {
   })
 
   let items = []
+  let sections = []
   const style = {}
   if (error) {
     items = [
@@ -71,23 +80,39 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
     style.color = 'gray'
+    sections = [
+      {
+        title: 'Fetching users...',
+        icon: <CircularProgress />,
+      },
+    ]
   } else {
-    items = _.chain(data?.service?.onCallUsers)
-      .groupBy('userID')
-      .mapValues((v) => ({
-        id: v[0].userID,
-        name: v[0].userName,
-        steps: _.map(v, 'stepNumber'),
-      }))
-      .values()
-      .sortBy('name')
-      .map((u) => ({
-        title: u.name,
-        subText: stepsText(u.steps),
-        icon: <UserAvatar userID={u.id} />,
-        url: `/users/${u.id}`,
-      }))
+    const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
+    const sortedItems = _.chain(data?.service?.onCallUsers)
+      .sortBy(['stepNumber', 'userName'])
       .value()
+
+    sections = chainedSteps
+      .groupBy('stepNumber')
+      .keys()
+      .map((s) => {
+        const usersAssigned = sortedItems.filter(
+          (item) => item.stepNumber === Number(s),
+        ).length
+        return {
+          title: stepText(Number(s)),
+          subText: stepLengthText(usersAssigned),
+          icon: usersAssigned === 0 && <Warning />,
+        }
+      })
+      .value()
+
+    items = sortedItems.map((u) => ({
+      title: u.userName,
+      icon: <UserAvatar userID={u.userID} />,
+      section: stepText(u.stepNumber),
+      url: `/users/${u.userID}`,
+    }))
   }
 
   return (
@@ -100,6 +125,8 @@ export default function ServiceOnCallList({ serviceID }) {
       <FlatList
         emptyMessage='No users on-call for this service'
         items={items}
+        sections={sections}
+        collapsable
       />
     </Card>
   )

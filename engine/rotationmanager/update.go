@@ -46,11 +46,16 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	log.Debugf(ctx, "Updating rotations.")
 
 	// process rotation advancement
-	tx, err := db.lock.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
 	defer tx.Rollback()
+
+	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "lock rotation participants")
+	}
 
 	needsAdvance, err := db.calcAdvances(ctx, tx, all, rotID)
 	if err != nil {

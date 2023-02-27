@@ -98,8 +98,8 @@ export default function WizardRouter() {
     const step = (key) => ({
       delayMinutes: value.delayMinutes,
       newSchedule: {
-        ...getSchedule(key, value),
-        targets: getScheduleTargets(key, value),
+        ...getSchedule(key, value, secondary),
+        targets: getScheduleTargets(key, value, secondary),
       },
     })
 
@@ -123,38 +123,45 @@ export default function WizardRouter() {
     e.preventDefault() // prevents reloading
     if (!isValid) return
 
-    const variables = {
-      input: {
-        ...getService(value),
-        newEscalationPolicy: {
-          ...getEscalationPolicy(value),
-          steps: getSteps(),
+    let variables
+    try {
+      variables = {
+        input: {
+          ...getService(value),
+          newEscalationPolicy: {
+            ...getEscalationPolicy(value),
+            steps: getSteps(),
+          },
         },
-      },
+      }
+    } catch (err) {
+      setErrorMessage(err.message)
     }
 
-    commit({ variables })
-      .then(() => {
-        setComplete(true)
-      })
-      .catch((err) => {
-        const generalErrors = nonFieldErrors(err)
-        const graphqlErrors = fieldErrors(err).map((error) => {
-          const name = error.field
-            .split('.')
-            .pop() // get last occurrence
-            .replace(/([A-Z])/g, ' $1') // insert a space before all caps
-            .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
-
-          return `${name}: ${error.message}`
+    if (variables) {
+      commit({ variables })
+        .then(() => {
+          setComplete(true)
         })
+        .catch((err) => {
+          const generalErrors = nonFieldErrors(err)
+          const graphqlErrors = fieldErrors(err).map((error) => {
+            const name = error.field
+              .split('.')
+              .pop() // get last occurrence
+              .replace(/([A-Z])/g, ' $1') // insert a space before all caps
+              .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
 
-        const errors = generalErrors.concat(graphqlErrors)
+            return `${name}: ${error.message}`
+          })
 
-        if (errors.length) {
-          setErrorMessage(errors.map((e) => e.message || e).join('\n'))
-        }
-      })
+          const errors = generalErrors.concat(graphqlErrors)
+
+          if (errors.length) {
+            setErrorMessage(errors.map((e) => e.message || e).join('\n'))
+          }
+        })
+    }
   }
 
   const onDialogClose = (data) => {

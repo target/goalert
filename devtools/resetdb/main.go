@@ -26,6 +26,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
 	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
+	mult := flag.Float64("mult", 1, "Multiply base type counts (e.g., alerts, users, services).")
 	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
 	skipDrop := flag.Bool("skip-drop", false, "Skip database drop/create step.")
@@ -68,19 +69,21 @@ func main() {
 	if !*genData {
 		return
 	}
-
-	err = fillDB(ctx, *dbURL)
+	dataCfg := &datagenConfig{AdminID: adminID}
+	dataCfg.SetDefaults()
+	dataCfg.Multiply(*mult)
+	err = fillDB(ctx, dataCfg, *dbURL)
 	if err != nil {
 		log.Fatal("insert random data:", err)
 	}
 }
 
-func fillDB(ctx context.Context, url string) error {
+func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	s := time.Now()
 	defer func() {
 		log.Println("Completed in", time.Since(s))
 	}()
-	data := datagenConfig{AdminID: adminID}.Generate()
+	data := dataCfg.Generate()
 	log.Println("Generated random data in", time.Since(s))
 
 	cfg, err := pgxpool.ParseConfig(url)
@@ -266,10 +269,19 @@ func fillDB(ctx context.Context, url string) error {
 		return []interface{}{a.ID, a.CreatedAt, a.Status, a.Summary, a.Details, dedup, asUUID(a.ServiceID), a.Source}
 	}, "services")
 
-	copyFrom("alert_logs", []string{"alert_id", "timestamp", "event", "message"}, len(data.AlertLogs), func(n int) []interface{} {
+	copyFrom("alert_logs", []string{"alert_id", "timestamp", "event", "message", "sub_type", "sub_user_id", "sub_classifier", "meta"}, len(data.AlertLogs), func(n int) []interface{} {
 		a := data.AlertLogs[n]
-		return []interface{}{a.AlertID, a.Timestamp, a.Event, a.Message}
-	}, "alerts")
+		var subType interface{}
+		if a.UserID != "" {
+			subType = "user"
+		}
+		return []interface{}{a.AlertID, a.Timestamp, a.Event, a.Message, subType, asUUIDPtr(a.UserID), a.Class, a.Meta}
+	}, "alerts", "outgoing_messages", "users")
+
+	copyFrom("outgoing_messages", []string{"id", "created_at", "alert_id", "service_id", "escalation_policy_id", "contact_method_id", "user_id", "message_type", "last_status", "sent_at"}, len(data.AlertMessages), func(n int) []interface{} {
+		msg := data.AlertMessages[n]
+		return []interface{}{asUUID(msg.ID), msg.CreatedAt, msg.AlertID, asUUID(msg.ServiceID), asUUID(msg.EPID), asUUID(msg.CMID), asUUID(msg.UserID), "alert_notification", msg.Status, msg.SentAt}
+	}, "alerts", "services", "users", "user_contact_methods")
 
 	dt.Wait()
 	_, err = pool.Exec(ctx, "alter table alerts enable trigger all")
@@ -278,6 +290,10 @@ func fillDB(ctx context.Context, url string) error {
 	// fix sequences
 	_, err = pool.Exec(ctx, "SELECT pg_catalog.setval('public.alerts_id_seq', (select max(id)+1 from public.alerts), true)")
 	must(err)
+
+	_, err = pool.Exec(ctx, "vacuum analyze")
+	must(err)
+
 	return nil
 }
 

@@ -32,6 +32,13 @@ values
   ('${profileAdmin.id}', '${profileAdmin.username}', '${profileAdmin.passwordHash}');
 `
 
+// pathPrefix will return the path prefix for the current environment
+//
+// Trailing `/` is removed, so it is safe to use `pathPrefix + '/foo'`.
+export function pathPrefix(): string {
+  return new URL(Cypress.config().baseUrl || '').pathname.replace(/\/$/, '')
+}
+
 // randInterval creates a random interval in the future.
 export function randInterval(): Interval {
   const now = DateTime.utc()

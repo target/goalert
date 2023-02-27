@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -76,9 +77,8 @@ type App struct {
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
 
-	srv         *http.Server
-	requestLock *contextLocker
-	startupErr  error
+	srv        *http.Server
+	startupErr error
 
 	notificationManager *notification.Manager
 	Engine              *engine.Engine
@@ -116,9 +116,10 @@ type App struct {
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
-	OAuthKeyring   keyring.Keyring
-	SessionKeyring keyring.Keyring
-	APIKeyring     keyring.Keyring
+	OAuthKeyring    keyring.Keyring
+	SessionKeyring  keyring.Keyring
+	APIKeyring      keyring.Keyring
+	AuthLinkKeyring keyring.Keyring
 
 	NonceStore    *nonce.Store
 	LabelStore    *label.Store
@@ -126,6 +127,7 @@ type App struct {
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
+	AuthLinkStore *authlink.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.
@@ -180,8 +182,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		db:     db,
 		cfg:    c,
 		doneCh: make(chan struct{}),
-
-		requestLock: newContextLocker(),
 	}
 
 	gCfg := &gorm.Config{
@@ -259,10 +259,4 @@ func (a *App) URL() string {
 // Status returns the current lifecycle status of the App.
 func (a *App) Status() lifecycle.Status {
 	return a.mgr.Status()
-}
-
-// ActiveRequests returns the current number of active
-// requests, not including pending ones during pause.
-func (a *App) ActiveRequests() int {
-	return a.requestLock.RLockCount()
 }

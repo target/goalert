@@ -2,6 +2,9 @@
 /setup.cfg
 /setup.pid
 /config.json.bak
+/*.session.json
+*.zip
+/test-results
 
 *.pem
 *.key

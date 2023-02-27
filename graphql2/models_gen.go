@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
@@ -100,6 +101,7 @@ type ConfigValue struct {
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
 	Password    bool       `json:"password"`
+	Deprecated  string     `json:"deprecated"`
 }
 
 type ConfigValueInput struct {
@@ -131,9 +133,9 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateHeartbeatMonitorInput struct {
-	ServiceID      string `json:"serviceID"`
-	Name           string `json:"name"`
-	TimeoutMinutes int    `json:"timeoutMinutes"`
+	ServiceID      *string `json:"serviceID"`
+	Name           string  `json:"name"`
+	TimeoutMinutes int     `json:"timeoutMinutes"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -216,19 +218,21 @@ type DebugCarrierInfoInput struct {
 }
 
 type DebugMessage struct {
-	ID          string    `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Type        string    `json:"type"`
-	Status      string    `json:"status"`
-	UserID      *string   `json:"userID"`
-	UserName    *string   `json:"userName"`
-	Source      *string   `json:"source"`
-	Destination string    `json:"destination"`
-	ServiceID   *string   `json:"serviceID"`
-	ServiceName *string   `json:"serviceName"`
-	AlertID     *int      `json:"alertID"`
-	ProviderID  *string   `json:"providerID"`
+	ID          string     `json:"id"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	Type        string     `json:"type"`
+	Status      string     `json:"status"`
+	UserID      *string    `json:"userID"`
+	UserName    *string    `json:"userName"`
+	Source      *string    `json:"source"`
+	Destination string     `json:"destination"`
+	ServiceID   *string    `json:"serviceID"`
+	ServiceName *string    `json:"serviceName"`
+	AlertID     *int       `json:"alertID"`
+	ProviderID  *string    `json:"providerID"`
+	SentAt      *time.Time `json:"sentAt"`
+	RetryCount  int        `json:"retryCount"`
 }
 
 type DebugMessageStatusInfo struct {
@@ -271,6 +275,18 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
+type IntegrationKeyConnection struct {
+	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
+	PageInfo *PageInfo                       `json:"pageInfo"`
+}
+
+type IntegrationKeySearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
+}
+
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -297,6 +313,26 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type LinkAccountInfo struct {
+	UserDetails    string       `json:"userDetails"`
+	AlertID        *int         `json:"alertID"`
+	AlertNewStatus *AlertStatus `json:"alertNewStatus"`
+}
+
+type MessageLogConnection struct {
+	Nodes    []DebugMessage `json:"nodes"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+type MessageLogSearchOptions struct {
+	First         *int       `json:"first"`
+	After         *string    `json:"after"`
+	CreatedBefore *time.Time `json:"createdBefore"`
+	CreatedAfter  *time.Time `json:"createdAfter"`
+	Search        *string    `json:"search"`
+	Omit          []string   `json:"omit"`
 }
 
 type NotificationState struct {
@@ -331,6 +367,33 @@ type RotationSearchOptions struct {
 	Omit           []string `json:"omit"`
 	FavoritesOnly  *bool    `json:"favoritesOnly"`
 	FavoritesFirst *bool    `json:"favoritesFirst"`
+}
+
+type SWOConnection struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Type    string `json:"type"`
+	IsNext  bool   `json:"isNext"`
+	Count   int    `json:"count"`
+}
+
+type SWONode struct {
+	ID       string `json:"id"`
+	CanExec  bool   `json:"canExec"`
+	IsLeader bool   `json:"isLeader"`
+	// The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+	Uptime      string          `json:"uptime"`
+	ConfigError string          `json:"configError"`
+	Connections []SWOConnection `json:"connections"`
+}
+
+type SWOStatus struct {
+	State         SWOState  `json:"state"`
+	LastStatus    string    `json:"lastStatus"`
+	LastError     string    `json:"lastError"`
+	Nodes         []SWONode `json:"nodes"`
+	MainDBVersion string    `json:"mainDBVersion"`
+	NextDBVersion string    `json:"nextDBVersion"`
 }
 
 type ScheduleConnection struct {
@@ -504,10 +567,11 @@ type UpdateScheduleInput struct {
 }
 
 type UpdateServiceInput struct {
-	ID                 string  `json:"id"`
-	Name               *string `json:"name"`
-	Description        *string `json:"description"`
-	EscalationPolicyID *string `json:"escalationPolicyID"`
+	ID                   string     `json:"id"`
+	Name                 *string    `json:"name"`
+	Description          *string    `json:"description"`
+	EscalationPolicyID   *string    `json:"escalationPolicyID"`
+	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {
@@ -795,6 +859,98 @@ func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NotificationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SWOAction string
+
+const (
+	SWOActionReset   SWOAction = "reset"
+	SWOActionExecute SWOAction = "execute"
+)
+
+var AllSWOAction = []SWOAction{
+	SWOActionReset,
+	SWOActionExecute,
+}
+
+func (e SWOAction) IsValid() bool {
+	switch e {
+	case SWOActionReset, SWOActionExecute:
+		return true
+	}
+	return false
+}
+
+func (e SWOAction) String() string {
+	return string(e)
+}
+
+func (e *SWOAction) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOAction", str)
+	}
+	return nil
+}
+
+func (e SWOAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SWOState string
+
+const (
+	SWOStateUnknown   SWOState = "unknown"
+	SWOStateResetting SWOState = "resetting"
+	SWOStateIdle      SWOState = "idle"
+	SWOStateSyncing   SWOState = "syncing"
+	SWOStatePausing   SWOState = "pausing"
+	SWOStateExecuting SWOState = "executing"
+	SWOStateDone      SWOState = "done"
+)
+
+var AllSWOState = []SWOState{
+	SWOStateUnknown,
+	SWOStateResetting,
+	SWOStateIdle,
+	SWOStateSyncing,
+	SWOStatePausing,
+	SWOStateExecuting,
+	SWOStateDone,
+}
+
+func (e SWOState) IsValid() bool {
+	switch e {
+	case SWOStateUnknown, SWOStateResetting, SWOStateIdle, SWOStateSyncing, SWOStatePausing, SWOStateExecuting, SWOStateDone:
+		return true
+	}
+	return false
+}
+
+func (e SWOState) String() string {
+	return string(e)
+}
+
+func (e *SWOState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SWOState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SWOState", str)
+	}
+	return nil
+}
+
+func (e SWOState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

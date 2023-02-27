@@ -2,7 +2,9 @@ type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
   # Returns the list of recent messages.
+  messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+    @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
 
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
@@ -21,9 +23,6 @@ type Query {
 
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
-
-  # Returns an array of alert metric data points
-  alertMetrics(input: AlertMetricsOptions!): [AlertDataPoint!]!
 
   # Returns a single service with the given ID.
   service(id: ID!): Service
@@ -83,6 +82,9 @@ type Query {
   # Allows searching for label values.
   labelValues(input: LabelValueSearchOptions): StringConnection!
 
+  # Allows searching for integration keys.
+  integrationKeys(input: IntegrationKeySearchOptions): IntegrationKeyConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -112,6 +114,59 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   generateSlackAppManifest: String!
+
+  linkAccountInfo(token: ID!): LinkAccountInfo
+
+  swoStatus: SWOStatus!
+}
+
+type SWOStatus {
+  state: SWOState!
+  lastStatus: String!
+  lastError: String!
+
+  nodes: [SWONode!]!
+
+  mainDBVersion: String!
+  nextDBVersion: String!
+}
+
+enum SWOState {
+  unknown
+  resetting
+  idle
+  syncing
+  pausing
+  executing
+  done
+}
+
+type SWONode {
+  id: ID!
+
+  canExec: Boolean!
+  isLeader: Boolean!
+
+  """
+  The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+  """
+  uptime: String!
+
+  configError: String!
+  connections: [SWOConnection!]
+}
+type SWOConnection {
+  name: String!
+  version: String!
+  type: String!
+  isNext: Boolean!
+  count: Int!
+}
+
+type LinkAccountInfo {
+  userDetails: String!
+  alertID: Int
+  alertNewStatus: AlertStatus
 }
 
 input AlertMetricsOptions {
@@ -145,6 +200,22 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+  sentAt: ISOTimestamp
+  retryCount: Int!
+}
+
+input MessageLogSearchOptions {
+  first: Int = 50
+  after: String = ""
+  createdBefore: ISOTimestamp
+  createdAfter: ISOTimestamp
+  search: String = ""
+  omit: [ID!]
+}
+
+type MessageLogConnection {
+  nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
 }
 
 input SlackChannelSearchOptions {
@@ -182,6 +253,7 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+  deprecated: String!
 }
 type ConfigHint {
   id: String!
@@ -225,6 +297,12 @@ type UserOverrideConnection {
   nodes: [UserOverride!]!
   pageInfo: PageInfo!
 }
+
+type IntegrationKeyConnection {
+  nodes: [IntegrationKey!]!
+  pageInfo: PageInfo!
+}
+
 type UserOverride {
   id: ID!
 
@@ -256,6 +334,13 @@ input LabelKeySearchOptions {
 
 input LabelValueSearchOptions {
   key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input IntegrationKeySearchOptions {
   first: Int = 15
   after: String = ""
   search: String = ""
@@ -342,7 +427,15 @@ input SetScheduleShiftInput {
   end: ISOTimestamp!
 }
 
+enum SWOAction {
+  reset
+  execute
+}
+
 type Mutation {
+  swoAction(action: SWOAction!): Boolean!
+  linkAccount(token: ID!): Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
@@ -603,6 +696,7 @@ input UpdateServiceInput {
   name: String
   description: String
   escalationPolicyID: ID
+  maintenanceExpiresAt: ISOTimestamp
 }
 
 input UpdateEscalationPolicyInput {
@@ -971,6 +1065,7 @@ type Service {
   escalationPolicyID: ID!
   escalationPolicy: EscalationPolicy
   isFavorite: Boolean!
+  maintenanceExpiresAt: ISOTimestamp
 
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
@@ -985,7 +1080,7 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatMonitorInput {
-  serviceID: ID!
+  serviceID: ID
   name: String!
   timeoutMinutes: Int!
 }
@@ -1062,7 +1157,7 @@ enum AlertStatus {
 type Target {
   id: ID!
   type: TargetType!
-  name: String
+  name: String!
 }
 
 input TargetInput {

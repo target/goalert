@@ -17,13 +17,13 @@ import {
   Box,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
+import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
 import { Search as SearchIcon } from '@mui/icons-material'
 import { FavoriteIcon } from '../../../util/SetFavoriteButton'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@mui/icons-material/Add'
 import _ from 'lodash'
-import getServiceLabel from '../../../util/getServiceLabel'
+import getServiceFilters from '../../../util/getServiceFilters'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 
 import { allErrors } from '../../../util/errutil'
@@ -116,7 +116,7 @@ export function CreateAlertServiceSelect(props) {
     return () => clearTimeout(t)
   }, [searchUserInput])
 
-  const { labelKey, labelValue } = getServiceLabel(searchUserInput)
+  const { labelKey, labelValue } = getServiceFilters(searchUserInput)
 
   const addAll = (e) => {
     e.stopPropagation()
@@ -189,17 +189,18 @@ export function CreateAlertServiceSelect(props) {
           ),
           endAdornment: (
             <span className={classes.endAdornment}>
-              {searchResults.length > 0 && value.length < CREATE_ALERT_LIMIT && (
-                <Chip
-                  className={classes.addAll}
-                  color='primary' // for white text
-                  component='button'
-                  label='Add All'
-                  size='small'
-                  icon={<AddIcon fontSize='small' />}
-                  onClick={addAll}
-                />
-              )}
+              {searchResults.length > 0 &&
+                value.length < CREATE_ALERT_LIMIT && (
+                  <Chip
+                    className={classes.addAll}
+                    color='primary' // for white text
+                    component='button'
+                    label='Add All'
+                    size='small'
+                    icon={<AddIcon fontSize='small' />}
+                    onClick={addAll}
+                  />
+                )}
               <ServiceLabelFilterContainer
                 value={{ labelKey, labelValue }}
                 onChange={({ labelKey, labelValue }) =>

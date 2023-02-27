@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/util/log"
 )
 
@@ -18,6 +19,8 @@ type Config struct {
 	LogRequests bool
 	APIOnly     bool
 	LogEngine   bool
+
+	PublicURL string
 
 	TLSListenAddr string
 	TLSConfig     *tls.Config
@@ -46,6 +49,8 @@ type Config struct {
 	KubernetesCooldown time.Duration
 	StatusAddr         string
 
+	EngineCycleTime time.Duration
+
 	EncryptionKeys keyring.Keys
 
 	RegionName string
@@ -57,4 +62,7 @@ type Config struct {
 	// InitialConfig will be pushed into the config store
 	// if specified before the engine is started.
 	InitialConfig *config.Config
+
+	// SWO should be set to operate in switchover mode.
+	SWO *swo.Manager
 }

@@ -20,6 +20,7 @@ export default function OtherActions({
   IconComponent,
   actions,
   placement,
+  disabled,
 }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const onClose = cancelable(() => setAnchorEl(null))
@@ -31,7 +32,8 @@ export default function OtherActions({
         aria-label='Other Actions'
         data-cy='other-actions'
         aria-expanded={Boolean(anchorEl)}
-        size='large'
+        color='secondary'
+        disabled={disabled}
         onClick={(e) => {
           onClose.cancel()
           setAnchorEl(e.currentTarget)
@@ -67,6 +69,7 @@ OtherActions.propTypes = {
       onClick: p.func.isRequired,
     }),
   ).isRequired,
+  disabled: p.bool,
   color: p.string,
   IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
