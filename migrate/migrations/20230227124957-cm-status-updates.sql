@@ -1,4 +1,8 @@
 -- +migrate Up
+UPDATE engine_processing_versions
+SET "version" = 4
+WHERE type_id = 'status_update';
+
 -- add enable_status_updates column to user_contact_methods table.
 ALTER TABLE user_contact_methods
 ADD column enable_status_updates BOOLEAN NOT NULL DEFAULT FALSE;
@@ -12,5 +16,9 @@ WHERE id IN (
     );
 
 -- +migrate Down
+UPDATE engine_processing_versions
+SET "version" = 3
+WHERE type_id = 'status_update';
+
 -- remove enable_status_updates column from user_contact_methods table.
 ALTER TABLE user_contact_methods DROP COLUMN enable_status_updates;
