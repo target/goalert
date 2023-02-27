@@ -159,9 +159,6 @@ function ScheduleShiftList({ scheduleID }) {
             s.truncated ? ' at least' : ''
           } ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
-          PopperProps={{
-            'aria-label': 'local-timezone-tooltip',
-          }}
         >
           <span>{shiftDetails}</span>
         </Tooltip>
@@ -176,9 +173,6 @@ function ScheduleShiftList({ scheduleID }) {
       <Tooltip
         title={`Active after ${localStartTime} ${localTzAbbr}`}
         placement='bottom-start'
-        PopperProps={{
-          'aria-label': 'local-timezone-tooltip',
-        }}
       >
         <span>{shiftDetails}</span>
       </Tooltip>
