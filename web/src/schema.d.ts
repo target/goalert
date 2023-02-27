@@ -935,6 +935,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -1009,7 +1010,12 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =
+  | 'SMS'
+  | 'VOICE'
+  | 'EMAIL'
+  | 'WEBHOOK'
+  | 'SLACK_DM'
 
 export interface UserContactMethod {
   id: string
@@ -1109,6 +1115,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'

@@ -172,5 +172,10 @@ func BenchmarkBuildMessage(b *testing.B) {
 				},
 				CallbackID: "2",
 			})
+}
+
+func BenchmarkSpellNumber(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = spellNumber(i)
 	}
 }

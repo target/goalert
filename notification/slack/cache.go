@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"sync"
 	"time"
 
 	"github.com/golang/groupcache/lru"
@@ -9,6 +10,12 @@ import (
 type ttlCache[K comparable, V any] struct {
 	*lru.Cache
 	ttl time.Duration
+
+	// We use a mutex to protect the cache from concurrent access
+	// as this is not handled by the lru package.
+	//
+	// See https://github.com/golang/groupcache/issues/87#issuecomment-338494548
+	mx sync.Mutex
 }
 
 func newTTLCache[K comparable, V any](maxEntries int, ttl time.Duration) *ttlCache[K, V] {
@@ -24,6 +31,9 @@ type cacheItem[V any] struct {
 }
 
 func (c *ttlCache[K, V]) Add(key lru.Key, value V) {
+	c.mx.Lock()
+	defer c.mx.Unlock()
+
 	c.Cache.Add(key, cacheItem[V]{
 		value:   value,
 		expires: time.Now().Add(c.ttl),
@@ -31,6 +41,9 @@ func (c *ttlCache[K, V]) Add(key lru.Key, value V) {
 }
 
 func (c *ttlCache[K, V]) Get(key K) (val V, ok bool) {
+	c.mx.Lock()
+	defer c.mx.Unlock()
+
 	item, ok := c.Cache.Get(key)
 	if !ok {
 		return val, false
