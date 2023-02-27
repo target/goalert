@@ -9,9 +9,9 @@ import (
 	"github.com/target/goalert/search"
 )
 
-func (q *Query) Webhooks(ctx context.Context, input *graphql2.WebhookSearchOptions) (conn *graphql2.WebhookConnection, err error) {
+func (q *Query) Webhooks(ctx context.Context, input *graphql2.ChanWebhookSearchOptions) (conn *graphql2.ChanWebhookConnection, err error) {
 	if input == nil {
-		input = &graphql2.WebhookSearchOptions{}
+		input = &graphql2.ChanWebhookSearchOptions{}
 	}
 
 	var searchOpts webhook.SearchOptions
@@ -40,7 +40,7 @@ func (q *Query) Webhooks(ctx context.Context, input *graphql2.WebhookSearchOptio
 		return nil, err
 	}
 
-	conn = new(graphql2.WebhookConnection)
+	conn = new(graphql2.ChanWebhookConnection)
 	conn.PageInfo = &graphql2.PageInfo{}
 	if len(webhooks) > searchOpts.Limit {
 		webhooks = webhooks[:searchOpts.Limit]
@@ -60,6 +60,6 @@ func (q *Query) Webhooks(ctx context.Context, input *graphql2.WebhookSearchOptio
 	return conn, err
 }
 
-func (q *Query) Webhook(ctx context.Context, id string) (webhook *webhook.Webhook, err error) {
+func (q *Query) Webhook(ctx context.Context, id string) (webhook *webhook.ChanWebhook, err error) {
 	return q.WebhookStore.FindOne(ctx, id)
 }
