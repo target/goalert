@@ -1,5 +1,82 @@
-import { Interval, DateTime, DateTimeFormatOptions } from 'luxon'
+import { Interval, DateTime } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
+
+export type TimeFormat =
+  | 'relative'
+  | 'relative-date'
+  | 'clock'
+  | 'locale'
+  | 'weekday-clock'
+
+export type TimeFormatOpts = {
+  time: string
+  zone?: string
+
+  // omitSameDate will omit the date if it is the same as the provided date.
+  //
+  // Has no effect if format is 'relative', 'since', or 'clock'.
+  omitSameDate?: string
+
+  format?: TimeFormat
+
+  now?: string
+  local?: string
+}
+
+const isSameDay = (a: DateTime, b: DateTime): boolean => {
+  return a.hasSame(b, 'day') && a.hasSame(b, 'month') && a.hasSame(b, 'year')
+}
+
+export function formatTimestamp(opts: TimeFormatOpts): string {
+  const {
+    time,
+    zone = 'local',
+    omitSameDate,
+    format = 'locale',
+
+    now = DateTime.utc().toISO(),
+  } = opts
+
+  const dt = DateTime.fromISO(time, { zone })
+  const omit = omitSameDate && DateTime.fromISO(omitSameDate, { zone })
+
+  let formatted: string
+  switch (format) {
+    case 'relative-date':
+      formatted = relativeDate(dt, DateTime.fromISO(now))
+      break
+    case 'relative':
+      formatted =
+        dt.toRelative({
+          style: 'short',
+          base: DateTime.fromISO(now),
+        }) || ''
+      break
+    case 'weekday-clock':
+      formatted = dt.toLocaleString({
+        hour: 'numeric',
+        minute: 'numeric',
+        weekday: 'short',
+      })
+      break
+    case 'clock':
+      formatted = dt.toLocaleString(DateTime.TIME_SIMPLE)
+      break
+    case 'locale':
+      if (omit && isSameDay(dt, omit)) {
+        formatted = dt.toLocaleString(DateTime.TIME_SIMPLE)
+        break
+      }
+
+      formatted = dt.toLocaleString(DateTime.DATETIME_MED)
+      break
+    default:
+      throw new Error('invalid format ' + format)
+  }
+  if (!formatted) throw new Error('invalid time ' + time)
+
+  return formatted
+}
 
 export function formatTimeSince(
   _since: DateTime | string,

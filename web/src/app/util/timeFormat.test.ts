@@ -1,5 +1,57 @@
-import { formatTimeSince } from './timeFormat'
+import { formatTimeSince, formatTimestamp, TimeFormatOpts } from './timeFormat'
 import { DateTime, Duration, DurationLikeObject } from 'luxon'
+
+describe('formatTimestamp', () => {
+  const check = (opts: TimeFormatOpts, exp: string): void => {
+    it(`${opts.time} === ${exp}`, () => {
+      expect(formatTimestamp(opts)).toBe(exp)
+    })
+  }
+
+  check({ time: '2020-01-01T00:00:00Z', zone: 'UTC' }, 'Jan 1, 2020, 12:00 AM')
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'clock' },
+    '12:00 AM',
+  )
+
+  check(
+    {
+      time: '2020-01-01T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative',
+      now: '2020-01-02T00:00:00Z',
+    },
+    '1 day ago',
+  )
+
+  check(
+    {
+      time: '2020-01-02T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative',
+      now: '2020-01-01T00:00:00Z',
+    },
+    'in 1 day',
+  )
+
+  check(
+    {
+      time: '2020-01-01T06:00:00Z',
+      zone: 'UTC',
+      omitSameDate: '2020-01-01T00:00:00Z',
+    },
+    '6:00 AM',
+  )
+
+  check(
+    {
+      time: '2020-01-02T06:00:00Z',
+      zone: 'UTC',
+      omitSameDate: '2020-01-01T00:00:00Z',
+    },
+    'Jan 2, 2020, 6:00 AM',
+  )
+})
 
 describe('formatTimeSince', () => {
   const check = (time: DurationLikeObject, exp: string): void => {

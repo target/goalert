@@ -18,6 +18,7 @@ import { OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
+import { Time } from '../util/Time'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -70,32 +71,16 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
     let tzSubText
     let localSubText
-    if (n.addUser && n.removeUser) {
-      // replace
-      tzSubText = `Replaces ${n.removeUser.name} from ${tzTimeStr} ${tzAbbr}`
-      localSubText = `Replaces ${n.removeUser.name} from ${localTimeStr} ${localAbbr}`
-    } else if (n.addUser) {
-      // add
-      tzSubText = `Added from ${tzTimeStr} ${tzAbbr}`
-      localSubText = `Added from ${localTimeStr} ${localAbbr}`
-    } else {
-      // remove
-      tzSubText = `Removed from ${tzTimeStr} ${tzAbbr}`
-      localSubText = `Removed from ${localTimeStr} ${localAbbr}`
-    }
+    let prefix
+    if (n.addUser && n.removeUser) prefix = 'Replaces'
+    else if (n.addUser) prefix = 'Added'
+    else prefix = 'Removed'
 
-    return isLocalZone ? (
-      <span>{localSubText}</span>
-    ) : (
-      <Tooltip
-        title={localSubText}
-        placement='bottom-start'
-        PopperProps={{
-          'aria-label': 'local-timezone-tooltip',
-        }}
-      >
-        <span>{tzSubText}</span>
-      </Tooltip>
+    return (
+      <span>
+        {prefix} from <Time time={n.start} zone={zone} /> to{' '}
+        <Time time={n.end} zone={zone} omitSameDate={n.start} />
+      </span>
     )
   }
 
