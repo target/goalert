@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/util/jsonutil"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func (store *Store) scheduleData(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*Data, error) {
@@ -42,7 +43,7 @@ func (store *Store) updateScheduleData(ctx context.Context, tx *sql.Tx, schedule
 		if err != nil {
 			return err
 		}
-		defer tx.Rollback()
+		defer sqlutil.Rollback(ctx, "schedule: update data", tx)
 	}
 
 	var rawData json.RawMessage

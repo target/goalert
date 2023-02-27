@@ -6,7 +6,7 @@ import users from '../fixtures/users.json'
 import { testScreen } from '../support/e2e'
 const c = new Chance()
 
-function testTimePickers(): void {
+function testTimePickers(screen: ScreenFormat): void {
   describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
@@ -68,8 +68,17 @@ function testTimePickers(): void {
           cy.visit(`/schedules/${s.id}/overrides${params}`),
         )
 
-        cy.pageFab('Add a User')
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Override').click()
+        }
+
+        cy.dialogTitle('Choose Override Action')
+        cy.get('[data-cy="variant.add"]').click()
+        cy.dialogClick('Next')
         cy.dialogTitle('Add')
+
         const start = DateTime.fromJSDate(
           c.date({
             year: DateTime.utc().year + 2,

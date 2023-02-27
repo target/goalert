@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release force-yarn
+.PHONY: goalert-container demo-container release force-yarn reset-integration
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -28,14 +28,14 @@ SIZE:=1
 PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
+# used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
+EXPERIMENTAL :=
+export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
+
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
 
-INT_PROC = Procfile.integration
-ifeq ($(CI), 1)
-INT_PROC = Procfile.integration.ci
-endif
 
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
@@ -115,7 +115,7 @@ help: ## Show all valid options
 
 start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
@@ -131,7 +131,7 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/sr
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc $(BIN_DIR)/tools/prometheus
+reset-integration: bin/waitfor bin/goalert bin/psql-lite
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	./bin/goalert --db-url "$(INT_DB_URL)" migrate
@@ -140,7 +140,9 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
 	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
-	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f $(INT_PROC)
+
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
+	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
@@ -188,7 +190,10 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 
-playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
+bin/MailHog: go.mod go.sum
+	go build -o bin/MailHog github.com/mailhog/MailHog
+
+playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	yarn playwright test
 
 smoketest:

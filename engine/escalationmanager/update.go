@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -28,7 +29,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "escalation manager", tx)
 
 	_, err = tx.StmtContext(ctx, db.lockStmt).ExecContext(ctx)
 	if err != nil {
@@ -91,7 +92,7 @@ func (db *DB) processEscalations(ctx context.Context, stmt *sql.Stmt, scan func(
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "escalation manager: process", tx)
 
 	rows, err := tx.StmtContext(ctx, stmt).QueryContext(ctx)
 	if err != nil {

@@ -50,22 +50,6 @@ func (s *Store) WrapTx(tx *sql.Tx) *Store {
 	}
 }
 
-// DoTx will perform a transaction with the NotificationRuleStore.
-func (s *Store) DoTx(f func(*Store) error) error {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	err = f(s.WrapTx(tx))
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
 // Insert implements the NotificationRuleStore interface by inserting the new NotificationRule into the database.
 // A new ID is always created.
 func (s *Store) Insert(ctx context.Context, n *NotificationRule) (*NotificationRule, error) {

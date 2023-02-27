@@ -25,12 +25,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 	middleware := []func(http.Handler) http.Handler{
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				next.ServeHTTP(w, req.WithContext(log.WithLogger(req.Context(), app.cfg.Logger)))
+				next.ServeHTTP(w, req.WithContext(app.Context(req.Context())))
 			})
 		},
-
-		// add app config to request context
-		func(next http.Handler) http.Handler { return config.Handler(next, app.ConfigStore) },
 
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

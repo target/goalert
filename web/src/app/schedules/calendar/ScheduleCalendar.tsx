@@ -20,7 +20,7 @@ import FilterContainer from '../../util/FilterContainer'
 import { UserSelect } from '../../selection'
 import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
-import { ScheduleCalendarContext } from '../ScheduleDetails'
+import { OverrideDialogContext } from '../ScheduleDetails'
 import {
   OnCallShift,
   TemporarySchedule,
@@ -128,7 +128,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
 
   const { shifts, temporarySchedules } = props
   const { weekly, start } = useCalendarNavigation()
-  const { setOverrideDialog } = useContext(ScheduleCalendarContext)
+  const { setOverrideDialog } = useContext(OverrideDialogContext)
 
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
