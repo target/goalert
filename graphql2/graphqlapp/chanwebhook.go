@@ -35,7 +35,7 @@ func (q *Query) ChanWebhooks(ctx context.Context, input *graphql2.ChanWebhookSea
 		searchOpts.EscalationPolicyID = *input.EscalationPolicyID
 	}
 
-	webhooks, err := q.WebhookStore.Search(ctx, &searchOpts)
+	webhooks, err := q.ChanWebhookStore.Search(ctx, &searchOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -61,5 +61,5 @@ func (q *Query) ChanWebhooks(ctx context.Context, input *graphql2.ChanWebhookSea
 }
 
 func (q *Query) ChanWebhook(ctx context.Context, id string) (webhook *webhook.ChanWebhook, err error) {
-	return q.WebhookStore.FindOne(ctx, id)
+	return q.ChanWebhookStore.FindOne(ctx, id)
 }

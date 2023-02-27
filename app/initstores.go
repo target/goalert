@@ -291,8 +291,8 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init notice store")
 	}
 
-	if app.WebhookStore == nil {
-		app.WebhookStore, err = webhook.NewStore(ctx, app.db)
+	if app.ChanWebhookStore == nil {
+		app.ChanWebhookStore, err = webhook.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init webhook store")
