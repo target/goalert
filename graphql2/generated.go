@@ -29,6 +29,7 @@ import (
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -384,6 +385,7 @@ type ComplexityRoot struct {
 		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
+		ExperimentalFlags        func(childComplexity int) int
 		GenerateSlackAppManifest func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
 		IntegrationKey           func(childComplexity int, id string) int
@@ -730,6 +732,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	ExperimentalFlags(ctx context.Context) ([]string, error)
 	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
 	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
@@ -756,7 +759,7 @@ type QueryResolver interface {
 	IntegrationKeys(ctx context.Context, input *IntegrationKeySearchOptions) (*IntegrationKeyConnection, error)
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
 	ChanWebhooks(ctx context.Context, input *ChanWebhookSearchOptions) (*ChanWebhookConnection, error)
-	ChanWebhook(ctx context.Context, id string) (*ChanWebhook, error)
+	ChanWebhook(ctx context.Context, id string) (*webhook.ChanWebhook, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
@@ -2455,6 +2458,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.EscalationPolicy(childComplexity, args["id"].(string)), true
+
+	case "Query.experimentalFlags":
+		if e.complexity.Query.ExperimentalFlags == nil {
+			break
+		}
+
+		return e.complexity.Query.ExperimentalFlags(childComplexity), true
 
 	case "Query.generateSlackAppManifest":
 		if e.complexity.Query.GenerateSlackAppManifest == nil {
@@ -6908,7 +6918,7 @@ func (ec *executionContext) fieldContext_AuthSubjectConnection_pageInfo(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ChanWebhook_id(ctx context.Context, field graphql.CollectedField, obj *ChanWebhook) (ret graphql.Marshaler) {
+func (ec *executionContext) _ChanWebhook_id(ctx context.Context, field graphql.CollectedField, obj *webhook.ChanWebhook) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChanWebhook_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -6952,7 +6962,7 @@ func (ec *executionContext) fieldContext_ChanWebhook_id(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _ChanWebhook_name(ctx context.Context, field graphql.CollectedField, obj *ChanWebhook) (ret graphql.Marshaler) {
+func (ec *executionContext) _ChanWebhook_name(ctx context.Context, field graphql.CollectedField, obj *webhook.ChanWebhook) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChanWebhook_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -7022,9 +7032,9 @@ func (ec *executionContext) _ChanWebhookConnection_nodes(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]ChanWebhook)
+	res := resTmp.([]webhook.ChanWebhook)
 	fc.Result = res
-	return ec.marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookᚄ(ctx, field.Selections, res)
+	return ec.marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhookᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ChanWebhookConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14086,6 +14096,50 @@ func (ec *executionContext) fieldContext_Query_phoneNumberInfo(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_experimentalFlags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExperimentalFlags(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_messageLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_messageLogs(ctx, field)
 	if err != nil {
@@ -15824,9 +15878,9 @@ func (ec *executionContext) _Query_chanWebhook(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ChanWebhook)
+	res := resTmp.(*webhook.ChanWebhook)
 	fc.Result = res
-	return ec.marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhook(ctx, field.Selections, res)
+	return ec.marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_chanWebhook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -29260,7 +29314,7 @@ func (ec *executionContext) _AuthSubjectConnection(ctx context.Context, sel ast.
 
 var chanWebhookImplementors = []string{"ChanWebhook"}
 
-func (ec *executionContext) _ChanWebhook(ctx context.Context, sel ast.SelectionSet, obj *ChanWebhook) graphql.Marshaler {
+func (ec *executionContext) _ChanWebhook(ctx context.Context, sel ast.SelectionSet, obj *webhook.ChanWebhook) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, chanWebhookImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -30958,6 +31012,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "experimentalFlags":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_experimentalFlags(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -34479,11 +34556,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNChanWebhook2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhook(ctx context.Context, sel ast.SelectionSet, v ChanWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalNChanWebhook2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx context.Context, sel ast.SelectionSet, v webhook.ChanWebhook) graphql.Marshaler {
 	return ec._ChanWebhook(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []ChanWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []webhook.ChanWebhook) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -34507,7 +34584,7 @@ func (ec *executionContext) marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoale
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNChanWebhook2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhook(ctx, sel, v[i])
+			ret[i] = ec.marshalNChanWebhook2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -37321,7 +37398,7 @@ func (ec *executionContext) unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhook(ctx context.Context, sel ast.SelectionSet, v *ChanWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx context.Context, sel ast.SelectionSet, v *webhook.ChanWebhook) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

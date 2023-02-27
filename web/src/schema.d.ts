@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -1029,7 +1030,12 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =
+  | 'SMS'
+  | 'VOICE'
+  | 'EMAIL'
+  | 'WEBHOOK'
+  | 'SLACK_DM'
 
 export interface UserContactMethod {
   id: string

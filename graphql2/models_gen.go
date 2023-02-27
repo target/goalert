@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
@@ -84,14 +85,9 @@ type CalcRotationHandoffTimesInput struct {
 	Count            int        `json:"count"`
 }
 
-type ChanWebhook struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type ChanWebhookConnection struct {
-	Nodes    []ChanWebhook `json:"nodes"`
-	PageInfo *PageInfo     `json:"pageInfo"`
+	Nodes    []webhook.ChanWebhook `json:"nodes"`
+	PageInfo *PageInfo             `json:"pageInfo"`
 }
 
 type ChanWebhookSearchOptions struct {

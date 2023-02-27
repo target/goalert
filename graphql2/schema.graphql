@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags: [ID!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -1295,6 +1297,7 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
+  SLACK_DM
 }
 
 # A method of contacting a user.
