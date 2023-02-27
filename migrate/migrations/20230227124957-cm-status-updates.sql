@@ -13,7 +13,9 @@ WHERE id IN (
         SELECT alert_status_log_contact_method_id
         FROM users
         WHERE alert_status_log_contact_method_id IS NOT NULL
-    );
+    )
+    OR TYPE = 'SLACK_DM'
+    OR TYPE = 'WEBHOOK';
 
 -- +migrate Down
 UPDATE engine_processing_versions
