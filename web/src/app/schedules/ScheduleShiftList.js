@@ -141,9 +141,6 @@ function ScheduleShiftList({ scheduleID }) {
         <Tooltip
           title={`From ${localStartTime} to ${localEndTime} ${localTzAbbr}`}
           placement='bottom-start'
-          PopperProps={{
-            'aria-label': 'local-timezone-tooltip',
-          }}
         >
           <span data-cy='shift-details'>{shiftDetails}</span>
         </Tooltip>
