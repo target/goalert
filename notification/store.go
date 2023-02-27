@@ -248,10 +248,18 @@ func (s *Store) Code(ctx context.Context, id string) (int, error) {
 }
 
 func (s *Store) SendContactMethodTest(ctx context.Context, id string) error {
-	_, err := s.cmUserID(ctx, id)
+	cmUserID, err := s.cmUserID(ctx, id)
 	if err != nil {
 		return err
 	}
+
+	// due to potential regulations around consent with phone calls and SMS, we
+	// only allow users to send test messages to their own contact methods
+	err = permission.LimitCheckAny(ctx, permission.MatchUser(cmUserID))
+	if err != nil {
+		return err
+	}
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
