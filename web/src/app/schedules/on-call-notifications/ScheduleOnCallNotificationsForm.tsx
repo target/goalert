@@ -99,7 +99,13 @@ export default function ScheduleOnCallNotificationsForm(
                 name='time'
                 disabled={!props.value.time}
                 required={!!props.value.time}
-                hint={<Time format='clock' time={props.value.time} />}
+                hint={
+                  <Time
+                    format='clock'
+                    time={props.value.time}
+                    suffix=' in local time'
+                  />
+                }
               />
             </Grid>
             <Grid item xs={12} sm={7} md={8}>

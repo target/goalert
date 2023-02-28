@@ -43,9 +43,11 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
       : formatTimestamp({ ...props, time, zone: 'local', omitSameDate: '' }) +
         ' in local time'
 
+  const hasValue = Boolean(props.time || props.zero)
+
   return (
     <React.Fragment>
-      {props.prefix}
+      {hasValue && props.prefix}
       {props.time ? (
         <time dateTime={props.time} title={title}>
           {display}
@@ -53,7 +55,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
       ) : (
         props.zero
       )}
-      {props.suffix}
+      {hasValue && props.suffix}
     </React.Fragment>
   )
 }
