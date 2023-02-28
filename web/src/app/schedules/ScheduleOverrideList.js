@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react'
-import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
+import { Button, Grid, FormControlLabel, Switch } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
-import { DateTime } from 'luxon'
 import { gql } from '@apollo/client'
 import QueryList from '../lists/QueryList'
 import { UserAvatar } from '../util/avatars'
@@ -10,7 +9,6 @@ import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
-import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
@@ -61,16 +59,9 @@ export default function ScheduleOverrideList({ scheduleID }) {
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
 
-  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const { zone } = useScheduleTZ(scheduleID)
 
   const subText = (n) => {
-    const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
-    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
-    const localTimeStr = formatOverrideTime(n.start, n.end, 'local')
-    const localAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
-
-    let tzSubText
-    let localSubText
     let prefix
     if (n.addUser && n.removeUser) prefix = 'Replaces'
     else if (n.addUser) prefix = 'Added'
