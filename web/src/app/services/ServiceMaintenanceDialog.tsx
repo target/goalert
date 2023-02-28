@@ -6,7 +6,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import { DateTime, Duration } from 'luxon'
+import { DateTime } from 'luxon'
 import { Time } from '../util/Time'
 
 interface Props {
@@ -16,11 +16,10 @@ interface Props {
 }
 
 function label(hours: number): JSX.Element {
-  const dur = Duration.fromObject({ hours })
   return (
     <span>
-      For {dur.toHuman()} (
-      <Time prefix='ends ' time={DateTime.local().plus(dur).toISO()} />)
+      For <Time duration={{ hours }} /> (
+      <Time prefix='ends ' time={DateTime.local().plus({ hours }).toISO()} />)
     </span>
   )
 }
@@ -54,7 +53,6 @@ export default function ServiceMaintenanceModeDialog(
 ): JSX.Element {
   const [selectedHours, setSelectedHours] = useState(1)
   const [updateServiceStatus, updateService] = useMutation(mutation)
-  const dur = Duration.fromObject({ hours: selectedHours })
 
   useEffect(() => {
     if (!updateServiceStatus.data) return
@@ -65,8 +63,14 @@ export default function ServiceMaintenanceModeDialog(
     <FormDialog
       maxWidth='sm'
       title='Set Maintenance Mode'
-      subTitle={`Pause all outgoing notifications and escalations for ${dur.toHuman()}. Incoming alerts will still be created
-      and will continue as normal after maintenance mode ends.`}
+      subTitle={
+        <React.Fragment>
+          Pause all outgoing notifications and escalations for{' '}
+          <Time duration={{ hours: selectedHours }} />. Incoming alerts will
+          still be created and will continue as normal after maintenance mode
+          ends.
+        </React.Fragment>
+      }
       loading={updateServiceStatus.fetching}
       errors={nonFieldErrors(updateServiceStatus.error)}
       onClose={props.onClose}
@@ -75,7 +79,9 @@ export default function ServiceMaintenanceModeDialog(
           {
             input: {
               id: props.serviceID,
-              maintenanceExpiresAt: DateTime.local().plus(dur).toISO(),
+              maintenanceExpiresAt: DateTime.local()
+                .plus({ hours: selectedHours })
+                .toISO(),
             },
           },
           {

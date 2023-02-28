@@ -63,7 +63,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
 
 type TimeDurationProps = TimeBaseProps & {
   precise?: boolean
-} & { duration: DurationLikeObject | string }
+} & { duration: DurationLikeObject | string | Duration }
 
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
   let dur: Duration
