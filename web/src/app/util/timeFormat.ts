@@ -17,20 +17,28 @@ export type TimeFormat =
 export type TimeFormatOpts = {
   time: string
   zone?: string
+} & (
+  | {
+      format: 'relative'
 
-  format?: TimeFormat
+      // now is the current time to use for relative time calculations, defaults to
+      // DateTime.utc().toISO()
+      now?: string
 
-  // now is the current time to use for relative time calculations, defaults to
-  // DateTime.utc().toISO()
-  now?: string
+      // If true, the 'relative' format will include multiple units.
+      precise?: boolean
+    }
+  | {
+      format: 'relative-date'
 
-  // If true, the 'relative' format will include multiple units.
-  precise?: boolean
-}
-
-const isSameDay = (a: DateTime, b: DateTime): boolean => {
-  return a.hasSame(b, 'day') && a.hasSame(b, 'month') && a.hasSame(b, 'year')
-}
+      // now is the current time to use for relative time calculations, defaults to
+      // DateTime.utc().toISO()
+      now?: string
+    }
+  | {
+      format: 'clock' | 'default' | 'weekday-clock'
+    }
+)
 
 export function relativeDate(
   _to: DateTime | string,
@@ -86,89 +94,46 @@ export function toRelativePrecise(
   return prefix + parts.join(' ') + suffix
 }
 
-export function formatTimestamp(opts: TimeFormatOpts): string {
-  const {
-    time,
-    zone = 'local',
-    format = 'locale',
-
-    now = DateTime.utc().toISO(),
-  } = opts
-
-  const dt = DateTime.fromISO(time, { zone })
-
-  let formatted: string
-  switch (format) {
-    case 'relative-date':
-      formatted = relativeDate(dt, DateTime.fromISO(now))
-      break
-    case 'relative':
-      if (opts.precise) {
-        formatted = toRelativePrecise(dt.diff(DateTime.fromISO(now)), [
-          'days',
-          'hours',
-          'minutes',
-        ])
-        break
-      }
-
-      formatted =
-        dt.toRelative({
-          style: 'short',
-          base: DateTime.fromISO(now),
-        }) || ''
-      break
-    case 'weekday-clock':
-      formatted = dt.toLocaleString({
-        hour: 'numeric',
-        minute: 'numeric',
-        weekday: 'short',
-      })
-      break
-    case 'clock':
-      formatted = dt.toLocaleString(DateTime.TIME_SIMPLE)
-      break
-    case 'locale':
-      formatted = dt.toLocaleString(DateTime.DATETIME_MED)
-      break
-    default:
-      throw new Error('invalid format ' + format)
-  }
-  if (!formatted) throw new Error('invalid time ' + time)
-
-  return formatted
+function formatGuard(fmt: never): never {
+  throw new Error('invalid time format ' + fmt)
 }
 
-export function formatTimeSince(
-  _since: DateTime | string,
-  _now = DateTime.utc(),
-): string {
-  if (!_since) return ''
-  const since = _since instanceof DateTime ? _since : DateTime.fromISO(_since)
-  const now = _now instanceof DateTime ? _now : DateTime.fromISO(_now)
-  const diff = now.diff(since)
+export function formatTimestamp(opts: TimeFormatOpts): string {
+  const { time, zone = 'local' } = opts
 
-  if (diff.as('minutes') < 1) {
-    return `< 1m ago`
-  }
+  const dt = DateTime.fromISO(time, { zone })
+  const now = DateTime.utc().toISO()
 
-  if (diff.as('hours') < 1) {
-    return `${Math.floor(diff.as('minutes'))}m ago`
-  }
+  if (opts.format === 'default') return dt.toLocaleString(DateTime.DATETIME_MED)
+  if (opts.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
 
-  if (diff.as('days') < 1) {
-    return `${Math.floor(diff.as('hours'))}h ago`
-  }
+  if (opts.format === 'relative-date')
+    return relativeDate(dt, DateTime.fromISO(opts.now || now))
 
-  if (diff.as('months') < 1) {
-    return `${Math.floor(diff.as('days'))}d ago`
-  }
+  if (opts.format === 'weekday-clock')
+    return dt.toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+      weekday: 'short',
+    })
 
-  if (diff.as('years') < 1) {
-    return `> ${Math.floor(diff.as('months'))}mo ago`
-  }
+  if (opts.format === 'relative' && opts.precise)
+    return toRelativePrecise(dt.diff(DateTime.fromISO(now)), [
+      'days',
+      'hours',
+      'minutes',
+    ])
 
-  return `> ${Math.floor(diff.as('years'))}y ago`
+  if (opts.format === 'relative')
+    return (
+      dt.toRelative({
+        style: 'short',
+        base: DateTime.fromISO(opts.now || now),
+      }) || ''
+    )
+
+  // Create a type error if we add a new format and forget to handle it.
+  formatGuard(opts.format)
 }
 
 // fmtTime returns simple string for ISO string or DateTime object.
