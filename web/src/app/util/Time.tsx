@@ -18,15 +18,16 @@ type TimeTimestampProps = TimeBaseProps &
   }
 
 const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
-  const [now, setNow] = useState(props.now || DateTime.utc().toISO())
+  const nowProp = 'now' in props ? (props.now as string) : ''
+  const [now, setNow] = useState(nowProp || DateTime.utc().toISO())
   useEffect(() => {
     if (props.format !== 'relative' && props.format !== 'relative-date') return
 
     const interval = setInterval(() => {
-      setNow(props.now || DateTime.utc().toISO())
+      setNow(nowProp || DateTime.utc().toISO())
     }, 1000)
     return () => clearInterval(interval)
-  }, [props.now])
+  }, [nowProp])
   const time = props.time || ''
   const display = formatTimestamp({ ...props, time, now })
   const local = formatTimestamp({ ...props, time, now, zone: 'local' })

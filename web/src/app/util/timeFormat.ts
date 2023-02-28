@@ -7,13 +7,6 @@ import {
 } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
-export type TimeFormat =
-  | 'relative'
-  | 'relative-date'
-  | 'clock'
-  | 'locale'
-  | 'weekday-clock'
-
 export type TimeFormatOpts = {
   time: string
   zone?: string

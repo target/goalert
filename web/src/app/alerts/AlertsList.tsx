@@ -282,7 +282,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                   secondary={
                     <Time
                       time={a.createdAt}
-                      format={fullTime ? 'locale' : 'relative'}
+                      format={fullTime ? 'default' : 'relative'}
                     />
                   }
                 />
