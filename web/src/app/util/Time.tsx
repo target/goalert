@@ -11,17 +11,11 @@ type TimeBaseProps = {
   suffix?: string
 }
 
-type TimeDurationProps = TimeBaseProps & {
-  precise?: boolean
-} & { duration: DurationLikeObject | string }
-
 type TimeTimestampProps = TimeBaseProps &
   Omit<TimeFormatOpts, 'time'> & {
     time: string | null | undefined
     zero?: string
   }
-
-type TimeProps = TimeDurationProps | TimeTimestampProps
 
 const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
   const [now, setNow] = useState(props.now || DateTime.utc().toISO())
@@ -60,6 +54,10 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
   )
 }
 
+type TimeDurationProps = TimeBaseProps & {
+  precise?: boolean
+} & { duration: DurationLikeObject | string }
+
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
   let dur: Duration
   if ('duration' in props) {
@@ -82,6 +80,8 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     </React.Fragment>
   )
 }
+
+export type TimeProps = TimeDurationProps | TimeTimestampProps
 
 // Time will render a <time> element using Luxon to format the time.
 export const Time: React.FC<TimeProps> = (props) => {
