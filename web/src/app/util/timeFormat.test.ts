@@ -38,24 +38,6 @@ describe('formatTimestamp', () => {
     },
     'in 1 day',
   )
-
-  check(
-    {
-      time: '2020-01-01T06:00:00Z',
-      zone: 'UTC',
-      omitSameDate: '2020-01-01T00:00:00Z',
-    },
-    '6:00 AM',
-  )
-
-  check(
-    {
-      time: '2020-01-02T06:00:00Z',
-      zone: 'UTC',
-      omitSameDate: '2020-01-01T00:00:00Z',
-    },
-    'Jan 2, 2020, 6:00 AM',
-  )
 })
 
 describe('toRelativePrecise', () => {

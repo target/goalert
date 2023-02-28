@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react'
-import { Button, Grid, FormControlLabel, Switch } from '@mui/material'
+import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
+import { DateTime } from 'luxon'
 import { gql } from '@apollo/client'
 import QueryList from '../lists/QueryList'
 import { UserAvatar } from '../util/avatars'
@@ -9,6 +10,7 @@ import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
+import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
@@ -16,7 +18,6 @@ import { OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
-import { Time } from '../util/Time'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -59,19 +60,42 @@ export default function ScheduleOverrideList({ scheduleID }) {
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
 
-  const { zone } = useScheduleTZ(scheduleID)
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   const subText = (n) => {
-    let prefix
-    if (n.addUser && n.removeUser) prefix = 'Replaces'
-    else if (n.addUser) prefix = 'Added'
-    else prefix = 'Removed'
+    const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
+    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
+    const localTimeStr = formatOverrideTime(n.start, n.end, 'local')
+    const localAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
-    return (
-      <span>
-        {prefix} from <Time time={n.start} zone={zone} /> to{' '}
-        <Time time={n.end} zone={zone} omitSameDate={n.start} />
-      </span>
+    let tzSubText
+    let localSubText
+    if (n.addUser && n.removeUser) {
+      // replace
+      tzSubText = `Replaces ${n.removeUser.name} from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Replaces ${n.removeUser.name} from ${localTimeStr} ${localAbbr}`
+    } else if (n.addUser) {
+      // add
+      tzSubText = `Added from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Added from ${localTimeStr} ${localAbbr}`
+    } else {
+      // remove
+      tzSubText = `Removed from ${tzTimeStr} ${tzAbbr}`
+      localSubText = `Removed from ${localTimeStr} ${localAbbr}`
+    }
+
+    return isLocalZone ? (
+      <span>{localSubText}</span>
+    ) : (
+      <Tooltip
+        title={localSubText}
+        placement='bottom-start'
+        PopperProps={{
+          'aria-label': 'local-timezone-tooltip',
+        }}
+      >
+        <span>{tzSubText}</span>
+      </Tooltip>
     )
   }
 

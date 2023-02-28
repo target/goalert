@@ -18,11 +18,6 @@ export type TimeFormatOpts = {
   time: string
   zone?: string
 
-  // omitSameDate will omit the date if it is the same as the provided date.
-  //
-  // Has no effect if format is 'relative', 'since', or 'clock'.
-  omitSameDate?: string
-
   format?: TimeFormat
 
   // now is the current time to use for relative time calculations, defaults to
@@ -95,14 +90,12 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
   const {
     time,
     zone = 'local',
-    omitSameDate,
     format = 'locale',
 
     now = DateTime.utc().toISO(),
   } = opts
 
   const dt = DateTime.fromISO(time, { zone })
-  const omit = omitSameDate && DateTime.fromISO(omitSameDate, { zone })
 
   let formatted: string
   switch (format) {
@@ -136,11 +129,6 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
       formatted = dt.toLocaleString(DateTime.TIME_SIMPLE)
       break
     case 'locale':
-      if (omit && isSameDay(dt, omit)) {
-        formatted = dt.toLocaleString(DateTime.TIME_SIMPLE)
-        break
-      }
-
       formatted = dt.toLocaleString(DateTime.DATETIME_MED)
       break
     default:

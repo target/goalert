@@ -34,8 +34,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
   const title =
     display === local
       ? undefined
-      : formatTimestamp({ ...props, time, zone: 'local', omitSameDate: '' }) +
-        ' in local time'
+      : formatTimestamp({ ...props, time, zone: 'local' }) + ' in local time'
 
   const hasValue = Boolean(props.time || props.zero)
 
