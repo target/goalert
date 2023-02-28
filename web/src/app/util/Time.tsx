@@ -29,13 +29,18 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
     return () => clearInterval(interval)
   }, [nowProp])
   const time = props.time || ''
-  const display = formatTimestamp({ ...props, time, now })
+  let display = formatTimestamp({ ...props, time, now })
   const local = formatTimestamp({ ...props, time, now, zone: 'local' })
 
   const title =
     display === local
       ? undefined
       : formatTimestamp({ ...props, time, zone: 'local' }) + ' in local time'
+
+  const zoneStr =
+    display === local
+      ? ''
+      : ' ' + DateTime.fromISO(time, { zone: props.zone }).toFormat('ZZZZ')
 
   const hasValue = Boolean(props.time || props.zero)
 
@@ -52,6 +57,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
           }}
         >
           {display}
+          {zoneStr}
         </time>
       ) : (
         props.zero
