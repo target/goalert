@@ -1,7 +1,7 @@
-import { Duration } from 'luxon'
 import React from 'react'
 import { RotationType } from '../../schema'
 import { Time } from '../util/Time'
+import { TimeFormat } from '../util/timeFormat'
 
 export interface HandoffSummaryProps {
   start: string
@@ -10,63 +10,36 @@ export interface HandoffSummaryProps {
   timeZone: string
 }
 
-export const HourlyHandoffSummary: React.FC<HandoffSummaryProps> = (props) => {
-  return (
-    <span>
-      Hands off every{' '}
-      {Duration.fromObject({ hours: props.shiftLength }).toHuman()} from{' '}
-      <Time time={props.start} zone={props.timeZone} />.
-    </span>
-  )
-}
-
-export const DailyHandoffSummary: React.FC<HandoffSummaryProps> = (props) => {
-  const prefix =
-    'Hands off every ' +
-    Duration.fromObject({ days: props.shiftLength }).toHuman() +
-    ' at '
-
-  return (
-    <Time
-      prefix={prefix}
-      time={props.start}
-      zone={props.timeZone}
-      format='clock'
-      suffix='.'
-    />
-  )
-}
-
-export const WeeklyHandoffSummary: React.FC<HandoffSummaryProps> = (props) => {
-  const prefix =
-    'Hands off every ' +
-    Duration.fromObject({ weeks: props.shiftLength }).toHuman() +
-    ' on '
-
-  return (
-    <Time
-      prefix={prefix}
-      time={props.start}
-      zone={props.timeZone}
-      format='weekday-clock'
-      suffix='.'
-    />
-  )
-}
-
 // handoffSummary returns the summary description for the rotation
 export const HandoffSummary: React.FC<HandoffSummaryProps> =
   function HandoffSummary(props: HandoffSummaryProps): JSX.Element {
     if (!props.timeZone) return <span>Loading handoff information...</span>
 
+    let join: string, format: TimeFormat, unit: string
     switch (props.type) {
       case 'hourly':
-        return <HourlyHandoffSummary {...props} />
+        join = 'from'
+        format = 'locale'
+        unit = 'hours'
+        break
       case 'daily':
-        return <DailyHandoffSummary {...props} />
+        join = 'at'
+        format = 'clock'
+        unit = 'days'
+        break
       case 'weekly':
-        return <WeeklyHandoffSummary {...props} />
+        join = 'on'
+        format = 'weekday-clock'
+        unit = 'weeks'
+        break
+      default:
+        throw new Error('unknown rotation type: ' + props.type)
     }
 
-    throw new Error('unknown rotation type: ' + props.type)
+    return (
+      <span>
+        Hands off every <Time duration={{ [unit]: props.shiftLength }} /> {join}{' '}
+        <Time time={props.start} zone={props.timeZone} format={format} />.
+      </span>
+    )
   }

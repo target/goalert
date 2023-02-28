@@ -1,17 +1,29 @@
-import { DateTime } from 'luxon'
+import { DateTime, Duration, DurationLikeObject } from 'luxon'
 import React, { useEffect, useState } from 'react'
-import { formatTimestamp, TimeFormatOpts } from './timeFormat'
+import {
+  formatTimestamp,
+  TimeFormatOpts,
+  toRelativePrecise,
+} from './timeFormat'
 
-type TimeProps = Omit<TimeFormatOpts, 'time'> & {
+type TimeBaseProps = {
   prefix?: string
   suffix?: string
-  local?: boolean
-  time: string | null | undefined
-  zero?: string
 }
 
-// Time will render a <time> element using Luxon to format the time.
-export const Time: React.FC<TimeProps> = (props) => {
+type TimeDurationProps = TimeBaseProps & {
+  precise?: boolean
+} & { duration: DurationLikeObject | string }
+
+type TimeTimestampProps = TimeBaseProps &
+  Omit<TimeFormatOpts, 'time'> & {
+    time: string | null | undefined
+    zero?: string
+  }
+
+type TimeProps = TimeDurationProps | TimeTimestampProps
+
+const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
   const [now, setNow] = useState(props.now || DateTime.utc().toISO())
   useEffect(() => {
     if (props.format !== 'relative' && props.format !== 'relative-date') return
@@ -24,20 +36,6 @@ export const Time: React.FC<TimeProps> = (props) => {
   const time = props.time || ''
   const display = formatTimestamp({ ...props, time, now })
   const local = formatTimestamp({ ...props, time, now, zone: 'local' })
-
-  if (props.local) {
-    return (
-      <React.Fragment>
-        {props.prefix}
-        {props.time ? (
-          <time dateTime={props.time}>{local} in local time</time>
-        ) : (
-          props.zero
-        )}
-        {props.suffix}
-      </React.Fragment>
-    )
-  }
 
   const title =
     display === local
@@ -58,4 +56,33 @@ export const Time: React.FC<TimeProps> = (props) => {
       {props.suffix}
     </React.Fragment>
   )
+}
+
+const TimeDuration: React.FC<TimeDurationProps> = (props) => {
+  let dur: Duration
+  if ('duration' in props) {
+    dur =
+      typeof props.duration === 'string'
+        ? Duration.fromISO(props.duration)
+        : Duration.fromObject(props.duration)
+  } else {
+    dur = Duration.fromObject(props)
+  }
+
+  return (
+    <React.Fragment>
+      {props.prefix}
+      <time dateTime={dur.toISO()}>
+        {props.precise ? toRelativePrecise(dur) : dur.toHuman()}
+      </time>
+
+      {props.suffix}
+    </React.Fragment>
+  )
+}
+
+// Time will render a <time> element using Luxon to format the time.
+export const Time: React.FC<TimeProps> = (props) => {
+  if ('time' in props) return <TimeTimestamp {...props} />
+  return <TimeDuration {...props} />
 }
