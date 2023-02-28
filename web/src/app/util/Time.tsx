@@ -1,4 +1,5 @@
-import React from 'react'
+import { DateTime } from 'luxon'
+import React, { useEffect, useState } from 'react'
 import { formatTimestamp, TimeFormatOpts } from './timeFormat'
 
 type NoTime = {
@@ -18,8 +19,17 @@ type TimeProps = TimeFormatOpts & {
 
 // Time will render a <time> element using Luxon to format the time.
 export const Time: React.FC<TimeProps> = (props) => {
-  const display = formatTimestamp(props)
-  const local = formatTimestamp({ ...props, zone: 'local' })
+  const [now, setNow] = useState(props.now || DateTime.utc().toISO())
+  useEffect(() => {
+    if (props.format !== 'relative' && props.format !== 'relative-date') return
+
+    const interval = setInterval(() => {
+      setNow(props.now || DateTime.utc().toISO())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [props.now])
+  const display = formatTimestamp({ ...props, now })
+  const local = formatTimestamp({ ...props, now, zone: 'local' })
 
   if (props.local) {
     return (
