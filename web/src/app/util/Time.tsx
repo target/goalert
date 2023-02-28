@@ -43,7 +43,14 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
     <React.Fragment>
       {hasValue && props.prefix}
       {props.time ? (
-        <time dateTime={props.time} title={title}>
+        <time
+          dateTime={props.time}
+          title={title}
+          style={{
+            textDecorationStyle: 'dotted',
+            textDecorationLine: title ? 'underline' : 'none',
+          }}
+        >
           {display}
         </time>
       ) : (
