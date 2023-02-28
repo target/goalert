@@ -204,13 +204,13 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 }
 
 func (s *Store) LookupDeliveredTime(ctx context.Context, alertID int) (*time.Time, error) {
-	// err := permission.LimitCheckAny(ctx, permission.System)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
 
 	var ts *time.Time
-	err := s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&ts)
+	err = s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&ts)
 	return ts, err
 }
 

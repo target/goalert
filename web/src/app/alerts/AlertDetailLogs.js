@@ -117,7 +117,7 @@ export default function AlertDetailLogs(props) {
   }
 
   const renderItem = (event, idx) => {
-    const details = _.upperFirst(event?.state?.details ?? '')
+    let details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
 
     let timestamp = formatTimeSince(event.timestamp)
@@ -125,6 +125,17 @@ export default function AlertDetailLogs(props) {
       timestamp = DateTime.fromISO(event.timestamp).toLocaleString(
         DateTime.DATETIME_FULL,
       )
+    }
+
+    if (details !== '') {
+      let prefix = ''
+      if (status === 'Sending') {
+        prefix = '(for '
+      }
+      if (status === 'Delivered') {
+        prefix = '(after '
+      }
+      details = prefix + details + ')'
     }
 
     return (

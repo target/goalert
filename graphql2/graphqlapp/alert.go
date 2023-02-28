@@ -446,7 +446,6 @@ func formatDelay(delay int) string {
 		}
 		res = res + fmt.Sprintf(" %d min%s", mins, s)
 	}
-	res += ")"
 	fmt.Println(res)
 	return res
 }
@@ -456,6 +455,7 @@ func (a *AlertLogEntry) deliveryDelayCheck(ctx context.Context, obj *alertlog.En
 	timeDelivered, err := a.AlertLogStore.LookupDeliveredTime(ctx, obj.AlertID())
 	timeSent := obj.Timestamp()
 	deliveryDelay := int(timeDelivered.Sub(timeSent).Minutes())
+	fmt.Println("\n\n!!! ", timeSent, timeDelivered)
 	res := ""
 	if deliveryDelay > 2 {
 		res = formatDelay(deliveryDelay)
