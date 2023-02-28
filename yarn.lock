@@ -7004,10 +7004,10 @@ recharts-scale@^0.4.4:
   dependencies:
     decimal.js-light "^2.4.1"
 
-recharts@2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/recharts/-/recharts-2.3.1.tgz#ff89df6c30c7c02a2ed02bc000cb1aeb7a01b903"
-  integrity sha512-FhnZL42mkgqjUt/vbvUiRvbwSYl64FXD3CXqyF2UVeRWI1O/pnqHwa8JkjCHLGanRcCWU7uowulid07wFqRrKQ==
+recharts@2.4.3:
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/recharts/-/recharts-2.4.3.tgz#23b7cd988423449b04a826baa057675b833789b1"
+  integrity sha512-/hkRHTQShEOKDYd2OlKLIvGA0X9v/XVO/mNeRoDHg0lgFRL2KbGzeqVnStI3mMfORUZ6Hak4JbQ+uDiin1Foqg==
   dependencies:
     classnames "^2.2.5"
     eventemitter3 "^4.0.1"
