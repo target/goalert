@@ -3,7 +3,7 @@ import { gql, useQuery, useMutation } from 'urql'
 import { Button, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
 import Notices, { Notice } from '../details/Notices'
-import CountDown from '../util/CountDown'
+import { Time } from '../util/Time'
 
 const query = gql`
   query serviceMaintenanceQuery($serviceID: ID!) {
@@ -50,14 +50,8 @@ export default function ServiceMaintenanceNotice({
             message: 'In Maintenance Mode',
             details: (
               <React.Fragment>
-                Ends at {DateTime.fromISO(maintMode).toFormat('FFF')} (
-                <CountDown
-                  end={maintMode}
-                  hours
-                  minutes
-                  expiredMessage='less than 1 minute'
-                />{' '}
-                remaining)
+                Ends <Time format='relative' time={maintMode} precise /> (
+                <Time time={maintMode} />)
               </React.Fragment>
             ),
             action: (
