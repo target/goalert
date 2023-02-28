@@ -1,4 +1,9 @@
-import { formatTimeSince, formatTimestamp, TimeFormatOpts } from './timeFormat'
+import {
+  formatTimeSince,
+  formatTimestamp,
+  TimeFormatOpts,
+  toRelativePrecise,
+} from './timeFormat'
 import { DateTime, Duration, DurationLikeObject } from 'luxon'
 
 describe('formatTimestamp', () => {
@@ -51,6 +56,18 @@ describe('formatTimestamp', () => {
     },
     'Jan 2, 2020, 6:00 AM',
   )
+})
+
+describe('toRelativePrecise', () => {
+  const check = (dur: Duration, exp: string): void => {
+    it(`${dur.toFormat('dDays h:m:s')} === ${exp}`, () => {
+      expect(toRelativePrecise(dur)).toBe(exp)
+    })
+  }
+
+  check(Duration.fromObject({ minutes: -1 }), '1 minute ago')
+  check(Duration.fromObject({ minutes: 1 }), 'in 1 minute')
+  check(Duration.fromObject({ hours: 1.5 }), 'in 1 hour 30 minutes')
 })
 
 describe('formatTimeSince', () => {

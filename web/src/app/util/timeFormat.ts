@@ -1,4 +1,4 @@
-import { Interval, DateTime } from 'luxon'
+import { Interval, DateTime, Duration, DurationLikeObject } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
 export type TimeFormat =
@@ -21,6 +21,9 @@ export type TimeFormatOpts = {
 
   now?: string
   local?: string
+
+  // If true, the 'relative' format will include multiple units.
+  precise?: boolean
 }
 
 const isSameDay = (a: DateTime, b: DateTime): boolean => {
@@ -46,6 +49,15 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
       formatted = relativeDate(dt, DateTime.fromISO(now))
       break
     case 'relative':
+      if (opts.precise) {
+        formatted = toRelativePrecise(dt.diff(DateTime.fromISO(now)), [
+          'days',
+          'hours',
+          'minutes',
+        ])
+        break
+      }
+
       formatted =
         dt.toRelative({
           style: 'short',
@@ -76,6 +88,27 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
   if (!formatted) throw new Error('invalid time ' + time)
 
   return formatted
+}
+
+export function toRelativePrecise(
+  dur: Duration,
+  units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
+) {
+  const parts = []
+  const prefix = dur.valueOf() > 0 ? 'in ' : ''
+  const suffix = dur.valueOf() > 0 ? '' : ' ago'
+  if (dur.valueOf() < 0) dur = dur.negate()
+
+  for (const unit of units) {
+    const val = Math.floor(dur.as(unit))
+    if (val === 0) continue
+    const part = Duration.fromObject({ [unit]: val })
+    dur = dur.minus(part)
+
+    parts.push(part.toHuman())
+  }
+
+  return prefix + parts.join(' ') + suffix
 }
 
 export function formatTimeSince(
