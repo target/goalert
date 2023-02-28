@@ -1,4 +1,10 @@
-import { Interval, DateTime, Duration, DurationLikeObject } from 'luxon'
+import {
+  Interval,
+  DateTime,
+  Duration,
+  DurationLikeObject,
+  DateTimeFormatOptions,
+} from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
 export type TimeFormat =
@@ -19,8 +25,9 @@ export type TimeFormatOpts = {
 
   format?: TimeFormat
 
+  // now is the current time to use for relative time calculations, defaults to
+  // DateTime.utc().toISO()
   now?: string
-  local?: string
 
   // If true, the 'relative' format will include multiple units.
   precise?: boolean

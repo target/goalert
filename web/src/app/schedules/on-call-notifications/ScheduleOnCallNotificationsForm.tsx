@@ -13,6 +13,7 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { Value, NO_DAY, EVERY_DAY, RuleFieldError } from './util'
 import { Time } from '../../util/Time'
+import { useScheduleTZ } from '../useScheduleTZ'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -32,6 +33,7 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
+  const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
@@ -97,7 +99,7 @@ export default function ScheduleOnCallNotificationsForm(
                 name='time'
                 disabled={!props.value.time}
                 required={!!props.value.time}
-                hint={<Time format='clock' time={props.value.time} local />}
+                hint={<Time format='clock' time={props.value.time} />}
               />
             </Grid>
             <Grid item xs={12} sm={7} md={8}>

@@ -2,20 +2,13 @@ import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { formatTimestamp, TimeFormatOpts } from './timeFormat'
 
-type NoTime = {
-  time: '' | null | undefined
-  zero: string
-}
-type Time = {
-  time: string
-  zero?: string
-}
-
-type TimeProps = TimeFormatOpts & {
+type TimeProps = Omit<TimeFormatOpts, 'time'> & {
   prefix?: string
   suffix?: string
   local?: boolean
-} & (NoTime | Time)
+  time: string | null | undefined
+  zero?: string
+}
 
 // Time will render a <time> element using Luxon to format the time.
 export const Time: React.FC<TimeProps> = (props) => {
@@ -28,8 +21,9 @@ export const Time: React.FC<TimeProps> = (props) => {
     }, 1000)
     return () => clearInterval(interval)
   }, [props.now])
-  const display = formatTimestamp({ ...props, now })
-  const local = formatTimestamp({ ...props, now, zone: 'local' })
+  const time = props.time || ''
+  const display = formatTimestamp({ ...props, time, now })
+  const local = formatTimestamp({ ...props, time, now, zone: 'local' })
 
   if (props.local) {
     return (
@@ -48,7 +42,7 @@ export const Time: React.FC<TimeProps> = (props) => {
   const title =
     display === local
       ? undefined
-      : formatTimestamp({ ...props, zone: 'local', omitSameDate: '' }) +
+      : formatTimestamp({ ...props, time, zone: 'local', omitSameDate: '' }) +
         ' in local time'
 
   return (
