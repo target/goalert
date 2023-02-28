@@ -1,7 +1,6 @@
 import React from 'react'
 import { RotationType } from '../../schema'
 import { Time } from '../util/Time'
-import { TimeFormat } from '../util/timeFormat'
 
 export interface HandoffSummaryProps {
   start: string
@@ -10,36 +9,38 @@ export interface HandoffSummaryProps {
   timeZone: string
 }
 
+function dur(p: HandoffSummaryProps): JSX.Element {
+  if (p.type === 'hourly') return <Time duration={{ hours: p.shiftLength }} />
+  if (p.type === 'daily') return <Time duration={{ days: p.shiftLength }} />
+  if (p.type === 'weekly') return <Time duration={{ weeks: p.shiftLength }} />
+  throw new Error('unknown rotation type: ' + p.type)
+}
+
+function ts(p: HandoffSummaryProps): JSX.Element {
+  if (p.type === 'hourly')
+    return <Time prefix='from ' time={p.start} zone={p.timeZone} />
+  if (p.type === 'daily')
+    return <Time prefix='at ' time={p.start} zone={p.timeZone} format='clock' />
+  if (p.type === 'weekly')
+    return (
+      <Time
+        prefix='on '
+        time={p.start}
+        zone={p.timeZone}
+        format='weekday-clock'
+      />
+    )
+  throw new Error('unknown rotation type: ' + p.type)
+}
+
 // handoffSummary returns the summary description for the rotation
 export const HandoffSummary: React.FC<HandoffSummaryProps> =
   function HandoffSummary(props: HandoffSummaryProps): JSX.Element {
     if (!props.timeZone) return <span>Loading handoff information...</span>
 
-    let join: string, format: TimeFormat, unit: string
-    switch (props.type) {
-      case 'hourly':
-        join = 'from'
-        format = 'locale'
-        unit = 'hours'
-        break
-      case 'daily':
-        join = 'at'
-        format = 'clock'
-        unit = 'days'
-        break
-      case 'weekly':
-        join = 'on'
-        format = 'weekday-clock'
-        unit = 'weeks'
-        break
-      default:
-        throw new Error('unknown rotation type: ' + props.type)
-    }
-
     return (
       <span>
-        Hands off every <Time duration={{ [unit]: props.shiftLength }} /> {join}{' '}
-        <Time time={props.start} zone={props.timeZone} format={format} />.
+        Hands off every {dur(props)} {ts(props)}.
       </span>
     )
   }
