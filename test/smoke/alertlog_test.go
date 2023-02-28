@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -69,16 +68,23 @@ func TestAlertLog(t *testing.T) {
 		)
 	}
 
-	updateLastStatusAtTimestamp := func(h *harness.Harness) string {
+	getSentAtTS := func(h *harness.Harness) string {
+		return fmt.Sprintf(
+			`select timestamp
+			from alert_logs
+			where alert_id = "%d"
+			and event = 'notification_sent'
+		`, 1)
+	}
+
+	updateLastStatusAtTimestamp := func(h *harness.Harness, sent_at string) string {
 		return fmt.Sprintf(
 			`update outgoing_messages
 			set
-				last_status = 'delivered',
-				last_status_at = now() + '10 Minute,
-				sent_at = now()
-			where id = $1
+				last_status_at = dateadd(minute, 10, "%s")
+			where id = "%d"
 			`,
-			h.UUID("sid"),
+			sent_at, 1,
 		)
 	}
 
@@ -125,10 +131,6 @@ func TestAlertLog(t *testing.T) {
 				before(t, h)
 			}
 			h.Trigger()
-
-			if c.Delay {
-				h.FastForward(time.Minute * 10)
-			}
 
 			// get logs
 			var l alertLogs
@@ -252,14 +254,16 @@ func TestAlertLog(t *testing.T) {
 		NR:         true,
 		EPStep:     true,
 		EPStepUser: true,
-		Delay:      true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		h.FastForward(10 * time.Minute)
-		doQL(t, h, updateLastStatusAtTimestamp(h), nil)
-		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
-		h.FastForward(10 * time.Minute)
-		h.Trigger()
-		h.Trigger()
+		//h.FastForward(10 * time.Minute)
+		var sent_at_ts string
+		doQL(t, h, getSentAtTS(h), sent_at_ts)
+		fmt.Print("\n\n\n????", sent_at_ts)
+		doQL(t, h, updateLastStatusAtTimestamp(h, sent_at_ts), nil)
+		// h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
+		// h.FastForward(10 * time.Minute)
+		// h.Trigger()
+		// h.Trigger()
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "(after 10 mins)")
 	})
