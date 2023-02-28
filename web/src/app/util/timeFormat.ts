@@ -30,6 +30,60 @@ const isSameDay = (a: DateTime, b: DateTime): boolean => {
   return a.hasSame(b, 'day') && a.hasSame(b, 'month') && a.hasSame(b, 'year')
 }
 
+export function relativeDate(
+  _to: DateTime | string,
+  _from = DateTime.utc(),
+): string {
+  const to = _to instanceof DateTime ? _to : DateTime.fromISO(_to)
+  const from = (_from instanceof DateTime ? _from : DateTime.fromISO(_from))
+    .setZone(to.zoneName)
+    .startOf('day')
+
+  const fmt: DateTimeFormatOptions = {
+    month: 'long',
+    day: 'numeric',
+  }
+  const build = (prefix = '', opts = {}): string =>
+    `${prefix} ${to.toLocaleString({ ...fmt, ...opts })}`.trim()
+
+  if (Interval.after(from, { days: 1 }).contains(to)) return build('Today,')
+
+  if (from.year !== to.year) fmt.year = 'numeric'
+
+  if (Interval.before(from, { days: 1 }).contains(to))
+    return build('Yesterday,')
+  if (Interval.before(from, { weeks: 1 }).contains(to))
+    return build('Last', { weekday: 'long' })
+  if (Interval.after(from, { days: 2 }).contains(to)) return build('Tomorrow,')
+  if (Interval.after(from, { weeks: 1 }).contains(to))
+    return build('This', { weekday: 'long' })
+  if (Interval.after(from, { weeks: 2 }).contains(to))
+    return build('Next', { weekday: 'long' })
+
+  return build('', { weekday: 'long' })
+}
+
+export function toRelativePrecise(
+  dur: Duration,
+  units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
+) {
+  const parts = []
+  const prefix = dur.valueOf() > 0 ? 'in ' : ''
+  const suffix = dur.valueOf() > 0 ? '' : ' ago'
+  if (dur.valueOf() < 0) dur = dur.negate()
+
+  for (const unit of units) {
+    const val = Math.floor(dur.as(unit))
+    if (val === 0) continue
+    const part = Duration.fromObject({ [unit]: val })
+    dur = dur.minus(part)
+
+    parts.push(part.toHuman())
+  }
+
+  return prefix + parts.join(' ') + suffix
+}
+
 export function formatTimestamp(opts: TimeFormatOpts): string {
   const {
     time,
@@ -90,27 +144,6 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
   return formatted
 }
 
-export function toRelativePrecise(
-  dur: Duration,
-  units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
-) {
-  const parts = []
-  const prefix = dur.valueOf() > 0 ? 'in ' : ''
-  const suffix = dur.valueOf() > 0 ? '' : ' ago'
-  if (dur.valueOf() < 0) dur = dur.negate()
-
-  for (const unit of units) {
-    const val = Math.floor(dur.as(unit))
-    if (val === 0) continue
-    const part = Duration.fromObject({ [unit]: val })
-    dur = dur.minus(part)
-
-    parts.push(part.toHuman())
-  }
-
-  return prefix + parts.join(' ') + suffix
-}
-
 export function formatTimeSince(
   _since: DateTime | string,
   _now = DateTime.utc(),
@@ -141,39 +174,6 @@ export function formatTimeSince(
   }
 
   return `> ${Math.floor(diff.as('years'))}y ago`
-}
-
-export function relativeDate(
-  _to: DateTime | string,
-  _from = DateTime.utc(),
-): string {
-  const to = _to instanceof DateTime ? _to : DateTime.fromISO(_to)
-  const from = (_from instanceof DateTime ? _from : DateTime.fromISO(_from))
-    .setZone(to.zoneName)
-    .startOf('day')
-
-  const fmt: DateTimeFormatOptions = {
-    month: 'long',
-    day: 'numeric',
-  }
-  const build = (prefix = '', opts = {}): string =>
-    `${prefix} ${to.toLocaleString({ ...fmt, ...opts })}`.trim()
-
-  if (Interval.after(from, { days: 1 }).contains(to)) return build('Today,')
-
-  if (from.year !== to.year) fmt.year = 'numeric'
-
-  if (Interval.before(from, { days: 1 }).contains(to))
-    return build('Yesterday,')
-  if (Interval.before(from, { weeks: 1 }).contains(to))
-    return build('Last', { weekday: 'long' })
-  if (Interval.after(from, { days: 2 }).contains(to)) return build('Tomorrow,')
-  if (Interval.after(from, { weeks: 1 }).contains(to))
-    return build('This', { weekday: 'long' })
-  if (Interval.after(from, { weeks: 2 }).contains(to))
-    return build('Next', { weekday: 'long' })
-
-  return build('', { weekday: 'long' })
 }
 
 // fmtTime returns simple string for ISO string or DateTime object.
