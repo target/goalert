@@ -66,7 +66,7 @@ export function relativeDate(
 export function toRelativePrecise(
   dur: Duration,
   units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
-) {
+): string {
   const parts = []
   const prefix = dur.valueOf() > 0 ? 'in ' : ''
   const suffix = dur.valueOf() > 0 ? '' : ' ago'
