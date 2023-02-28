@@ -36,7 +36,7 @@ export type TimeFormatOpts = {
       now?: string
     }
   | {
-      format: 'clock' | 'default' | 'weekday-clock'
+      format?: 'clock' | 'default' | 'weekday-clock'
     }
 )
 
@@ -104,7 +104,8 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
   const dt = DateTime.fromISO(time, { zone })
   const now = DateTime.utc().toISO()
 
-  if (opts.format === 'default') return dt.toLocaleString(DateTime.DATETIME_MED)
+  if (!opts.format || opts.format === 'default')
+    return dt.toLocaleString(DateTime.DATETIME_MED)
   if (opts.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
 
   if (opts.format === 'relative-date')

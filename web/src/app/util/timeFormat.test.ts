@@ -1,10 +1,9 @@
 import {
-  formatTimeSince,
   formatTimestamp,
   TimeFormatOpts,
   toRelativePrecise,
 } from './timeFormat'
-import { DateTime, Duration, DurationLikeObject } from 'luxon'
+import { Duration } from 'luxon'
 
 describe('formatTimestamp', () => {
   const check = (opts: TimeFormatOpts, exp: string): void => {
