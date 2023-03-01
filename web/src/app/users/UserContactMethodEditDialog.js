@@ -15,6 +15,7 @@ const query = gql`
       name
       type
       value
+      statusUpdates
     }
   }
 `
@@ -42,11 +43,19 @@ export default function UserContactMethodEditDialog({
         errors={nonFieldErrors(error)}
         onClose={onClose}
         onSubmit={() => {
+          const updates = pick(value, 'name', 'statusUpdates')
+          // the form uses the 'statusUpdates' enum but the mutation simply
+          // needs to know if the status updates should be enabled or not via
+          // the 'enableStatusUpdates' boolean
+          if ('statusUpdates' in updates) {
+            delete Object.assign(updates, {
+              enableStatusUpdates: updates.statusUpdates === 'ENABLED',
+            }).statusUpdates
+          }
           return commit({
             variables: {
-              // only pass 'name'
               input: {
-                ...pick(value, 'name'),
+                ...updates,
                 id: contactMethodID,
               },
             },
@@ -65,11 +74,11 @@ export default function UserContactMethodEditDialog({
     )
   }
 
-  function renderMutation({ name, type, value }) {
+  function renderMutation({ name, type, value, statusUpdates }) {
     return (
       <Mutation mutation={mutation} onCompleted={onClose}>
         {(commit, status) =>
-          renderDialog(commit, status, { name, type, value })
+          renderDialog(commit, status, { name, type, value, statusUpdates })
         }
       </Mutation>
     )
