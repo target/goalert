@@ -4,8 +4,8 @@ import {
   formatTimestamp,
   getDT,
   getDur,
-  TimeFormatOpts,
-  toRelative,
+  FormatTimestampArg,
+  formatRelative,
 } from './timeFormat'
 
 type TimeBaseProps = {
@@ -14,7 +14,7 @@ type TimeBaseProps = {
 }
 
 type TimeTimestampProps = TimeBaseProps &
-  Omit<TimeFormatOpts, 'time'> & {
+  Omit<FormatTimestampArg, 'time'> & {
     time: string | null | undefined
     zero?: string
   }
@@ -83,7 +83,7 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     <React.Fragment>
       {props.prefix}
       <time dateTime={dur.toISO()}>
-        {toRelative({
+        {formatRelative({
           dur,
           noQualifier: true,
           units: props.units,

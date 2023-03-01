@@ -39,27 +39,6 @@ export function formatTimeSince(
   return `> ${Math.floor(diff.as('years'))}y ago`
 }
 
-export type TimeFormatOpts = {
-  time: string | DateTime
-  zone?: string
-} & (
-  | {
-      format: 'relative'
-      from?: string | DateTime
-
-      // If true, the 'relative' format will include multiple units.
-      precise?: boolean
-      min?: string | DurationLikeObject | Duration
-    }
-  | {
-      format: 'relative-date'
-      from?: string | DateTime
-    }
-  | {
-      format?: 'clock' | 'default' | 'weekday-clock'
-    }
-)
-
 export function relativeDate(
   _to: DateTime | string,
   _from = DateTime.utc(),
@@ -93,7 +72,7 @@ export function relativeDate(
   return build('', { weekday: 'long' })
 }
 
-export type RelativeOpts = {
+export type FormatRelativeArg = {
   dur: Duration | string | DurationLikeObject
   noQualifier?: boolean
   units?: ReadonlyArray<keyof DurationLikeObject>
@@ -101,13 +80,13 @@ export type RelativeOpts = {
   precise?: boolean
 }
 
-export function toRelative({
+export function formatRelative({
   dur: durArg,
   noQualifier,
   units = ['days', 'hours', 'minutes'],
   min: minArg,
   precise,
-}: RelativeOpts): string {
+}: FormatRelativeArg): string {
   const parts = []
   let dur = getDur(durArg)
   let min = minArg ? getDur(minArg) : undefined
@@ -134,7 +113,7 @@ export function toRelative({
     if (!precise) break
   }
 
-  return prefix + parts.join(' ') + suffix
+  return prefix + parts.join(', ') + suffix
 }
 
 function formatGuard(fmt: never): never {
@@ -151,32 +130,53 @@ export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
   return Duration.fromObject(d)
 }
 
-export function formatTimestamp(opts: TimeFormatOpts): string {
-  const { zone = 'local' } = opts
-  const dt = getDT(opts.time, zone)
-  const from = getDT('from' in opts && opts.from ? opts.from : DateTime.utc())
+export type FormatTimestampArg = {
+  time: string | DateTime
+  zone?: string
+} & (
+  | {
+      format: 'relative'
+      from?: string | DateTime
 
-  if (!opts.format || opts.format === 'default')
+      // If true, the 'relative' format will include multiple units.
+      precise?: boolean
+      min?: string | DurationLikeObject | Duration
+    }
+  | {
+      format: 'relative-date'
+      from?: string | DateTime
+    }
+  | {
+      format?: 'clock' | 'default' | 'weekday-clock'
+    }
+)
+
+export function formatTimestamp(arg: FormatTimestampArg): string {
+  const { zone = 'local' } = arg
+  const dt = getDT(arg.time, zone)
+  const from = getDT('from' in arg && arg.from ? arg.from : DateTime.utc())
+
+  if (!arg.format || arg.format === 'default')
     return dt.toLocaleString(DateTime.DATETIME_MED)
-  if (opts.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
-  if (opts.format === 'relative-date') return relativeDate(dt, from)
+  if (arg.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
+  if (arg.format === 'relative-date') return relativeDate(dt, from)
 
-  if (opts.format === 'weekday-clock')
+  if (arg.format === 'weekday-clock')
     return dt.toLocaleString({
       hour: 'numeric',
       minute: 'numeric',
       weekday: 'short',
     })
 
-  if (opts.format === 'relative')
-    return toRelative({
+  if (arg.format === 'relative')
+    return formatRelative({
       dur: dt.diff(from),
-      precise: opts.precise,
-      min: opts.min,
+      precise: arg.precise,
+      min: arg.min,
     })
 
   // Create a type error if we add a new format and forget to handle it.
-  formatGuard(opts.format)
+  formatGuard(arg.format)
 }
 
 // fmtTime returns simple string for ISO string or DateTime object.

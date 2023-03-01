@@ -1,12 +1,13 @@
 import {
   formatTimestamp,
-  TimeFormatOpts,
-  toRelativePrecise,
+  FormatRelativeArg,
+  FormatTimestampArg,
+  formatRelative,
 } from './timeFormat'
 import { Duration } from 'luxon'
 
 describe('formatTimestamp', () => {
-  const check = (opts: TimeFormatOpts, exp: string): void => {
+  const check = (opts: FormatTimestampArg, exp: string): void => {
     it(`${opts.time} === ${exp}`, () => {
       expect(formatTimestamp(opts)).toBe(exp)
     })
@@ -56,14 +57,20 @@ describe('formatTimestamp', () => {
   )
 })
 
-describe('toRelativePrecise', () => {
-  const check = (dur: Duration, exp: string): void => {
-    it(`${dur.toFormat('dDays h:m:s')} === ${exp}`, () => {
-      expect(toRelativePrecise(dur)).toBe(exp)
+describe('toRelative', () => {
+  const check = (arg: FormatRelativeArg, exp: string): void => {
+    it(exp, () => {
+      expect(formatRelative(arg)).toBe(exp)
     })
   }
 
-  check(Duration.fromObject({ minutes: -1 }), '1 minute ago')
-  check(Duration.fromObject({ minutes: 1 }), 'in 1 minute')
-  check(Duration.fromObject({ hours: 1.5 }), 'in 1 hour 30 minutes')
+  check({ dur: { minute: -1 } }, '1 min ago')
+  check({ dur: { minute: 1 } }, 'in 1 min')
+  check({ dur: { hour: 1.5 }, precise: true }, 'in 1 hr, 30 min')
+  check({ dur: { seconds: -5 }, precise: true }, '< 1 min ago') // default
+  check({ dur: { seconds: -5 }, units: ['hour'], precise: true }, '< 1 hr ago') // default min
+  check(
+    { dur: { seconds: -5 }, min: { minute: 2 }, precise: true },
+    '< 2 min ago',
+  )
 })
