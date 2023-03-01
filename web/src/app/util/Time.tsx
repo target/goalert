@@ -67,6 +67,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
 type TimeDurationProps = TimeBaseProps & {
   precise?: boolean
   duration: DurationLikeObject | string | Duration
+  units?: readonly (keyof DurationLikeObject)[]
 }
 
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
@@ -79,7 +80,9 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     <React.Fragment>
       {props.prefix}
       <time dateTime={dur.toISO()}>
-        {props.precise ? toRelativePrecise(dur, true) : dur.toHuman()}
+        {props.precise
+          ? toRelativePrecise(dur, true, props.units)
+          : dur.toHuman()}
       </time>
       {props.suffix}
     </React.Fragment>
