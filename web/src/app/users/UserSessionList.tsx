@@ -154,6 +154,7 @@ export default function UserSessionList({
                     format='relative'
                     time={s.lastAccessAt}
                     prefix='Last access: '
+                    min={{ minutes: 2 }}
                   />
                 ),
               }))}

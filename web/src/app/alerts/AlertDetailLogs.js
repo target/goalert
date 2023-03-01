@@ -132,7 +132,7 @@ export default function AlertDetailLogs(props) {
             secondary={
               <Time
                 time={event.timestamp}
-                format={props.showExactTimes ? 'locale' : 'relative'}
+                format={props.showExactTimes ? 'default' : 'relative'}
               />
             }
           />

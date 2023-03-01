@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react'
 import {
   formatTimestamp,
   getDT,
-  TimeFormatOpts,
-  toRelativePrecise,
+  getDur,
+  FormatTimestampArg,
+  formatRelative,
 } from './timeFormat'
 
 type TimeBaseProps = {
@@ -13,7 +14,7 @@ type TimeBaseProps = {
 }
 
 type TimeTimestampProps = TimeBaseProps &
-  Omit<TimeFormatOpts, 'time'> & {
+  Omit<FormatTimestampArg, 'time'> & {
     time: string | null | undefined
     zero?: string
   }
@@ -39,10 +40,14 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
 
   const time = getDT(props.time, props.zone)
   const display = formatTimestamp({ ...props, time })
-  const local = formatTimestamp({ ...props, time, zone: 'local' })
+  const local = formatTimestamp({
+    ...props,
+    time,
+    zone: 'local',
+    format: props.format === 'relative' ? 'default' : props.format,
+  })
 
-  const title =
-    formatTimestamp({ ...props, time, zone: 'local' }) + ' in local time'
+  const title = local + ' local time'
   const zoneStr = ' ' + time.toFormat('ZZZZ')
 
   return (
@@ -53,11 +58,11 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
         title={display !== local ? title : undefined}
         style={{
           textDecorationStyle: 'dotted',
-          textDecorationLine: title ? 'underline' : 'none',
+          textDecorationLine: display !== local ? 'underline' : 'none',
         }}
       >
         {display}
-        {display !== local && zoneStr}
+        {display !== local && props.format !== 'relative' && zoneStr}
       </time>
       {suffix}
     </React.Fragment>
@@ -67,6 +72,8 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
 type TimeDurationProps = TimeBaseProps & {
   precise?: boolean
   duration: DurationLikeObject | string | Duration
+  units?: readonly (keyof DurationLikeObject)[]
+  min?: DurationLikeObject | string | Duration
 }
 
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
@@ -74,12 +81,19 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     typeof props.duration === 'string'
       ? Duration.fromISO(props.duration)
       : Duration.fromObject(props.duration)
+  const min = props.min ? getDur(props.min) : undefined
 
   return (
     <React.Fragment>
       {props.prefix}
       <time dateTime={dur.toISO()}>
-        {props.precise ? toRelativePrecise(dur) : dur.toHuman()}
+        {formatRelative({
+          dur,
+          noQualifier: true,
+          units: props.units,
+          min,
+          precise: props.precise,
+        })}
       </time>
       {props.suffix}
     </React.Fragment>

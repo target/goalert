@@ -18,7 +18,7 @@ import { GenericError } from '../error-pages'
 import { HeartbeatMonitor } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
 import { Add } from '@mui/icons-material'
-import { Duration } from 'luxon'
+import { Time } from '../util/Time'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
@@ -94,8 +94,12 @@ export default function HeartbeatMonitorList(props: {
         title: monitor.name,
         subText: (
           <React.Fragment>
-            Timeout:{' '}
-            {Duration.fromObject({ minutes: monitor.timeoutMinutes }).toHuman()}
+            <Time
+              prefix='Timeout: '
+              duration={{ minutes: monitor.timeoutMinutes }}
+              precise
+              units={['hours', 'minutes']}
+            />
             <br />
             <CopyText title='Copy URL' value={monitor.href} asURL />
           </React.Fragment>
