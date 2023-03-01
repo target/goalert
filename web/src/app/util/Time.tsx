@@ -29,7 +29,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
     return () => clearInterval(interval)
   }, [nowProp])
   const time = props.time || ''
-  let display = formatTimestamp({ ...props, time, now })
+  const display = formatTimestamp({ ...props, time, now })
   const local = formatTimestamp({ ...props, time, now, zone: 'local' })
 
   const title =
