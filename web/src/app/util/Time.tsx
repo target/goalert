@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react'
 import {
   formatTimestamp,
   getDT,
+  getDur,
   TimeFormatOpts,
-  toRelativePrecise,
+  toRelative,
 } from './timeFormat'
 
 type TimeBaseProps = {
@@ -68,6 +69,7 @@ type TimeDurationProps = TimeBaseProps & {
   precise?: boolean
   duration: DurationLikeObject | string | Duration
   units?: readonly (keyof DurationLikeObject)[]
+  min?: DurationLikeObject | string | Duration
 }
 
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
@@ -75,14 +77,19 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     typeof props.duration === 'string'
       ? Duration.fromISO(props.duration)
       : Duration.fromObject(props.duration)
+  const min = props.min ? getDur(props.min) : undefined
 
   return (
     <React.Fragment>
       {props.prefix}
       <time dateTime={dur.toISO()}>
-        {props.precise
-          ? toRelativePrecise(dur, true, props.units)
-          : dur.toHuman()}
+        {toRelative({
+          dur,
+          noQualifier: true,
+          units: props.units,
+          min,
+          precise: props.precise,
+        })}
       </time>
       {props.suffix}
     </React.Fragment>

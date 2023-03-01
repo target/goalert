@@ -49,6 +49,7 @@ export type TimeFormatOpts = {
 
       // If true, the 'relative' format will include multiple units.
       precise?: boolean
+      min?: string | DurationLikeObject | Duration
     }
   | {
       format: 'relative-date'
@@ -92,15 +93,36 @@ export function relativeDate(
   return build('', { weekday: 'long' })
 }
 
-export function toRelativePrecise(
-  dur: Duration,
-  noQualifier: boolean = false,
-  units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
-): string {
+export type RelativeOpts = {
+  dur: Duration | string | DurationLikeObject
+  noQualifier?: boolean
+  units?: ReadonlyArray<keyof DurationLikeObject>
+  min?: Duration | string | DurationLikeObject
+  precise?: boolean
+}
+
+export function toRelative({
+  dur: durArg,
+  noQualifier,
+  units = ['days', 'hours', 'minutes'],
+  min: minArg,
+  precise,
+}: RelativeOpts): string {
   const parts = []
-  const prefix = noQualifier || dur.valueOf() < 0 ? '' : 'in '
-  const suffix = noQualifier || dur.valueOf() > 0 ? '' : ' ago'
+  let dur = getDur(durArg)
+  let min = minArg ? getDur(minArg) : undefined
+  if (!min) {
+    // default to lowest unit
+    min = Duration.fromObject({ [units[units.length - 1]]: 1 })
+  }
+  const neg = dur.valueOf() < 0
+  let prefix = noQualifier || neg ? '' : 'in '
+  const suffix = noQualifier || !neg ? '' : ' ago'
   if (dur.valueOf() < 0) dur = dur.negate()
+  if (min && min.valueOf() > dur.valueOf()) {
+    dur = min
+    prefix = neg ? '< ' : '> '
+  }
 
   for (const unit of units) {
     const val = Math.floor(dur.as(unit))
@@ -108,7 +130,8 @@ export function toRelativePrecise(
     const part = Duration.fromObject({ [unit]: val })
     dur = dur.minus(part)
 
-    parts.push(part.toHuman())
+    parts.push(part.toHuman({ unitDisplay: 'short' }))
+    if (!precise) break
   }
 
   return prefix + parts.join(' ') + suffix
@@ -121,6 +144,12 @@ export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
   DateTime.isDateTime(t)
     ? t.setZone(z || 'local')
     : DateTime.fromISO(t, { zone: z })
+
+export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
+  if (typeof d === 'string') return Duration.fromISO(d)
+  if (Duration.isDuration(d)) return d
+  return Duration.fromObject(d)
+}
 
 export function formatTimestamp(opts: TimeFormatOpts): string {
   const { zone = 'local' } = opts
@@ -139,11 +168,12 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
       weekday: 'short',
     })
 
-  if (opts.format === 'relative' && opts.precise)
-    return toRelativePrecise(dt.diff(from))
-
   if (opts.format === 'relative')
-    return dt.toRelative({ style: 'short', base: from }) || ''
+    return toRelative({
+      dur: dt.diff(from),
+      precise: opts.precise,
+      min: opts.min,
+    })
 
   // Create a type error if we add a new format and forget to handle it.
   formatGuard(opts.format)
