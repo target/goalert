@@ -94,11 +94,12 @@ export function relativeDate(
 
 export function toRelativePrecise(
   dur: Duration,
+  noQualifier: boolean = false,
   units: ReadonlyArray<keyof DurationLikeObject> = ['days', 'hours', 'minutes'],
 ): string {
   const parts = []
-  const prefix = dur.valueOf() > 0 ? 'in ' : ''
-  const suffix = dur.valueOf() > 0 ? '' : ' ago'
+  const prefix = noQualifier || dur.valueOf() < 0 ? '' : 'in '
+  const suffix = noQualifier || dur.valueOf() > 0 ? '' : ' ago'
   if (dur.valueOf() < 0) dur = dur.negate()
 
   for (const unit of units) {

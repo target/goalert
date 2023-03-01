@@ -79,7 +79,7 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
     <React.Fragment>
       {props.prefix}
       <time dateTime={dur.toISO()}>
-        {props.precise ? toRelativePrecise(dur) : dur.toHuman()}
+        {props.precise ? toRelativePrecise(dur, true) : dur.toHuman()}
       </time>
       {props.suffix}
     </React.Fragment>
