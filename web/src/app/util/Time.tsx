@@ -40,10 +40,14 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
 
   const time = getDT(props.time, props.zone)
   const display = formatTimestamp({ ...props, time })
-  const local = formatTimestamp({ ...props, time, zone: 'local' })
+  const local = formatTimestamp({
+    ...props,
+    time,
+    zone: 'local',
+    format: props.format === 'relative' ? 'default' : props.format,
+  })
 
-  const title =
-    formatTimestamp({ ...props, time, zone: 'local' }) + ' in local time'
+  const title = local + ' local time'
   const zoneStr = ' ' + time.toFormat('ZZZZ')
 
   return (
@@ -58,7 +62,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
         }}
       >
         {display}
-        {display !== local && zoneStr}
+        {display !== local && props.format !== 'relative' && zoneStr}
       </time>
       {suffix}
     </React.Fragment>
