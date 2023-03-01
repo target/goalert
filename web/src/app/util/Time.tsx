@@ -2,6 +2,7 @@ import { DateTime, Duration, DurationLikeObject } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import {
   formatTimestamp,
+  getDT,
   TimeFormatOpts,
   toRelativePrecise,
 } from './timeFormat'
@@ -18,46 +19,47 @@ type TimeTimestampProps = TimeBaseProps &
   }
 
 const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
-  const nowProp = 'now' in props ? (props.now as string) : ''
-  const [now, setNow] = useState(nowProp || DateTime.utc().toISO())
+  const [, setTS] = useState('') // force re-render
   useEffect(() => {
-    if (props.format !== 'relative' && props.format !== 'relative-date') return
-
-    const interval = setInterval(() => {
-      setNow(nowProp || DateTime.utc().toISO())
-    }, 1000)
+    if (!['relative', 'relative-date'].includes(props.format || '')) return
+    const interval = setInterval(() => setTS(DateTime.utc().toISO()), 1000)
     return () => clearInterval(interval)
-  }, [nowProp])
-  const time = props.time || ''
-  const display = formatTimestamp({ ...props, time, now })
-  const local = formatTimestamp({ ...props, time, now, zone: 'local' })
+  }, [props.format])
+
+  const { prefix, zero, suffix } = props
+  if (!props.time && !zero) return null
+  if (!props.time)
+    return (
+      <React.Fragment>
+        {prefix}
+        {zero}
+        {suffix}
+      </React.Fragment>
+    )
+
+  const time = getDT(props.time, props.zone)
+  const display = formatTimestamp({ ...props, time })
+  const local = formatTimestamp({ ...props, time, zone: 'local' })
 
   const title =
     formatTimestamp({ ...props, time, zone: 'local' }) + ' in local time'
-  const zoneStr =
-    ' ' + DateTime.fromISO(time, { zone: props.zone }).toFormat('ZZZZ')
-
-  const tag = props.time ? (
-    <time
-      dateTime={props.time}
-      title={display !== local ? title : undefined}
-      style={{
-        textDecorationStyle: 'dotted',
-        textDecorationLine: title ? 'underline' : 'none',
-      }}
-    >
-      {display}
-      {display !== local && zoneStr}
-    </time>
-  ) : (
-    props.zero
-  )
+  const zoneStr = ' ' + time.toFormat('ZZZZ')
 
   return (
     <React.Fragment>
-      {tag && props.prefix}
-      {tag}
-      {tag && props.suffix}
+      {prefix}
+      <time
+        dateTime={props.time}
+        title={display !== local ? title : undefined}
+        style={{
+          textDecorationStyle: 'dotted',
+          textDecorationLine: title ? 'underline' : 'none',
+        }}
+      >
+        {display}
+        {display !== local && zoneStr}
+      </time>
+      {suffix}
     </React.Fragment>
   )
 }

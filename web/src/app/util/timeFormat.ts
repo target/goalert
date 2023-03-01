@@ -8,25 +8,19 @@ import {
 import { ExplicitZone } from './luxon-helpers'
 
 export type TimeFormatOpts = {
-  time: string
+  time: string | DateTime
   zone?: string
 } & (
   | {
       format: 'relative'
-
-      // now is the current time to use for relative time calculations, defaults to
-      // DateTime.utc().toISO()
-      now?: string
+      from?: string | DateTime
 
       // If true, the 'relative' format will include multiple units.
       precise?: boolean
     }
   | {
       format: 'relative-date'
-
-      // now is the current time to use for relative time calculations, defaults to
-      // DateTime.utc().toISO()
-      now?: string
+      from?: string | DateTime
     }
   | {
       format?: 'clock' | 'default' | 'weekday-clock'
@@ -90,19 +84,20 @@ export function toRelativePrecise(
 function formatGuard(fmt: never): never {
   throw new Error('invalid time format ' + fmt)
 }
+export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
+  DateTime.isDateTime(t)
+    ? t.setZone(z || 'local')
+    : DateTime.fromISO(t, { zone: z })
 
 export function formatTimestamp(opts: TimeFormatOpts): string {
-  const { time, zone = 'local' } = opts
-
-  const dt = DateTime.fromISO(time, { zone })
-  const now = DateTime.utc().toISO()
+  const { zone = 'local' } = opts
+  const dt = getDT(opts.time, zone)
+  const from = getDT('from' in opts && opts.from ? opts.from : DateTime.utc())
 
   if (!opts.format || opts.format === 'default')
     return dt.toLocaleString(DateTime.DATETIME_MED)
   if (opts.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
-
-  if (opts.format === 'relative-date')
-    return relativeDate(dt, DateTime.fromISO(opts.now || now))
+  if (opts.format === 'relative-date') return relativeDate(dt, from)
 
   if (opts.format === 'weekday-clock')
     return dt.toLocaleString({
@@ -112,19 +107,10 @@ export function formatTimestamp(opts: TimeFormatOpts): string {
     })
 
   if (opts.format === 'relative' && opts.precise)
-    return toRelativePrecise(dt.diff(DateTime.fromISO(now)), [
-      'days',
-      'hours',
-      'minutes',
-    ])
+    return toRelativePrecise(dt.diff(from))
 
   if (opts.format === 'relative')
-    return (
-      dt.toRelative({
-        style: 'short',
-        base: DateTime.fromISO(opts.now || now),
-      }) || ''
-    )
+    return dt.toRelative({ style: 'short', base: from }) || ''
 
   // Create a type error if we add a new format and forget to handle it.
   formatGuard(opts.format)
