@@ -4,7 +4,6 @@ import {
   FormatTimestampArg,
   formatRelative,
 } from './timeFormat'
-import { Duration } from 'luxon'
 
 describe('formatTimestamp', () => {
   const check = (opts: FormatTimestampArg, exp: string): void => {

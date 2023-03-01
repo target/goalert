@@ -7,6 +7,17 @@ import {
 } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
+export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
+  DateTime.isDateTime(t)
+    ? t.setZone(z || 'local')
+    : DateTime.fromISO(t, { zone: z })
+
+export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
+  if (typeof d === 'string') return Duration.fromISO(d)
+  if (Duration.isDuration(d)) return d
+  return Duration.fromObject(d)
+}
+
 export function formatTimeSince(
   _since: DateTime | string,
   _now = DateTime.utc(),
@@ -118,16 +129,6 @@ export function formatRelative({
 
 function formatGuard(fmt: never): never {
   throw new Error('invalid time format ' + fmt)
-}
-export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
-  DateTime.isDateTime(t)
-    ? t.setZone(z || 'local')
-    : DateTime.fromISO(t, { zone: z })
-
-export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
-  if (typeof d === 'string') return Duration.fromISO(d)
-  if (Duration.isDuration(d)) return d
-  return Duration.fromObject(d)
 }
 
 export type FormatTimestampArg = {
