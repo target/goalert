@@ -14,8 +14,25 @@ describe('formatTimestamp', () => {
 
   check({ time: '2020-01-01T00:00:00Z', zone: 'UTC' }, 'Jan 1, 2020, 12:00 AM')
   check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'default' },
+    'Jan 1, 2020, 12:00 AM',
+  )
+  check(
     { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'clock' },
     '12:00 AM',
+  )
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'weekday-clock' },
+    'Wed 12:00 AM',
+  )
+  check(
+    {
+      time: '2020-01-01T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative-date',
+      from: '2020-01-02T00:00:00Z',
+    },
+    'Yesterday, January 1',
   )
 
   check(
@@ -23,7 +40,7 @@ describe('formatTimestamp', () => {
       time: '2020-01-01T00:00:00Z',
       zone: 'UTC',
       format: 'relative',
-      now: '2020-01-02T00:00:00Z',
+      from: '2020-01-02T00:00:00Z',
     },
     '1 day ago',
   )
@@ -33,7 +50,7 @@ describe('formatTimestamp', () => {
       time: '2020-01-02T00:00:00Z',
       zone: 'UTC',
       format: 'relative',
-      now: '2020-01-01T00:00:00Z',
+      from: '2020-01-01T00:00:00Z',
     },
     'in 1 day',
   )
