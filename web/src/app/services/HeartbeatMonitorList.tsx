@@ -97,6 +97,7 @@ export default function HeartbeatMonitorList(props: {
             <Time
               prefix='Timeout: '
               duration={{ minutes: monitor.timeoutMinutes }}
+              precise
             />
             <br />
             <CopyText title='Copy URL' value={monitor.href} asURL />
