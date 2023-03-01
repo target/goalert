@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { gql, useMutation, useQuery } from '@apollo/client'
-import { DateTime } from 'luxon'
 import Card from '@mui/material/Card'
 import makeStyles from '@mui/styles/makeStyles'
 import CardHeader from '@mui/material/CardHeader'
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
 import OtherActions from '../util/OtherActions'
-import CountDown from '../util/CountDown'
 import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { UserAvatar } from '../util/avatars'
@@ -16,6 +14,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { Theme } from '@mui/material/styles'
 import { User, Rotation } from '../../schema'
+import { Time } from '../util/Time'
 
 const query = gql`
   query rotationUsers($id: ID!) {
@@ -25,6 +24,7 @@ const query = gql`
         id
         name
       }
+      timeZone
       activeUserIndex
       nextHandoffTimes
     }
@@ -98,25 +98,25 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
 
     if (index === activeUserIndex) {
       return (
-        <CountDown
-          end={time}
-          key={index}
-          weeks
-          days
-          hours
-          minutes
-          prefix='Active for the next '
-          style={{ marginLeft: '1em' }}
-          expiredTimeout={60}
-          expiredMessage='< 1 Minute'
+        <Time
+          prefix='Shift ends '
+          time={time}
+          zone={data?.rotation?.timeZone}
+          format='relative'
+          units={['years', 'months', 'weeks', 'days', 'hours', 'minutes']}
+          precise
         />
       )
     }
     return (
-      'Starts at ' +
-      DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
-      ' ' +
-      DateTime.fromISO(time).toRelativeCalendar()
+      <Time
+        prefix='Starts '
+        time={time}
+        zone={data?.rotation?.timeZone}
+        format='relative'
+        units={['years', 'months', 'weeks', 'days', 'hours', 'minutes']}
+        precise
+      />
     )
   })
 
