@@ -68,26 +68,6 @@ func TestAlertLog(t *testing.T) {
 		)
 	}
 
-	getSentAtTS := func(h *harness.Harness) string {
-		return fmt.Sprintf(
-			`select timestamp
-			from alert_logs
-			where alert_id = "%d"
-			and event = 'notification_sent'
-		`, 1)
-	}
-
-	updateLastStatusAtTimestamp := func(h *harness.Harness, sent_at string) string {
-		return fmt.Sprintf(
-			`update outgoing_messages
-			set
-				last_status_at = dateadd(minute, 10, "%s")
-			where id = "%d"
-			`,
-			sent_at, 1,
-		)
-	}
-
 	const alertLogSQLTmpl = `
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
@@ -113,9 +93,27 @@ func TestAlertLog(t *testing.T) {
 		values ({{uuid "esid"}}, {{uuid "user"}});
 		{{- end}}
 
+		{{- if and .Delay}}
+		insert into alerts (service_id, summary, details, status, dedup_key) 
+		values ({{uuid "sid"}}, 'testing delay', 'testing details', 'triggered', 'auto:1:foo');
+		select id from alerts
+		where summary = 'testing delay';
+		{{- end}}
+
 		insert into services (id, escalation_policy_id, name) 
 		values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 	`
+
+	// delayLogSQLTmpl := func(h *harness.Harness) string {
+	// 	return fmt.Sprintf(`
+	// 	update alert_logs
+	// 	set timestamp = now(), event = 'notification_sent', message = ' ')
+	// 	where alert_id = %d;
+	//     update outgoing_messages
+	// 	set last_status_At = now() + '10 minutes'::interval, last_status = 'delivered')
+	// 	where alert_id = %d;
+	// `, 1, 1)
+	// }
 
 	check := func(desc string, c config, before func(*testing.T, *harness.Harness), after func(*testing.T, *harness.Harness, alertLogs)) {
 		t.Run(desc, func(t *testing.T) {
@@ -241,7 +239,7 @@ func TestAlertLog(t *testing.T) {
 		CMType:     "SMS",
 		NR:         true,
 		EPStep:     false,
-		EPStepUser: true,
+		EPStepUser: false,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "No escalation policy steps")
@@ -254,12 +252,18 @@ func TestAlertLog(t *testing.T) {
 		NR:         true,
 		EPStep:     true,
 		EPStepUser: true,
+		Delay:      true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		//h.FastForward(10 * time.Minute)
-		var sent_at_ts string
-		doQL(t, h, getSentAtTS(h), sent_at_ts)
-		fmt.Print("\n\n\n????", sent_at_ts)
-		doQL(t, h, updateLastStatusAtTimestamp(h, sent_at_ts), nil)
+		// temp := template.New("sql")
+		// _, err := temp.Parse(delayLogSQLTmpl(h))
+		// if err != nil {
+		// 	t.Fatalf("failed to parse query template: %v", err)
+		// }
+
+		// err = ExecSQLBatch(context.Background(), h.dbURL, nil)
+		// if err != nil {
+		// 	t.Fatalf("failed to exec query: %v\n%s", err)
+		// }
 		// h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
 		// h.FastForward(10 * time.Minute)
 		// h.Trigger()
