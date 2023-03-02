@@ -99,6 +99,7 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
     if (index === activeUserIndex) {
       return (
         <Time
+          key={index}
           prefix='Shift ends '
           time={time}
           zone={data?.rotation?.timeZone}
@@ -110,6 +111,7 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
     }
     return (
       <Time
+        key={index}
         prefix='Starts '
         time={time}
         zone={data?.rotation?.timeZone}
