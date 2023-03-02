@@ -15,7 +15,7 @@ type TimeBaseProps = {
 
 type TimeTimestampProps = TimeBaseProps &
   Omit<FormatTimestampArg, 'time'> & {
-    time: string | null | undefined
+    time: string | DateTime | null | undefined
     zero?: string
   }
 
@@ -54,7 +54,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
     <React.Fragment>
       {prefix}
       <time
-        dateTime={props.time}
+        dateTime={time.toISO()}
         title={display !== local ? title : undefined}
         style={{
           textDecorationStyle: 'dotted',
