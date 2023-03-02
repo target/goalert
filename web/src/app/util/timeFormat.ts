@@ -142,6 +142,7 @@ export type FormatTimestampArg = {
       // If true, the 'relative' format will include multiple units.
       precise?: boolean
       min?: string | DurationLikeObject | Duration
+      units?: ReadonlyArray<keyof DurationLikeObject>
     }
   | {
       format: 'relative-date'
@@ -174,6 +175,7 @@ export function formatTimestamp(arg: FormatTimestampArg): string {
       dur: dt.diff(from),
       precise: arg.precise,
       min: arg.min,
+      units: arg.units,
     })
 
   // Create a type error if we add a new format and forget to handle it.

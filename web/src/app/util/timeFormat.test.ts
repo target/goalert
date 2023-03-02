@@ -54,6 +54,18 @@ describe('formatTimestamp', () => {
     },
     'in 1 day',
   )
+
+  check(
+    {
+      time: '2020-01-02T00:00:10Z',
+      zone: 'UTC',
+      format: 'relative',
+      from: '2020-01-01T00:00:00Z',
+      units: ['hour', 'minute', 'seconds'],
+      precise: true,
+    },
+    'in 24 hr, 10 sec',
+  )
 })
 
 describe('toRelative', () => {
@@ -71,5 +83,14 @@ describe('toRelative', () => {
   check(
     { dur: { seconds: -5 }, min: { minute: 2 }, precise: true },
     '< 2 min ago',
+  )
+
+  check(
+    {
+      dur: { minutes: -1, seconds: -5 },
+      units: ['minutes', 'seconds'],
+      precise: true,
+    },
+    '1 min, 5 sec ago',
   )
 })
