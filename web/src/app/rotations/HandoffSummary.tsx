@@ -40,6 +40,8 @@ export const HandoffSummary: React.FC<HandoffSummaryProps> =
 
     return (
       <span>
+        Time Zone: {props.timeZone}
+        <br />
         Hands off every {dur(props)} {ts(props)}.
       </span>
     )
