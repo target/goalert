@@ -40,7 +40,7 @@
     "diff": "5.0.0",
     "esbuild": "0.17.5",
     "fuse.js": "6.6.1",
-    "graphiql": "2.2.0",
+    "graphiql": "2.4.0",
     "graphql": "16.6.0",
     "lodash": "4.17.21",
     "luxon": "3.2.1",
