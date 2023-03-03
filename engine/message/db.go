@@ -514,10 +514,12 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 	}
 
 	if status.State == notification.StateFailedTemp {
+		fmt.Println("details:", status.Details)
 		_, err = db.tempFail.ExecContext(ctx, cbID, status.ProviderMessageID, status.Details)
 		return err
 	}
 	if status.State == notification.StateFailedPerm {
+		fmt.Println("details2:", status.Details)
 		_, err = db.permFail.ExecContext(ctx, cbID, status.ProviderMessageID, status.Details)
 		return err
 	}

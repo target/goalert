@@ -125,11 +125,11 @@ func NewHarnessWithFlags(t *testing.T, initSQL, migrationName string, fs expflag
 
 func (h *Harness) App() *app.App { return h.backend }
 
-func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) (*Harness, string) {
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
 	h.Start()
-	return h
+	return h, h.dbURL
 }
 
 // NewHarnessDebugDB works like NewHarness, but fails the test immediately after
@@ -168,6 +168,7 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 
 	t.Logf("Using DB URL: %s", dbURL)
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "", -1)
+	fmt.Println(name)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

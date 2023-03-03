@@ -1,9 +1,12 @@
 package smoke
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -93,33 +96,24 @@ func TestAlertLog(t *testing.T) {
 		values ({{uuid "esid"}}, {{uuid "user"}});
 		{{- end}}
 
-		{{- if and .Delay}}
-		insert into alerts (service_id, summary, details, status, dedup_key) 
-		values ({{uuid "sid"}}, 'testing delay', 'testing details', 'triggered', 'auto:1:foo');
-		select id from alerts
-		where summary = 'testing delay';
-		{{- end}}
-
 		insert into services (id, escalation_policy_id, name) 
 		values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 	`
 
-	// delayLogSQLTmpl := func(h *harness.Harness) string {
-	// 	return fmt.Sprintf(`
-	// 	update alert_logs
-	// 	set timestamp = now(), event = 'notification_sent', message = ' ')
-	// 	where alert_id = %d;
-	//     update outgoing_messages
-	// 	set last_status_At = now() + '10 minutes'::interval, last_status = 'delivered')
-	// 	where alert_id = %d;
-	// `, 1, 1)
-	// }
+	delayLogSQLTmpl := fmt.Sprintf(`
+		update alert_logs
+		set timestamp = now(), event = 'notification_sent', message = ' '
+		where alert_id = %d;
+	    update outgoing_messages
+		set last_status_At = now() + '10 minutes'::interval, last_status = 'delivered'
+		where alert_id = %d;
+	`, 1, 1)
 
 	check := func(desc string, c config, before func(*testing.T, *harness.Harness), after func(*testing.T, *harness.Harness, alertLogs)) {
 		t.Run(desc, func(t *testing.T) {
 			// setup sql
 			t.Parallel()
-			h := harness.NewHarnessWithData(t, alertLogSQLTmpl, c, "add-no-notification-alert-log")
+			h, name := harness.NewHarnessWithData(t, alertLogSQLTmpl, c, "add-no-notification-alert-log")
 			defer h.Close()
 
 			// create alert
@@ -129,6 +123,11 @@ func TestAlertLog(t *testing.T) {
 				before(t, h)
 			}
 			h.Trigger()
+
+			if c.Delay {
+				fmt.Println("\n\n\n#######executing query")
+				execSQL(delayLogSQLTmpl, c, h, t, name)
+			}
 
 			// get logs
 			var l alertLogs
@@ -245,25 +244,17 @@ func TestAlertLog(t *testing.T) {
 		assert.Contains(t, details, "No escalation policy steps")
 	})
 
-	// test delivery delay
-	check("DeliveryDelay", config{
+	c := config{
 		CMDisabled: false,
 		CMType:     "SMS",
 		NR:         true,
 		EPStep:     true,
 		EPStepUser: true,
 		Delay:      true,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		// temp := template.New("sql")
-		// _, err := temp.Parse(delayLogSQLTmpl(h))
-		// if err != nil {
-		// 	t.Fatalf("failed to parse query template: %v", err)
-		// }
-
-		// err = ExecSQLBatch(context.Background(), h.dbURL, nil)
-		// if err != nil {
-		// 	t.Fatalf("failed to exec query: %v\n%s", err)
-		// }
+	}
+	// test delivery delay
+	check("DeliveryDelay", c, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		//execSQL(delayLogSQLTmpl, c, h, t)
 		// h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
 		// h.FastForward(10 * time.Minute)
 		// h.Trigger()
@@ -271,4 +262,28 @@ func TestAlertLog(t *testing.T) {
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "(after 10 mins)")
 	})
+}
+
+func execSQL(sql string, data interface{}, h *harness.Harness, t *testing.T, dbName string) {
+	t.Helper()
+	temp := template.New("sql")
+	temp.Funcs(template.FuncMap{
+		"uuidJSON": func(id string) string { return fmt.Sprintf(`"%s"`, h.UUID(id)) },
+		"uuid":     func(id string) string { return fmt.Sprintf("'%s'", h.UUID(id)) },
+	})
+	_, err := temp.Parse(sql)
+	if err != nil {
+		t.Fatalf("failed to parse query template: %v", err)
+	}
+
+	b := new(bytes.Buffer)
+	err = temp.Execute(b, data)
+	if err != nil {
+		t.Fatalf("failed to render query template: %v", err)
+	}
+	fmt.Println(dbName)
+	err = harness.ExecSQLBatch(context.Background(), dbName, b.String())
+	if err != nil {
+		t.Fatalf("failed to exec query: %v\n%s", err, b.String())
+	}
 }

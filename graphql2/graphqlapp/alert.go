@@ -91,6 +91,7 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 
 	details := s.Details
 	if details == "" {
+		fmt.Println("confused")
 		details = prefix
 	} else if !strings.EqualFold(prefix, details) {
 		details = prefix + ": " + details
@@ -132,7 +133,9 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	if s == nil {
 		return nil, nil
 	}
-	s.Status.Details, err = a.deliveryDelayCheck(ctx, obj)
+	delayMsg, err := a.deliveryDelayCheck(ctx, obj)
+	s.Status.Details += delayMsg
+
 	if err != nil {
 		return nil, err
 	}
@@ -415,21 +418,10 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 }
 
 func formatDelay(delay int) string {
-	days := int(delay / 1440)
-	hours := int((delay % 1440) / 60)
-	mins := (delay % 1440) % 60
+	hours := int(delay / 60)
+	mins := delay % 60
 	res := "(after "
 	s := ""
-	if days > 0 {
-		if days > 1 {
-			s = "s"
-		}
-		if hours > 0 || mins > 0 {
-			s += ","
-		}
-		res = res + fmt.Sprintf("%d day%s ", days, s)
-		s = ""
-	}
 	if hours > 0 {
 		if hours > 1 {
 			s = "s"
@@ -441,12 +433,11 @@ func formatDelay(delay int) string {
 		if mins > 1 {
 			s = "s"
 		}
-		if days > 0 || hours > 0 {
-			res += " and"
+		if hours > 0 {
+			res += " and "
 		}
-		res = res + fmt.Sprintf(" %d min%s", mins, s)
+		res = res + fmt.Sprintf("%d min%s", mins, s)
 	}
-	fmt.Println(res)
 	return res
 }
 
