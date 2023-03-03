@@ -1119,15 +1119,14 @@ type UserCalendarSubscription struct {
 }
 
 type UserContactMethod struct {
-	ID                  uuid.UUID
-	Name                string
-	Type                EnumUserContactMethodType
-	Value               string
-	Disabled            bool
-	UserID              uuid.UUID
-	LastTestVerifyAt    sql.NullTime
-	Metadata            pqtype.NullRawMessage
-	EnableStatusUpdates bool
+	ID               uuid.UUID
+	Name             string
+	Type             EnumUserContactMethodType
+	Value            string
+	Disabled         bool
+	UserID           uuid.UUID
+	LastTestVerifyAt sql.NullTime
+	Metadata         pqtype.NullRawMessage
 }
 
 type UserFavorite struct {
