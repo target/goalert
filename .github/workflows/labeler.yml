@@ -8,7 +8,7 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Label the PR size
     steps:
-      - uses: codelytv/pr-size-labeler@d269449
+      - uses: codelytv/pr-size-labeler@d269449310fe33526c56b2dfe6244e3a9f489b15
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_label: 'size/xs'
