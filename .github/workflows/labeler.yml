@@ -34,3 +34,5 @@ jobs:
             "swo/swodb/*.go"
             "web/src/*.d.ts"
             "Makefile.binaries.mk"
+            "gadb/*.go"
+            "migrate/schema.sql"
