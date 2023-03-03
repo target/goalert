@@ -62,6 +62,7 @@ WHERE NOT disabled
 UPDATE user_calendar_subscriptions
 SET NAME = $1,
     disabled = $2,
-    config = $3
+    config = $3,
+    last_update = now()
 WHERE id = $4
     AND user_id = $5;
