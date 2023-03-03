@@ -25,20 +25,4 @@ jobs:
             This PR exceeds the recommended size of 500 lines.
             Please make sure you are NOT addressing multiple issues with one PR.
             Note this PR might be rejected due to its size.
-          files_to_ignore: |
-            yarn.lock
-            graphql2/generated.go
-            graphql2/maplimit.go
-            graphql2/mapconfig.go
-            pkg/sysapi/sysapi_grpc.pb.go
-            pkg/sysapi/sysapi.pb.go
-            swo/swodb/db.go
-            swo/swodb/models.go
-            swo/swodb/queries.sql.go
-            web/src/schema.d.ts
-            expflag.d.ts
-            Makefile.binaries.mk
-            gadb/db.go
-            gadb/models.go
-            gadb/queries.sql.go
-            migrate/schema.sql
+          files_to_ignore: 'yarn.lock graphql2/generated.go graphql2/maplimit.go graphql2/mapconfig.go pkg/sysapi/sysapi_grpc.pb.go pkg/sysapi/sysapi.pb.go swo/swodb/db.go swo/swodb/models.go swo/swodb/queries.sql.go web/src/schema.d.ts expflag.d.ts Makefile.binaries.mk gadb/db.go gadb/models.go gadb/queries.sql.go migrate/schema.sql'
