@@ -290,6 +290,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			switch ncType {
 			case notificationchannel.TypeSlack:
 				r.subject.classifier = "Slack"
+			case notificationchannel.TypeWebhook:
+				r.subject.classifier = "Webhook"
 			}
 			r.subject.channelID.String = src.ID
 			r.subject.channelID.Valid = true
@@ -344,6 +346,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 				r.subject.classifier = "SMS"
 			case notification.DestTypeUserEmail:
 				r.subject.classifier = "Email"
+			case notification.DestTypeChanWebhook:
+				fallthrough
 			case notification.DestTypeUserWebhook:
 				r.subject.classifier = "Webhook"
 			case notification.DestTypeSlackChannel:
