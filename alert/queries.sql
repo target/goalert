@@ -9,7 +9,10 @@ WHERE alerts.id = $1;
 UPDATE escalation_policy_state
 SET force_escalation = TRUE
 WHERE alert_id = $1
-    AND last_escalation <= $2::timestamptz RETURNING TRUE;
+    AND (
+        last_escalation <= $2::timestamptz
+        OR last_escalation isnull
+    ) RETURNING TRUE;
 
 -- name: AlertHasEPState :one
 SELECT EXISTS (

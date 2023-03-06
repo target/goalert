@@ -316,25 +316,31 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("request escalation: %v, %w", ok, err)
 	}
-	if ok {
-		err = tx.Commit()
+
+	if !ok {
+		hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
 		if err != nil {
-			return fmt.Errorf("commit tx: %w", err)
+			return fmt.Errorf("check ep state: %w", err)
 		}
 
-		return nil
+		if !hasEP {
+			return validation.NewGenericError("alert escalation policy is empty")
+		}
+
+		return validation.NewGenericError("alert has already escalated")
 	}
 
-	hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
+	err = s.logDB.LogTx(ctx, tx, id, alertlog.TypeEscalationRequest, nil)
 	if err != nil {
-		return fmt.Errorf("check ep state: %w", err)
+		return fmt.Errorf("log escalation request: %w", err)
 	}
 
-	if !hasEP {
-		return validation.NewGenericError("alert escalation policy is empty")
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit tx: %w", err)
 	}
 
-	return validation.NewGenericError("alert has already escalated")
+	return nil
 }
 
 func (s *Store) Escalate(ctx context.Context, alertID int, currentLevel int) error {
