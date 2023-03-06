@@ -3,6 +3,7 @@ package alert
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
@@ -293,13 +294,13 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("begin tx: %w", err)
 	}
 	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
 	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
 	if err != nil {
-		return err
+		return fmt.Errorf("lock alert: %w", err)
 	}
 	if lck.IsMaintMode {
 		return validation.NewGenericError("service is in maintenance mode")
@@ -312,16 +313,21 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		AlertID: int64(id),
 		Column2: t,
 	})
-	if err != nil {
-		return err
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("request escalation: %v, %w", ok, err)
 	}
 	if ok {
-		return tx.Commit()
+		err = tx.Commit()
+		if err != nil {
+			return fmt.Errorf("commit tx: %w", err)
+		}
+
+		return nil
 	}
 
 	hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
 	if err != nil {
-		return err
+		return fmt.Errorf("check ep state: %w", err)
 	}
 
 	if !hasEP {
