@@ -3,7 +3,8 @@ SELECT maintenance_expires_at notnull::bool AS is_maint_mode,
     alerts.status
 FROM services svc
     JOIN alerts ON alerts.service_id = svc.id
-WHERE alerts.id = $1;
+WHERE alerts.id = $1 FOR
+UPDATE;
 
 -- name: RequestAlertEscalationByTime :one
 UPDATE escalation_policy_state
