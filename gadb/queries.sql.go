@@ -267,7 +267,7 @@ SET force_escalation = TRUE
 WHERE alert_id = $1
     AND (
         last_escalation <= $2::timestamptz
-        OR last_escalation isnull
+        OR last_escalation IS NULL
     ) RETURNING TRUE
 `
 
