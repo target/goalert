@@ -154,7 +154,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       minDate={min ? DateTime.fromISO(min, { zone }) : undefined}
       maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
       disabled={textFieldProps?.disabled}
-      renderInput={(params) => (
+      renderInput={(params: TextFieldProps) => (
         <TextField
           data-cy-fallback-type={type}
           {...params}
@@ -163,7 +163,6 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         />
       )}
       PopperProps={{
-        // @ts-expect-error DOM attribute for testing
         'data-cy': props.name + '-picker-fallback',
       }}
       style={{ width: 'fit-container' }}
