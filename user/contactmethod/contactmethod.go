@@ -34,7 +34,7 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 	err := validate.Many(
 		validate.UUID("ID", c.ID),
 		validate.IDName("Name", c.Name),
-		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush, TypeWebhook),
+		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush, TypeWebhook, TypeSlackDM),
 	)
 
 	switch c.Type {
@@ -46,6 +46,11 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 		err = validate.Many(err, validate.AbsoluteURL("Value", c.Value))
 	case TypePush:
 		c.Value = ""
+	case TypeSlackDM:
+		// We want to do some basic validation here, but we don't want to
+		// require the full Slack ID format (which is a bit more complex)
+		// as it may change in the future.
+		err = validate.Many(err, validate.ASCII("Value", c.Value, 3, 128))
 	}
 
 	if err != nil {

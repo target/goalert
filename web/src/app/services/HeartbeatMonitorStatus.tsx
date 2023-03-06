@@ -7,9 +7,9 @@ import HealthyIcon from '@mui/icons-material/Check'
 import UnhealthyIcon from '@mui/icons-material/Clear'
 import InactiveIcon from '@mui/icons-material/Remove'
 import makeStyles from '@mui/styles/makeStyles'
-import { formatTimeSince } from '../util/timeFormat'
 import useStatusColors from '../theme/useStatusColors'
 import { ISOTimestamp } from '../../schema'
+import { Time } from '../util/Time'
 
 const useStyles = makeStyles({
   gridContainer: {
@@ -72,8 +72,7 @@ export default function HeartbeatMonitorStatus(props: {
       </Grid>
       <Grid item xs={12} className={classes.durationText}>
         <Typography variant='caption'>
-          {formatTimeSince(props.lastHeartbeat ? props.lastHeartbeat : '') ||
-            'Inactive'}
+          <Time time={props.lastHeartbeat} format='relative' zero='Inactive' />
         </Typography>
       </Grid>
     </Grid>

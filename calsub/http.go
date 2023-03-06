@@ -50,5 +50,5 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/calendar")
-	w.Write(calData)
+	_, _ = w.Write(calData)
 }

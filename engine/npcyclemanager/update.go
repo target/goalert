@@ -3,11 +3,11 @@ package npcyclemanager
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-
-	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will update and cleanup all notification cycles.
@@ -33,7 +33,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "np cycle manager", tx)
 
 	rows, err := tx.StmtContext(ctx, db.queueMessages).QueryContext(ctx)
 	if err != nil {

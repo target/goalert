@@ -22,7 +22,7 @@ func (c Channel) Normalize() (*Channel, error) {
 	err := validate.Many(
 		validate.UUID("ID", c.ID),
 		validate.Text("Name", c.Name, 1, 255),
-		validate.OneOf("Type", c.Type, TypeSlack),
+		validate.OneOf("Type", c.Type, TypeSlack, TypeWebhook),
 	)
 
 	switch c.Type {

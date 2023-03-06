@@ -1,10 +1,10 @@
-import { GOALERT_VERSION, pathPrefix } from './env'
-
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
+
+import { GOALERT_VERSION, pathPrefix } from './env'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'

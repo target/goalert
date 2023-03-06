@@ -74,7 +74,7 @@ func Parse(s string, verifyFn VerifyFunc) (*Token, bool, error) {
 
 	switch data[1] {
 	case 2:
-		if len(data) < 26 {
+		if len(data) < 27 {
 			return nil, false, validation.NewGenericError("invalid length")
 		}
 		t := &Token{
