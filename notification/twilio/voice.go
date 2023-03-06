@@ -55,8 +55,7 @@ const (
 	digitOldAck   = "8"
 	digitOldClose = "9"
 	digitEscalate = "5"
-
-	sayRepeat = "star"
+	sayRepeat     = "star"
 )
 
 var pRx = regexp.MustCompile(`\((.*?)\)`)
