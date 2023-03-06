@@ -317,7 +317,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		Column2: t,
 	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("request escalation: %v, %w", ok, err)
+		return fmt.Errorf("request escalation: %w", err)
 	}
 
 	if !ok {
