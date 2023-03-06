@@ -233,7 +233,7 @@ const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT maintenance_expires_at notnull::bool AS is_maint_mode,
     alerts.status
 FROM services svc
-    JOIN alerts ON A .service_id = svc.id
+    JOIN alerts ON alerts.service_id = svc.id
 WHERE alerts.id = $1
 `
 
