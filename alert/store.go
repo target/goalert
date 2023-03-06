@@ -299,14 +299,17 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
 	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return validation.NewGenericError("alert not found")
+	}
 	if err != nil {
 		return fmt.Errorf("lock alert: %w", err)
 	}
-	if lck.IsMaintMode {
-		return validation.NewGenericError("service is in maintenance mode")
-	}
 	if lck.Status == gadb.EnumAlertStatusClosed {
 		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
+	}
+	if lck.IsMaintMode {
+		return validation.NewGenericError("service is in maintenance mode")
 	}
 
 	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
