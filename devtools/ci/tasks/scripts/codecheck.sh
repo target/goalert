@@ -55,7 +55,8 @@ if [ "$DISK_HASH" != "$PSQL_HASH" ]; then
   exit 1
 fi
 
-MIGRATION_HASH=$(sha256sum migrate/migrations/* | sort | sha256sum | awk '{print $1}')
+SHA_CMD=$(if [ -x "$(command -v sha256sum)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
+MIGRATION_HASH=$($SHA_CMD migrate/migrations/* | sort | $SHA_CMD | awk '{print $1}')
 SCHEMA_HASH=$(grep "^-- DATA=" migrate/schema.sql | awk '{print $2}' | awk -F'=' '{print $2}')
 if [ "$MIGRATION_HASH" != "$SCHEMA_HASH" ]; then
   echo "migrate/schema.sql is out-of-date (run make db-schema):"
