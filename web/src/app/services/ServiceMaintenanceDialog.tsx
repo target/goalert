@@ -7,6 +7,7 @@ import FormControl from '@mui/material/FormControl'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 import { DateTime } from 'luxon'
+import { Time } from '../util/Time'
 
 interface Props {
   serviceID: string
@@ -14,14 +15,13 @@ interface Props {
   onClose: () => void
 }
 
-function calcExp(hours: number): string {
-  return DateTime.now().plus({ hours }).toISO()
-}
-
-function label(hours: number): string {
-  return `Until ${DateTime.fromISO(calcExp(hours)).toLocaleString(
-    DateTime.DATETIME_MED,
-  )}`
+function label(hours: number): JSX.Element {
+  return (
+    <span>
+      For <Time duration={{ hours }} /> (
+      <Time prefix='ends ' time={DateTime.local().plus({ hours }).toISO()} />)
+    </span>
+  )
 }
 
 function ServiceMaintenanceForm(props: {
@@ -32,7 +32,7 @@ function ServiceMaintenanceForm(props: {
     <FormControl>
       <RadioGroup
         value={props.selectedIndex}
-        onChange={(e) => props.onChange(parseInt(e.target.value))}
+        onChange={(e) => props.onChange(parseInt(e.target.value, 10))}
       >
         <FormControlLabel value={1} control={<Radio />} label={label(1)} />
         <FormControlLabel value={2} control={<Radio />} label={label(2)} />
@@ -63,11 +63,14 @@ export default function ServiceMaintenanceModeDialog(
     <FormDialog
       maxWidth='sm'
       title='Set Maintenance Mode'
-      subTitle={`Pause all outgoing notifications and escalations for${' '}
-      ${selectedHours} hour${
-        selectedHours > 1 ? 's' : ''
-      }. Incoming alerts will still be created
-      and will continue as normal after maintenance mode ends.`}
+      subTitle={
+        <React.Fragment>
+          Pause all outgoing notifications and escalations for{' '}
+          <Time duration={{ hours: selectedHours }} />. Incoming alerts will
+          still be created and will continue as normal after maintenance mode
+          ends.
+        </React.Fragment>
+      }
       loading={updateServiceStatus.fetching}
       errors={nonFieldErrors(updateServiceStatus.error)}
       onClose={props.onClose}
@@ -76,7 +79,9 @@ export default function ServiceMaintenanceModeDialog(
           {
             input: {
               id: props.serviceID,
-              maintenanceExpiresAt: calcExp(selectedHours),
+              maintenanceExpiresAt: DateTime.local()
+                .plus({ hours: selectedHours })
+                .toISO(),
             },
           },
           {

@@ -7,6 +7,7 @@ import { MenuItem, Typography } from '@mui/material'
 import { ContactMethodType } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
 import { FieldError } from '../util/errutil'
+import { useExpFlag } from '../util/useExpFlag'
 
 type Value = {
   name: string
@@ -16,7 +17,6 @@ type Value = {
 
 export type UserContactMethodFormProps = {
   value: Value
-  disclaimer?: string
 
   errors?: Array<FieldError>
 
@@ -73,6 +73,22 @@ function renderURLField(edit: boolean): JSX.Element {
   )
 }
 
+function renderSlackField(edit: boolean): JSX.Element {
+  return (
+    <FormField
+      fullWidth
+      name='value'
+      required
+      label='Slack Member ID'
+      placeholder='member ID'
+      component={TextField}
+      disabled={edit}
+      // @ts-expect-error TS2322 -- FormField has not been converted to ts, and inferred type is incorrect.
+      helperText='Go to your Slack profile, click the three dots, and select "Copy member ID".'
+    />
+  )
+}
+
 function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
   switch (type) {
     case 'SMS':
@@ -82,6 +98,8 @@ function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
       return renderEmailField(edit)
     case 'WEBHOOK':
       return renderURLField(edit)
+    case 'SLACK_DM':
+      return renderSlackField(edit)
     default:
   }
 
@@ -104,13 +122,23 @@ const isPhoneType = (val: Value): boolean =>
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
-  const { value, edit = false, disclaimer, ...other } = props
+  const { value, edit = false, ...other } = props
 
-  const [smsVoiceEnabled, emailEnabled, webhookEnabled] = useConfigValue(
+  const [
+    smsVoiceEnabled,
+    emailEnabled,
+    webhookEnabled,
+    slackEnabled,
+    disclaimer,
+  ] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
     'Webhook.Enable',
+    'Slack.Enable',
+    'General.NotificationDisclaimer',
   )
+
+  const slackDMEnabled = useExpFlag('slack-dm')
 
   return (
     <FormContainer
@@ -152,6 +180,9 @@ export default function UserContactMethodForm(
             {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
             {(edit || webhookEnabled) && (
               <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
+            )}
+            {(edit || (slackEnabled && slackDMEnabled)) && (
+              <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
             )}
           </FormField>
         </Grid>

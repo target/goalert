@@ -9,10 +9,10 @@ glob.sync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
   intEntry['integration/' + name] = file
 })
 
-require('esbuild')
-  .build({
+async function run() {
+  const ctx = await require('esbuild').context({
     entryPoints: {
-      'support/index': 'cypress/support/index.ts',
+      'support/index': 'cypress/support/e2e.ts',
       ...intEntry,
     },
     outdir: '../../bin/build/integration/cypress',
@@ -22,9 +22,16 @@ require('esbuild')
     minify: true,
     sourcemap: 'linked',
     target: ['chrome80', 'firefox99', 'safari12', 'edge79'],
-    watch: process.argv.includes('--watch'),
   })
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+
+  if (process.argv.includes('--watch')) {
+    await ctx.watch()
+  } else {
+    await ctx.dispose()
+  }
+}
+
+run().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

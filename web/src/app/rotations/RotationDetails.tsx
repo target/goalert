@@ -5,7 +5,6 @@ import { Redirect } from 'wouter'
 import { Edit, Delete } from '@mui/icons-material'
 
 import CreateFAB from '../lists/CreateFAB'
-import { handoffSummary } from './util'
 import DetailsPage from '../details/DetailsPage'
 import RotationEditDialog from './RotationEditDialog'
 import RotationDeleteDialog from './RotationDeleteDialog'
@@ -15,6 +14,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import { RotationAvatar } from '../util/avatars'
+import { HandoffSummary } from './HandoffSummary'
 
 const query = gql`
   fragment RotationTitleQuery on Rotation {
@@ -86,7 +86,7 @@ export default function RotationDetails(props: {
       <DetailsPage
         avatar={<RotationAvatar />}
         title={data.name}
-        subheader={handoffSummary(data)}
+        subheader={<HandoffSummary {...data} />}
         details={data.description}
         pageContent={<RotationUserList rotationID={props.rotationID} />}
         secondaryActions={[

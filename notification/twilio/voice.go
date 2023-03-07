@@ -26,26 +26,24 @@ import (
 // CallType indicates a supported Twilio voice call type.
 type CallType string
 
-// Supported call types.
+// KeyPressed specifies a key pressed from the voice menu options.
+type KeyPressed string
+
+// Voice implements a notification.Sender for Twilio voice calls.
+type Voice struct {
+	c *Config
+	r notification.Receiver
+}
+
 const (
+	// Supported call types.
 	CallTypeAlert       = CallType("alert")
 	CallTypeAlertStatus = CallType("alert-status")
 	CallTypeTest        = CallType("test")
 	CallTypeVerify      = CallType("verify")
 	CallTypeStop        = CallType("stop")
-)
 
-// We use url encoding with no padding to try and eliminate
-// encoding problems with buggy apps.
-var b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
-
-var errVoiceTimeout = errors.New("process voice action: timeout")
-
-// KeyPressed specifies a key pressed from the voice menu options.
-type KeyPressed string
-
-// Possible keys pressed from the Menu mapped to their actions.
-const (
+	// Possible keys pressed from the Menu mapped to their actions.
 	digitAck      = "4"
 	digitClose    = "6"
 	digitStop     = "1"
@@ -58,20 +56,19 @@ const (
 	sayRepeat     = "star"
 )
 
-var pRx = regexp.MustCompile(`\((.*?)\)`)
+var (
+	// We use url encoding with no padding to try and eliminate
+	// encoding problems with buggy apps.
+	b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
 
-// Voice implements a notification.Sender for Twilio voice calls.
-type Voice struct {
-	c *Config
-	r notification.Receiver
-}
-
-var _ notification.ReceiverSetter = &Voice{}
-var _ notification.Sender = &Voice{}
-var _ notification.StatusChecker = &Voice{}
-var _ notification.FriendlyValuer = &Voice{}
-
-var rmParen = regexp.MustCompile(`\s*\(.*?\)`)
+	errVoiceTimeout                             = errors.New("process voice action: timeout")
+	pRx                                         = regexp.MustCompile(`\((.*?)\)`)
+	_               notification.ReceiverSetter = &Voice{}
+	_               notification.Sender         = &Voice{}
+	_               notification.StatusChecker  = &Voice{}
+	_               notification.FriendlyValuer = &Voice{}
+	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
+)
 
 func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	var e alert.LogEntryFetcher
@@ -187,7 +184,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 
-	prefix := fmt.Sprintf("This is %s", cfg.ApplicationName())
+	prefix := fmt.Sprintf("Hello! This is %s", cfg.ApplicationName())
 
 	var message string
 	subID := -1
@@ -345,7 +342,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -401,6 +398,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 	msgID := q.Get(msgParamID)
 	subID, _ := strconv.Atoi(q.Get(msgParamSubID))
 	bodyData, _ := b64enc.DecodeString(q.Get(msgParamBody))
+
 	if isOutbound && msgID == "" {
 		log.Log(ctx, errors.Errorf("parse call: query param %s is empty or invalid", msgParamID))
 	}
@@ -436,14 +434,14 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			q.Set("retry_count", strconv.Itoa(retryCount+1))
 			q.Set("retry_digits", digits)
 
-			newTwiMLResponse(w).
+			newTwiMLResponse(ctx, w).
 				Say("One moment please.").
 				RedirectPauseSec(v.callbackURL(ctx, q, CallType(q.Get("type"))), 5)
 
 			return true
 		}
 
-		newTwiMLResponse(w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
+		newTwiMLResponse(ctx, w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
 		return true
 	}
 
@@ -459,7 +457,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		msgSubjectID: subID,
 		msgBody:      string(bodyData),
 	}, errResp
-
 }
 
 func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
@@ -471,7 +468,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -496,7 +493,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -517,7 +514,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
@@ -545,13 +542,13 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 	}
 	cfg := config.FromContext(ctx)
 
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		resp.SayUnknownDigit()
 		fallthrough
 	case "", digitRepeat:
-		resp.Sayf("This is %s.", cfg.ApplicationName())
+		resp.Sayf("Hello! This is %s. ", cfg.ApplicationName())
 		resp.Say("Please use the application dashboard to manage alerts.")
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
@@ -575,7 +572,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 	// See Twilio Request Parameter documentation at
 	// https://www.twilio.com/docs/api/twiml/twilio_request#synchronous
-	resp := newTwiMLResponse(w)
+	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
 		if call.Digits == digitOldAck {

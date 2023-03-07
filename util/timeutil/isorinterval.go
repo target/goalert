@@ -135,11 +135,11 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 
 func (r ISORInterval) MarshalGQL(w io.Writer) {
 	if r == (ISORInterval{}) {
-		io.WriteString(w, "null")
+		_, _ = io.WriteString(w, "null")
 		return
 	}
 
-	io.WriteString(w, `"`+r.String()+`"`)
+	_, _ = io.WriteString(w, `"`+r.String()+`"`)
 }
 
 func (r *ISORInterval) UnmarshalGQL(v interface{}) error {

@@ -52,7 +52,7 @@ func TestMuxRewrite(t *testing.T) {
 	t.Run("simple rewrite", func(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/new/path", func(w http.ResponseWriter, req *http.Request) {
-			io.WriteString(w, req.URL.String())
+			_, _ = io.WriteString(w, req.URL.String())
 		})
 		h := httpRewrite("", "/old/path", "/new/path")(mux)
 
@@ -74,7 +74,7 @@ func TestMuxRewrite(t *testing.T) {
 	t.Run("query params", func(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/new/path", func(w http.ResponseWriter, req *http.Request) {
-			io.WriteString(w, req.URL.String())
+			_, _ = io.WriteString(w, req.URL.String())
 		})
 		h := httpRewrite("", "/old/path", "/new/path?a=b")(mux)
 
@@ -96,7 +96,7 @@ func TestMuxRewrite(t *testing.T) {
 	t.Run("simple rewrite (prefix)", func(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/foobar/new/path", func(w http.ResponseWriter, req *http.Request) {
-			io.WriteString(w, req.URL.String())
+			_, _ = io.WriteString(w, req.URL.String())
 		})
 		h := httpRewrite("/foobar", "/old/path", "/new/path")(mux)
 
@@ -118,7 +118,7 @@ func TestMuxRewrite(t *testing.T) {
 	t.Run("simple rewrite (prefix+route)", func(t *testing.T) {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/foobar/new/path", func(w http.ResponseWriter, req *http.Request) {
-			io.WriteString(w, req.URL.String())
+			_, _ = io.WriteString(w, req.URL.String())
 		})
 		h := httpRewrite("/foobar", "/old/", "/new/")(mux)
 

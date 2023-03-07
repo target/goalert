@@ -37,7 +37,11 @@ export default function AuthLink(): JSX.Element | null {
 
   const { ready, userName } = useSessionInfo()
 
-  const [{ data, fetching, error }] = useQuery({ query, variables: { token } })
+  const [{ data, fetching, error }] = useQuery({
+    query,
+    variables: { token },
+    pause: !token,
+  })
   const [linkAccountStatus, linkAccount] = useMutation(mutation)
   const [, updateAlertStatus] = useMutation(updateStatusMutation)
   const [snack, setSnack] = useState(true)

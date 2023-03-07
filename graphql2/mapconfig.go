@@ -35,6 +35,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
 		{ID: "General.DisableCalendarSubscriptions", Type: ConfigTypeBoolean, Description: "If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions.", Value: fmt.Sprintf("%t", cfg.General.DisableCalendarSubscriptions)},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
+		{ID: "Maintenance.AlertAutoCloseDays", Type: ConfigTypeInteger, Description: "Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertAutoCloseDays)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
 		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n"), Deprecated: "Use --public-url flag instead, which takes precedence."},
@@ -66,6 +67,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "Signing secret to verify requests from slack.", Value: cfg.Slack.SigningSecret, Password: true},
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
+		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceName},
+		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceLanguage},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
 		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests.", Value: cfg.Twilio.AuthToken, Password: true},
 		{ID: "Twilio.AlternateAuthToken", Type: ConfigTypeString, Description: "An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field.", Value: cfg.Twilio.AlternateAuthToken, Password: true},
@@ -101,6 +104,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
 		{ID: "General.DisableCalendarSubscriptions", Type: ConfigTypeBoolean, Description: "If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions.", Value: fmt.Sprintf("%t", cfg.General.DisableCalendarSubscriptions)},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
+		{ID: "Maintenance.AlertAutoCloseDays", Type: ConfigTypeInteger, Description: "Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertAutoCloseDays)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
@@ -190,6 +194,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Maintenance.AlertCleanupDays = val
+		case "Maintenance.AlertAutoCloseDays":
+			val, err := parseInt(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Maintenance.AlertAutoCloseDays = val
 		case "Maintenance.APIKeyExpireDays":
 			val, err := parseInt(v.ID, v.Value)
 			if err != nil {
@@ -296,6 +306,10 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Twilio.Enable = val
+		case "Twilio.VoiceName":
+			cfg.Twilio.VoiceName = v.Value
+		case "Twilio.VoiceLanguage":
+			cfg.Twilio.VoiceLanguage = v.Value
 		case "Twilio.AccountSID":
 			cfg.Twilio.AccountSID = v.Value
 		case "Twilio.AuthToken":
