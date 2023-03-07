@@ -29,7 +29,7 @@ func (db *DB) Name() string { return "Engine.StatusUpdateManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeStatusUpdate,
-		Version: 3,
+		Version: 4,
 	})
 	if err != nil {
 		return nil, err
@@ -40,6 +40,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		lock: lock,
 
 		cmUnsub: p.P(`
+			with _update as (
+				UPDATE user_contact_methods
+				SET enable_status_updates = TRUE
+				WHERE TYPE = 'SLACK_DM'
+					AND NOT enable_status_updates
+			)
 			delete from alert_status_subscriptions sub
 			using user_contact_methods cm
 			where
