@@ -387,7 +387,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 		return err
 	}
 
-	_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled)
+	_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled, n.StatusUpdates)
 	return err
 }
 
