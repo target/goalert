@@ -241,18 +241,19 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     }
 
     if (filter !== 'closed') {
-      actions.push(
-        {
-          icon: <CloseIcon />,
-          label: 'Close',
-          onClick: makeUpdateAlerts('StatusClosed'),
-        },
-        {
+      actions.push({
+        icon: <CloseIcon />,
+        label: 'Close',
+        onClick: makeUpdateAlerts('StatusClosed'),
+      })
+
+      if (checkedCount === 1) {
+        actions.push({
           icon: <EscalateIcon />,
           label: 'Escalate',
           onClick: makeUpdateAlerts('StatusUnacknowledged'),
-        },
-      )
+        })
+      }
     }
 
     return actions
@@ -267,6 +268,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           <QueryList
             query={alertsListQuery}
             infiniteScroll
+            onSelectionChange={(selected) => setCheckedCount(selected.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
