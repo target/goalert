@@ -312,6 +312,13 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		return validation.NewGenericError("service is in maintenance mode")
 	}
 
+	if t.IsZero() {
+		t, err = gadb.New(tx).Now(ctx)
+		if err != nil {
+			return fmt.Errorf("get current time: %w", err)
+		}
+	}
+
 	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
 		AlertID: int64(id),
 		Column2: t,
@@ -347,7 +354,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 }
 
 func (s *Store) Escalate(ctx context.Context, alertID int, currentLevel int) error {
-	return s.EscalateAsOf(ctx, alertID, time.Now())
+	return s.EscalateAsOf(ctx, alertID, time.Time{})
 }
 
 func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
@@ -364,7 +371,7 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	if err != nil {
 		return nil, err
 	}
-	err = s.EscalateAsOf(ctx, alertIDs[0], time.Now())
+	err = s.EscalateAsOf(ctx, alertIDs[0], time.Time{})
 	if err != nil {
 		return nil, err
 	}
