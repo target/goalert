@@ -377,6 +377,13 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		newStatus = alert.StatusTriggered
+		_, err := p.a.EscalateMany(ctx, []int{cb.AlertID})
+		if err != nil {
+			return fmt.Errorf("escalate alert: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("unknown result type")
 	}

@@ -610,7 +610,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			msg = "Closed"
 		} else if call.Digits == digitEscalate {
 			result = notification.ResultEscalate
-			msg = "Escalated"
+			msg = "Escalation requested"
 		} else {
 			result = notification.ResultAcknowledge
 			msg = "Acknowledged"
