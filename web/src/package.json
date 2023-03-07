@@ -61,7 +61,7 @@
     "redux-thunk": "2.4.0",
     "remark-gfm": "3.0.0",
     "urql": "3.0.1",
-    "wonka": "6.1.2",
+    "wonka": "6.2.3",
     "wouter": "2.9.0"
   },
   "devDependencies": {
