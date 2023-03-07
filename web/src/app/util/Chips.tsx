@@ -151,7 +151,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
+export function ChanWebhookChip(props: WithID<ChipProps>): JSX.Element {
   const { id: url, ...rest } = props
 
   const query = gql`
@@ -170,6 +170,7 @@ export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
   })
   const hostname = data?.chanWebhook?.name
   const webhookURL = data?.chanWebhook?.id
+  console.log(hostname, webhookURL)
 
   if (error) {
     console.error(`Error querying webhook ${hostname}:`, error)

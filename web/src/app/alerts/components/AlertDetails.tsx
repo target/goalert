@@ -28,7 +28,7 @@ import {
   ServiceLink,
   SlackChannelLink,
   UserLink,
-  WebhookLink,
+  ChanWebhookLink,
 } from '../../links'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
@@ -141,7 +141,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       if (t === 'rotation') link = RotationLink(target)
       else if (t === 'schedule') link = ScheduleLink(target)
       else if (t === 'slackChannel') link = SlackChannelLink(target)
-      else if (t === 'chanWebhook') link = WebhookLink(target)
+      else if (t === 'chanWebhook') link = ChanWebhookLink(target)
       else if (t === 'user') link = UserLink(target)
       else link = target.name
 
@@ -245,7 +245,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
       const rotations = targets.filter((t) => t.type === 'rotation')
       const schedules = targets.filter((t) => t.type === 'schedule')
-      const webhooks = targets.filter((t) => t.type === 'chanWebhook')
+      const chanWebhooks = targets.filter((t) => t.type === 'chanWebhook')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
       const selected =
@@ -266,8 +266,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
             {slackChannels.length > 0 && (
               <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
             )}
-            {webhooks.length > 0 && (
-              <div>Webhooks: {renderTargets(webhooks, id)}</div>
+            {chanWebhooks.length > 0 && (
+              <div>Webhooks: {renderTargets(chanWebhooks, id)}</div>
             )}
             {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
           </TableCell>

@@ -1,9 +1,9 @@
 import React from 'react'
 import AppLink from '../util/AppLink'
 
-export const WebhookLink = (webhook: {
+export const ChanWebhookLink = (chanWebhook: {
   id: string
   name: string
 }): JSX.Element => {
-  return <AppLink to={webhook.id}>{webhook.name}</AppLink>
+  return <AppLink to={chanWebhook.id}>{chanWebhook.name}</AppLink>
 }

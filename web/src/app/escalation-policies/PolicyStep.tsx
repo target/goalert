@@ -11,7 +11,7 @@ import {
   ScheduleChip,
   UserChip,
   SlackChip,
-  WebhookChip,
+  ChanWebhookChip,
 } from '../util/Chips'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
@@ -88,7 +88,8 @@ function PolicyStep(props: PolicyStepProps): JSX.Element {
           chip = tgtChip(SlackChip)
           break
         case 'chanWebhook':
-          chip = tgtChip(WebhookChip)
+          console.log('webhook')
+          chip = tgtChip(ChanWebhookChip)
           break
       }
 
