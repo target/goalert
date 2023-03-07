@@ -2,9 +2,9 @@ package calsub
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 )
@@ -24,8 +24,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var n time.Time
-	err = s.now.QueryRowContext(ctx).Scan(&n)
+	n, err := gadb.New(s.db).Now(ctx)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
