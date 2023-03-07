@@ -55,7 +55,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		cmWantsUpdates: p.P(`
-			select user_id
+			select user_id, type
 			from user_contact_methods
 			where id = $1 and not disabled and enable_status_updates
 		`),
