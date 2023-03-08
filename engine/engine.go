@@ -324,8 +324,7 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
 	case notification.ResultEscalate:
-		newStatus = alert.StatusTriggered
-		_, err := p.a.EscalateMany(ctx, []int{cb.AlertID})
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("escalate alert: %w", err)
 		}
@@ -384,8 +383,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
 	case notification.ResultEscalate:
-		newStatus = alert.StatusTriggered
-		_, err := p.a.EscalateMany(ctx, []int{cb.AlertID})
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("escalate alert: %w", err)
 		}
