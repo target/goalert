@@ -34,6 +34,7 @@
     "@mui/material": "5.11.12",
     "@mui/styles": "5.11.12",
     "@mui/x-data-grid": "5.17.1",
+    "@mui/x-date-pickers": "6.0.0",
     "@urql/exchange-retry": "1.0.0",
     "bowser": "2.11.0",
     "classnames": "2.3.1",
