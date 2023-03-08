@@ -62,7 +62,7 @@ func TestSMS_RenderAlert(t *testing.T) {
 
 https://example.com/alerts/123
 
-Reply '1a' to ack, '1c' to close.`,
+Reply '1a' to ack, '1e' to escalate,'1c' to close.`,
 	)
 
 	check("no-reply-code",
@@ -86,7 +86,7 @@ https://example.com/alerts/123`,
 		1,
 		`Alert #123: Testing
 
-Reply '1a' to ack, '1c' to close.`,
+Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 	)
 
 	check("no-link-or-reply-code",
@@ -110,7 +110,7 @@ Reply '1a' to ack, '1c' to close.`,
 
 https://example.com/alerts/123
 
-Reply '1a' to ack, '1c' to close.`,
+Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 	)
 
 	check("truncate-long-id",
@@ -124,7 +124,7 @@ Reply '1a' to ack, '1c' to close.`,
 
 https://example.com/alerts/123
 
-Reply '1a' to ack, '1c' to close.`,
+Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 	)
 
 	check("message-too-long",
