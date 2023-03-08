@@ -108,6 +108,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   // transition fab above snackbar when snackbar width overlaps fab placement
   const isXs = useIsWidthDown('sm')
 
+  const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
 
@@ -241,18 +242,19 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     }
 
     if (filter !== 'closed') {
-      actions.push(
-        {
-          icon: <CloseIcon />,
-          label: 'Close',
-          onClick: makeUpdateAlerts('StatusClosed'),
-        },
-        {
+      actions.push({
+        icon: <CloseIcon />,
+        label: 'Close',
+        onClick: makeUpdateAlerts('StatusClosed'),
+      })
+
+      if (selectedCount === 1) {
+        actions.push({
           icon: <EscalateIcon />,
           label: 'Escalate',
           onClick: makeUpdateAlerts('StatusUnacknowledged'),
-        },
-      )
+        })
+      }
     }
 
     return actions
@@ -267,6 +269,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           <QueryList
             query={alertsListQuery}
             infiniteScroll
+            onSelectionChange={(selected) => setSelectedCount(selected.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
