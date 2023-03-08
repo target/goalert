@@ -3,6 +3,7 @@ package twilio
 import (
 	"context"
 	"database/sql"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation"
 	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
@@ -400,6 +402,9 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if alert.IsAlreadyAcknowledged(err) {
 		nonSystemErr = true
 		msg = fmt.Sprintf("Alert #%d already acknowledged", alert.AlertID(err))
+	} else if validation.IsClientError(err) {
+		respond(true, "Error: "+stderrors.Unwrap(err).Error())
+		return
 	}
 
 	if nonSystemErr {
