@@ -62,7 +62,7 @@ func TestSMS_RenderAlert(t *testing.T) {
 
 https://example.com/alerts/123
 
-Reply '1a' to ack, '1e' to escalate,'1c' to close.`,
+Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 	)
 
 	check("no-reply-code",
@@ -106,7 +106,7 @@ Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 		},
 		"https://example.com/alerts/123",
 		1,
-		`Alert #123: Testing with a really really obnoxiously long message that will be need to be tru
+		`Alert #123: Testing with a really really obnoxiously long message that will
 
 https://example.com/alerts/123
 
@@ -120,7 +120,7 @@ Reply '1a' to ack, '1e' to escalate, '1c' to close.`,
 		},
 		"https://example.com/alerts/123",
 		1,
-		`Alert #123456789: Testing with a really really obnoxiously long message that will be need to
+		`Alert #123456789: Testing with a really really obnoxiously long message tha
 
 https://example.com/alerts/123
 
