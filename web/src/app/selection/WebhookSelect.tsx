@@ -25,6 +25,7 @@ export const WebhookSelect: React.FC<WebhookSelectProps> = (props) => {
     return (
       <WebhookChip
         id={v}
+        key={v}
         onDelete={() => onChange(value.filter((f) => f !== v))}
       />
     )
@@ -35,7 +36,6 @@ export const WebhookSelect: React.FC<WebhookSelectProps> = (props) => {
       <Grid item>{props.value.length ? selected : 'No webhooks selected'}</Grid>
       <Grid container item>
         <Grid item>
-          {/* input field for adding new webhook*/}
           <TextField
             variant='outlined'
             size='small'
