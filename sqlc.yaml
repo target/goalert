@@ -18,6 +18,7 @@ sql:
       - migrate/schema.sql
     queries:
       - calsub/queries.sql
+      - alert/queries.sql
     engine: postgresql
     gen:
       go:

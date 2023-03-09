@@ -15,6 +15,21 @@ import (
 	"github.com/lib/pq"
 )
 
+const alertHasEPState = `-- name: AlertHasEPState :one
+SELECT EXISTS (
+        SELECT 1
+        FROM escalation_policy_state
+        WHERE alert_id = $1
+    ) AS has_ep_state
+`
+
+func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alertHasEPState, alertID)
+	var has_ep_state bool
+	err := row.Scan(&has_ep_state)
+	return has_ep_state, err
+}
+
 const calSubAuthUser = `-- name: CalSubAuthUser :one
 UPDATE user_calendar_subscriptions
 SET last_access = now()
@@ -214,6 +229,27 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const lockOneAlertService = `-- name: LockOneAlertService :one
+SELECT maintenance_expires_at notnull::bool AS is_maint_mode,
+    alerts.status
+FROM services svc
+    JOIN alerts ON alerts.service_id = svc.id
+WHERE alerts.id = $1 FOR
+UPDATE
+`
+
+type LockOneAlertServiceRow struct {
+	IsMaintMode bool
+	Status      EnumAlertStatus
+}
+
+func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAlertServiceRow, error) {
+	row := q.db.QueryRowContext(ctx, lockOneAlertService, id)
+	var i LockOneAlertServiceRow
+	err := row.Scan(&i.IsMaintMode, &i.Status)
+	return i, err
+}
+
 const now = `-- name: Now :one
 SELECT now()::timestamptz
 `
@@ -221,6 +257,28 @@ SELECT now()::timestamptz
 func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, now)
 	var column_1 time.Time
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
+UPDATE escalation_policy_state
+SET force_escalation = TRUE
+WHERE alert_id = $1
+    AND (
+        last_escalation <= $2::timestamptz
+        OR last_escalation IS NULL
+    ) RETURNING TRUE
+`
+
+type RequestAlertEscalationByTimeParams struct {
+	AlertID int64
+	Column2 time.Time
+}
+
+func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestAlertEscalationByTimeParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, requestAlertEscalationByTime, arg.AlertID, arg.Column2)
+	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
 }
