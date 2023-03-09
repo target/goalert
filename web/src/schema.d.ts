@@ -27,7 +27,6 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
-  webhooks: WebhookConnection
   webhook?: null | Webhook
   userOverride?: null | UserOverride
   config: ConfigValue[]

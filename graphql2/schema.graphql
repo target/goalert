@@ -88,9 +88,6 @@ type Query {
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
-  # Allows searching for webhooks.
-  webhooks(input: WebhookSearchOptions): WebhookConnection!
-
   # Returns a single webhook with the given URL.
   webhook(id: String!): Webhook
 

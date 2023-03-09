@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import Badge from '@mui/material/Badge'
@@ -14,8 +14,10 @@ import {
   ScheduleSelect,
   SlackChannelSelect,
   UserSelect,
-  WebhookSelect,
+  // WebhookSelect,
 } from '../selection'
+import MaterialSelect from '../selection/MaterialSelect'
+// import { DEBOUNCE_DELAY } from '../config'
 
 import {
   RotateRight as RotationsIcon,
@@ -26,7 +28,7 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
-import { useLocation } from 'wouter'
+// import { useLocation } from 'wouter'
 
 const useStyles = makeStyles({
   badge: {
@@ -44,9 +46,53 @@ const useStyles = makeStyles({
 
 function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
+  const [webhookSearch, setWebhookSearch] = useState('')
+  const [webhookSearchInput, setWebhookSearchInput] = useState('')
+  const [webhooks, setWebhooks] = useState([])
+  const useOptions = makeUseOptions(mapDataNode, variables)
+  const webhookMapNode = ({ value: k }) => ({
+    id: k,
+    type: 'webhook',
+  })
   const { disabled, value } = props
   const classes = useStyles()
-  const [path] = useLocation()
+  useEffect(() => {
+    const t = setTimeout(() => setWebhookSearch(webhookSearchInput), 400)
+
+    return () => clearTimeout(t)
+  }, [webhookSearchInput])
+
+  console.log('before render: ', webhooks)
+  useEffect(() => {
+    setWebhookSearch('')
+    setWebhookSearchInput('')
+    if (
+      webhookSearch &&
+      (webhooks.length === 0 ||
+        !webhooks.some((w) => w.value === webhookSearch))
+    ) {
+      setWebhooks([
+        {
+          label: `Create "${webhookSearch}"`,
+          value: webhookSearch,
+          isCreate: true,
+          key: webhookSearch,
+        },
+      ])
+    }
+  }, [webhookSearch])
+  console.log('after render: ', webhooks)
+  webhooks.some((w) => console.log("what's in webhooks: ", w))
+  // console.log('before render: ', webhooks)
+  // if (webhookSearch && !webhooks.some((o) => o.value === webhookSearch)) {
+  //   webhooks.push({
+  //     isCreate: true,
+  //     value: webhookSearch,
+  //     label: `Create "${webhookSearch}"`,
+  //     key: webhookSearch,
+  //   })
+  // }
+  // console.log('after render: ', webhooks)
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
@@ -57,16 +103,25 @@ function PolicyStepForm(props) {
   }
 
   // takes a list of { id, type } targets and return the ids for a specific type
-  const getTargetsByType = (type) => (tgts) =>
-    tgts
+  const getTargetsByType = (type) => (tgts) => {
+    console.log('type: ', type, 'tgt: ', tgts)
+    return tgts
       .filter((t) => t.type === type) // only the list of the current type
       .map((t) => t.id) // array of ID strings
+  }
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-  const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
-    curTgts
+  const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
+    console.log('cur targets: ', curTgts, 'new targets: ', newTgts)
+    if (type === 'webhook') {
+      return curTgts
+        .filter((t) => t.type !== type)
+        .concat(newTgts.map((wh) => ({ id: wh.value, type })))
+    }
+    return curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
+  }
 
   // then form fields would all point to `targets` but can map values
   const setTargetType = makeSetTargetType(value.targets)
@@ -248,12 +303,13 @@ function PolicyStepForm(props) {
                       <FormField
                         fullWidth
                         disabled={disabled}
-                        component={WebhookSelect}
+                        component={MaterialSelect}
                         fieldName='targets'
                         label='Webhook URL'
                         name='webhooks'
                         multiple
-                        escalationPolicyID={path.split('/')[2]}
+                        options={webhooks}
+                        // escalationPolicyID={path.split('/')[2]}
                         formatInputOnChange={(val) => val.trim()}
                         onCreate={(webhook) => {
                           const tgts = makeSetTargetType(value.targets)(
@@ -264,8 +320,17 @@ function PolicyStepForm(props) {
                             targets: tgts.concat(value.targets),
                           })
                         }}
-                        mapValue={getTargetsByType('webhook')}
-                        mapOnChangeValue={setTargetType('webhook')}
+                        onInputChange={(val) => {
+                          setWebhookSearchInput(val)
+                        }}
+                        mapValue={(e) => {
+                          console.log('GET TT: ', e)
+                          return getTargetsByType('webhook')(e)
+                        }}
+                        mapOnChangeValue={(e) => {
+                          console.log('SET TT: ', e)
+                          return setTargetType('webhook')(e)
+                        }}
                       />
                     </StepContent>
                   </Step>
