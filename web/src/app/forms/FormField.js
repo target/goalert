@@ -233,10 +233,8 @@ FormField.propTypes = {
 
   multiple: p.bool,
 
-  options: p.arrayOf(
-    p.shape({
-      label: p.string,
-      value: p.string,
-    }),
-  ),
+  options: p.shape({
+    label: p.string,
+    value: p.string,
+  }),
 }

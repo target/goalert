@@ -201,13 +201,12 @@ export function makeQuerySelect(displayName, options) {
     const [selectValue] = useValues(value)
     const [selectOptions, { loading: optionsLoading, error: optionsError }] =
       useOptions(value, search, extraVars)
-    console.log('before render: ', selectOptions)
+
     if (
       _onCreate &&
       searchInput &&
       !selectOptions.some((o) => o.value === searchInput)
     ) {
-      console.log('search input: ', searchInput)
       selectOptions.push({
         isCreate: true,
         value: searchInput,
@@ -215,13 +214,9 @@ export function makeQuerySelect(displayName, options) {
         key: searchInput,
       })
     }
-    console.log('after render: ', selectOptions)
-    console.log('select options: ')
-    selectOptions.some((o) => console.log('option: ', o))
+
     useEffect(() => {
-      const t = setTimeout(() => {
-        setSearch(searchInput)
-      }, DEBOUNCE_DELAY)
+      const t = setTimeout(() => setSearch(searchInput), DEBOUNCE_DELAY)
 
       return () => clearTimeout(t)
     }, [searchInput])

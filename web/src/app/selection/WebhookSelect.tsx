@@ -12,35 +12,35 @@ const query = gql`
   }
 `
 
-// const valueQuery = gql`
-//   query ($id: String!) {
-//     webhook(id: $id) {
-//       id
-//       name
-//     }
-//   }
-// `
+const valueQuery = gql`
+  query ($id: String!) {
+    webhook(id: $id) {
+      id
+      name
+    }
+  }
+`
 
 function mapCreatedURLS(val: string): { value: string; label: string } {
   const url = new URL(val)
   return { value: val, label: url.hostname }
 }
 
-// interface WebhookSearchProps {
-//   label: string
-//   name: string
-// }
+interface WebhookSearchProps {
+  label: string
+  name: string
+}
 
 export const WebhookSelect = makeQuerySelect('WebhookSelect', {
   query,
-  // valueQuery,
-  // extraVariablesFunc: ({
-  //   escalationPolicyID,
-  //   ...props
-  // }: {
-  //   escalationPolicyID: string
-  //   props: WebhookSearchProps
-  // }) => [props, { escalationPolicyID }],
+  valueQuery,
+  extraVariablesFunc: ({
+    escalationPolicyID,
+    ...props
+  }: {
+    escalationPolicyID: string
+    props: WebhookSearchProps
+  }) => [props, { escalationPolicyID }],
   mapOnCreate: (val: string) => mapCreatedURLS(val),
   mapDataNode: (webhook: { id: string; name: string }) => ({
     value: webhook.id,
