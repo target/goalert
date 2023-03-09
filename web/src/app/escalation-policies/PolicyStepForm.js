@@ -46,7 +46,6 @@ function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
   const { disabled, value } = props
   const classes = useStyles()
-  const [path] = useLocation()
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
