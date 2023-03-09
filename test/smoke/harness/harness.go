@@ -513,13 +513,18 @@ func (h *Harness) Trigger() {
 // Escalate will escalate an alert in the database, when 'level' matches.
 func (h *Harness) Escalate(alertID, level int) {
 	h.t.Helper()
-	h.t.Logf("escalate alert #%d (from level %d)", alertID, level)
+	err := h.EscalateAlertErr(alertID)
+	require.NoError(h.t, err, "escalate alert")
+}
+
+func (h *Harness) EscalateAlertErr(alertID int) (err error) {
+	h.t.Helper()
+	h.t.Logf("escalate alert #%d", alertID)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		err := h.backend.AlertStore.Escalate(ctx, alertID, level)
-		if err != nil {
-			h.t.Fatalf("failed to escalate alert: %v", err)
-		}
+		h.t.Helper()
+		err = h.backend.AlertStore.Escalate(ctx, alertID, -1)
 	})
+	return err
 }
 
 // Phone will return the generated phone number for the id provided.

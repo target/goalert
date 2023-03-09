@@ -1,4 +1,4 @@
-import glob from 'glob'
+import { globSync } from 'glob'
 import { readFileSync } from 'fs'
 
 const callRx = /baseURLFromFlags\(([^)]+)\)/g
@@ -8,7 +8,7 @@ const validFlagsRx = /^[a-z,-]+$/
 // based on calls to baseURLFromFlags in the integration tests.
 export function scanUniqueFlagCombos(): string[] {
   const flags = new Set<string>()
-  const files = glob.sync('test/integration/**/*.spec.ts')
+  const files = globSync('test/integration/**/*.spec.ts')
 
   for (const file of files) {
     const content = readFileSync(file, 'utf8')

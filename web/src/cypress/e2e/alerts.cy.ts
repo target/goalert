@@ -161,7 +161,10 @@ function testAlerts(screen: ScreenFormat): void {
         'UNACKNOWLEDGED',
       )
 
-      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
+      cy.get('[data-cy=paginated-list] input')
+        .first()
+        .should('not.be.checked')
+        .click()
 
       cy.get('button[aria-label=Escalate]').click()
       cy.get('ul[data-cy=paginated-list] li a').should(
