@@ -252,18 +252,6 @@ function PolicyStepForm(props) {
                         fieldName='targets'
                         label='Webhook URL'
                         name='webhooks'
-                        multiple
-                        escalationPolicyID={path.split('/')[2]}
-                        formatInputOnChange={(val) => val.trim()}
-                        onCreate={(webhook) => {
-                          const tgts = makeSetTargetType(value.targets)(
-                            'webhook',
-                          )([webhook])
-                          props.onChange({
-                            ...value,
-                            targets: tgts.concat(value.targets),
-                          })
-                        }}
                         mapValue={getTargetsByType('webhook')}
                         mapOnChangeValue={setTargetType('webhook')}
                       />

@@ -152,46 +152,19 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
 }
 
 export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
-  const { id: url, ...rest } = props
+  const { id: urlStr, ...rest } = props
 
-  const query = gql`
-    query ($id: String!) {
-      webhook(id: $id) {
-        id
-        name
-      }
-    }
-  `
-
-  const [{ data, error }] = useQuery<Query>({
-    query,
-    variables: { id: url },
-    requestPolicy: 'cache-first',
-  })
-  const hostname = data?.webhook?.name
-  const webhookURL = data?.webhook?.id
-
-  if (error) {
-    console.error(`Error querying webhook ${hostname}:`, error)
-  }
-
-  const clickable = Boolean(webhookURL)
-  if (clickable) {
-    rest.onClick = () => window.open(`${webhookURL}`)
-  }
-
+  const url = new URL(urlStr)
   return (
-    <Tooltip title={webhookURL || ''}>
-      <Chip
-        data-cy='webhook-chip'
-        data-clickable={clickable}
-        avatar={
-          <Avatar>
-            <WebhookIcon />
-          </Avatar>
-        }
-        {...rest}
-      />
-    </Tooltip>
+    <Chip
+      data-cy='webhook-chip'
+      avatar={
+        <Avatar>
+          <WebhookIcon />
+        </Avatar>
+      }
+      label={url.hostname}
+      {...rest}
+    />
   )
 }
