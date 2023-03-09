@@ -90,12 +90,6 @@ type Query {
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
-  # Allows searching for webhook notification channels.
-  chanWebhooks(input: ChanWebhookSearchOptions): ChanWebhookConnection!
-
-  # Returns a single webhook notification channel with the given URL.
-  chanWebhook(id: String!): ChanWebhook
-
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
 

@@ -28,8 +28,6 @@ export interface Query {
   labelValues: StringConnection
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
-  chanWebhooks: ChanWebhookConnection
-  chanWebhook?: null | ChanWebhook
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]

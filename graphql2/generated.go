@@ -377,8 +377,6 @@ type ComplexityRoot struct {
 		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
 		CalcRotationHandoffTimes func(childComplexity int, input *CalcRotationHandoffTimesInput) int
-		ChanWebhook              func(childComplexity int, id string) int
-		ChanWebhooks             func(childComplexity int, input *ChanWebhookSearchOptions) int
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
 		DebugMessageStatus       func(childComplexity int, input DebugMessageStatusInput) int
@@ -758,8 +756,6 @@ type QueryResolver interface {
 	LabelValues(ctx context.Context, input *LabelValueSearchOptions) (*StringConnection, error)
 	IntegrationKeys(ctx context.Context, input *IntegrationKeySearchOptions) (*IntegrationKeyConnection, error)
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
-	ChanWebhooks(ctx context.Context, input *ChanWebhookSearchOptions) (*ChanWebhookConnection, error)
-	ChanWebhook(ctx context.Context, id string) (*webhook.ChanWebhook, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
@@ -2367,30 +2363,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CalcRotationHandoffTimes(childComplexity, args["input"].(*CalcRotationHandoffTimesInput)), true
-
-	case "Query.chanWebhook":
-		if e.complexity.Query.ChanWebhook == nil {
-			break
-		}
-
-		args, err := ec.field_Query_chanWebhook_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ChanWebhook(childComplexity, args["id"].(string)), true
-
-	case "Query.chanWebhooks":
-		if e.complexity.Query.ChanWebhooks == nil {
-			break
-		}
-
-		args, err := ec.field_Query_chanWebhooks_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ChanWebhooks(childComplexity, args["input"].(*ChanWebhookSearchOptions)), true
 
 	case "Query.config":
 		if e.complexity.Query.Config == nil {
@@ -4665,36 +4637,6 @@ func (ec *executionContext) field_Query_calcRotationHandoffTimes_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCalcRotationHandoffTimesInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_chanWebhook_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_chanWebhooks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *ChanWebhookSearchOptions
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOChanWebhookSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookSearchOptions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -15788,125 +15730,6 @@ func (ec *executionContext) fieldContext_Query_userOverrides(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_userOverrides_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_chanWebhooks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_chanWebhooks(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ChanWebhooks(rctx, fc.Args["input"].(*ChanWebhookSearchOptions))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ChanWebhookConnection)
-	fc.Result = res
-	return ec.marshalNChanWebhookConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_chanWebhooks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "nodes":
-				return ec.fieldContext_ChanWebhookConnection_nodes(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_ChanWebhookConnection_pageInfo(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChanWebhookConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_chanWebhooks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_chanWebhook(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_chanWebhook(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ChanWebhook(rctx, fc.Args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*webhook.ChanWebhook)
-	fc.Result = res
-	return ec.marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_chanWebhook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ChanWebhook_id(ctx, field)
-			case "name":
-				return ec.fieldContext_ChanWebhook_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ChanWebhook", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_chanWebhook_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -31593,49 +31416,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "chanWebhooks":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_chanWebhooks(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "chanWebhook":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_chanWebhook(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "userOverride":
 			field := field
 
@@ -34604,20 +34384,6 @@ func (ec *executionContext) marshalNChanWebhook2ᚕgithubᚗcomᚋtargetᚋgoale
 	return ret
 }
 
-func (ec *executionContext) marshalNChanWebhookConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookConnection(ctx context.Context, sel ast.SelectionSet, v ChanWebhookConnection) graphql.Marshaler {
-	return ec._ChanWebhookConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNChanWebhookConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookConnection(ctx context.Context, sel ast.SelectionSet, v *ChanWebhookConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChanWebhookConnection(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNClearTemporarySchedulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐClearTemporarySchedulesInput(ctx context.Context, v interface{}) (ClearTemporarySchedulesInput, error) {
 	res, err := ec.unmarshalInputClearTemporarySchedulesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -37395,21 +37161,6 @@ func (ec *executionContext) unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputCalcRotationHandoffTimesInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOChanWebhook2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋwebhookᚐChanWebhook(ctx context.Context, sel ast.SelectionSet, v *webhook.ChanWebhook) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ChanWebhook(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOChanWebhookSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐChanWebhookSearchOptions(ctx context.Context, v interface{}) (*ChanWebhookSearchOptions, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputChanWebhookSearchOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
