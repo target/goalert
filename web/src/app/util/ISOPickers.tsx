@@ -20,7 +20,7 @@ interface ISOPickerProps extends ISOTextFieldProps {
 
 // Used for the native textfield component or the nested input component
 // that the Fallback renders.
-type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value'>> & {
+type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value' | 'onChange'>> & {
   value?: string
   onChange: (value: string) => void
 }
