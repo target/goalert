@@ -589,6 +589,7 @@ type ComplexityRoot struct {
 		LastTestVerifyAt       func(childComplexity int) int
 		LastVerifyMessageState func(childComplexity int) int
 		Name                   func(childComplexity int) int
+		StatusUpdates          func(childComplexity int) int
 		Type                   func(childComplexity int) int
 		Value                  func(childComplexity int) int
 	}
@@ -820,6 +821,7 @@ type UserContactMethodResolver interface {
 
 	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (StatusUpdateState, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -3541,6 +3543,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserContactMethod.Name(childComplexity), true
+
+	case "UserContactMethod.statusUpdates":
+		if e.complexity.UserContactMethod.StatusUpdates == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.StatusUpdates(childComplexity), true
 
 	case "UserContactMethod.type":
 		if e.complexity.UserContactMethod.Type == nil {
@@ -12138,6 +12147,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -15862,6 +15873,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -20748,6 +20761,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -22013,6 +22028,50 @@ func (ec *executionContext) fieldContext_UserContactMethod_lastVerifyMessageStat
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_statusUpdates(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().StatusUpdates(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(StatusUpdateState)
+	fc.Result = res
+	return ec.marshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_statusUpdates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StatusUpdateState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserNotificationRule_id(ctx, field)
 	if err != nil {
@@ -22199,6 +22258,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -27835,7 +27896,7 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "value"}
+	fieldsInOrder := [...]string{"id", "name", "value", "enableStatusUpdates"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27863,6 +27924,14 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "enableStatusUpdates":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enableStatusUpdates"))
+			it.EnableStatusUpdates, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33102,6 +33171,26 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 				return innerFunc(ctx)
 
 			})
+		case "statusUpdates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_statusUpdates(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35530,6 +35619,16 @@ func (ec *executionContext) marshalNSlackChannelConnection2ᚖgithubᚗcomᚋtar
 		return graphql.Null
 	}
 	return ec._SlackChannelConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx context.Context, v interface{}) (StatusUpdateState, error) {
+	var res StatusUpdateState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx context.Context, sel ast.SelectionSet, v StatusUpdateState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

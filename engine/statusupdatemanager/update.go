@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -28,12 +29,6 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
 		// okay to proceed
 		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
-	}
-
-	_, err = db.lock.Exec(ctx, db.usrUnsub)
-	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
-		// okay to proceed
-		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled users: %w", err))
 	}
 
 	// process up to 100
@@ -73,9 +68,10 @@ func (db *DB) update(ctx context.Context) error {
 
 	isSubscribed := chanID.Valid
 	var userID sql.NullString
+	var cmType contactmethod.Type
 	if cmID.Valid {
 		isSubscribed = true
-		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&userID)
+		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&userID, &cmType)
 		if errors.Is(err, sql.ErrNoRows) {
 			isSubscribed = false
 			err = nil
@@ -110,7 +106,7 @@ func (db *DB) update(ctx context.Context) error {
 		}
 
 		// Only insert message if the user is not the same as the log event user and we have a recent log entry.
-		if logID > 0 && (!userID.Valid || userID.String != logUserID.String) {
+		if cmType.StatusUpdatesAlways() || (logID > 0 && (!userID.Valid || userID.String != logUserID.String)) {
 			_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
 			if err != nil {
 				return fmt.Errorf("insert status update message for id=%d: %w", id, err)

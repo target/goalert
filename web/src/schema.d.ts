@@ -935,6 +935,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -1026,7 +1027,14 @@ export interface UserContactMethod {
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1046,6 +1054,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {
@@ -1114,6 +1123,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'
