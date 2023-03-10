@@ -323,6 +323,12 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("escalate alert: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("unknown result type")
 	}
@@ -376,6 +382,12 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("escalate alert: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("unknown result type")
 	}
