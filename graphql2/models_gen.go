@@ -582,9 +582,10 @@ type UpdateUserCalendarSubscriptionInput struct {
 }
 
 type UpdateUserContactMethodInput struct {
-	ID    string  `json:"id"`
-	Name  *string `json:"name"`
-	Value *string `json:"value"`
+	ID                  string  `json:"id"`
+	Name                *string `json:"name"`
+	Value               *string `json:"value"`
+	EnableStatusUpdates *bool   `json:"enableStatusUpdates"`
 }
 
 type UpdateUserInput struct {
@@ -951,6 +952,51 @@ func (e *SWOState) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SWOState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type StatusUpdateState string
+
+const (
+	StatusUpdateStateDisabled       StatusUpdateState = "DISABLED"
+	StatusUpdateStateEnabled        StatusUpdateState = "ENABLED"
+	StatusUpdateStateEnabledForced  StatusUpdateState = "ENABLED_FORCED"
+	StatusUpdateStateDisabledForced StatusUpdateState = "DISABLED_FORCED"
+)
+
+var AllStatusUpdateState = []StatusUpdateState{
+	StatusUpdateStateDisabled,
+	StatusUpdateStateEnabled,
+	StatusUpdateStateEnabledForced,
+	StatusUpdateStateDisabledForced,
+}
+
+func (e StatusUpdateState) IsValid() bool {
+	switch e {
+	case StatusUpdateStateDisabled, StatusUpdateStateEnabled, StatusUpdateStateEnabledForced, StatusUpdateStateDisabledForced:
+		return true
+	}
+	return false
+}
+
+func (e StatusUpdateState) String() string {
+	return string(e)
+}
+
+func (e *StatusUpdateState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = StatusUpdateState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid StatusUpdateState", str)
+	}
+	return nil
+}
+
+func (e StatusUpdateState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

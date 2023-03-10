@@ -190,15 +190,14 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 		`),
 		cleanupStatusUpdateOptOut: p.P(`
 			delete from outgoing_messages msg
-			using users usr
+			using user_contact_methods cm
 			where
 				msg.message_type = 'alert_status_update' and
 				(
 					msg.last_status = 'pending' or
 					(msg.last_status = 'failed' and msg.next_retry_at notnull)
 				) and
-				usr.alert_status_log_contact_method_id isnull and
-				usr.id = msg.user_id
+				not cm.enable_status_updates and cm.id = msg.contact_method_id
 		`),
 		setSending: p.P(`
 			update outgoing_messages

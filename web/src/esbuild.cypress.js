@@ -4,7 +4,7 @@ const path = require('path')
 const glob = require('glob')
 
 const intEntry = {}
-glob.sync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
+glob.globSync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
   const name = path.basename(file, '.ts')
   intEntry['integration/' + name] = file
 })
