@@ -355,7 +355,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       <ServiceMaintenanceNotice
-        serviceID={props.data?.service?.id ?? ''}
+        serviceID={alert?.service?.id ?? ''}
         extraNotices={alert.pendingNotifications.map((n) => ({
           type: 'WARNING',
           message: `Notification Pending for ${n.destination}`,
