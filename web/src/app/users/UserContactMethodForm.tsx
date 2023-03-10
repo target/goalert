@@ -3,8 +3,8 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import TelTextField from '../util/TelTextField'
-import { MenuItem, Typography } from '@mui/material'
-import { ContactMethodType } from '../../schema'
+import { Checkbox, FormControlLabel, MenuItem, Typography } from '@mui/material'
+import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
 import { FieldError } from '../util/errutil'
 import { useExpFlag } from '../util/useExpFlag'
@@ -13,6 +13,7 @@ type Value = {
   name: string
   type: ContactMethodType
   value: string
+  statusUpdates?: StatusUpdateState
 }
 
 export type UserContactMethodFormProps = {
@@ -140,6 +141,11 @@ export default function UserContactMethodForm(
 
   const slackDMEnabled = useExpFlag('slack-dm')
 
+  const statusUpdateChecked =
+    value.statusUpdates === 'ENABLED' ||
+    value.statusUpdates === 'ENABLED_FORCED' ||
+    false
+
   return (
     <FormContainer
       {...other}
@@ -192,6 +198,30 @@ export default function UserContactMethodForm(
         <Grid item xs={12}>
           <Typography variant='caption'>{disclaimer}</Typography>
         </Grid>
+        {edit && (
+          <Grid item xs={12}>
+            <FormControlLabel
+              label='Enable status updates'
+              control={
+                <Checkbox
+                  name='enableStatusUpdates'
+                  disabled={
+                    value.statusUpdates === 'DISABLED_FORCED' ||
+                    value.statusUpdates === 'ENABLED_FORCED'
+                  }
+                  checked={statusUpdateChecked}
+                  onChange={(v) =>
+                    props.onChange &&
+                    props.onChange({
+                      ...value,
+                      statusUpdates: v.target.checked ? 'ENABLED' : 'DISABLED',
+                    })
+                  }
+                />
+              }
+            />
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )

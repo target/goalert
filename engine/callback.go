@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"time"
+
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -11,6 +13,7 @@ type callback struct {
 	AlertID         int
 	ServiceID       string
 	ContactMethodID string
+	CreatedAt       time.Time
 }
 
 func (c callback) Normalize() (*callback, error) {
