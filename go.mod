@@ -43,14 +43,14 @@ require (
 	golang.org/x/oauth2 v0.2.0
 	golang.org/x/sys v0.5.0
 	golang.org/x/term v0.5.0
-	golang.org/x/tools v0.3.0
+	golang.org/x/tools v0.4.1-0.20221208213631-3f74d914ae6d
 	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/gorm v1.24.1
-	honnef.co/go/tools v0.3.3
+	honnef.co/go/tools v0.4.2
 )
 
 require (
@@ -150,7 +150,7 @@ require (
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.20.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20220602145555-4a0574d9293f // indirect
+	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
