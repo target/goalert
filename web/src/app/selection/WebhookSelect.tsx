@@ -10,6 +10,7 @@ type WebhookSelectProps = {
 
 function isValidURL(str: string): boolean {
   try {
+    // eslint-disable-next-line no-new
     new URL(str)
     return true
   } catch {
@@ -32,37 +33,51 @@ export const WebhookSelect: React.FC<WebhookSelectProps> = (props) => {
   })
 
   return (
-    <Grid container>
-      <Grid item>{props.value.length ? selected : 'No webhooks selected'}</Grid>
+    <Grid container spacing={1}>
+      <Grid container>{props.value.length ? selected : ''}</Grid>
       <Grid container item>
-        <Grid item>
-          <TextField
-            variant='outlined'
-            size='small'
-            value={newURL}
-            onChange={(e) => setNewURL(e.target.value)}
-            error={!isValidURL(newURL) && newURL.length > 0}
-            placeholder='https://example.com/...'
-            InputProps={{
-              endAdornment: (
-                <Chip
-                  color='primary' // for white text
-                  component='button'
-                  label='Add'
-                  size='small'
-                  icon={<Add fontSize='small' />}
-                  onClick={() => {
-                    if (!newURL) return
-                    if (!isValidURL(newURL)) return
+        <TextField
+          variant='outlined'
+          fullWidth
+          value={newURL}
+          onChange={(e) => {
+            setNewURL(e.target.value)
+          }}
+          error={
+            (!isValidURL(newURL) && newURL.length > 0) ||
+            value.indexOf(newURL) > -1
+          }
+          helperText={
+            !isValidURL(newURL) && newURL.length > 0
+              ? 'Invalid URL.'
+              : value.indexOf(newURL) > -1
+              ? 'Duplicate URL.'
+              : ''
+          }
+          placeholder='https://example.com/...'
+          InputProps={{
+            endAdornment: (
+              <Chip
+                color='primary' // for white text
+                component='button'
+                label='Add'
+                size='medium'
+                icon={<Add fontSize='small' />}
+                onClick={() => {
+                  if (
+                    !newURL ||
+                    !isValidURL(newURL) ||
+                    value.indexOf(newURL) > -1
+                  )
+                    return
 
-                    onChange([...value, newURL])
-                    setNewURL('')
-                  }}
-                />
-              ),
-            }}
-          />
-        </Grid>
+                  onChange([...value, newURL])
+                  setNewURL('')
+                }}
+              />
+            ),
+          }}
+        />
       </Grid>
     </Grid>
   )
