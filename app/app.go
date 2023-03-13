@@ -34,7 +34,6 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -90,8 +89,7 @@ type App struct {
 	twilioVoice  *twilio.Voice
 	twilioConfig *twilio.Config
 
-	slackChan    *slack.ChannelSender
-	WebhookStore *webhook.Store
+	slackChan *slack.ChannelSender
 
 	ConfigStore *config.Store
 
@@ -247,7 +245,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
 func (a *App) WaitForStartup(ctx context.Context) error {
-	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+	return a.mgr.WaitForStartup(a.Context(ctx))
 }
 
 // DB returns the sql.DB instance used by the application.

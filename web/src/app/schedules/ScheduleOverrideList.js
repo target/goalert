@@ -1,19 +1,23 @@
-import React, { useState } from 'react'
-import { Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
-import QueryList from '../lists/QueryList'
+import React, { useCallback, useState } from 'react'
+import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
+import { GroupAdd } from '@mui/icons-material'
+import { DateTime } from 'luxon'
 import { gql } from '@apollo/client'
+import QueryList from '../lists/QueryList'
 import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
-import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
-import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideDeleteDialog from './ScheduleOverrideDeleteDialog'
 import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
-import { DateTime } from 'luxon'
+import { useIsWidthDown } from '../util/useWidth'
+import { OverrideDialogContext } from './ScheduleDetails'
+import TempSchedDialog from './temp-sched/TempSchedDialog'
+import ScheduleOverrideDialog from './ScheduleOverrideDialog'
+import CreateFAB from '../lists/CreateFAB'
 
 // the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
@@ -42,14 +46,19 @@ const query = gql`
 `
 
 export default function ScheduleOverrideList({ scheduleID }) {
+  const isMobile = useIsWidthDown('md')
+
   const [editID, setEditID] = useState(null)
   const [deleteID, setDeleteID] = useState(null)
-  const [create, setCreate] = useState(null)
 
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [showPast, setShowPast] = useURLParam('showPast', false)
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
+
+  const [overrideDialog, setOverrideDialog] = useState(null)
+  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
 
@@ -100,8 +109,12 @@ export default function ScheduleOverrideList({ scheduleID }) {
       } in ${zone}.`
 
   return (
-    <React.Fragment>
-      <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+    <OverrideDialogContext.Provider
+      value={{
+        onNewTempSched,
+        setOverrideDialog,
+      }}
+    >
       <QueryList
         headerNote={note}
         noSearch
@@ -136,37 +149,78 @@ export default function ScheduleOverrideList({ scheduleID }) {
           },
         }}
         headerAction={
-          <FilterContainer onReset={() => resetFilter()}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={showPast}
-                    onChange={(e) => setShowPast(e.target.checked)}
-                    value='showPast'
-                  />
+          <React.Fragment>
+            <FilterContainer onReset={() => resetFilter()}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showPast}
+                      onChange={(e) => setShowPast(e.target.checked)}
+                      value='showPast'
+                    />
+                  }
+                  label='Show past overrides'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <UserSelect
+                  label='Filter users...'
+                  multiple
+                  value={userFilter}
+                  onChange={(value) => setUserFilter(value)}
+                />
+              </Grid>
+            </FilterContainer>
+            {!isMobile && (
+              <Button
+                variant='contained'
+                startIcon={<GroupAdd />}
+                onClick={() =>
+                  setOverrideDialog({
+                    variantOptions: ['replace', 'remove', 'add', 'temp'],
+                    removeUserReadOnly: false,
+                  })
                 }
-                label='Show past overrides'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <UserSelect
-                label='Filter users...'
-                multiple
-                value={userFilter}
-                onChange={(value) => setUserFilter(value)}
-              />
-            </Grid>
-          </FilterContainer>
+                sx={{ ml: 1 }}
+              >
+                Create Override
+              </Button>
+            )}
+          </React.Fragment>
         }
       />
-      {create && (
-        <ScheduleOverrideCreateDialog
-          scheduleID={scheduleID}
-          variant={create}
-          onClose={() => setCreate(null)}
+      {isMobile && (
+        <CreateFAB
+          title='Create Override'
+          onClick={() =>
+            setOverrideDialog({
+              variantOptions: ['replace', 'remove', 'add', 'temp'],
+              removeUserReadOnly: false,
+            })
+          }
         />
       )}
+
+      {/* create dialogs */}
+      {overrideDialog && (
+        <ScheduleOverrideDialog
+          defaultValue={overrideDialog.defaultValue}
+          variantOptions={overrideDialog.variantOptions}
+          scheduleID={scheduleID}
+          onClose={() => setOverrideDialog(null)}
+          removeUserReadOnly={overrideDialog.removeUserReadOnly}
+        />
+      )}
+      {configTempSchedule && (
+        <TempSchedDialog
+          value={configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+
+      {/* edit dialogs by ID */}
       {deleteID && (
         <ScheduleOverrideDeleteDialog
           overrideID={deleteID}
@@ -179,6 +233,6 @@ export default function ScheduleOverrideList({ scheduleID }) {
           onClose={() => setEditID(null)}
         />
       )}
-    </React.Fragment>
+    </OverrideDialogContext.Provider>
   )
 }

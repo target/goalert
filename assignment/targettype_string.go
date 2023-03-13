@@ -18,7 +18,7 @@ func _() {
 	_ = x[TargetTypeUser-7]
 	_ = x[TargetTypeNotificationChannel-8]
 	_ = x[TargetTypeSlackChannel-9]
-	_ = x[TargetTypeWebhook-10]
+	_ = x[TargetTypeChanWebhook-10]
 	_ = x[TargetTypeIntegrationKey-11]
 	_ = x[TargetTypeUserOverride-12]
 	_ = x[TargetTypeNotificationRule-13]
@@ -27,9 +27,9 @@ func _() {
 	_ = x[TargetTypeUserSession-16]
 }
 
-const _TargetType_name = "TargetTypeUnspecifiedTargetTypeEscalationPolicyTargetTypeNotificationPolicyTargetTypeRotationTargetTypeServiceTargetTypeScheduleTargetTypeCalendarSubscriptionTargetTypeUserTargetTypeNotificationChannelTargetTypeSlackChannelTargetTypeWebhookTargetTypeIntegrationKeyTargetTypeUserOverrideTargetTypeNotificationRuleTargetTypeContactMethodTargetTypeHeartbeatMonitorTargetTypeUserSession"
+const _TargetType_name = "TargetTypeUnspecifiedTargetTypeEscalationPolicyTargetTypeNotificationPolicyTargetTypeRotationTargetTypeServiceTargetTypeScheduleTargetTypeCalendarSubscriptionTargetTypeUserTargetTypeNotificationChannelTargetTypeSlackChannelTargetTypeChanWebhookTargetTypeIntegrationKeyTargetTypeUserOverrideTargetTypeNotificationRuleTargetTypeContactMethodTargetTypeHeartbeatMonitorTargetTypeUserSession"
 
-var _TargetType_index = [...]uint16{0, 21, 47, 75, 93, 110, 128, 158, 172, 201, 223, 240, 264, 286, 312, 335, 361, 382}
+var _TargetType_index = [...]uint16{0, 21, 47, 75, 93, 110, 128, 158, 172, 201, 223, 244, 268, 290, 316, 339, 365, 386}
 
 func (i TargetType) String() string {
 	if i < 0 || i >= TargetType(len(_TargetType_index)-1) {

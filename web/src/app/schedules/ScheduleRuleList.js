@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
-import { Card } from '@mui/material'
+import { Button, ButtonGroup, Card } from '@mui/material'
+import { GroupAdd, PersonAdd } from '@mui/icons-material'
 import Tooltip from '@mui/material/Tooltip'
 import { startCase, sortBy } from 'lodash'
 import { RotationAvatar, UserAvatar } from '../util/avatars'
@@ -16,6 +17,7 @@ import { GenericError } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -43,6 +45,7 @@ export default function ScheduleRuleList({ scheduleID }) {
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [createType, setCreateType] = useState(null)
+  const isMobile = useIsWidthDown('md')
 
   const { data, loading, error } = useQuery(query, {
     variables: { id: scheduleID },
@@ -119,27 +122,48 @@ export default function ScheduleRuleList({ scheduleID }) {
 
     return (
       <React.Fragment>
-        <SpeedDial
-          label='Add Assignment'
-          actions={[
-            {
-              label: 'Add Rotation',
-              onClick: () => setCreateType('rotation'),
-              icon: <AccountMultiplePlus />,
-            },
-            {
-              label: 'Add User',
-              onClick: () => setCreateType('user'),
-              icon: <AccountPlus />,
-            },
-          ]}
-        />
         <Card style={{ width: '100%', marginBottom: 64 }}>
           <FlatList
             headerNote={`Showing times in ${data.schedule.timeZone}.`}
             items={items}
+            headerAction={
+              !isMobile && (
+                <ButtonGroup variant='contained'>
+                  <Button
+                    startIcon={<GroupAdd />}
+                    onClick={() => setCreateType('rotation')}
+                  >
+                    Add Rotation
+                  </Button>
+                  <Button
+                    startIcon={<PersonAdd />}
+                    onClick={() => setCreateType('user')}
+                  >
+                    Add User
+                  </Button>
+                </ButtonGroup>
+              )
+            }
           />
         </Card>
+
+        {isMobile && (
+          <SpeedDial
+            label='Add Assignment'
+            actions={[
+              {
+                label: 'Add Rotation',
+                onClick: () => setCreateType('rotation'),
+                icon: <AccountMultiplePlus />,
+              },
+              {
+                label: 'Add User',
+                onClick: () => setCreateType('user'),
+                icon: <AccountPlus />,
+              },
+            ]}
+          />
+        )}
 
         {createType && (
           <ScheduleRuleCreateDialog

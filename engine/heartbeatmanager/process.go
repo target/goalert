@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-
-	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will process all heartbeats opening and closing alerts as needed.
@@ -30,7 +30,7 @@ func (db *DB) processAll(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "heartbeat manager", tx)
 
 	var newAlertCtx []context.Context
 	bad, err := db.unhealthy(ctx, tx)
