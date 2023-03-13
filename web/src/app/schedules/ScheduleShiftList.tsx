@@ -27,10 +27,6 @@ import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Shift, TempSchedValue } from './temp-sched/sharedUtils'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 
-type ScheduleShift = Shift & {
-  userName: string
-}
-
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
   query scheduleShifts($id: ID!, $start: ISOTimestamp!, $end: ISOTimestamp!) {
@@ -122,11 +118,10 @@ function ScheduleShiftList({
   })
 
   function items(): FlatListListItem[] {
-    const _shifts: ScheduleShift[] =
+    const _shifts: Shift[] =
       data?.schedule?.shifts?.map((s: Shift) => ({
         ...s,
         userID: s.user?.id || '',
-        userName: s.user?.name || '',
       })) ?? []
 
     let shifts = _shifts
@@ -184,7 +179,7 @@ function ScheduleShiftList({
           shiftDetails = `Active after ${startTime}`
         }
         result.push({
-          title: s.userName,
+          title: s.user?.name || '',
           subText: shiftDetails,
           icon: <UserAvatar userID={s.userID} />,
         })
