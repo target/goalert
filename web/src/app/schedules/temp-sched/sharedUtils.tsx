@@ -7,19 +7,6 @@ export type TempSchedValue = {
   shifts: Shift[]
 }
 
-export type ScheduleRule = {
-  displayStart?: string
-  start: string
-  end: string
-  userID: string
-  truncated: boolean
-
-  user?: null | {
-    id: string
-    name: string
-  }
-}
-
 export type Shift = {
   displayStart?: string
   start: string
