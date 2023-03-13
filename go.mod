@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/99designs/gqlgen v0.17.26
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.1
@@ -54,6 +53,7 @@ require (
 )
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.20.2
 	github.com/fullstorydev/grpcui v1.3.1
 	github.com/kffl/speedbump v1.1.0
 	github.com/lib/pq v1.10.7
