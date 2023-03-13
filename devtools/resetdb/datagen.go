@@ -175,7 +175,7 @@ func (d *datagen) NewRotation() {
 	r := rotation.Rotation{
 		ID:          d.UUID(),
 		Name:        d.ids.Gen(idName(d.Faker, "Rotation")),
-		Description: d.Sentence(d.Intn(10) + 3),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
 		Type:        rotationTypes[d.Intn(len(rotationTypes))],
 		Start:       d.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(d.RandomString(timeZones), 0)),
 		ShiftLength: d.Intn(14) + 1,
@@ -203,7 +203,7 @@ func (d *datagen) NewSchedule() {
 	d.Schedules = append(d.Schedules, schedule.Schedule{
 		ID:          d.UUID(),
 		Name:        d.ids.Gen(idName(d.Faker, "Schedule")),
-		Description: d.Sentence(d.Intn(10) + 3),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
 		TimeZone:    time.FixedZone(d.RandomString(timeZones), 0),
 	})
 }
@@ -255,7 +255,7 @@ func (d *datagen) NewEP() {
 	d.EscalationPolicies = append(d.EscalationPolicies, escalation.Policy{
 		ID:          d.UUID(),
 		Name:        d.ids.Gen(idName(d.Faker, "Policy")),
-		Description: d.Sentence(d.Intn(10) + 3),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
 		Repeat:      d.Intn(5),
 	})
 }
@@ -293,7 +293,7 @@ func (d *datagen) NewService() {
 	d.Services = append(d.Services, service.Service{
 		ID:                 d.UUID(),
 		Name:               d.ids.Gen(idName(d.Faker, "Service")),
-		Description:        d.Sentence(d.Intn(10) + 3),
+		Description:        d.LoremIpsumSentence(d.Intn(10) + 3),
 		EscalationPolicyID: d.EscalationPolicies[d.Intn(len(d.EscalationPolicies))].ID,
 	})
 }
@@ -373,7 +373,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 		CreatedAt: d.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
-		Summary:   d.ids.Gen(func() string { return d.Sentence(d.Intn(10) + 3) }, serviceID),
+		Summary:   d.ids.Gen(func() string { return d.LoremIpsumSentence(d.Intn(10) + 3) }, serviceID),
 		Details:   details,
 		Source:    src,
 	})
@@ -622,7 +622,7 @@ func (cfg datagenConfig) Generate() datagen {
 
 	d.alertDetails = make([]string, 20)
 	for i := range d.alertDetails {
-		d.alertDetails[i] = d.Paragraph(2, 4, 10, "\n\n")
+		d.alertDetails[i] = d.LoremIpsumParagraph(2, 4, 10, "\n\n")
 	}
 
 	run(cfg.AlertClosedCount, func() { d.NewAlert(alert.StatusClosed) })
