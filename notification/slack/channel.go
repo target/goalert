@@ -175,7 +175,10 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 
 	ch := &Channel{TeamID: teamID}
 	err = s.withClient(ctx, func(c *slack.Client) error {
-		resp, err := c.GetConversationInfoContext(ctx, channelID, false)
+		resp, err := c.GetConversationInfoContext(ctx,
+			&slack.GetConversationInfoInput{
+				ChannelID: channelID,
+			})
 		if err != nil {
 			return err
 		}
