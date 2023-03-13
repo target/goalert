@@ -14,7 +14,7 @@ import { DateTime, Duration, Interval } from 'luxon'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useResetURLParams, useURLParam } from '../actions'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList from '../lists/FlatList'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { UserSelect } from '../selection'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
@@ -29,13 +29,6 @@ import TempSchedDialog from './temp-sched/TempSchedDialog'
 
 type ScheduleShift = Shift & {
   userName: string
-}
-
-interface ShiftItem {
-  title?: string
-  subText?: string
-  subHeader?: string
-  icon?: JSX.Element
 }
 
 // query name is important, as it's used for refetching data after mutations
@@ -128,7 +121,7 @@ function ScheduleShiftList({
     },
   })
 
-  function items(): ShiftItem[] {
+  function items(): FlatListListItem[] {
     const _shifts: ScheduleShift[] =
       data?.schedule?.shifts?.map((s: Shift) => ({
         ...s,
@@ -159,7 +152,7 @@ function ScheduleShiftList({
       DateTime.fromISO(end, { zone }).startOf('day'),
     )
 
-    const result: ShiftItem[] = []
+    const result: FlatListListItem[] = []
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
