@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.31.1",
-    "@types/glob": "8.0.1",
+    "@types/glob": "8.1.0",
     "@typescript-eslint/eslint-plugin": "5.54.0",
     "@typescript-eslint/parser": "5.54.1",
     "eslint": "7.32.0",
