@@ -42,13 +42,11 @@ function testTimePickers(screen: ScreenFormat): void {
         cy.get('body').contains('Sun from 2:05 PM to 5:56 PM')
       })
 
-    describe('Native', () => {
-      check(
-        'should handle selecting time values when displaying the same time zone',
-        '?tz=America/New_York',
-        'Sun from 3:04 PM to 4:23 AM',
-      )
-    })
+    check(
+      'should handle selecting time values when displaying the same time zone',
+      '?tz=America/New_York',
+      'Sun from 3:04 PM to 4:23 AM',
+    )
   })
 
   describe('Date (schedule shifts)', () => {
@@ -67,18 +65,16 @@ function testTimePickers(screen: ScreenFormat): void {
         cy.get('body').contains('2/3/2007')
       })
 
-    describe('Native', () => {
-      check(
-        'should handle selecting date values when displaying the same time zone',
-        '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z',
-        '1/2/2006',
-      )
-      check(
-        'should handle selecting date values when displaying an alternate time zone',
-        '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z',
-        '1/1/2006',
-      )
-    })
+    check(
+      'should handle selecting date values when displaying the same time zone',
+      '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z',
+      '1/2/2006',
+    )
+    check(
+      'should handle selecting date values when displaying an alternate time zone',
+      '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z',
+      '1/1/2006',
+    )
   })
 
   describe('DateTime (schedule overrides)', () => {
@@ -121,12 +117,10 @@ function testTimePickers(screen: ScreenFormat): void {
         cy.get('body').contains(start.toLocaleString(DateTime.DATETIME_MED))
       })
 
-    describe('Native', () => {
-      check(
-        'should handle selecting date values when displaying the same time zone',
-        '?tz=America/New_York',
-      )
-    })
+    check(
+      'should handle selecting date values when displaying the same time zone',
+      '?tz=America/New_York',
+    )
   })
 }
 
