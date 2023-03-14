@@ -14,7 +14,7 @@ import {
   ScheduleSelect,
   SlackChannelSelect,
   UserSelect,
-  WebhookSelect,
+  ChanWebhookSelect,
 } from '../selection'
 
 import {
@@ -238,7 +238,7 @@ function PolicyStepForm(props) {
                       tabIndex={-1}
                     >
                       {badgeMeUpScotty(
-                        getTargetsByType('webhook')(value.targets).length,
+                        getTargetsByType('chanWebhook')(value.targets).length,
                         'Add Webhook',
                       )}
                     </StepButton>
@@ -246,12 +246,12 @@ function PolicyStepForm(props) {
                       <FormField
                         fullWidth
                         disabled={disabled}
-                        component={WebhookSelect}
+                        component={ChanWebhookSelect}
                         fieldName='targets'
                         label='Webhook URL'
                         name='webhooks'
-                        mapValue={getTargetsByType('webhook')}
-                        mapOnChangeValue={setTargetType('webhook')}
+                        mapValue={getTargetsByType('chanWebhook')}
+                        mapOnChangeValue={setTargetType('chanWebhook')}
                       />
                     </StepContent>
                   </Step>

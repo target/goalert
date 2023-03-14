@@ -3,7 +3,7 @@ import { Chip, Grid, TextField } from '@mui/material'
 import React from 'react'
 import { WebhookChip } from '../util/Chips'
 
-type WebhookSelectProps = {
+type ChanWebhookSelectProps = {
   value: Array<string>
   onChange: (value: Array<string>) => void
 }
@@ -18,30 +18,33 @@ function isValidURL(str: string): boolean {
   }
 }
 
-export const WebhookSelect: React.FC<WebhookSelectProps> = (props) => {
+export const ChanWebhookSelect: React.FC<ChanWebhookSelectProps> = (props) => {
   const [newURL, setNewURL] = React.useState<string>('')
   const { value, onChange = () => {} } = props
 
   const selected = props.value.map((v) => {
     return (
-      <WebhookChip
-        id={v}
-        key={v}
-        onDelete={() => onChange(value.filter((f) => f !== v))}
-      />
+      <Grid item key={v}>
+        <WebhookChip
+          id={v}
+          onDelete={() => onChange(value.filter((f) => f !== v))}
+        />
+      </Grid>
     )
   })
 
   return (
     <Grid container spacing={1}>
-      <Grid container>{props.value.length ? selected : ''}</Grid>
+      <Grid container spacing={1}>
+        {props.value.length ? selected : ''}
+      </Grid>
       <Grid container item>
         <TextField
           variant='outlined'
           fullWidth
           value={newURL}
           onChange={(e) => {
-            setNewURL(e.target.value)
+            setNewURL(e.target.value.trim())
           }}
           error={
             (!isValidURL(newURL) && newURL.length > 0) ||
@@ -49,7 +52,7 @@ export const WebhookSelect: React.FC<WebhookSelectProps> = (props) => {
           }
           helperText={
             !isValidURL(newURL) && newURL.length > 0
-              ? 'Invalid URL.'
+              ? 'Please provide a valid URL.'
               : value.indexOf(newURL) > -1
               ? 'Duplicate URL.'
               : ''
