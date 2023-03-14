@@ -6271,11 +6271,6 @@ mixin-deep@^1.2.0:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
 
-modernizr-esm@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/modernizr-esm/-/modernizr-esm-2.0.0.tgz#de44ebcd768fdcb2d38fb286cfd77c721c2432cf"
-  integrity sha512-tSxxQ/PU90EBs9q6SOgWOYatnjnBvFvkSDVKfqeMbkF8igjPDA8yAmJaAIJbbrNDvtxhzyyqYCa5XxYbW/9/tg==
-
 moment-timezone@^0.5.40:
   version "0.5.41"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.41.tgz#a7ad3285fd24aaf5f93b8119a9d749c8039c64c5"
