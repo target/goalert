@@ -26,6 +26,7 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import { useExpFlag } from '../util/useExpFlag'
 
 const useStyles = makeStyles({
   badge: {
@@ -45,6 +46,7 @@ function PolicyStepForm(props) {
   const [step, setStep] = useState(0)
   const { disabled, value } = props
   const classes = useStyles()
+  const hasChanWebhook = useExpFlag('chan-webhook')
 
   function handleStepChange(stepChange) {
     if (stepChange === step) {
@@ -223,7 +225,7 @@ function PolicyStepForm(props) {
                     />
                   </StepContent>
                 </Step>
-                {cfg['Webhook.Enable'] && (
+                {cfg['Webhook.Enable'] && hasChanWebhook && (
                   <Step>
                     <StepButton
                       aria-expanded={(
