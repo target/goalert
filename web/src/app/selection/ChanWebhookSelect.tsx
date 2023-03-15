@@ -1,6 +1,6 @@
 import { Add } from '@mui/icons-material'
 import { Chip, Grid, TextField } from '@mui/material'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { WebhookChip } from '../util/Chips'
 
 type ChanWebhookSelectProps = {
@@ -44,6 +44,7 @@ export const ChanWebhookSelect = (
         <TextField
           variant='outlined'
           fullWidth
+          name='webhooks'
           value={newURL}
           onChange={(e) => {
             setNewURL(e.target.value.trim())
@@ -66,6 +67,7 @@ export const ChanWebhookSelect = (
                 color='primary' // for white text
                 component='button'
                 label='Add'
+                data-cy='add-webhook'
                 size='medium'
                 icon={<Add fontSize='small' />}
                 onClick={() => {
