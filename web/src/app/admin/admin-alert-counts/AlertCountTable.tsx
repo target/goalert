@@ -42,7 +42,7 @@ const columns = [
     valueGetter: (params: GridValueGetterParams) => {
       return params.row.serviceName || ''
     },
-    renderCell: (params: GridRenderCellParams<string>) => {
+    renderCell: (params: GridRenderCellParams) => {
       if (params.row.id && params.value) {
         return (
           <AppLink to={`/services/${params.row.id}`}>{params.value}</AppLink>
@@ -153,10 +153,10 @@ export default function AlertCountTable(
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
-          pageSize={7}
-          rowsPerPageOptions={[7]}
+          pageSizeOptions={[7]}
+          paginationModel={{ page: 0, pageSize: 7 }}
           columns={columns}
-          disableSelectionOnClick
+          disableRowSelectionOnClick
           components={{
             ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,

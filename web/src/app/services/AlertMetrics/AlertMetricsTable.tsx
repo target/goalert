@@ -66,7 +66,7 @@ const columns = [
     field: 'alertID',
     headerName: 'Alert ID',
     width: 90,
-    renderCell: (params: GridRenderCellParams<string>) => (
+    renderCell: (params: GridRenderCellParams) => (
       <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
     ),
   },
@@ -111,7 +111,7 @@ const columns = [
     valueGetter: (params: GridValueGetterParams) => {
       return params.row.service?.name || ''
     },
-    renderCell: (params: GridRenderCellParams<string>) => {
+    renderCell: (params: GridRenderCellParams) => {
       if (params.row.service?.id && params.value) {
         return (
           <AppLink to={`/services/${params.row.service.id}`}>
@@ -183,7 +183,7 @@ export default function AlertMetricsTable(
           rows={alerts}
           loading={props.loading}
           columns={columns}
-          disableSelectionOnClick
+          disableRowSelectionOnClick
           components={{
             ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,
