@@ -57,11 +57,9 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		)
 	}
 
-	if len(input.Targets) != 0 {
-		for _, tgt := range input.Targets {
-			if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
-				return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
-			}
+	for _, tgt := range input.Targets {
+		if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
+			return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
 		}
 	}
 
