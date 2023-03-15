@@ -50,8 +50,7 @@ export default function ServiceMaintenanceNotice({
             message: 'In Maintenance Mode',
             details: (
               <React.Fragment>
-                Ends <Time format='relative' time={maintMode} precise /> (
-                <Time time={maintMode} />)
+                Ends <Time format='relative' time={maintMode} precise />
               </React.Fragment>
             ),
             action: (

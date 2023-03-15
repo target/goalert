@@ -152,4 +152,34 @@ func TestTwiMLResponse(t *testing.T) {
 	</Gather>
 </Response>`, string(data))
 	})
+	t.Run("esc test", func(t *testing.T) {
+		var mockConfig config.Config
+		ctx := mockConfig.Context(context.Background())
+		rec := httptest.NewRecorder()
+
+		r := newTwiMLResponse(ctx, rec)
+		r.Say("Hello")
+		r.AddOptions(optionEscalate)
+		r.Gather("http://example.com")
+
+		resp := rec.Result()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Contains(t, resp.Header.Get("Content-Type"), "application/xml")
+		data, err := io.ReadAll(resp.Body)
+		assert.NoError(t, err)
+		assert.Equal(t, `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+	<Gather numDigits="1" timeout="10" action="http://example.com">
+		<Say>
+			<prosody rate="slow">Hello</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">To escalate, press 5.</prosody>
+		</Say>
+		<Say>
+			<prosody rate="slow">To repeat this message, press star.</prosody>
+		</Say>
+	</Gather>
+</Response>`, string(data))
+	})
 }

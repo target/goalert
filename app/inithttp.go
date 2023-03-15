@@ -17,7 +17,6 @@ import (
 	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/web"
 )
 
@@ -110,24 +109,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
-		// DB access
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				ctx := req.Context()
-				next.ServeHTTP(w, req.WithContext(sqlutil.Context(ctx, app.gdb.WithContext(ctx))))
-			})
-		},
-
 		// authenticate requests
 		app.AuthHandler.WrapHandler,
-
-		// authed DB access
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				ctx := req.Context()
-				next.ServeHTTP(w, req.WithContext(sqlutil.Context(ctx, sqlutil.FromContext(ctx).WithContext(ctx))))
-			})
-		},
 
 		// add auth info to request logs
 		logRequestAuth,

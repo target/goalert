@@ -15,4 +15,5 @@ const (
 	TypeMessage      Type = "message"
 	TypeCleanup      Type = "cleanup"
 	TypeMetrics      Type = "metrics"
+	TypeCompat       Type = "compat"
 )

@@ -39,9 +39,11 @@ func genTeamID() string {
 	return "T" + genID(idChars, 8)
 }
 
+var hexSrc = rand.New(rand.NewSource(0))
+
 func genHex(n int) string {
 	buf := make([]byte, n)
-	rand.Read(buf)
+	hexSrc.Read(buf)
 	return hex.EncodeToString(buf)
 }
 func timeString(t time.Time) string { return fmt.Sprintf("%d", t.UnixNano()/1000000)[1:] }

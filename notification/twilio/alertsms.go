@@ -26,7 +26,7 @@ var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.AlertID
 {{.Link}}{{end}}
 {{- if .Code}}
 
-Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
+Reply '{{.Code}}a' to ack, '{{.Code}}e' to escalate, '{{.Code}}c' to close.{{end}}`))
 
 var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 

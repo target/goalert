@@ -3,9 +3,11 @@ package alert
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -279,12 +281,80 @@ func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {
 	return permission.LimitCheckAny(ctx, checks...)
 }
 
-func (s *Store) Escalate(ctx context.Context, alertID int, currentLevel int) error {
-	_, err := s.EscalateMany(ctx, []int{alertID})
+// EscalateAsOf will request escalation for the given alert ID as-of the given time.
+//
+// An error will be returned if the alert is already closed, if the service is
+// in maintenance mode, there are no steps on the escalation policy, or if the
+// alert has already been escalated since the given time.
+func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return err
 	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer sqlutil.Rollback(ctx, "escalate alert", tx)
+
+	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return validation.NewGenericError("alert not found")
+	}
+	if err != nil {
+		return fmt.Errorf("lock alert: %w", err)
+	}
+	if lck.Status == gadb.EnumAlertStatusClosed {
+		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
+	}
+	if lck.IsMaintMode {
+		return validation.NewGenericError("service is in maintenance mode")
+	}
+
+	if t.IsZero() {
+		t, err = gadb.New(tx).Now(ctx)
+		if err != nil {
+			return fmt.Errorf("get current time: %w", err)
+		}
+	}
+
+	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
+		AlertID: int64(id),
+		Column2: t,
+	})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("request escalation: %w", err)
+	}
+
+	if !ok {
+		hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
+		if err != nil {
+			return fmt.Errorf("check ep state: %w", err)
+		}
+
+		if !hasEP {
+			return validation.NewGenericError("alert escalation policy is empty")
+		}
+
+		return validation.NewGenericError("alert has already escalated")
+	}
+
+	err = s.logDB.LogTx(ctx, tx, id, alertlog.TypeEscalationRequest, nil)
+	if err != nil {
+		return fmt.Errorf("log escalation request: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+
 	return nil
+}
+
+func (s *Store) Escalate(ctx context.Context, alertID int, currentLevel int) error {
+	return s.EscalateAsOf(ctx, alertID, time.Time{})
 }
 
 func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
@@ -297,54 +367,16 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 		return nil, nil
 	}
 
-	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
+	err = validate.Range("AlertIDs", len(alertIDs), 1, 1)
+	if err != nil {
+		return nil, err
+	}
+	err = s.EscalateAsOf(ctx, alertIDs[0], time.Time{})
 	if err != nil {
 		return nil, err
 	}
 
-	ids := sqlutil.IntArray(alertIDs)
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlutil.Rollback(ctx, "escalate alert", tx)
-
-	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := tx.StmtContext(ctx, s.escalate).QueryContext(ctx, ids)
-	if errors.Is(err, sql.ErrNoRows) {
-		log.Debugf(ctx, "escalate alert: no rows matched")
-		err = nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	updatedIDs := make([]int, 0, len(alertIDs))
-	for rows.Next() {
-		var id int
-		err := rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		updatedIDs = append(updatedIDs, id)
-	}
-
-	err = s.logDB.LogManyTx(ctx, tx, updatedIDs, alertlog.TypeEscalationRequest, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-	return updatedIDs, err
+	return alertIDs, nil
 }
 
 func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, status Status) error {
