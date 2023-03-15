@@ -12,6 +12,7 @@ export type Shift = {
   start: string
   end: string
   userID: string
+  truncated: boolean
 
   user?: null | {
     id: string
