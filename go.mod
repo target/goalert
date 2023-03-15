@@ -47,8 +47,6 @@ require (
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.29.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gorm.io/driver/postgres v1.4.5
-	gorm.io/gorm v1.24.1
 	honnef.co/go/tools v0.4.2
 )
 
@@ -109,8 +107,6 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba // indirect
 	github.com/jhump/protoreflect v1.12.0 // indirect
-	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
 	github.com/mailhog/http v1.0.1 // indirect
