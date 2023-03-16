@@ -261,7 +261,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           <QueryList
             query={alertsListQuery}
             infiniteScroll
-            onSelectionChange={(checked) => setCheckedCount(checked.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
