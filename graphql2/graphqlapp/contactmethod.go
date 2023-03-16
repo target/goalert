@@ -35,6 +35,22 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 	return webhook.MaskURLPass(u), nil
 }
 
+func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
+	if obj.Type.StatusUpdatesAlways() {
+		return graphql2.StatusUpdateStateEnabledForced, nil
+	}
+
+	if obj.Type.StatusUpdatesNever() {
+		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if obj.StatusUpdates {
+		return graphql2.StatusUpdateStateEnabled, nil
+	}
+
+	return graphql2.StatusUpdateStateDisabled, nil
+}
+
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
 	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
 }
@@ -144,6 +160,9 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		if input.Value != nil {
 			cm.Value = *input.Value
+		}
+		if input.EnableStatusUpdates != nil {
+			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
 
 		return m.CMStore.UpdateTx(ctx, tx, cm)

@@ -9,16 +9,15 @@ import {
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@mui/icons-material'
-import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import { formatTimeSince } from '../util/timeFormat'
 import QueryList from '../lists/QueryList'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
 import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
+import { Time } from '../util/Time'
 
 interface AlertsListProps {
   serviceID: string
@@ -236,18 +235,19 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     }
 
     if (filter !== 'closed') {
-      actions.push(
-        {
-          icon: <CloseIcon />,
-          label: 'Close',
-          onClick: makeUpdateAlerts('StatusClosed'),
-        },
-        {
+      actions.push({
+        icon: <CloseIcon />,
+        label: 'Close',
+        onClick: makeUpdateAlerts('StatusClosed'),
+      })
+
+      if (checkedCount === 1) {
+        actions.push({
           icon: <EscalateIcon />,
           label: 'Escalate',
           onClick: makeUpdateAlerts('StatusUnacknowledged'),
-        },
-      )
+        })
+      }
     }
 
     return actions
@@ -261,6 +261,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           <QueryList
             query={alertsListQuery}
             infiniteScroll
+            onSelectionChange={(checked) => setCheckedCount(checked.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
@@ -274,11 +275,10 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <ListItemText
                   className={classes.alertTimeContainer}
                   secondary={
-                    fullTime
-                      ? DateTime.fromISO(a.createdAt).toLocaleString(
-                          DateTime.DATETIME_MED,
-                        )
-                      : formatTimeSince(a.createdAt)
+                    <Time
+                      time={a.createdAt}
+                      format={fullTime ? 'default' : 'relative'}
+                    />
                   }
                 />
               ),

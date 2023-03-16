@@ -2,14 +2,20 @@ package twilio
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/target/goalert/config"
 )
 
 type twiMLResponse struct {
 	say []string
+
+	voiceName     string
+	voiceLanguage string
 
 	gatherURL        string
 	redirectURL      string
@@ -24,9 +30,12 @@ type twiMLResponse struct {
 	w http.ResponseWriter
 }
 
-func newTwiMLResponse(w http.ResponseWriter) *twiMLResponse {
+func newTwiMLResponse(ctx context.Context, w http.ResponseWriter) *twiMLResponse {
+	cfg := config.FromContext(ctx)
 	return &twiMLResponse{
-		w: w,
+		voiceName:     cfg.Twilio.VoiceName,
+		voiceLanguage: cfg.Twilio.VoiceLanguage,
+		w:             w,
 	}
 }
 
@@ -48,6 +57,7 @@ const (
 	optionCancel
 	optionConfirmStop
 	optionAck
+	optionEscalate
 	optionClose
 	optionAckAll
 	optionCloseAll
@@ -72,6 +82,9 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 		case optionAck:
 			t.expectResponse = true
 			t.Sayf("To acknowledge, press %s.", digitAck)
+		case optionEscalate:
+			t.expectResponse = true
+			t.Sayf("To escalate, press %s.", digitEscalate)
 		case optionClose:
 			t.expectResponse = true
 			t.Sayf("To close, press %s.", digitClose)
@@ -103,6 +116,7 @@ func (t *twiMLResponse) SayUnknownDigit() *twiMLResponse {
 
 func (t *twiMLResponse) Say(text string) *twiMLResponse {
 	t.say = append(t.say, text)
+
 	return t
 }
 
@@ -117,21 +131,16 @@ func (t *twiMLResponse) Hangup() {
 }
 
 type verbSay struct {
-	XMLName xml.Name `xml:"Say"`
-	Text    string
+	XMLName  xml.Name `xml:"Say"`
+	Language string   `xml:"language,attr,omitempty"`
+	Voice    string   `xml:"voice,attr,omitempty"`
+	Text     string   `xml:"-"`
+	Prosody  *prosody `xml:"prosody"`
 }
-
-func (s verbSay) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = "Say"
-	var doc struct {
-		Prosody struct {
-			Text string `xml:",chardata"`
-			Rate string `xml:"rate,attr"`
-		} `xml:"prosody"`
-	}
-	doc.Prosody.Rate = "slow"
-	doc.Prosody.Text = s.Text
-	return enc.EncodeElement(doc, start)
+type prosody struct {
+	XMLName xml.Name `xml:"prosody"`
+	Text    string   `xml:",chardata"`
+	Rate    string   `xml:"rate,attr"`
 }
 
 type twimlResponse struct {
@@ -169,8 +178,18 @@ func (t *twiMLResponse) sendResponse() {
 	}
 
 	var doc twimlResponse
-	for _, s := range t.say {
-		doc.Verbs = append(doc.Verbs, verbSay{Text: s})
+	for _, text := range t.say {
+		doc.Verbs = append(
+			doc.Verbs,
+			verbSay{
+				Language: t.voiceLanguage,
+				Voice:    t.voiceName,
+				Prosody: &prosody{
+					Rate: "slow",
+					Text: text,
+				},
+			},
+		)
 	}
 
 	if t.redirectPauseSec > 0 {

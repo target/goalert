@@ -59,6 +59,7 @@ export interface ControlledPaginatedListProps
   renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
 
   createLabel?: string
+  onSelectionChange?: (selectedIDs: (string | number)[]) => void
 }
 
 export interface ControlledPaginatedListAction {
@@ -125,7 +126,11 @@ export default function ControlledPaginatedList(
     return []
   }
 
-  const [_checkedItems, setCheckedItems] = useState<Array<string | number>>([])
+  const [_checkedItems, _setCheckedItems] = useState<Array<string | number>>([])
+  const setCheckedItems = (ids: Array<string | number>): void => {
+    _setCheckedItems(ids)
+    if (props.onSelectionChange) props.onSelectionChange(ids)
+  }
   // covers the use case where an item may no longer be selectable after an update
   const checkedItems = _checkedItems.filter((id) =>
     getSelectableIDs().includes(id),

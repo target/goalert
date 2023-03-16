@@ -1176,6 +1176,7 @@ enum TargetType {
   service
   schedule
   user
+  chanWebhook
   integrationKey
   userOverride
   notificationRule
@@ -1212,6 +1213,9 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
+    @deprecated(
+      reason: "Use `UpdateUserContactMethodInput.enableStatusUpdates` instead."
+    )
 }
 
 input AuthSubjectInput {
@@ -1242,6 +1246,7 @@ type User {
   calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
+    @deprecated(reason: "Use `UserContactMethod.statusUpdates` instead.")
 
   authSubjects: [AuthSubject!]!
   sessions: [UserSession!]!
@@ -1289,6 +1294,15 @@ type UserContactMethod {
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  statusUpdates: StatusUpdateState!
+}
+
+enum StatusUpdateState {
+  DISABLED
+  ENABLED
+  ENABLED_FORCED
+  DISABLED_FORCED
 }
 
 input CreateUserContactMethodInput {
@@ -1311,6 +1325,12 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like webhooks, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input SendContactMethodVerificationInput {

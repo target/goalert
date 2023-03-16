@@ -3,7 +3,6 @@ import { useQuery, gql } from 'urql'
 import Delete from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import DetailsPage from '../details/DetailsPage'
-import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
 import UserContactMethodList from './UserContactMethodList'
 import { AddAlarm, SettingsPhone } from '@mui/icons-material'
@@ -217,16 +216,6 @@ export default function UserDetails(props: {
               readOnly={props.readOnly}
             />
           </Grid>
-        }
-        primaryActions={
-          props.readOnly
-            ? []
-            : [
-                <StatusUpdateNotification
-                  key='primary-action-status-updates'
-                  userID={userID}
-                />,
-              ]
         }
         secondaryActions={
           isAdmin
