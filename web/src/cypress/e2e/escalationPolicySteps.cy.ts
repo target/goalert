@@ -159,63 +159,6 @@ function testSteps(): void {
       cy.get('div[data-cy=slack-chip]').should('not.contain', '#foobar')
     })
 
-    it.only('should add, click, and remove a webhook', () => {
-      cy.graphql('{experimentalFlags}').then((res) => {
-        console.log(res.experimentalFlags[0] === 'chan-webhook')
-        if (res.experimentalFlags.indexOf('chan-webhook') > -1) {
-          cy.updateConfig({ Webhook: { Enable: true } })
-          cy.reload()
-
-          cy.pageFab()
-          cy.dialogTitle('Create Step')
-
-          // expand webhook section
-          cy.get('button[data-cy="webhook-step"]').click()
-
-          // add webhooks
-          cy.dialogForm({
-            webhooks: 'https://webhook.site',
-          })
-          cy.get('button[data-cy="add-webhook"]').click()
-          cy.dialogForm({
-            webhooks: 'https://example.com',
-          })
-          cy.get('button[data-cy="add-webhook"]').click()
-          cy.dialogFinish('Submit')
-
-          // verify data integrity
-          cy.get('body').should('contain', 'Notify the following:')
-          cy.get('body').should('contain', 'Step #1:')
-          cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
-          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-
-          // open edit step dialog
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
-            .find('button[data-cy=other-actions]')
-            .menu('Edit')
-
-          cy.dialogTitle('Edit Step')
-
-          // expand webhook section
-          cy.get('button[data-cy="webhook-step"]').click()
-
-          // delete webhook.site webhook
-          cy.get('[data-testid=CancelIcon]').first().click()
-
-          cy.dialogFinish('Submit')
-
-          // verify data integrity
-          cy.get('body').should('contain', 'Notify the following:')
-          cy.get('body').should('contain', 'Step #1:')
-          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-          cy.get('div[data-cy=webhook-chip]').should(
-            'not.contain',
-            'webhook.site',
-          )
-        }
-      })
-    })
-
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
       cy.get('ul[data-cy=steps-list] :nth-child(1) li')
@@ -299,4 +242,74 @@ function testSteps(): void {
 }
 
 testScreen('Escalation Policy Steps', testSteps)
-testScreenWithFlags('Escalation Policy Steps', testSteps, ['chan-webhook'])
+
+testScreenWithFlags(
+  'Webhook Support',
+  () => {
+    let ep: EP
+    beforeEach(() => {
+      cy.createEP().then((e: EP) => {
+        ep = e
+        cy.visit(`/escalation-policies/${ep.id}`)
+      })
+    })
+
+    it('should add, click, and remove a webhook', () => {
+      cy.graphql('{experimentalFlags}').then((res) => {
+        console.log(res.experimentalFlags[0] === 'chan-webhook')
+        if (res.experimentalFlags.indexOf('chan-webhook') > -1) {
+          cy.updateConfig({ Webhook: { Enable: true } })
+          cy.reload()
+
+          cy.pageFab()
+          cy.dialogTitle('Create Step')
+
+          // expand webhook section
+          cy.get('button[data-cy="webhook-step"]').click()
+
+          // add webhooks
+          cy.dialogForm({
+            webhooks: 'https://webhook.site',
+          })
+          cy.get('button[data-cy="add-webhook"]').click()
+          cy.dialogForm({
+            webhooks: 'https://example.com',
+          })
+          cy.get('button[data-cy="add-webhook"]').click()
+          cy.dialogFinish('Submit')
+
+          // verify data integrity
+          cy.get('body').should('contain', 'Notify the following:')
+          cy.get('body').should('contain', 'Step #1:')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+
+          // open edit step dialog
+          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+            .find('button[data-cy=other-actions]')
+            .menu('Edit')
+
+          cy.dialogTitle('Edit Step')
+
+          // expand webhook section
+          cy.get('button[data-cy="webhook-step"]').click()
+
+          // delete webhook.site webhook
+          cy.get('[data-testid=CancelIcon]').first().click()
+
+          cy.dialogFinish('Submit')
+
+          // verify data integrity
+          cy.get('body').should('contain', 'Notify the following:')
+          cy.get('body').should('contain', 'Step #1:')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+          cy.get('div[data-cy=webhook-chip]').should(
+            'not.contain',
+            'webhook.site',
+          )
+        }
+      })
+    })
+  },
+  ['chan-webhook'],
+)
