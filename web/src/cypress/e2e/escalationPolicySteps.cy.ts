@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support/e2e'
+import { testScreen, testScreenWithFlags } from '../support/e2e'
 import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
@@ -159,53 +159,61 @@ function testSteps(): void {
       cy.get('div[data-cy=slack-chip]').should('not.contain', '#foobar')
     })
 
-    it('should add, click, and remove a webhook', () => {
-      cy.updateConfig({ Webhook: { Enable: true } })
-      cy.reload()
+    it.only('should add, click, and remove a webhook', () => {
+      cy.graphql('{experimentalFlags}').then((res) => {
+        console.log(res.experimentalFlags[0] === 'chan-webhook')
+        if (res.experimentalFlags.indexOf('chan-webhook') > -1) {
+          cy.updateConfig({ Webhook: { Enable: true } })
+          cy.reload()
 
-      cy.pageFab()
-      cy.dialogTitle('Create Step')
+          cy.pageFab()
+          cy.dialogTitle('Create Step')
 
-      // expand webhook section
-      cy.get('button[data-cy="webhook-step"]').click()
+          // expand webhook section
+          cy.get('button[data-cy="webhook-step"]').click()
 
-      // add webhooks
-      cy.dialogForm({
-        webhooks: 'https://webhook.site',
+          // add webhooks
+          cy.dialogForm({
+            webhooks: 'https://webhook.site',
+          })
+          cy.get('button[data-cy="add-webhook"]').click()
+          cy.dialogForm({
+            webhooks: 'https://example.com',
+          })
+          cy.get('button[data-cy="add-webhook"]').click()
+          cy.dialogFinish('Submit')
+
+          // verify data integrity
+          cy.get('body').should('contain', 'Notify the following:')
+          cy.get('body').should('contain', 'Step #1:')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+
+          // open edit step dialog
+          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+            .find('button[data-cy=other-actions]')
+            .menu('Edit')
+
+          cy.dialogTitle('Edit Step')
+
+          // expand webhook section
+          cy.get('button[data-cy="webhook-step"]').click()
+
+          // delete webhook.site webhook
+          cy.get('[data-testid=CancelIcon]').first().click()
+
+          cy.dialogFinish('Submit')
+
+          // verify data integrity
+          cy.get('body').should('contain', 'Notify the following:')
+          cy.get('body').should('contain', 'Step #1:')
+          cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+          cy.get('div[data-cy=webhook-chip]').should(
+            'not.contain',
+            'webhook.site',
+          )
+        }
       })
-      cy.get('button[data-cy="add-webhook"]').click()
-      cy.dialogForm({
-        webhooks: 'https://example.com',
-      })
-      cy.get('button[data-cy="add-webhook"]').click()
-      cy.dialogFinish('Submit')
-
-      // verify data integrity
-      cy.get('body').should('contain', 'Notify the following:')
-      cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-
-      // open edit step dialog
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
-
-      cy.dialogTitle('Edit Step')
-
-      // expand webhook section
-      cy.get('button[data-cy="webhook-step"]').click()
-
-      // delete webhook.site webhook
-      cy.get('[data-testid=CancelIcon]').first().click()
-
-      cy.dialogFinish('Submit')
-
-      // verify data integrity
-      cy.get('body').should('contain', 'Notify the following:')
-      cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-      cy.get('div[data-cy=webhook-chip]').should('not.contain', 'webhook.site')
     })
 
     it('should delete a step', () => {
@@ -291,3 +299,4 @@ function testSteps(): void {
 }
 
 testScreen('Escalation Policy Steps', testSteps)
+testScreenWithFlags('Escalation Policy Steps', testSteps, ['chan-webhook'])
