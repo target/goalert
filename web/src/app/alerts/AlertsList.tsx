@@ -104,6 +104,7 @@ function getStatusFilter(s: string): string[] {
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
   const [selectedCount, setSelectedCount] = useState(0)
+  const [checkedCount, setCheckedCount] = useState(0)
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
@@ -142,7 +143,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
-      setSelectedCount(alertIDs.length)
+      setCheckedCount(alertIDs.length)
       setActionCompleteDismissed(false)
 
       let mutation = updateMutation
@@ -169,8 +170,8 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
       status.data.escalateAlerts?.length ||
       0
 
-    updateMessage = `${numUpdated} of ${selectedCount} alert${
-      selectedCount === 1 ? '' : 's'
+    updateMessage = `${numUpdated} of ${checkedCount} alert${
+      checkedCount === 1 ? '' : 's'
     } updated`
   }
 
