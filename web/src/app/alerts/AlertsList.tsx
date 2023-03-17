@@ -103,7 +103,7 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
-  const [checkedCount, setCheckedCount] = useState(0)
+  const [selectedCount, setSelectedCount] = useState(0)
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
@@ -142,7 +142,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
-      setCheckedCount(alertIDs.length)
+      setSelectedCount(alertIDs.length)
       setActionCompleteDismissed(false)
 
       let mutation = updateMutation
@@ -169,8 +169,8 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
       status.data.escalateAlerts?.length ||
       0
 
-    updateMessage = `${numUpdated} of ${checkedCount} alert${
-      checkedCount === 1 ? '' : 's'
+    updateMessage = `${numUpdated} of ${selectedCount} alert${
+      selectedCount === 1 ? '' : 's'
     } updated`
   }
 
@@ -241,7 +241,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         onClick: makeUpdateAlerts('StatusClosed'),
       })
 
-      if (checkedCount === 1) {
+      if (selectedCount === 1) {
         actions.push({
           icon: <EscalateIcon />,
           label: 'Escalate',
@@ -261,7 +261,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           <QueryList
             query={alertsListQuery}
             infiniteScroll
-            onSelectionChange={(checked) => setCheckedCount(checked.length)}
+            onSelectionChange={(selected) => setSelectedCount(selected.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
