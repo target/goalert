@@ -1,8 +1,7 @@
-import React, { ReactElement, useState, useEffect } from 'react'
+import React, { ReactElement, useState, useContext } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
-import Snackbar from '@mui/material/Snackbar'
+import { Grid, Hidden, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -19,6 +18,7 @@ import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
 import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
 import { Time } from '../util/Time'
+import { NotificationContext } from '../main/SnackbarNotification'
 
 interface AlertsListProps {
   serviceID: string
@@ -109,20 +109,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
 
-  // used if user dismisses snackbar before the auto-close timer finishes
-  type Notification = {
-    id: number
-    message: string
-    severity: 'info' | 'error'
-  }
-  const [notificationStack, setNotificationStack] = useState<
-    Array<Notification>
-  >([])
-  const [notification, setNotification] = useState<Notification>()
-  useEffect(() => {
-    setNotification(notificationStack[notificationStack.length - 1])
-  }, [notificationStack])
-
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
@@ -153,6 +139,8 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   }
 
+  const { setNotification } = useContext(NotificationContext)
+
   const [mutate] = useMutation(updateMutation, {
     onCompleted: (data) => {
       const numUpdated =
@@ -162,24 +150,16 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         checkedCount === 1 ? '' : 's'
       } updated`
 
-      setNotificationStack([
-        ...notificationStack,
-        {
-          id: Date.now(),
-          message: msg,
-          severity: 'info',
-        },
-      ])
+      setNotification({
+        message: msg,
+        severity: 'info',
+      })
     },
     onError: (error) => {
-      setNotificationStack([
-        ...notificationStack,
-        {
-          id: Date.now(),
-          message: error.message,
-          severity: 'error',
-        },
-      ])
+      setNotification({
+        message: error.message,
+        severity: 'error',
+      })
     },
   })
 
@@ -275,15 +255,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     return actions
   }
 
-  // onSnackbarClose removes the last notification from the stack
-  // and sets the previous one to show again, if any
-  const onSnackbarClose = (): void => {
-    const s = notificationStack.slice()
-    const last = s.pop()
-    setNotificationStack(s)
-    setNotification(last)
-  }
-
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
@@ -338,18 +309,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           serviceID={props.serviceID}
         />
       )}
-
-      {/* Update message after using checkbox actions. */}
-      {/* Only show 1 notification at a time: https://mui.com/material-ui/react-snackbar/#consecutive-snackbars */}
-      <Snackbar key={notification?.id} open={Boolean(notification)}>
-        <Alert
-          severity={notification?.severity}
-          onClose={onSnackbarClose}
-          variant='filled'
-        >
-          {notification?.message}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   )
 }
