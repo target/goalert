@@ -51,7 +51,7 @@ export const ChanWebhookSelect = (
           }}
           error={
             (!isValidURL(newURL) && newURL.length > 0) ||
-            value.indexOf(newURL) > -1
+            value.includes(newURL)
           }
           helperText={
             !isValidURL(newURL) && newURL.length > 0
