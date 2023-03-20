@@ -212,7 +212,7 @@ db-schema: bin/goalert bin/psql-lite
 	echo "-- DATA=$(shell $(SHA_CMD) migrate/migrations/* | sort | $(SHA_CMD))" >> migrate/schema.sql
 	echo "-- DISK=$(shell ls migrate/migrations | sort | $(SHA_CMD))" >> migrate/schema.sql
 	echo "-- PSQL=$$(psql -d '$(dir $(DB_URL))mk_dump_schema' -XqAtc 'select id from gorp_migrations order by id' | sort | $(SHA_CMD))" >> migrate/schema.sql
-	pg_dump -d "$(dir $(DB_URL))mk_dump_schema" -s >> migrate/schema.sql
+	pg_dump -d "$(dir $(DB_URL))mk_dump_schema" -sO >> migrate/schema.sql
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema;'
 
 tools:
