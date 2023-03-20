@@ -11,6 +11,7 @@ const (
 	TypeUnknown   Type = ""
 	TypeSlackChan Type = "SLACK"
 	TypeWebhook   Type = "WEBHOOK"
+	TypeSlackUG   Type = "SLACK_USER_GROUP"
 )
 
 // Valid returns true if t is a known Type.
