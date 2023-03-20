@@ -27,7 +27,6 @@ import {
   ServiceLink,
   SlackChannelLink,
   UserLink,
-  ChanWebhookLink,
 } from '../../links'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
@@ -142,7 +141,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       else if (t === 'schedule') link = ScheduleLink(target)
       else if (t === 'slackChannel') link = SlackChannelLink(target)
       else if (t === 'user') link = UserLink(target)
-      else if (t === 'chanWebhook') link = ChanWebhookLink(target)
       else link = target.name
 
       return (
