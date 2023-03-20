@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -52,21 +53,43 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
 		for i, r := range input.Rules {
-			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel)
+			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup)
 			if err != nil {
 				return err
 			}
 
-			ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
-			if err != nil {
-				return err
+			var nfyChan *notificationchannel.Channel
+			switch r.Target.Type {
+			case assignment.TargetTypeSlackUserGroup:
+				grpID, chanID, _ := strings.Cut(r.Target.ID, ":")
+				grp, err := a.SlackStore.UserGroup(ctx, grpID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+				ch, err := a.SlackStore.Channel(ctx, chanID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackUG,
+					Name:  fmt.Sprintf("@%s (%s)", grp.Handle, ch.Name),
+					Value: r.Target.ID,
+				}
+			case assignment.TargetTypeSlackChannel:
+				ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
+				if err != nil {
+					return err
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackChan,
+					Name:  ch.Name,
+					Value: ch.ID,
+				}
 			}
 
-			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, &notificationchannel.Channel{
-				Type:  notificationchannel.TypeSlackChan,
-				Name:  ch.Name,
-				Value: ch.ID,
-			})
+			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, nfyChan)
 			if err != nil {
 				return err
 			}
