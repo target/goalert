@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
 import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
@@ -13,7 +13,6 @@ import {
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import QueryList from '../lists/QueryList'
-import { useIsWidthDown } from '../util/useWidth'
 import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
@@ -105,15 +104,24 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
-  // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('sm')
 
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
 
   // used if user dismisses snackbar before the auto-close timer finishes
-  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
+  type Notification = {
+    id: number
+    message: string
+    severity: 'info' | 'error'
+  }
+  const [notificationStack, setNotificationStack] = useState<
+    Array<Notification>
+  >([])
+  const [notification, setNotification] = useState<Notification>()
+  useEffect(() => {
+    setNotification(notificationStack[notificationStack.length - 1])
+  }, [notificationStack])
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
@@ -145,12 +153,39 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   }
 
-  const [mutate, status] = useMutation(updateMutation)
+  const [mutate] = useMutation(updateMutation, {
+    onCompleted: (data) => {
+      const numUpdated =
+        data.updateAlerts?.length || data.escalateAlerts?.length || 0
+
+      const msg = `${numUpdated} of ${checkedCount} alert${
+        checkedCount === 1 ? '' : 's'
+      } updated`
+
+      setNotificationStack([
+        ...notificationStack,
+        {
+          id: Date.now(),
+          message: msg,
+          severity: 'info',
+        },
+      ])
+    },
+    onError: (error) => {
+      setNotificationStack([
+        ...notificationStack,
+        {
+          id: Date.now(),
+          message: error.message,
+          severity: 'error',
+        },
+      ])
+    },
+  })
 
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
-      setActionCompleteDismissed(false)
 
       let mutation = updateMutation
       let variables: MutationVariables | StatusUnacknowledgedVariables = {
@@ -164,26 +199,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
       mutate({ mutation, variables })
     }
-
-  let updateMessage, errorMessage
-  if (status.error && !status.loading) {
-    errorMessage = status.error.message
-  }
-
-  if (status.data && !status.loading) {
-    const numUpdated =
-      status.data.updateAlerts?.length ||
-      status.data.escalateAlerts?.length ||
-      0
-
-    updateMessage = `${numUpdated} of ${checkedCount} alert${
-      checkedCount === 1 ? '' : 's'
-    } updated`
-  }
-
-  const showAlertActionSnackbar = Boolean(
-    !actionCompleteDismissed && (errorMessage || updateMessage),
-  )
 
   /*
    * Adds border of color depending on each alert's status
@@ -260,7 +275,15 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     return actions
   }
 
-  // render
+  // onSnackbarClose removes the last notification from the stack
+  // and sets the previous one to show again, if any
+  const onSnackbarClose = (): void => {
+    const s = notificationStack.slice()
+    const last = s.pop()
+    setNotificationStack(s)
+    setNotification(last)
+  }
+
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
@@ -308,11 +331,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-      <CreateFAB
-        title='Create Alert'
-        transition={isXs && showAlertActionSnackbar}
-        onClick={() => setShowCreate(true)}
-      />
+      <CreateFAB title='Create Alert' onClick={() => setShowCreate(true)} />
       {showCreate && (
         <CreateAlertDialog
           onClose={() => setShowCreate(false)}
@@ -320,18 +339,15 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         />
       )}
 
-      {/* Update message after using checkbox actions */}
-      <Snackbar
-        autoHideDuration={errorMessage ? null : 6000}
-        onClose={() => setActionCompleteDismissed(true)}
-        open={showAlertActionSnackbar}
-      >
+      {/* Update message after using checkbox actions. */}
+      {/* Only show 1 notification at a time: https://mui.com/material-ui/react-snackbar/#consecutive-snackbars */}
+      <Snackbar key={notification?.id} open={Boolean(notification)}>
         <Alert
-          severity={errorMessage ? 'error' : 'info'}
-          onClose={() => setActionCompleteDismissed(true)}
+          severity={notification?.severity}
+          onClose={onSnackbarClose}
           variant='filled'
         >
-          {errorMessage || updateMessage}
+          {notification?.message}
         </Alert>
       </Snackbar>
     </React.Fragment>
