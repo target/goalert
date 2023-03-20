@@ -1024,6 +1024,7 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
