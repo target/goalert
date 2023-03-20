@@ -8,7 +8,7 @@ const (
 	Example     Flag = "example"
 	SlackDM     Flag = "slack-dm"
 	ChanWebhook Flag = "chan-webhook"
-	SlackUsrGrp Flag = "slack-usr-grp"
+	SlackUsrGrp Flag = "slack-ug"
 )
 
 var desc = map[Flag]string{
