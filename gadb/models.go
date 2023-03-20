@@ -1127,7 +1127,6 @@ type UserContactMethod struct {
 	UserID              uuid.UUID
 	LastTestVerifyAt    sql.NullTime
 	Metadata            pqtype.NullRawMessage
-	Pending             bool
 	EnableStatusUpdates bool
 }
 
