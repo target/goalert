@@ -19,6 +19,7 @@ import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
+import { useExpFlag } from '../util/useExpFlag'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -62,6 +63,7 @@ export default function UserContactMethodList(
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
+  const hasSlackDM = useExpFlag('slack-dm')
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -102,6 +104,9 @@ export default function UserContactMethodList(
         onClick: () => setShowDeleteDialogByID(cm.id),
       },
     ]
+
+    // don't show send test for slack DMs if disabled
+    if (cm.type === 'SLACK_DM' && !hasSlackDM) return actions
 
     if (!cm.disabled) {
       actions.push({

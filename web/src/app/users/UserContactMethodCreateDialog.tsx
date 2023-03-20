@@ -8,6 +8,7 @@ import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { ContactMethodType } from '../../schema'
+import { useExpFlag } from '../util/useExpFlag'
 
 type Value = {
   name: string
@@ -40,11 +41,14 @@ export default function UserContactMethodCreateDialog(props: {
   title?: string
   subtitle?: string
 }): JSX.Element {
-  const [allowSV, allowE, allowW] = useConfigValue(
+  const [allowSV, allowE, allowW, allowS] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
     'Webhook.Enable',
+    'Slack.Enable',
   )
+  const allowSFlag = useExpFlag('slack-dm')
+
   let typeVal: ContactMethodType = 'VOICE'
   if (allowSV) {
     typeVal = 'SMS'
@@ -52,7 +56,10 @@ export default function UserContactMethodCreateDialog(props: {
     typeVal = 'EMAIL'
   } else if (allowW) {
     typeVal = 'WEBHOOK'
+  } else if (allowS && allowSFlag) {
+    typeVal = 'SLACK_DM'
   }
+
   // values for contact method form
   const [CMValue, setCMValue] = useState<Value>({
     name: '',

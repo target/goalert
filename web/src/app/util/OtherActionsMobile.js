@@ -14,12 +14,14 @@ export default function OtherActionsMobile({ isOpen, onClose, actions }) {
       open={isOpen}
       onOpen={() => null}
       onClose={onClose}
+      SlideProps={{
+        unmountOnExit: true,
+      }}
     >
       <List data-cy='mobile-actions' role='menu'>
         {actions.map((o, idx) => (
           <ListItem
             key={idx}
-            button
             role='menuitem'
             onClick={() => {
               onClose()

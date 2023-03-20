@@ -1,17 +1,18 @@
 import React from 'react'
 import AppLink from '../util/AppLink'
 import { useQuery, gql } from '@apollo/client'
+import { Target } from '../../schema'
 
-export const SlackChannelLink = (slackChannel) => {
-  const query = gql`
-    query ($id: ID!) {
-      slackChannel(id: $id) {
-        id
-        teamID
-      }
+const query = gql`
+  query ($id: ID!) {
+    slackChannel(id: $id) {
+      id
+      teamID
     }
-  `
+  }
+`
 
+export const SlackChannelLink = (slackChannel: Target): JSX.Element => {
   const { data, loading, error } = useQuery(query, {
     variables: { id: slackChannel.id },
     fetchPolicy: 'cache-first',

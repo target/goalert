@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/target/goalert/alert"
@@ -33,8 +32,6 @@ func main() {
 	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
 	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
 	flag.Parse()
-
-	rand.Seed(*seedVal)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -69,7 +66,7 @@ func main() {
 	if !*genData {
 		return
 	}
-	dataCfg := &datagenConfig{AdminID: adminID}
+	dataCfg := &datagenConfig{AdminID: adminID, Seed: *seedVal}
 	dataCfg.SetDefaults()
 	dataCfg.Multiply(*mult)
 	err = fillDB(ctx, dataCfg, *dbURL)

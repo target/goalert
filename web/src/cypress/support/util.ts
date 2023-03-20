@@ -124,12 +124,38 @@ export function screenName(): string {
   return 'Wide'
 }
 
+let testN = 0
+
+let loginFn: (() => void) | null = null
+
+export function login(): void {
+  if (!loginFn) throw new Error('only valid within a testScreen block')
+
+  loginFn()
+}
+
 export function testScreen(
   label: string,
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
+  expFlags: string[] = [],
 ): void {
+  after(() => {
+    loginFn = null
+  })
+
+  if (!skipLogin) {
+    const sessID = { n: testN++, ts: new Date() }
+    loginFn = () => {
+      cy.session(sessID, () => {
+        cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']()
+      })
+    }
+  } else {
+    loginFn = null
+  }
+
   describe(label, () => {
     before(function () {
       cy.task('check:abort').then((abort) => {
@@ -143,19 +169,31 @@ export function testScreen(
       cy.intercept('/_cy_test_reset', '<html></html>')
       cy.visit('/_cy_test_reset')
 
-      cy.clearCookie('goalert_session.2')
       cy.task('engine:stop')
         .sql(resetQuery)
         .task('db:resettime')
+        .task('engine:setexpflags', expFlags)
         .task('engine:start')
     })
     it('reset db', () => {}) // required due to mocha skip bug
 
     if (!skipLogin) {
-      before(() => cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']())
-      it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
+      if (!loginFn) throw new Error('loginFn not set')
+      beforeEach(loginFn)
     }
 
     describe(screenName(), () => fn(screen()))
   })
+}
+
+// testScreenWithFlags is a convenience function for testing a screen with
+// different experimental flags.
+//
+// It is equivalent to calling testScreen(label, fn, false, false, expFlags)
+export function testScreenWithFlags(
+  label: string,
+  fn: (screen: ScreenFormat) => void,
+  expFlags: string[],
+): void {
+  testScreen(label, fn, false, false, expFlags)
 }

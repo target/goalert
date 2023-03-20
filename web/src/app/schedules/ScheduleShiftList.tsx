@@ -1,25 +1,31 @@
-import React, { useMemo, useState } from 'react'
-import { DateTime, Duration, Interval } from 'luxon'
-import FlatList from '../lists/FlatList'
 import { gql, useQuery } from '@apollo/client'
-import { relativeDate } from '../util/timeFormat'
+import { GroupAdd } from '@mui/icons-material'
 import {
+  Button,
   Card,
-  Grid,
   FormControlLabel,
+  Grid,
+  MenuItem,
   Switch,
   TextField,
-  MenuItem,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { DateTime, Duration, Interval } from 'luxon'
+import React, { useCallback, useMemo, useState } from 'react'
+import { useResetURLParams, useURLParam } from '../actions'
+import CreateFAB from '../lists/CreateFAB'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
+import { UserSelect } from '../selection'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
-import { UserSelect } from '../selection'
-import { useURLParam, useResetURLParams } from '../actions'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
-import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
-import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { ISODatePicker } from '../util/ISOPickers'
+import { relativeDate } from '../util/timeFormat'
+import { useIsWidthDown } from '../util/useWidth'
+import { OverrideDialog, OverrideDialogContext } from './ScheduleDetails'
+import ScheduleOverrideDialog from './ScheduleOverrideDialog'
+import { ScheduleTZFilter } from './ScheduleTZFilter'
+import { Shift, TempSchedValue } from './temp-sched/sharedUtils'
+import TempSchedDialog from './temp-sched/TempSchedDialog'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -39,7 +45,7 @@ const query = gql`
   }
 `
 
-const durString = (dur) => {
+const durString = (dur: Duration): string => {
   if (dur.months) {
     return `${dur.months} month${dur.months > 1 ? 's' : ''}`
   }
@@ -56,17 +62,30 @@ const useStyles = makeStyles({
   },
 })
 
-function ScheduleShiftList({ scheduleID }) {
-  const classes = useStyles()
+interface ScheduleShiftListProps {
+  scheduleID: string
+}
 
-  const [create, setCreate] = useState(null)
+function ScheduleShiftList({
+  scheduleID,
+}: ScheduleShiftListProps): JSX.Element {
+  const classes = useStyles()
+  const isMobile = useIsWidthDown('md')
+
   const [specifyDuration, setSpecifyDuration] = useState(false)
   const [isClear, setIsClear] = useState(false)
 
-  const [duration, setDuration] = useURLParam('duration', 'P14D')
-  const [zone] = useURLParam('tz', 'local')
-  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
-  const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
+  const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
+    null,
+  )
+  const [configTempSchedule, setConfigTempSchedule] =
+    useState<Partial<TempSchedValue> | null>(null)
+  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
+
+  const [duration, setDuration] = useURLParam<string>('duration', 'P14D')
+  const [zone] = useURLParam<string>('tz', 'local')
+  const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
+  const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
 
   const defaultStart = useMemo(
     () => DateTime.local({ zone }).startOf('day').toISO(),
@@ -98,12 +117,11 @@ function ScheduleShiftList({ scheduleID }) {
     },
   })
 
-  function items() {
-    const _shifts =
-      data?.schedule?.shifts?.map((s) => ({
+  function items(): FlatListListItem[] {
+    const _shifts: Shift[] =
+      data?.schedule?.shifts?.map((s: Shift) => ({
         ...s,
-        userID: s.user.id,
-        userName: s.user.name,
+        userID: s.user?.id || '',
       })) ?? []
 
     let shifts = _shifts
@@ -117,7 +135,6 @@ function ScheduleShiftList({ scheduleID }) {
           DateTime.fromISO(s.end, { zone }),
         ),
       }))
-
     if (activeOnly) {
       const now = DateTime.local({ zone })
       shifts = shifts.filter((s) => s.interval.contains(now))
@@ -130,7 +147,7 @@ function ScheduleShiftList({ scheduleID }) {
       DateTime.fromISO(end, { zone }).startOf('day'),
     )
 
-    const result = []
+    const result: FlatListListItem[] = []
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
@@ -162,7 +179,7 @@ function ScheduleShiftList({ scheduleID }) {
           shiftDetails = `Active after ${startTime}`
         }
         result.push({
-          title: s.userName,
+          title: s.user?.name || '',
           subText: shiftDetails,
           icon: <UserAvatar userID={s.userID} />,
         })
@@ -172,11 +189,12 @@ function ScheduleShiftList({ scheduleID }) {
     return result
   }
 
-  function renderDurationSelector() {
+  function renderDurationSelector(): JSX.Element {
     // Dropdown options (in ISO_8601 format)
     // https://en.wikipedia.org/wiki/ISO_8601#Durations
     const quickOptions = ['P1D', 'P3D', 'P7D', 'P14D', 'P1M']
-    const clamp = (min, max, value) => Math.min(max, Math.max(min, value))
+    const clamp = (min: number, max: number, value: number): number =>
+      Math.min(max, Math.max(min, value))
 
     if (quickOptions.includes(duration) && !specifyDuration) {
       return (
@@ -186,7 +204,7 @@ function ScheduleShiftList({ scheduleID }) {
           label='Time Limit'
           disabled={activeOnly}
           value={duration}
-          onChange={(e) => {
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
             e.target.value === 'SPECIFY'
               ? setSpecifyDuration(true)
               : setDuration(e.target.value)
@@ -207,8 +225,7 @@ function ScheduleShiftList({ scheduleID }) {
         label='Time Limit (days)'
         value={isClear ? '' : Duration.fromISO(duration).as('days')}
         disabled={activeOnly}
-        max={30}
-        min={1}
+        InputProps={{ inputProps: { min: 1, max: 30 } }}
         type='number'
         onBlur={() => setIsClear(false)}
         onChange={(e) => {
@@ -240,68 +257,113 @@ function ScheduleShiftList({ scheduleID }) {
         },
       ).toLocaleString()} in ${zoneText}.`
   return (
-    <React.Fragment>
-      <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+    <OverrideDialogContext.Provider
+      value={{
+        onNewTempSched,
+        setOverrideDialog,
+        onEditTempSched: () => {},
+        onDeleteTempSched: () => {},
+      }}
+    >
       <Card style={{ width: '100%' }}>
         <FlatList
           headerNote={note}
           items={items()}
           headerAction={
-            <FilterContainer
-              onReset={() => {
-                handleFilterReset()
-                setSpecifyDuration(false)
-              }}
-            >
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={activeOnly}
-                      onChange={(e) => setActiveOnly(e.target.checked)}
-                      value='activeOnly'
-                    />
+            <React.Fragment>
+              <FilterContainer
+                onReset={() => {
+                  handleFilterReset()
+                  setSpecifyDuration(false)
+                }}
+              >
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={activeOnly}
+                        onChange={(e) => setActiveOnly(e.target.checked)}
+                        value='activeOnly'
+                      />
+                    }
+                    label='Active shifts only'
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <ScheduleTZFilter scheduleID={scheduleID} />
+                </Grid>
+                <Grid item xs={12}>
+                  <ISODatePicker
+                    className={classes.datePicker}
+                    disabled={activeOnly}
+                    label='Start Date'
+                    name='filterStart'
+                    value={start}
+                    onChange={(v: string) => setStart(v)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  {renderDurationSelector()}
+                </Grid>
+                <Grid item xs={12}>
+                  <UserSelect
+                    label='Filter users...'
+                    multiple
+                    value={userFilter}
+                    onChange={setUserFilter}
+                  />
+                </Grid>
+              </FilterContainer>
+              {!isMobile && (
+                <Button
+                  variant='contained'
+                  startIcon={<GroupAdd />}
+                  onClick={() =>
+                    setOverrideDialog({
+                      variantOptions: ['replace', 'remove', 'add', 'temp'],
+                      removeUserReadOnly: false,
+                    })
                   }
-                  label='Active shifts only'
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <ScheduleTZFilter scheduleID={scheduleID} />
-              </Grid>
-              <Grid item xs={12}>
-                <ISODatePicker
-                  className={classes.datePicker}
-                  disabled={activeOnly}
-                  label='Start Date'
-                  name='filterStart'
-                  value={start}
-                  onChange={(v) => setStart(v)}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12}>
-                {renderDurationSelector()}
-              </Grid>
-              <Grid item xs={12}>
-                <UserSelect
-                  label='Filter users...'
-                  multiple
-                  value={userFilter}
-                  onChange={setUserFilter}
-                />
-              </Grid>
-            </FilterContainer>
+                  sx={{ ml: 1 }}
+                >
+                  Create Override
+                </Button>
+              )}
+            </React.Fragment>
           }
         />
       </Card>
-      {create && (
-        <ScheduleOverrideCreateDialog
-          scheduleID={scheduleID}
-          variant={create}
-          onClose={() => setCreate(null)}
+      {isMobile && (
+        <CreateFAB
+          title='Create Override'
+          onClick={() =>
+            setOverrideDialog({
+              variantOptions: ['replace', 'remove', 'add', 'temp'],
+              removeUserReadOnly: false,
+            })
+          }
         />
       )}
-    </React.Fragment>
+
+      {/* create dialogs */}
+      {overrideDialog && (
+        <ScheduleOverrideDialog
+          defaultValue={overrideDialog.defaultValue}
+          variantOptions={overrideDialog.variantOptions}
+          scheduleID={scheduleID}
+          onClose={() => setOverrideDialog(null)}
+          removeUserReadOnly={overrideDialog.removeUserReadOnly}
+        />
+      )}
+      {configTempSchedule && (
+        <TempSchedDialog
+          value={configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+    </OverrideDialogContext.Provider>
   )
 }
 

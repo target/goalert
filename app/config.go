@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/util/log"
@@ -12,6 +13,8 @@ import (
 
 type Config struct {
 	Logger *log.Logger
+
+	ExpFlags expflag.FlagSet
 
 	ListenAddr  string
 	Verbose     bool

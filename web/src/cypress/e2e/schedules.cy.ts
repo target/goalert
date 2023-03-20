@@ -174,7 +174,8 @@ function testSchedules(screen: ScreenFormat): void {
         })
         .then((s: ScheduleTarget) => {
           sched = s
-          return cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          return cy.get('[role="progressbar"]').should('not.exist')
         })
     })
 
@@ -182,7 +183,11 @@ function testSchedules(screen: ScreenFormat): void {
       cy.createRotation().then(({ name }: Rotation) => {
         cy.get('ul').should('not.contain', name)
 
-        cy.pageFab('Rotation')
+        if (screen === 'mobile') {
+          cy.pageFab('Rotation')
+        } else {
+          cy.get('button').contains('Add Rotation').click()
+        }
         cy.dialogTitle('Add Rotation to Schedule')
         cy.dialogForm({ targetID: name })
         cy.dialogFinish('Submit')
@@ -196,7 +201,11 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.get('body').should('not.contain', name)
 
-      cy.pageFab('User')
+      if (screen === 'mobile') {
+        cy.pageFab('User')
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User to Schedule')
       cy.dialogForm({ targetID: name })
       cy.dialogFinish('Submit')
@@ -217,7 +226,11 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create multiple rules on an assignment', () => {
-      cy.pageFab('Rotation')
+      if (screen === 'mobile') {
+        cy.pageFab('Rotation')
+      } else {
+        cy.get('button').contains('Add Rotation').click()
+      }
       cy.dialogTitle('Add Rotation')
 
       if (screen === 'mobile' || screen === 'tablet') {
@@ -336,7 +349,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create an add override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Add')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.add"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Add')
       cy.dialogForm({ addUserID: users[0].name })
       cy.dialogFinish('Submit')
@@ -349,7 +370,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create a remove override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Remove')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.remove"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Remove')
       cy.dialogForm({ removeUserID: users[0].name })
       cy.dialogFinish('Submit')
@@ -362,7 +391,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should create a replace override', () => {
       cy.get('span').should('contain', 'No results')
 
-      cy.pageFab('Replace')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.replace"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Replace')
       cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
       cy.dialogFinish('Submit')
@@ -375,7 +412,15 @@ function testSchedules(screen: ScreenFormat): void {
     it('should edit and delete an override', () => {
       cy.get('body').should('contain', 'No results')
 
-      cy.pageFab('Add')
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Override').click()
+      }
+
+      cy.dialogTitle('Choose Override Action')
+      cy.get('[data-cy="variant.add"]').click()
+      cy.dialogClick('Next')
       cy.dialogTitle('Add')
       cy.dialogForm({ addUserID: users[0].name })
       cy.dialogFinish('Submit')
@@ -431,7 +476,11 @@ function testSchedules(screen: ScreenFormat): void {
       })
 
       // on change
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
@@ -442,7 +491,11 @@ function testSchedules(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         slackChannelID: 'foobar',

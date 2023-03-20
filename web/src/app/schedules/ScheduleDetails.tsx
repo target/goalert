@@ -15,7 +15,7 @@ import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
-import ScheduleCalendarOverrideDialog from './calendar/ScheduleCalendarOverrideDialog'
+import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
@@ -34,7 +34,7 @@ const query = gql`
   }
 `
 
-interface OverrideDialog {
+export interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
   defaultValue?: {
@@ -45,20 +45,21 @@ interface OverrideDialog {
   }
 }
 
-interface ScheduleCalendarContext {
+interface OverrideDialogContext {
   onNewTempSched: () => void
   onEditTempSched: (v: TempSchedValue) => void
   onDeleteTempSched: React.Dispatch<React.SetStateAction<TempSchedValue | null>>
   setOverrideDialog: React.Dispatch<React.SetStateAction<OverrideDialog | null>>
 }
 
-export const ScheduleCalendarContext =
-  React.createContext<ScheduleCalendarContext>({
+export const OverrideDialogContext = React.createContext<OverrideDialogContext>(
+  {
     onNewTempSched: () => {},
     onEditTempSched: () => {},
     onDeleteTempSched: () => {},
     setOverrideDialog: () => {},
-  })
+  },
+)
 
 export type ScheduleDetailsProps = {
   scheduleID: string
@@ -69,19 +70,21 @@ export default function ScheduleDetails({
 }: ScheduleDetailsProps): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [configTempSchedule, setConfigTempSchedule] =
-    useState<Partial<TempSchedValue> | null>(null)
-  const [deleteTempSchedule, setDeleteTempSchedule] =
-    useState<TempSchedValue | null>(null)
+
   const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
+  const [configTempSchedule, setConfigTempSchedule] =
+    useState<Partial<TempSchedValue> | null>(null)
   const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
   const onEditTempSched = useCallback(
     (v: TempSchedValue) => setConfigTempSchedule(v),
     [],
   )
+
+  const [deleteTempSchedule, setDeleteTempSchedule] =
+    useState<TempSchedValue | null>(null)
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
   const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
     null,
@@ -139,7 +142,7 @@ export default function ScheduleDetails({
         subheader={`Time Zone: ${data.timeZone || 'Loading...'}`}
         details={data.description}
         pageContent={
-          <ScheduleCalendarContext.Provider
+          <OverrideDialogContext.Provider
             value={{
               onNewTempSched,
               onEditTempSched,
@@ -149,7 +152,7 @@ export default function ScheduleDetails({
           >
             {!isMobile && <ScheduleCalendarQuery scheduleID={scheduleID} />}
             {overrideDialog && (
-              <ScheduleCalendarOverrideDialog
+              <ScheduleOverrideDialog
                 defaultValue={overrideDialog.defaultValue}
                 variantOptions={overrideDialog.variantOptions}
                 scheduleID={scheduleID}
@@ -157,7 +160,7 @@ export default function ScheduleDetails({
                 removeUserReadOnly={overrideDialog.removeUserReadOnly}
               />
             )}
-          </ScheduleCalendarContext.Provider>
+          </OverrideDialogContext.Provider>
         }
         primaryActions={[
           <CalendarSubscribeButton

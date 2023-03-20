@@ -182,6 +182,8 @@ type ComplexityRoot struct {
 		Destination func(childComplexity int) int
 		ID          func(childComplexity int) int
 		ProviderID  func(childComplexity int) int
+		RetryCount  func(childComplexity int) int
+		SentAt      func(childComplexity int) int
 		ServiceID   func(childComplexity int) int
 		ServiceName func(childComplexity int) int
 		Source      func(childComplexity int) int
@@ -370,6 +372,7 @@ type ComplexityRoot struct {
 		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
+		ExperimentalFlags        func(childComplexity int) int
 		GenerateSlackAppManifest func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
 		IntegrationKey           func(childComplexity int, id string) int
@@ -587,6 +590,7 @@ type ComplexityRoot struct {
 		LastVerifyMessageState func(childComplexity int) int
 		Name                   func(childComplexity int) int
 		Pending                func(childComplexity int) int
+		StatusUpdates          func(childComplexity int) int
 		Type                   func(childComplexity int) int
 		Value                  func(childComplexity int) int
 	}
@@ -717,6 +721,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	ExperimentalFlags(ctx context.Context) ([]string, error)
 	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
 	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
@@ -817,6 +822,7 @@ type UserContactMethodResolver interface {
 
 	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (StatusUpdateState, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -1213,6 +1219,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DebugMessage.ProviderID(childComplexity), true
+
+	case "DebugMessage.retryCount":
+		if e.complexity.DebugMessage.RetryCount == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.RetryCount(childComplexity), true
+
+	case "DebugMessage.sentAt":
+		if e.complexity.DebugMessage.SentAt == nil {
+			break
+		}
+
+		return e.complexity.DebugMessage.SentAt(childComplexity), true
 
 	case "DebugMessage.serviceID":
 		if e.complexity.DebugMessage.ServiceID == nil {
@@ -2375,6 +2395,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.EscalationPolicy(childComplexity, args["id"].(string)), true
 
+	case "Query.experimentalFlags":
+		if e.complexity.Query.ExperimentalFlags == nil {
+			break
+		}
+
+		return e.complexity.Query.ExperimentalFlags(childComplexity), true
+
 	case "Query.generateSlackAppManifest":
 		if e.complexity.Query.GenerateSlackAppManifest == nil {
 			break
@@ -3524,6 +3551,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserContactMethod.Pending(childComplexity), true
+
+	case "UserContactMethod.statusUpdates":
+		if e.complexity.UserContactMethod.StatusUpdates == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.StatusUpdates(childComplexity), true
 
 	case "UserContactMethod.type":
 		if e.complexity.UserContactMethod.Type == nil {
@@ -7882,6 +7916,91 @@ func (ec *executionContext) fieldContext_DebugMessage_providerID(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_sentAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SentAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_sentAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField, obj *DebugMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DebugMessage_retryCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RetryCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DebugMessage_retryCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DebugMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DebugMessageStatusInfo_state(ctx context.Context, field graphql.CollectedField, obj *DebugMessageStatusInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DebugMessageStatusInfo_state(ctx, field)
 	if err != nil {
@@ -9811,6 +9930,10 @@ func (ec *executionContext) fieldContext_MessageLogConnection_nodes(ctx context.
 				return ec.fieldContext_DebugMessage_alertID(ctx, field)
 			case "providerID":
 				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
 		},
@@ -12034,6 +12157,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -13706,6 +13831,50 @@ func (ec *executionContext) fieldContext_Query_phoneNumberInfo(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_experimentalFlags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExperimentalFlags(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_experimentalFlags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_messageLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_messageLogs(ctx, field)
 	if err != nil {
@@ -13832,6 +14001,10 @@ func (ec *executionContext) fieldContext_Query_debugMessages(ctx context.Context
 				return ec.fieldContext_DebugMessage_alertID(ctx, field)
 			case "providerID":
 				return ec.fieldContext_DebugMessage_providerID(ctx, field)
+			case "sentAt":
+				return ec.fieldContext_DebugMessage_sentAt(ctx, field)
+			case "retryCount":
+				return ec.fieldContext_DebugMessage_retryCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DebugMessage", field.Name)
 		},
@@ -15712,6 +15885,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -20600,6 +20775,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -21909,6 +22086,50 @@ func (ec *executionContext) fieldContext_UserContactMethod_lastVerifyMessageStat
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_statusUpdates(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().StatusUpdates(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(StatusUpdateState)
+	fc.Result = res
+	return ec.marshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_statusUpdates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StatusUpdateState does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserNotificationRule_id(ctx, field)
 	if err != nil {
@@ -22097,6 +22318,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_lastTestMessageState(ctx, field)
 			case "lastVerifyMessageState":
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
+			case "statusUpdates":
+				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -27733,7 +27956,7 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "value"}
+	fieldsInOrder := [...]string{"id", "name", "value", "enableStatusUpdates"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27761,6 +27984,14 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "enableStatusUpdates":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enableStatusUpdates"))
+			it.EnableStatusUpdates, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -28962,6 +29193,17 @@ func (ec *executionContext) _DebugMessage(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._DebugMessage_providerID(ctx, field, obj)
 
+		case "sentAt":
+
+			out.Values[i] = ec._DebugMessage_sentAt(ctx, field, obj)
+
+		case "retryCount":
+
+			out.Values[i] = ec._DebugMessage_retryCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30354,6 +30596,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "experimentalFlags":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_experimentalFlags(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -32973,6 +33238,26 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 				return innerFunc(ctx)
 
 			})
+		case "statusUpdates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_statusUpdates(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35401,6 +35686,16 @@ func (ec *executionContext) marshalNSlackChannelConnection2ᚖgithubᚗcomᚋtar
 		return graphql.Null
 	}
 	return ec._SlackChannelConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx context.Context, v interface{}) (StatusUpdateState, error) {
+	var res StatusUpdateState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatusUpdateState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStatusUpdateState(ctx context.Context, sel ast.SelectionSet, v StatusUpdateState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

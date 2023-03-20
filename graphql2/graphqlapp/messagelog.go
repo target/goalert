@@ -173,12 +173,14 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		}
 
 		dm := graphql2.DebugMessage{
-			ID:        log.ID,
-			CreatedAt: log.CreatedAt,
-			UpdatedAt: log.LastStatusAt,
-			Type:      strings.TrimPrefix(log.MessageType.String(), "MessageType"),
-			Status:    msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
-			AlertID:   &log.AlertID,
+			ID:         log.ID,
+			CreatedAt:  log.CreatedAt,
+			UpdatedAt:  log.LastStatusAt,
+			Type:       strings.TrimPrefix(log.MessageType.String(), "MessageType"),
+			Status:     msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
+			AlertID:    &log.AlertID,
+			RetryCount: log.RetryCount,
+			SentAt:     log.SentAt,
 		}
 		if dest.ID != "" {
 			dm.Destination, err = q.formatDest(ctx, dest)

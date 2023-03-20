@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -111,6 +112,8 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+  sentAt?: null | ISOTimestamp
+  retryCount: number
 }
 
 export interface MessageLogSearchOptions {
@@ -932,6 +935,7 @@ export type TargetType =
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -1006,7 +1010,12 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =
+  | 'SMS'
+  | 'VOICE'
+  | 'EMAIL'
+  | 'WEBHOOK'
+  | 'SLACK_DM'
 
 export interface UserContactMethod {
   id: string
@@ -1019,7 +1028,14 @@ export interface UserContactMethod {
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1039,6 +1055,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {
@@ -1107,6 +1124,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'

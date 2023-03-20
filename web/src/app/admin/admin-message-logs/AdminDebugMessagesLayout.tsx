@@ -28,6 +28,8 @@ const query = gql`
         serviceName
         alertID
         providerID
+        retryCount
+        sentAt
       }
       pageInfo {
         hasNextPage
