@@ -5,6 +5,7 @@ import { useQuery, gql } from 'urql'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
+  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import Avatar from '@mui/material/Avatar'
 
@@ -144,6 +145,24 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
           <SlackBW />
         </Avatar>
       }
+      {...rest}
+    />
+  )
+}
+
+export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
+  const { id: urlStr, ...rest } = props
+
+  const url = new URL(urlStr)
+  return (
+    <Chip
+      data-cy='webhook-chip'
+      avatar={
+        <Avatar>
+          <WebhookIcon />
+        </Avatar>
+      }
+      label={url.hostname}
       {...rest}
     />
   )
