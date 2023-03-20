@@ -63,7 +63,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 			}
 
 			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, &notificationchannel.Channel{
-				Type:  notificationchannel.TypeSlack,
+				Type:  notificationchannel.TypeSlackChan,
 				Name:  ch.Name,
 				Value: ch.ID,
 			})
