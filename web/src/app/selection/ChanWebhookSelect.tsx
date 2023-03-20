@@ -22,7 +22,7 @@ export const ChanWebhookSelect = (
   props: ChanWebhookSelectProps,
 ): JSX.Element => {
   const [newURL, setNewURL] = useState<string>('')
-  const { value, onChange = () => {} } = props
+  const { value, onChange } = props
 
   const selected = props.value.map((v) => {
     return (
