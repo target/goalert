@@ -56,7 +56,7 @@ export const ChanWebhookSelect = (
           helperText={
             !isValidURL(newURL) && newURL.length > 0
               ? 'Must be a valid URL.'
-              : value.indexOf(newURL) > -1
+              : value.includes(newURL)
               ? 'Must be a new URL.'
               : ''
           }
