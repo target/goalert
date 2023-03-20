@@ -30,6 +30,65 @@ func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, err
 	return has_ep_state, err
 }
 
+const allPendingMsgDests = `-- name: AllPendingMsgDests :many
+SELECT DISTINCT
+    usr.name AS user_name,
+    cm.type AS cm_type,
+    nc.name AS nc_name,
+    nc.type AS nc_type
+FROM
+    outgoing_messages om
+    LEFT JOIN users usr ON usr.id = om.user_id
+    LEFT JOIN notification_channels nc ON nc.id = om.channel_id
+    LEFT JOIN user_contact_methods cm ON cm.id = om.contact_method_id
+WHERE
+    om.last_status = 'pending'
+    AND (now() - om.created_at) > INTERVAL '15 seconds'
+    AND (om.alert_id = $1::bigint
+        OR (om.message_type = 'alert_notification_bundle'
+            AND om.service_id = $2::uuid))
+`
+
+type AllPendingMsgDestsParams struct {
+	AlertID   int64
+	ServiceID uuid.UUID
+}
+
+type AllPendingMsgDestsRow struct {
+	UserName sql.NullString
+	CmType   NullEnumUserContactMethodType
+	NcName   sql.NullString
+	NcType   NullEnumNotifChannelType
+}
+
+func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDestsParams) ([]AllPendingMsgDestsRow, error) {
+	rows, err := q.db.QueryContext(ctx, allPendingMsgDests, arg.AlertID, arg.ServiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AllPendingMsgDestsRow
+	for rows.Next() {
+		var i AllPendingMsgDestsRow
+		if err := rows.Scan(
+			&i.UserName,
+			&i.CmType,
+			&i.NcName,
+			&i.NcType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const calSubAuthUser = `-- name: CalSubAuthUser :one
 UPDATE user_calendar_subscriptions
 SET last_access = now()

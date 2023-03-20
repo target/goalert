@@ -10,6 +10,7 @@ import {
   GridToolbarColumnsButton,
   useGridApiContext,
   gridClasses,
+  GridValidRowModel,
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
@@ -42,7 +43,7 @@ const columns = [
     valueGetter: (params: GridValueGetterParams) => {
       return params.row.serviceName || ''
     },
-    renderCell: (params: GridRenderCellParams<string>) => {
+    renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
       if (params.row.id && params.value) {
         return (
           <AppLink to={`/services/${params.row.id}`}>{params.value}</AppLink>
@@ -153,10 +154,9 @@ export default function AlertCountTable(
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
-          pageSize={7}
-          rowsPerPageOptions={[7]}
+          autoPageSize
           columns={columns}
-          disableSelectionOnClick
+          rowSelection={false}
           components={{
             ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,

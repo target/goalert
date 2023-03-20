@@ -359,7 +359,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       <ServiceMaintenanceNotice
-        serviceID={props.data?.service?.id ?? ''}
+        serviceID={alert?.service?.id ?? ''}
         extraNotices={alert.pendingNotifications.map((n) => ({
           type: 'WARNING',
           message: `Notification Pending for ${n.destination}`,
@@ -373,11 +373,13 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         <Card sx={{ width: '100%' }}>
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
-              <Grid item xs={12}>
-                <Typography variant='body1'>
-                  {ServiceLink(alert.service)}
-                </Typography>
-              </Grid>
+              {alert.service && (
+                <Grid item xs={12}>
+                  <Typography variant='body1'>
+                    {ServiceLink(alert.service)}
+                  </Typography>
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <Typography component='h2' variant='h5'>
                   {alert.alertID}: {alert.summary}

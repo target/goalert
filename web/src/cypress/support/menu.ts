@@ -25,7 +25,7 @@ function menu(sub: JQuery<HTMLElement>, s: string): Cypress.Chainable {
 
     // click menu item
     cy.get('ul[role=menu]').contains('[role=menuitem]', s).click()
-    cy.get('ul[role=menu]').should('not.exist')
+    cy.get('ul[role=menu]').should('not.be.visible')
   })
 }
 

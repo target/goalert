@@ -52,6 +52,7 @@ function DTToShifts(shifts: DTShift[]): Shift[] {
     userID: s.userID,
     start: s.span.start.toISO(),
     end: s.span.end.toISO(),
+    truncated: false,
   }))
 }
 
@@ -98,6 +99,7 @@ export default function TempSchedAddNewShift({
       start: value.start,
       end: DateTime.fromISO(value.start, { zone }).plus({ hours: 8 }).toISO(),
       userID: '',
+      truncated: false,
     })
   }, [value.start, zone])
 
@@ -138,6 +140,7 @@ export default function TempSchedAddNewShift({
     const diff = end.diff(DateTime.fromISO(shift.start, { zone }))
     setShift({
       userID: '',
+      truncated: false,
       start: shift.end,
       end: end.plus(diff).toISO(),
     })
