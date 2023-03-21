@@ -78,3 +78,7 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 
 	return notices, nil
 }
+
+func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]Notice, error) {
+	return nil, nil
+}
