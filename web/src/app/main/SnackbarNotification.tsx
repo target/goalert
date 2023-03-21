@@ -43,6 +43,7 @@ export const NotificationProvider = (
       <Snackbar
         action={notification?.action}
         open={open}
+        onClose={() => setOpen(false)}
         autoHideDuration={notification?.severity === 'error' ? null : 6000}
         TransitionProps={{ onExited: () => setNotification(undefined) }}
       >
