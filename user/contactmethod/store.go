@@ -76,23 +76,23 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			VALUES ($1,$2,$3,$4,$5,$6,$7)
 		`),
 		findOne: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = $1
 		`),
 		findOneUpd: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = $1
 			FOR UPDATE
 		`),
 		findMany: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = any($1)
 		`),
 		findAll: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE user_id = $1
 		`),
@@ -318,7 +318,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 
 	var c ContactMethod
 	row := wrapTx(ctx, tx, s.findOneUpd).QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +339,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) 
 
 	var c ContactMethod
 	row := s.findOne.QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +416,7 @@ func scanAll(rows *sql.Rows) ([]ContactMethod, error) {
 	var contactMethods []ContactMethod
 	for rows.Next() {
 		var c ContactMethod
-		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates)
+		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 		if err != nil {
 			return nil, err
 		}

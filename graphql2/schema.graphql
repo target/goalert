@@ -1291,6 +1291,7 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+  pending: Boolean!
 
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState

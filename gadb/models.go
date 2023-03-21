@@ -1129,6 +1129,7 @@ type UserContactMethod struct {
 	LastTestVerifyAt    sql.NullTime
 	Metadata            pqtype.NullRawMessage
 	EnableStatusUpdates bool
+	Pending             bool
 }
 
 type UserFavorite struct {
