@@ -395,8 +395,9 @@ func (ns NullEnumLimitType) Value() (driver.Value, error) {
 type EnumNotifChannelType string
 
 const (
-	EnumNotifChannelTypeSLACK   EnumNotifChannelType = "SLACK"
-	EnumNotifChannelTypeWEBHOOK EnumNotifChannelType = "WEBHOOK"
+	EnumNotifChannelTypeSLACK          EnumNotifChannelType = "SLACK"
+	EnumNotifChannelTypeWEBHOOK        EnumNotifChannelType = "WEBHOOK"
+	EnumNotifChannelTypeSLACKUSERGROUP EnumNotifChannelType = "SLACK_USER_GROUP"
 )
 
 func (e *EnumNotifChannelType) Scan(src interface{}) error {

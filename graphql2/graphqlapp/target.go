@@ -51,5 +51,5 @@ func (t *Target) Name(ctx context.Context, raw *assignment.RawTarget) (string, e
 
 	}
 
-	return "", errors.New("unhandled target type")
+	return "", errors.New("unhandled target type " + raw.Type.String())
 }

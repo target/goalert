@@ -930,6 +930,7 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'

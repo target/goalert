@@ -312,7 +312,7 @@ func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID str
 	}
 
 	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
-		Type:  notificationchannel.TypeSlack,
+		Type:  notificationchannel.TypeSlackChan,
 		Name:  ch.Name,
 		Value: ch.ID,
 	})
@@ -422,7 +422,7 @@ func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID str
 			tgt.Type = assignment.TargetTypeRotation
 		case ch.Valid:
 			switch *chType {
-			case notificationchannel.TypeSlack:
+			case notificationchannel.TypeSlackChan:
 				tgt.ID = chValue.String
 				tgt.Type = assignment.TargetTypeSlackChannel
 			case notificationchannel.TypeWebhook:
