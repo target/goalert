@@ -3,6 +3,7 @@ package verifymanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -50,11 +51,15 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		cleanupExpired: p.P(`
 			with rows as (
-				select id
+				select id, contact_method_id
 				from user_verification_codes
 				where now() >= expires_at
 				limit 100
 				for update skip locked
+			), _cms as (
+				delete from user_contact_methods cm
+				using rows
+				where cm.id = rows.contact_method_id and cm.pending
 			)
 			delete from user_verification_codes code
 			using rows

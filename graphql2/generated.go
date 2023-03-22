@@ -589,6 +589,7 @@ type ComplexityRoot struct {
 		LastTestVerifyAt       func(childComplexity int) int
 		LastVerifyMessageState func(childComplexity int) int
 		Name                   func(childComplexity int) int
+		Pending                func(childComplexity int) int
 		StatusUpdates          func(childComplexity int) int
 		Type                   func(childComplexity int) int
 		Value                  func(childComplexity int) int
@@ -3543,6 +3544,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserContactMethod.Name(childComplexity), true
+
+	case "UserContactMethod.pending":
+		if e.complexity.UserContactMethod.Pending == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.Pending(childComplexity), true
 
 	case "UserContactMethod.statusUpdates":
 		if e.complexity.UserContactMethod.StatusUpdates == nil {
@@ -12141,6 +12149,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -15867,6 +15877,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -20755,6 +20767,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -21889,6 +21903,50 @@ func (ec *executionContext) fieldContext_UserContactMethod_disabled(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_pending(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_pending(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pending, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_pending(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserContactMethod_lastTestVerifyAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 	if err != nil {
@@ -22252,6 +22310,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -33129,6 +33189,13 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 		case "disabled":
 
 			out.Values[i] = ec._UserContactMethod_disabled(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "pending":
+
+			out.Values[i] = ec._UserContactMethod_pending(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
