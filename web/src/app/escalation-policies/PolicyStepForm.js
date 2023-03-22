@@ -63,10 +63,12 @@ function PolicyStepForm(props) {
       .map((t) => t.id) // array of ID strings
 
   // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-  const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
-    curTgts
+  const makeSetTargetType = (curTgts) => (type) => (newTgts) => {
+    console.log('targets: ', newTgts)
+    return curTgts
       .filter((t) => t.type !== type) // current targets without any of the current type
       .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
+  }
 
   // then form fields would all point to `targets` but can map values
   const setTargetType = makeSetTargetType(value.targets)

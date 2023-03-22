@@ -23,6 +23,7 @@ export const ChanWebhookSelect = (
 ): JSX.Element => {
   const [newURL, setNewURL] = useState<string>('')
   const { value, onChange } = props
+  const [tempURL, setTempURL] = useState<string>('')
 
   const selected = props.value.map((v) => {
     return (
@@ -47,7 +48,21 @@ export const ChanWebhookSelect = (
           name='webhooks'
           value={newURL}
           onChange={(e) => {
-            setNewURL(e.target.value.trim())
+            const input = e.target.value.trim()
+            setNewURL(input)
+            if (
+              isValidURL(input) &&
+              input.length > 0 &&
+              !value.includes(input)
+            ) {
+              console.log('on change value + temp: ', value, tempURL)
+              setTempURL(input)
+              const newValue = value.filter((e) => e !== tempURL)
+              onChange([...newValue, input])
+              console.log('post change value + temp: ', newValue, input)
+            }
+
+            console.log('on change temp: ', tempURL)
           }}
           error={
             (!isValidURL(newURL) && newURL.length > 0) || value.includes(newURL)
@@ -77,8 +92,14 @@ export const ChanWebhookSelect = (
                   )
                     return
 
+                  console.log('value 1: ', value)
                   onChange([...value, newURL])
+                  console.log('value 2: ', value)
+                  onChange(value.filter((e) => e !== tempURL))
                   setNewURL('')
+                  setTempURL('')
+                  console.log('tempURL empty: ', tempURL)
+                  console.log('value 3: ', value)
                 }}
               />
             ),
