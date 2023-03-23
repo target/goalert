@@ -113,24 +113,23 @@ func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]
 	unackedLim := int64(limit.Limits.Max(l, "unacked_alerts_per_service"))
 	details := fmt.Sprintf("New alerts will be rejected while at or above the limit (%v), acknowledge or close alerts to resolve.", count)
 
-	// nearing system limit notice
-	p := float32(count) / float32(unackedLim)
-	if p > 0.75 && count < unackedLim {
-		return []Notice{
-			{
-				Type:    TypeWarning,
-				Message: "Near unacknowledged alert limit",
-				Details: details,
-			},
-		}, nil
-	}
-
 	// hit system limit notice
 	if count >= unackedLim {
 		return []Notice{
 			{
 				Type:    TypeError,
 				Message: "Unacknowledged alert limit reached",
+				Details: details,
+			},
+		}, nil
+	}
+
+	// nearing system limit notice
+	if float32(count)/float32(unackedLim) > 0.75 {
+		return []Notice{
+			{
+				Type:    TypeWarning,
+				Message: "Near unacknowledged alert limit",
 				Details: details,
 			},
 		}, nil
