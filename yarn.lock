@@ -8364,12 +8364,7 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-wonka@6.2.3:
-  version "6.2.3"
-  resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.2.3.tgz#88f7852a23a3d53bca7411c70d66e9ce8f93a366"
-  integrity sha512-EFOYiqDeYLXSzGYt2X3aVe9Hq1XJG+Hz/HjTRRT4dZE9q95khHl5+7pzUSXI19dbMO1/2UMrTf7JT7/7JrSQSQ==
-
-wonka@^6.0.0, wonka@^6.1.2:
+wonka@6.2.5, wonka@^6.0.0, wonka@^6.1.2:
   version "6.2.5"
   resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.2.5.tgz#26e54a6827b96a6164b845106f4d925ede4089bb"
   integrity sha512-adhGYKm5xWIZYXRkzEqHbRbRl2gXHqOudjQJMXpRgSyboFmaKOjGm3RIThBk4tZdiZx1DXuKK0H9wKBgXHhzZg==
