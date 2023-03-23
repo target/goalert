@@ -342,6 +342,30 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
+SELECT
+    user_id,
+    type
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+    AND NOT disabled
+    AND enable_status_updates
+`
+
+type StatusMgrCMInfoRow struct {
+	UserID uuid.UUID
+	Type   EnumUserContactMethodType
+}
+
+func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
+	var i StatusMgrCMInfoRow
+	err := row.Scan(&i.UserID, &i.Type)
+	return i, err
+}
+
 const statusMgrCleanupDisabledSubs = `-- name: StatusMgrCleanupDisabledSubs :exec
 DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
 WHERE sub.contact_method_id = cm.id
@@ -351,6 +375,143 @@ WHERE sub.contact_method_id = cm.id
 
 func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, statusMgrCleanupDisabledSubs)
+	return err
+}
+
+const statusMgrDeleteSub = `-- name: StatusMgrDeleteSub :exec
+DELETE FROM alert_status_subscriptions
+WHERE id = $1
+`
+
+func (q *Queries) StatusMgrDeleteSub(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, statusMgrDeleteSub, id)
+	return err
+}
+
+const statusMgrLogEntry = `-- name: StatusMgrLogEntry :one
+SELECT
+    id,
+    sub_user_id AS user_id
+FROM
+    alert_logs
+WHERE
+    alert_id = $1::bigint
+    AND event = $2::enum_alert_log_event
+    AND timestamp > now() - '1 hour'::interval
+ORDER BY
+    id DESC
+LIMIT 1
+`
+
+type StatusMgrLogEntryParams struct {
+	AlertID   int64
+	EventType EnumAlertLogEvent
+}
+
+type StatusMgrLogEntryRow struct {
+	ID     int64
+	UserID uuid.NullUUID
+}
+
+func (q *Queries) StatusMgrLogEntry(ctx context.Context, arg StatusMgrLogEntryParams) (StatusMgrLogEntryRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrLogEntry, arg.AlertID, arg.EventType)
+	var i StatusMgrLogEntryRow
+	err := row.Scan(&i.ID, &i.UserID)
+	return i, err
+}
+
+const statusMgrNextUpdate = `-- name: StatusMgrNextUpdate :one
+SELECT
+    sub.id,
+    channel_id,
+    contact_method_id,
+    alert_id,
+    (
+        SELECT
+            status
+        FROM
+            alerts a
+        WHERE
+            a.id = sub.alert_id)
+FROM
+    alert_status_subscriptions sub
+WHERE
+    sub.last_alert_status != (
+        SELECT
+            status
+        FROM
+            alerts a
+        WHERE
+            a.id = sub.alert_id)
+LIMIT 1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type StatusMgrNextUpdateRow struct {
+	ID              int64
+	ChannelID       uuid.NullUUID
+	ContactMethodID uuid.NullUUID
+	AlertID         int64
+	Status          EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrNextUpdate(ctx context.Context) (StatusMgrNextUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate)
+	var i StatusMgrNextUpdateRow
+	err := row.Scan(
+		&i.ID,
+		&i.ChannelID,
+		&i.ContactMethodID,
+		&i.AlertID,
+		&i.Status,
+	)
+	return i, err
+}
+
+const statusMgrSendChannelMsg = `-- name: StatusMgrSendChannelMsg :exec
+INSERT INTO outgoing_messages (id, message_type, channel_id, alert_id, alert_log_id)
+    VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::bigint, $4)
+`
+
+type StatusMgrSendChannelMsgParams struct {
+	ID        uuid.UUID
+	ChannelID uuid.UUID
+	AlertID   int64
+	LogID     sql.NullInt64
+}
+
+func (q *Queries) StatusMgrSendChannelMsg(ctx context.Context, arg StatusMgrSendChannelMsgParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrSendChannelMsg,
+		arg.ID,
+		arg.ChannelID,
+		arg.AlertID,
+		arg.LogID,
+	)
+	return err
+}
+
+const statusMgrSendUserMsg = `-- name: StatusMgrSendUserMsg :exec
+INSERT INTO outgoing_messages (id, message_type, contact_method_id, user_id, alert_id, alert_log_id)
+    VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::uuid, $4::bigint, $5)
+`
+
+type StatusMgrSendUserMsgParams struct {
+	ID      uuid.UUID
+	CmID    uuid.UUID
+	UserID  uuid.UUID
+	AlertID int64
+	LogID   sql.NullInt64
+}
+
+func (q *Queries) StatusMgrSendUserMsg(ctx context.Context, arg StatusMgrSendUserMsgParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrSendUserMsg,
+		arg.ID,
+		arg.CmID,
+		arg.UserID,
+		arg.AlertID,
+		arg.LogID,
+	)
 	return err
 }
 
@@ -366,6 +527,25 @@ WHERE
 
 func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced)
+	return err
+}
+
+const statusMgrUpdateSub = `-- name: StatusMgrUpdateSub :exec
+UPDATE
+    alert_status_subscriptions
+SET
+    last_alert_status = $2
+WHERE
+    id = $1
+`
+
+type StatusMgrUpdateSubParams struct {
+	ID              int64
+	LastAlertStatus EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSubParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrUpdateSub, arg.ID, arg.LastAlertStatus)
 	return err
 }
 
