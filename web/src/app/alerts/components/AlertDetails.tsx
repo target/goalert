@@ -39,7 +39,7 @@ import {
   EscalationPolicyStep,
   AlertStatus,
 } from '../../../schema'
-import ServiceMaintenanceNotice from '../../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
 
 interface AlertDetailsProps {
@@ -358,7 +358,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const { data: alert } = props
   return (
     <Grid container spacing={2}>
-      <ServiceMaintenanceNotice
+      <ServiceNotices
         serviceID={alert?.service?.id ?? ''}
         extraNotices={alert.pendingNotifications.map((n) => ({
           type: 'WARNING',

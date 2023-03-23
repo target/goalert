@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
@@ -13,6 +15,7 @@ import (
 
 // Store allows identifying notices for various targets.
 type Store struct {
+	db                        *sql.DB
 	findServicesByPolicyID    *sql.Stmt
 	findPolicyDurationMinutes *sql.Stmt
 }
@@ -21,6 +24,7 @@ type Store struct {
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 	return &Store{
+		db: db,
 		findServicesByPolicyID: p.P(`
 			SELECT COUNT(*)
 			FROM services
@@ -77,4 +81,51 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 	}
 
 	return notices, nil
+}
+
+// FindAllServiceNotices returns any relevant notices for the given service. Currently returns
+// notices pertaining to the system limit for unacknowledged alerts.
+func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]Notice, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("serviceID", serviceID)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := gadb.New(s.db).NoticeUnackedAlertsByService(ctx, uuid.MustParse(serviceID))
+	if err != nil {
+		return nil, err
+	}
+
+	count := float32(res.Count)
+	limit := float32(res.Max)
+	details := fmt.Sprintf("New alerts will be rejected while at or above the limit (%v), acknowledge or close alerts to resolve.", count)
+
+	// hit system limit notice
+	if count >= limit {
+		return []Notice{
+			{
+				Type:    TypeError,
+				Message: "Unacknowledged alert limit reached",
+				Details: details,
+			},
+		}, nil
+	}
+
+	// nearing system limit notice
+	if count/limit > 0.75 {
+		return []Notice{
+			{
+				Type:    TypeWarning,
+				Message: "Near unacknowledged alert limit",
+				Details: details,
+			},
+		}, nil
+	}
+
+	return nil, nil
 }
