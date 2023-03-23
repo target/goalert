@@ -21,7 +21,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
-	"github.com/target/goalert/engine/statusupdatemanager"
+	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -109,7 +109,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusupdatemanager.NewDB(ctx, db)
+	statMgr, err := statusmgr.NewDB(ctx, db)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}

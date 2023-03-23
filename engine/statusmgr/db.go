@@ -1,4 +1,4 @@
-package statusupdatemanager
+package statusmgr
 
 import (
 	"context"
