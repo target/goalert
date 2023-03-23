@@ -309,6 +309,36 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	return i, err
 }
 
+const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one
+SELECT
+    count(*),
+    (
+        SELECT
+            max
+        FROM
+            config_limits
+        WHERE
+            id = 'unacked_alerts_per_service'
+    )
+FROM
+    alerts
+WHERE
+    service_id = $1::uuid
+    AND status = 'triggered'
+`
+
+type NoticeUnackedAlertsByServiceRow struct {
+	Count int64
+	Max   int32
+}
+
+func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uuid.UUID) (NoticeUnackedAlertsByServiceRow, error) {
+	row := q.db.QueryRowContext(ctx, noticeUnackedAlertsByService, dollar_1)
+	var i NoticeUnackedAlertsByServiceRow
+	err := row.Scan(&i.Count, &i.Max)
+	return i, err
+}
+
 const now = `-- name: Now :one
 SELECT now()::timestamptz
 `
