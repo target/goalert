@@ -841,6 +841,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
