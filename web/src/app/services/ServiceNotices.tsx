@@ -46,7 +46,7 @@ export default function ServiceNotices({
   if (!data && fetching) {
     return null
   }
-  let notices = [data?.service?.notices ?? [], ...extraNotices]
+  let notices = [...(data?.service?.notices ?? []), ...extraNotices]
   const maintMode = data?.service?.maintenanceExpiresAt
   if (maintMode) {
     notices = [
