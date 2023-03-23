@@ -110,10 +110,13 @@ func (q *Queries) CalSubAuthUser(ctx context.Context, arg CalSubAuthUserParams) 
 }
 
 const countUnackedAlertsByService = `-- name: CountUnackedAlertsByService :one
-SELECT count(*)
-FROM alerts
-WHERE service_id = $1::uuid
-AND status = 'triggered'
+SELECT
+    count(*)
+FROM
+    alerts
+WHERE
+    service_id = $1::uuid
+    AND status = 'triggered'
 `
 
 func (q *Queries) CountUnackedAlertsByService(ctx context.Context, dollar_1 uuid.UUID) (int64, error) {
