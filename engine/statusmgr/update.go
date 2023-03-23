@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
-	"github.com/target/goalert/engine/processinglock"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
@@ -25,10 +25,23 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 	log.Debugf(ctx, "Processing status updates.")
 
-	_, err = db.lock.Exec(ctx, db.cmUnsub)
-	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
-		// okay to proceed
-		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
+	err = db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		q := gadb.New(tx)
+
+		err := q.StatusMgrUpdateCMForced(ctx)
+		if err != nil {
+			return fmt.Errorf("update contact methods for forced status updates: %w", err)
+		}
+
+		err = q.StatusMgrCleanupDisabledSubs(ctx)
+		if err != nil {
+			return fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	// process up to 100
