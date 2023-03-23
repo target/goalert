@@ -16,7 +16,7 @@ import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
-import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../services/ServiceNotices'
 import { Time } from '../util/Time'
 import { NotificationContext } from '../main/SnackbarNotification'
 
@@ -258,7 +258,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
-        <ServiceMaintenanceNotice serviceID={props.serviceID} />
+        <ServiceNotices serviceID={props.serviceID} />
         <Grid item>
           <QueryList
             query={alertsListQuery}

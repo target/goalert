@@ -1073,6 +1073,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+
+  notices: [Notice!]!
 }
 
 input CreateIntegrationKeyInput {
