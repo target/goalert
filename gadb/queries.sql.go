@@ -342,6 +342,33 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const statusMgrCleanupDisabledSubs = `-- name: StatusMgrCleanupDisabledSubs :exec
+DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
+WHERE sub.contact_method_id = cm.id
+    AND (cm.disabled
+        OR NOT cm.enable_status_updates)
+`
+
+func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, statusMgrCleanupDisabledSubs)
+	return err
+}
+
+const statusMgrUpdateCMForced = `-- name: StatusMgrUpdateCMForced :exec
+UPDATE
+    user_contact_methods
+SET
+    enable_status_updates = TRUE
+WHERE
+    TYPE = 'SLACK_DM'
+    AND NOT enable_status_updates
+`
+
+func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced)
+	return err
+}
+
 const updateCalSub = `-- name: UpdateCalSub :exec
 UPDATE user_calendar_subscriptions
 SET NAME = $1,

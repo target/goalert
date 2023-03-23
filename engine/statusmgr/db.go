@@ -1,4 +1,4 @@
-package statusupdatemanager
+package statusmgr
 
 import (
 	"context"
@@ -18,8 +18,6 @@ type DB struct {
 	updateStatus   *sql.Stmt
 	deleteSub      *sql.Stmt
 	cmWantsUpdates *sql.Stmt
-
-	cmUnsub *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -38,21 +36,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 	return &DB{
 		lock: lock,
-
-		cmUnsub: p.P(`
-			with _update as (
-				UPDATE user_contact_methods
-				SET enable_status_updates = TRUE
-				WHERE TYPE = 'SLACK_DM'
-					AND NOT enable_status_updates
-			)
-			delete from alert_status_subscriptions sub
-			using user_contact_methods cm
-			where
-				sub.contact_method_id = cm.id and (
-					cm.disabled or not cm.enable_status_updates
-				)
-		`),
 
 		cmWantsUpdates: p.P(`
 			select user_id, type
