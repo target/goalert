@@ -342,6 +342,213 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
+SELECT
+    user_id,
+    type
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+    AND NOT disabled
+    AND enable_status_updates
+`
+
+type StatusMgrCMInfoRow struct {
+	UserID uuid.UUID
+	Type   EnumUserContactMethodType
+}
+
+func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
+	var i StatusMgrCMInfoRow
+	err := row.Scan(&i.UserID, &i.Type)
+	return i, err
+}
+
+const statusMgrCleanupSubscriptions = `-- name: StatusMgrCleanupSubscriptions :exec
+DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
+WHERE sub.contact_method_id = cm.id
+    AND (cm.disabled
+        OR NOT cm.enable_status_updates)
+`
+
+func (q *Queries) StatusMgrCleanupSubscriptions(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, statusMgrCleanupSubscriptions)
+	return err
+}
+
+const statusMgrDelete = `-- name: StatusMgrDelete :exec
+DELETE FROM alert_status_subscriptions
+WHERE id = $1
+`
+
+func (q *Queries) StatusMgrDelete(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, statusMgrDelete, id)
+	return err
+}
+
+const statusMgrForcedStatusUpdates = `-- name: StatusMgrForcedStatusUpdates :exec
+UPDATE
+    user_contact_methods
+SET
+    enable_status_updates = TRUE
+WHERE
+    TYPE = 'SLACK_DM'
+    AND NOT enable_status_updates
+`
+
+func (q *Queries) StatusMgrForcedStatusUpdates(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, statusMgrForcedStatusUpdates)
+	return err
+}
+
+const statusMgrInsertChanMessage = `-- name: StatusMgrInsertChanMessage :exec
+INSERT INTO outgoing_messages (id, message_type, channel_id, alert_id, alert_log_id)
+    VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::bigint, $4)
+`
+
+type StatusMgrInsertChanMessageParams struct {
+	MsgID      uuid.UUID
+	ChannelID  uuid.UUID
+	AlertID    int64
+	AlertLogID sql.NullInt64
+}
+
+func (q *Queries) StatusMgrInsertChanMessage(ctx context.Context, arg StatusMgrInsertChanMessageParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrInsertChanMessage,
+		arg.MsgID,
+		arg.ChannelID,
+		arg.AlertID,
+		arg.AlertLogID,
+	)
+	return err
+}
+
+const statusMgrInsertUserCMMessage = `-- name: StatusMgrInsertUserCMMessage :exec
+INSERT INTO outgoing_messages (id, message_type, contact_method_id, user_id, alert_id, alert_log_id)
+    VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::uuid, $4::bigint, $5)
+`
+
+type StatusMgrInsertUserCMMessageParams struct {
+	MsgID      uuid.UUID
+	CmID       uuid.UUID
+	UserID     uuid.UUID
+	AlertID    int64
+	AlertLogID sql.NullInt64
+}
+
+func (q *Queries) StatusMgrInsertUserCMMessage(ctx context.Context, arg StatusMgrInsertUserCMMessageParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrInsertUserCMMessage,
+		arg.MsgID,
+		arg.CmID,
+		arg.UserID,
+		arg.AlertID,
+		arg.AlertLogID,
+	)
+	return err
+}
+
+const statusMgrLastLog = `-- name: StatusMgrLastLog :one
+SELECT
+    id,
+    sub_user_id
+FROM
+    alert_logs
+WHERE
+    alert_id = $1::bigint
+    AND event = $2::enum_alert_log_event
+    AND timestamp > now() - '1 hour'::interval
+ORDER BY
+    id DESC
+LIMIT 1
+`
+
+type StatusMgrLastLogParams struct {
+	AlertID   int64
+	EventType EnumAlertLogEvent
+}
+
+type StatusMgrLastLogRow struct {
+	ID        int64
+	SubUserID uuid.NullUUID
+}
+
+func (q *Queries) StatusMgrLastLog(ctx context.Context, arg StatusMgrLastLogParams) (StatusMgrLastLogRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrLastLog, arg.AlertID, arg.EventType)
+	var i StatusMgrLastLogRow
+	err := row.Scan(&i.ID, &i.SubUserID)
+	return i, err
+}
+
+const statusMgrNextSubscription = `-- name: StatusMgrNextSubscription :one
+SELECT
+    sub.id,
+    channel_id,
+    contact_method_id,
+    alert_id,
+    (
+        SELECT
+            status
+        FROM
+            alerts a
+        WHERE
+            a.id = sub.alert_id)
+FROM
+    alert_status_subscriptions sub
+WHERE
+    sub.last_alert_status != (
+        SELECT
+            status
+        FROM
+            alerts a
+        WHERE
+            a.id = sub.alert_id)
+LIMIT 1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type StatusMgrNextSubscriptionRow struct {
+	ID              int64
+	ChannelID       uuid.NullUUID
+	ContactMethodID uuid.NullUUID
+	AlertID         int64
+	Status          EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrNextSubscription(ctx context.Context) (StatusMgrNextSubscriptionRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrNextSubscription)
+	var i StatusMgrNextSubscriptionRow
+	err := row.Scan(
+		&i.ID,
+		&i.ChannelID,
+		&i.ContactMethodID,
+		&i.AlertID,
+		&i.Status,
+	)
+	return i, err
+}
+
+const statusMgrUpdate = `-- name: StatusMgrUpdate :exec
+UPDATE
+    alert_status_subscriptions
+SET
+    last_alert_status = $2
+WHERE
+    id = $1
+`
+
+type StatusMgrUpdateParams struct {
+	ID              int64
+	LastAlertStatus EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrUpdate(ctx context.Context, arg StatusMgrUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, statusMgrUpdate, arg.ID, arg.LastAlertStatus)
+	return err
+}
+
 const updateCalSub = `-- name: UpdateCalSub :exec
 UPDATE user_calendar_subscriptions
 SET NAME = $1,

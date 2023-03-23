@@ -7,13 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/alertlog"
-	"github.com/target/goalert/engine/processinglock"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will update all schedule rules.
@@ -25,15 +22,25 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 	log.Debugf(ctx, "Processing status updates.")
 
-	_, err = db.lock.Exec(ctx, db.cmUnsub)
-	if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
+	err = db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		err := gadb.New(tx).StatusMgrForcedStatusUpdates(ctx)
+		if err != nil {
+			return fmt.Errorf("update status update enable: %w", err)
+		}
+		err = gadb.New(tx).StatusMgrCleanupSubscriptions(ctx)
+		if err != nil {
+			return fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
 		// okay to proceed
-		log.Log(ctx, fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err))
+		log.Log(ctx, err)
 	}
 
 	// process up to 100
 	for i := 0; i < 100; i++ {
-		err = db.update(ctx)
+		err = db.lock.WithTx(ctx, db.update)
 		if errors.Is(err, errDone) {
 			break
 		}
@@ -48,88 +55,83 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 var errDone = errors.New("done")
 
-func (db *DB) update(ctx context.Context) error {
-	tx, err := db.lock.BeginTx(ctx, nil)
-	if err != nil {
-		return errors.Wrap(err, "start transaction")
-	}
-	defer sqlutil.Rollback(ctx, "status update manager", tx)
+func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
+	q := gadb.New(tx)
 
-	var id, alertID int
-	var chanID, cmID sql.NullString
-	var newStatus alert.Status
-	err = tx.StmtContext(ctx, db.needsUpdate).QueryRowContext(ctx).Scan(&id, &chanID, &cmID, &alertID, &newStatus)
+	sub, err := q.StatusMgrNextSubscription(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return errDone
 	}
 	if err != nil {
-		return fmt.Errorf("query out-of-date alert status: %w", err)
+		return fmt.Errorf("query next status subscription: %w", err)
 	}
 
-	isSubscribed := chanID.Valid
-	var userID sql.NullString
-	var cmType contactmethod.Type
-	if cmID.Valid {
-		isSubscribed = true
-		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&userID, &cmType)
-		if errors.Is(err, sql.ErrNoRows) {
-			isSubscribed = false
-			err = nil
-		}
-		if err != nil {
-			return fmt.Errorf("check contact method status update config id='%s': %w", cmID.String, err)
-		}
+	var logEvent gadb.EnumAlertLogEvent
+	switch sub.Status {
+	case gadb.EnumAlertStatusTriggered:
+		logEvent = gadb.EnumAlertLogEventEscalated
+	case gadb.EnumAlertStatusActive:
+		logEvent = gadb.EnumAlertLogEventAcknowledged
+	case gadb.EnumAlertStatusClosed:
+		logEvent = gadb.EnumAlertLogEventClosed
 	}
 
-	if isSubscribed {
-		var logID int
-		var event alertlog.Type
-		switch newStatus {
-		case alert.StatusTriggered:
-			event = alertlog.TypeEscalated
-		case alert.StatusActive:
-			event = alertlog.TypeAcknowledged
-		case alert.StatusClosed:
-			event = alertlog.TypeClosed
-		default:
-			return fmt.Errorf("unknown alert status: %v", newStatus)
-		}
+	entry, err := q.StatusMgrLastLog(ctx, gadb.StatusMgrLastLogParams{
+		AlertID:   sub.AlertID,
+		EventType: logEvent,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("query last log entry: %w", err)
+	}
+	var logID sql.NullInt64
+	if entry.ID > 0 {
+		logID = sql.NullInt64{Int64: int64(entry.ID), Valid: true}
+	}
 
-		var logUserID sql.NullString
-		err = tx.StmtContext(ctx, db.latestLogEntry).QueryRowContext(ctx, alertID, event).Scan(&logID, &logUserID)
+	switch {
+	case sub.ContactMethodID.Valid:
+		info, err := q.StatusMgrCMInfo(ctx, sub.ContactMethodID.UUID)
 		if errors.Is(err, sql.ErrNoRows) {
-			err = nil
-			logID = 0
+			// Delete it since the contact method was deleted, disabled, or has updates turned off.
+			return q.StatusMgrDelete(ctx, sub.ID)
 		}
-		if err != nil {
-			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
-		}
-
-		// Only insert message if the user is not the same as the log event user and we have a recent log entry.
-		if cmType.StatusUpdatesAlways() || (logID > 0 && (!userID.Valid || userID.String != logUserID.String)) {
-			_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.New(), chanID, cmID, userID, alertID, logID)
+		forceUpdate := contactmethod.Type(info.Type).StatusUpdatesAlways()
+		if forceUpdate || !entry.SubUserID.Valid || entry.SubUserID.UUID != info.UserID {
+			err = q.StatusMgrInsertUserCMMessage(ctx, gadb.StatusMgrInsertUserCMMessageParams{
+				MsgID:      uuid.New(),
+				AlertID:    sub.AlertID,
+				CmID:       sub.ContactMethodID.UUID,
+				UserID:     info.UserID,
+				AlertLogID: logID,
+			})
 			if err != nil {
-				return fmt.Errorf("insert status update message for id=%d: %w", id, err)
+				return fmt.Errorf("insert user contact method message: %w", err)
 			}
 		}
-	}
-
-	if newStatus == alert.StatusClosed || !isSubscribed {
-		_, err = tx.StmtContext(ctx, db.deleteSub).ExecContext(ctx, id)
+	case sub.ChannelID.Valid:
+		err = q.StatusMgrInsertChanMessage(ctx, gadb.StatusMgrInsertChanMessageParams{
+			MsgID:      uuid.New(),
+			AlertID:    sub.AlertID,
+			ChannelID:  sub.ChannelID.UUID,
+			AlertLogID: logID,
+		})
 		if err != nil {
-			return fmt.Errorf("delete subscription for alert #%d (id=%d): %w", alertID, id, err)
+			return fmt.Errorf("insert channel message: %w", err)
 		}
-	} else {
-		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id, newStatus)
-		if err != nil {
-			return fmt.Errorf("update status for alert #%d to '%s' (id=%d): %w", alertID, newStatus, id, err)
-		}
+	default:
+		return fmt.Errorf("invalid subscription: %v", sub)
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("commit tx: %w", err)
+	if sub.Status == gadb.EnumAlertStatusClosed {
+		// Since the alert is closed, there can be no more updates.
+		return q.StatusMgrDelete(ctx, sub.ID)
 	}
 
-	return nil
+	return q.StatusMgrUpdate(ctx, gadb.StatusMgrUpdateParams{
+		ID:              sub.ID,
+		LastAlertStatus: sub.Status,
+	})
 }
