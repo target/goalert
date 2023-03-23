@@ -816,7 +816,7 @@ function testServices(screen: ScreenFormat): void {
 
       const summary = 'test alert'
       cy.get('[data-cy=route-links] li').contains('Alerts').click()
-      cy.get('button[aria-label="Create Alert"').click()
+      cy.get('button').contains('Create Alert').click()
       cy.dialogForm({
         summary,
       })
