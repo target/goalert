@@ -1,8 +1,7 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useState, useContext } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
-import Snackbar from '@mui/material/Snackbar'
+import { Grid, Hidden, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -18,6 +17,7 @@ import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
 import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
 import { Time } from '../util/Time'
+import { NotificationContext } from '../main/SnackbarNotification'
 
 interface AlertsListProps {
   serviceID: string
@@ -103,11 +103,9 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
+
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
-
-  // used if user dismisses snackbar before the auto-close timer finishes
-  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
@@ -139,12 +137,33 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   }
 
-  const [mutate, status] = useMutation(updateMutation)
+  const { setNotification } = useContext(NotificationContext)
+
+  const [mutate] = useMutation(updateMutation, {
+    onCompleted: (data) => {
+      const numUpdated =
+        data.updateAlerts?.length || data.escalateAlerts?.length || 0
+
+      const msg = `${numUpdated} of ${checkedCount} alert${
+        checkedCount === 1 ? '' : 's'
+      } updated`
+
+      setNotification({
+        message: msg,
+        severity: 'info',
+      })
+    },
+    onError: (error) => {
+      setNotification({
+        message: error.message,
+        severity: 'error',
+      })
+    },
+  })
 
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
-      setActionCompleteDismissed(false)
 
       let mutation = updateMutation
       let variables: MutationVariables | StatusUnacknowledgedVariables = {
@@ -158,26 +177,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
       mutate({ mutation, variables })
     }
-
-  let updateMessage, errorMessage
-  if (status.error && !status.loading) {
-    errorMessage = status.error.message
-  }
-
-  if (status.data && !status.loading) {
-    const numUpdated =
-      status.data.updateAlerts?.length ||
-      status.data.escalateAlerts?.length ||
-      0
-
-    updateMessage = `${numUpdated} of ${checkedCount} alert${
-      checkedCount === 1 ? '' : 's'
-    } updated`
-  }
-
-  const showAlertActionSnackbar = Boolean(
-    !actionCompleteDismissed && (errorMessage || updateMessage),
-  )
 
   /*
    * Adds border of color depending on each alert's status
@@ -308,21 +307,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-
-      {/* Update message after using checkbox actions */}
-      <Snackbar
-        autoHideDuration={errorMessage ? null : 6000}
-        onClose={() => setActionCompleteDismissed(true)}
-        open={showAlertActionSnackbar}
-      >
-        <Alert
-          severity={errorMessage ? 'error' : 'info'}
-          onClose={() => setActionCompleteDismissed(true)}
-          variant='filled'
-        >
-          {errorMessage || updateMessage}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   )
 }
