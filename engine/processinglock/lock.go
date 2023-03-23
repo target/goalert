@@ -80,6 +80,27 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 	return tx, nil
 }
 
+// WithTx will run the given function in a locked transaction.
+func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
+	tx, err := l._BeginTx(ctx, l.db, nil)
+	if err != nil {
+		return err
+	}
+	defer sqlutil.Rollback(ctx, "processing lock: with tx", tx)
+
+	err = fn(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...interface{}) (sql.Result, error) {
 	tx, err := l._BeginTx(ctx, b, nil)
 	if err != nil {
