@@ -109,23 +109,6 @@ func (q *Queries) CalSubAuthUser(ctx context.Context, arg CalSubAuthUserParams) 
 	return user_id, err
 }
 
-const countUnackedAlertsByService = `-- name: CountUnackedAlertsByService :one
-SELECT
-    count(*)
-FROM
-    alerts
-WHERE
-    service_id = $1::uuid
-    AND status = 'triggered'
-`
-
-func (q *Queries) CountUnackedAlertsByService(ctx context.Context, dollar_1 uuid.UUID) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countUnackedAlertsByService, dollar_1)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const createCalSub = `-- name: CreateCalSub :one
 INSERT INTO user_calendar_subscriptions (
         id,
@@ -323,6 +306,36 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	row := q.db.QueryRowContext(ctx, lockOneAlertService, id)
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
+	return i, err
+}
+
+const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one
+SELECT
+    count(*),
+    (
+        SELECT
+            max
+        FROM
+            config_limits
+        WHERE
+            id = 'unacked_alerts_per_service'
+    )
+FROM
+    alerts
+WHERE
+    service_id = $1::uuid
+    AND status = 'triggered'
+`
+
+type NoticeUnackedAlertsByServiceRow struct {
+	Count int64
+	Max   int32
+}
+
+func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uuid.UUID) (NoticeUnackedAlertsByServiceRow, error) {
+	row := q.db.QueryRowContext(ctx, noticeUnackedAlertsByService, dollar_1)
+	var i NoticeUnackedAlertsByServiceRow
+	err := row.Scan(&i.Count, &i.Max)
 	return i, err
 }
 

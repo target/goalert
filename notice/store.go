@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/limit"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
@@ -97,24 +96,17 @@ func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]
 		return nil, err
 	}
 
-	count, err := gadb.New(s.db).CountUnackedAlertsByService(ctx, uuid.MustParse(serviceID))
+	res, err := gadb.New(s.db).NoticeUnackedAlertsByService(ctx, uuid.MustParse(serviceID))
 	if err != nil {
 		return nil, err
 	}
 
-	ls, err := limit.NewStore(ctx, s.db)
-	if err != nil {
-		return nil, err
-	}
-	l, err := ls.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	unackedLim := int64(limit.Limits.Max(l, "unacked_alerts_per_service"))
+	count := float32(res.Count)
+	limit := float32(res.Max)
 	details := fmt.Sprintf("New alerts will be rejected while at or above the limit (%v), acknowledge or close alerts to resolve.", count)
 
 	// hit system limit notice
-	if count >= unackedLim {
+	if count >= limit {
 		return []Notice{
 			{
 				Type:    TypeError,
@@ -125,7 +117,7 @@ func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]
 	}
 
 	// nearing system limit notice
-	if float32(count)/float32(unackedLim) > 0.75 {
+	if count/limit > 0.75 {
 		return []Notice{
 			{
 				Type:    TypeWarning,
