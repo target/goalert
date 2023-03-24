@@ -597,7 +597,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "acquire global sending advisory lock")
 	}
 	defer func() {
-		cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
+		_, _ = cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
 	}()
 
 	tx, err := cLock.BeginTx(execCtx, nil)

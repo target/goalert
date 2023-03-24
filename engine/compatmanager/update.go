@@ -2,6 +2,7 @@ package compatmanager
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -39,7 +40,7 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func(tx *sql.Tx) { _ = tx.Rollback() }(tx)
 
 	type cm struct {
 		ID          uuid.UUID
@@ -90,7 +91,7 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func(tx *sql.Tx) { _ = tx.Rollback() }(tx)
 
 	type sub struct {
 		ID         int
