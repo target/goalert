@@ -2,7 +2,6 @@ package twiml
 
 import (
 	"encoding/xml"
-	"time"
 )
 
 type Say struct {

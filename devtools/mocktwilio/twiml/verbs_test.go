@@ -3,7 +3,6 @@ package twiml
 import (
 	"encoding/xml"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,4 +32,3 @@ func TestSay(t *testing.T) {
 	check(Say{Content: "hi", LoopCount: 1000}, `<Say loop="1000">hi</Say>`)
 	check(Say{Content: "hi", Voice: "foo"}, `<Say voice="foo">hi</Say>`)
 }
-
