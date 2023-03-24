@@ -118,7 +118,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	case alertCloseActionID:
 		res = notification.ResultResolve
 	case linkActActionID:
-		s.withClient(ctx, func(c *slack.Client) error {
+		if err = s.withClient(ctx, func(c *slack.Client) error {
 			// remove ephemeral 'Link Account' button
 			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL),
@@ -127,7 +127,9 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 				return err
 			}
 			return nil
-		})
+		}); err != nil {
+			errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "issue with link action on action ID '%s'", act.ActionID))
+		}
 		return
 	default:
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "unknown action ID '%s'", act.ActionID))
