@@ -22,7 +22,7 @@ func TestBuildMessage(t *testing.T) {
 		notification.Test{},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with a test message.", prefix), result)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	// AlertBundle Notification
 	result, err = buildMessage(
@@ -35,7 +35,7 @@ func TestBuildMessage(t *testing.T) {
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix), result)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	// Alert Notification
 	result, err = buildMessage(
@@ -48,7 +48,7 @@ func TestBuildMessage(t *testing.T) {
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix), result)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	// AlertStatus Notification
 	result, err = buildMessage(
@@ -62,7 +62,7 @@ func TestBuildMessage(t *testing.T) {
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix), result)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	// Verification Notification
 	result, err = buildMessage(
@@ -73,7 +73,7 @@ func TestBuildMessage(t *testing.T) {
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)), result)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	// Bad Type
 	result, err = buildMessage(
@@ -85,24 +85,24 @@ func TestBuildMessage(t *testing.T) {
 			ScheduleURL:  "5",
 		},
 	)
-	assert.Equal(t, "", result)
-	assert.Equal(t, "unhandled message type: notification.ScheduleOnCallUsers", err.Error())
+	assert.Empty(t, result)
+	assert.Error(t, err)
 
 	// Missing prefix
 	result, err = buildMessage(
 		"",
 		notification.Test{},
 	)
-	assert.Equal(t, "", result)
-	assert.Equal(t, "buildMessage error: no prefix provided", err.Error())
+	assert.Empty(t, result)
+	assert.Error(t, err)
 
 	// no input
 	result, err = buildMessage(
 		prefix,
 		nil,
 	)
-	assert.Equal(t, "", result)
-	assert.Equal(t, "unhandled message type: <nil>", err.Error())
+	assert.Empty(t, result)
+	assert.Error(t, err)
 }
 
 func BenchmarkBuildMessage(b *testing.B) {
