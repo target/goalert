@@ -1,7 +1,6 @@
 package twilio
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -16,148 +15,94 @@ func TestSpellNumber(t *testing.T) {
 
 func TestBuildMessage(t *testing.T) {
 	prefix := "This is GoAlert"
-	type mockInput struct {
-		prefix string
-		msg    notification.Message
-	}
 
-	testCases := map[string]struct {
-		input       mockInput
-		expected    string
-		expectedErr error
-	}{
-		"Test Notification": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.Test{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
-				},
-			},
-			expected: fmt.Sprintf("%s with a test message.", prefix),
-		},
-		"AlertBundle Notification": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.AlertBundle{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID:  "2",
-					ServiceID:   "3",
-					ServiceName: "Widget",
-					Count:       5,
-				},
-			},
-			expected: fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix),
-		},
-		"Alert Notification": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.Alert{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
-					AlertID:    3,
-					Summary:    "Widget is Broken",
-					Details:    "Oh No!",
-				},
-			},
-			expected: fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix),
-		},
-		"AlertStatus Notification": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.AlertStatus{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
-					AlertID:    3,
-					Summary:    "Widget is Broken",
-					Details:    "Oh No!",
-					LogEntry:   "Something is Wrong",
-				},
-			},
-			expected: fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix),
-		},
-		"Verification Notification": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.Verification{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
-					Code:       1234,
-				},
-			},
-			expected: fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)),
-		},
-		"Bad Type": {
-			input: mockInput{
-				prefix: prefix,
-				msg: notification.ScheduleOnCallUsers{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID:   "2",
-					ScheduleID:   "3",
-					ScheduleName: "4",
-					ScheduleURL:  "5",
-				},
-			},
-			expectedErr: errors.New("unhandled message type: notification.ScheduleOnCallUsers"),
-		},
-		"Missing prefix": {
-			input: mockInput{
-				msg: notification.Test{
-					Dest: notification.Dest{
-						ID:    "1",
-						Type:  notification.DestTypeVoice,
-						Value: "+16125551234",
-					},
-					CallbackID: "2",
-				},
-			},
-			expectedErr: errors.New("buildMessage error: no prefix provided"),
-		},
-		"no input": {
-			input: mockInput{
-				prefix: prefix,
-			},
-			expectedErr: errors.New("unhandled message type: <nil>"),
-		},
-	}
+	// Test Notification
+	result, err := buildMessage(
+		prefix,
+		notification.Test{},
+	)
+	assert.Equal(t, fmt.Sprintf("%s with a test message.", prefix), result)
+	assert.Equal(t, nil, err)
 
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			// Arrange / Act
-			result, err := buildMessage(tc.input.prefix, tc.input.msg)
+	// AlertBundle Notification
+	result, err = buildMessage(
+		prefix,
+		notification.AlertBundle{
+			CallbackID:  "2",
+			ServiceID:   "3",
+			ServiceName: "Widget",
+			Count:       5,
+		},
+	)
+	assert.Equal(t, fmt.Sprintf("%s with alert notifications. Service 'Widget' has 5 unacknowledged alerts.", prefix), result)
+	assert.Equal(t, nil, err)
 
-			// Assert
-			assert.Equal(t, tc.expected, result)
-			if tc.expectedErr != nil || err != nil {
-				// have to do it this way since errors.Errorf will never match due to memory alocations.
-				assert.Equal(t, tc.expectedErr.Error(), err.Error())
-			}
-		})
-	}
+	// Alert Notification
+	result, err = buildMessage(
+		prefix,
+		notification.Alert{
+			CallbackID: "2",
+			AlertID:    3,
+			Summary:    "Widget is Broken",
+			Details:    "Oh No!",
+		},
+	)
+	assert.Equal(t, fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix), result)
+	assert.Equal(t, nil, err)
+
+	// AlertStatus Notification
+	result, err = buildMessage(
+		prefix,
+		notification.AlertStatus{
+			CallbackID: "2",
+			AlertID:    3,
+			Summary:    "Widget is Broken",
+			Details:    "Oh No!",
+			LogEntry:   "Something is Wrong",
+		},
+	)
+	assert.Equal(t, fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix), result)
+	assert.Equal(t, nil, err)
+
+	// Verification Notification
+	result, err = buildMessage(
+		prefix,
+		notification.Verification{
+			CallbackID: "2",
+			Code:       1234,
+		},
+	)
+	assert.Equal(t, fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)), result)
+	assert.Equal(t, nil, err)
+
+	// Bad Type
+	result, err = buildMessage(
+		prefix,
+		notification.ScheduleOnCallUsers{
+			CallbackID:   "2",
+			ScheduleID:   "3",
+			ScheduleName: "4",
+			ScheduleURL:  "5",
+		},
+	)
+	assert.Equal(t, "", result)
+	assert.Equal(t, "unhandled message type: notification.ScheduleOnCallUsers", err.Error())
+
+	// Missing prefix
+	result, err = buildMessage(
+		"",
+		notification.Test{},
+	)
+	assert.Equal(t, "", result)
+	assert.Equal(t, "buildMessage error: no prefix provided", err.Error())
+
+	// no input
+	result, err = buildMessage(
+		prefix,
+		nil,
+	)
+	assert.Equal(t, "", result)
+	assert.Equal(t, "unhandled message type: <nil>", err.Error())
 }
 
 func BenchmarkBuildMessage(b *testing.B) {
@@ -171,7 +116,9 @@ func BenchmarkBuildMessage(b *testing.B) {
 					Value: fmt.Sprintf("+1612555123%d", i),
 				},
 				CallbackID: "2",
-			})
+			},
+		)
+	}
 }
 
 func BenchmarkSpellNumber(b *testing.B) {
