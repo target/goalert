@@ -31,7 +31,7 @@ func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer stdlib.ReleaseConn(db, conn)
+	defer func(db *sql.DB, conn *pgx.Conn) { _ = stdlib.ReleaseConn(db, conn) }(db, conn)
 
 	// only ever load new events
 	lastID, err := swodb.New(conn).LastLogID(ctx)
@@ -99,7 +99,7 @@ func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverL
 	if err != nil {
 		return nil, err
 	}
-	defer stdlib.ReleaseConn(l.db, conn)
+	defer func(l *Log, conn *pgx.Conn) { _ = stdlib.ReleaseConn(l.db, conn) }(l, conn)
 
 	return swodb.New(conn).LogEvents(ctx, lastID)
 }
@@ -123,7 +123,7 @@ func (l *Log) Append(ctx context.Context, msg Message) error {
 	if err != nil {
 		return err
 	}
-	defer stdlib.ReleaseConn(l.db, conn)
+	defer func(l *Log, conn *pgx.Conn) { _ = stdlib.ReleaseConn(l.db, conn) }(l, conn)
 
 	err = conn.SendBatch(ctx, &b).Close()
 	if err != nil {
