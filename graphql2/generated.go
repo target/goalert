@@ -493,6 +493,7 @@ type ComplexityRoot struct {
 		Labels               func(childComplexity int) int
 		MaintenanceExpiresAt func(childComplexity int) int
 		Name                 func(childComplexity int) int
+		Notices              func(childComplexity int) int
 		OnCallUsers          func(childComplexity int) int
 	}
 
@@ -589,6 +590,7 @@ type ComplexityRoot struct {
 		LastTestVerifyAt       func(childComplexity int) int
 		LastVerifyMessageState func(childComplexity int) int
 		Name                   func(childComplexity int) int
+		Pending                func(childComplexity int) int
 		StatusUpdates          func(childComplexity int) int
 		Type                   func(childComplexity int) int
 		Value                  func(childComplexity int) int
@@ -789,6 +791,7 @@ type ServiceResolver interface {
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
+	Notices(ctx context.Context, obj *service.Service) ([]notice.Notice, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (string, error)
@@ -3166,6 +3169,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.Name(childComplexity), true
 
+	case "Service.notices":
+		if e.complexity.Service.Notices == nil {
+			break
+		}
+
+		return e.complexity.Service.Notices(childComplexity), true
+
 	case "Service.onCallUsers":
 		if e.complexity.Service.OnCallUsers == nil {
 			break
@@ -3543,6 +3553,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserContactMethod.Name(childComplexity), true
+
+	case "UserContactMethod.pending":
+		if e.complexity.UserContactMethod.Pending == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.Pending(childComplexity), true
 
 	case "UserContactMethod.statusUpdates":
 		if e.complexity.UserContactMethod.StatusUpdates == nil {
@@ -5534,6 +5551,8 @@ func (ec *executionContext) fieldContext_Alert_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "notices":
+				return ec.fieldContext_Service_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -11269,6 +11288,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "notices":
+				return ec.fieldContext_Service_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -12141,6 +12162,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -14349,6 +14372,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "notices":
+				return ec.fieldContext_Service_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -15867,6 +15892,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -19400,6 +19427,58 @@ func (ec *executionContext) fieldContext_Service_heartbeatMonitors(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_notices(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_notices(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().Notices(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]notice.Notice)
+	fc.Result = res
+	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_notices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_Notice_type(ctx, field)
+			case "message":
+				return ec.fieldContext_Notice_message(ctx, field)
+			case "details":
+				return ec.fieldContext_Notice_details(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Notice", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ServiceConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServiceConnection_nodes(ctx, field)
 	if err != nil {
@@ -19461,6 +19540,8 @@ func (ec *executionContext) fieldContext_ServiceConnection_nodes(ctx context.Con
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "notices":
+				return ec.fieldContext_Service_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -20755,6 +20836,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -21889,6 +21972,50 @@ func (ec *executionContext) fieldContext_UserContactMethod_disabled(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_pending(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_pending(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pending, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_pending(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserContactMethod_lastTestVerifyAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 	if err != nil {
@@ -22252,6 +22379,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_formattedValue(ctx, field)
 			case "disabled":
 				return ec.fieldContext_UserContactMethod_disabled(ctx, field)
+			case "pending":
+				return ec.fieldContext_UserContactMethod_pending(ctx, field)
 			case "lastTestVerifyAt":
 				return ec.fieldContext_UserContactMethod_lastTestVerifyAt(ctx, field)
 			case "lastTestMessageState":
@@ -32289,6 +32418,26 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
+		case "notices":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_notices(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -33129,6 +33278,13 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 		case "disabled":
 
 			out.Values[i] = ec._UserContactMethod_disabled(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "pending":
+
+			out.Values[i] = ec._UserContactMethod_pending(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

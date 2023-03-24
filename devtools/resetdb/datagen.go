@@ -150,6 +150,7 @@ func (d *datagen) NewCM(userID string) {
 		Name:     d.ids.Gen(d.FirstName, userID),
 		Disabled: true,
 		UserID:   userID,
+		Pending:  false,
 	}
 	if d.Bool() {
 		cm.Type = contactmethod.TypeVoice

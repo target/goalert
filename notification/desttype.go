@@ -76,7 +76,7 @@ func (t ScannableDestType) DestType() DestType {
 	}
 
 	switch t.NC {
-	case notificationchannel.TypeSlack:
+	case notificationchannel.TypeSlackChan:
 		return DestTypeSlackChannel
 	case notificationchannel.TypeWebhook:
 		return DestTypeChanWebhook
@@ -89,7 +89,7 @@ func (t ScannableDestType) DestType() DestType {
 func (t DestType) NCType() notificationchannel.Type {
 	switch t {
 	case DestTypeSlackChannel:
-		return notificationchannel.TypeSlack
+		return notificationchannel.TypeSlackChan
 	case DestTypeChanWebhook:
 		return notificationchannel.TypeWebhook
 	}

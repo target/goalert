@@ -34,7 +34,7 @@ const query = gql`
   }
 `
 
-interface OverrideDialog {
+export interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
   defaultValue?: {

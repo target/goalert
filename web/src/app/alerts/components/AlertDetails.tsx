@@ -39,7 +39,7 @@ import {
   EscalationPolicyStep,
   AlertStatus,
 } from '../../../schema'
-import ServiceMaintenanceNotice from '../../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
 
 interface AlertDetailsProps {
@@ -228,6 +228,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       const schedules = targets.filter((t) => t.type === 'schedule')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
+      const webhooks = targets.filter((t) => t.type === 'chanWebhook')
       const selected =
         status !== 'StatusClosed' &&
         (currentLevel ?? 0) % steps.length === index
@@ -247,6 +248,9 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
             )}
             {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
+            {webhooks.length > 0 && (
+              <div>Webhooks: {renderTargets(webhooks, id)}</div>
+            )}
           </TableCell>
         </TableRow>
       )
@@ -354,7 +358,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const { data: alert } = props
   return (
     <Grid container spacing={2}>
-      <ServiceMaintenanceNotice
+      <ServiceNotices
         serviceID={alert?.service?.id ?? ''}
         extraNotices={alert.pendingNotifications.map((n) => ({
           type: 'WARNING',
