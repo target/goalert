@@ -16,7 +16,7 @@ func TestMultiLock_TryLock(t *testing.T) {
 	wait, err := l.TryLock()
 	assert.NoError(t, err)
 
-	go wait(ctx)
+	go func(ctx context.Context) { _ = wait(ctx) }(ctx)
 	assert.False(t, l.Unlock())
 	assert.True(t, l.Unlock())
 }
@@ -31,7 +31,7 @@ func TestMultiLock(t *testing.T) {
 		wait, err := l.TryLock()
 		require.NoError(t, err)
 		if wait != nil {
-			go wait(context.Background())
+			go func() { _ = wait(context.Background()) }()
 		}
 	}
 
@@ -39,7 +39,7 @@ func TestMultiLock(t *testing.T) {
 		assert.False(t, l.Unlock())
 		wait, err := l.TryLock()
 		require.NoError(t, err)
-		go wait(context.Background())
+		go func() { _ = wait(context.Background()) }()
 	}
 
 	for i := 0; i < 19; i++ {

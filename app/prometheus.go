@@ -40,6 +40,6 @@ func initPromServer() error {
 	srv := http.Server{
 		Handler: mux,
 	}
-	go srv.Serve(l)
+	go func(srv *http.Server, l *net.Listener) { _ = srv.Serve(*l) }(&srv, &l)
 	return nil
 }

@@ -13,9 +13,9 @@ func TestManager_PauseingShutdown(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	mgr.SetPauseResumer(pr)
+	_ = mgr.SetPauseResumer(pr)
 
-	go mgr.Run(context.Background())
+	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -67,9 +67,9 @@ func TestManager_PauseShutdown(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	mgr.SetPauseResumer(pr)
+	_ = mgr.SetPauseResumer(pr)
 
-	go mgr.Run(context.Background())
+	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -113,9 +113,9 @@ func TestManager_PauseResume(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	mgr.SetPauseResumer(pr)
+	_ = mgr.SetPauseResumer(pr)
 
-	go mgr.Run(context.Background())
+	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -154,9 +154,9 @@ func TestManager_PauseingResume(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	mgr.SetPauseResumer(pr)
+	_ = mgr.SetPauseResumer(pr)
 
-	go mgr.Run(context.Background())
+	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
 	var err error
 	errCh := make(chan error)
