@@ -5,6 +5,9 @@ import (
 	"strconv"
 )
 
+// NullInt is a nullable int that can be used to marshal/unmarshal
+// XML attributes that are optional but have special meaning when
+// they are present vs. when they are not.
 type NullInt struct {
 	Valid bool
 	Value int

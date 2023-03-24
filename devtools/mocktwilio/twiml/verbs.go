@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 )
 
+// Say is a TwiML verb that plays back a message to the caller.
 type Say struct {
 	Content  string `xml:",innerxml"`
 	Language string `xml:"language,attr,omitempty"`
