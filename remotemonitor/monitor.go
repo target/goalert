@@ -126,7 +126,11 @@ func (m *Monitor) reportErr(i Instance, err error, action string) {
 			log.Println("No ErrorAPIKey for", ins.Location)
 			continue
 		}
-		go ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details)
+		go func(ins Instance, summary string, details string) {
+			if err := ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details); err != nil {
+				log.Printf("Error creating a generic alert: %v", err)
+			}
+		}(ins, summary, details)
 	}
 	log.Println("ERROR:", summary)
 }
