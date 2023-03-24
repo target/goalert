@@ -1,5 +1,5 @@
-import React, { useEffect, useState, MouseEvent } from 'react'
-import { useQuery, useMutation, gql } from '@apollo/client'
+import React, { useEffect, MouseEvent, useState } from 'react'
+import { gql, useQuery, useMutation } from 'urql'
 
 import Spinner from '../loading/components/Spinner'
 
@@ -43,21 +43,18 @@ export default function SendTestDialog(
 ): JSX.Element {
   const { title = 'Test Delivery Status', onClose, messageID } = props
 
-  const [now] = useState(DateTime.local())
+  const [sendTestStatus, sendTest] = useMutation(mutation)
 
-  const [sendTest, sendTestStatus] = useMutation(mutation, {
+  const [{ data, fetching, error }] = useQuery({
+    query,
     variables: {
       id: messageID,
     },
+    requestPolicy: 'network-only',
   })
 
-  const { data, loading, error } = useQuery(query, {
-    variables: {
-      id: messageID,
-    },
-    fetchPolicy: 'network-only',
-  })
-
+  // We keep a stable timestamp to track how long the dialog has been open
+  const [now] = useState(DateTime.utc())
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
   const cmDestValue = data?.userContactMethod?.formattedValue ?? ''
   const cmType: ContactMethodType = data?.userContactMethod?.type ?? ''
@@ -65,24 +62,29 @@ export default function SendTestDialog(
   const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
   const fromValue =
     data?.userContactMethod?.lastTestMessageState?.formattedSrcValue ?? ''
-  const errorMessage = error?.message ?? ''
+  const errorMessage = (error?.message || sendTestStatus.error?.message) ?? ''
 
   useEffect(() => {
-    if (loading || error || sendTestStatus.called) {
+    if (fetching || errorMessage || sendTestStatus.data) {
       return
     }
     if (
-      data?.userContactMethod?.lastTestMessageState == null ||
+      data?.lastTestMessageState == null ||
       !(timeSinceLastVerified.as('seconds') < 60)
     ) {
-      sendTest()
+      sendTest({ id: messageID })
     }
-  }, [lastTestVerifyAt, loading])
+  }, [lastTestVerifyAt, fetching])
 
-  let details
-  if (sendTestStatus.called && lastTestVerifyAt > now.toISO()) {
+  let details = ''
+  if (sendTestStatus.data && lastTestVerifyAt > now.toISO()) {
     details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   }
+
+  const isLoading =
+    sendTestStatus.fetching ||
+    (!!details && !!errorMessage) ||
+    status === 'pending'
 
   const getTestStatusColor = (status: string): string => {
     switch (status) {
@@ -94,8 +96,6 @@ export default function SendTestDialog(
         return 'warning'
     }
   }
-
-  if (loading || sendTestStatus.loading) return <Spinner text='Loading...' />
 
   const msg = (): string => {
     switch (cmType) {
@@ -119,19 +119,15 @@ export default function SendTestDialog(
         <DialogContentText>
           GoAlert is sending a test {msg()}.
         </DialogContentText>
+        {isLoading && <Spinner text='Sending Test...' />}
         {fromValue && (
           <DialogContentText>
             The test message was sent from {fromValue}.
           </DialogContentText>
         )}
-        {details && (
+        {!!details && (
           <DialogContentText color={getTestStatusColor(status)}>
             {toTitleCase(details)}
-          </DialogContentText>
-        )}
-        {!details && (
-          <DialogContentText color='error'>
-            Couldn't send a message yet, please try again after about a minute.
           </DialogContentText>
         )}
       </DialogContent>

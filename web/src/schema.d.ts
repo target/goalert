@@ -841,6 +841,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -930,6 +931,7 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'
@@ -1024,10 +1026,18 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1047,6 +1057,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {

@@ -9,8 +9,8 @@ import (
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestNotices tests notices are properly returned given the appropriate scenarios.
-func TestNotices(t *testing.T) {
+// TestEPNotices tests notices are properly returned given the appropriate scenarios.
+func TestEPNotices(t *testing.T) {
 	t.Parallel()
 
 	const sql = `

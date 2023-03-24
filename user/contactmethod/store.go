@@ -72,33 +72,33 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			WHERE id = any($1)
 		`),
 		insert: p.P(`
-			INSERT INTO user_contact_methods (id,name,type,value,disabled,user_id)
-			VALUES ($1,$2,$3,$4,$5,$6)
+			INSERT INTO user_contact_methods (id,name,type,value,disabled,user_id,enable_status_updates)
+			VALUES ($1,$2,$3,$4,$5,$6,$7)
 		`),
 		findOne: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = $1
 		`),
 		findOneUpd: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = $1
 			FOR UPDATE
 		`),
 		findMany: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE id = any($1)
 		`),
 		findAll: p.P(`
-			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at,enable_status_updates,pending
 			FROM user_contact_methods
 			WHERE user_id = $1
 		`),
 		update: p.P(`
 				UPDATE user_contact_methods
-				SET name = $2, disabled = $3
+				SET name = $2, disabled = $3, enable_status_updates = $4
 				WHERE id = $1
 			`),
 		delete: p.P(`
@@ -239,7 +239,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Co
 		return nil, err
 	}
 
-	_, err = wrapTx(ctx, tx, s.insert).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, n.Disabled, n.UserID)
+	_, err = wrapTx(ctx, tx, s.insert).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, n.Disabled, n.UserID, n.StatusUpdates)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 
 	var c ContactMethod
 	row := wrapTx(ctx, tx, s.findOneUpd).QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +339,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) 
 
 	var c ContactMethod
 	row := s.findOne.QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +378,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 	}
 
 	if permission.Admin(ctx) {
-		_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled)
+		_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled, n.StatusUpdates)
 		return err
 	}
 
@@ -387,7 +387,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 		return err
 	}
 
-	_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled)
+	_, err = wrapTx(ctx, tx, s.update).ExecContext(ctx, n.ID, n.Name, n.Disabled, n.StatusUpdates)
 	return err
 }
 
@@ -416,7 +416,7 @@ func scanAll(rows *sql.Rows) ([]ContactMethod, error) {
 	var contactMethods []ContactMethod
 	for rows.Next() {
 		var c ContactMethod
-		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
+		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt, &c.StatusUpdates, &c.Pending)
 		if err != nil {
 			return nil, err
 		}

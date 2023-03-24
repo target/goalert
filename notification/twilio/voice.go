@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	stderrors "errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -52,6 +54,7 @@ const (
 	digitConfirm  = "3"
 	digitOldAck   = "8"
 	digitOldClose = "9"
+	digitEscalate = "5"
 	sayRepeat     = "star"
 )
 
@@ -94,6 +97,10 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	if alert.IsAlreadyAcknowledged(err) {
 		return "Alert is already acknowledged.", nil
 	}
+	if validation.IsClientError(err) {
+		return "Error: " + stderrors.Unwrap(err).Error(), nil
+	}
+
 	// Error is something else.
 	return "System error. Please visit the dashboard.", err
 }
@@ -253,7 +260,6 @@ func (v *Voice) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		// log and continue
 		log.Log(ctx, err)
 	}
-
 }
 
 type call struct {
@@ -450,6 +456,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
 func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -554,7 +561,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		if call.Q.Get(msgParamBundle) == "1" {
 			resp.AddOptions(optionAckAll, optionCloseAll)
 		} else {
-			resp.AddOptions(optionAck, optionClose)
+			resp.AddOptions(optionAck, optionEscalate, optionClose)
 		}
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, CallTypeAlert))
@@ -565,12 +572,15 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		resp.Redirect(v.callbackURL(ctx, call.Q, CallTypeStop))
 		return
 
-	case digitAck, digitClose: // Acknowledge and Close cases
+	case digitAck, digitClose, digitEscalate: // Acknowledge , Escalate and Close cases
 		var result notification.Result
 		var msg string
 		if call.Digits == digitClose {
 			result = notification.ResultResolve
 			msg = "Closed"
+		} else if call.Digits == digitEscalate {
+			result = notification.ResultEscalate
+			msg = "Escalation requested"
 		} else {
 			result = notification.ResultAcknowledge
 			msg = "Acknowledged"

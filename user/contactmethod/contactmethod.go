@@ -16,6 +16,9 @@ type ContactMethod struct {
 	Value    string
 	Disabled bool
 	UserID   string
+	Pending  bool
+
+	StatusUpdates bool
 
 	lastTestVerifyAt sql.NullTime
 }
@@ -51,6 +54,13 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 		// require the full Slack ID format (which is a bit more complex)
 		// as it may change in the future.
 		err = validate.Many(err, validate.ASCII("Value", c.Value, 3, 128))
+	}
+
+	if c.Type.StatusUpdatesAlways() {
+		c.StatusUpdates = true
+	}
+	if c.Type.StatusUpdatesNever() {
+		c.StatusUpdates = false
 	}
 
 	if err != nil {

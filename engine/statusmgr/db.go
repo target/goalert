@@ -1,4 +1,4 @@
-package statusupdatemanager
+package statusmgr
 
 import (
 	"context"
@@ -18,9 +18,6 @@ type DB struct {
 	updateStatus   *sql.Stmt
 	deleteSub      *sql.Stmt
 	cmWantsUpdates *sql.Stmt
-
-	cmUnsub  *sql.Stmt
-	usrUnsub *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -30,7 +27,7 @@ func (db *DB) Name() string { return "Engine.StatusUpdateManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeStatusUpdate,
-		Version: 3,
+		Version: 4,
 	})
 	if err != nil {
 		return nil, err
@@ -40,33 +37,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		lock: lock,
 
-		cmUnsub: p.P(`
-			delete from alert_status_subscriptions where id in (
-				select stat.id from alert_status_subscriptions stat
-				where stat.contact_method_id notnull and exists (
-					select true from user_contact_methods cm where cm.id = stat.contact_method_id and cm.disabled
-				)
-				limit 100
-				for update skip locked
-			)
-		`),
-
-		usrUnsub: p.P(`
-			delete from alert_status_subscriptions where id in (
-				select stat.id from alert_status_subscriptions stat
-				where stat.contact_method_id notnull and not exists (
-					select true from users u where u.alert_status_log_contact_method_id = stat.contact_method_id
-				)
-				limit 100
-				for update skip locked
-			)
-		`),
-
 		cmWantsUpdates: p.P(`
-			select u.id
-			from user_contact_methods cm
-			join users u on u.id = cm.user_id and u.alert_status_log_contact_method_id = $1
-			where cm.id = $1 and not cm.disabled
+			select user_id, type
+			from user_contact_methods
+			where id = $1 and not disabled and enable_status_updates
 		`),
 
 		needsUpdate: p.P(`

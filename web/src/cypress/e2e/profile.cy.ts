@@ -41,19 +41,6 @@ function testProfile(screen: ScreenFormat): void {
       }),
   )
 
-  it('should allow configuring status updates', () => {
-    cy.get('input[name=alert-status-contact-method]').selectByLabel(cm.name)
-    cy.get('input[name=alert-status-contact-method]').should(
-      'have.value',
-      cm.id,
-    )
-    cy.get('input[name=alert-status-contact-method]').selectByLabel('Disable')
-    cy.get('input[name=alert-status-contact-method]').should(
-      'not.have.value',
-      cm.id,
-    )
-  })
-
   it('should list and link on-call services', () => {
     const name = 'SVC ' + c.word({ length: 8 })
 
