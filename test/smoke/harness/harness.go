@@ -315,7 +315,7 @@ func (h *Harness) Start() {
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
 	go func(h *Harness) {
-		_ = h.backend.Run(context.Background()) // can't pass to test fatal on error
+		require.NoError(h.t, h.backend.Run(context.Background())) // can't pass to test fatal on error
 	}(h)
 	err = h.backend.WaitForStartup(ctx)
 	if err != nil {
@@ -509,7 +509,7 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 func (h *Harness) Trigger() {
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
-	_ = h.backend.Engine.WaitCycleID(context.Background(), id)
+	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
