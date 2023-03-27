@@ -4,6 +4,9 @@ import (
 	"encoding/xml"
 )
 
+// Hangup is a verb that hangs up the call.
+type Hangup struct{}
+
 // Say is a TwiML verb that plays back a message to the caller.
 type Say struct {
 	Content  string `xml:",innerxml"`
