@@ -40,7 +40,7 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	if err != nil {
 		return fmt.Errorf("read changes: begin tx: %w", err)
 	}
-	defer func(l *LogicalReplicator) { _, _ = l.srcConn.Exec(ctx, `rollback`) }(l)
+	defer func(srcConn *pgx.Conn) { _, _ = srcConn.Exec(ctx, `rollback`) }(l.srcConn)
 
 	// in-progress lock & check
 	_, err = res.Exec()

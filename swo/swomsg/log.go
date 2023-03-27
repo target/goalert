@@ -31,7 +31,7 @@ func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(db *sql.DB, conn *pgx.Conn) { _ = stdlib.ReleaseConn(db, conn) }(db, conn)
+	defer releaseConn(db, conn)
 
 	// only ever load new events
 	lastID, err := swodb.New(conn).LastLogID(ctx)
@@ -45,6 +45,11 @@ func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	}
 	go l.readLoop(log.FromContext(ctx).BackgroundContext(), lastID)
 	return l, nil
+}
+
+// releaseConn will release the current db conection
+func releaseConn(db *sql.DB, conn *pgx.Conn) {
+	_ = stdlib.ReleaseConn(db, conn)
 }
 
 // Events will return a channel that will receive all events in the log.
