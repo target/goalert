@@ -36,6 +36,8 @@ export interface Query {
   userContactMethod?: null | UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
+  slackUserGroups: SlackUserGroupConnection
+  slackUserGroup?: null | SlackUserGroup
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
@@ -127,6 +129,24 @@ export interface MessageLogSearchOptions {
 
 export interface MessageLogConnection {
   nodes: DebugMessage[]
+  pageInfo: PageInfo
+}
+
+export interface SlackUserGroupSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface SlackUserGroup {
+  id: string
+  name: string
+  handle: string
+}
+
+export interface SlackUserGroupConnection {
+  nodes: SlackUserGroup[]
   pageInfo: PageInfo
 }
 
