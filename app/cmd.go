@@ -263,8 +263,7 @@ Migration: %s (#%d)
 					return fmt.Errorf("read config: %w", err)
 				}
 				cfg = store.Config()
-				_ = store.Shutdown(ctx)
-				return nil
+				return store.Shutdown(ctx)
 			}
 			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())

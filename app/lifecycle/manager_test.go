@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestManager_PauseingShutdown(t *testing.T) {
@@ -13,7 +15,7 @@ func TestManager_PauseingShutdown(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	_ = mgr.SetPauseResumer(pr)
+	require.NoError(t, mgr.SetPauseResumer(pr))
 
 	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
@@ -67,7 +69,7 @@ func TestManager_PauseShutdown(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	_ = mgr.SetPauseResumer(pr)
+	require.NoError(t, mgr.SetPauseResumer(pr))
 
 	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
@@ -113,7 +115,7 @@ func TestManager_PauseResume(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	_ = mgr.SetPauseResumer(pr)
+	require.NoError(t, mgr.SetPauseResumer(pr))
 
 	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
@@ -154,7 +156,7 @@ func TestManager_PauseingResume(t *testing.T) {
 	run := func(ctx context.Context) error { <-ctx.Done(); close(ran); return ctx.Err() }
 	shut := func(ctx context.Context) error { return nil }
 	mgr := NewManager(run, shut)
-	_ = mgr.SetPauseResumer(pr)
+	require.NoError(t, mgr.SetPauseResumer(pr))
 
 	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
 
