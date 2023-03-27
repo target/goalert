@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Gather is a TwiML verb that gathers pressed digits from the caller.
 type Gather struct {
 	XMLName xml.Name `xml:"Gather"`
 

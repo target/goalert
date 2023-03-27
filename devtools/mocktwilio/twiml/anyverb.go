@@ -7,13 +7,17 @@ import (
 )
 
 type (
-	v          struct{}
+	v struct{}
+
+	// GatherVerb is any verb that can be nested inside a Gather.
 	GatherVerb interface {
 		Verb
-		isGatherVerb() v
+		isGatherVerb() v // unexported method to prevent external implementations
 	}
+
+	// Verb is any verb that can be nested inside a Response.
 	Verb interface {
-		isVerb() v
+		isVerb() v // unexported method to prevent external implementations
 	}
 )
 
