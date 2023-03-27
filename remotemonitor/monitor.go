@@ -128,7 +128,7 @@ func (m *Monitor) reportErr(i Instance, err error, action string) {
 		}
 		go func(ins Instance, summary string, details string) {
 			if err := ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details); err != nil {
-				log.Printf("Error creating a generic alert: %v", err)
+				log.Printf("ERROR: create generic alert: %v", err)
 			}
 		}(ins, summary, details)
 	}
