@@ -16,10 +16,13 @@ type (
 		isVerb() v
 	}
 )
-func (*Say) isGatherVerb() v   { return v{} }
 
-func (*Say) isVerb() v      { return v{} }
-func (*Gather) isVerb() v   { return v{} }
+func (*Say) isGatherVerb() v { return v{} }
+
+func (*Say) isVerb() v    { return v{} }
+func (*Gather) isVerb() v { return v{} }
+func (*Hangup) isVerb() v { return v{} }
+
 type anyVerb struct {
 	verb Verb
 }
@@ -29,6 +32,9 @@ func decodeVerb(d *xml.Decoder, start xml.StartElement) (Verb, error) {
 	case "Gather":
 		g := new(Gather)
 		return g, d.DecodeElement(&g, &start)
+	case "Hangup":
+		h := new(Hangup)
+		return h, d.DecodeElement(&h, &start)
 	case "Say":
 		s := new(Say)
 		return s, d.DecodeElement(&s, &start)
@@ -42,6 +48,8 @@ func encodeVerb(e *xml.Encoder, v Verb) error {
 	switch v.(type) {
 	case *Gather:
 		name = "Gather"
+	case *Hangup:
+		name = "Hangup"
 	case *Say:
 		name = "Say"
 	default:
