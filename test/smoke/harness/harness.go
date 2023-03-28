@@ -23,6 +23,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
@@ -315,7 +316,7 @@ func (h *Harness) Start() {
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
 	go func(h *Harness) {
-		require.NoError(h.t, h.backend.Run(context.Background())) // can't pass to test fatal on error
+		assert.NoError(h.t, h.backend.Run(context.Background())) // can't pass to test fatal on error
 	}(h)
 	err = h.backend.WaitForStartup(ctx)
 	if err != nil {
