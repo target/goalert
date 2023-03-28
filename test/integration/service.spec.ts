@@ -7,7 +7,7 @@ test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, verify, and delete of an EMAIL contact method
-test('Service', async ({ page, browser, isMobile }) => {
+test('Service', async ({ page }) => {
   let name = 'pw-service ' + c.name()
   const description = c.sentence()
 
@@ -22,14 +22,10 @@ test('Service', async ({ page, browser, isMobile }) => {
   // We should be on the details page, so let's try editing it after validating the data on the page.
 
   // We should have a heading with the service name
-  await expect(
-    page.getByRole('heading', { name: name, level: 1 }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
   // and the breadcrumb link
-  await expect(
-    page.getByRole('link', { name: name, exact: true }),
-  ).toBeVisible()
+  await expect(page.getByRole('link', { name, exact: true })).toBeVisible()
 
   // We should also find the description on the page
   await expect(page.getByText(description)).toBeVisible()
@@ -44,9 +40,7 @@ test('Service', async ({ page, browser, isMobile }) => {
   await page.fill('input[name=name]', name)
   await page.click('[role=dialog] button[type=submit]')
 
-  await expect(
-    page.getByRole('heading', { name: name, level: 1 }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
   await page.goto('./services')
 
@@ -54,7 +48,7 @@ test('Service', async ({ page, browser, isMobile }) => {
   await page.fill('input[name=search]', ' ' + name + ' ')
 
   // We should find the service in the list, lets go to it
-  await page.getByRole('link', { name: name }).click()
+  await page.getByRole('link', { name }).click()
 
   // Maintenance mode
   await page.getByRole('button', { name: 'Maintenance Mode' }).click()
