@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestManager_PauseingShutdown(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
+	go func(t *testing.T, mgr *Manager) { assert.NoError(t, mgr.Run(context.Background())) }(t, mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -71,7 +72,7 @@ func TestManager_PauseShutdown(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
+	go func(t *testing.T, mgr *Manager) { assert.NoError(t, mgr.Run(context.Background())) }(t, mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -117,7 +118,7 @@ func TestManager_PauseResume(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
+	go func(t *testing.T, mgr *Manager) { assert.NoError(t, mgr.Run(context.Background())) }(t, mgr)
 
 	var err error
 	errCh := make(chan error)
@@ -158,7 +159,7 @@ func TestManager_PauseingResume(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func(mgr *Manager) { _ = mgr.Run(context.Background()) }(mgr)
+	go func(t *testing.T, mgr *Manager) { assert.NoError(t, mgr.Run(context.Background())) }(t, mgr)
 
 	var err error
 	errCh := make(chan error)
