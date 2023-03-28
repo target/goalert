@@ -550,7 +550,7 @@ func TestMigrations(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer func(db *sql.DB) { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }(db)
+	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
 	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {
