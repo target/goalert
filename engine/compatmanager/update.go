@@ -2,7 +2,6 @@ package compatmanager
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will process compatibility entries for the cycle.
@@ -40,7 +40,7 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer func(tx *sql.Tx) { _ = tx.Rollback() }(tx)
+	defer sqlutil.Rollback(ctx, "engine: update auth subjects", tx)
 
 	type cm struct {
 		ID          uuid.UUID
@@ -91,7 +91,7 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer func(tx *sql.Tx) { _ = tx.Rollback() }(tx)
+	defer sqlutil.Rollback(ctx, "engine: update contact methods", tx)
 
 	type sub struct {
 		ID         int
