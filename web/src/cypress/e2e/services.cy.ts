@@ -8,15 +8,6 @@ function testServices(screen: ScreenFormat): void {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
   describe('List Page', () => {
-    let svc: Service
-    beforeEach(() => {
-      cy.createService()
-        .then((s: Service) => {
-          svc = s
-        })
-        .visit('/services')
-    })
-
     describe('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
