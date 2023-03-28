@@ -3336,10 +3336,10 @@ eslint-module-utils@^2.7.4:
   dependencies:
     debug "^3.2.7"
 
-eslint-plugin-cypress@2.12.1:
-  version "2.12.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-cypress/-/eslint-plugin-cypress-2.12.1.tgz#9aeee700708ca8c058e00cdafe215199918c2632"
-  integrity sha512-c2W/uPADl5kospNDihgiLc7n87t5XhUbFDoTl6CfVkmG+kDAb5Ux10V9PoLPu9N+r7znpc+iQlcmAqT1A/89HA==
+eslint-plugin-cypress@2.13.0:
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-cypress/-/eslint-plugin-cypress-2.13.0.tgz#1beee9a2faf37ea707fdee9208b13ef7b7f56d7a"
+  integrity sha512-koEbKoGdBGt9vT66k2agnCwSuJtmwAcVu2tUa4B9qKs3Ta/hOqWZk7M3+jXe7fn70N21hVHpiO6HvhIFXy/3ZA==
   dependencies:
     globals "^11.12.0"
 
