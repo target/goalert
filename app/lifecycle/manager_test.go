@@ -159,7 +159,7 @@ func TestManager_PauseingResume(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func(t *testing.T, mgr *Manager) { assert.NoError(t, mgr.Run(context.Background())) }(t, mgr)
+	go func() { assert.NoError(t, mgr.Run(context.Background())) }()
 
 	var err error
 	errCh := make(chan error)
