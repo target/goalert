@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Iterator will iterate over the Verbs in a TwiML document,
+// Iterator will iterate over the verbs in a TwiML document,
 // in the order they should be processed.
 //
 // A Say verb within a Gather verb will be processed before
