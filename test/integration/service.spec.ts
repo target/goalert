@@ -7,7 +7,7 @@ test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, verify, and delete of an EMAIL contact method
-test('Service', async ({ page }) => {
+test('Service', async ({ page, isMobile }) => {
   let name = 'pw-service ' + c.name()
   const description = c.sentence()
 
@@ -45,6 +45,9 @@ test('Service', async ({ page }) => {
   await page.goto('./services')
 
   // We should be on the services list page, so let's try searching for the service we just created. We add a space to the beginning of the name to ensure we are searching for the full name and not a substring.
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Search' }).click()
+  }
   await page.fill('input[name=search]', ' ' + name + ' ')
 
   // We should find the service in the list, lets go to it
@@ -75,6 +78,9 @@ test('Service', async ({ page }) => {
   await page.click('[role=dialog] button[type=submit]')
 
   // we should be back on the services list page, so let's search for the service we just deleted
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Search' }).click()
+  }
   await page.fill('input[name=search]', ' ' + name + ' ')
 
   // We should see "No results" on the page
