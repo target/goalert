@@ -9,18 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/oncall"
-	"github.com/target/goalert/version"
 )
-
-type iCalRenderData struct {
-	ApplicationName string
-	Shifts          []oncall.Shift
-	ReminderMinutes []int
-	Version         string
-	GeneratedAt     time.Time
-	EventUIDs       []string
-}
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
 var iCalTemplate = template.Must(template.New("ical").Parse(strings.ReplaceAll(`BEGIN:VCALENDAR
@@ -34,7 +23,7 @@ METHOD:PUBLISH
 {{- range $i, $s := .Shifts}}
 BEGIN:VEVENT
 UID:{{index $eventUIDs $i}}
-SUMMARY:On-Call Shift{{if $s.Truncated}} Begins*
+SUMMARY:On-Call ({{$.ApplicationName}}: {{$.ScheduleName}}){{if $s.Truncated}} Begins*
 DESCRIPTION:The end time of this shift is unknown and will continue beyond what is displayed.
 {{- end }}
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
@@ -52,27 +41,23 @@ END:VEVENT
 END:VCALENDAR
 `, "\n", "\r\n")))
 
-func (cs Subscription) renderICalFromShifts(appName string, shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
-	var eventUIDs []string
-	for _, s := range shifts {
+func (r renderData) renderICal() ([]byte, error) {
+	var icalRender struct {
+		renderData
+		EventUIDs []string
+	}
+	icalRender.renderData = r
+	for _, s := range r.Shifts {
 		t := s.End
 		if s.Truncated {
 			t = s.Start
 		}
-		sum := sha256.Sum256([]byte(s.UserID + cs.ScheduleID + t.Format(time.RFC3339)))
-		eventUIDs = append(eventUIDs, hex.EncodeToString(sum[:]))
+		sum := sha256.Sum256([]byte(s.UserID + r.ScheduleID.String() + t.Format(time.RFC3339)))
+		icalRender.EventUIDs = append(icalRender.EventUIDs, hex.EncodeToString(sum[:]))
 	}
-	data := iCalRenderData{
-		ApplicationName: appName,
-		Shifts:          shifts,
-		ReminderMinutes: cs.Config.ReminderMinutes,
-		Version:         version.GitVersion(),
-		GeneratedAt:     generatedAt,
-		EventUIDs:       eventUIDs,
-	}
-	buf := bytes.NewBuffer(nil)
 
-	err := iCalTemplate.Execute(buf, data)
+	buf := bytes.NewBuffer(nil)
+	err := iCalTemplate.Execute(buf, icalRender)
 	if err != nil {
 		return nil, errors.Wrap(err, "render ical template:")
 	}
