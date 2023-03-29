@@ -87,6 +87,8 @@ func (g *Gather) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch t := v.verb.(type) {
 		case *Say:
 			g.Verbs = append(g.Verbs, t)
+		case *Pause:
+			g.Verbs = append(g.Verbs, t)
 		default:
 			return fmt.Errorf("unexpected verb in Gather: %T", t)
 		}
@@ -142,6 +144,8 @@ func (g Gather) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	for _, v := range g.Verbs {
 		switch t := v.(type) {
 		case *Say:
+			gg.Verbs = append(gg.Verbs, anyVerb{verb: t})
+		case *Pause:
 			gg.Verbs = append(gg.Verbs, anyVerb{verb: t})
 		default:
 			return fmt.Errorf("unexpected verb in Gather: %T", v)

@@ -21,11 +21,15 @@ type (
 	}
 )
 
-func (*Say) isGatherVerb() v { return v{} }
+func (*Pause) isGatherVerb() v { return v{} }
+func (*Say) isGatherVerb() v   { return v{} }
 
-func (*Say) isVerb() v    { return v{} }
-func (*Gather) isVerb() v { return v{} }
-func (*Hangup) isVerb() v { return v{} }
+func (*Pause) isVerb() v    { return v{} }
+func (*Say) isVerb() v      { return v{} }
+func (*Gather) isVerb() v   { return v{} }
+func (*Hangup) isVerb() v   { return v{} }
+func (*Redirect) isVerb() v { return v{} }
+func (*Reject) isVerb() v   { return v{} }
 
 type anyVerb struct {
 	verb Verb
@@ -39,6 +43,15 @@ func decodeVerb(d *xml.Decoder, start xml.StartElement) (Verb, error) {
 	case "Hangup":
 		h := new(Hangup)
 		return h, d.DecodeElement(&h, &start)
+	case "Pause":
+		p := new(Pause)
+		return p, d.DecodeElement(&p, &start)
+	case "Redirect":
+		r := new(Redirect)
+		return r, d.DecodeElement(&r, &start)
+	case "Reject":
+		re := new(Reject)
+		return re, d.DecodeElement(&re, &start)
 	case "Say":
 		s := new(Say)
 		return s, d.DecodeElement(&s, &start)
@@ -54,6 +67,12 @@ func encodeVerb(e *xml.Encoder, v Verb) error {
 		name = "Gather"
 	case *Hangup:
 		name = "Hangup"
+	case *Pause:
+		name = "Pause"
+	case *Redirect:
+		name = "Redirect"
+	case *Reject:
+		name = "Reject"
 	case *Say:
 		name = "Say"
 	default:
