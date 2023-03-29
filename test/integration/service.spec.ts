@@ -33,6 +33,33 @@ test('Service', async ({ page, isMobile }) => {
   // Lastly ensure there is a link to a policy named "<name> Policy"
   await expect(page.getByRole('link', { name: name + ' Policy' })).toBeVisible()
 
+  // Check that filter content doesn't exist yet
+  await expect(
+    page.getByRole('button', { name: 'filter-done' }),
+  ).not.toBeVisible()
+
+  // Open filter
+  // add mobile?
+  await page.getByRole('button', { name: 'Search Services by Filters' }).click()
+
+  // check exists? or is that redundant
+
+  // filter by label key
+
+  // reset filters?
+
+  // check that can't filter by value without a key
+  await expect(page.getByLabel('Select Label Value Key')).toBeDisabled()
+
+  // filter with key and value
+
+  // filter by integration key
+
+  // load in filters from URL
+
+  // close the filter
+  // check its gone?
+
   // Now let's edit the service name
   await page.getByRole('button', { name: 'Edit' }).click()
 
