@@ -48,14 +48,23 @@ test('Service', async ({ page, isMobile }) => {
   await page
     .getByRole('link', { name: 'Labels Group together services' })
     .click()
-  await page.getByTestId('create-label').click()
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
   await page.getByPlaceholder('Start typing...').fill(key)
   await page.getByText('Create "' + key + '"').click()
   await page.getByLabel('Value', { exact: true }).fill(value)
   await page.getByRole('button', { name: 'Submit' }).click()
 
   // return to service
-  await page.getByRole('link', { name: name, exact: true }).click()
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name: name, exact: true }).click()
+  }
 
   // make integration key
   const intKey = c.word({ length: 5 }) + ' Key'
@@ -64,7 +73,11 @@ test('Service', async ({ page, isMobile }) => {
       name: 'Integration Keys Manage keys used to create alerts',
     })
     .click()
-  await page.getByTestId('create-key').click()
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Integration Key' }).click()
+  } else {
+    await page.getByTestId('create-key').click()
+  }
   await page.getByLabel('Name').click()
   await page.getByLabel('Name').fill(intKey)
   await page.getByRole('button', { name: 'Submit' }).click()
@@ -77,7 +90,9 @@ test('Service', async ({ page, isMobile }) => {
   ).not.toBeVisible()
 
   // Open filter
-  // add mobile?
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Search' }).click()
+  }
   await page.getByRole('button', { name: 'Search Services by Filters' }).click()
 
   // check exists? or is that redundant
@@ -101,6 +116,7 @@ test('Service', async ({ page, isMobile }) => {
 
   // filter with key and value
   await page.getByRole('button', { name: 'Search Services by Filters' }).click()
+
   await page
     .locator('div')
     .filter({ hasText: /^Select Label Value$/ })
@@ -118,7 +134,7 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Reset' }).click()
 
   // filter by integration key
-  await page.getByRole('button', { name: 'Search Services by Filters' }).click()
+  // await page.getByRole('button', { name: 'Search Services by Filters' }).click()
   await page
     .locator('div')
     .filter({ hasText: /^Select Integration Key$/ })
@@ -126,16 +142,25 @@ test('Service', async ({ page, isMobile }) => {
     .click()
   await page.getByRole('option', { name: intKey }).getByRole('listitem').click()
   await page.getByRole('button', { name: 'Done' }).click()
+  // remove done?
+  await expect(
+    page.getByRole('link', { name: name + ' ' + description }),
+  ).toBeVisible()
+
+  // reset filters?
+  await page.getByRole('button', { name: 'Search Services by Filters' }).click()
+  await page.getByRole('button', { name: 'Reset' }).click()
 
   // load in filters from URL
+  await page.goto('./services?search=' + key + '=*')
+  await expect(
+    page.getByRole('link', { name: name + ' ' + description }),
+  ).toBeVisible()
 
   // close the filter
   // check its gone?
 
   // We should be on the services list page, so let's try searching for the service we just created. We add a space to the beginning of the name to ensure we are searching for the full name and not a substring.
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Search' }).click()
-  }
   await page.fill('input[name=search]', ' ' + name + ' ')
 
   // We should find the service in the list, lets go to it
