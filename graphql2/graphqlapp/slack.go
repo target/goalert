@@ -21,6 +21,7 @@ func (q *Query) SlackChannel(ctx context.Context, id string) (*slack.Channel, er
 	return q.SlackStore.Channel(ctx, id)
 }
 
+// SlackUserGroup is a GraphQL resolver for a Slack user group.
 func (q *Query) SlackUserGroup(ctx context.Context, id string) (*slack.UserGroup, error) {
 	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
 		return nil, validation.NewGenericError("Slack user groups are not enabled")
@@ -28,6 +29,7 @@ func (q *Query) SlackUserGroup(ctx context.Context, id string) (*slack.UserGroup
 	return q.SlackStore.UserGroup(ctx, id)
 }
 
+// SlackUserGroups is a GraphQL resolver for a list of Slack user groups.
 func (q *Query) SlackUserGroups(ctx context.Context, input *graphql2.SlackUserGroupSearchOptions) (conn *graphql2.SlackUserGroupConnection, err error) {
 	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
 		return nil, validation.NewGenericError("Slack user groups are not enabled")
