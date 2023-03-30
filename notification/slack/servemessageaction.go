@@ -129,6 +129,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			return nil
 		}); err != nil {
 			errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "issue with link action on action ID '%s'", act.ActionID))
+			return
 		}
 		return
 	default:
