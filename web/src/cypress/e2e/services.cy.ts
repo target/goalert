@@ -25,6 +25,7 @@ function testServices(screen: ScreenFormat): void {
         cy.createIntKey().then((i: IntegrationKey) => {
           intKey = i
         })
+        cy.visit('/services')
       })
 
       it('should open and close the filter popover', () => {
