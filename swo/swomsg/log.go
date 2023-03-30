@@ -104,7 +104,7 @@ func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverL
 	if err != nil {
 		return nil, err
 	}
-	defer func(l *Log, conn *pgx.Conn) { _ = stdlib.ReleaseConn(l.db, conn) }(l, conn)
+	defer releaseConn(l.db, conn)
 
 	return swodb.New(conn).LogEvents(ctx, lastID)
 }
@@ -128,7 +128,7 @@ func (l *Log) Append(ctx context.Context, msg Message) error {
 	if err != nil {
 		return err
 	}
-	defer func(l *Log, conn *pgx.Conn) { _ = stdlib.ReleaseConn(l.db, conn) }(l, conn)
+	defer releaseConn(l.db, conn)
 
 	err = conn.SendBatch(ctx, &b).Close()
 	if err != nil {
