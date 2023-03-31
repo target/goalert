@@ -59,7 +59,7 @@
     "recharts": "2.5.0",
     "redux-thunk": "2.4.0",
     "remark-gfm": "3.0.0",
-    "urql": "3.0.1",
+    "urql": "4.0.0",
     "wonka": "6.3.0",
     "wouter": "2.10.0"
   },
