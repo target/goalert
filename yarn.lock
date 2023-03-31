@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@0no-co/graphql.web@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@0no-co/graphql.web/-/graphql.web-1.0.0.tgz#af3f5e3b9359d2f011bc37a93654348b92d4d893"
+  integrity sha512-JBq2pWyDchE1vVjj/+c4dzZ8stbpew4RrzpZ3vYdn1WJFGHfYg6YIX1fDdMKtSXJJM9FUlsoDOxemr9WMM2p+A==
+
 "@ampproject/remapping@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.2.0.tgz#56c133824780de3174aed5ab6834f3026790154d"
@@ -1832,20 +1837,28 @@
     "@typescript-eslint/types" "5.57.0"
     eslint-visitor-keys "^3.3.0"
 
-"@urql/core@>=3.0.0", "@urql/core@^3.0.0":
+"@urql/core@>=4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-4.0.0.tgz#9219771779fdd27b5f1727e4671875563b5450ab"
+  integrity sha512-ZQEtL8tXSdZXvaTsF8GY5wYklqXYKfivQ72p98MfkVSWAjgNgwfHZ32wjUBxge99jGxNjD1vUmYYEINqQhEqtw==
+  dependencies:
+    "@0no-co/graphql.web" "^1.0.0"
+    wonka "^6.3.0"
+
+"@urql/core@^3.0.0":
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/@urql/core/-/core-3.2.2.tgz#2a44015b536d72981822f715c96393d8e0ddc576"
   integrity sha512-i046Cz8cZ4xIzGMTyHZrbdgzcFMcKD7+yhCAH5FwWBRjcKrc+RjEOuR9X5AMuBvr8c6IAaE92xAqa4wmlGfWTQ==
   dependencies:
     wonka "^6.1.2"
 
-"@urql/exchange-retry@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@urql/exchange-retry/-/exchange-retry-1.0.0.tgz#25a48ef0c2f6854f5617e2ca4ea25ae240f1fcbc"
-  integrity sha512-UGyyGAMXzop9C/fIoe7Ij63DkPSy1uMw2jipB5dnB8R3kl80za7LYzVnA1HvBEt2ZPWfMuwez/VGLOQ7XX4bTA==
+"@urql/exchange-retry@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@urql/exchange-retry/-/exchange-retry-1.1.0.tgz#3c14c784e13fdacdd544378a6c44b9fd7a266d3e"
+  integrity sha512-F6OPBikGDHsxmQh9HmKo4x1Yjaa31dvUeYdA3OzyjwD+DYXFlScHKWUjH1LazHIg6lxsH4K+GUg6kH0GaBa21g==
   dependencies:
-    "@urql/core" ">=3.0.0"
-    wonka "^6.0.0"
+    "@urql/core" ">=4.0.0"
+    wonka "^6.3.0"
 
 "@wry/context@^0.7.0":
   version "0.7.0"
@@ -8364,10 +8377,15 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-wonka@6.3.0, wonka@^6.0.0, wonka@^6.1.2:
+wonka@6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.3.0.tgz#dd508dc9ef8588e5bbb10b96f2388bd9d4a1f17b"
   integrity sha512-7np+Kj4OnDQeEN0kafYLkPFKj1Qo+k7mNgyMHSgOeg+9AEvJbL8ipTBgSCTQfGcgVo6TPNU4T5+AZ2rAOyVrAw==
+
+wonka@^6.0.0, wonka@^6.1.2, wonka@^6.3.0:
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.3.1.tgz#315b2a91e134c4032980836e6d97e13d0927634d"
+  integrity sha512-nJyGPcjuBiaLFn8QAlrHd+QjV9AlPO7snOWAhgx6aX0nQLMV6Wi0nqfrkmsXIH0efngbDOroOz2QyLnZMF16Hw==
 
 word-wrap@^1.2.3:
   version "1.2.3"
