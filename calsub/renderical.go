@@ -41,6 +41,7 @@ END:VEVENT
 END:VCALENDAR
 `, "\n", "\r\n")))
 
+// renderICal will generate an iCal file from the renderData.
 func (r renderData) renderICal() ([]byte, error) {
 	var icalRender struct {
 		renderData
