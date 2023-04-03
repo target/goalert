@@ -42,7 +42,7 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
-  // Create a label and value
+  // Create a label and value for the service
   const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
   const value = c.word({ length: 8 })
   await page.getByRole('link', { name: 'Labels' }).click()
@@ -56,6 +56,9 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByText('Create "' + key + '"').click()
   await page.getByLabel('Value', { exact: true }).fill(value)
   await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
 
   // Return to the service
   if (isMobile) {
@@ -74,6 +77,35 @@ test('Service', async ({ page, isMobile }) => {
   }
   await page.getByLabel('Name').fill(intKey)
   await page.getByRole('button', { name: 'Submit' }).click()
+
+  // Make another service
+  const diffName = 'pw-service ' + c.name()
+  const diffDescription = c.sentence()
+
+  await page.goto('./services')
+  await page.getByRole('button', { name: 'Create Service' }).click()
+
+  await page.fill('input[name=name]', diffName)
+  await page.fill('textarea[name=description]', diffDescription)
+
+  await page.click('[role=dialog] button[type=submit]')
+
+  // Set the label with the existing key and a new value
+  const diffValue = c.word({ length: 8 })
+  await page.getByRole('link', { name: 'Labels' }).click()
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByRole('option', { name: key }).getByRole('listitem').click()
+  await page.getByLabel('Value', { exact: true }).fill(diffValue)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(diffValue)).toBeVisible()
 
   await page.goto('./services')
 
@@ -96,34 +128,27 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('option', { name: key }).getByRole('listitem').click()
   await page.getByRole('button', { name: 'Done' }).click()
 
-  // Check if filtered, should have found the service
+  // Check if filtered, should have found both services
   await expect(
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: diffName + ' ' + diffDescription }),
+  ).toBeVisible()
 
-  // // Filter by key and a random value
-  // await page.getByRole('button', { name: 'Search Services by Filters' }).click()
-  // // const newValue = c.word({ length: 8 })
-  // await page.getByLabel('Select Label Value').click()
-  // await page.keyboard.press('ArrowDown')
-  // await page.keyboard.press('Enter')
-  // await page.getByRole('button', { name: 'Done' }).click()
-
-  // // Check if filtered, should not have found the service
-  // await expect(
-  //   page.getByRole('link', { name: name + ' ' + description }),
-  // ).not.toBeVisible()
-
-  // Filter by key and correct value
+  // Filter by key and the first service's value
   await page.getByRole('button', { name: 'Search Services by Filters' }).click()
   await page.getByLabel('Select Label Value').click()
   await page.getByRole('option', { name: value }).getByRole('listitem').click()
   await page.getByRole('button', { name: 'Done' }).click()
 
-  // Check if filtered, should have found the service
+  // Check if filtered, should have found only the first service
   await expect(
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: diffName + ' ' + diffDescription }),
+  ).not.toBeVisible()
 
   // Reset filters
   await page.getByRole('button', { name: 'Search Services by Filters' }).click()

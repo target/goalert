@@ -282,40 +282,6 @@ function testServices(screen: ScreenFormat): void {
       }),
     )
 
-    it('should create a label', () => {
-      const key = label.key
-      const value = c.word({ length: 10 })
-
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-label"]').click()
-      }
-      cy.dialogForm({ key, value })
-      cy.dialogFinish('Submit')
-      cy.get('li').should('contain', key)
-    })
-
-    it('should set an existing label', () => {
-      const key = label.key
-      const value = c.word({ length: 10 })
-
-      cy.createService().then((svc: Service) => {
-        cy.visit(`/services/${svc.id}/labels`)
-      })
-
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-label"]').click()
-      }
-      cy.dialogForm({ key, value })
-      cy.dialogFinish('Submit')
-
-      cy.get('li').should('contain', key)
-      cy.get('li').should('contain', value)
-    })
-
     it('should edit a label', () => {
       const key = label.key
       const value = c.word({ length: 10 })
