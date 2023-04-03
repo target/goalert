@@ -109,6 +109,41 @@ func (q *Queries) CalSubAuthUser(ctx context.Context, arg CalSubAuthUserParams) 
 	return user_id, err
 }
 
+const calSubRenderInfo = `-- name: CalSubRenderInfo :one
+SELECT
+    now()::timestamptz AS now,
+    sub.schedule_id,
+    sched.name AS schedule_name,
+    sub.config,
+    sub.user_id
+FROM
+    user_calendar_subscriptions sub
+    JOIN schedules sched ON sched.id = schedule_id
+WHERE
+    sub.id = $1
+`
+
+type CalSubRenderInfoRow struct {
+	Now          time.Time
+	ScheduleID   uuid.UUID
+	ScheduleName string
+	Config       json.RawMessage
+	UserID       uuid.UUID
+}
+
+func (q *Queries) CalSubRenderInfo(ctx context.Context, id uuid.UUID) (CalSubRenderInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, calSubRenderInfo, id)
+	var i CalSubRenderInfoRow
+	err := row.Scan(
+		&i.Now,
+		&i.ScheduleID,
+		&i.ScheduleName,
+		&i.Config,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const createCalSub = `-- name: CreateCalSub :one
 INSERT INTO user_calendar_subscriptions (
         id,
