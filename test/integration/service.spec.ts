@@ -64,7 +64,7 @@ test('Service', async ({ page, isMobile }) => {
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
   } else {
-    await page.getByRole('link', { name: name, exact: true }).click()
+    await page.getByRole('link', { name, exact: true }).click()
   }
 
   // Make an integration key
