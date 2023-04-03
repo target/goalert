@@ -466,7 +466,7 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.get('#content')
         .should('contain', 'Notifies when on-call changes')
-        .should('contain', 'Notifies Sun—Tue, Thu—Sat at 12:00 AM')
+        .should('contain', 'Notifies Sun—Tue, Thu—Sat at 12:00 AM')
     })
 
     it('should create notification rules', () => {
@@ -510,7 +510,7 @@ function testSchedules(screen: ScreenFormat): void {
         'weekdayFilter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
+      cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
     })
 
     it('should delete a notification rule', () => {
@@ -546,7 +546,7 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.dialogTitle('Are you sure?')
       cy.dialogContains(
-        ' will no longer be notified Sun—Tue, Thu—Sat at 12:00 AM',
+        ' will no longer be notified Sun—Tue, Thu—Sat at 12:00 AM',
       )
       cy.dialogFinish('Confirm')
 
@@ -607,7 +607,7 @@ function testSchedules(screen: ScreenFormat): void {
         'weekdayFilter[6]': false,
       })
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'Notifies Mon at 7:00 AM')
+      cy.get('body').should('contain', 'Notifies Mon at 7:00 AM')
     })
   })
 }
