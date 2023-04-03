@@ -485,6 +485,18 @@ type SlackChannelSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type SlackUserGroupConnection struct {
+	Nodes    []slack.UserGroup `json:"nodes"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+}
+
+type SlackUserGroupSearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
+}
+
 type StringConnection struct {
 	Nodes    []string  `json:"nodes"`
 	PageInfo *PageInfo `json:"pageInfo"`

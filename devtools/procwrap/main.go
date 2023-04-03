@@ -117,7 +117,7 @@ func start(extraArgs []string) {
 
 	// signal when the process has ended
 	go func() {
-		cmd.Wait()
+		_ = cmd.Wait()
 		close(wait)
 	}()
 

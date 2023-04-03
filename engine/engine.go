@@ -238,7 +238,7 @@ func (p *Engine) _pause(ctx context.Context) error {
 	case p.triggerPauseCh <- &pauseReq{ch: ch, ctx: ctx}:
 		select {
 		case <-ctx.Done():
-			defer p.Resume(ctx)
+			defer func() { _ = p.Resume(ctx) }()
 			return ctx.Err()
 		case err := <-ch:
 			return err
