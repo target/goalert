@@ -17,6 +17,6 @@ type Provider struct {
 func NewProvider(ctx context.Context, store *Store) (*Provider, error) {
 	return &Provider{
 		b:   store,
-		lim: ctxlock.NewIDLocker[string](ctxlock.Config{MaxWait: 1}),
+		lim: ctxlock.NewIDLocker[string](ctxlock.Config{MaxHeld: 1}),
 	}, nil
 }
