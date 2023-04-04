@@ -124,7 +124,7 @@ func TestIDLocker_CancelQueue(t *testing.T) {
 	go func() { ch <- l.Lock(ctx, "foo") }()
 	require.ErrorIs(t, <-ch, ctxlock.ErrQueueFull) // queue overflow on the last
 	// Queue now should look like this:
-	// [nnn, nnn, nnn, nnn, nnn, nnn, nnn, nnn, nnn, ctx]
+	// [nnn, nnn, nnn, nnn, nnn, nnn, nnn, nnn, ctx, ctx]
 
 	// Make one space, push two nnn items.
 	// One of them will randomly end up in the last spot, and the other
