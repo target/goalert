@@ -12,6 +12,9 @@ import (
 // LimitConcurrencyByAuthSource limits the number of concurrent requests
 // per auth source. MaxHeld is 1, so only one request can be processed at a
 // time per source (e.g., session key, integration key, etc).
+//
+// Note: This is per source/ID combo, so only multiple requests via the SAME
+// integration key would get queued. Separate keys go in separate buckets.
 func LimitConcurrencyByAuthSource(next http.Handler) http.Handler {
 	limit := ctxlock.NewIDLocker[permission.SourceInfo](ctxlock.Config{
 		MaxHeld: 1,
