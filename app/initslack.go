@@ -21,6 +21,9 @@ func (app *App) initSlack(ctx context.Context) error {
 	if expflag.ContextHas(ctx, expflag.SlackDM) {
 		app.notificationManager.RegisterSender(notification.DestTypeSlackDM, "Slack-DM", app.slackChan.DMSender())
 	}
+	if expflag.ContextHas(ctx, expflag.SlackUserGroups) {
+		app.notificationManager.RegisterSender(notification.DestTypeSlackUG, "Slack-UserGroup", app.slackChan.UserGroupSender())
+	}
 
 	return nil
 }
