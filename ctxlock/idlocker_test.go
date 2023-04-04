@@ -2,6 +2,7 @@ package ctxlock_test
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -211,4 +212,66 @@ func TestIDLocker_Unlock_Abandoned(t *testing.T) {
 
 	l.Unlock("foo") // original lock
 	assert.Panics(t, func() { l.Unlock("foo") }, "unlocking an empty queue should panic")
+}
+
+func BenchmarkIDLocker_Sequential(b *testing.B) {
+	l := ctxlock.NewIDLocker[struct{}](ctxlock.Config{})
+	ctx := context.Background()
+	for i := 0; i < b.N; i++ {
+		err := l.Lock(ctx, struct{}{})
+		if err != nil {
+			b.Fatal(err)
+		}
+		l.Unlock(struct{}{})
+	}
+}
+
+func BenchmarkIDLocker_Sequential_Cardinality(b *testing.B) {
+	l := ctxlock.NewIDLocker[int64](ctxlock.Config{})
+	ctx := context.Background()
+	var n int64
+	for i := 0; i < b.N; i++ {
+		err := l.Lock(ctx, n)
+		if err != nil {
+			b.Fatal(err)
+		}
+		n++
+		if n > 100 {
+			l.Unlock(n - 100)
+		}
+	}
+}
+
+func BenchmarkIDLocker_Concurrent(b *testing.B) {
+	l := ctxlock.NewIDLocker[struct{}](ctxlock.Config{MaxWait: -1})
+	ctx := context.Background()
+
+	b.SetParallelism(1000)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			err := l.Lock(ctx, struct{}{})
+			require.NoError(b, err)
+			l.Unlock(struct{}{})
+		}
+	})
+}
+
+func BenchmarkIDLocker_Concurrent_Cardinality(b *testing.B) {
+	l := ctxlock.NewIDLocker[int64](ctxlock.Config{MaxWait: 1})
+	ctx := context.Background()
+
+	b.SetParallelism(1000)
+	var n int64
+	b.RunParallel(func(pb *testing.PB) {
+		id := atomic.AddInt64(&n, 1)
+		ch := make(chan error, 1)
+		for pb.Next() {
+			err := l.Lock(ctx, id)
+			require.NoError(b, err)
+			go func() { ch <- l.Lock(ctx, id) }()
+			l.Unlock(id)
+			require.NoError(b, <-ch)
+			l.Unlock(id)
+		}
+	})
 }
