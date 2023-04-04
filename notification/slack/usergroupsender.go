@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackutilsx"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -34,7 +35,7 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		return nil, err
 	}
 
-	t, ok := msg.(*notification.ScheduleOnCallUsers)
+	t, ok := msg.(notification.ScheduleOnCallUsers)
 	if !ok {
 		return nil, errors.Errorf("unsupported message type: %T", msg)
 	}
@@ -75,24 +76,29 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 	}
 
 	ugID, chanID, _ := strings.Cut(t.Dest.Value, ":")
+	cfg := config.FromContext(ctx)
 
 	if len(missing) > 0 {
 		// TODO: add link action button to invite missing users
 		var buf bytes.Buffer
 		err := userGroupErrorMissing.Execute(&buf, userGroupError{
-			GroupID: ugID,
-			Missing: missing,
-			Linked:  slackUsers,
+			GroupID:      ugID,
+			Missing:      missing,
+			Linked:       slackUsers,
+			callbackFunc: cfg.CallbackURL,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
 		}
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			_, _, err := c.PostMessageContext(ctx, chanID, slack.MsgOptionText(buf.String(), false))
-			return err
+			if err != nil {
+				return fmt.Errorf("post message to channel '%s': %w", chanID, err)
+			}
+			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("send message: %w", err)
+			return nil, err
 		}
 		return &notification.SentMessage{State: notification.StateSent, StateDetails: "missing users, sent error to channel"}, nil
 	}
@@ -103,16 +109,20 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 			GroupID:      ugID,
 			ScheduleID:   t.ScheduleID,
 			ScheduleName: t.ScheduleName,
+			callbackFunc: cfg.CallbackURL,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
 		}
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			_, _, err := c.PostMessageContext(ctx, chanID, slack.MsgOptionText(buf.String(), false))
-			return err
+			if err != nil {
+				return fmt.Errorf("post message to channel '%s': %w", chanID, err)
+			}
+			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("send message: %w", err)
+			return nil, err
 		}
 		return &notification.SentMessage{State: notification.StateSent, StateDetails: "empty user-group, sent error to channel"}, nil
 	}
@@ -134,10 +144,13 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		}
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			_, _, err := c.PostMessageContext(ctx, chanID, slack.MsgOptionText(buf.String(), false))
-			return err
+			if err != nil {
+				return fmt.Errorf("post message to channel '%s': %w", chanID, err)
+			}
+			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("send message: %w", err)
+			return nil, err
 		}
 		return &notification.SentMessage{State: notification.StateSent, StateDetails: "failed to update user-group, sent error to channel and log"}, nil
 	}
@@ -157,11 +170,11 @@ type userGroupError struct {
 }
 
 func (e userGroupError) ErrorRef() string {
-	return e.ErrorID.String()
+	return fmt.Sprintf("`SlackUGErrorID=%s`", e.ErrorID.String())
 }
 
 func (e userGroupError) GroupRef() string {
-	return fmt.Sprintf("<@%s>", e.GroupID)
+	return fmt.Sprintf("<!subteam^%s>", e.GroupID)
 }
 
 func (e userGroupError) MissingUserRefs() string {
@@ -202,4 +215,5 @@ Since a Slack user-group cannot be empty, I'm going to leave it as-is for now.`)
 
 var userGroupErrorUpdate = template.Must(template.New("userGroupErrorMissing").Parse(`Hey everyone! I couldn't update {{.GroupRef}} because I ran into a problem. Maybe touch base with the GoAlert admin(s) to see if they can help? I'm sorry for the inconvenience!
 
-Here's the ID I left with the error in my logs so they can find it: {{.ErrorRef}}`))
+Here's the ID I left with the error in my logs so they can find it:
+{{.ErrorRef}}`))
