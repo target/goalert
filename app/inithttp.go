@@ -115,11 +115,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// add auth info to request logs
 		logRequestAuth,
 
-		conReqLimit{
-			perIntKey:  1,
-			perService: 2,
-			perUser:    3,
-		}.Middleware,
+		LimitConcurrencyByAuthSource,
 
 		wrapGzip,
 	}
