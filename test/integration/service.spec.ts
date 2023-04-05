@@ -42,10 +42,10 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
-  // Create a label and value for the service
-  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  const value = c.word({ length: 8 })
+  // Create a label for the service
   await page.getByRole('link', { name: 'Labels' }).click()
+  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  let value = c.word({ length: 8 })
   if (isMobile) {
     await page.getByRole('button', { name: 'Add' }).click()
   } else {
@@ -59,6 +59,37 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(value)).toBeVisible()
+
+  // Edit the label, change the value, confirm new value is visible
+  value = c.word({ length: 8 })
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
+
+  // Delete the label, confirm it's no longer visible
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await expect(
+    page.getByText('No labels exist for this service.'),
+  ).toBeVisible()
+
+  // Create a second the label and value for the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByText('Create "' + key + '"').click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
 
   // Return to the service
   if (isMobile) {
@@ -77,6 +108,35 @@ test('Service', async ({ page, isMobile }) => {
   }
   await page.getByLabel('Name').fill(intKey)
   await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page.getByText(intKey)).toBeVisible()
+  await expect(page.getByText('Generic API')).toBeVisible()
+
+  // Create a second integration key with a different type
+  const grafanaKey = c.word({ length: 5 }) + ' Key'
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Integration Key' }).click()
+  } else {
+    await page.getByTestId('create-key').click()
+  }
+  await page.getByLabel('Name').fill(grafanaKey)
+  await page.getByRole('button', { name: 'Type Generic API' }).click()
+  await page.getByRole('option', { name: 'Grafana' }).click()
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await expect(page.getByText(grafanaKey)).toBeVisible()
+  await expect(page.getByText('Grafana')).toBeVisible()
+
+  // Delete the second integration key, confirm it is no longer visible
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: grafanaKey })
+    .getByRole('button')
+    .click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await expect(page.getByText(intKey)).toBeVisible()
+  await expect(page.getByText(grafanaKey)).toBeHidden()
 
   // Make another service
   const diffName = 'pw-service ' + c.name()
@@ -124,8 +184,10 @@ test('Service', async ({ page, isMobile }) => {
   await expect(page.getByLabel('Select Label Value')).toBeDisabled()
 
   // Filter by label key
-  await page.getByLabel('Select Label Key').click()
-  await page.getByRole('option', { name: key }).getByRole('listitem').click()
+  // await page.getByLabel('Select Label Key').click()
+  await page.getByRole('combobox', { name: 'Select Label Key' }).fill(key)
+  await page.getByText(key).click()
+  // await page.getByRole('option', { name: key }).getByRole('listitem').click()
   await page.getByRole('button', { name: 'Done' }).click()
 
   // Check if filtered, should have found both services
@@ -206,4 +268,22 @@ test('Service', async ({ page, isMobile }) => {
 
   // We should see "No results" on the page
   await expect(page.getByText('No results')).toBeVisible()
+
+  // search for service by label
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Search' }).click()
+  }
+  await page.fill('input[name=search]', ' ' + key + '=' + value + ' ')
+
+  // We should see the service on the page
+  await expect(page.getByText(name)).toBeVisible()
+
+  // search for service without a label
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Search' }).click()
+  }
+  await page.fill('input[name=search]', ' ' + key + '!=' + value + ' ')
+
+  // We should not see the service on the page
+  await expect(page.getByText(name)).not.toBeVisible()
 })

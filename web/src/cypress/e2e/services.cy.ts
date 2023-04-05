@@ -166,25 +166,6 @@ function testServices(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
     }
 
-    it('should allow managing integration keys', () => {
-      const name = 'SM Int ' + c.word({ length: 8 })
-
-      cy.get('body').should('contain', 'No integration keys')
-      ;['Generic API', 'Grafana'].forEach((type) => {
-        createKey(type, name)
-
-        cy.get('ul[data-cy=int-keys]').should('contain', name)
-
-        // delete
-        cy.get('ul[data-cy=int-keys')
-          .contains('li', name)
-          .find('button')
-          .click()
-
-        cy.dialogFinish('Confirm')
-      })
-    })
-
     it('should manage integration keys with mailgun disabled', () => {
       const domain = c.domain()
       const name = 'SM Int ' + c.word({ length: 8 })
@@ -274,61 +255,11 @@ function testServices(screen: ScreenFormat): void {
   })
 
   describe('Labels', () => {
-    let label: Label
     beforeEach(() =>
       cy.createLabel().then((l: Label) => {
-        label = l
         return cy.visit(`/services/${l.svcID}/labels`)
       }),
     )
-
-    it('should edit a label', () => {
-      const key = label.key
-      const value = c.word({ length: 10 })
-
-      cy.get('li')
-        .should('contain', key)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
-
-      cy.dialogForm({ value })
-      cy.dialogFinish('Submit')
-
-      cy.get('li').should('contain', key)
-      cy.get('li').should('contain', value)
-    })
-
-    it('should delete a label', () => {
-      cy.get('li')
-        .should('contain', label.key)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Delete')
-
-      cy.dialogFinish('Confirm')
-
-      cy.get('li').should('not.contain', label.key)
-      cy.get('li').should('not.contain', label.value)
-    })
-
-    it('should search for a specific service with label', () => {
-      cy.visit(`/services`)
-      cy.get('ul[data-cy=paginated-list]').should('exist')
-      cy.pageSearch(`${label.key}=${label.value}`)
-      cy.get('body')
-        .should('contain', label.svc.name)
-        .should('contain', label.svc.description)
-    })
-
-    it('should search for a services without label', () => {
-      cy.visit(`/services`)
-      cy.get('ul[data-cy=paginated-list]').should('exist')
-      cy.pageSearch(`${label.key}!=${label.value}`)
-      cy.get('body')
-        .should('not.contain', label.svc.name)
-        .should('not.contain', label.svc.description)
-    })
 
     it('should not be able to create a label when DisableLabelCreation is true', () => {
       const randomWord = c.word({
