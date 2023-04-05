@@ -36,6 +36,8 @@ export interface Query {
   userContactMethod?: null | UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
+  slackUserGroups: SlackUserGroupConnection
+  slackUserGroup?: null | SlackUserGroup
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
@@ -127,6 +129,24 @@ export interface MessageLogSearchOptions {
 
 export interface MessageLogConnection {
   nodes: DebugMessage[]
+  pageInfo: PageInfo
+}
+
+export interface SlackUserGroupSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface SlackUserGroup {
+  id: string
+  name: string
+  handle: string
+}
+
+export interface SlackUserGroupConnection {
+  nodes: SlackUserGroup[]
   pageInfo: PageInfo
 }
 
@@ -841,6 +861,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -930,6 +951,7 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'
@@ -1024,10 +1046,18 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1047,6 +1077,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {

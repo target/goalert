@@ -1,12 +1,15 @@
 package calsub
 
 import (
+	"encoding/json"
 	"net/http"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/version"
 )
 
 // ServeICalData will return an iCal file for the subscription associated with the current request.
@@ -19,18 +22,12 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	cs, err := s.FindOne(ctx, src.ID)
+	info, err := gadb.New(s.db).CalSubRenderInfo(ctx, uuid.MustParse(src.ID))
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
-	var n time.Time
-	err = s.now.QueryRowContext(ctx).Scan(&n)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-
-	shifts, err := s.oc.HistoryBySchedule(ctx, cs.ScheduleID, n, n.AddDate(1, 0, 0))
+	shifts, err := s.oc.HistoryBySchedule(ctx, info.ScheduleID.String(), info.Now, info.Now.AddDate(1, 0, 0))
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
@@ -38,13 +35,29 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	// filter out other users
 	filtered := shifts[:0]
 	for _, s := range shifts {
-		if s.UserID != cs.UserID {
+		if s.UserID != info.UserID.String() {
 			continue
 		}
 		filtered = append(filtered, s)
 	}
 
-	calData, err := cs.renderICalFromShifts(cfg.ApplicationName(), filtered, n)
+	var subCfg SubscriptionConfig
+	err = json.Unmarshal(info.Config, &subCfg)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	data := renderData{
+		ApplicationName: cfg.ApplicationName(),
+		ScheduleID:      info.ScheduleID,
+		ScheduleName:    info.ScheduleName,
+		Shifts:          filtered,
+		ReminderMinutes: subCfg.ReminderMinutes,
+		Version:         version.GitVersion(),
+		GeneratedAt:     info.Now,
+	}
+
+	calData, err := data.renderICal()
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/target/goalert/alert"
@@ -33,8 +32,6 @@ func main() {
 	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
 	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
 	flag.Parse()
-
-	rand.Seed(*seedVal)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -69,7 +66,7 @@ func main() {
 	if !*genData {
 		return
 	}
-	dataCfg := &datagenConfig{AdminID: adminID}
+	dataCfg := &datagenConfig{AdminID: adminID, Seed: *seedVal}
 	dataCfg.SetDefaults()
 	dataCfg.Multiply(*mult)
 	err = fillDB(ctx, dataCfg, *dbURL)
@@ -138,9 +135,9 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 		u := data.Users[n]
 		return []interface{}{asUUID(u.ID), u.Name, u.Role, u.Email}
 	})
-	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled"}, len(data.ContactMethods), func(n int) []interface{} {
+	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
 		cm := data.ContactMethods[n]
-		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled}
+		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
 	}, "users")
 	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
 		nr := data.NotificationRules[n]

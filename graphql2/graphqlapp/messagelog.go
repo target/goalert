@@ -30,7 +30,7 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	}
 	var typeName string
 	switch n.Type {
-	case notificationchannel.TypeSlack:
+	case notificationchannel.TypeSlackChan:
 		typeName = "Slack"
 	default:
 		typeName = string(n.Type)

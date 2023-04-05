@@ -115,6 +115,12 @@ type Query {
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
 
+  # Returns the list of Slack user groups available.
+  slackUserGroups(input: SlackUserGroupSearchOptions): SlackUserGroupConnection!
+
+  # Returns a Slack user group with the given ID.
+  slackUserGroup(id: ID!): SlackUserGroup
+
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
@@ -217,6 +223,24 @@ input MessageLogSearchOptions {
 
 type MessageLogConnection {
   nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
+}
+
+input SlackUserGroupSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type SlackUserGroup {
+  id: ID!
+  name: String!
+  handle: String!
+}
+
+type SlackUserGroupConnection {
+  nodes: [SlackUserGroup!]!
   pageInfo: PageInfo!
 }
 
@@ -1073,6 +1097,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+
+  notices: [Notice!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -1171,6 +1197,7 @@ enum TargetType {
   escalationPolicy
   notificationChannel
   slackChannel
+  slackUserGroup
   notificationPolicy
   rotation
   service
@@ -1213,6 +1240,9 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
+    @deprecated(
+      reason: "Use `UpdateUserContactMethodInput.enableStatusUpdates` instead."
+    )
 }
 
 input AuthSubjectInput {
@@ -1243,6 +1273,7 @@ type User {
   calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
+    @deprecated(reason: "Use `UserContactMethod.statusUpdates` instead.")
 
   authSubjects: [AuthSubject!]!
   sessions: [UserSession!]!
@@ -1286,10 +1317,20 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+  pending: Boolean!
 
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  statusUpdates: StatusUpdateState!
+}
+
+enum StatusUpdateState {
+  DISABLED
+  ENABLED
+  ENABLED_FORCED
+  DISABLED_FORCED
 }
 
 input CreateUserContactMethodInput {
@@ -1312,6 +1353,12 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like webhooks, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input SendContactMethodVerificationInput {

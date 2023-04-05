@@ -173,6 +173,9 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
             open={show}
             onClose={handleCloseFilters}
             onOpen={handleOpenFilters}
+            SlideProps={{
+              unmountOnExit: true,
+            }}
           >
             {content}
           </SwipeableDrawer>

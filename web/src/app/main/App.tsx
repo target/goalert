@@ -25,6 +25,7 @@ import { useURLKey } from '../actions'
 import NavBar from './NavBar'
 import AuthLink from './components/AuthLink'
 import { useExpFlag } from '../util/useExpFlag'
+import { NotificationProvider } from './SnackbarNotification'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -79,62 +80,67 @@ export default function App(): JSX.Element {
     <div className={classes.root} id='app-root'>
       <PageActionProvider>
         <SearchProvider>
-          <AppBar
-            position='fixed'
-            className={classes.appBar}
-            data-cy='app-bar'
-            data-cy-format={cyFormat}
-          >
-            <SkipToContentLink />
-            <Toolbar>
-              <ToolbarAction
-                showMobileSidebar={showMobile}
-                openMobileSidebar={() => setShowMobile(true)}
-              />
-              <ToolbarPageTitle />
-              <div style={{ flex: 1 }} />
-              <PageActionContainer />
-              <SearchContainer />
-              <UserSettingsPopover />
-            </Toolbar>
-          </AppBar>
-
-          <Hidden mdDown>
-            <LazyWideSideBar>
-              <NavBar />
-            </LazyWideSideBar>
-          </Hidden>
-          <Hidden mdUp>
-            <SwipeableDrawer
-              disableDiscovery={isIOS}
-              open={showMobile}
-              onOpen={() => setShowMobile(true)}
-              onClose={() => setShowMobile(false)}
+          <NotificationProvider>
+            <AppBar
+              position='fixed'
+              className={classes.appBar}
+              data-cy='app-bar'
+              data-cy-format={cyFormat}
             >
-              <NavBar />
-            </SwipeableDrawer>
-          </Hidden>
+              <SkipToContentLink />
+              <Toolbar>
+                <ToolbarAction
+                  showMobileSidebar={showMobile}
+                  openMobileSidebar={() => setShowMobile(true)}
+                />
+                <ToolbarPageTitle />
+                <div style={{ flex: 1 }} />
+                <PageActionContainer />
+                <SearchContainer />
+                <UserSettingsPopover />
+              </Toolbar>
+            </AppBar>
 
-          <main
-            id='content'
-            className={classes.main}
-            style={{ marginLeft }}
-            data-exp-flag-example={String(hasExampleFlag)}
-          >
-            <ErrorBoundary>
-              <LazyNewUserSetup />
-              <AuthLink />
-              <Grid
-                container
-                justifyContent='center'
-                className={classes.mainContainer}
+            <Hidden mdDown>
+              <LazyWideSideBar>
+                <NavBar />
+              </LazyWideSideBar>
+            </Hidden>
+            <Hidden mdUp>
+              <SwipeableDrawer
+                disableDiscovery={isIOS}
+                open={showMobile}
+                onOpen={() => setShowMobile(true)}
+                onClose={() => setShowMobile(false)}
+                SlideProps={{
+                  unmountOnExit: true,
+                }}
               >
-                <Grid className={classes.containerClass} item>
-                  <AppRoutes />
+                <NavBar />
+              </SwipeableDrawer>
+            </Hidden>
+
+            <main
+              id='content'
+              className={classes.main}
+              style={{ marginLeft }}
+              data-exp-flag-example={String(hasExampleFlag)}
+            >
+              <ErrorBoundary>
+                <LazyNewUserSetup />
+                <AuthLink />
+                <Grid
+                  container
+                  justifyContent='center'
+                  className={classes.mainContainer}
+                >
+                  <Grid className={classes.containerClass} item>
+                    <AppRoutes />
+                  </Grid>
                 </Grid>
-              </Grid>
-            </ErrorBoundary>
-          </main>
+              </ErrorBoundary>
+            </main>
+          </NotificationProvider>
         </SearchProvider>
       </PageActionProvider>
     </div>

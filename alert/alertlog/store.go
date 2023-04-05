@@ -288,7 +288,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			}
 
 			switch ncType {
-			case notificationchannel.TypeSlack:
+			case notificationchannel.TypeSlackChan:
 				r.subject.classifier = "Slack"
 			case notificationchannel.TypeWebhook:
 				r.subject.classifier = "Webhook"

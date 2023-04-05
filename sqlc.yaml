@@ -14,3 +14,16 @@ sql:
       go:
         out: swo/swodb
         sql_package: pgx/v4
+  - schema:
+      - migrate/schema.sql
+    queries:
+      - calsub/queries.sql
+      - alert/queries.sql
+      - notice/queries.sql
+      - graphql2/graphqlapp/queries.sql
+      - engine/statusmgr/queries.sql
+    engine: postgresql
+    gen:
+      go:
+        out: gadb
+        sql_package: stdlib

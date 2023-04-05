@@ -9,7 +9,6 @@ import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
-import MuiPickersUtilsProvider from './mui-pickers'
 import store from './reduxStore'
 import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
@@ -44,14 +43,12 @@ root.render(
         <ApolloProvider client={GraphQLClient}>
           <ReduxProvider store={store}>
             <Router base={pathPrefix}>
-              <MuiPickersUtilsProvider>
-                <URQLProvider value={urqlClient}>
-                  <ConfigProvider>
-                    <NewVersionCheck />
-                    <App />
-                  </ConfigProvider>
-                </URQLProvider>
-              </MuiPickersUtilsProvider>
+              <URQLProvider value={urqlClient}>
+                <ConfigProvider>
+                  <NewVersionCheck />
+                  <App />
+                </ConfigProvider>
+              </URQLProvider>
             </Router>
           </ReduxProvider>
         </ApolloProvider>
