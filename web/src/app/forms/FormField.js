@@ -109,6 +109,7 @@ export function FormField(props) {
     onChange(fieldName, mapOnChangeValue(newValue, value))
   }
 
+  // wraps hints/errors within a grid containing character counter to align horizontally
   function charCountWrapper(component, count) {
     return (
       <Grid container spacing={2}>
@@ -125,6 +126,7 @@ export function FormField(props) {
   }
 
   function renderFormHelperText(error, hint, count) {
+    // handle optional count parameter
     if (count === undefined) {
       count = 0
     }
