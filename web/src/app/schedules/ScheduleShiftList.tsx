@@ -117,6 +117,9 @@ function ScheduleShiftList({
     },
   })
 
+  // getShiftDetails uses the inputted shift (s) and day interval (day) values and returns either a string or a hover tooltip element.
+  // If the schedule's tz is local, it will return the local time string.
+  // If the schedule's tz is not local, it will return a hover tooltip which converts the shift time to the user's local tz.
   function getShiftDetails(
     s: {
       start: DateTime
