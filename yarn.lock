@@ -5948,6 +5948,7 @@ __metadata:
     redux-devtools-extension: 2.13.9
     redux-thunk: 2.4.0
     remark-gfm: 3.0.0
+    typescript: 5.0.2
     urql: 3.0.1
     wonka: 6.3.0
     wouter: 2.10.0

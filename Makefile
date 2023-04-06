@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release force-yarn reset-integration
+.PHONY: goalert-container demo-container release reset-integration
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -155,16 +155,15 @@ jest: $(NODE_DEPS)
 test: $(NODE_DEPS) jest ## Run all unit tests
 	go test -short ./...
 
-force-yarn:
-	yarn install --no-progress --silent --frozen-lockfile --check-files
 
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-js: force-yarn generate $(NODE_DEPS)
+check-js: generate $(NODE_DEPS)
+	yarn install
 	yarn run fmt
 	yarn run lint
-	yarn workspaces run check
+	yarn workspace goalert-web run check
 
 check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy

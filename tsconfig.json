@@ -11,7 +11,8 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "lib": ["ES2017"]
   },
   "exclude": ["*/node_modules/*"]
 }

@@ -83,6 +83,7 @@
     "prettier": "2.8.0",
     "prop-types": "15.8.0",
     "redux": "4.2.0",
-    "redux-devtools-extension": "2.13.9"
+    "redux-devtools-extension": "2.13.9",
+    "typescript": "5.0.2"
   }
 }
