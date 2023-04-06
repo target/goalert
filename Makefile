@@ -14,6 +14,8 @@ INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 
+NODE_DEPS=.pnp.cjs
+
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
 
@@ -91,7 +93,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert bin/psql-lite bin/pgmocktime node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress
@@ -110,13 +112,13 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql $(NODE_DEPS) web/src/genschema.go
 	go generate ./web/src
 
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
@@ -127,7 +129,7 @@ start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
@@ -147,10 +149,10 @@ reset-integration: bin/waitfor bin/goalert bin/psql-lite
 start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
-jest: node_modules 
+jest: $(NODE_DEPS) 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
-test: node_modules jest ## Run all unit tests
+test: $(NODE_DEPS) jest ## Run all unit tests
 	go test -short ./...
 
 force-yarn:
@@ -159,7 +161,7 @@ force-yarn:
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-js: force-yarn generate node_modules
+check-js: force-yarn generate $(NODE_DEPS)
 	yarn run fmt
 	yarn run lint
 	yarn workspaces run check
@@ -183,7 +185,7 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
+generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
 	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
@@ -196,7 +198,7 @@ test-unit: test
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
-playwright-run: node_modules web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	yarn playwright test
 
 smoketest:
@@ -225,25 +227,19 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json Makefile
-	yarn --no-progress --silent --check-files && touch $@
+.pnp.cjs: yarn.lock Makefile web/src/package.json package.json
+	yarn install && touch "$@"
 
-node_modules/.yarn-integrity: yarn.lock Makefile
-	yarn install --no-progress --silent --frozen-lockfile --check-files
-	touch $@
-
-node_modules: yarn.lock node_modules/.yarn-integrity
-	touch -c $@
 
 web/src/build/static/explore.js: web/src/build/static
 
-web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
+web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
 
-web/src/build/static/app.js: web/src/build/static
+web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
 	
 
 notification/desttype_string.go: notification/desttype.go
@@ -274,7 +270,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
-	rm -rf bin node_modules web/src/node_modules web/src/build/static
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)

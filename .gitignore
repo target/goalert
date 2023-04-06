@@ -66,3 +66,8 @@ ngrok.log
 
 smoketest_db_dump
 *.pid
+
+
+/.yarn
+/.pnp.*
+
