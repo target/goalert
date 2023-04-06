@@ -47,5 +47,6 @@
     "stylelint": "15.3.0",
     "stylelint-config-standard": "31.0.0",
     "typescript": "5.0.2"
-  }
+  },
+  "packageManager": "yarn@3.5.0"
 }
