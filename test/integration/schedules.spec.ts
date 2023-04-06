@@ -33,11 +33,10 @@ test('local time hover', async ({ page, isMobile }) => {
   await page.click('[aria-label="Edit"]')
   await page.fill('input[name=time-zone]', 'Europe/Amsterdam')
   await page.waitForTimeout(2000)
-  await page.keyboard.press('ArrowDown')
   for (let i = 0; i < 2; i++) await page.keyboard.press('Enter')
 
   // add user override
-  await page.click('span:has-text("Shifts")')
+  await page.goto(`${baseURL}/schedules/${scheduleID}/shifts`)
   if (!isMobile) {
     await page.click('button:has-text("Create Override")')
     await page.keyboard.press('Tab')
