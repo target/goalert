@@ -8,36 +8,6 @@ function testServices(screen: ScreenFormat): void {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
 
-  describe('Details Page', () => {
-    let svc: Service
-    beforeEach(() =>
-      cy.createService().then((s: Service) => {
-        svc = s
-        return cy.visit(`/services/${s.id}`)
-      }),
-    )
-
-    it('should navigate to and from metrics', () => {
-      cy.navigateToAndFrom(
-        screen,
-        'Services',
-        svc.name,
-        'Metrics',
-        `${svc.id}/alert-metrics`,
-      )
-    })
-
-    it('should navigate to and from alerts', () => {
-      cy.navigateToAndFrom(
-        screen,
-        'Services',
-        svc.name,
-        'Alerts',
-        `${svc.id}/alerts`,
-      )
-    })
-  })
-
   describe('Integration Keys', () => {
     let svc: Service
     beforeEach(() =>
@@ -96,52 +66,6 @@ function testServices(screen: ScreenFormat): void {
         cy.get('button[data-testid="create-key"]').click()
       }
       cy.get('input[name=type]').findByLabel('Email').should('not.exist')
-    })
-  })
-
-  describe('Alerts', () => {
-    let svc: Service
-    beforeEach(() =>
-      cy.createService().then((s: Service) => {
-        svc = s
-        return cy.visit(`/services/${s.id}/alerts`)
-      }),
-    )
-
-    it('should create alert with prepopulated service', () => {
-      const summary = c.sentence({ words: 3 })
-      const details = c.word({ length: 10 })
-
-      cy.pageFab()
-      cy.dialogForm({ summary, details })
-      cy.dialogClick('Next')
-      cy.dialogContains(svc.name)
-      cy.dialogClick('Submit')
-      cy.dialogFinish('Done')
-    })
-
-    it('should allow ack/close all alerts', () => {
-      cy.createAlert({ serviceID: svc.id })
-      cy.createAlert({ serviceID: svc.id })
-      cy.createAlert({ serviceID: svc.id })
-
-      cy.reload()
-
-      cy.get('ul[data-cy=paginated-list]').should('contain', 'UNACKNOWLEDGED')
-
-      cy.get('button').contains('Acknowledge All').click()
-      cy.dialogFinish('Confirm')
-
-      cy.get('ul[data-cy=paginated-list]').should('contain', 'ACKNOWLEDGED')
-      cy.get('ul[data-cy=paginated-list]').should(
-        'not.contain',
-        'UNACKNOWLEDGED',
-      )
-
-      cy.get('button').contains('Close All').click()
-      cy.dialogFinish('Confirm')
-
-      cy.get('body').should('contain', 'No results')
     })
   })
 

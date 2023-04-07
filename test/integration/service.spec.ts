@@ -42,6 +42,138 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
+  // Navigate to the heartbeat monitors
+  await page.getByRole('link', { name: 'Heartbeat Monitors' }).click()
+
+  // Cancel out of create
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+  } else {
+    await page.getByTestId('create-monitor').click()
+  }
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Create a heartbeat monitor using invalid name
+  let timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+  const invalidHMName = 'a'
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+  } else {
+    await page.getByTestId('create-monitor').click()
+  }
+  await page.getByLabel('Name').fill(invalidHMName)
+  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  // Should see error message
+  await expect(page.getByText('Must be at least 2 characters')).toBeVisible()
+
+  // Use valid name instead
+  let hmName = c.word({ length: 5 }) + ' Monitor'
+  await page.getByLabel('Name').fill(hmName)
+  await page.getByRole('button', { name: 'Retry' }).click()
+
+  // Should see the heartbeat monitor created
+  await expect(page.getByText(hmName)).toBeVisible()
+  await expect(page.getByText(timeoutMinutes)).toBeVisible()
+
+  // Cancel out of edit
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Edit the heartbeat monitor
+  hmName = c.word({ length: 5 })
+  timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByLabel('Name').fill(hmName)
+  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  // Should see the edited heartbeat monitor
+  await expect(page.getByText(hmName)).toBeVisible()
+  await expect(page.getByText(timeoutMinutes)).toBeVisible()
+
+  // Cancel out of delete
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Delete the heartbeat monitor
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await page.getByText('No heartbeat monitors exist for this service.').click()
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+
+  // Go to the alerts page
+  await page
+    .getByRole('link', {
+      name: 'Alerts Manage alerts specific to this service',
+    })
+    .click()
+
+  // Create an alert
+  const summary = c.sentence({ words: 3 })
+  const details = c.word({ length: 10 })
+  await page.getByRole('button', { name: 'Create Alert' }).click()
+  await page.getByLabel('Alert Summary').fill(summary)
+  await page.getByLabel('Details (optional)').fill(details)
+  await page.getByRole('button', { name: 'Next' }).click()
+  if (isMobile) {
+    await expect(page.getByText('Selected Services (1)' + name)).toBeVisible()
+  } else {
+    await expect(
+      page.getByRole('dialog', { name: 'Create New Alert' }).getByText(name),
+    ).toBeVisible()
+  }
+  await page.getByRole('button', { name: 'Submit' }).click()
+  await page.getByRole('button', { name: 'Done' }).click()
+
+  // Alert should be unacknowledged
+  await expect(
+    page.getByRole('link', { name: ' UNACKNOWLEDGED ' + summary }),
+  ).toBeVisible()
+
+  // Acknowledge the alert
+  await page.getByRole('button', { name: 'Acknowledge All' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await expect(
+    page.getByRole('link', { name: ' ACKNOWLEDGED ' + summary }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: ' UNACKNOWLEDGED ' + summary }),
+  ).toBeHidden()
+
+  // Close the alert
+  await page.getByRole('button', { name: 'Close All' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await expect(page.getByText('No results')).toBeVisible()
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+
+  // Navigate to the metrics
+  await page.getByRole('link', { name: 'Metrics' }).click()
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+
   // Create a label for the service
   await page.getByRole('link', { name: 'Labels' }).click()
   const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
@@ -137,77 +269,6 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByText(intKey, { exact: true })).toBeVisible()
   await expect(page.getByText(grafanaKey, { exact: true })).toBeHidden()
-
-  // Return to the service
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Back' }).click()
-  } else {
-    await page.getByRole('link', { name, exact: true }).click()
-  }
-
-  // Navigate to the heartbeat monitors
-  await page.getByRole('link', { name: 'Heartbeat Monitors' }).click()
-
-  // Cancel out of create
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
-  } else {
-    await page.getByTestId('create-monitor').click()
-  }
-  await page.getByRole('button', { name: 'Cancel' }).click()
-
-  // Create a heartbeat monitor using invalid name
-  let timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
-  const invalidHMName = 'a'
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
-  } else {
-    await page.getByTestId('create-monitor').click()
-  }
-  await page.getByLabel('Name').fill(invalidHMName)
-  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
-  await page.getByRole('button', { name: 'Submit' }).click()
-
-  // Should see error message
-  await expect(page.getByText('Must be at least 2 characters')).toBeVisible()
-
-  // Use valid name instead
-  let hmName = c.word({ length: 5 }) + ' Monitor'
-  await page.getByLabel('Name').fill(hmName)
-  await page.getByRole('button', { name: 'Retry' }).click()
-
-  // Should see the heartbeat monitor created
-  await expect(page.getByText(hmName)).toBeVisible()
-  await expect(page.getByText(timeoutMinutes)).toBeVisible()
-
-  // Cancel out of edit
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Edit' }).click()
-  await page.getByRole('button', { name: 'Cancel' }).click()
-
-  // Edit the heartbeat monitor
-  hmName = c.word({ length: 5 })
-  timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Edit' }).click()
-  await page.getByLabel('Name').fill(hmName)
-  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
-  await page.getByRole('button', { name: 'Submit' }).click()
-
-  // Should see the edited heartbeat monitor
-  await expect(page.getByText(hmName)).toBeVisible()
-  await expect(page.getByText(timeoutMinutes)).toBeVisible()
-
-  // Cancel out of delete
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await page.getByRole('button', { name: 'Cancel' }).click()
-
-  // Delete the heartbeat monitor
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await page.getByRole('button', { name: 'Confirm' }).click()
-  await page.getByText('No heartbeat monitors exist for this service.').click()
 
   // Make another service
   const diffName = 'pw-service ' + c.name()
