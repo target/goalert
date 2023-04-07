@@ -27,7 +27,7 @@ function testServices(screen: ScreenFormat): void {
       )
     })
 
-    it('should navigate to and from metrics', () => {
+    it('should navigate to and from alerts', () => {
       cy.navigateToAndFrom(
         screen,
         'Services',
@@ -35,115 +35,6 @@ function testServices(screen: ScreenFormat): void {
         'Alerts',
         `${svc.id}/alerts`,
       )
-    })
-
-    it('should navigate to and from heartbeat monitors', () => {
-      cy.navigateToAndFrom(
-        screen,
-        'Services',
-        svc.name,
-        'Heartbeat Monitors',
-        `${svc.id}/heartbeat-monitors`,
-      )
-    })
-  })
-
-  describe('Heartbeat Monitors', () => {
-    let monitor: HeartbeatMonitor
-    beforeEach(() => {
-      cy.createService().then((s: Service) =>
-        cy
-          .createHeartbeatMonitor({
-            svcID: s.id,
-            name: c.word({ length: 5 }) + ' Monitor',
-            timeoutMinutes: Math.trunc(Math.random() * 10) + 5,
-          })
-          .then((m: HeartbeatMonitor) => {
-            monitor = m
-          })
-          .visit(`/services/${s.id}/heartbeat-monitors`),
-      )
-    })
-
-    it('should create a monitor', () => {
-      const name = c.word({ length: 5 }) + ' Monitor'
-      const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
-      const invalidName = 'a'
-
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-monitor"]').click()
-      }
-
-      cy.dialogForm({ name: invalidName, timeoutMinutes })
-      cy.dialogClick('Submit')
-      cy.get('body').should('contain', 'Must be at least 2 characters')
-
-      cy.dialogForm({ name, timeoutMinutes })
-      cy.dialogFinish('Retry')
-
-      cy.get('li').should('contain', name).should('contain', timeoutMinutes)
-    })
-
-    it('should edit a monitor', () => {
-      const name = c.word({ length: 5 })
-      const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
-
-      cy.get('li')
-        .should('contain', monitor.name)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
-
-      cy.dialogForm({ name, timeoutMinutes })
-      cy.dialogFinish('Submit')
-
-      cy.get('li').should('contain', name)
-      cy.get('li').should('contain', timeoutMinutes)
-    })
-
-    it('should delete a monitor', () => {
-      cy.get('li')
-        .should('contain', monitor.name)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Delete')
-
-      cy.dialogFinish('Confirm')
-
-      cy.get('li').should('not.contain', monitor.name)
-      cy.get('li').should(
-        'contain',
-        'No heartbeat monitors exist for this service.',
-      )
-    })
-
-    it('should handle canceling', () => {
-      // cancel out of create
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-monitor"]').click()
-      }
-      cy.dialogTitle('Create New Heartbeat Monitor')
-      cy.dialogFinish('Cancel')
-
-      // cancel out of edit
-      cy.get('li')
-        .should('contain', monitor.name)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
-      cy.dialogFinish('Cancel')
-
-      // cancel out of delete
-      cy.get('li')
-        .should('contain', monitor.name)
-        .find('div')
-        .find('button[data-cy=other-actions]')
-        .menu('Delete')
-      cy.dialogFinish('Cancel')
     })
   })
 

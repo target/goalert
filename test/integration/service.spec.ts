@@ -135,8 +135,79 @@ test('Service', async ({ page, isMobile }) => {
     .click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 
-  await expect(page.getByText(intKey)).toBeVisible()
-  await expect(page.getByText(grafanaKey)).toBeHidden()
+  await expect(page.getByText(intKey, { exact: true })).toBeVisible()
+  await expect(page.getByText(grafanaKey, { exact: true })).toBeHidden()
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+
+  // Navigate to the heartbeat monitors
+  await page.getByRole('link', { name: 'Heartbeat Monitors' }).click()
+
+  // Cancel out of create
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+  } else {
+    await page.getByTestId('create-monitor').click()
+  }
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Create a heartbeat monitor using invalid name
+  let timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+  const invalidHMName = 'a'
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+  } else {
+    await page.getByTestId('create-monitor').click()
+  }
+  await page.getByLabel('Name').fill(invalidHMName)
+  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  // Should see error message
+  await expect(page.getByText('Must be at least 2 characters')).toBeVisible()
+
+  // Use valid name instead
+  let hmName = c.word({ length: 5 }) + ' Monitor'
+  await page.getByLabel('Name').fill(hmName)
+  await page.getByRole('button', { name: 'Retry' }).click()
+
+  // Should see the heartbeat monitor created
+  await expect(page.getByText(hmName)).toBeVisible()
+  await expect(page.getByText(timeoutMinutes)).toBeVisible()
+
+  // Cancel out of edit
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Edit the heartbeat monitor
+  hmName = c.word({ length: 5 })
+  timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByLabel('Name').fill(hmName)
+  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  // Should see the edited heartbeat monitor
+  await expect(page.getByText(hmName)).toBeVisible()
+  await expect(page.getByText(timeoutMinutes)).toBeVisible()
+
+  // Cancel out of delete
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Delete the heartbeat monitor
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await page.getByText('No heartbeat monitors exist for this service.').click()
 
   // Make another service
   const diffName = 'pw-service ' + c.name()
@@ -230,7 +301,20 @@ test('Service', async ({ page, isMobile }) => {
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
 
-  // We should be on the services list page, so let's try searching for the service we just created. We add a space to the beginning of the name to ensure we are searching for the full name and not a substring.
+  // We should be on the services list page, so let's search for service by label
+  await page.fill('input[name=search]', key + '=' + value)
+  await page.getByPlaceholder('Search').press('Enter')
+
+  // We should see the service on the page
+  await expect(page.getByText(name, { exact: true })).toBeVisible()
+
+  // Search for service without a label
+  await page.fill('input[name=search]', key + '!=' + value)
+
+  // We should not see the service on the page
+  await expect(page.getByText(name, { exact: true })).toBeHidden()
+
+  // Try searching for the service by its name. We add a space to the beginning of the name to ensure we are searching for the full name and not a substring.
   await page.fill('input[name=search]', ' ' + name + ' ')
 
   // We should find the service in the list, lets go to it
@@ -268,22 +352,4 @@ test('Service', async ({ page, isMobile }) => {
 
   // We should see "No results" on the page
   await expect(page.getByText('No results')).toBeVisible()
-
-  // search for service by label
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Search' }).click()
-  }
-  await page.fill('input[name=search]', ' ' + key + '=' + value + ' ')
-
-  // We should see the service on the page
-  await expect(page.getByText(name)).toBeVisible()
-
-  // search for service without a label
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Search' }).click()
-  }
-  await page.fill('input[name=search]', ' ' + key + '!=' + value + ' ')
-
-  // We should not see the service on the page
-  await expect(page.getByText(name)).not.toBeVisible()
 })
