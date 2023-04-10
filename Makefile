@@ -159,6 +159,11 @@ test: $(NODE_DEPS) jest ## Run all unit tests
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
+.yarnrc.yml:
+	corepack enable
+	corepack prepare yarn@stable --activate
+	yarn set version stable
+
 check-js: generate $(NODE_DEPS)
 	yarn install
 	yarn run fmt
@@ -226,7 +231,7 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-.pnp.cjs: yarn.lock Makefile web/src/package.json package.json
+.pnp.cjs: yarn.lock Makefile web/src/package.json package.json .yarnrc.yml
 	yarn install && touch "$@"
 
 
@@ -269,7 +274,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
-	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn .yarnrc.yml
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)
