@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration
+.PHONY: goalert-container demo-container release reset-integration yarn
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -14,7 +14,7 @@ INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 
-NODE_DEPS=.pnp.cjs
+NODE_DEPS=.pnp.cjs .yarnrc.yml
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -160,11 +160,15 @@ check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 .yarnrc.yml:
+	make yarn
+
+yarn:
 	corepack enable
 	corepack prepare yarn@stable --activate
 	yarn set version stable
+	touch .yarnrc.yml
 
-check-js: generate $(NODE_DEPS)
+check-js: generate $(NODE_DEPS) yarn
 	yarn install
 	yarn run fmt
 	yarn run lint
