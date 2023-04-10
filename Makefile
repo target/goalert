@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn
+.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn
 .SUFFIXES:
 
 include Makefile.binaries.mk
@@ -13,6 +13,7 @@ INT_DB = goalert_integration
 INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
+YARN_VERSION=3.5.0
 
 NODE_DEPS=.pnp.cjs .yarnrc.yml
 
@@ -94,6 +95,7 @@ goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
 cypress: bin/goalert bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
+	$(MAKE) ensure-yarn
 	yarn cypress install
 
 cy-wide: cypress
@@ -150,6 +152,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS) 
+	$(MAKE) ensure-yarn
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
@@ -159,16 +162,20 @@ test: $(NODE_DEPS) jest ## Run all unit tests
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-.yarnrc.yml:
-	make yarn
+.yarnrc.yml: package.json
+	$(MAKE) yarn
+
+ensure-yarn: # Yarn ensures the correct version of yarn is installed
+	@echo "Checking yarn version..."
+	@yarn --version | grep -q -F "$(YARN_VERSION)" || $(MAKE) yarn
 
 yarn:
 	corepack enable
 	corepack prepare yarn@stable --activate
 	yarn set version stable
-	touch .yarnrc.yml
 
-check-js: generate $(NODE_DEPS) yarn
+check-js: generate $(NODE_DEPS)
+	$(MAKE) ensure-yarn
 	yarn install
 	yarn run fmt
 	yarn run lint
@@ -207,6 +214,7 @@ bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
 playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+	$(MAKE) ensure-yarn
 	yarn playwright test
 
 smoketest:
@@ -236,12 +244,14 @@ tools:
 	go get -u golang.org/x/tools/cmd/stringer
 
 .pnp.cjs: yarn.lock Makefile web/src/package.json package.json .yarnrc.yml
+	$(MAKE) ensure-yarn
 	yarn install && touch "$@"
 
 
 web/src/build/static/explore.js: web/src/build/static
 
 web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
+	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
