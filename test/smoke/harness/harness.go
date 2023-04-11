@@ -23,6 +23,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
@@ -314,7 +315,9 @@ func (h *Harness) Start() {
 	h.TwilioNumber("") // register default number
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
-	go h.backend.Run(context.Background())
+	go func() {
+		assert.NoError(h.t, h.backend.Run(context.Background())) // can't use require.NoError because we're in the background
+	}()
 	err = h.backend.WaitForStartup(ctx)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
@@ -507,7 +510,7 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 func (h *Harness) Trigger() {
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
-	h.backend.Engine.WaitCycleID(context.Background(), id)
+	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -549,7 +552,9 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get abs dump path: %v", err)
 	}
-	os.MkdirAll(filepath.Dir(file), 0o755)
+	if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+		h.t.Fatalf("failed to create abs dump path: %v", err)
+	}
 
 	conn, err := pgx.Connect(context.Background(), h.dbURL)
 	if err != nil {
