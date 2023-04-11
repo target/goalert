@@ -4,12 +4,12 @@ import Grid from '@mui/material/Grid'
 import RadioGroup from '@mui/material/RadioGroup'
 import Radio from '@mui/material/Radio'
 import { DateTime } from 'luxon'
-import { Checkbox, Typography } from '@mui/material'
-
+import { Checkbox, Tooltip, Typography } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 import makeStyles from '@mui/styles/makeStyles'
 
 import { FormContainer, FormField } from '../../forms'
-import { SlackChannelSelect } from '../../selection'
+import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useFormatScheduleLocalISOTime } from './hooks'
 import { Value, NO_DAY, EVERY_DAY, RuleFieldError } from './util'
@@ -21,6 +21,8 @@ interface ScheduleOnCallNotificationsFormProps {
   value: Value
   errors: RuleFieldError[]
   onChange: (val: Value) => void
+  slackType: string
+  setSlackType: (slackType: string) => void
 }
 
 const useStyles = makeStyles({
@@ -30,7 +32,7 @@ const useStyles = makeStyles({
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
-  const { scheduleID, ...formProps } = props
+  const { scheduleID, slackType, setSlackType, ...formProps } = props
   const classes = useStyles()
   const [formatTime, zone] = useFormatScheduleLocalISOTime(scheduleID)
 
@@ -54,9 +56,36 @@ export default function ScheduleOnCallNotificationsForm(
           <FormField
             component={SlackChannelSelect}
             fullWidth
+            required
             label='Slack Channel'
             name='slackChannelID'
-            required
+            mapOnChangeValue={(v) => {
+              setSlackType('channel')
+              return v
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Typography sx={{ pb: 1, display: 'flex' }}>
+            Also set the members of a Slack user group?
+            <Tooltip
+              data-cy='fts-tooltip'
+              disableFocusListener
+              placement='right'
+              title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
+            >
+              <InfoIcon color='primary' sx={{ pl: 0.5 }} />
+            </Tooltip>
+          </Typography>
+          <FormField
+            component={SlackUserGroupSelect}
+            fullWidth
+            label='Slack User Group'
+            name='slackUserGroup'
+            mapOnChangeValue={(v) => {
+              setSlackType('usergroup')
+              return v
+            }}
           />
         </Grid>
         <Grid item>
