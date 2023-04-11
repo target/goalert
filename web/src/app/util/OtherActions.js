@@ -67,6 +67,8 @@ OtherActions.propTypes = {
     p.shape({
       label: p.string.isRequired,
       onClick: p.func.isRequired,
+      disabled: p.bool,
+      tooltip: p.string,
     }),
   ).isRequired,
   disabled: p.bool,
