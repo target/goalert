@@ -23,4 +23,4 @@ jobs:
           level: warning
           fail_on_error: true
       - name: tsc
-        run: yarn workspaces run check
+        run: yarn run check

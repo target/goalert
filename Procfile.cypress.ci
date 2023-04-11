@@ -1,5 +1,5 @@
 @oneshot
-cypress: go run ./devtools/waitfor http://localhost:3042 && CYPRESS_DB_URL=$DB_URL yarn workspace goalert-web --cwd=bin/build/integration cypress $CY_ACTION --config baseUrl=http://localhost:3040$HTTP_PREFIX
+cypress: go run ./devtools/waitfor http://localhost:3042 && CYPRESS_DB_URL=$DB_URL yarn --cwd=bin/build/integration cypress $CY_ACTION --config baseUrl=http://localhost:3040$HTTP_PREFIX
 
 goalert: go run ./devtools/waitfor $DB_URL && go run ./devtools/procwrap -test=localhost:3042 bin/goalert -l=localhost:3042 --db-url=$DB_URL --slack-base-url=http://localhost:3040/slack --log-errors-only --public-url=http://localhost:3040$HTTP_PREFIX
 
