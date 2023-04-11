@@ -148,7 +148,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: node_modules 
-	yarn workspace goalert-web run jest $(JEST_ARGS)
+	yarn run jest $(JEST_ARGS)
 
 test: node_modules jest ## Run all unit tests
 	go test -short ./...
@@ -162,7 +162,7 @@ check: check-go check-js ## Run all lint checks
 check-js: force-yarn generate node_modules
 	yarn run fmt
 	yarn run lint
-	yarn workspaces run check
+	yarn run check
 
 check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
@@ -225,7 +225,7 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json Makefile
+yarn.lock: package.json Makefile
 	yarn --no-progress --silent --check-files && touch $@
 
 node_modules/.yarn-integrity: yarn.lock Makefile
@@ -237,11 +237,11 @@ node_modules: yarn.lock node_modules/.yarn-integrity
 
 web/src/build/static/explore.js: web/src/build/static
 
-web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
+web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts package.json
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
+	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
 
 web/src/build/static/app.js: web/src/build/static
 	
