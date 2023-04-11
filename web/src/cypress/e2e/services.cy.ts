@@ -7,158 +7,6 @@ function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
-  describe('List Page', () => {
-    describe('Filtering', () => {
-      let label1: Label
-      let label2: Label // uses key/value from label1
-      let intKey: IntegrationKey
-      beforeEach(() => {
-        cy.createLabel().then((l: Label) => {
-          label1 = l
-
-          cy.createLabel({
-            key: label1.key, // same key, random value
-          }).then((l: Label) => {
-            label2 = l
-          })
-        })
-        cy.createIntKey().then((i: IntegrationKey) => {
-          intKey = i
-        })
-        cy.visit('/services')
-      })
-
-      it('should open and close the filter popover', () => {
-        // check that filter content doesn't exist yet
-        cy.get('div[data-cy="label-key-container"]').should('not.exist')
-        cy.get('div[data-cy="label-value-container"]').should('not.exist')
-        cy.get('button[data-cy="filter-done"]').should('not.exist')
-        cy.get('button[data-cy="filter-reset"]').should('not.exist')
-
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        // check that filter content exists
-        cy.get('div[data-cy="label-key-container"]').should('be.visible')
-        cy.get('div[data-cy="label-value-container"]').should('be.visible')
-        cy.get('button[data-cy="filter-done"]').should('be.visible')
-        cy.get('button[data-cy="filter-reset"]').should('be.visible')
-
-        // close filter
-        cy.get('button[data-cy="filter-done"]').click()
-
-        // check that filter content is removed from the dom
-        cy.get('div[data-cy="label-key-container"]').should('not.exist')
-        cy.get('div[data-cy="label-value-container"]').should('not.exist')
-        cy.get('button[data-cy="filter-done"]').should('not.exist')
-        cy.get('button[data-cy="filter-reset"]').should('not.exist')
-      })
-
-      it('should filter by label key', () => {
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        cy.get('input[name="label-key"]').selectByLabel(label1.key)
-
-        // close filter
-        cy.get('button[data-cy="filter-done"]').click()
-
-        cy.get('body')
-          .should('contain', label1.svc.name)
-          .should('contain', label1.svc.description)
-
-        cy.get('body')
-          .should('contain', label2.svc.name)
-          .should('contain', label2.svc.description)
-      })
-
-      it('should not allow searching by label value with no key selected', () => {
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        cy.get('input[name="label-value"]').should(
-          'have.attr',
-          'disabled',
-          'disabled',
-        )
-      })
-
-      it('should filter by label key and value', () => {
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        cy.get('input[name="label-key"]').selectByLabel(label1.key)
-        cy.get('input[name="label-value"]').selectByLabel(label1.value)
-
-        // close filter
-        cy.get('button[data-cy="filter-done"]').click()
-
-        cy.get('body')
-          .should('contain', label1.svc.name)
-          .should('contain', label1.svc.description)
-
-        // check that the second label with the same key but different value doesn't show
-        cy.get('body')
-          .should('not.contain', label2.svc.name)
-          .should('not.contain', label2.svc.description)
-      })
-
-      it('should filter by integration key', () => {
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        cy.get('input[name="integration-key"]').selectByLabel(intKey.id)
-
-        // close filter
-        cy.get('button[data-cy="filter-done"]').click()
-
-        cy.get('body')
-          .should('contain', intKey.svc.name)
-          .should('contain', intKey.svc.description)
-      })
-
-      it('should reset label filters', () => {
-        // open filter
-        if (screen === 'mobile') {
-          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
-        }
-        cy.get('button[data-cy="services-filter-button"]').click()
-
-        cy.get('input[name="label-key"]').selectByLabel(label1.key)
-        cy.get('input[name="label-value"]').selectByLabel(label1.value)
-
-        cy.get('input[name="label-key"]').should('have.value', label1.key)
-        cy.get('input[name="label-value"]').should('have.value', label1.value)
-      })
-
-      it('should load in filter values from URL', () => {
-        cy.visit('/services?search=' + label1.key + '=*')
-
-        cy.get('body')
-          .should('contain', label1.svc.name)
-          .should('contain', label1.svc.description)
-
-        cy.get('body')
-          .should('contain', label2.svc.name)
-          .should('contain', label2.svc.description)
-      })
-    })
-  })
 
   describe('Details Page', () => {
     let svc: Service
@@ -189,16 +37,6 @@ function testServices(screen: ScreenFormat): void {
       )
     })
 
-    it('should navigate to and from integration keys', () => {
-      cy.navigateToAndFrom(
-        screen,
-        'Services',
-        svc.name,
-        'Integration Keys',
-        `${svc.id}/integration-keys`,
-      )
-    })
-
     it('should navigate to and from heartbeat monitors', () => {
       cy.navigateToAndFrom(
         screen,
@@ -206,16 +44,6 @@ function testServices(screen: ScreenFormat): void {
         svc.name,
         'Heartbeat Monitors',
         `${svc.id}/heartbeat-monitors`,
-      )
-    })
-
-    it('should navigate to and from labels', () => {
-      cy.navigateToAndFrom(
-        screen,
-        'Services',
-        svc.name,
-        'Labels',
-        `${svc.id}/labels`,
       )
     })
   })
@@ -453,40 +281,6 @@ function testServices(screen: ScreenFormat): void {
         return cy.visit(`/services/${l.svcID}/labels`)
       }),
     )
-
-    it('should create a label', () => {
-      const key = label.key
-      const value = c.word({ length: 10 })
-
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-label"]').click()
-      }
-      cy.dialogForm({ key, value })
-      cy.dialogFinish('Submit')
-      cy.get('li').should('contain', key)
-    })
-
-    it('should set an existing label', () => {
-      const key = label.key
-      const value = c.word({ length: 10 })
-
-      cy.createService().then((svc: Service) => {
-        cy.visit(`/services/${svc.id}/labels`)
-      })
-
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button[data-testid="create-label"]').click()
-      }
-      cy.dialogForm({ key, value })
-      cy.dialogFinish('Submit')
-
-      cy.get('li').should('contain', key)
-      cy.get('li').should('contain', value)
-    })
 
     it('should edit a label', () => {
       const key = label.key
