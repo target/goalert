@@ -5,25 +5,26 @@ import {
   Card,
   FormControlLabel,
   Grid,
-  MenuItem,
   Switch,
   TextField,
+  MenuItem,
+  Tooltip,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { DateTime, Duration, Interval } from 'luxon'
+import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import React, { useCallback, useMemo, useState } from 'react'
-import { useResetURLParams, useURLParam } from '../actions'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { UserSelect } from '../selection'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
+import { useURLParam, useResetURLParams } from '../actions'
 import { ISODatePicker } from '../util/ISOPickers'
+import { useScheduleTZ } from './useScheduleTZ'
 import { relativeDate } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
 import { OverrideDialog, OverrideDialogContext } from './ScheduleDetails'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
-import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { Shift, TempSchedValue } from './temp-sched/sharedUtils'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 
@@ -81,9 +82,8 @@ function ScheduleShiftList({
   const [configTempSchedule, setConfigTempSchedule] =
     useState<Partial<TempSchedValue> | null>(null)
   const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
-
   const [duration, setDuration] = useURLParam<string>('duration', 'P14D')
-  const [zone] = useURLParam<string>('tz', 'local')
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
 
@@ -116,6 +116,88 @@ function ScheduleShiftList({
       end,
     },
   })
+
+  // getShiftDetails uses the inputted shift (s) and day interval (day) values and returns either a string or a hover tooltip element.
+  // If the schedule's tz is local, it will return the local time string.
+  // If the schedule's tz is not local, it will return a hover tooltip which converts the shift time to the user's local tz.
+  function getShiftDetails(
+    s: {
+      start: DateTime
+      end: DateTime
+      interval: Interval
+      truncated: boolean
+    },
+    day: Interval,
+  ): JSX.Element | string {
+    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
+    const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+
+    const locale: DateTimeFormatOptions = {
+      hour: 'numeric',
+      minute: 'numeric',
+    }
+
+    let shiftDetails = ''
+    const startTime = s.start.toLocaleString(locale)
+    const endTime = s.end.toLocaleString(locale)
+    const localStartTime = DateTime.fromISO(s.start.toISO(), {
+      zone: 'local',
+    }).toLocaleString(locale)
+    const localEndTime = DateTime.fromISO(s.end.toISO(), {
+      zone: 'local',
+    }).toLocaleString(locale)
+
+    // shift (s.interval) spans all day
+    if (s.interval.engulfs(day)) {
+      return 'All day'
+    }
+    if (day.engulfs(s.interval)) {
+      // shift is inside the day
+      shiftDetails = `From ${startTime} to ${endTime} ${tzAbbr}`
+      if (isLocalZone) {
+        return shiftDetails
+      }
+      return (
+        <Tooltip
+          title={`From ${localStartTime} to ${localEndTime} ${localTzAbbr}`}
+          placement='bottom-start'
+        >
+          <span data-cy='shift-details'>{shiftDetails}</span>
+        </Tooltip>
+      )
+    }
+    if (day.contains(s.end)) {
+      shiftDetails = `Active until${
+        s.truncated ? ' at least' : ''
+      } ${endTime} ${tzAbbr}`
+      if (isLocalZone) {
+        return shiftDetails
+      }
+      return (
+        <Tooltip
+          title={`Active until${
+            s.truncated ? ' at least' : ''
+          } ${localEndTime} ${localTzAbbr}`}
+          placement='bottom-start'
+        >
+          <span>{shiftDetails}</span>
+        </Tooltip>
+      )
+    }
+    // shift starts and continues on for the rest of the day
+    shiftDetails = `Active after ${startTime} ${tzAbbr}`
+    if (isLocalZone) {
+      return shiftDetails
+    }
+    return (
+      <Tooltip
+        title={`Active after ${localStartTime} ${localTzAbbr}`}
+        placement='bottom-start'
+      >
+        <span>{shiftDetails}</span>
+      </Tooltip>
+    )
+  }
 
   function items(): FlatListListItem[] {
     const _shifts: Shift[] =
@@ -155,32 +237,9 @@ function ScheduleShiftList({
         subHeader: relativeDate(day.start),
       })
       dayShifts.forEach((s) => {
-        let shiftDetails = ''
-        const startTime = s.start.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        const endTime = s.end.toLocaleString({
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        if (s.interval.engulfs(day)) {
-          // shift (s.interval) spans all day
-          shiftDetails = 'All day'
-        } else if (day.engulfs(s.interval)) {
-          // shift is inside the day
-          shiftDetails = `From ${startTime} to ${endTime}`
-        } else if (day.contains(s.end)) {
-          shiftDetails = `Active until${
-            s.truncated ? ' at least' : ''
-          } ${endTime}`
-        } else {
-          // shift starts and continues on for the rest of the day
-          shiftDetails = `Active after ${startTime}`
-        }
         result.push({
           title: s.user?.name || '',
-          subText: shiftDetails,
+          subText: getShiftDetails(s, day),
           icon: <UserAvatar userID={s.userID} />,
         })
       })
@@ -288,9 +347,6 @@ function ScheduleShiftList({
                     }
                     label='Active shifts only'
                   />
-                </Grid>
-                <Grid item xs={12}>
-                  <ScheduleTZFilter scheduleID={scheduleID} />
                 </Grid>
                 <Grid item xs={12}>
                   <ISODatePicker
