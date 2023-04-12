@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
-import p from 'prop-types'
 import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -42,7 +41,14 @@ const useStyles = makeStyles({
   },
 })
 
-export default function AlertDetailLogs(props) {
+interface AlertDetailLogsProps {
+  alertID: number
+  showExactTimes?: boolean
+}
+
+export default function AlertDetailLogs(
+  props: AlertDetailLogsProps,
+): JSX.Element {
   const classes = useStyles()
   const [poll, setPoll] = useState(POLL_INTERVAL)
   const { data, error, loading, fetchMore } = useQuery(query, {
@@ -57,7 +63,7 @@ export default function AlertDetailLogs(props) {
   )
   const pageInfo = _.get(data, 'alert.recentEvents.pageInfo', {})
 
-  const doFetchMore = () => {
+  const doFetchMore = (): void => {
     setPoll(0)
     fetchMore({
       variables: {
@@ -84,7 +90,10 @@ export default function AlertDetailLogs(props) {
     })
   }
 
-  const renderList = (items, loadMore) => {
+  const renderList = (
+    items: JSX.Element | JSX.Element[],
+    loadMore?: boolean,
+  ): JSX.Element => {
     return (
       <List data-cy='alert-logs'>
         {items}
@@ -102,7 +111,7 @@ export default function AlertDetailLogs(props) {
     )
   }
 
-  const getLogStatusClass = (status) => {
+  const getLogStatusClass = (status: string): string => {
     switch (status) {
       case 'OK':
         return 'success'
@@ -111,11 +120,18 @@ export default function AlertDetailLogs(props) {
       case 'ERROR':
         return 'error'
       default:
-        return null
+        return ''
     }
   }
 
-  const renderItem = (event, idx) => {
+  const renderItem = (
+    event: {
+      timestamp: string
+      message: string
+      state: { details: string; status: string }
+    },
+    idx: number,
+  ): JSX.Element => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
 
@@ -169,9 +185,4 @@ export default function AlertDetailLogs(props) {
     events.map((event, idx) => renderItem(event, idx)),
     pageInfo.hasNextPage,
   )
-}
-
-AlertDetailLogs.propTypes = {
-  alertID: p.number.isRequired,
-  showExactTimes: p.bool,
 }
