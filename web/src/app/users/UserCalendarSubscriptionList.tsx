@@ -11,10 +11,10 @@ import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/Calenda
 import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
-import { formatTimeSince } from '../util/timeFormat'
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
 import { UserCalendarSubscription } from '../../schema'
+import { Time } from '../util/Time'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -106,7 +106,14 @@ export default function UserCalendarSubscriptionList(props: {
     // push subscriptions under relevant schedule subheaders
     items.push({
       title: sub.name,
-      subText: 'Last sync: ' + (formatTimeSince(sub.lastAccess) || 'Never'),
+      subText: (
+        <Time
+          prefix='Last sync: '
+          time={sub.lastAccess}
+          format='relative'
+          zero='Never'
+        />
+      ),
       secondaryAction: renderOtherActions(sub.id),
       icon: sub.disabled ? <Warning message='Disabled' /> : null,
     })
