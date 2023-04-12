@@ -127,14 +127,14 @@ export default function UserContactMethodList(
         label: 'Send Test',
         onClick: () => setShowSendTestByID(cm.id),
         disabled: !isCurrentUser,
-        tooltip: 'Send Test only available for your own contract methods',
+        tooltip: 'Send Test only available for your own contact methods',
       })
     } else {
       actions.push({
         label: 'Reactivate',
         onClick: () => setShowVerifyDialogByID(cm.id),
         disabled: !isCurrentUser,
-        tooltip: 'Reactivate only available for your own contract methods',
+        tooltip: 'Reactivate only available for your own contact methods',
       })
     }
     return actions
