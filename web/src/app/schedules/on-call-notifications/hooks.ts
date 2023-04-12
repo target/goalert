@@ -145,6 +145,7 @@ export function useEditOnCallRule(
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     slackChannelID: rule?.target.id || null,
+    slackUserGroup: rule?.target.id || null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
