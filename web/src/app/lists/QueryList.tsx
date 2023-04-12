@@ -90,6 +90,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
 
   createLabel?: string
+  hideCreate?: boolean
 }
 
 export type QueryListProps = Omit<_QueryListProps, 'items'>
@@ -108,6 +109,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     mapVariables = (v) => v,
     renderCreateDialog,
     createLabel,
+    hideCreate,
     ...listProps
   } = props
   const { input, ...vars } = variables
@@ -198,6 +200,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           noSearch={noSearch}
           renderCreateDialog={renderCreateDialog}
           createLabel={createLabel}
+          hideCreate={hideCreate}
         />
       )
     }
@@ -237,7 +240,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           isLoading={isLoading}
         />
       )}
-      {isMobile && renderCreateDialog && createLabel && (
+      {!hideCreate && isMobile && renderCreateDialog && createLabel && (
         <React.Fragment>
           <CreateFAB
             onClick={() => setShowCreate(true)}

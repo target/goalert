@@ -59,6 +59,7 @@ export interface ControlledPaginatedListProps
   renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
 
   createLabel?: string
+  hideCreate?: boolean
   onSelectionChange?: (selectedIDs: (string | number)[]) => void
 }
 
@@ -100,6 +101,7 @@ export default function ControlledPaginatedList(
     searchAdornment,
     items,
     listHeader,
+    hideCreate,
     ...listProps
   } = props
 
@@ -283,7 +285,7 @@ export default function ControlledPaginatedList(
         )}
         {secondaryActions && <Grid item>{secondaryActions}</Grid>}
 
-        {renderCreateDialog && !isMobile && (
+        {!hideCreate && renderCreateDialog && !isMobile && (
           <Grid item sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
