@@ -28,7 +28,7 @@ func FuzzPhone(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, number string) {
-		Phone("Number", number)
+		_ = Phone("Number", number)
 	})
 }
 
