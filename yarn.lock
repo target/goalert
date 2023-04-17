@@ -5806,10 +5806,10 @@ mdast-util-to-string@^3.0.0, mdast-util-to-string@^3.1.0:
   dependencies:
     "@types/mdast" "^3.0.0"
 
-mdi-material-ui@7.6.0:
-  version "7.6.0"
-  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-7.6.0.tgz#bf166c9eab5b5e5abbf38edee1650674ad2f5660"
-  integrity sha512-daqyXS2tVPB9AulKee4LOwf6llx/eiA969HFx0rOGEC2Cgup/nAmHWnN7yYtndhXpvd2cXwov5kjw40HxjjjZg==
+mdi-material-ui@7.7.0:
+  version "7.7.0"
+  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-7.7.0.tgz#6839e796e19457567322e90c9fd249c6afa53ee1"
+  integrity sha512-ABcksXoeJhOzy2rQCIEs0+j2K++wLOYAZcLX7mLyWaYycaDKFMcgqg8Up6xHcXxNNMSmggLcw/05fNFZE1LcIg==
 
 mdn-data@2.0.30:
   version "2.0.30"
