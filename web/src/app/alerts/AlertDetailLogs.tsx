@@ -8,6 +8,8 @@ import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
 import { POLL_INTERVAL } from '../config'
 import { Time } from '../util/Time'
+import { AlertLogEntry, NotificationStatus } from '../../schema'
+import { AlertColor } from '@mui/material'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -111,7 +113,13 @@ export default function AlertDetailLogs(
     )
   }
 
-  const getLogStatusClass = (status: string): string => {
+  const assertNever = (s: never): never => {
+    throw new Error('Unknown notification status: ' + s)
+  }
+
+  const getLogStatusClass = (
+    status: NotificationStatus,
+  ): AlertColor | undefined => {
     switch (status) {
       case 'OK':
         return 'success'
@@ -120,20 +128,13 @@ export default function AlertDetailLogs(
       case 'ERROR':
         return 'error'
       default:
-        return ''
+        assertNever(status)
     }
   }
 
-  const renderItem = (
-    event: {
-      timestamp: string
-      message: string
-      state: { details: string; status: string }
-    },
-    idx: number,
-  ): JSX.Element => {
+  const renderItem = (event: AlertLogEntry, idx: number): JSX.Element => {
     const details = _.upperFirst(event?.state?.details ?? '')
-    const status = event?.state?.status ?? ''
+    const status = (event?.state?.status ?? '') as NotificationStatus
 
     return (
       <ListItem key={idx} divider>
