@@ -9,6 +9,19 @@ SELECT id,
 FROM user_calendar_subscriptions
 WHERE id = $1;
 
+-- name: CalSubRenderInfo :one
+SELECT
+    now()::timestamptz AS now,
+    sub.schedule_id,
+    sched.name AS schedule_name,
+    sub.config,
+    sub.user_id
+FROM
+    user_calendar_subscriptions sub
+    JOIN schedules sched ON sched.id = schedule_id
+WHERE
+    sub.id = $1;
+
 -- name: FindOneCalSubForUpdate :one
 SELECT id,
     NAME,
