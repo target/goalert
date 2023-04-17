@@ -1,4 +1,4 @@
-import React, { MutableRefObject } from 'react'
+import React, { Ref } from 'react'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
@@ -20,7 +20,7 @@ interface ServiceFilterContainerProps {
   onReset: () => void
 
   // optionally anchors the popover to a specified element's ref
-  anchorRef?: MutableRefObject
+  anchorRef?: Ref<HTMLElement>
 }
 
 export default function ServiceFilterContainer(

@@ -98,7 +98,7 @@ export function CreateAlertServiceSelect(
     },
   })
 
-  const fieldRef = useRef()
+  const fieldRef = useRef<HTMLElement>(null)
   const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', []).filter(
     ({ id }: { id: string }) => !value.includes(id),
