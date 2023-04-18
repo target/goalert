@@ -11,7 +11,7 @@ import FilterContainer from '../util/FilterContainer'
 interface Value {
   labelKey: string
   labelValue: string
-  integrationKey: string
+  integrationKey?: string
 }
 
 interface ServiceFilterContainerProps {

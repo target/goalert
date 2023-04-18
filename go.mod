@@ -31,11 +31,11 @@ require (
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.14.0
+	github.com/prometheus/client_golang v1.15.0
 	github.com/rubenv/sql-migrate v1.4.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/slack-go/slack v0.12.1
-	github.com/spf13/cobra v1.6.1
+	github.com/slack-go/slack v0.12.2
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tabbed/pqtype v0.1.1
@@ -50,7 +50,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.29.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	honnef.co/go/tools v0.4.2
+	honnef.co/go/tools v0.4.3
 )
 
 require (
@@ -96,7 +96,7 @@ require (
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad // indirect
 	github.com/ian-kent/linkio v0.0.0-20170807205755-97566b872887 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -113,7 +113,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -138,7 +138,7 @@ require (
 	github.com/t-k/fluent-logger-golang v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
-	github.com/urfave/cli/v2 v2.25.0 // indirect
+	github.com/urfave/cli/v2 v2.25.1 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.20.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
