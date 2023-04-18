@@ -170,7 +170,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	if !inUsers && len(cfg.GitHub.AllowedOrgs) > 0 {
 		for _, o := range cfg.GitHub.AllowedOrgs {
 			if strings.Contains(o, "/") {
-				//skip teams (process below)
+				// skip teams (process below)
 				continue
 			}
 			m, _, err := g.Organizations.IsMember(ctx, o, login)
@@ -226,6 +226,9 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 
 	if !inUsers && !inOrg {
 		return nil, auth.Error("Not a member of an allowed org or whitelisted user.")
+	}
+	if strings.TrimSpace(u.GetName()) == "" {
+		return nil, auth.Error("GitHub user has no display name set.")
 	}
 
 	return &auth.Identity{
