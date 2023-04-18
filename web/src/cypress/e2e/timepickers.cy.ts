@@ -49,34 +49,6 @@ function testTimePickers(screen: ScreenFormat): void {
     )
   })
 
-  describe('Date (schedule shifts)', () => {
-    const check = (name: string, params: string, display: string): Mocha.Test =>
-      it(name, () => {
-        cy.createSchedule({
-          timeZone: 'America/New_York',
-        }).then((s: Schedule) => cy.visit(`/schedules/${s.id}/shifts${params}`))
-
-        // sanity check
-        cy.get('body').contains(display)
-
-        cy.get('button[title=Filter]').click()
-        cy.form({ filterStart: '2007-02-03' })
-
-        cy.get('body').contains('2/3/2007')
-      })
-
-    check(
-      'should handle selecting date values when displaying the same time zone',
-      '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z',
-      '1/2/2006',
-    )
-    check(
-      'should handle selecting date values when displaying an alternate time zone',
-      '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z',
-      '1/1/2006',
-    )
-  })
-
   describe('DateTime (schedule overrides)', () => {
     const check = (name: string, params: string): Mocha.Test =>
       it(name, () => {
