@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 
 interface AlertCountGraphProps {
-  data: typeof BarChart.defaultProps['data']
+  data: (typeof BarChart.defaultProps)['data']
   loading: boolean
 }
 
