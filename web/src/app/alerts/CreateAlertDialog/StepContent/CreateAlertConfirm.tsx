@@ -14,10 +14,20 @@ const useStyles = makeStyles({
   },
 })
 
-export function CreateAlertConfirm() {
+export function CreateAlertConfirm(): JSX.Element {
   const classes = useStyles()
 
-  const renderItem = ({ name, label, value, children }) => (
+  const renderItem = ({
+    name,
+    label,
+    value,
+    children,
+  }: {
+    name: string
+    label: string
+    value: string
+    children: JSX.Element
+  }): JSX.Element => (
     <Grid item xs={12}>
       <Typography
         variant='subtitle1'
@@ -56,7 +66,7 @@ export function CreateAlertConfirm() {
           renderItem({
             ...otherProps,
             label: `Selected Services (${value.length})`,
-            children: value.map((id) => (
+            children: value.map((id: string) => (
               <ServiceChip
                 key={id}
                 clickable={false}

@@ -45,7 +45,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
             label='Description'
             name='description'
             multiline
-            rows='4'
+            rows={4}
             component={TextField}
             charCount={MaxDetailsLength}
             hint='Markdown Supported'
