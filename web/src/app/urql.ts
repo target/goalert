@@ -112,7 +112,7 @@ export const client = createClient({
     refetchExchange(),
     cacheExchange,
     apolloRefetchExchange,
-    retryExchange({}),
+    retryExchange({}) as Exchange,
     fetchExchange,
   ],
   requestPolicy: 'cache-and-network',
