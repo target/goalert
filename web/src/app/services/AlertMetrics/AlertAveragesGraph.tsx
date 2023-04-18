@@ -40,7 +40,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 }
 
 interface AlertAveragesGraphProps {
-  data: typeof LineChart.defaultProps['data']
+  data: (typeof LineChart.defaultProps)['data']
   loading: boolean
 }
 
