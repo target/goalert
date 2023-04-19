@@ -19,7 +19,7 @@ func ExampleGather() {
 		},
 	})
 
-	xml.NewEncoder(os.Stdout).Encode(resp)
+	_ = xml.NewEncoder(os.Stdout).Encode(resp)
 	// Output:
 	// <Response><Gather action="/gather" numDigits="5"><Say>Please enter your 5-digit zip code.</Say></Gather></Response>
 }
