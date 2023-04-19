@@ -15,7 +15,7 @@ LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 
 # Use sha256sum on linux and shasum -a 256 on mac
-SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
+SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
