@@ -18,7 +18,7 @@ YARN_VERSION=3.5.0
 NODE_DEPS=.pnp.cjs .yarnrc.yml
 
 # Use sha256sum on linux and shasum -a 256 on mac
-SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
+SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
@@ -153,7 +153,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 
 jest: $(NODE_DEPS) 
 	$(MAKE) ensure-yarn
-	yarn workspace goalert-web run jest $(JEST_ARGS)
+	yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
 	go test -short ./...
@@ -179,7 +179,7 @@ check-js: generate $(NODE_DEPS)
 	yarn install
 	yarn run fmt
 	yarn run lint
-	yarn workspace goalert-web run check
+	yarn run check
 
 check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
@@ -243,19 +243,19 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-.pnp.cjs: yarn.lock Makefile web/src/package.json package.json .yarnrc.yml
+.pnp.cjs: yarn.lock Makefile package.json .yarnrc.yml
 	$(MAKE) ensure-yarn
 	yarn install && touch "$@"
 
 
 web/src/build/static/explore.js: web/src/build/static
 
-web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
+web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts
 	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
+	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
 
 web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
 	

@@ -30,6 +30,7 @@ jobs:
             "graphql2/generated.go"
             "graphql2/maplimit.go"
             "graphql2/mapconfig.go"
+            "graphql2/models_gen.go"
             "pkg/sysapi/*.pb.go"
             "swo/swodb/*.go"
             "web/src/*.d.ts"

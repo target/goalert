@@ -246,7 +246,7 @@ FormField.propTypes = {
   disabled: p.bool,
 
   multiline: p.bool,
-  rows: p.string,
+  rows: p.number,
   autoComplete: p.string,
 
   charCount: p.number,

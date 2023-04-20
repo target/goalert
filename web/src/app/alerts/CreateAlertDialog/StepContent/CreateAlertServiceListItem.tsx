@@ -1,6 +1,5 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
-import p from 'prop-types'
 
 import { ListItem, ListItemText, Typography } from '@mui/material'
 
@@ -26,7 +25,14 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CreateAlertServiceListItem(props) {
+interface CreateAlertServiceListItemProps {
+  id: string
+  err?: string
+}
+
+export default function CreateAlertServiceListItem(
+  props: CreateAlertServiceListItemProps,
+): JSX.Element {
   const { id, err } = props
 
   const classes = useStyles()
@@ -43,8 +49,8 @@ export default function CreateAlertServiceListItem(props) {
 
   const { service } = data || {}
 
-  if (!data && loading) return 'Loading...'
-  if (queryError) return 'Error fetching data.'
+  if (!data && loading) return <div>Loading...</div>
+  if (queryError) return <div>Error fetching data.</div>
 
   const serviceURL = '/services/' + id + '/alerts'
 
@@ -68,9 +74,4 @@ export default function CreateAlertServiceListItem(props) {
       </ListItemText>
     </ListItem>
   )
-}
-
-CreateAlertServiceListItem.propTypes = {
-  id: p.string.isRequired,
-  err: p.string,
 }

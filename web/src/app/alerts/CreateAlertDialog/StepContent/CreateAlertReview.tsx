@@ -1,10 +1,19 @@
 import React from 'react'
-import p from 'prop-types'
 import { Grid, List } from '@mui/material'
 import CreateAlertListItem from './CreateAlertListItem'
 import CreateAlertServiceListItem from './CreateAlertServiceListItem'
 
-export function CreateAlertReview(props) {
+interface FailedService {
+  id: string
+  message: string
+}
+
+interface CreateAlertReviewProps {
+  createdAlertIDs?: string[]
+  failedServices?: FailedService[]
+}
+
+export function CreateAlertReview(props: CreateAlertReviewProps): JSX.Element {
   const { createdAlertIDs = [], failedServices = [] } = props
 
   return (
@@ -12,7 +21,7 @@ export function CreateAlertReview(props) {
       {createdAlertIDs.length > 0 && (
         <Grid item xs={12}>
           <List aria-label='Successfully created alerts'>
-            {createdAlertIDs.map((id) => (
+            {createdAlertIDs.map((id: string) => (
               <CreateAlertListItem key={id} id={id} />
             ))}
           </List>
@@ -36,14 +45,4 @@ export function CreateAlertReview(props) {
       )}
     </Grid>
   )
-}
-
-CreateAlertReview.propTypes = {
-  createdAlertIDs: p.arrayOf(p.string),
-  failedServices: p.arrayOf(
-    p.shape({
-      id: p.string,
-      message: p.string,
-    }),
-  ),
 }

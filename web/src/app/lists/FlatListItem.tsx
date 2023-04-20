@@ -81,6 +81,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
             [classes.secondaryText]: true,
             [classes.listItemDisabled]: disabled,
           }),
+          tabIndex: 0,
         }}
       />
       {secondaryAction && showOptions && (

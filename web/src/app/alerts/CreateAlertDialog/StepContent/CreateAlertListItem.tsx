@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import { ListItem, ListItemText, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
@@ -21,7 +20,9 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CreateAlertListItem(props) {
+export default function CreateAlertListItem(props: {
+  id: string
+}): JSX.Element {
   const { id } = props
 
   const classes = useStyles()
@@ -48,8 +49,4 @@ export default function CreateAlertListItem(props) {
       </ListItemText>
     </ListItem>
   )
-}
-
-CreateAlertListItem.propTypes = {
-  id: p.string.isRequired,
 }
