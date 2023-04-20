@@ -46,7 +46,7 @@ func (e userGroupError) MissingUserRefs() string {
 
 // ScheduleRef returns a string that can be used to reference the schedule in a Slack message.
 func (e userGroupError) ScheduleRef() string {
-	urlStr := e.callbackFunc("schedules/" + url.PathEscape(e.ScheduleID))
+	urlStr := e.callbackFunc(fmt.Sprintf("schedules/%s", url.PathEscape(e.ScheduleID)))
 	return slackLink(urlStr, e.ScheduleName)
 }
 
