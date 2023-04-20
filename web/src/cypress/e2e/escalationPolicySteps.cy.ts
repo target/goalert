@@ -202,7 +202,7 @@ function testSteps(): void {
             .should('contain', s1.delayMinutes)
             .parent('[tabindex]')
             .focus()
-            .type(' ')
+          cy.type(' ')
 
           cy.get('body').should(
             'contain',

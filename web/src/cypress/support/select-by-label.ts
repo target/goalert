@@ -59,7 +59,7 @@ function findByLabel(
         .find('button[aria-label="Open"]')
         .should('be.visible')
         .click()
-        .should('not.have.focus')
+      cy.should('not.have.focus')
 
       cy.focused().should('be.visible').type(label)
 
