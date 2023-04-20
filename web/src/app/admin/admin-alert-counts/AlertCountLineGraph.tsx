@@ -26,7 +26,7 @@ import {
 import Spinner from '../../loading/components/Spinner'
 
 interface AlertCountLineGraphProps {
-  data: typeof LineChart.defaultProps['data']
+  data: (typeof LineChart.defaultProps)['data']
   loading: boolean
   unit: DateTimeUnit
 }

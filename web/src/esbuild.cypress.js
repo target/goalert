@@ -12,10 +12,10 @@ glob.globSync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
 async function run() {
   const ctx = await require('esbuild').context({
     entryPoints: {
-      'support/index': 'cypress/support/e2e.ts',
+      'support/index': 'web/src/cypress/support/e2e.ts',
       ...intEntry,
     },
-    outdir: '../../bin/build/integration/cypress',
+    outdir: 'bin/build/integration/cypress',
     logLevel: 'info',
     bundle: true,
     define: { global: 'window' },
