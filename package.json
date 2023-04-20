@@ -7,6 +7,12 @@
     "esbuild": "./web/src/esbuild.config.js",
     "esbuild-cy": "./web/src/esbuild.cypress.js"
   },
+  "jest": {
+    "transform": {
+      "^.+\\.(j|t)sx?$": "esbuild-jest"
+    },
+    "rootDir": "web/src"
+  },
   "standard": {
     "parser": "babel-eslint",
     "env": [
