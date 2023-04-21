@@ -69,3 +69,10 @@ smoketest_db_dump
 
 /.yarn
 /.yarnrc.yml
+
+/request.json
+/merge-details.txt
+/merges.txt
+/release-notes.json
+/release-notes.md
+

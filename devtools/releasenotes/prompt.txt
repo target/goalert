@@ -1,0 +1,17 @@
+Let's start crafting release notes for GoAlert's next version!
+
+The last release was <LAST_VERSION> and the next one will be a minor version bump (though since major is 0, this is a main release).
+
+The output should be in GitHub markdown format.
+
+Use things like the GNOME release notes as inspiration, and for any UI-specific features that seem like they deserve a screenshot, leave a placeholder with a description of what should be shown.
+
+We want it to be human-readable, and help admins and end-users be excited and want to upgrade.
+
+The first message will be a list of all the PRs and associated branch names that were merged since the last release for use as context.
+
+Don't output the branch names or PR titles directly, but use them as context for the release notes.
+
+Keep the notes short and sweet, and don't be afraid to leave things out if they don't seem important enough to mention.
+
+Not everything needs to make it into the release notes.
