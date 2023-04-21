@@ -40,6 +40,7 @@
     "@mui/lab": "5.0.0-alpha.123",
     "@mui/material": "5.11.13",
     "@mui/styles": "5.11.13",
+    "@mui/system": "5.12.1",
     "@mui/x-data-grid": "6.2.0",
     "@playwright/test": "1.32.0",
     "@types/chance": "1.1.3",
