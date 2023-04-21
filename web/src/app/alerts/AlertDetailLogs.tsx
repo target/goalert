@@ -141,7 +141,9 @@ export default function AlertDetailLogs(
         <ListItemText
           primary={event.message}
           secondary={details}
-          secondaryTypographyProps={{ color: getLogStatusClass(status) }}
+          secondaryTypographyProps={{
+            color: status && getLogStatusClass(status),
+          }}
         />
         <div>
           <ListItemText
