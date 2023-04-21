@@ -608,7 +608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/utilities@npm:^3.2.0":
+"@dnd-kit/utilities@npm:3.2.1, @dnd-kit/utilities@npm:^3.2.0":
   version: 3.2.1
   resolution: "@dnd-kit/utilities@npm:3.2.1"
   dependencies:
@@ -10432,6 +10432,7 @@ __metadata:
     "@apollo/client": 3.7.12
     "@dnd-kit/core": 6.0.3
     "@dnd-kit/sortable": 7.0.0
+    "@dnd-kit/utilities": 3.2.1
     "@emotion/react": 11.10.0
     "@emotion/styled": 11.10.6
     "@material/material-color-utilities": 0.2.0
