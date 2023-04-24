@@ -581,17 +581,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/core@npm:6.0.3":
-  version: 6.0.3
-  resolution: "@dnd-kit/core@npm:6.0.3"
+"@dnd-kit/core@npm:6.0.8":
+  version: 6.0.8
+  resolution: "@dnd-kit/core@npm:6.0.8"
   dependencies:
     "@dnd-kit/accessibility": ^3.0.0
-    "@dnd-kit/utilities": ^3.2.0
+    "@dnd-kit/utilities": ^3.2.1
     tslib: ^2.0.0
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: c7279e20bd2e15a529a77338c4abaf85e766b94bac55e4924c59ce430e8bb220b4e0871c9f96bb5f50d15a04a3f88b121b103a46f831fb3e98006800dd95fc8b
+  checksum: abe48ff7395f84fd8c15e6c8b13da4df153dc1f1076096d783acd0c25539516c77e4854ea59be6621dde55739cb0df1d62924ad069df3267fe05ad90ef729b2f
   languageName: node
   linkType: hard
 
@@ -608,7 +608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/utilities@npm:3.2.1, @dnd-kit/utilities@npm:^3.2.0":
+"@dnd-kit/utilities@npm:3.2.1, @dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
   version: 3.2.1
   resolution: "@dnd-kit/utilities@npm:3.2.1"
   dependencies:
@@ -10432,7 +10432,7 @@ __metadata:
     "@apollo/client": 3.7.12
     "@babel/core": 7.21.4
     "@babel/plugin-transform-modules-commonjs": 7.21.2
-    "@dnd-kit/core": 6.0.3
+    "@dnd-kit/core": 6.0.8
     "@dnd-kit/sortable": 7.0.0
     "@dnd-kit/utilities": 3.2.1
     "@emotion/react": 11.10.0
