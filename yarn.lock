@@ -411,13 +411,13 @@
   dependencies:
     tslib "^2.0.0"
 
-"@dnd-kit/core@6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@dnd-kit/core/-/core-6.0.3.tgz#f99ce312e2d75a1245a99709bfce0d84434bebcc"
-  integrity sha512-8u/yer6W1uvDfAq7EmWWDYpOJzzx1Okylcy9STKzSmEJLXqyO3WiEdhSfW50WJUKjMl2TfvUi6DHZuYCuyAD7g==
+"@dnd-kit/core@6.0.8":
+  version "6.0.8"
+  resolved "https://registry.yarnpkg.com/@dnd-kit/core/-/core-6.0.8.tgz#040ae13fea9787ee078e5f0361f3b49b07f3f005"
+  integrity sha512-lYaoP8yHTQSLlZe6Rr9qogouGUz9oRUj4AHhDQGQzq/hqaJRpFo65X+JKsdHf8oUFBzx5A+SJPUvxAwTF2OabA==
   dependencies:
     "@dnd-kit/accessibility" "^3.0.0"
-    "@dnd-kit/utilities" "^3.2.0"
+    "@dnd-kit/utilities" "^3.2.1"
     tslib "^2.0.0"
 
 "@dnd-kit/sortable@7.0.0":
@@ -428,7 +428,7 @@
     "@dnd-kit/utilities" "^3.2.0"
     tslib "^2.0.0"
 
-"@dnd-kit/utilities@^3.2.0":
+"@dnd-kit/utilities@^3.2.0", "@dnd-kit/utilities@^3.2.1":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@dnd-kit/utilities/-/utilities-3.2.1.tgz#53f9e2016fd2506ec49e404c289392cfff30332a"
   integrity sha512-OOXqISfvBw/1REtkSK2N3Fi2EQiLMlWUlqnOK/UpOISqBZPWpE6TqL+jcPtMOkE8TqYGiURvRdPSI9hltNUjEA==
