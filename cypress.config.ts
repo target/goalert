@@ -1,5 +1,5 @@
 import { defineConfig } from 'cypress'
-import setupNodeEvents from './cypress/plugins/index'
+import setupNodeEvents from './web/src/cypress/plugins/index'
 
 export default defineConfig({
   videoUploadOnPasses: false,
@@ -21,6 +21,8 @@ export default defineConfig({
     setupNodeEvents,
     baseUrl: 'http://localhost:3030',
     excludeSpecPattern: '*.map',
+    supportFile: 'web/src/cypress/support/e2e.ts',
+    specPattern: 'web/src/cypress/e2e/*.cy.{js,ts}',
   },
 
   component: {

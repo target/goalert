@@ -26,7 +26,7 @@ export function useScheduleTZ(scheduleID: string): ScheduleTZResult {
   const q = useQuery(schedTZQuery, {
     variables: { id: scheduleID },
   })
-  const zone = q.data?.schedule?.timeZone ?? ''
+  const zone = q.data?.schedule?.timeZone ?? 'local'
   const isLocalZone = zone === DateTime.local().zoneName
   const zoneAbbr = zone ? DateTime.local({ zone }).toFormat('ZZZZ') : ''
 

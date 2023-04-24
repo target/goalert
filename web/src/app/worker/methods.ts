@@ -12,7 +12,7 @@ const methods = {
 export default methods
 
 export type WorkerMethodName = keyof typeof methods
-export type WorkerMethod<N extends WorkerMethodName> = typeof methods[N]
+export type WorkerMethod<N extends WorkerMethodName> = (typeof methods)[N]
 export type WorkerResult<N extends WorkerMethodName> = ReturnType<
   WorkerMethod<N>
 >

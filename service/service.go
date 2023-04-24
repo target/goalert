@@ -17,6 +17,8 @@ type Service struct {
 	isUserFavorite bool
 }
 
+const MaxDetailsLength = 6 * 1024 // 6KiB
+
 func (s Service) EscalationPolicyName() string {
 	return s.epName
 }
@@ -38,7 +40,7 @@ func (s Service) Normalize() (*Service, error) {
 
 	err := validate.Many(
 		validate.IDName("Name", s.Name),
-		validate.Text("Description", s.Description, 1, 255),
+		validate.Text("Description", s.Description, 1, MaxDetailsLength),
 		validate.UUID("EscalationPolicyID", s.EscalationPolicyID),
 		validate.Duration("MaintenanceExpiresAt", dur, 0, 8*time.Hour),
 	)

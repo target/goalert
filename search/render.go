@@ -64,7 +64,7 @@ func splitRxTerms(rx string) pgtype.TextArray {
 	}
 
 	var t pgtype.TextArray
-	t.Set(terms)
+	_ = t.Set(terms)
 
 	return t
 }
