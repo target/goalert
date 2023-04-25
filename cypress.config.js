@@ -1,7 +1,9 @@
-import { defineConfig } from 'cypress'
-import setupNodeEvents from './web/src/cypress/plugins/index'
+/* eslint-disable @typescript-eslint/no-var-requires */
 
-export default defineConfig({
+const { defineConfig } = require('cypress')
+const setupNodeEvents = require('./web/src/cypress/plugins/index')
+
+module.exports = defineConfig({
   videoUploadOnPasses: false,
   waitForAnimations: false,
   viewportWidth: 1440,

@@ -85,7 +85,7 @@ export default function ServiceLabelEditDialog(props: {
           editValueOnly
           disabled={updateLabelStatus.fetching}
           value={value || defaultValue}
-          onChange={(value) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
         />
       }
     />
