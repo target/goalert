@@ -97,8 +97,6 @@ goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 cypress: bin/goalert bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
 	$(MAKE) ensure-yarn
 	yarn cypress install
-	yarn run esbuild-cy
-	cp -f cypress.config.js bin/build/integration/cypress.config.js
 
 cy-wide: cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
