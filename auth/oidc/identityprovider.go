@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
