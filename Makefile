@@ -123,6 +123,10 @@ help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+	@if [ -d ".vscode" ]; then \
+		echo "Detected .vscode directory, running 'vscode' target"; \
+		$(MAKE) vscode; \
+	fi
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
@@ -298,11 +302,13 @@ new-migration:
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
 
-vscode: ensure-yarn ## Setup vscode integrations
-	yarn install
+.yarn/sdks/integrations.yml: $(NODE_DEPS)
 	yarn dlx @yarnpkg/sdks vscode
 
-upgrade-js: ensure-yarn ## Interactively upgrade javascript packages
-	yarn install
+vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
+
+.yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
 	yarn plugin import interactive-tools
+
+upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
 	yarn upgrade-interactive
