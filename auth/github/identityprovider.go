@@ -38,7 +38,9 @@ func (p *Provider) newStateToken() (string, error) {
 	tok := p.c.NonceStore.New()
 	buf.Write(tok[:])
 
-	binary.Write(buf, binary.BigEndian, time.Now().Unix())
+	if err := binary.Write(buf, binary.BigEndian, time.Now().Unix()); err != nil {
+		return "", err
+	}
 
 	sig, err := p.c.Keyring.Sign(buf.Bytes())
 	if err != nil {
