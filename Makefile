@@ -2,8 +2,10 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn
+.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js
 .SUFFIXES:
+
+default: bin/goalert
 
 include Makefile.binaries.mk
 
@@ -295,3 +297,12 @@ new-migration:
 	@test ! -f migrate/migrations/*-$(NAME).sql || (echo "Migration already exists with the name $(NAME)." && false)
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
+
+vscode: ensure-yarn ## Setup vscode integrations
+	yarn install
+	yarn dlx @yarnpkg/sdks vscode
+
+upgrade-js: ensure-yarn ## Interactively upgrade javascript packages
+	yarn install
+	yarn plugin import interactive-tools
+	yarn upgrade-interactive
