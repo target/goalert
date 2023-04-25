@@ -203,6 +203,8 @@ function testSteps(): void {
             .parent('[tabindex]')
             .focus()
 
+          cy.focused().type(' ')
+
           cy.get('body').should(
             'contain',
             'You have lifted an item in position 1',
