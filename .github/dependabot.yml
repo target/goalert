@@ -1,13 +1,157 @@
+# configuration options available at https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+# This configuration implements every package-ecosystem entry with the following logic:
+# - run Sunday's at midnight at a timeframe that allows TII team members to benefit from dependabot runs
+# - only manage direct dependencies, as opposed to transient dependencies which are harder to maintain at scale
+
 version: 2
 updates:
-  - package-ecosystem: npm
+  - package-ecosystem: 'bundler'
     directory: '/'
     schedule:
-      interval: daily
-      time: '09:00'
-      timezone: 'America/Chicago'
-    open-pull-requests-limit: 3
-    ignore:
-      # ignore all patch updates
-      - dependency-name: '*'
-        update-types: ['version-update:semver-patch']
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'cargo'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'composer'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'mix'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'elm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'gitsubmodule'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'gomod'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'gradle'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'maven'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'nuget'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'pip'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'
+
+  - package-ecosystem: 'terraform'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'sunday'
+      time: '00:00'
+      timezone: 'Asia/Kolkata'
+    allow:
+      - dependency-type: 'direct'

@@ -1,7 +1,9 @@
-import { defineConfig } from 'cypress'
-import setupNodeEvents from './cypress/plugins/index'
+/* eslint-disable @typescript-eslint/no-var-requires */
 
-export default defineConfig({
+const { defineConfig } = require('cypress')
+const setupNodeEvents = require('./web/src/cypress/plugins/index')
+
+module.exports = defineConfig({
   videoUploadOnPasses: false,
   waitForAnimations: false,
   viewportWidth: 1440,
@@ -21,6 +23,8 @@ export default defineConfig({
     setupNodeEvents,
     baseUrl: 'http://localhost:3030',
     excludeSpecPattern: '*.map',
+    supportFile: 'web/src/cypress/support/e2e.ts',
+    specPattern: 'web/src/cypress/e2e/*.cy.{js,ts}',
   },
 
   component: {

@@ -60,7 +60,7 @@ var userGroupErrorMissing = template.Must(template.New("userGroupErrorMissing").
 
 Hey everyone! I couldn't update {{.GroupRef}} because I couldn't find the following user(s) in Slack: {{.MissingUserRefs}}
 
-If you could have them click the button below to connect their Slack account, that would be great! Hopefully I'll be able to update the user-group next time.`))
+If you could have them add a SLACK_DM contact method from their respective GoAlert profile page(s), that would be great! Hopefully I'll be able to update the user-group next time.`))
 
 // userGroupErrorEmpty is a template for when a user-group update fails because there are no users on-call.
 var userGroupErrorEmpty = template.Must(template.New("userGroupErrorEmpty").Parse(`{{.OnCall}}
