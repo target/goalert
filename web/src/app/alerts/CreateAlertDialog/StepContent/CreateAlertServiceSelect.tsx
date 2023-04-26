@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-interface CreateAlertServiceSelectProps {
+export interface CreateAlertServiceSelectProps {
   value: string[]
   onChange: (val: string[]) => void
   error?: Error

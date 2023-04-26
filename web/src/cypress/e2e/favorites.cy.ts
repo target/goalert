@@ -103,16 +103,15 @@ function testFavorites(screen: ScreenFormat): void {
     'rotations',
     (name: string, favorite: boolean) =>
       cy.createRotation({ name, favorite }).then((r: Rotation) => r.id),
-    () =>
-      cy
-        .createEP()
+    () => {
+      cy.createEP()
         .then((e: EP) => {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
-        .get('[data-cy="rotations-step"]')
-        .click()
-        .get('input[name=rotations]'),
+      cy.get('[data-cy="rotations-step"]').click()
+      return cy.get('input[name=rotations]')
+    },
   )
 
   check(
@@ -137,31 +136,28 @@ function testFavorites(screen: ScreenFormat): void {
     'escalation-policies',
     (name: string, favorite: boolean) =>
       cy.createEP({ name, favorite }).then((ep: EP) => ep.id),
-    () =>
-      cy
-        .createService()
-        .then((service: Service) => {
-          return cy.visit(`/services/${service.id}`)
-        })
-        .get('button[aria-label=Edit]')
-        .click()
-        .get('input[name=escalation-policy]'),
+    () => {
+      cy.createService().then((service: Service) => {
+        return cy.visit(`/services/${service.id}`)
+      })
+      cy.get('button[aria-label=Edit]').click()
+      return cy.get('input[name=escalation-policy]')
+    },
   )
   check(
     'User',
     'users',
     (name: string, favorite: boolean) =>
       cy.createUser({ name, favorite }).then((user: Profile) => user.id),
-    () =>
-      cy
-        .createEP()
+    () => {
+      cy.createEP()
         .then((e: EP) => {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
-        .get('[data-cy="users-step"]')
-        .click()
-        .get('input[name=users]'),
+      cy.get('[data-cy="users-step"]').click()
+      return cy.get('input[name=users]')
+    },
   )
 }
 

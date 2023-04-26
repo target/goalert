@@ -116,7 +116,8 @@ function testRotations(screen: ScreenFormat): void {
 
       cy.pageFab()
       cy.dialogTitle('Add User')
-      cy.get('input').click().type(name)
+      cy.get('input').click()
+      cy.focused().type(name)
 
       cy.get('body').should('contain', email)
       cy.get('body').should('contain', dupEmail)
@@ -134,7 +135,8 @@ function testRotations(screen: ScreenFormat): void {
       cy.get('button[aria-label="Toggle Drag and Drop"]').click()
 
       // pick up a participant
-      cy.get('svg[id="drag-0"]').focus().type('{enter}')
+      cy.get('svg[id="drag-0"]').focus()
+      cy.focused().type('{enter}')
       cy.get('body').should(
         'contain',
         'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',

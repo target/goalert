@@ -3,16 +3,17 @@ module github.com/target/goalert
 go 1.20
 
 require (
-	github.com/99designs/gqlgen v0.17.29
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/coreos/go-oidc v2.2.1+incompatible
+	github.com/99designs/gqlgen v0.17.30
+	github.com/brianvoe/gofakeit/v6 v6.21.0
+	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.15.0
 	github.com/felixge/httpsnoop v1.0.3
+	github.com/fullstorydev/grpcui v1.3.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
-	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-github/v51 v51.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20230107090616-13ace0543b28
 	github.com/hashicorp/yamux v0.1.1
@@ -21,6 +22,8 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/kffl/speedbump v1.1.0
+	github.com/lib/pq v1.10.8
 	github.com/mailhog/MailHog v1.0.1
 	github.com/mailhog/MailHog-Server v1.0.1
 	github.com/mailhog/data v1.0.1
@@ -35,45 +38,39 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
+	github.com/tabbed/pqtype v0.1.1
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/vektah/gqlparser/v2 v2.5.1
 	golang.org/x/crypto v0.8.0
-	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.7.0
 	golang.org/x/term v0.7.0
 	golang.org/x/tools v0.8.0
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	honnef.co/go/tools v0.4.3
 )
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.21.0
-	github.com/fullstorydev/grpcui v1.3.1
-	github.com/kffl/speedbump v1.1.0
-	github.com/lib/pq v1.10.8
-	github.com/tabbed/pqtype v0.1.1
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-)
-
-require (
-	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230331115716-d34776aa93ec // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/cncf/udpa/go v0.0.0-20220112060539-c52dc94e7fbe // indirect
 	github.com/cncf/xds/go v0.0.0-20230105202645-06c439db220b // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -81,6 +78,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.9.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.6 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -90,7 +88,7 @@ require (
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/go-hclog v1.4.0 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.1 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
@@ -123,13 +121,12 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
-	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4 // indirect
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rivo/uniseg v0.3.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
@@ -147,12 +144,13 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20230124163310-31e0e69b6fc2 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

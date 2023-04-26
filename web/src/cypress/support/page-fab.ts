@@ -17,10 +17,9 @@ function pageFab(dialOption?: string): Cypress.Chainable {
     return cy.get('button[data-cy=page-fab]').should('be.visible').click()
 
   // speed dial page fab
+  cy.get('button[data-cy=page-fab]').should('be.visible').trigger('mouseover')
   return cy
     .get('button[data-cy=page-fab]')
-    .should('be.visible')
-    .trigger('mouseover')
     .parent()
     .find(
       `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
