@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from 'urql'
-import SimpleListPage from '../lists/SimpleListPage'
+import QueryList from '../lists/QueryList'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 
 const query = gql`
@@ -22,7 +22,7 @@ const query = gql`
 
 export default function ScheduleList(): JSX.Element {
   return (
-    <SimpleListPage
+    <QueryList
       query={query}
       variables={{ input: { favoritesFirst: true } }}
       mapDataNode={(n) => ({
@@ -31,7 +31,9 @@ export default function ScheduleList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      createDialogComponent={ScheduleCreateDialog}
+      renderCreateDialog={(onClose) => (
+        <ScheduleCreateDialog onClose={onClose} />
+      )}
       createLabel='Schedule'
     />
   )

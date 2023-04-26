@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
   // create schedule
   const name = c.name() + ' Service'
   await page.goto(`${baseURL}/schedules`)
-  await page.click('[aria-label="Create Schedule"]')
+  await page.getByRole('button', { name: 'Create Schedule' }).click()
   await page.fill('input[name=name]', name)
   await page.locator('button[type=submit]').click()
   await page.waitForTimeout(1000)

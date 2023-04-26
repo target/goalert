@@ -293,7 +293,11 @@ function testAlerts(screen: ScreenFormat): void {
       })
       const details = c.word({ length: 10 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Alert').click()
+      }
 
       // Alert Info
       cy.dialogTitle('Create New Alert')
