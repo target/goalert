@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from 'urql'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
