@@ -85,20 +85,19 @@ function fillFormField(
           if (el.attr('type') === 'hidden') {
             return cy.get(selector).selectByLabel(value)
           }
-          return cy.wrap(el).clear().type(value)
+          cy.wrap(el).clear()
+          return cy.focused().type(value)
         }
 
+        cy.wrap(el).clear()
         // material Select
         switch (el.attr('type')) {
           case 'time':
-            return cy.wrap(el).clear().type(value.toFormat('HH:mm'))
+            return cy.focused().type(value.toFormat('HH:mm'))
           case 'date':
-            return cy.wrap(el).clear().type(value.toFormat('yyyy-MM-dd'))
+            return cy.focused().type(value.toFormat('yyyy-MM-dd'))
           case 'datetime-local':
-            return cy
-              .wrap(el)
-              .clear()
-              .type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+            return cy.focused().type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
           default:
             throw new TypeError(
               'DateTime only supported for time, date, or datetime-local types',
