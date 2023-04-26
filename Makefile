@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js
+.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js playwright-ui
 .SUFFIXES:
 
 default: bin/goalert
@@ -222,6 +222,10 @@ bin/MailHog: go.mod go.sum
 playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
 	yarn playwright test
+
+playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
+	$(MAKE) ensure-yarn
+	yarn playwright test --ui
 
 smoketest:
 	(cd test/smoke && go test -parallel 10 -timeout 20m)

@@ -15,7 +15,7 @@ const wsEnv = {
 const config = {
   testDir: './test/integration',
   globalSetup: require.resolve('./test/integration/setup/global-setup.ts'),
-  retries: 3,
+  retries: process.env.CI ? 3 : 0,
   use: {
     trace: 'on-first-retry',
     baseURL: 'http://localhost:6130',
