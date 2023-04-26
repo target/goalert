@@ -2,8 +2,10 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn
+.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js
 .SUFFIXES:
+
+default: bin/goalert
 
 include Makefile.binaries.mk
 
@@ -121,6 +123,10 @@ help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+	@if [ -d ".vscode" ]; then \
+		echo "Detected .vscode directory, running 'vscode' target"; \
+		$(MAKE) vscode; \
+	fi
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
@@ -295,3 +301,14 @@ new-migration:
 	@test ! -f migrate/migrations/*-$(NAME).sql || (echo "Migration already exists with the name $(NAME)." && false)
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
+
+.yarn/sdks/integrations.yml: $(NODE_DEPS)
+	yarn dlx @yarnpkg/sdks vscode
+
+vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
+
+.yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
+	yarn plugin import interactive-tools
+
+upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
+	yarn upgrade-interactive
