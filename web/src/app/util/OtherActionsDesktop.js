@@ -3,6 +3,7 @@ import p from 'prop-types'
 
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import { Tooltip } from '@mui/material'
 
 export default function OtherActionsMenuDesktop({
   placement,
@@ -34,15 +35,22 @@ export default function OtherActionsMenuDesktop({
       }}
     >
       {actions.map((o, idx) => (
-        <MenuItem
-          key={idx}
-          onClick={() => {
-            onClose()
-            o.onClick()
-          }}
-        >
-          {o.label}
-        </MenuItem>
+        // tooltip for alt text on menuitem hover
+        // wrapped with div to allow tooltip to work on disabled menuitem
+        <Tooltip key={idx} title={o.tooltip}>
+          <div>
+            <MenuItem
+              key={idx}
+              onClick={() => {
+                onClose()
+                o.onClick()
+              }}
+              disabled={o.disabled}
+            >
+              {o.label}
+            </MenuItem>
+          </div>
+        </Tooltip>
       ))}
     </Menu>
   )
@@ -57,6 +65,8 @@ OtherActionsMenuDesktop.propTypes = {
     p.shape({
       label: p.string.isRequired,
       onClick: p.func.isRequired,
+      disabled: p.bool,
+      tooltip: p.string,
     }),
   ),
 

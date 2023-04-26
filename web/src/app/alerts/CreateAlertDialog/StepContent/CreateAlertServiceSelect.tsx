@@ -1,6 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, MouseEvent } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import p from 'prop-types'
 import {
   TextField,
   InputAdornment,
@@ -15,6 +14,7 @@ import {
   FormLabel,
   FormControl,
   Box,
+  Theme,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
@@ -27,6 +27,7 @@ import getServiceFilters from '../../../util/getServiceFilters'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 
 import { allErrors } from '../../../util/errutil'
+import { Service } from '../../../../schema'
 
 const query = gql`
   query ($input: ServiceSearchOptions) {
@@ -40,7 +41,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   addAll: {
     marginRight: '0.25em',
   },
@@ -68,8 +69,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export function CreateAlertServiceSelect(props) {
+export interface CreateAlertServiceSelectProps {
+  value: string[]
+  onChange: (val: string[]) => void
+  error?: Error
+}
+
+export function CreateAlertServiceSelect(
+  props: CreateAlertServiceSelectProps,
+): JSX.Element {
   const { value, onChange } = props
+
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 
@@ -88,10 +98,10 @@ export function CreateAlertServiceSelect(props) {
     },
   })
 
-  const fieldRef = useRef()
+  const fieldRef = useRef<HTMLElement>(null)
   const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', []).filter(
-    ({ id }) => !value.includes(id),
+    ({ id }: { id: string }) => !value.includes(id),
   )
 
   const queryErrorMsg = allErrors(queryError)
@@ -118,10 +128,10 @@ export function CreateAlertServiceSelect(props) {
 
   const { labelKey, labelValue } = getServiceFilters(searchUserInput)
 
-  const addAll = (e) => {
+  const addAll = (e: MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation()
     e.preventDefault()
-    const resultIDs = searchResults.map((s) => s.id)
+    const resultIDs = searchResults.map((s: { id: string }) => s.id)
 
     props.onChange(
       _.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT),
@@ -168,7 +178,7 @@ export function CreateAlertServiceSelect(props) {
         </Paper>
         {Boolean(props.error) && (
           <FormHelperText>
-            {props.error.message.replace(/^./, (str) => str.toUpperCase())}
+            {props.error?.message.replace(/^./, (str) => str.toUpperCase())}
           </FormHelperText>
         )}
       </FormControl>
@@ -223,8 +233,7 @@ export function CreateAlertServiceSelect(props) {
                 <Typography color='error'>{queryErrorMsg}</Typography>
               </ListItem>
             )}
-
-            {searchResults.map((service) => (
+            {searchResults.map((service: Service) => (
               <ListItem
                 button
                 data-cy='service-select-item'
@@ -232,7 +241,7 @@ export function CreateAlertServiceSelect(props) {
                 disabled={value.length >= CREATE_ALERT_LIMIT}
                 onClick={() =>
                   onChange([
-                    ...value.filter((id) => id !== service.id),
+                    ...value.filter((id: string) => id !== service.id),
                     service.id,
                   ])
                 }
@@ -256,9 +265,4 @@ export function CreateAlertServiceSelect(props) {
       </Box>
     </Box>
   )
-}
-
-CreateAlertServiceSelect.propTypes = {
-  onChange: p.func.isRequired,
-  error: p.object,
 }

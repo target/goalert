@@ -1,10 +1,9 @@
 platform: linux
 caches:
   - path: ../../../go/pkg
-  - path: goalert/node_modules
-  - path: goalert/web/src/node_modules
   - path: ../../../usr/local/share/.cache
   - path: ../../../root/.cache
+  - path: ../../../root/.yarn
 inputs:
   - name: goalert
 outputs:
