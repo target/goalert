@@ -1,7 +1,7 @@
 import React from 'react'
 import { gql } from 'urql'
 import { useURLParam } from '../actions'
-import SimpleListPage from '../lists/SimpleListPage'
+import QueryList from '../lists/QueryList'
 import getServiceFilters from '../util/getServiceFilters'
 import ServiceCreateDialog from './ServiceCreateDialog'
 import ServiceFilterContainer from './ServiceFilterContainer'
@@ -29,7 +29,7 @@ export default function ServiceList(): JSX.Element {
     getServiceFilters(searchParam)
 
   return (
-    <SimpleListPage
+    <QueryList
       query={query}
       variables={{ input: { favoritesFirst: true } }}
       mapDataNode={(n) => ({
@@ -38,7 +38,9 @@ export default function ServiceList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      createDialogComponent={ServiceCreateDialog}
+      renderCreateDialog={(onClose) => (
+        <ServiceCreateDialog onClose={onClose} />
+      )}
       createLabel='Service'
       searchAdornment={
         <ServiceFilterContainer

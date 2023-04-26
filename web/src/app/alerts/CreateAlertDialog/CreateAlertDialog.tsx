@@ -11,7 +11,6 @@ import {
 import { makeStyles } from '@mui/styles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import _ from 'lodash'
-
 import { useCreateAlerts } from './useCreateAlerts'
 import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -40,14 +39,16 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function CreateAlertDialog(props: {
   onClose: () => void
-  serviceID: string
+  serviceID?: string
 }): JSX.Element {
   const classes = useStyles()
   const [step, setStep] = useState(0)
+  const serviceID = props.serviceID
+
   const [value, setValue] = useState<Value>({
     summary: '',
     details: '',
-    serviceIDs: props.serviceID ? [props.serviceID] : [],
+    serviceIDs: serviceID ? [serviceID] : [],
   })
   const [mutate, { data, loading, error }, getSvcID] = useCreateAlerts(value)
 
@@ -65,12 +66,12 @@ export default function CreateAlertDialog(props: {
   const hasCompleted = Boolean(data) && !hasValidationError
   const currentStep = loading ? 2 : step
 
-  const stepTitles = props.serviceID
+  const stepTitles = serviceID
     ? ['Alert Info', 'Confirm']
     : ['Alert Info', 'Service Selection', 'Confirm']
 
   const onNext = (): void => {
-    if (currentStep === 0 && props.serviceID) {
+    if (currentStep === 0 && serviceID) {
       setStep(currentStep + 2)
     } else if (currentStep < 2) {
       setStep(currentStep + 1)

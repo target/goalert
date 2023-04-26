@@ -12,7 +12,6 @@ import {
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import QueryList from '../lists/QueryList'
-import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
@@ -107,7 +106,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
-  const [showCreate, setShowCreate] = useState(false)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
@@ -293,6 +291,13 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <AlertsListFilter serviceID={props.serviceID} />
               )
             }
+            renderCreateDialog={(onClose) => (
+              <CreateAlertDialog
+                serviceID={props.serviceID}
+                onClose={onClose}
+              />
+            )}
+            createLabel='Alert'
             cardHeader={
               <Hidden lgDown>
                 <AlertsListControls />
@@ -302,13 +307,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-      <CreateFAB title='Create Alert' onClick={() => setShowCreate(true)} />
-      {showCreate && (
-        <CreateAlertDialog
-          onClose={() => setShowCreate(false)}
-          serviceID={props.serviceID}
-        />
-      )}
     </React.Fragment>
   )
 }

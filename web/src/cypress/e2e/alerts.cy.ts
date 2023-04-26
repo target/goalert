@@ -293,7 +293,11 @@ function testAlerts(screen: ScreenFormat): void {
       })
       const details = c.word({ length: 10 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Alert').click()
+      }
 
       // Alert Info
       cy.dialogTitle('Create New Alert')
@@ -347,27 +351,21 @@ function testAlerts(screen: ScreenFormat): void {
 
     if (screen === 'widescreen') {
       it('should link to the escalation policy', () => {
-        cy.get('body')
-          .contains('a', 'Escalation Policy')
-          .click()
-          .url()
-          .should(
-            'eq',
-            Cypress.config().baseUrl +
-              `/escalation-policies/${alert.service.ep.id}`,
-          )
+        cy.get('body').contains('a', 'Escalation Policy').click()
+        cy.url().should(
+          'eq',
+          Cypress.config().baseUrl +
+            `/escalation-policies/${alert.service.ep.id}`,
+        )
       })
     }
 
     it('should link to the service', () => {
-      cy.get('body')
-        .contains('a', alert.service.name)
-        .click()
-        .url()
-        .should(
-          'eq',
-          Cypress.config().baseUrl + `/services/${alert.service.id}`,
-        )
+      cy.get('body').contains('a', alert.service.name).click()
+      cy.url().should(
+        'eq',
+        Cypress.config().baseUrl + `/services/${alert.service.id}`,
+      )
     })
 
     it('should have proper data', () => {
