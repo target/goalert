@@ -18,7 +18,7 @@ func TestManager_PauseingShutdown(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func() { assert.NoError(t, mgr.Run(context.Background())) }()
+	go func() { assert.ErrorIs(t, mgr.Run(context.Background()), context.Canceled) }()
 
 	var err error
 	errCh := make(chan error)
@@ -72,7 +72,7 @@ func TestManager_PauseShutdown(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func() { assert.NoError(t, mgr.Run(context.Background())) }()
+	go func() { assert.ErrorIs(t, mgr.Run(context.Background()), context.Canceled) }()
 
 	var err error
 	errCh := make(chan error)
@@ -118,7 +118,7 @@ func TestManager_PauseResume(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func() { assert.NoError(t, mgr.Run(context.Background())) }()
+	go func() { assert.ErrorIs(t, mgr.Run(context.Background()), context.Canceled) }()
 
 	var err error
 	errCh := make(chan error)
@@ -159,7 +159,7 @@ func TestManager_PauseingResume(t *testing.T) {
 	mgr := NewManager(run, shut)
 	require.NoError(t, mgr.SetPauseResumer(pr))
 
-	go func() { assert.NoError(t, mgr.Run(context.Background())) }()
+	go func() { assert.ErrorIs(t, mgr.Run(context.Background()), context.Canceled) }()
 
 	var err error
 	errCh := make(chan error)
