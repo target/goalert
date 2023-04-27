@@ -14,6 +14,7 @@ import { ISOTimePicker } from '../../util/ISOPickers'
 import { Value, NO_DAY, EVERY_DAY, RuleFieldError } from './util'
 import { Time } from '../../util/Time'
 import { useScheduleTZ } from '../useScheduleTZ'
+import { useExpFlag } from '../../util/useExpFlag'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -35,6 +36,7 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, slackType, setSlackType, ...formProps } = props
   const classes = useStyles()
+  const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -66,29 +68,31 @@ export default function ScheduleOnCallNotificationsForm(
             }}
           />
         </Grid>
-        <Grid item>
-          <Typography sx={{ pb: 1, display: 'flex' }}>
-            Also set the members of a Slack user group?
-            <Tooltip
-              data-cy='fts-tooltip'
-              disableFocusListener
-              placement='right'
-              title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
-            >
-              <InfoIcon color='primary' sx={{ pl: 0.5 }} />
-            </Tooltip>
-          </Typography>
-          <FormField
-            component={SlackUserGroupSelect}
-            fullWidth
-            label='Slack User Group'
-            name='slackUserGroup'
-            mapOnChangeValue={(v) => {
-              setSlackType('usergroup')
-              return v
-            }}
-          />
-        </Grid>
+        {slackUGEnabled && (
+          <Grid item>
+            <Typography sx={{ pb: 1, display: 'flex' }}>
+              Also set the members of a Slack user group?
+              <Tooltip
+                data-cy='fts-tooltip'
+                disableFocusListener
+                placement='right'
+                title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
+              >
+                <InfoIcon color='primary' sx={{ pl: 0.5 }} />
+              </Tooltip>
+            </Typography>
+            <FormField
+              component={SlackUserGroupSelect}
+              fullWidth
+              label='Slack User Group'
+              name='slackUserGroup'
+              mapOnChangeValue={(v) => {
+                setSlackType('usergroup')
+                return v
+              }}
+            />
+          </Grid>
+        )}
         <Grid item>
           <RadioGroup
             name='ruleType'
