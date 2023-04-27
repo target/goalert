@@ -109,9 +109,11 @@ cy-wide-prod: web/src/build/static/app.js cypress
 cy-mobile-prod: web/src/build/static/app.js cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	$(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	mkdir -p coverage/cypress
+	GOCOVERDIR=coverage/cypress $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	mkdir -p coverage/cypress
+	GOCOVERDIR=coverage/cypress $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
@@ -157,13 +159,13 @@ reset-integration: bin/waitfor bin/goalert bin/psql-lite
 start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
-jest: $(NODE_DEPS) 
+jest: $(NODE_DEPS)
 	$(MAKE) ensure-yarn
 	yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
-	go test -short ./...
-
+	mkdir -p coverage
+	CGO_ENABLED=1 go test -coverpkg=./... -coverprofile=coverage/unit.out -race -short ./...
 
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
@@ -221,14 +223,16 @@ bin/MailHog: go.mod go.sum
 
 playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
-	yarn playwright test
+	mkdir -p coverage/playwright
+	GOCOVERDIR=coverage/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
 	yarn playwright test --ui
 
 smoketest:
-	(cd test/smoke && go test -parallel 10 -timeout 20m)
+	mkdir -p coverage
+	(cd test/smoke && CGO_ENABLED=1 go test -coverpkg=../... -coverprofile=../../coverage/smoketest.out -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
 	(cd test/smoke && go test -run TestMigrations)

@@ -5,6 +5,8 @@
 /*.session.json
 *.zip
 /test-results
+/coverage
+
 
 *.pem
 *.key
