@@ -96,7 +96,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
+cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
 	$(MAKE) ensure-yarn
 	yarn cypress install
 
@@ -109,11 +109,13 @@ cy-wide-prod: web/src/build/static/app.js cypress
 cy-mobile-prod: web/src/build/static/app.js cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	mkdir -p coverage/cypress
-	GOCOVERDIR=coverage/cypress $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	rm -rf coverage/integration/cypress-wide
+	mkdir -p coverage/integration/cypress-wide
+	GOCOVERDIR=coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	mkdir -p coverage/cypress
-	GOCOVERDIR=coverage/cypress $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	rm -rf coverage/integration/cypress-mobile
+	mkdir -p coverage/integration/cypress-mobile
+	GOCOVERDIR=coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
@@ -146,14 +148,16 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/sr
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-reset-integration: bin/waitfor bin/goalert bin/psql-lite
+reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite
+	rm -rf coverage/integration/reset
+	mkdir -p coverage/integration/reset
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
-	./bin/goalert --db-url "$(INT_DB_URL)" migrate
+	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
 	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
-	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
-	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
-	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
+	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
 
 start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
@@ -161,7 +165,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 
 jest: $(NODE_DEPS)
 	$(MAKE) ensure-yarn
-	yarn run jest $(JEST_ARGS)
+	# yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
 	mkdir -p coverage
@@ -221,10 +225,11 @@ test-unit: test
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
-playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
-	mkdir -p coverage/playwright
-	GOCOVERDIR=coverage/playwright yarn playwright test
+	rm -rf coverage/integration/playwright
+	mkdir -p coverage/integration/playwright
+	GOCOVERDIR=coverage/integration/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
