@@ -44,6 +44,7 @@ const (
 	DestTypeUserEmail
 	DestTypeUserWebhook
 	DestTypeChanWebhook
+	DestTypeSlackUG
 )
 
 func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
@@ -80,6 +81,8 @@ func (t ScannableDestType) DestType() DestType {
 		return DestTypeSlackChannel
 	case notificationchannel.TypeWebhook:
 		return DestTypeChanWebhook
+	case notificationchannel.TypeSlackUG:
+		return DestTypeSlackUG
 	}
 
 	return DestTypeUnknown
@@ -92,6 +95,8 @@ func (t DestType) NCType() notificationchannel.Type {
 		return notificationchannel.TypeSlackChan
 	case DestTypeChanWebhook:
 		return notificationchannel.TypeWebhook
+	case DestTypeSlackUG:
+		return notificationchannel.TypeSlackUG
 	}
 
 	return notificationchannel.TypeUnknown
