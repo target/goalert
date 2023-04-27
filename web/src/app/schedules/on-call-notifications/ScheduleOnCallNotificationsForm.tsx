@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Grid from '@mui/material/Grid'
 import RadioGroup from '@mui/material/RadioGroup'
@@ -38,6 +38,7 @@ export default function ScheduleOnCallNotificationsForm(
   const classes = useStyles()
   const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
+  const [slackUGChecked, setSlackUGChecked] = useState(false)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
@@ -53,46 +54,8 @@ export default function ScheduleOnCallNotificationsForm(
   }
 
   return (
-    <FormContainer {...formProps} optionalLabels>
+    <FormContainer {...formProps}>
       <Grid container spacing={2} direction='column'>
-        <Grid item>
-          <FormField
-            component={SlackChannelSelect}
-            fullWidth
-            required
-            label='Slack Channel'
-            name='slackChannelID'
-            mapOnChangeValue={(v) => {
-              setSlackType('channel')
-              return v
-            }}
-          />
-        </Grid>
-        {slackUGEnabled && (
-          <Grid item>
-            <Typography sx={{ pb: 1, display: 'flex' }}>
-              Also set the members of a Slack user group?
-              <Tooltip
-                data-cy='fts-tooltip'
-                disableFocusListener
-                placement='right'
-                title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
-              >
-                <InfoIcon color='primary' sx={{ pl: 0.5 }} />
-              </Tooltip>
-            </Typography>
-            <FormField
-              component={SlackUserGroupSelect}
-              fullWidth
-              label='Slack User Group'
-              name='slackUserGroup'
-              mapOnChangeValue={(v) => {
-                setSlackType('usergroup')
-                return v
-              }}
-            />
-          </Grid>
-        )}
         <Grid item>
           <RadioGroup
             name='ruleType'
@@ -113,57 +76,103 @@ export default function ScheduleOnCallNotificationsForm(
             />
           </RadioGroup>
         </Grid>
-        <Grid item xs={12}>
-          <Typography
-            color='textSecondary'
-            className={classes.tzNote}
-            style={{ visibility: props.value.time ? 'visible' : 'hidden' }}
-          >
-            Times shown in schedule timezone ({zone})
-          </Typography>
-        </Grid>
-        <Grid item>
-          <Grid container spacing={2} alignItems='center'>
-            <Grid item xs={12} sm={5} md={4}>
-              <FormField
-                component={ISOTimePicker}
-                timeZone={zone}
-                fullWidth
-                name='time'
-                disabled={!props.value.time}
-                required={!!props.value.time}
-                hint={
-                  <Time
-                    format='clock'
-                    time={props.value.time}
-                    suffix=' in local time'
-                  />
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={7} md={8}>
-              <Grid container justifyContent='space-between'>
-                {days.map((day, i) => (
-                  <FormControlLabel
-                    key={i}
-                    label={day}
-                    labelPlacement='top'
-                    classes={{ labelPlacementTop: classes.margin0 }}
-                    control={
-                      <FormField
-                        noError
-                        component={Checkbox}
-                        checkbox
-                        name={`weekdayFilter[${i}]`}
-                        disabled={!props.value.time}
-                      />
-                    }
-                  />
-                ))}
-              </Grid>
+        {props.value.time && (
+          <Grid item xs={12}>
+            <Typography color='textSecondary' className={classes.tzNote}>
+              Times shown in schedule timezone ({zone})
+            </Typography>
+          </Grid>
+        )}
+        <Grid item container spacing={2} alignItems='center'>
+          <Grid item xs={12} sm={5} md={4}>
+            <FormField
+              component={ISOTimePicker}
+              timeZone={zone}
+              fullWidth
+              name='time'
+              disabled={!props.value.time}
+              required={!!props.value.time}
+              hint={
+                <Time
+                  format='clock'
+                  time={props.value.time}
+                  suffix=' in local time'
+                />
+              }
+            />
+          </Grid>
+          <Grid item xs={12} sm={7} md={8}>
+            <Grid container justifyContent='space-between'>
+              {days.map((day, i) => (
+                <FormControlLabel
+                  key={i}
+                  label={day}
+                  labelPlacement='top'
+                  classes={{ labelPlacementTop: classes.margin0 }}
+                  control={
+                    <FormField
+                      noError
+                      component={Checkbox}
+                      checkbox
+                      name={`weekdayFilter[${i}]`}
+                      disabled={!props.value.time}
+                    />
+                  }
+                />
+              ))}
             </Grid>
           </Grid>
         </Grid>
+        <Grid item>
+          <FormField
+            component={SlackChannelSelect}
+            fullWidth
+            required
+            label='Slack Channel'
+            name='slackChannelID'
+            mapOnChangeValue={(v) => {
+              setSlackType('channel')
+              return v
+            }}
+          />
+        </Grid>
+        {slackUGEnabled && (
+          <Grid item>
+            <FormControlLabel
+              sx={{ pb: 2 }}
+              control={
+                <Checkbox
+                  value={slackUGChecked}
+                  onChange={() => setSlackUGChecked(!slackUGChecked)}
+                />
+              }
+              label={
+                <Typography sx={{ display: 'flex' }}>
+                  Also set the members of a Slack user group?
+                  <Tooltip
+                    data-cy='fts-tooltip'
+                    disableFocusListener
+                    placement='right'
+                    title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
+                  >
+                    <InfoIcon color='primary' sx={{ pl: 0.5 }} />
+                  </Tooltip>
+                </Typography>
+              }
+            />
+            <FormField
+              component={SlackUserGroupSelect}
+              disabled={!slackUGChecked}
+              fullWidth
+              label='Slack User Group'
+              name='slackUserGroup'
+              mapOnChangeValue={(v) => {
+                setSlackType('usergroup')
+                return v
+              }}
+            />
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )
