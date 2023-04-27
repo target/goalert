@@ -94,7 +94,7 @@ $(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build
 {{range $tool := $.Tools}}
 {{if eq $tool.Name "goalert"}}
 $(BIN_DIR)/{{$tool.Name}}.cover: $(GO_DEPS) {{$tool.Deps}}
-	CGO_ENABLED=1 go build {{$tool.Flags}} -race -cover -o $@ ./{{$tool.Dir}}
+	go build {{$tool.Flags}} -cover -o $@ ./{{$tool.Dir}}
 {{end}}
 $(BIN_DIR)/{{$tool.Name}}: $(GO_DEPS) {{$tool.Deps}}
 	go build {{$tool.Flags}} -o $@ ./{{$tool.Dir}}
