@@ -68,6 +68,7 @@ smoketest_db_dump
 *.pid
 
 /.yarn
+/.pnp.*
 /.yarnrc.yml
 
 /request.json

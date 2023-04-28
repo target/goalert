@@ -3,14 +3,15 @@ import { testScreen } from '../support/e2e'
 import users from '../fixtures/users.json'
 const c = new Chance()
 
-function testMaterialSelect(): void {
+function testMaterialSelect(screen: ScreenFormat): void {
   it('should display options with punctuation', () => {
     cy.createRotation().then((r) => {
       const u = users[3]
       cy.visit(`rotations/${r.id}`)
       cy.pageFab()
       cy.dialogTitle('Add User')
-      cy.get('input[name=users]').click().type(u.name.replace('.', ' '))
+      cy.get('input[name=users]').click()
+      cy.focused().type(u.name.replace('.', ' '))
       cy.get('div[role=presentation]').contains(u.name)
     })
   })
@@ -24,6 +25,7 @@ function testMaterialSelect(): void {
           return cy.visit(`escalation-policies/${ep.id}`)
         })
       })
+
       it('should clear fields and not reset with last values', () => {
         const u1 = users[0]
         const u2 = users[1]
@@ -51,12 +53,19 @@ function testMaterialSelect(): void {
       })
     })
   })
+
   describe('Clear Required Fields', () => {
     describe('Escalation Policy', () => {
       it('should clear EP repeat count, reset with default value', () => {
         const defaultVal = '3'
         cy.visit('escalation-policies')
-        cy.pageFab()
+
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Escalation Policy').click()
+        }
+
         cy.dialogTitle('Create Escalation Policy')
 
         // Clears field
@@ -74,13 +83,20 @@ function testMaterialSelect(): void {
 
         cy.dialogFinish('Cancel')
       })
+
       it('should clear EP repeat count, reset with last value', () => {
         const name = 'SM EP ' + c.word({ length: 7 })
         const description = c.word({ length: 9 })
         const repeat = c.integer({ min: 0, max: 5 }).toString()
 
         cy.visit('escalation-policies')
-        cy.pageFab()
+
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Escalation Policy').click()
+        }
+
         cy.dialogTitle('Create Escalation Policy')
         cy.dialogForm({ name, description, repeat })
 

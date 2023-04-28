@@ -33,7 +33,7 @@ func copyFile(dst, src string) error {
 	if err != nil {
 		return fmt.Errorf("read '%s': %w", src, err)
 	}
-	err = os.WriteFile(dst, data, 0644)
+	err = os.WriteFile(dst, data, 0o644)
 	if err != nil {
 		return fmt.Errorf("write '%s': %w", dst, err)
 	}
@@ -270,6 +270,7 @@ func certSerialNumber() (*big.Int, error) {
 	}
 	return sn, nil
 }
+
 func randSerialNumber() *big.Int {
 	maxSN := new(big.Int)
 	// x509 serial number can be up to 20 bytes, so 160 bits -1 (sign)
@@ -282,50 +283,49 @@ func randSerialNumber() *big.Int {
 }
 
 var (
-	_certCommonName       string
-	_certSerialNumber     string
-	_certSystemCACertFile string
-	_certSystemCAKeyFile  string
-	_certPluginCACertFile string
-	_certPluginCAKeyFile  string
-	_certClientCertFile   string
-	_certClientKeyFile    string
-	_certClientCAFile     string
-	_certServerCertFile   string
-	_certServerKeyFile    string
-	_certServerCAFile     string
+	_certCommonName       string = "GoAlert"
+	_certSerialNumber     string = ""
+	_certSystemCACertFile string = "system.ca.pem"
+	_certSystemCAKeyFile  string = "system.ca.key"
+	_certPluginCACertFile string = "plugin.ca.pem"
+	_certPluginCAKeyFile  string = "plugin.ca.key"
+	_certClientCertFile   string = "goalert-client.pem"
+	_certClientKeyFile    string = "goalert-client.key"
+	_certClientCAFile     string = "goalert-client.ca.pem"
+	_certServerCertFile   string = "goalert-server.pem"
+	_certServerKeyFile    string = "goalert-server.key"
+	_certServerCAFile     string = "goalert-server.ca.pem"
 
-	_certValidFrom  string
-	_certValidFor   time.Duration
-	_certRSABits    int
-	_certECDSACurve string
-	_certED25519Key bool
+	_certValidFrom  string        = ""
+	_certValidFor   time.Duration = 10 * 365 * 24 * time.Hour
+	_certRSABits    int           = 2048
+	_certECDSACurve string        = ""
+	_certED25519Key bool          = false
 )
 
 func initCertCommands() {
+	genCerts.PersistentFlags().StringVar(&_certSerialNumber, "serial-number", _certSerialNumber, "Serial number to use for generated certificate (default is random).")
 
-	genCerts.PersistentFlags().StringVar(&_certSerialNumber, "serial-number", "", "Serial number to use for generated certificate (default is random).")
+	genCerts.PersistentFlags().StringVar(&_certValidFrom, "start-date", _certValidFrom, "Creation date formatted as Jan 2 15:04:05 2006")
+	genCerts.PersistentFlags().DurationVar(&_certValidFor, "duration", _certValidFor, "Creation date formatted as Jan 2 15:04:05 2006")
+	genCerts.PersistentFlags().IntVar(&_certRSABits, "rsa-bits", _certRSABits, "Size of RSA key(s) to create. Ignored if either --ecdsa-curve or --ed25519 are set.")
+	genCerts.PersistentFlags().StringVar(&_certECDSACurve, "ecdsa-curve", _certECDSACurve, "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521. Ignored if --ed25519 is set.")
+	genCerts.PersistentFlags().BoolVar(&_certED25519Key, "ed25519", _certED25519Key, "Generate ED25519 key(s).")
 
-	genCerts.PersistentFlags().StringVar(&_certValidFrom, "start-date", "", "Creation date formatted as Jan 2 15:04:05 2006")
-	genCerts.PersistentFlags().DurationVar(&_certValidFor, "duration", 10*365*24*time.Hour, "Creation date formatted as Jan 2 15:04:05 2006")
-	genCerts.PersistentFlags().IntVar(&_certRSABits, "rsa-bits", 2048, "Size of RSA key(s) to create. Ignored if either --ecdsa-curve or --ed25519 are set.")
-	genCerts.PersistentFlags().StringVar(&_certECDSACurve, "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521. Ignored if --ed25519 is set.")
-	genCerts.PersistentFlags().BoolVar(&_certED25519Key, "ed25519", false, "Generate ED25519 key(s).")
+	genCerts.PersistentFlags().StringVar(&_certCommonName, "cn", _certCommonName, "Common name of the certificate.")
 
-	genCerts.PersistentFlags().StringVar(&_certCommonName, "cn", "GoAlert", "Common name of the certificate.")
+	genCerts.PersistentFlags().StringVar(&_certSystemCACertFile, "system-ca-cert-file", _certSystemCACertFile, "CA cert file for signing server certs.")
+	genCerts.PersistentFlags().StringVar(&_certSystemCAKeyFile, "system-ca-key-file", _certSystemCAKeyFile, "CA key file for signing server certs.")
+	genCerts.PersistentFlags().StringVar(&_certPluginCACertFile, "plugin-ca-cert-file", _certPluginCACertFile, "CA cert file for signing client certs.")
+	genCerts.PersistentFlags().StringVar(&_certPluginCAKeyFile, "plugin-ca-key-file", _certPluginCAKeyFile, "CA key file for signing client certs.")
 
-	genCerts.PersistentFlags().StringVar(&_certSystemCACertFile, "system-ca-cert-file", "system.ca.pem", "CA cert file for signing server certs.")
-	genCerts.PersistentFlags().StringVar(&_certSystemCAKeyFile, "system-ca-key-file", "system.ca.key", "CA key file for signing server certs.")
-	genCerts.PersistentFlags().StringVar(&_certPluginCACertFile, "plugin-ca-cert-file", "plugin.ca.pem", "CA cert file for signing client certs.")
-	genCerts.PersistentFlags().StringVar(&_certPluginCAKeyFile, "plugin-ca-key-file", "plugin.ca.key", "CA key file for signing client certs.")
+	genServerCert.Flags().StringVar(&_certServerCertFile, "server-cert-file", _certServerCertFile, "Output file for the new server certificate.")
+	genServerCert.Flags().StringVar(&_certServerKeyFile, "server-key-file", _certServerKeyFile, "Output file for the new server key.")
+	genServerCert.Flags().StringVar(&_certServerCAFile, "server-ca-file", _certServerCAFile, "Output file for the server CA bundle.")
 
-	genServerCert.Flags().StringVar(&_certServerCertFile, "server-cert-file", "goalert-server.pem", "Output file for the new server certificate.")
-	genServerCert.Flags().StringVar(&_certServerKeyFile, "server-key-file", "goalert-server.key", "Output file for the new server key.")
-	genServerCert.Flags().StringVar(&_certServerCAFile, "server-ca-file", "goalert-server.ca.pem", "Output file for the server CA bundle.")
-
-	genClientCert.Flags().StringVar(&_certClientCertFile, "client-cert-file", "goalert-client.pem", "Output file for the new client certificate.")
-	genClientCert.Flags().StringVar(&_certClientKeyFile, "client-key-file", "goalert-client.key", "Output file for the new client key.")
-	genClientCert.Flags().StringVar(&_certClientCAFile, "client-ca-file", "goalert-client.ca.pem", "Output file for the client CA bundle.")
+	genClientCert.Flags().StringVar(&_certClientCertFile, "client-cert-file", _certClientCertFile, "Output file for the new client certificate.")
+	genClientCert.Flags().StringVar(&_certClientKeyFile, "client-key-file", _certClientKeyFile, "Output file for the new client key.")
+	genClientCert.Flags().StringVar(&_certClientCAFile, "client-ca-file", _certClientCAFile, "Output file for the client CA bundle.")
 
 	genCerts.AddCommand(genAllCert, genCACert, genServerCert, genClientCert)
 }

@@ -25,7 +25,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
-		app.cooldown.WaitContext(ctx)
+		_ = app.cooldown.WaitContext(ctx)
 	}
 
 	type shutdownable interface{ Shutdown(context.Context) error }
