@@ -171,14 +171,18 @@ check: check-go check-js ## Run all lint checks
 .yarnrc.yml: package.json
 	$(MAKE) yarn
 
+.yarn/releases/yarn-$(YARN_VERSION).cjs:
+	yarn set version stable || $(MAKE) yarn
+
 ensure-yarn: # Yarn ensures the correct version of yarn is installed
 	@echo "Checking yarn version..."
 	@yarn --version | grep -q -F "$(YARN_VERSION)" || $(MAKE) yarn
+	$(MAKE) .yarn/releases/yarn-$(YARN_VERSION).cjs
 
 yarn:
 	corepack enable
 	corepack prepare yarn@stable --activate
-	yarn set version stable --only-if-needed
+	yarn set version stable
 
 check-js: generate $(NODE_DEPS)
 	$(MAKE) ensure-yarn
