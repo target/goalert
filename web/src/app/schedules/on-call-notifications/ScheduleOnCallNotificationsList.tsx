@@ -54,7 +54,8 @@ export default function ScheduleOnCallNotificationsList({
               items={rules.map((rule) => {
                 return {
                   icon:
-                    rule.target.type === 'slackChannel' ? (
+                    rule.target.type === 'slackChannel' ||
+                    rule.target.type === 'slackUserGroup' ? (
                       <Avatar>
                         <SlackBW />{' '}
                       </Avatar>

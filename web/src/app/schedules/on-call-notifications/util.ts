@@ -10,13 +10,14 @@ import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
 export type Value = {
-  slackChannelID: string | null
+  slackChannelID?: string | null
+  slackUserGroup?: string | null
   time: string | null
   weekdayFilter: WeekdayFilter
 }
 
 export type RuleFieldError = {
-  field: 'time' | 'weekdayFilter' | 'slackChannelID'
+  field: 'time' | 'weekdayFilter' | 'slackChannelID' | 'slackUserGroup'
   message: string
 }
 
@@ -70,20 +71,26 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: { type: 'slackChannel', id: v.slackChannelID || '' },
+  target: {
+    type: v?.slackUserGroup ? 'slackUserGroup' : 'slackChannel',
+    id: v?.slackUserGroup
+      ? `${v.slackUserGroup}:${v.slackChannelID}`
+      : v?.slackChannelID ?? '',
+  },
 })
 
 export const onCallRuleToInput = (
   v: OnCallNotificationRule,
-): OnCallNotificationRuleInput | null =>
-  v
-    ? {
-        time: v.time,
-        id: v.id,
-        weekdayFilter: v.weekdayFilter,
-        target: { type: v.target.type, id: v.target.id },
-      }
-    : null
+): OnCallNotificationRuleInput | null => {
+  if (!v.target) return null
+
+  return {
+    time: v.time,
+    id: v.id,
+    weekdayFilter: v.weekdayFilter,
+    target: { type: v.target.type, id: v.target.id },
+  }
+}
 
 export function mapOnCallErrors(
   mErr?: ApolloError | null,
@@ -105,8 +112,12 @@ export function mapOnCallErrors(
           return e
       }
 
-      if (e.field.startsWith('target')) {
+      if (e.field === 'targetTypeSlackChannel') {
         return { ...e, field: 'slackChannelID' }
+      }
+
+      if (e.field === 'targetTypeSlackUserGroup') {
+        return { ...e, field: 'slackUserGroup' }
       }
 
       dialogErrs.push(e)

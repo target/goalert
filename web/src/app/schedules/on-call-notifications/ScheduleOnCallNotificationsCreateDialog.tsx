@@ -1,34 +1,56 @@
 import React, { useState } from 'react'
-import { Value } from './util'
-import { useCreateOnCallRule } from './hooks'
+import { mapOnCallErrors, NO_DAY, Value } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
 
 interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
-
   scheduleID: string
 }
 
 export default function ScheduleOnCallNotificationsCreateDialog(
-  p: ScheduleOnCallNotificationsCreateDialogProps,
+  props: ScheduleOnCallNotificationsCreateDialogProps,
 ): JSX.Element {
-  const [_value, setValue] = useState<Value | null>(null)
-  const update = useCreateOnCallRule(p.scheduleID, _value)
+  const { onClose, scheduleID } = props
+  const [value, setValue] = useState<Value | null>(null)
+  const [slackType, setSlackType] = useState('channel')
+
+  const { q, zone, rules } = useOnCallRulesData(scheduleID)
+
+  const newValue: Value = value || {
+    time: null,
+    weekdayFilter: NO_DAY,
+    slackChannelID: null,
+    slackUserGroup: null,
+  }
+  if (!newValue.slackChannelID) delete newValue.slackChannelID
+  if (!newValue.slackUserGroup) delete newValue.slackUserGroup
+  const { m, submit } = useSetOnCallRulesSubmit(
+    scheduleID,
+    zone,
+    newValue,
+    ...rules,
+  )
+
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
+  const busy = (q.loading && !zone) || m.loading
 
   return (
     <FormDialog
       title='Create Notification Rule'
-      errors={update.dialogErrors}
-      loading={update.busy}
-      onClose={() => p.onClose()}
-      onSubmit={() => update.submit().then(p.onClose)}
+      errors={dialogErrors}
+      loading={busy}
+      onClose={onClose}
+      onSubmit={() => submit().then(onClose)}
       form={
         <ScheduleOnCallNotificationsForm
-          scheduleID={p.scheduleID}
-          errors={update.fieldErrors}
-          value={update.value}
+          scheduleID={scheduleID}
+          errors={fieldErrors}
+          value={newValue}
           onChange={(value) => setValue(value)}
+          slackType={slackType}
+          setSlackType={setSlackType}
         />
       }
     />
