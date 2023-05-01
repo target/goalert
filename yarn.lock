@@ -970,7 +970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphiql/react@npm:^0.17.0":
+"@graphiql/react@npm:^0.17.1":
   version: 0.17.1
   resolution: "@graphiql/react@npm:0.17.1"
   dependencies:
@@ -996,7 +996,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphiql/toolkit@npm:^0.8.2, @graphiql/toolkit@npm:^0.8.3":
+"@graphiql/toolkit@npm:^0.8.3":
   version: 0.8.3
   resolution: "@graphiql/toolkit@npm:0.8.3"
   dependencies:
@@ -4543,13 +4543,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"entities@npm:^2.0.0":
-  version: 2.2.0
-  resolution: "entities@npm:2.2.0"
-  checksum: 19010dacaf0912c895ea262b4f6128574f9ccf8d4b3b65c7e8334ad0079b3706376360e28d8843ff50a78aabcb8f08f0a32dbfacdc77e47ed77ca08b713669b3
-  languageName: node
-  linkType: hard
-
 "entities@npm:~2.1.0":
   version: 2.1.0
   resolution: "entities@npm:2.1.0"
@@ -5982,24 +5975,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphiql@npm:2.4.0":
-  version: 2.4.0
-  resolution: "graphiql@npm:2.4.0"
+"graphiql@npm:2.4.1":
+  version: 2.4.1
+  resolution: "graphiql@npm:2.4.1"
   dependencies:
-    "@graphiql/react": ^0.17.0
-    "@graphiql/toolkit": ^0.8.2
-    entities: ^2.0.0
-    graphql-language-service: ^5.1.2
+    "@graphiql/react": ^0.17.1
+    "@graphiql/toolkit": ^0.8.3
+    graphql-language-service: ^5.1.3
     markdown-it: ^12.2.0
   peerDependencies:
     graphql: ^15.5.0 || ^16.0.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: b6427ce6788aa714f6ab1fd6262c89a2f3b151dc9e8337fbf288ab1adbfb6fce25c8e311fbe4ea1c086114660523738dcce5c9b38719f0c34e1ad9ed5a482185
+  checksum: 92a72cfb18c0ee44e364e9fcb1223d8f553bfa1d616b727bc17b4d596cd4cd90d4a8288d7e6e6a9ae3321a5c536a97e2627a06e3a98e0bc66be379540fbd8d95
   languageName: node
   linkType: hard
 
-"graphql-language-service@npm:5.1.3, graphql-language-service@npm:^5.1.2, graphql-language-service@npm:^5.1.3":
+"graphql-language-service@npm:5.1.3, graphql-language-service@npm:^5.1.3":
   version: 5.1.3
   resolution: "graphql-language-service@npm:5.1.3"
   dependencies:
@@ -10482,7 +10474,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.6.0
     fuse.js: 6.6.2
     glob: 10.2.1
-    graphiql: 2.4.0
+    graphiql: 2.4.1
     graphql: 16.6.0
     jest: 29.5.0
     lodash: 4.17.21
