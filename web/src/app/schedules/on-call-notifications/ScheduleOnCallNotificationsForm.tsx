@@ -38,7 +38,9 @@ export default function ScheduleOnCallNotificationsForm(
   const classes = useStyles()
   const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
-  const [slackUGChecked, setSlackUGChecked] = useState(false)
+  const [slackUGChecked, setSlackUGChecked] = useState(
+    !!formProps.value.slackUserGroup,
+  )
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
@@ -142,8 +144,18 @@ export default function ScheduleOnCallNotificationsForm(
               sx={{ pb: 2 }}
               control={
                 <Checkbox
-                  value={slackUGChecked}
-                  onChange={() => setSlackUGChecked(!slackUGChecked)}
+                  checked={slackUGChecked}
+                  onChange={() => {
+                    const newVal = !slackUGChecked
+                    setSlackUGChecked(newVal)
+                    setSlackType(newVal ? 'usergroup' : 'channel')
+                    if (!newVal) {
+                      props.onChange({
+                        ...props.value,
+                        slackUserGroup: null,
+                      })
+                    }
+                  }}
                 />
               }
               label={
