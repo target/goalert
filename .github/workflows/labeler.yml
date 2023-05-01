@@ -39,3 +39,4 @@ jobs:
             "migrate/schema.sql"
             "go.mod"
             "go.sum"
+            ".yarn/releases/*"
