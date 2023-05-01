@@ -1411,6 +1411,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/base@npm:5.0.0-alpha.127":
+  version: 5.0.0-alpha.127
+  resolution: "@mui/base@npm:5.0.0-alpha.127"
+  dependencies:
+    "@babel/runtime": ^7.21.0
+    "@emotion/is-prop-valid": ^1.2.0
+    "@mui/types": ^7.2.4
+    "@mui/utils": ^5.12.0
+    "@popperjs/core": ^2.11.7
+    clsx: ^1.2.1
+    prop-types: ^15.8.1
+    react-is: ^18.2.0
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 330baeef1fdaa513707f295e07a3436af24d0831a18109ed877f76b86cf1f392309833d33a2c7ca250db79fdf53f5e88c2618f876f50dbbbf9323bbf08e367e7
+  languageName: node
+  linkType: hard
+
 "@mui/core-downloads-tracker@npm:^5.11.13":
   version: 5.12.0
   resolution: "@mui/core-downloads-tracker@npm:5.12.0"
@@ -1434,15 +1457,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/lab@npm:5.0.0-alpha.123":
-  version: 5.0.0-alpha.123
-  resolution: "@mui/lab@npm:5.0.0-alpha.123"
+"@mui/lab@npm:5.0.0-alpha.128":
+  version: 5.0.0-alpha.128
+  resolution: "@mui/lab@npm:5.0.0-alpha.128"
   dependencies:
     "@babel/runtime": ^7.21.0
-    "@mui/base": 5.0.0-alpha.121
-    "@mui/system": ^5.11.13
-    "@mui/types": ^7.2.3
-    "@mui/utils": ^5.11.13
+    "@mui/base": 5.0.0-alpha.127
+    "@mui/system": ^5.12.1
+    "@mui/types": ^7.2.4
+    "@mui/utils": ^5.12.0
     clsx: ^1.2.1
     prop-types: ^15.8.1
     react-is: ^18.2.0
@@ -1460,7 +1483,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 492bec98df414691ad6f90f88542fb3f16a5ac4abff126265aef45d1c60971e9e198d8e84001090b04de9034efdc195e4726a1c83017ece3d50d0eb459159033
+  checksum: dc7f4d53c5ffbdf11c7018a65cd0fad82fe0d956c5f1569a693636110b837321bd42a2ac46cbde918b47262ed1566019fffc3ce5e8a32ed18eaa2185112d7eb9
   languageName: node
   linkType: hard
 
@@ -1566,7 +1589,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/system@npm:5.12.1":
+"@mui/system@npm:5.12.1, @mui/system@npm:^5.12.1":
   version: 5.12.1
   resolution: "@mui/system@npm:5.12.1"
   dependencies:
@@ -1744,7 +1767,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@popperjs/core@npm:^2.11.6":
+"@popperjs/core@npm:^2.11.6, @popperjs/core@npm:^2.11.7":
   version: 2.11.7
   resolution: "@popperjs/core@npm:2.11.7"
   checksum: 5b6553747899683452a1d28898c1b39173a4efd780e74360bfcda8eb42f1c5e819602769c81a10920fc68c881d07fb40429604517d499567eac079cfa6470f19
@@ -10439,7 +10462,7 @@ __metadata:
     "@emotion/styled": 11.10.6
     "@material/material-color-utilities": 0.2.6
     "@mui/icons-material": 5.11.11
-    "@mui/lab": 5.0.0-alpha.123
+    "@mui/lab": 5.0.0-alpha.128
     "@mui/material": 5.11.13
     "@mui/styles": 5.11.13
     "@mui/system": 5.12.1
