@@ -23,7 +23,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kffl/speedbump v1.1.0
-	github.com/lib/pq v1.10.8
+	github.com/lib/pq v1.10.9
 	github.com/mailhog/MailHog v1.0.1
 	github.com/mailhog/MailHog-Server v1.0.1
 	github.com/mailhog/data v1.0.1
