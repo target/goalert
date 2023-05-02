@@ -7,6 +7,7 @@ GoAlert provides on-call scheduling, automated escalations and notifications (li
 ## Installation
 
 GoAlert is distributed as a single binary with release notes available from the [GitHub Releases](https://github.com/target/goalert/releases) page.
+Additionally, images are published on [Docker Hub](https://hub.docker.com/r/goalert/goalert) for each release. The `latest` tag is the most recent release, and `nightly` is the latest build from the `master` branch.
 
 See our [Getting Started Guide](./docs/getting-started.md) for running GoAlert in a production environment.
 
@@ -20,7 +21,7 @@ podman run -it --rm -p 8081:8081 goalert/demo
 docker run -it --rm -p 8081:8081 goalert/demo
 ```
 
-GoAlert will be running at [localhost:8081](http://localhost:8081). You can login with `admin/admin123`.
+GoAlert will be running at [localhost:8081](http://localhost:8081). You can log in with `admin`/`admin123`.
 
 ## Contributing
 
