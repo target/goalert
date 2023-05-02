@@ -34,8 +34,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	}, p.Err
 }
 
-// Password is an interface that can be used to store a password.
-type Password interface {
+// HashedPassword is an interface that can be used to store a password.
+type HashedPassword interface {
 	String() string
 
 	_private() // prevent external implementations
@@ -47,7 +47,7 @@ func (h hashed) String() string { return string(h) }
 func (h hashed) _private()      {}
 
 // NewHashedPassword will hash the given password and return a Password object.
-func (b *Store) NewHashedPassword(password string) (Password, error) {
+func (b *Store) NewHashedPassword(password string) (HashedPassword, error) {
 	err := validate.Text("Password", password, 8, 200)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (b *Store) NewHashedPassword(password string) (Password, error) {
 // CreateTx should add a new entry for the username/password combination linking to userID.
 // An error is returned if the username is not unique or the userID is invalid.
 // Must have same user or admin role.
-func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username string, password Password) error {
+func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username string, password HashedPassword) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return err
