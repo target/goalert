@@ -1,6 +1,8 @@
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  experimentalFlags: [ID!]!
+
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
@@ -113,9 +115,60 @@ type Query {
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
 
+  # Returns the list of Slack user groups available.
+  slackUserGroups(input: SlackUserGroupSearchOptions): SlackUserGroupConnection!
+
+  # Returns a Slack user group with the given ID.
+  slackUserGroup(id: ID!): SlackUserGroup
+
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
+
+  swoStatus: SWOStatus!
+}
+
+type SWOStatus {
+  state: SWOState!
+  lastStatus: String!
+  lastError: String!
+
+  nodes: [SWONode!]!
+
+  mainDBVersion: String!
+  nextDBVersion: String!
+}
+
+enum SWOState {
+  unknown
+  resetting
+  idle
+  syncing
+  pausing
+  executing
+  done
+}
+
+type SWONode {
+  id: ID!
+
+  canExec: Boolean!
+  isLeader: Boolean!
+
+  """
+  The uptime of the node in seconds. Empty if the node/connection is *not* a GoAlert instance in SWO mode.
+  """
+  uptime: String!
+
+  configError: String!
+  connections: [SWOConnection!]
+}
+type SWOConnection {
+  name: String!
+  version: String!
+  type: String!
+  isNext: Boolean!
+  count: Int!
 }
 
 type LinkAccountInfo {
@@ -155,6 +208,8 @@ type DebugMessage {
   serviceName: String
   alertID: Int
   providerID: ID
+  sentAt: ISOTimestamp
+  retryCount: Int!
 }
 
 input MessageLogSearchOptions {
@@ -168,6 +223,24 @@ input MessageLogSearchOptions {
 
 type MessageLogConnection {
   nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
+}
+
+input SlackUserGroupSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type SlackUserGroup {
+  id: ID!
+  name: String!
+  handle: String!
+}
+
+type SlackUserGroupConnection {
+  nodes: [SlackUserGroup!]!
   pageInfo: PageInfo!
 }
 
@@ -245,7 +318,6 @@ input UserOverrideSearchOptions {
   start: ISOTimestamp # start of the window to search for.
   end: ISOTimestamp # end of the window to search for.
 }
-
 
 type UserOverrideConnection {
   nodes: [UserOverride!]!
@@ -381,7 +453,13 @@ input SetScheduleShiftInput {
   end: ISOTimestamp!
 }
 
+enum SWOAction {
+  reset
+  execute
+}
+
 type Mutation {
+  swoAction(action: SWOAction!): Boolean!
   linkAccount(token: ID!): Boolean!
 
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
@@ -1019,6 +1097,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+
+  notices: [Notice!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -1117,11 +1197,13 @@ enum TargetType {
   escalationPolicy
   notificationChannel
   slackChannel
+  slackUserGroup
   notificationPolicy
   rotation
   service
   schedule
   user
+  chanWebhook
   integrationKey
   userOverride
   notificationRule
@@ -1158,6 +1240,9 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
+    @deprecated(
+      reason: "Use `UpdateUserContactMethodInput.enableStatusUpdates` instead."
+    )
 }
 
 input AuthSubjectInput {
@@ -1188,6 +1273,7 @@ type User {
   calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
+    @deprecated(reason: "Use `UserContactMethod.statusUpdates` instead.")
 
   authSubjects: [AuthSubject!]!
   sessions: [UserSession!]!
@@ -1218,6 +1304,7 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
+  SLACK_DM
 }
 
 # A method of contacting a user.
@@ -1230,10 +1317,20 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+  pending: Boolean!
 
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  statusUpdates: StatusUpdateState!
+}
+
+enum StatusUpdateState {
+  DISABLED
+  ENABLED
+  ENABLED_FORCED
+  DISABLED_FORCED
 }
 
 input CreateUserContactMethodInput {
@@ -1256,6 +1353,12 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like webhooks, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input SendContactMethodVerificationInput {

@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: null | PhoneNumberInfo
+  experimentalFlags: string[]
   messageLogs: MessageLogConnection
   debugMessages: DebugMessage[]
   user?: null | User
@@ -35,8 +36,46 @@ export interface Query {
   userContactMethod?: null | UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
+  slackUserGroups: SlackUserGroupConnection
+  slackUserGroup?: null | SlackUserGroup
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
+  swoStatus: SWOStatus
+}
+
+export interface SWOStatus {
+  state: SWOState
+  lastStatus: string
+  lastError: string
+  nodes: SWONode[]
+  mainDBVersion: string
+  nextDBVersion: string
+}
+
+export type SWOState =
+  | 'unknown'
+  | 'resetting'
+  | 'idle'
+  | 'syncing'
+  | 'pausing'
+  | 'executing'
+  | 'done'
+
+export interface SWONode {
+  id: string
+  canExec: boolean
+  isLeader: boolean
+  uptime: string
+  configError: string
+  connections?: null | SWOConnection[]
+}
+
+export interface SWOConnection {
+  name: string
+  version: string
+  type: string
+  isNext: boolean
+  count: number
 }
 
 export interface LinkAccountInfo {
@@ -75,6 +114,8 @@ export interface DebugMessage {
   serviceName?: null | string
   alertID?: null | number
   providerID?: null | string
+  sentAt?: null | ISOTimestamp
+  retryCount: number
 }
 
 export interface MessageLogSearchOptions {
@@ -88,6 +129,24 @@ export interface MessageLogSearchOptions {
 
 export interface MessageLogConnection {
   nodes: DebugMessage[]
+  pageInfo: PageInfo
+}
+
+export interface SlackUserGroupSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface SlackUserGroup {
+  id: string
+  name: string
+  handle: string
+}
+
+export interface SlackUserGroupConnection {
+  nodes: SlackUserGroup[]
   pageInfo: PageInfo
 }
 
@@ -290,7 +349,10 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
 }
 
+export type SWOAction = 'reset' | 'execute'
+
 export interface Mutation {
+  swoAction: boolean
   linkAccount: boolean
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
@@ -799,6 +861,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -888,11 +951,13 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -967,7 +1032,12 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =
+  | 'SMS'
+  | 'VOICE'
+  | 'EMAIL'
+  | 'WEBHOOK'
+  | 'SLACK_DM'
 
 export interface UserContactMethod {
   id: string
@@ -976,10 +1046,18 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -999,6 +1077,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {
@@ -1067,6 +1146,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'

@@ -99,7 +99,9 @@ export default function TempSchedDialog({
     clearStart: _value?.start ?? null,
     clearEnd: _value?.end ?? null,
     shifts: (_value?.shifts ?? [])
-      .map((s) => _.pick(s, 'start', 'end', 'userID', 'displayStart'))
+      .map((s) =>
+        _.pick(s, 'start', 'end', 'userID', 'truncated', 'displayStart'),
+      )
       .filter((s) => {
         if (DateTime.fromISO(s.end) > DateTime.fromISO(now)) {
           s.displayStart = s.start
@@ -163,6 +165,7 @@ export default function TempSchedDialog({
 
     setShift({
       userID: shift?.userID ?? '',
+      truncated: !!shift?.truncated,
       start: nextStart.toISO(),
       end: nextEnd.toISO(),
     })
@@ -244,6 +247,7 @@ export default function TempSchedDialog({
       onClose={onClose}
       loading={loading}
       errors={errs}
+      disableBackdropClose
       notices={
         !value.start ||
         DateTime.fromISO(value.start, { zone }) >

@@ -13,14 +13,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
-
-	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // Store handles saving and loading configuration from a postgres database.
@@ -159,10 +159,7 @@ func (s *Store) ServeConfig(w http.ResponseWriter, req *http.Request) {
 		}
 
 		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="goalert-config.%d.json"`, id))
-		_, err = w.Write(data)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
+		_, _ = w.Write(data)
 	case "PUT":
 		data, err := io.ReadAll(req.Body)
 		if errutil.HTTPError(ctx, w, err) {
@@ -267,7 +264,8 @@ func (s *Store) UpdateConfig(ctx context.Context, fn func(Config) (Config, error
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "config: update", tx)
+
 	id, err := s.updateConfigTx(ctx, tx, fn)
 	if err != nil {
 		return err

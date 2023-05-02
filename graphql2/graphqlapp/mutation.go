@@ -4,13 +4,18 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -49,21 +54,46 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
 		for i, r := range input.Rules {
-			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel)
+			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup)
 			if err != nil {
 				return err
 			}
 
-			ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
-			if err != nil {
-				return err
+			var nfyChan *notificationchannel.Channel
+			switch r.Target.Type {
+			case assignment.TargetTypeSlackUserGroup:
+				if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
+					return validation.NewFieldError(fmt.Sprintf("Rules[%d].Target.Type", i), "Slack user groups are not enabled.")
+				}
+				grpID, chanID, _ := strings.Cut(r.Target.ID, ":")
+				grp, err := a.SlackStore.UserGroup(ctx, grpID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+				ch, err := a.SlackStore.Channel(ctx, chanID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackUG,
+					Name:  fmt.Sprintf("@%s (%s)", grp.Handle, ch.Name),
+					Value: r.Target.ID,
+				}
+			case assignment.TargetTypeSlackChannel:
+				ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
+				if err != nil {
+					return err
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackChan,
+					Name:  ch.Name,
+					Value: ch.ID,
+				}
 			}
 
-			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, &notificationchannel.Channel{
-				Type:  notificationchannel.TypeSlack,
-				Name:  ch.Name,
-				Value: ch.ID,
-			})
+			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, nfyChan)
 			if err != nil {
 				return err
 			}
@@ -157,11 +187,25 @@ func (a *Mutation) EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, e
 }
 
 func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error) {
+	// Retry because deleting frequently can cause a deadlock
+	// under heavy load.
+	err := retry.DoTemporaryError(func(int) error {
+		return a.tryDeleteAll(ctx, input)
+	},
+		retry.Log(ctx),
+		retry.Limit(5),
+		retry.FibBackoff(time.Second),
+	)
+
+	return err == nil, err
+}
+
+func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarget) error {
 	tx, err := a.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return false, err
+		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "graphql: delete all", tx)
 
 	m := make(map[assignment.TargetType][]string)
 	for _, tgt := range input {
@@ -214,17 +258,17 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		case assignment.TargetTypeUserSession:
 			err = errors.Wrap(a.AuthHandler.EndUserSessionTx(ctx, tx, ids...), "end user sessions")
 		default:
-			return false, validation.NewFieldError("type", "unsupported type "+typ.String())
+			return validation.NewFieldError("type", "unsupported type "+typ.String())
 		}
 		if err != nil {
-			return false, err
+			return err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

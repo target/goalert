@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	stdlog "log"
 	"net"
 	"net/http"
 	"sync"
@@ -51,9 +50,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 // App represents an instance of the GoAlert application.
@@ -63,7 +59,6 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
-	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -77,9 +72,8 @@ type App struct {
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
 
-	srv         *http.Server
-	requestLock *contextLocker
-	startupErr  error
+	srv        *http.Server
+	startupErr error
 
 	notificationManager *notification.Manager
 	Engine              *engine.Engine
@@ -183,29 +177,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		db:     db,
 		cfg:    c,
 		doneCh: make(chan struct{}),
-
-		requestLock: newContextLocker(),
 	}
-
-	gCfg := &gorm.Config{
-		PrepareStmt: true,
-		NowFunc:     app.Now,
-	}
-	if c.JSON {
-		gCfg.Logger = &gormJSONLogger{}
-	} else {
-		gCfg.Logger = logger.New(stdlog.New(c.Logger, "", 0), logger.Config{
-			SlowThreshold:             50 * time.Millisecond,
-			LogLevel:                  logger.Warn,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		})
-	}
-	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
-	if err != nil {
-		return nil, fmt.Errorf("wrap db for GORM: %w", err)
-	}
-	app.gdb = gdb
 
 	var n time.Time
 	err = db.QueryRow("SELECT now()").Scan(&n)
@@ -213,15 +185,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		return nil, fmt.Errorf("get current time: %w", err)
 	}
 	app.SetTimeOffset(time.Until(n))
-
-	// permission check *before* query is run
-	gdb.Callback().Query().Before("gorm:query").
-		Register("goalert:permission-check", func(gDB *gorm.DB) {
-			err := permission.LimitCheckAny(gDB.Statement.Context, permission.All)
-			if err != nil {
-				gDB.AddError(err)
-			}
-		})
 
 	if c.KubernetesCooldown > 0 {
 		app.cooldown = newCooldown(c.KubernetesCooldown)
@@ -248,7 +211,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
 func (a *App) WaitForStartup(ctx context.Context) error {
-	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+	return a.mgr.WaitForStartup(a.Context(ctx))
 }
 
 // DB returns the sql.DB instance used by the application.
@@ -262,10 +225,4 @@ func (a *App) URL() string {
 // Status returns the current lifecycle status of the App.
 func (a *App) Status() lifecycle.Status {
 	return a.mgr.Status()
-}
-
-// ActiveRequests returns the current number of active
-// requests, not including pending ones during pause.
-func (a *App) ActiveRequests() int {
-	return a.requestLock.RLockCount()
 }

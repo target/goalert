@@ -123,13 +123,16 @@ func (p *Process) Stop() {
 
 func (p *Process) gracefulTerm() {
 	if p.pty != nil {
-		io.WriteString(p.pty, "\x03")
+		// Since this could be called after the process exits, we can ignore the error.
+		_, _ = io.WriteString(p.pty, "\x03")
 		time.Sleep(100 * time.Millisecond)
-		io.WriteString(p.pty, "\x03")
+
+		_, _ = io.WriteString(p.pty, "\x03")
 		return
 	}
 
-	p.cmd.Process.Signal(os.Interrupt)
+	// The process may have already terminated and we can ignore the error.
+	_ = p.cmd.Process.Signal(os.Interrupt)
 }
 
 func (p *Process) Kill() {
@@ -141,7 +144,9 @@ func (p *Process) Kill() {
 	}
 
 	p.logAction("Killing...")
-	p.cmd.Process.Kill()
+
+	// The process may have already terminated and we can ignore the error.
+	_ = p.cmd.Process.Kill()
 	p.state <- ProcessStateKilling
 
 	<-p.exited
@@ -164,7 +169,7 @@ func (p *Process) run() error {
 		p.cmd.Stdin = tty
 		err = p.cmd.Start()
 		if err == nil {
-			go io.Copy(p.p, p.pty)
+			go p.copyIO(p.p, p.pty)
 		} else {
 			p.pty.Close()
 		}
@@ -224,5 +229,12 @@ func (p *Process) Done() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (p *Process) copyIO(dst io.Writer, src io.Reader) {
+	_, err := io.Copy(dst, src)
+	if err != nil {
+		p.logError(err)
 	}
 }

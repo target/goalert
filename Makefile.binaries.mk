@@ -5,7 +5,7 @@
 
 BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
-GO_DEPS += migrate/migrations/ migrate/migrations/*.sql web/index.html graphql2/graphqlapp/slack.manifest.yaml
+GO_DEPS += migrate/migrations/ migrate/migrations/*.sql web/index.html graphql2/graphqlapp/slack.manifest.yaml swo/*/*.sql
 GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 GO_DEPS += web/explore.html web/live.js
 
@@ -76,7 +76,7 @@ $(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
 
 $(BIN_DIR)/build/integration/cypress: node_modules $(BIN_DIR)/build/integration/cypress.json web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
-	yarn workspace goalert-web esbuild-cy
+	yarn run esbuild-cy
 	mkdir -p $@/plugins
 	cp web/src/cypress/plugins/index.js $@/plugins/index.js
 	touch $@

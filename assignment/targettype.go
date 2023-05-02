@@ -25,6 +25,8 @@ const (
 	TargetTypeUser
 	TargetTypeNotificationChannel
 	TargetTypeSlackChannel
+	TargetTypeSlackUserGroup
+	TargetTypeChanWebhook
 	TargetTypeIntegrationKey
 	TargetTypeUserOverride
 	TargetTypeNotificationRule
@@ -33,10 +35,12 @@ const (
 	TargetTypeUserSession
 )
 
-var _ graphql.Marshaler = TargetType(0)
-var _ graphql.Unmarshaler = new(TargetType)
-var _ encoding.TextMarshaler = TargetType(0)
-var _ encoding.TextUnmarshaler = new(TargetType)
+var (
+	_ graphql.Marshaler        = TargetType(0)
+	_ graphql.Unmarshaler      = new(TargetType)
+	_ encoding.TextMarshaler   = TargetType(0)
+	_ encoding.TextUnmarshaler = new(TargetType)
+)
 
 func (tt *TargetType) UnmarshalText(data []byte) error {
 	str := string(data)
@@ -61,6 +65,10 @@ func (tt *TargetType) UnmarshalText(data []byte) error {
 		*tt = TargetTypeNotificationChannel
 	case "slackChannel":
 		*tt = TargetTypeSlackChannel
+	case "slackUserGroup":
+		*tt = TargetTypeSlackUserGroup
+	case "chanWebhook":
+		*tt = TargetTypeChanWebhook
 	case "userOverride":
 		*tt = TargetTypeUserOverride
 	case "contactMethod":
@@ -111,6 +119,10 @@ func (tt TargetType) MarshalText() ([]byte, error) {
 		return []byte("notificationChannel"), nil
 	case TargetTypeSlackChannel:
 		return []byte("slackChannel"), nil
+	case TargetTypeSlackUserGroup:
+		return []byte("slackUserGroup"), nil
+	case TargetTypeChanWebhook:
+		return []byte("chanWebhook"), nil
 	case TargetTypeContactMethod:
 		return []byte("contactMethod"), nil
 	case TargetTypeNotificationRule:

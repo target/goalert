@@ -1,5 +1,6 @@
 import React, { ReactNode, useState } from 'react'
 import { gql, useQuery } from 'urql'
+import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -12,7 +13,8 @@ import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
-
+import { useIsWidthDown } from '../util/useWidth'
+import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -90,7 +92,7 @@ export default function IntegrationKeyList(props: {
   serviceID: string
 }): JSX.Element {
   const classes = useStyles()
-
+  const isMobile = useIsWidthDown('md')
   const [create, setCreate] = useState<boolean>(false)
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
 
@@ -149,14 +151,29 @@ export default function IntegrationKeyList(props: {
               }
               emptyMessage='No integration keys exist for this service.'
               items={items}
+              headerAction={
+                isMobile ? undefined : (
+                  <Button
+                    variant='contained'
+                    onClick={(): void => setCreate(true)}
+                    startIcon={<Add />}
+                    data-testid='create-key'
+                  >
+                    Create Integration Key
+                  </Button>
+                )
+              }
             />
           </CardContent>
         </Card>
       </Grid>
-      <CreateFAB
-        onClick={(): void => setCreate(true)}
-        title='Create Integration Key'
-      />
+      {isMobile && (
+        <CreateFAB
+          onClick={(): void => setCreate(true)}
+          title='Create Integration Key'
+        />
+      )}
+
       {create && (
         <IntegrationKeyCreateDialog
           serviceID={props.serviceID}

@@ -13,23 +13,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
-	"github.com/target/goalert/switchover"
-	"github.com/target/goalert/switchover/dbsync"
+	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqldrv"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
 	"github.com/target/goalert/web"
@@ -68,6 +68,25 @@ var RootCmd = &cobra.Command{
 			l.ErrorsOnly()
 		}
 
+		if viper.GetBool("list-experimental") {
+			fmt.Print(`Usage: goalert --experimental=<flag1>,<flag2> ...
+
+These flags are not guaranteed to be stable and may change or be removed at any
+time. They are used to enable in-development features and are not intended for 
+production use.
+
+
+Available Flags:
+
+`)
+
+			for _, f := range expflag.AllFlags() {
+				fmt.Printf("\t%s\t\t%s", f, expflag.Description(f))
+			}
+
+			return nil
+		}
+
 		err := viper.ReadInConfig()
 		// ignore file not found error
 		if err != nil && !isCfgNotFound(err) {
@@ -85,82 +104,58 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 
-		wrappedDriver := sqldrv.NewRetryDriver(&stdlib.Driver{}, 10)
-
-		u, err := url.Parse(cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "parse old URL")
-		}
-		q := u.Query()
-		if cfg.DBURLNext != "" {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
-		} else {
-			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
-		}
-		q.Set("enable_seqscan", "off")
-		u.RawQuery = q.Encode()
-		cfg.DBURL = u.String()
-
-		if cfg.APIOnly {
-			err = migrate.VerifyAll(log.WithDebug(ctx), cfg.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "verify migrations")
+		doMigrations := func(url string) error {
+			if cfg.APIOnly {
+				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				if err != nil {
+					return errors.Wrap(err, "verify migrations")
+				}
+				return nil
 			}
-		} else {
+
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), cfg.DBURL)
+			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
 			if n > 0 {
 				log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
 			}
+
+			return nil
 		}
 
-		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
+		err = doMigrations(cfg.DBURL)
 		if err != nil {
-			return errors.Wrap(err, "connect to postgres")
+			return err
 		}
-		var db *sql.DB
-		var h *switchover.Handler
-		if cfg.DBURLNext != "" {
-			u, err := url.Parse(cfg.DBURLNext)
-			if err != nil {
-				return errors.Wrap(err, "parse next URL")
-			}
-			q := u.Query()
-			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
-			q.Set("enable_seqscan", "off")
-			u.RawQuery = q.Encode()
-			cfg.DBURLNext = u.String()
 
-			dbcNext, err := wrappedDriver.OpenConnector(cfg.DBURLNext)
+		var db *sql.DB
+		if cfg.DBURLNext != "" {
+			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
-				return errors.Wrap(err, "connect to postres (next)")
+				return errors.Wrap(err, "nextdb")
 			}
-			h, err = switchover.NewHandler(ctx, l, dbc, dbcNext, cfg.DBURL, cfg.DBURLNext)
+
+			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
 			if err != nil {
-				return errors.Wrap(err, "init changeover handler")
+				return errors.Wrap(err, "init switchover handler")
 			}
-			db = h.DB()
+			db = mgr.DB()
+			cfg.SWO = mgr
 		} else {
-			db = sql.OpenDB(dbc)
+			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
 		}
 
 		app, err := NewApp(cfg, db)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
-		if h != nil {
-			h.SetApp(app)
-		}
 
-		go handleShutdown(ctx, func(ctx context.Context) error {
-			if h != nil {
-				h.Abort()
-			}
-			return app.Shutdown(ctx)
-		})
+		go handleShutdown(ctx, app.Shutdown)
 
 		// trigger engine cycles by process signal
 		trigCh := make(chan os.Signal, 1)
@@ -268,8 +263,7 @@ Migration: %s (#%d)
 					return fmt.Errorf("read config: %w", err)
 				}
 				cfg = store.Config()
-				store.Shutdown(ctx)
-				return nil
+				return store.Shutdown(ctx)
 			}
 			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())
@@ -348,23 +342,6 @@ Migration: %s (#%d)
 				return errors.New("one or more checks failed.")
 			}
 			return nil
-		},
-	}
-
-	switchCmd = &cobra.Command{
-		Use:   "switchover-shell",
-		Short: "Start a the switchover shell, used to initiate, control, and monitor a DB switchover operation.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := getConfig(cmd.Context())
-			if err != nil {
-				return err
-			}
-
-			if cfg.DBURLNext == "" {
-				return validation.NewFieldError("DBURLNext", "must not be empty for switchover")
-			}
-
-			return dbsync.RunShell(log.FromContext(cmd.Context()), cfg.DBURL, cfg.DBURLNext)
 		},
 	}
 
@@ -560,7 +537,7 @@ Migration: %s (#%d)
 			if err != nil {
 				return errors.Wrap(err, "begin tx")
 			}
-			defer tx.Rollback()
+			defer sqlutil.Rollback(ctx, "add-user", tx)
 
 			if id == "" {
 				u := &user.User{
@@ -661,6 +638,21 @@ func getConfig(ctx context.Context) (Config, error) {
 		UIDir: viper.GetString("ui-dir"),
 	}
 
+	var fs expflag.FlagSet
+	strict := viper.GetBool("strict-experimental")
+	s := viper.GetStringSlice("experimental")
+	if len(s) == 1 {
+		s = strings.Split(s[0], ",")
+	}
+	for _, f := range s {
+		if strict && expflag.Description(expflag.Flag(f)) == "" {
+			return cfg, errors.Errorf("unknown experimental flag: %s", f)
+		}
+
+		fs = append(fs, expflag.Flag(f))
+	}
+	cfg.ExpFlags = fs
+
 	if cfg.PublicURL != "" {
 		u, err := url.Parse(cfg.PublicURL)
 		if err != nil {
@@ -696,6 +688,11 @@ func init() {
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
 	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
+
+	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
+	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
+	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
 	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-ca-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.")
@@ -712,7 +709,7 @@ func init() {
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
-	RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
+	_ = RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
 
 	RootCmd.Flags().Bool("api-only", def.APIOnly, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
@@ -731,26 +728,26 @@ func init() {
 	RootCmd.Flags().String("region-name", def.RegionName, "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
 
 	RootCmd.PersistentFlags().String("db-url", def.DBURL, "Connection string for Postgres.")
-	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switch-over mode).")
+	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switchover mode).")
 
 	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
 	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
-	RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
-	RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
 	RootCmd.Flags().String("stackdriver-project-id", "", "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
-	RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
 	RootCmd.Flags().String("tracing-cluster-name", "", "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
-	RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-namespace", "", "Pod namespace to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-name", "", "Pod name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-container-name", "", "Container name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-node-name", "", "Node name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
 	RootCmd.Flags().Float64("tracing-probability", 0, "Probability of a new trace to be recorded.")
-	RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
 
 	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
@@ -788,7 +785,7 @@ func init() {
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {

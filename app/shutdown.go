@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/util/log"
 )
 
 // Shutdown will cause the App to begin a graceful shutdown, using
 // the provided context for any cleanup operations.
 func (app *App) Shutdown(ctx context.Context) error {
-	return app.mgr.Shutdown(log.WithLogger(ctx, app.cfg.Logger))
+	return app.mgr.Shutdown(app.Context(ctx))
 }
 
 func (app *App) _Shutdown(ctx context.Context) error {
@@ -26,7 +25,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
-		app.cooldown.WaitContext(ctx)
+		_ = app.cooldown.WaitContext(ctx)
 	}
 
 	type shutdownable interface{ Shutdown(context.Context) error }
@@ -72,7 +71,6 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.AuthLinkKeyring, "auth link keyring")
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
-	shut(app.requestLock, "context locker")
 
 	if len(errs) == 1 {
 		return errs[0]

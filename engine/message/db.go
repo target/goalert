@@ -190,15 +190,14 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 		`),
 		cleanupStatusUpdateOptOut: p.P(`
 			delete from outgoing_messages msg
-			using users usr
+			using user_contact_methods cm
 			where
 				msg.message_type = 'alert_status_update' and
 				(
 					msg.last_status = 'pending' or
 					(msg.last_status = 'failed' and msg.next_retry_at notnull)
 				) and
-				usr.alert_status_log_contact_method_id isnull and
-				usr.id = msg.user_id
+				not cm.enable_status_updates and cm.id = msg.contact_method_id
 		`),
 		setSending: p.P(`
 			update outgoing_messages
@@ -598,14 +597,14 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "acquire global sending advisory lock")
 	}
 	defer func() {
-		cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
+		_, _ = cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
 	}()
 
 	tx, err := cLock.BeginTx(execCtx, nil)
 	if err != nil {
 		return errors.Wrap(err, "begin transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "engine: message: send", tx)
 
 	_, err = tx.Stmt(db.lockStmt).ExecContext(execCtx)
 	if err != nil {
@@ -760,7 +759,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "message: update stuck messages", tx)
 
 	rows, err := tx.Stmt(db.stuckMessages).QueryContext(ctx)
 	if err != nil {

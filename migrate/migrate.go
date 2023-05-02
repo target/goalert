@@ -313,7 +313,9 @@ func readMigration(id string) ([]byte, error) {
 func DumpMigrations(dest string) error {
 	for _, id := range migrationIDs() {
 		fullPath := filepath.Join(dest, "migrations", id)
-		os.MkdirAll(filepath.Dir(fullPath), 0755)
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+			return err
+		}
 		data, err := readMigration(id)
 		if err != nil {
 			return err
@@ -404,7 +406,7 @@ func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) error {
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback(ctx)
+	defer sqlutil.RollbackContext(ctx, "migrate: apply", tx)
 
 	// tx applies to the connection, so NoTx
 	// will execute correctly.

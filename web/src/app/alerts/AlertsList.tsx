@@ -1,26 +1,23 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useState, useContext } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
-import Snackbar from '@mui/material/Snackbar'
+import { Grid, Hidden, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@mui/icons-material'
-import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import { formatTimeSince } from '../util/timeFormat'
 import QueryList from '../lists/QueryList'
-import { useIsWidthDown } from '../util/useWidth'
-import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
-import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../services/ServiceNotices'
+import { Time } from '../util/Time'
+import { NotificationContext } from '../main/SnackbarNotification'
 
 interface AlertsListProps {
   serviceID: string
@@ -106,14 +103,9 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
-  // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('sm')
 
+  const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
-  const [showCreate, setShowCreate] = useState(false)
-
-  // used if user dismisses snackbar before the auto-close timer finishes
-  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
@@ -145,12 +137,33 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   }
 
-  const [mutate, status] = useMutation(updateMutation)
+  const { setNotification } = useContext(NotificationContext)
+
+  const [mutate] = useMutation(updateMutation, {
+    onCompleted: (data) => {
+      const numUpdated =
+        data.updateAlerts?.length || data.escalateAlerts?.length || 0
+
+      const msg = `${numUpdated} of ${checkedCount} alert${
+        checkedCount === 1 ? '' : 's'
+      } updated`
+
+      setNotification({
+        message: msg,
+        severity: 'info',
+      })
+    },
+    onError: (error) => {
+      setNotification({
+        message: error.message,
+        severity: 'error',
+      })
+    },
+  })
 
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
-      setActionCompleteDismissed(false)
 
       let mutation = updateMutation
       let variables: MutationVariables | StatusUnacknowledgedVariables = {
@@ -164,26 +177,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
       mutate({ mutation, variables })
     }
-
-  let updateMessage, errorMessage
-  if (status.error && !status.loading) {
-    errorMessage = status.error.message
-  }
-
-  if (status.data && !status.loading) {
-    const numUpdated =
-      status.data.updateAlerts?.length ||
-      status.data.escalateAlerts?.length ||
-      0
-
-    updateMessage = `${numUpdated} of ${checkedCount} alert${
-      checkedCount === 1 ? '' : 's'
-    } updated`
-  }
-
-  const showAlertActionSnackbar = Boolean(
-    !actionCompleteDismissed && (errorMessage || updateMessage),
-  )
 
   /*
    * Adds border of color depending on each alert's status
@@ -242,32 +235,33 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     }
 
     if (filter !== 'closed') {
-      actions.push(
-        {
-          icon: <CloseIcon />,
-          label: 'Close',
-          onClick: makeUpdateAlerts('StatusClosed'),
-        },
-        {
+      actions.push({
+        icon: <CloseIcon />,
+        label: 'Close',
+        onClick: makeUpdateAlerts('StatusClosed'),
+      })
+
+      if (selectedCount === 1) {
+        actions.push({
           icon: <EscalateIcon />,
           label: 'Escalate',
           onClick: makeUpdateAlerts('StatusUnacknowledged'),
-        },
-      )
+        })
+      }
     }
 
     return actions
   }
 
-  // render
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
-        <ServiceMaintenanceNotice serviceID={props.serviceID} />
+        <ServiceNotices serviceID={props.serviceID} />
         <Grid item>
           <QueryList
             query={alertsListQuery}
             infiniteScroll
+            onSelectionChange={(selected) => setSelectedCount(selected.length)}
             headerNote={getHeaderNote()}
             mapDataNode={(a) => ({
               id: a.id,
@@ -281,11 +275,10 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <ListItemText
                   className={classes.alertTimeContainer}
                   secondary={
-                    fullTime
-                      ? DateTime.fromISO(a.createdAt).toLocaleString(
-                          DateTime.DATETIME_MED,
-                        )
-                      : formatTimeSince(a.createdAt)
+                    <Time
+                      time={a.createdAt}
+                      format={fullTime ? 'default' : 'relative'}
+                    />
                   }
                 />
               ),
@@ -298,6 +291,13 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <AlertsListFilter serviceID={props.serviceID} />
               )
             }
+            renderCreateDialog={(onClose) => (
+              <CreateAlertDialog
+                serviceID={props.serviceID}
+                onClose={onClose}
+              />
+            )}
+            createLabel='Alert'
             cardHeader={
               <Hidden lgDown>
                 <AlertsListControls />
@@ -307,32 +307,6 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-      <CreateFAB
-        title='Create Alert'
-        transition={isXs && showAlertActionSnackbar}
-        onClick={() => setShowCreate(true)}
-      />
-      {showCreate && (
-        <CreateAlertDialog
-          onClose={() => setShowCreate(false)}
-          serviceID={props.serviceID}
-        />
-      )}
-
-      {/* Update message after using checkbox actions */}
-      <Snackbar
-        autoHideDuration={errorMessage ? null : 6000}
-        onClose={() => setActionCompleteDismissed(true)}
-        open={showAlertActionSnackbar}
-      >
-        <Alert
-          severity={errorMessage ? 'error' : 'info'}
-          onClose={() => setActionCompleteDismissed(true)}
-          variant='filled'
-        >
-          {errorMessage || updateMessage}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   )
 }

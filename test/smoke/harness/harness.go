@@ -23,6 +23,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
@@ -31,6 +32,7 @@ import (
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/devtools/pgmocktime"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -73,6 +75,7 @@ type Harness struct {
 	closing                 bool
 
 	msgSvcID string
+	expFlags expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -108,9 +111,15 @@ func (h *Harness) Config() config.Config {
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+	t.Helper()
+	return NewHarnessWithFlags(t, initSQL, migrationName, nil)
+}
+
+// NewHarnessWithFlags is the same as NewHarness, but allows passing in a set of experimental flags to be used for the test.
+func NewHarnessWithFlags(t *testing.T, initSQL, migrationName string, fs expflag.FlagSet) *Harness {
 	stdlog.SetOutput(io.Discard)
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h := NewStoppedHarnessWithFlags(t, initSQL, nil, migrationName, fs)
 	h.Start()
 	return h
 }
@@ -146,6 +155,14 @@ const (
 // NewStoppedHarness will create a NewHarness, but will not call Start.
 func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
+	return NewStoppedHarnessWithFlags(t, initSQL, sqlData, migrationName, nil)
+}
+
+// NewStoppedHarnessWithFlags is the same as NewStoppedHarness, but allows
+// passing in a set of experimental flags to be used for the test.
+func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{}, migrationName string, expFlags expflag.FlagSet) *Harness {
+	t.Helper()
+
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
 	}
@@ -189,6 +206,8 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		pgTime:   pgTime,
 
 		gqlSessions: make(map[string]string),
+
+		expFlags: expFlags,
 
 		t: t,
 	}
@@ -265,6 +284,7 @@ func (h *Harness) Start() {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ExpFlags = h.expFlags
 	appCfg.Logger = log.NewLogger()
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
@@ -295,7 +315,9 @@ func (h *Harness) Start() {
 	h.TwilioNumber("") // register default number
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
-	go h.backend.Run(context.Background())
+	go func() {
+		assert.NoError(h.t, h.backend.Run(context.Background())) // can't use require.NoError because we're in the background
+	}()
 	err = h.backend.WaitForStartup(ctx)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
@@ -385,7 +407,7 @@ func (t testAlert) setStatus(stat alert.Status) {
 		t.h.t.Helper()
 		tx, err := t.h.backend.DB().BeginTx(ctx, nil)
 		require.NoError(t.h.t, err, "begin tx")
-		defer tx.Rollback()
+		defer SQLRollback(t.h.t, "harness: set alert status", tx)
 
 		t.a.Status = stat
 
@@ -422,7 +444,8 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 		if err != nil {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
-		defer tx.Rollback()
+		defer SQLRollback(h.t, "harness: create alert", tx)
+
 		a := &alert.Alert{
 			ServiceID: serviceID,
 			Summary:   summary,
@@ -487,19 +510,24 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 func (h *Harness) Trigger() {
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
-	h.backend.Engine.WaitCycleID(context.Background(), id)
+	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
 func (h *Harness) Escalate(alertID, level int) {
 	h.t.Helper()
-	h.t.Logf("escalate alert #%d (from level %d)", alertID, level)
+	err := h.EscalateAlertErr(alertID)
+	require.NoError(h.t, err, "escalate alert")
+}
+
+func (h *Harness) EscalateAlertErr(alertID int) (err error) {
+	h.t.Helper()
+	h.t.Logf("escalate alert #%d", alertID)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		err := h.backend.AlertStore.Escalate(ctx, alertID, level)
-		if err != nil {
-			h.t.Fatalf("failed to escalate alert: %v", err)
-		}
+		h.t.Helper()
+		err = h.backend.AlertStore.Escalate(ctx, alertID, -1)
 	})
+	return err
 }
 
 // Phone will return the generated phone number for the id provided.
@@ -524,7 +552,9 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get abs dump path: %v", err)
 	}
-	os.MkdirAll(filepath.Dir(file), 0o755)
+	if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+		h.t.Fatalf("failed to create abs dump path: %v", err)
+	}
 
 	conn, err := pgx.Connect(context.Background(), h.dbURL)
 	if err != nil {

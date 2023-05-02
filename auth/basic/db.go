@@ -3,7 +3,7 @@ package basic
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"sync"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -18,10 +18,9 @@ import (
 type Store struct {
 	insert        *sql.Stmt
 	getByUsername *sql.Stmt
-}
 
-const tableName = "auth_basic_users"
-const passCost = 14
+	mx sync.Mutex
+}
 
 // NewStore creates a new DB. Error is returned if the prepared statements fail to register.
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -30,8 +29,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		Ctx: ctx,
 	}
 	return &Store{
-		insert:        p.P(fmt.Sprintf("INSERT INTO %s(user_id, username, password_hash) VALUES ($1, $2, $3)", tableName)),
-		getByUsername: p.P(fmt.Sprintf("SELECT user_id, password_hash FROM %s WHERE username = $1", tableName)),
+		insert:        p.P("INSERT INTO auth_basic_users (user_id, username, password_hash) VALUES ($1, $2, $3)"),
+		getByUsername: p.P("SELECT user_id, password_hash FROM auth_basic_users WHERE username = $1"),
 	}, p.Err
 }
 
@@ -53,7 +52,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username, pass
 		return err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), passCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
 	}
@@ -80,6 +79,10 @@ func (b *Store) Validate(ctx context.Context, username, password string) (string
 		}
 		return "", errors.WithMessage(err, "user lookup failure")
 	}
+
+	// Since this can be CPU intensive, we'll only allow one at a time.
+	b.mx.Lock()
+	defer b.mx.Unlock()
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
 	if err != nil {

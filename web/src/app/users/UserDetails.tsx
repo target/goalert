@@ -3,7 +3,6 @@ import { useQuery, gql } from 'urql'
 import Delete from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import DetailsPage from '../details/DetailsPage'
-import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
 import UserContactMethodList from './UserContactMethodList'
 import { AddAlarm, SettingsPhone } from '@mui/icons-material'
@@ -16,11 +15,12 @@ import UserContactMethodVerificationDialog from './UserContactMethodVerification
 import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
+import { useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { EscalationPolicyStep } from '../../schema'
+import { useIsWidthDown } from '../util/useWidth'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -94,7 +94,6 @@ export default function UserDetails(props: {
     isAdmin,
     ready: isSessionReady,
   } = useSessionInfo()
-  const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -102,6 +101,7 @@ export default function UserDetails(props: {
     string | null | undefined
   >(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
+  const mobile = useIsWidthDown('md')
 
   const [{ data, fetching: isQueryLoading, error }] = useQuery({
     query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
@@ -163,7 +163,9 @@ export default function UserDetails(props: {
           onClose={() => setShowUserDeleteDialog(false)}
         />
       )}
-      {props.readOnly ? null : (
+
+      {/* dialogs only shown on mobile via FAB button */}
+      {mobile && !props.readOnly ? (
         <SpeedDial
           label='Add Items'
           actions={[
@@ -180,11 +182,10 @@ export default function UserDetails(props: {
             },
           ]}
         />
-      )}
+      ) : null}
       {createCM && (
         <UserContactMethodCreateDialog
           userID={userID}
-          disclaimer={disclaimer?.toString()}
           onClose={(contactMethodID) => {
             setCreateCM(false)
             setShowVerifyDialogByID(contactMethodID)
@@ -215,16 +216,6 @@ export default function UserDetails(props: {
               readOnly={props.readOnly}
             />
           </Grid>
-        }
-        primaryActions={
-          props.readOnly
-            ? []
-            : [
-                <StatusUpdateNotification
-                  key='primary-action-status-updates'
-                  userID={userID}
-                />,
-              ]
         }
         secondaryActions={
           isAdmin

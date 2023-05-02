@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
@@ -115,7 +115,9 @@ func (p *Provider) newStateToken(nonceBytes []byte) (state string, err error) {
 
 	buf.Write(nonceBytes[:])
 	buf.WriteByte('N')
-	binary.Write(buf, binary.BigEndian, time.Now().Unix())
+	if err := binary.Write(buf, binary.BigEndian, time.Now().Unix()); err != nil {
+		return "", err
+	}
 
 	sig, err := p.cfg.Keyring.Sign(buf.Bytes())
 	if err != nil {

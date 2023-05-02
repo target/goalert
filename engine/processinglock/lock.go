@@ -52,18 +52,18 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 	var gotAdvLock bool
 	err = tx.StmtContext(ctx, l.advLockStmt).QueryRowContext(ctx, lock.GlobalMigrate).Scan(&gotAdvLock)
 	if err != nil {
-		tx.Rollback()
+		sqlutil.Rollback(ctx, "processing lock: begin", tx)
 		return nil, err
 	}
 	if !gotAdvLock {
-		tx.Rollback()
+		sqlutil.Rollback(ctx, "processing lock: begin", tx)
 		return nil, ErrNoLock
 	}
 
 	var dbVersion int
 	err = tx.StmtContext(ctx, l.lockStmt).QueryRowContext(ctx, l.cfg.Type).Scan(&dbVersion)
 	if err != nil {
-		tx.Rollback()
+		sqlutil.Rollback(ctx, "processing lock: begin", tx)
 		// 55P03 is lock_not_available (due to the `nowait` in the query)
 		//
 		// https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
@@ -73,11 +73,32 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		return nil, err
 	}
 	if dbVersion != l.cfg.Version {
-		tx.Rollback()
+		sqlutil.Rollback(ctx, "processing lock: begin", tx)
 		return nil, ErrNoLock
 	}
 
 	return tx, nil
+}
+
+// WithTx will run the given function in a locked transaction.
+func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
+	tx, err := l._BeginTx(ctx, l.db, nil)
+	if err != nil {
+		return err
+	}
+	defer sqlutil.Rollback(ctx, "processing lock: with tx", tx)
+
+	err = fn(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...interface{}) (sql.Result, error) {
@@ -85,7 +106,7 @@ func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "processing lock: exec", tx)
 
 	res, err := tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
 	if err != nil {

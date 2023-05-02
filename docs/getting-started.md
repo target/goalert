@@ -14,11 +14,13 @@ When running GoAlert behind a reverse proxy, make sure the `--public-url` includ
 
 ## Database
 
-We recommend using Postgres 11 for new installations as newer features will be used in the future.
+We recommend using Postgres 13 (or newer) for new installations as newer features will be used in the future.
 
 GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION pgcrypto;`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
+
+Note: If you are using default install of Postgres on Debian (maybe others) you may run into an issue where the OOM (out of memory) killer terminates the supervisor process. More information along with steps to resolve can be found [here](https://www.postgresql.org/docs/current/kernel-resources.html#LINUX-MEMORY-OVERCOMMIT).
 
 ### Encryption of Sensitive Data
 
@@ -28,7 +30,7 @@ It can be set to any value as it is internally passed through a key derivation f
 
 ## Running GoAlert
 
-To run GoAlert, you can start the binary directly, or from a container image. You will need to specify the `--db-url` and `--data-encryption-key` you plan to use.
+To run GoAlert, you can start the binary directly, or from a container image. You will need to specify the `--db-url`, `--public-url`, and `--data-encryption-key` you plan to use.
 
 The following examples use `postgres://goalert@localhost/goalert` and `super-awesome-secret-key` respectively.
 

@@ -12,13 +12,16 @@ func _() {
 	_ = x[DestTypeVoice-1]
 	_ = x[DestTypeSMS-2]
 	_ = x[DestTypeSlackChannel-3]
-	_ = x[DestTypeUserEmail-4]
-	_ = x[DestTypeUserWebhook-5]
+	_ = x[DestTypeSlackDM-4]
+	_ = x[DestTypeUserEmail-5]
+	_ = x[DestTypeUserWebhook-6]
+	_ = x[DestTypeChanWebhook-7]
+	_ = x[DestTypeSlackUG-8]
 }
 
-const _DestType_name = "DestTypeUnknownDestTypeVoiceDestTypeSMSDestTypeSlackChannelDestTypeUserEmailDestTypeUserWebhook"
+const _DestType_name = "DestTypeUnknownDestTypeVoiceDestTypeSMSDestTypeSlackChannelDestTypeSlackDMDestTypeUserEmailDestTypeUserWebhookDestTypeChanWebhookDestTypeSlackUG"
 
-var _DestType_index = [...]uint8{0, 15, 28, 39, 59, 76, 95}
+var _DestType_index = [...]uint8{0, 15, 28, 39, 59, 74, 91, 110, 129, 144}
 
 func (i DestType) String() string {
 	if i < 0 || i >= DestType(len(_DestType_index)-1) {

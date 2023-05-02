@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // UpdateAll will update and cleanup the rotation state for all rotations.
@@ -50,7 +50,7 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	if err != nil {
 		return errors.Wrap(err, "start advancement transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "rotation manager", tx)
 
 	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
 	if err != nil {
