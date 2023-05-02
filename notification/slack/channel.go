@@ -359,9 +359,13 @@ func chanTS(origChannelID, externalID string) (channelID, ts string) {
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
+	iconURL := cfg.CallbackURL("NEED URL")
+
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
 	var opts []slack.MsgOption
+
+	opts = append(opts, slack.MsgOptionIconURL(iconURL))
 	var isUpdate bool
 	channelID := msg.Destination().Value
 	switch t := msg.(type) {
@@ -370,6 +374,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.Verification:
 		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %06d", t.Code), false))
 	case notification.Alert:
+
 		if t.OriginalStatus != nil {
 			var ts string
 			channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
