@@ -36,15 +36,15 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 // HashedPassword is an interface that can be used to store a password.
 type HashedPassword interface {
-	String() string
+	Hash() string
 
 	_private() // prevent external implementations
 }
 
 type hashed []byte
 
-func (h hashed) String() string { return string(h) }
-func (h hashed) _private()      {}
+func (h hashed) Hash() string { return string(h) }
+func (h hashed) _private()    {}
 
 // NewHashedPassword will hash the given password and return a Password object.
 func (b *Store) NewHashedPassword(password string) (HashedPassword, error) {
@@ -80,7 +80,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username strin
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, b.insert).ExecContext(ctx, userID, username, password.String())
+	_, err = tx.StmtContext(ctx, b.insert).ExecContext(ctx, userID, username, password.Hash())
 	return err
 }
 
