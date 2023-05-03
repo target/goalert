@@ -50,14 +50,14 @@ const config = {
     },
     {
       command:
-        './bin/goalert -l=localhost:6130 --public-url=http://localhost:6130',
+        './bin/goalert.cover -l=localhost:6130 --public-url=http://localhost:6130',
       env: wsEnv,
       url: 'http://localhost:6130/health',
     },
 
     // generate a web server for each unique flag combination
     ...scanUniqueFlagCombos().map((flagStr, i) => ({
-      command: `./bin/goalert -l=localhost:${
+      command: `./bin/goalert.cover -l=localhost:${
         i + 6131
       } --public-url=http://localhost:${i + 6131} --experimental=${flagStr}`,
       env: wsEnv,
