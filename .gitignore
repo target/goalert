@@ -71,3 +71,6 @@ smoketest_db_dump
 
 /.yarn
 /.pnp.*
+
+/cypress/
+
