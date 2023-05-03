@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -26,8 +26,9 @@ import {
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
 import { useURLParam, useURLParams } from '../../actions'
-import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
+import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
+import { useWorker } from '../../worker'
 
 export default function AdminMessageLogsGraph(props: {
   logs: DebugMessage[]
@@ -43,47 +44,11 @@ export default function AdminMessageLogsGraph(props: {
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
 
   const logs: DebugMessage[] = props.logs
-  if (logs.length === 0) return <React.Fragment />
-
-  const ttlInterval = Interval.fromDateTimes(
-    DateTime.fromISO(
-      params.start || DateTime.now().minus({ hours: 8 }).toISO(), // if no start set, show past 8 hours
-    ),
-    DateTime.fromISO(params.end || DateTime.now().toISO()),
+  const opts = useMemo(
+    () => ({ start: params.start, end: params.end, duration, logs }),
+    [params.start, params.end, duration, logs],
   )
-
-  const intervals = ttlInterval?.splitBy(Duration.fromISO(duration)) ?? []
-
-  const graphData = intervals.map((interval) => {
-    const locale: DateTimeFormatOptions = {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-    }
-    const date = interval.start.toLocaleString({
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-    })
-    const label =
-      interval.start.toLocaleString(locale) +
-      ' - ' +
-      interval.end.toLocaleString(locale)
-
-    const intervalLogs = logs.filter((log: DebugMessage) =>
-      interval.contains(DateTime.fromISO(log.createdAt)),
-    )
-
-    return {
-      date,
-      label,
-      count: intervalLogs.length,
-    }
-  })
-
+  const [graphData] = useWorker('useMessageLogGraphData', opts, [])
   const formatIntervals = (label: string): string => {
     // check for default bounds
     if (label.toString() !== '0' && label !== 'auto') {
@@ -94,6 +59,8 @@ export default function AdminMessageLogsGraph(props: {
     }
     return ''
   }
+
+  // todo: handle loading (2nd returned var from useWorker)
 
   return (
     <Grid item xs={12}>
