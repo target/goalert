@@ -134,7 +134,7 @@ $(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build
 
 
 $(BIN_DIR)/goalert.cover: $(GO_DEPS) graphql2/mapconfig.go
-	go build -ldflags "$(LD_FLAGS)" -cover -o $@ ./cmd/goalert
+	go build -ldflags "$(LD_FLAGS)" -cover -coverpkg=./... -o $@ ./cmd/goalert
 
 $(BIN_DIR)/goalert: $(GO_DEPS) graphql2/mapconfig.go
 	go build -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert

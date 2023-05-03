@@ -168,8 +168,9 @@ jest: $(NODE_DEPS)
 	# yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
-	mkdir -p coverage
-	CGO_ENABLED=1 go test -coverpkg=./... -coverprofile=coverage/unit.out -race -short ./...
+	rm -rf $(PWD)/coverage/unit
+	mkdir -p $(PWD)/coverage/unit
+	go test -coverpkg=./... -short ./... -args -test.gocoverdir=$(PWD)/coverage/unit
 
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
@@ -239,8 +240,9 @@ playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/sche
 	yarn playwright test --ui
 
 smoketest:
-	mkdir -p coverage
-	(cd test/smoke && CGO_ENABLED=1 go test -coverpkg=../... -coverprofile=../../coverage/smoketest.out -parallel 10 -timeout 20m)
+	rm -rf coverage/smoke
+	mkdir -p coverage/smoke
+	(cd test/smoke && go test -coverpkg=../../... -parallel 10 -timeout 20m -args -test.gocoverdir=$(PWD)/coverage/smoke)
 
 test-migrations: bin/goalert
 	(cd test/smoke && go test -run TestMigrations)
@@ -328,3 +330,9 @@ vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations
 
 upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
 	yarn upgrade-interactive
+
+coverage/total: coverage/integration/*/* coverage/*/*
+	rm -rf coverage/total
+	mkdir -p coverage/total
+	go tool covdata merge -i coverage/integration/cypress-wide,coverage/integration/cypress-mobile,coverage/smoke,coverage/unit -pcombine -o coverage/total
+
