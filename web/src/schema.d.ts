@@ -382,6 +382,7 @@ export interface Mutation {
   setLabel: boolean
   createSchedule?: null | Schedule
   createUser?: null | User
+  updateUserPassword: boolean
   createUserCalendarSubscription: UserCalendarSubscription
   updateUserCalendarSubscription: boolean
   updateScheduleTarget: boolean
@@ -418,6 +419,12 @@ export interface CreateUserInput {
   email?: null | string
   role?: null | UserRole
   favorite?: null | boolean
+}
+
+export interface UpdateUserPassword {
+  id: string
+  oldPassword: string
+  newPassword: string
 }
 
 export interface CreateUserCalendarSubscriptionInput {

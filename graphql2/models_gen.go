@@ -616,6 +616,12 @@ type UpdateUserOverrideInput struct {
 	RemoveUserID *string    `json:"removeUserID,omitempty"`
 }
 
+type UpdateUserPassword struct {
+	ID          string `json:"id"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 type UserConnection struct {
 	Nodes    []user.User `json:"nodes"`
 	PageInfo *PageInfo   `json:"pageInfo"`

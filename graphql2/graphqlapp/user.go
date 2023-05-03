@@ -146,6 +146,23 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 	return err == nil, err
 }
 
+func (a *Mutation) UpdateUserPassword(ctx context.Context, input graphql2.UpdateUserPassword) (bool, error) {
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		usr, err := a.UserStore.FindOneTx(ctx, tx, input.ID, true)
+		if err != nil {
+			return err
+		}
+
+		err = a.AuthBasicStore.UpdateTx(ctx, tx, input.ID, usr.Name, input.OldPassword, input.NewPassword)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return err == nil, err
+}
+
 func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, first *int, after, searchStr *string) (conn *graphql2.UserConnection, err error) {
 	if opts == nil {
 		opts = &graphql2.UserSearchOptions{

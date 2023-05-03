@@ -515,6 +515,8 @@ type Mutation {
 
   createUser(input: CreateUserInput!): User
 
+  updateUserPassword(input: UpdateUserPassword!): Boolean!
+
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
   ): UserCalendarSubscription!
@@ -566,6 +568,12 @@ input CreateUserInput {
   email: String
   role: UserRole
   favorite: Boolean
+}
+
+input UpdateUserPassword {
+  id: ID!
+  oldPassword: String!
+  newPassword: String!
 }
 
 input CreateUserCalendarSubscriptionInput {

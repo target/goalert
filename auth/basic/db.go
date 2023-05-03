@@ -7,6 +7,7 @@ import (
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,7 @@ import (
 type Store struct {
 	insert        *sql.Stmt
 	getByUsername *sql.Stmt
+	update        *sql.Stmt
 
 	mx sync.Mutex
 }
@@ -31,6 +33,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	return &Store{
 		insert:        p.P("INSERT INTO auth_basic_users (user_id, username, password_hash) VALUES ($1, $2, $3)"),
 		getByUsername: p.P("SELECT user_id, password_hash FROM auth_basic_users WHERE username = $1"),
+		update:        p.P("UPDATE auth_basic_users SET password_hash = $2 WHERE user_id = $1"),
 	}, p.Err
 }
 
@@ -57,6 +60,40 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username, pass
 		return err
 	}
 	_, err = tx.StmtContext(ctx, b.insert).ExecContext(ctx, userID, username, string(hashedPassword))
+	return err
+}
+
+// UpdateTx should update auth_basic_users with newPassword if username and oldPassword matches
+func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID, username, oldPassword, newPassword string) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(userID))
+	if err != nil {
+		return err
+	}
+
+	err = validate.Many(
+		validate.UUID("UserID", userID),
+		validate.Username("Username", username),
+		validate.Text("oldPassword", oldPassword, 8, 200),
+		validate.Text("newPassword", newPassword, 8, 200),
+	)
+	if err != nil {
+		return err
+	}
+
+	validatedUserId, err := b.Validate(ctx, username, oldPassword)
+	if err != nil {
+		return validation.NewFieldError("oldPassword", "Invalid Password")
+	}
+
+	if validatedUserId != userID {
+		return err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+	if err != nil {
+		return err
+	}
+	_, err = tx.StmtContext(ctx, b.update).ExecContext(ctx, userID, string(hashedPassword))
 	return err
 }
 
