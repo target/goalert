@@ -29,10 +29,13 @@ import { useURLParam, useURLParams } from '../../actions'
 import { DateTime } from 'luxon'
 import { DebugMessage } from '../../../schema'
 import { useWorker } from '../../worker'
+import Spinner from '../../loading/components/Spinner'
 
 export default function AdminMessageLogsGraph(props: {
   logs: DebugMessage[]
+  loadingData: boolean
 }): JSX.Element {
+  const { logs, loadingData } = props
   const theme = useTheme()
   const [params] = useURLParams({
     search: '',
@@ -43,12 +46,11 @@ export default function AdminMessageLogsGraph(props: {
   // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
 
-  const logs: DebugMessage[] = props.logs
   const opts = useMemo(
     () => ({ start: params.start, end: params.end, duration, logs }),
     [params.start, params.end, duration, logs],
   )
-  const [graphData] = useWorker('useMessageLogGraphData', opts, [])
+  const [graphData, status] = useWorker('useMessageLogGraphData', opts, [])
   const formatIntervals = (label: string): string => {
     // check for default bounds
     if (label.toString() !== '0' && label !== 'auto') {
@@ -59,8 +61,6 @@ export default function AdminMessageLogsGraph(props: {
     }
     return ''
   }
-
-  // todo: handle loading (2nd returned var from useWorker)
 
   return (
     <Grid item xs={12}>
@@ -105,6 +105,7 @@ export default function AdminMessageLogsGraph(props: {
               data-cy='metrics-averages-graph'
               sx={{ height: 500 }}
             >
+              {(status.loading || loadingData) && <Spinner />}
               <AutoSizer>
                 {({ width, height }) => (
                   <LineChart

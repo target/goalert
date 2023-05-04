@@ -127,7 +127,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           <AdminMessageLogsControls />
         </Grid>
 
-        <AdminMessageLogsGraph logs={logs} />
+        <AdminMessageLogsGraph logs={logs} loadingData={loading} />
 
         <Grid item xs={12}>
           <Card>
