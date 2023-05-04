@@ -3,160 +3,181 @@ package swo
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/swo/swodb"
+	"github.com/target/goalert/swo/swogrp"
+	"github.com/target/goalert/swo/swoinfo"
 	"github.com/target/goalert/swo/swomsg"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/target/goalert/swo/swosync"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqldrv"
+	"github.com/target/goalert/version"
 )
 
+// A Manager is responsible for managing the switchover process.
 type Manager struct {
-	id uuid.UUID
+	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
+	dbApp  *sql.DB
+	dbMain *sql.DB
+	dbNext *sql.DB
 
-	dbOld, dbNew *sql.DB
+	pauseResume lifecycle.PauseResumer
 
-	protectedDB *sql.DB
+	Config
 
-	s Syncer
+	taskMgr *swogrp.TaskMgr
 
-	app lifecycle.PauseResumer
-
-	stats *StatsManager
-
-	msgLog     *swomsg.Log
-	nextMsgLog *swomsg.Log
-
-	msgCh     chan *swomsg.Message
-	nextMsgCh chan *swomsg.Message
-	errCh     chan error
-
-	msgState *state
-
-	cancel func()
-
-	canExec bool
+	MainDBInfo *swoinfo.DB
+	NextDBInfo *swoinfo.DB
 }
 
+// Node contains information on a GoAlert instance in SWO mode.
 type Node struct {
 	ID uuid.UUID
 
+	// OldValid indicates that the old database config is valid.
 	OldValid bool
+
+	// NewValid indicates that the new database config is valid.
 	NewValid bool
-	CanExec  bool
+
+	// CanExec indicates the node is NOT in API-only mode and is capable of executing tasks.
+	CanExec bool
 
 	Status string
 }
 
+// Config configures the current node for SWO.
 type Config struct {
-	OldDBC, NewDBC driver.Connector
-	CanExec        bool
+	OldDBURL, NewDBURL string
+	CanExec            bool
+	Logger             *log.Logger
 }
 
+// NewManager will create a new Manager with the given configuration.
 func NewManager(cfg Config) (*Manager, error) {
-	gCfg := &gorm.Config{PrepareStmt: true}
-	gormOld, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(cfg.OldDBC)}), gCfg)
-	if err != nil {
-		return nil, fmt.Errorf("open old database: %w", err)
-	}
-	gormNew, err := gorm.Open(postgres.New(postgres.Config{Conn: sql.OpenDB(cfg.NewDBC)}), gCfg)
-	if err != nil {
-		return nil, fmt.Errorf("open new database: %w", err)
-	}
-
 	id := uuid.New()
-	msgLog, err := swomsg.NewLog(gormOld, id)
-	if err != nil {
-		return nil, fmt.Errorf("create old message log: %w", err)
+
+	appStr := func(typ ConnType) string {
+		return ConnInfo{
+			Version: version.GitVersion(),
+			ID:      id,
+			Type:    typ,
+		}.String()
 	}
 
-	msgLogNext, err := swomsg.NewLog(gormNew, id)
+	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, appStr(ConnTypeMainMgr))
 	if err != nil {
-		return nil, fmt.Errorf("create new message log: %w", err)
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr(ConnTypeMainApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, appStr(ConnTypeNextMgr))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr(ConnTypeNextApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
 
-	sm := NewStatsManager()
-	ctx, cancel := context.WithCancel(context.Background())
 	m := &Manager{
-		dbOld: sql.OpenDB(cfg.OldDBC),
-		dbNew: sql.OpenDB(cfg.NewDBC),
-
-		protectedDB: sql.OpenDB(NewConnector(cfg.OldDBC, cfg.NewDBC, sm)),
-
-		id:         id,
-		msgLog:     msgLog,
-		nextMsgLog: msgLogNext,
-		canExec:    cfg.CanExec,
-		msgCh:      make(chan *swomsg.Message),
-		nextMsgCh:  make(chan *swomsg.Message),
-		errCh:      make(chan error, 10),
-		cancel:     cancel,
-
-		stats: sm,
+		Config: cfg,
+		dbApp:  sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
+		dbMain: mainDB,
+		dbNext: nextDB,
 	}
 
-	m.msgState, err = newState(ctx, m)
+	ctx := cfg.Logger.BackgroundContext()
+	messages, err := swomsg.NewLog(ctx, m.dbMain)
 	if err != nil {
-		return nil, fmt.Errorf("create state: %w", err)
+		return nil, err
 	}
 
-	go func() {
-		for {
-			msg, err := m.msgLog.Next(ctx)
-			if err != nil {
-				m.errCh <- fmt.Errorf("read from log: %w", err)
-				return
-			}
-			err = m.msgState.processFromOld(ctx, msg)
-			if err != nil {
-				m.errCh <- fmt.Errorf("process from old db log: %w", err)
-				return
-			}
-		}
-	}()
-	go func() {
-		msg, err := m.nextMsgLog.Next(ctx)
+	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		var err error
+		m.MainDBInfo, err = swoinfo.DBInfo(ctx, oldConn)
 		if err != nil {
-			m.errCh <- fmt.Errorf("read from next log: %w", err)
-			return
+			return err
 		}
-		err = m.msgState.processFromNew(ctx, msg)
+		m.NextDBInfo, err = swoinfo.DBInfo(ctx, newConn)
 		if err != nil {
-			m.errCh <- fmt.Errorf("process from new db log: %w", err)
-			return
+			return err
 		}
-	}()
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("et server version: %w", err)
+	}
+
+	m.taskMgr, err = swogrp.NewTaskMgr(ctx, swogrp.Config{
+		NodeID:  id,
+		CanExec: cfg.CanExec,
+
+		Logger:   cfg.Logger,
+		Messages: messages,
+
+		OldID: m.MainDBInfo.ID,
+		NewID: m.NextDBInfo.ID,
+
+		Executor:   NewExecutor(m),
+		PauseFunc:  func(ctx context.Context) error { return m.pauseResume.Pause(ctx) },
+		ResumeFunc: func(ctx context.Context) error { return m.pauseResume.Resume(ctx) },
+	})
+	if err != nil {
+		return nil, fmt.Errorf("init task manager: %w", err)
+	}
 
 	return m, nil
 }
 
-func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) { m.app = app }
+// SetPauseResumer allows setting the pause/resume functionality for the manager.
+//
+// Pause is called during the switchover process to minimize the number of
+// long-lived DB connections so that the final sync can be performed quickly.
+//
+// After a switchover, or if it is aborted, Resume will be called.
+func (m *Manager) SetPauseResumer(app lifecycle.PauseResumer) {
+	if m.pauseResume != nil {
+		panic("already set")
+	}
+	m.pauseResume = app
+	m.taskMgr.Init()
+}
+
+// ConnInfo returns information about all current DB connections.
+func (m *Manager) ConnInfo(ctx context.Context) (counts []swoinfo.ConnCount, err error) {
+	err = m.withConnFromBoth(ctx, func(ctx context.Context, oldConn, newConn *pgx.Conn) error {
+		counts, err = swoinfo.ConnInfo(ctx, oldConn, newConn)
+		return err
+	})
+
+	return
+}
 
 // withConnFromOld allows performing operations with a raw connection to the old database.
 func (m *Manager) withConnFromOld(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithLockedConn(ctx, m.dbOld, f)
-}
-
-// withConnFromNew allows performing operations with a raw connection to the new database.
-func (m *Manager) withConnFromNew(ctx context.Context, f func(context.Context, *pgx.Conn) error) error {
-	return WithLockedConn(ctx, m.dbNew, f)
+	return withPGXConn(ctx, m.dbMain, f)
 }
 
 // withConnFromBoth allows performing operations with a raw connection to both databases database.
 func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Context, oldConn, newConn *pgx.Conn) error) error {
 	// grab lock with old DB first
-	return WithLockedConn(ctx, m.dbOld, func(ctx context.Context, oldConn *pgx.Conn) error {
-		return WithLockedConn(ctx, m.dbNew, func(ctx context.Context, newConn *pgx.Conn) error {
-			return f(ctx, oldConn, newConn)
+	return withPGXConn(ctx, m.dbMain, func(ctx context.Context, connMain *pgx.Conn) error {
+		return withPGXConn(ctx, m.dbNext, func(ctx context.Context, connNext *pgx.Conn) error {
+			return f(ctx, connMain, connNext)
 		})
 	})
 }
 
-func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
+func withPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
 	conn, err := db.Conn(ctx)
 	if err != nil {
 		return err
@@ -165,25 +186,55 @@ func WithLockedConn(ctx context.Context, db *sql.DB, runFunc func(context.Contex
 
 	return conn.Raw(func(driverConn interface{}) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
-		err := SwitchOverExecLock(ctx, conn)
-		if err != nil {
-			return err
-		}
+		defer conn.Close(context.Background())
+		defer conn.PgConn().Close(context.Background())
 
 		return runFunc(ctx, conn)
 	})
 }
 
-func (m *Manager) Status() *Status { return m.msgState.Status() }
-func (m *Manager) DB() *sql.DB     { return m.protectedDB }
-
-type Status struct {
-	Details string
-	Nodes   []Node
-
-	// IsDone is true if the switch has already been completed.
-	IsDone bool
-
-	// IsIdle must be true before executing a switch-over.
-	IsIdle bool
+// Status will return the current switchover status.
+func (m *Manager) Status() Status {
+	return Status{
+		Status:        m.taskMgr.Status(),
+		MainDBID:      m.MainDBInfo.ID,
+		NextDBID:      m.NextDBInfo.ID,
+		MainDBVersion: m.MainDBInfo.Version,
+		NextDBVersion: m.NextDBInfo.Version,
+	}
 }
+
+// Reset will disable the changelog and reset the cluster state.
+func (m *Manager) Reset(ctx context.Context) error {
+	err := m.taskMgr.Cancel(ctx)
+	if err != nil {
+		return fmt.Errorf("cancel task: %w", err)
+	}
+
+	err = m.withConnFromOld(ctx, func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, swosync.ConnWaitLockQuery)
+		if err != nil {
+			return err
+		}
+
+		return swodb.New(conn).DisableChangeLogTriggers(ctx)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to disable change log triggers: %w", err)
+	}
+
+	err = m.taskMgr.Reset(ctx)
+	if err != nil {
+		return fmt.Errorf("reset cluster state: %w", err)
+	}
+
+	return nil
+}
+
+// StartExecute will trigger the switchover to begin.
+func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Execute(ctx) }
+
+// DB returns a sql.DB that will always return safe connections to be used during the switchover.
+//
+// All application code/queries should use this DB.
+func (m *Manager) DB() *sql.DB { return m.dbApp }

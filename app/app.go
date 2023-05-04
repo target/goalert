@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	stdlog "log"
 	"net"
 	"net/http"
 	"sync"
@@ -17,6 +16,7 @@ import (
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calsub"
@@ -50,9 +50,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 // App represents an instance of the GoAlert application.
@@ -62,7 +59,6 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
-	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -115,9 +111,10 @@ type App struct {
 	LimitStore     *limit.Store
 	HeartbeatStore *heartbeat.Store
 
-	OAuthKeyring   keyring.Keyring
-	SessionKeyring keyring.Keyring
-	APIKeyring     keyring.Keyring
+	OAuthKeyring    keyring.Keyring
+	SessionKeyring  keyring.Keyring
+	APIKeyring      keyring.Keyring
+	AuthLinkKeyring keyring.Keyring
 
 	NonceStore    *nonce.Store
 	LabelStore    *label.Store
@@ -125,6 +122,7 @@ type App struct {
 	NCStore       *notificationchannel.Store
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
+	AuthLinkStore *authlink.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.
@@ -181,46 +179,12 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		doneCh: make(chan struct{}),
 	}
 
-	if c.SWO != nil {
-		c.SWO.SetPauseResumer(app)
-		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
-	}
-
-	gCfg := &gorm.Config{
-		PrepareStmt: true,
-		NowFunc:     app.Now,
-	}
-	if c.JSON {
-		gCfg.Logger = &gormJSONLogger{}
-	} else {
-		gCfg.Logger = logger.New(stdlog.New(c.Logger, "", 0), logger.Config{
-			SlowThreshold:             50 * time.Millisecond,
-			LogLevel:                  logger.Warn,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		})
-	}
-	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
-	if err != nil {
-		return nil, fmt.Errorf("wrap db for GORM: %w", err)
-	}
-	app.gdb = gdb
-
 	var n time.Time
 	err = db.QueryRow("SELECT now()").Scan(&n)
 	if err != nil {
 		return nil, fmt.Errorf("get current time: %w", err)
 	}
 	app.SetTimeOffset(time.Until(n))
-
-	// permission check *before* query is run
-	gdb.Callback().Query().Before("gorm:query").
-		Register("goalert:permission-check", func(gDB *gorm.DB) {
-			err := permission.LimitCheckAny(gDB.Statement.Context, permission.All)
-			if err != nil {
-				gDB.AddError(err)
-			}
-		})
 
 	if c.KubernetesCooldown > 0 {
 		app.cooldown = newCooldown(c.KubernetesCooldown)
@@ -247,7 +211,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 // WaitForStartup will wait until the startup sequence is completed or the context is expired.
 func (a *App) WaitForStartup(ctx context.Context) error {
-	return a.mgr.WaitForStartup(log.WithLogger(ctx, a.cfg.Logger))
+	return a.mgr.WaitForStartup(a.Context(ctx))
 }
 
 // DB returns the sql.DB instance used by the application.

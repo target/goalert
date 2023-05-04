@@ -6,14 +6,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/google/uuid"
 )
 
 // Store is used to manage active overrides.
@@ -26,6 +25,8 @@ type Store struct {
 	findAllUO *sql.Stmt
 	updateUO  *sql.Stmt
 
+	lock *sql.Stmt
+
 	findUOUpdate *sql.Stmt
 }
 
@@ -35,6 +36,9 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
+
+		lock: p.P(`LOCK user_overrides IN EXCLUSIVE MODE`),
+
 		findUOUpdate: p.P(`
 		select
 			id,
@@ -92,11 +96,37 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		`),
 	}, p.Err
 }
-func wrap(stmt *sql.Stmt, tx *sql.Tx) *sql.Stmt {
+
+func (s *Store) withTx(ctx context.Context, tx *sql.Tx, fn func(tx *sql.Tx) error) error {
 	if tx == nil {
-		return stmt
+		tx, err := s.db.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		// Since this is a helper method, we don't
+		// have much context to work with.
+		defer sqlutil.Rollback(ctx, "override", tx)
+
+		err = s.withTx(ctx, tx, fn)
+		if err != nil {
+			return err
+		}
+		return tx.Commit()
 	}
-	return tx.Stmt(stmt)
+
+	_, err := tx.StmtContext(ctx, s.lock).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return fn(tx)
+}
+
+func (s *Store) execContext(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt, args ...interface{}) error {
+	return s.withTx(ctx, tx, func(tx *sql.Tx) error {
+		_, err := tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+		return err
+	})
 }
 
 func (s *Store) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*UserOverride, error) {
@@ -109,17 +139,18 @@ func (s *Store) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string
 		return nil, err
 	}
 
-	stmt := s.findUO
-	if forUpdate {
-		stmt = s.findUOUpdate
-	}
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-
 	var o UserOverride
 	var add, rem, schedTgt sql.NullString
-	err = stmt.QueryRowContext(ctx, id).Scan(&o.ID, &add, &rem, &o.Start, &o.End, &schedTgt)
+	err = s.withTx(ctx, tx, func(tx *sql.Tx) error {
+		var row *sql.Row
+		if forUpdate {
+			row = tx.StmtContext(ctx, s.findUOUpdate).QueryRowContext(ctx, id)
+		} else {
+			row = tx.StmtContext(ctx, s.findUO).QueryRowContext(ctx, id)
+		}
+
+		return row.Scan(&o.ID, &add, &rem, &o.Start, &o.End, &schedTgt)
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -166,12 +197,7 @@ func (s *Store) UpdateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOve
 		schedTgt.Valid = true
 		schedTgt.String = n.Target.TargetID()
 	}
-	stmt := s.updateUO
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-	_, err = stmt.ExecContext(ctx, n.ID, add, rem, n.Start, n.End, schedTgt)
-	return err
+	return s.execContext(ctx, tx, s.updateUO, n.ID, add, rem, n.Start, n.End, schedTgt)
 }
 
 // UpdateUserOverride updates an existing UserOverride.
@@ -207,7 +233,7 @@ func (s *Store) CreateUserOverrideTx(ctx context.Context, tx *sql.Tx, o *UserOve
 		schedTgt.Valid = true
 		schedTgt.String = n.Target.TargetID()
 	}
-	_, err = wrap(s.createUO, tx).ExecContext(ctx, n.ID, add, rem, n.Start, n.End, schedTgt)
+	err = s.execContext(ctx, tx, s.createUO, n.ID, add, rem, n.Start, n.End, schedTgt)
 	if err != nil {
 		return nil, err
 	}
@@ -229,8 +255,7 @@ func (s *Store) DeleteUserOverrideTx(ctx context.Context, tx *sql.Tx, ids ...str
 		return err
 	}
 
-	_, err = wrap(s.deleteUO, tx).ExecContext(ctx, sqlutil.UUIDArray(ids))
-	return err
+	return s.execContext(ctx, tx, s.deleteUO, sqlutil.UUIDArray(ids))
 }
 
 // FindAllUserOverrides will return all UserOverrides that belong to the provided Target within the provided time range.

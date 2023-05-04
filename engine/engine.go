@@ -10,7 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/engine/cleanupmanager"
+	"github.com/target/goalert/engine/compatmanager"
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
 	"github.com/target/goalert/engine/message"
@@ -19,7 +21,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
-	"github.com/target/goalert/engine/statusupdatemanager"
+	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -107,7 +109,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusupdatemanager.NewDB(ctx, db)
+	statMgr, err := statusmgr.NewDB(ctx, db)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}
@@ -119,7 +121,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	cleanMgr, err := cleanupmanager.NewDB(ctx, db)
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
@@ -127,8 +129,13 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "metrics management backend")
 	}
+	compatMgr, err := compatmanager.NewDB(ctx, db, c.SlackStore)
+	if err != nil {
+		return nil, errors.Wrap(err, "compatibility backend")
+	}
 
 	p.modules = []updater{
+		compatMgr,
 		rotMgr,
 		schedMgr,
 		epMgr,
@@ -151,6 +158,13 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	}
 
 	return p, nil
+}
+
+func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (url string, err error) {
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		url, err = p.cfg.AuthLinkStore.AuthLinkURL(ctx, providerID, subjectID, meta)
+	})
+	return url, err
 }
 
 func (p *Engine) processModule(ctx context.Context, m updater) {
@@ -224,7 +238,7 @@ func (p *Engine) _pause(ctx context.Context) error {
 	case p.triggerPauseCh <- &pauseReq{ch: ch, ctx: ctx}:
 		select {
 		case <-ctx.Done():
-			defer p.Resume(ctx)
+			defer func() { _ = p.Resume(ctx) }()
 			return ctx.Err()
 		case err := <-ch:
 			return err
@@ -293,7 +307,9 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		return fmt.Errorf("failed to find user: %w", err)
 	}
 	if usr == nil {
-		return notification.ErrUnknownSubject
+		return &notification.UnknownSubjectError{
+			AlertID: cb.AlertID,
+		}
 	}
 
 	ctx = permission.UserSourceContext(ctx, usr.ID, usr.Role, &permission.SourceInfo{
@@ -307,6 +323,12 @@ func (p *Engine) ReceiveSubject(ctx context.Context, providerID, subjectID, call
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("escalate alert: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("unknown result type")
 	}
@@ -360,6 +382,12 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		newStatus = alert.StatusActive
 	case notification.ResultResolve:
 		newStatus = alert.StatusClosed
+	case notification.ResultEscalate:
+		err = p.a.EscalateAsOf(ctx, cb.AlertID, cb.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("escalate alert: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("unknown result type")
 	}
@@ -505,7 +533,11 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	alertTicker := time.NewTicker(5 * time.Second)
+	dur := p.cfg.CycleTime
+	if dur == 0 {
+		dur = 5 * time.Second
+	}
+	alertTicker := time.NewTicker(dur)
 	defer alertTicker.Stop()
 
 	defer close(p.triggerCh)

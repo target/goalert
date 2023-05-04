@@ -18,6 +18,7 @@ import (
 
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -112,6 +113,7 @@ func marshalVerificationKeys(keys map[byte]ecdsa.PublicKey) ([]byte, error) {
 	}
 	return json.Marshal(m)
 }
+
 func parseVerificationKeys(data []byte) (map[byte]ecdsa.PublicKey, error) {
 	var m map[byte][]byte
 	err := json.Unmarshal(data, &m)
@@ -228,6 +230,7 @@ func (db *DB) Shutdown(ctx context.Context) error {
 	<-db.shutdown
 	return nil
 }
+
 func (db *DB) loop() {
 	t := time.NewTicker(12 * time.Hour)
 	var shutdownCtx context.Context
@@ -275,6 +278,7 @@ func (db *DB) newKey() (*ecdsa.PrivateKey, []byte, error) {
 	}
 	return key, data, nil
 }
+
 func (db *DB) loadKey(encData []byte) (*ecdsa.PrivateKey, error) {
 	data, _, err := db.cfg.Keys.Decrypt(encData)
 	if err != nil {
@@ -341,7 +345,7 @@ func (db *DB) commitNewKeyring(ctx context.Context, tx *sql.Tx) error {
 	if rowCount == 0 {
 		// failed to insert the new data, so scan old & refresh
 		var vKeysData, signKeyData, nextKeyData []byte
-		var rotateT time.Time
+		var rotateT sql.NullTime
 		err = db.fetchKeys.QueryRowContext(ctx, db.cfg.Name).Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &rotationCount)
 		if err != nil {
 			return err
@@ -397,7 +401,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "keyring: rotate keys", tx)
 
 	row := tx.Stmt(db.fetchKeys).QueryRowContext(ctx, db.cfg.Name)
 
@@ -405,7 +409,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 
 	var vKeysData, signKeyData, nextKeyData []byte
 	var t time.Time
-	var rotateT *time.Time
+	var rotateT sql.NullTime
 	var count int
 	err = row.Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &count)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -420,7 +424,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 		return errors.Wrap(err, "unmarshal verification keys")
 	}
 
-	if forceRotation || (rotateT != nil && !t.Before(*rotateT)) {
+	if forceRotation || (rotateT.Valid && !t.Before(rotateT.Time)) {
 		// perform a key rotation
 		signKeyData = nextKeyData
 		var nextKey *ecdsa.PrivateKey
@@ -541,7 +545,7 @@ func (db *DB) VerifyJWT(s string, c jwt.Claims) (bool, error) {
 		return false, err
 	}
 
-	return currentKey, nil
+	return currentKey, c.Valid()
 }
 
 // Verify will validate the signature and metadata, and optionally length, of a message.

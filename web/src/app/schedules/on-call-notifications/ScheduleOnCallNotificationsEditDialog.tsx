@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 
-import { Value } from './util'
-import { useEditOnCallRule } from './hooks'
+import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
+import { DateTime } from 'luxon'
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
@@ -15,22 +16,50 @@ interface ScheduleOnCallNotificationsEditDialogProps {
 export default function ScheduleOnCallNotificationsEditDialog(
   p: ScheduleOnCallNotificationsEditDialogProps,
 ): JSX.Element {
-  const [_value, setValue] = useState<Value | null>(null)
-  const update = useEditOnCallRule(p.scheduleID, p.ruleID, _value)
+  const [value, setValue] = useState<Value | null>(null)
+  const [slackType, setSlackType] = useState('channel')
+
+  const { q, zone, rules } = useOnCallRulesData(p.scheduleID)
+
+  const rule = rules.find((r) => r.id === p.ruleID)
+  const newValue: Value = value || {
+    time: rule?.time
+      ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
+      : null,
+    weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
+    slackChannelID:
+      rule?.target.type === 'slackChannel'
+        ? rule?.target.id
+        : rule?.target.id.split(':')[1],
+    slackUserGroup:
+      rule?.target.type === 'slackUserGroup'
+        ? rule?.target.id.split(':')[0]
+        : null,
+  }
+  const { m, submit } = useSetOnCallRulesSubmit(
+    p.scheduleID,
+    zone,
+    newValue,
+    ...rules.filter((r) => r.id !== p.ruleID),
+  )
+
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
 
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={update.dialogErrors}
-      loading={update.busy}
+      errors={dialogErrors}
+      loading={(q.loading && !zone) || m.loading}
       onClose={() => p.onClose()}
-      onSubmit={() => update.submit().then(p.onClose)}
+      onSubmit={() => submit().then(p.onClose)}
       form={
         <ScheduleOnCallNotificationsForm
           scheduleID={p.scheduleID}
-          errors={update.fieldErrors}
-          value={update.value}
+          errors={fieldErrors}
+          value={newValue}
           onChange={(value) => setValue(value)}
+          slackType={slackType}
+          setSlackType={setSlackType}
         />
       }
     />

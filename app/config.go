@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/util/log"
@@ -13,12 +14,16 @@ import (
 type Config struct {
 	Logger *log.Logger
 
+	ExpFlags expflag.FlagSet
+
 	ListenAddr  string
 	Verbose     bool
 	JSON        bool
 	LogRequests bool
 	APIOnly     bool
 	LogEngine   bool
+
+	PublicURL string
 
 	TLSListenAddr string
 	TLSConfig     *tls.Config
@@ -46,6 +51,8 @@ type Config struct {
 
 	KubernetesCooldown time.Duration
 	StatusAddr         string
+
+	EngineCycleTime time.Duration
 
 	EncryptionKeys keyring.Keys
 

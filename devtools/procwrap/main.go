@@ -46,7 +46,7 @@ func main() {
 		os.Exit(stopWith(true, sig))
 	}()
 
-	start()
+	start(nil)
 	defer stop(true)
 
 	l, err := net.Listen("tcp", *addr)
@@ -67,7 +67,8 @@ func handleStop(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleStart(w http.ResponseWriter, req *http.Request) {
-	start()
+	_ = req.ParseForm()
+	start(req.Form["extra-arg"])
 }
 
 func handleSignal(w http.ResponseWriter, req *http.Request) {
@@ -85,24 +86,25 @@ func handleSignal(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := cmd.Process.Signal(sig)
-	if err != nil {
+	if err := cmd.Process.Signal(sig); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func start() {
+func start(extraArgs []string) {
 	mx.Lock()
 	defer mx.Unlock()
 
 	stop(false)
-	log.Println("starting", flag.Arg(0))
+	args := flag.Args()
+	args = append(args, extraArgs...)
+	log.Println("starting", args[0])
 
 	ctx := context.Background()
 	ctx, cancel = context.WithCancel(ctx)
 
-	cmd = exec.CommandContext(ctx, flag.Arg(0), flag.Args()[1:]...)
+	cmd = exec.CommandContext(ctx, args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -115,7 +117,7 @@ func start() {
 
 	// signal when the process has ended
 	go func() {
-		cmd.Wait()
+		_ = cmd.Wait()
 		close(wait)
 	}()
 
@@ -128,7 +130,6 @@ func start() {
 			log.Printf("process terminated unexpectedly: %v", code)
 			os.Exit(code)
 		}
-
 	}()
 
 	if testAddr == "" {
@@ -154,7 +155,6 @@ func start() {
 			return
 		}
 	}
-
 }
 
 func stopWith(lock bool, sig os.Signal) int {
@@ -168,7 +168,9 @@ func stopWith(lock bool, sig os.Signal) int {
 	log.Println("stopping", flag.Arg(0))
 	close(stopping)
 
-	cmd.Process.Signal(sig)
+	if err := cmd.Process.Signal(sig); err != nil {
+		panic(err)
+	}
 	t := time.NewTimer(startTimeout)
 	defer t.Stop()
 	select {

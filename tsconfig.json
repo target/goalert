@@ -12,7 +12,7 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es6"
+    "lib": ["ES2017"]
   },
   "exclude": ["*/node_modules/*"]
 }

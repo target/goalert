@@ -56,7 +56,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND NOT sched.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND {{textSearch "search" "sched.name" "sched.description"}}
+		AND {{prefixSearch "search" "sched.name"}}
 	{{end}}
 	{{if .After.Name}}
 		AND

@@ -1,17 +1,26 @@
-.PHONY: stop start lint tools regendb resetdb
-.PHONY: smoketest generate check all test test-long install install-race
+.PHONY: help start tools regendb resetdb db-schema
+.PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
-.PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release force-yarn
+.PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
+.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js playwright-ui
 .SUFFIXES:
+
+default: bin/goalert
 
 include Makefile.binaries.mk
 
 CFGPARAMS = devtools/configparams/*.go
-DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
-
+DB_URL = postgres://goalert@localhost:5432/goalert
+INT_DB = goalert_integration
+INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
+YARN_VERSION=3.5.0
+
+NODE_DEPS=.pnp.cjs .yarnrc.yml
+
+# Use sha256sum on linux and shasum -a 256 on mac
+SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
@@ -22,18 +31,27 @@ export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 PROD_CY_PROC = Procfile.cypress.prod
+SIZE:=1
+
+PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
+export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
+
+# used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
+EXPERIMENTAL :=
+export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
 
 ifeq ($(CI), 1)
 PROD_CY_PROC = Procfile.cypress.ci
 endif
 
+
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-all: test install
+all: test
 
-release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip
+release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Build all release artifacts
 
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
@@ -41,8 +59,14 @@ Makefile.binaries.mk: devtools/genmake/*
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 
+$(BIN_DIR)/tools/sqlc: sqlc.version
+	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
+
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
+
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	go run ./devtools/gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -72,7 +96,8 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert bin/psql-lite bin/pgmocktime node_modules web/src/schema.d.ts
+cypress: bin/goalert bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts
+	$(MAKE) ensure-yarn
 	yarn cypress install
 
 cy-wide: cypress
@@ -88,39 +113,87 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	$(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
+swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
+	$(BIN_DIR)/tools/sqlc generate
+
+web/src/schema.d.ts: graphql2/schema.graphql $(NODE_DEPS) web/src/genschema.go
 	go generate ./web/src
 
-start: bin/goalert node_modules web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
-	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) go run ./devtools/runproc -f Procfile -l Procfile.local
+help: ## Show all valid options
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus
+start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+	@if [ -d ".vscode" ]; then \
+		echo "Detected .vscode directory, running 'vscode' target"; \
+		$(MAKE) vscode; \
+	fi
+	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
+
+start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-jest: node_modules 
-	yarn workspace goalert-web run jest $(JEST_ARGS)
 
-test: node_modules jest
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
+	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
+	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
+	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
+
+reset-integration: bin/waitfor bin/goalert bin/psql-lite
+	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
+	./bin/goalert --db-url "$(INT_DB_URL)" migrate
+	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	./bin/goalert add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | ./bin/goalert set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
+	rm -f *.session.json
+
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
+	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
+
+jest: $(NODE_DEPS) 
+	$(MAKE) ensure-yarn
+	yarn run jest $(JEST_ARGS)
+
+test: $(NODE_DEPS) jest ## Run all unit tests
 	go test -short ./...
 
-force-yarn:
-	yarn install --no-progress --silent --frozen-lockfile --check-files
 
-check: force-yarn generate node_modules
-	# go run ./devtools/ordermigrations -check
-	go vet ./...
-	go run github.com/gordonklaus/ineffassign ./...
-	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
-	yarn run fmt
-	yarn run lint
-	yarn workspaces run check
+check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
+.yarnrc.yml: package.json
+	$(MAKE) yarn
+
+.yarn/releases/yarn-$(YARN_VERSION).cjs:
+	yarn set version stable || $(MAKE) yarn
+
+ensure-yarn: # Yarn ensures the correct version of yarn is installed
+	@echo "Checking yarn version..."
+	@yarn --version | grep -q -F "$(YARN_VERSION)" || $(MAKE) yarn
+	$(MAKE) .yarn/releases/yarn-$(YARN_VERSION).cjs
+
+yarn:
+	corepack enable
+	corepack prepare yarn@stable --activate
+
+check-js: generate $(NODE_DEPS)
+	$(MAKE) ensure-yarn
+	yarn install
+	yarn run fmt
+	yarn run lint
+	yarn run check
+
+check-go: generate $(BIN_DIR)/tools/golangci-lint
+	@go mod tidy
+	# go run ./devtools/ordermigrations -check
+	$(BIN_DIR)/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
@@ -136,45 +209,68 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
+generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
+	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
+
+test-all: test-unit test-smoke test-integration
+test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
+test-smoke: smoketest
+test-unit: test
+
+bin/MailHog: go.mod go.sum
+	go build -o bin/MailHog github.com/mailhog/MailHog
+
+playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+	$(MAKE) ensure-yarn
+	yarn playwright test
+
+playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
+	$(MAKE) ensure-yarn
+	yarn playwright test --ui
+
 smoketest:
-	(cd smoketest && go test -parallel 10 -timeout 20m)
+	(cd test/smoke && go test -parallel 10 -timeout 20m)
 
 test-migrations: bin/goalert
-	(cd smoketest && go test -run TestMigrations)
+	(cd test/smoke && go test -run TestMigrations)
+
+db-schema: bin/goalert bin/psql-lite
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema; CREATE DATABASE mk_dump_schema;'
+	./bin/goalert migrate --db-url "$(dir $(DB_URL))mk_dump_schema"
+	echo '-- This file is auto-generated by "make db-schema"; DO NOT EDIT' > migrate/schema.sql
+	echo "-- DATA=$(shell $(SHA_CMD) migrate/migrations/* | sort | $(SHA_CMD))" >> migrate/schema.sql
+	echo "-- DISK=$(shell ls migrate/migrations | sort | $(SHA_CMD))" >> migrate/schema.sql
+	echo "-- PSQL=$$(psql -d '$(dir $(DB_URL))mk_dump_schema' -XqAtc 'select id from gorp_migrations order by id' | sort | $(SHA_CMD))" >> migrate/schema.sql
+	pg_dump -d "$(dir $(DB_URL))mk_dump_schema" -sO >> migrate/schema.sql
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema;'
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename
 	go get -u golang.org/x/tools/cmd/present
 	go get -u golang.org/x/tools/cmd/bundle
 	go get -u golang.org/x/tools/cmd/gomvpkg
-	go get -u github.com/golang/lint/golint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/gordonklaus/ineffassign
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json Makefile
-	yarn --no-progress --silent --check-files && touch $@
+.pnp.cjs: yarn.lock Makefile package.json .yarnrc.yml
+	$(MAKE) ensure-yarn
+	yarn install && touch "$@"
 
-node_modules/.yarn-integrity: yarn.lock Makefile
-	yarn install --no-progress --silent --frozen-lockfile --check-files
-	touch $@
-
-node_modules: yarn.lock node_modules/.yarn-integrity
-	touch -c $@
 
 web/src/build/static/explore.js: web/src/build/static
 
-web/src/build/static: web/src/esbuild.config.js node_modules $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts web/src/package.json
+web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts
+	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn workspace goalert-web run esbuild
+	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
 
-web/src/build/static/app.js: web/src/build/static
+web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
 	
 
 notification/desttype_string.go: notification/desttype.go
@@ -192,25 +288,34 @@ postgres: bin/waitfor
 		-e POSTGRES_USER=goalert \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
+		--shm-size 1g \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || $(CONTAINER_TOOL) start goalert-postgres
+		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
-regendb: bin/resetdb bin/goalert config.json.bak
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001
+regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
-resetdb: config.json.bak
+resetdb: config.json.bak ## Recreate the database leaving it empty (no migrations)
 	go run ./devtools/resetdb --no-migrate
 
-clean:
-	rm -rf bin node_modules web/src/node_modules web/src/build/static
-
-lint: $(GOALERT_DEPS)
-	go run github.com/golang/lint/golint $(shell go list ./...)
+clean: ## Clean up build artifacts
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)
 	@test ! -f migrate/migrations/*-$(NAME).sql || (echo "Migration already exists with the name $(NAME)." && false)
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
+
+.yarn/sdks/integrations.yml: $(NODE_DEPS)
+	yarn dlx @yarnpkg/sdks vscode
+
+vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
+
+.yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
+	yarn plugin import interactive-tools
+
+upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
+	yarn upgrade-interactive

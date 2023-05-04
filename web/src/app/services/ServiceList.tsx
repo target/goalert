@@ -1,10 +1,10 @@
 import React from 'react'
 import { gql } from 'urql'
 import { useURLParam } from '../actions'
-import SimpleListPage from '../lists/SimpleListPage'
-import getServiceLabel from '../util/getServiceLabel'
+import QueryList from '../lists/QueryList'
+import getServiceFilters from '../util/getServiceFilters'
 import ServiceCreateDialog from './ServiceCreateDialog'
-import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
+import ServiceFilterContainer from './ServiceFilterContainer'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -25,10 +25,11 @@ const query = gql`
 
 export default function ServiceList(): JSX.Element {
   const [searchParam, setSearchParam] = useURLParam<string>('search', '')
-  const { labelKey, labelValue } = getServiceLabel(searchParam)
+  const { labelKey, labelValue, integrationKey } =
+    getServiceFilters(searchParam)
 
   return (
-    <SimpleListPage
+    <QueryList
       query={query}
       variables={{ input: { favoritesFirst: true } }}
       mapDataNode={(n) => ({
@@ -37,14 +38,22 @@ export default function ServiceList(): JSX.Element {
         url: n.id,
         isFavorite: n.isFavorite,
       })}
-      createForm={<ServiceCreateDialog />}
+      renderCreateDialog={(onClose) => (
+        <ServiceCreateDialog onClose={onClose} />
+      )}
       createLabel='Service'
       searchAdornment={
-        <ServiceLabelFilterContainer
-          value={{ labelKey, labelValue }}
-          onChange={({ labelKey, labelValue }) =>
-            setSearchParam(labelKey ? labelKey + '=' + labelValue : '')
-          }
+        <ServiceFilterContainer
+          value={{ labelKey, labelValue, integrationKey }}
+          onChange={({ labelKey, labelValue, integrationKey }) => {
+            const labelSearch = labelKey ? labelKey + '=' + labelValue : ''
+            const intKeySearch = integrationKey ? 'token=' + integrationKey : ''
+            const searchStr =
+              intKeySearch && labelSearch
+                ? intKeySearch + ' ' + labelSearch
+                : intKeySearch + labelSearch
+            setSearchParam(searchStr)
+          }}
           onReset={() => setSearchParam('')}
         />
       }

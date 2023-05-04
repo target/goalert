@@ -61,6 +61,7 @@ function FormDialog(props) {
     onNext,
     onBack,
     fullHeight,
+    disableBackdropClose,
     ...dialogProps
   } = props
 
@@ -161,9 +162,11 @@ function FormDialog(props) {
       maxWidth={maxWidth}
       fullWidth
       open={open}
-      onClose={(event, reason) => {
-        if (reason === 'backdropClick' && (!isWideScreen || alert)) {
-          // disable backdrop for mobile and alerts
+      onClose={(_, reason) => {
+        if (
+          reason === 'backdropClick' &&
+          (!isWideScreen || alert || disableBackdropClose)
+        ) {
           return
         }
         handleOnClose()
@@ -246,6 +249,8 @@ FormDialog.propTypes = {
 
   // make dialog fill vertical space
   fullHeight: p.bool,
+
+  disableBackdropClose: p.bool,
 
   // gets spread to material-ui
   PaperProps: p.object,

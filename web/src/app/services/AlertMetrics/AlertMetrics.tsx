@@ -12,6 +12,7 @@ import { AlertMetricsOpts } from './useAlertMetrics'
 import { useAlerts } from './useAlerts'
 import { useQuery } from 'urql'
 import Spinner from '../../loading/components/Spinner'
+import { AlertSearchOptions } from '../../../schema'
 
 export type AlertMetricsProps = {
   serviceID: string
@@ -40,7 +41,15 @@ export default function AlertMetrics({
   const since = now.minus(Duration.fromISO(range)).startOf(unit)
   const until = now.startOf(unit)
 
-  const alertsData = useAlerts(serviceID, since.toISO(), until.toISO())
+  const alertOptions: AlertSearchOptions = {
+    filterByServiceID: [serviceID],
+    filterByStatus: ['StatusClosed'],
+    notClosedBefore: since.toISO(),
+    closedBefore: until.toISO(),
+  }
+  const depKey = `${serviceID}-${since}-${until}`
+
+  const alertsData = useAlerts(alertOptions, depKey)
   const graphInterval = Interval.fromDateTimes(since, until).toISO()
 
   // useMemo to use same object reference
@@ -49,7 +58,11 @@ export default function AlertMetrics({
     [graphInterval, graphDur, alertsData.alerts],
   )
 
-  const graphData = useWorker('useAlertMetrics', metricsOpts, [])
+  const [graphData, graphDataStatus] = useWorker(
+    'useAlertMetrics',
+    metricsOpts,
+    [],
+  )
 
   if (svc.fetching) return <Spinner />
   if (!svc.data?.service?.name) return <ObjectNotFound />
@@ -70,14 +83,20 @@ export default function AlertMetrics({
           />
           <CardContent>
             <AlertMetricsFilter />
-            <AlertCountGraph data={graphData} />
-            <AlertAveragesGraph data={graphData} />
+            <AlertCountGraph
+              data={graphData}
+              loading={graphDataStatus.loading || alertsData.loading}
+            />
+            <AlertAveragesGraph
+              data={graphData}
+              loading={graphDataStatus.loading || alertsData.loading}
+            />
             <AlertMetricsTable
               alerts={alertsData.alerts}
               serviceName={svc.data.service.name}
               startTime={since.toFormat('yyyy-MM-dd')}
               endTime={until.toFormat('yyyy-MM-dd')}
-              loading={alertsData.loading}
+              loading={graphDataStatus.loading || alertsData.loading}
             />
           </CardContent>
         </Card>

@@ -3,9 +3,12 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -32,6 +35,22 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 	return webhook.MaskURLPass(u), nil
 }
 
+func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
+	if obj.Type.StatusUpdatesAlways() {
+		return graphql2.StatusUpdateStateEnabledForced, nil
+	}
+
+	if obj.Type.StatusUpdatesNever() {
+		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if obj.StatusUpdates {
+		return graphql2.StatusUpdateStateEnabled, nil
+	}
+
+	return graphql2.StatusUpdateStateDisabled, nil
+}
+
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
 	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
 }
@@ -52,6 +71,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 
 	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
+
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
 	t := obj.LastTestVerifyAt()
 	if t.IsZero() {
@@ -79,6 +99,19 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
 		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
+	}
+
+	if input.Type == contactmethod.TypeSlackDM {
+		if !expflag.ContextHas(ctx, expflag.SlackDM) {
+			return nil, validation.NewFieldError("type", "Slack DMs are not enabled")
+		}
+		if strings.HasPrefix(input.Value, "@") {
+			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
+		}
+		formatted := m.FormatDestFunc(ctx, notification.DestTypeSlackDM, input.Value)
+		if !strings.HasPrefix(formatted, "@") {
+			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
+		}
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -114,9 +147,11 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
-
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewFieldError("id", "contact method not found")
+		}
 		if err != nil {
 			return err
 		}
@@ -125,6 +160,9 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		if input.Value != nil {
 			cm.Value = *input.Value
+		}
+		if input.EnableStatusUpdates != nil {
+			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
 
 		return m.CMStore.UpdateTx(ctx, tx, cm)

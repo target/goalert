@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -22,9 +23,11 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type Schedule App
-type TemporarySchedule App
-type OnCallNotificationRule App
+type (
+	Schedule               App
+	TemporarySchedule      App
+	OnCallNotificationRule App
+)
 
 func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
 func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
@@ -38,15 +41,22 @@ func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCal
 		return nil, err
 	}
 
-	if ch.Type == notificationchannel.TypeSlack {
+	switch ch.Type {
+	case notificationchannel.TypeSlackChan:
 		return &assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
 			ID:   ch.Value,
 			Name: ch.Name,
 		}, nil
+	case notificationchannel.TypeSlackUG:
+		return &assignment.RawTarget{
+			Type: assignment.TargetTypeSlackUserGroup,
+			ID:   ch.Value,
+			Name: ch.Name,
+		}, nil
 	}
 
-	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID}, nil
+	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID, Name: ch.Name}, nil
 }
 
 func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {
@@ -64,6 +74,7 @@ func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.Temporary
 func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, error) {
 	return (*App)(q).FindOneSchedule(ctx, id)
 }
+
 func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time) ([]oncall.Shift, error) {
 	if end.Before(start) {
 		return nil, validation.NewFieldError("EndTime", "must be after StartTime")
@@ -81,6 +92,7 @@ func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedul
 	}
 	return s.ScheduleStore.TemporarySchedules(ctx, nil, id)
 }
+
 func (s *Schedule) OnCallNotificationRules(ctx context.Context, raw *schedule.Schedule) ([]schedule.OnCallNotificationRule, error) {
 	id, err := parseUUID("ScheduleID", raw.ID)
 	if err != nil {
@@ -126,6 +138,7 @@ func (s *Schedule) Targets(ctx context.Context, raw *schedule.Schedule) ([]graph
 
 	return result, nil
 }
+
 func (s *Schedule) AssignedTo(ctx context.Context, raw *schedule.Schedule) ([]assignment.RawTarget, error) {
 	pols, err := s.PolicyStore.FindAllPoliciesBySchedule(ctx, raw.ID)
 	if err != nil {
@@ -144,6 +157,7 @@ func (s *Schedule) AssignedTo(ctx context.Context, raw *schedule.Schedule) ([]as
 
 	return tgt, nil
 }
+
 func (m *Mutation) UpdateSchedule(ctx context.Context, input graphql2.UpdateScheduleInput) (ok bool, err error) {
 	var loc *time.Location
 	if input.TimeZone != nil {
@@ -154,6 +168,9 @@ func (m *Mutation) UpdateSchedule(ctx context.Context, input graphql2.UpdateSche
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		sched, err := m.ScheduleStore.FindOneForUpdate(ctx, tx, input.ID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewFieldError("id", "not found")
+		}
 		if err != nil {
 			return err
 		}
@@ -323,6 +340,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	conn.Nodes = scheds
 	return conn, err
 }
+
 func (s *Schedule) IsFavorite(ctx context.Context, raw *schedule.Schedule) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }

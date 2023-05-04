@@ -2,6 +2,9 @@
 /setup.cfg
 /setup.pid
 /config.json.bak
+/*.session.json
+*.zip
+/test-results
 
 *.pem
 *.key
@@ -63,3 +66,6 @@ ngrok.log
 
 smoketest_db_dump
 *.pid
+
+/.yarn
+/.pnp.*

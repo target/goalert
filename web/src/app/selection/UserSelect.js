@@ -7,6 +7,7 @@ const query = gql`
       nodes {
         id
         name
+        email
         isFavorite
       }
     }
@@ -18,6 +19,7 @@ const valueQuery = gql`
     user(id: $id) {
       id
       name
+      email
       isFavorite
     }
   }
@@ -28,4 +30,10 @@ export const UserSelect = makeQuerySelect('UserSelect', {
   defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
+  mapDataNode: (u) => ({
+    value: u.id,
+    label: u.name,
+    subText: u.email,
+    isFavorite: u.isFavorite,
+  }),
 })

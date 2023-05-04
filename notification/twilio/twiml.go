@@ -1,14 +1,21 @@
 package twilio
 
 import (
+	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/target/goalert/config"
 )
 
 type twiMLResponse struct {
 	say []string
+
+	voiceName     string
+	voiceLanguage string
 
 	gatherURL        string
 	redirectURL      string
@@ -23,9 +30,12 @@ type twiMLResponse struct {
 	w http.ResponseWriter
 }
 
-func newTwiMLResponse(w http.ResponseWriter) *twiMLResponse {
+func newTwiMLResponse(ctx context.Context, w http.ResponseWriter) *twiMLResponse {
+	cfg := config.FromContext(ctx)
 	return &twiMLResponse{
-		w: w,
+		voiceName:     cfg.Twilio.VoiceName,
+		voiceLanguage: cfg.Twilio.VoiceLanguage,
+		w:             w,
 	}
 }
 
@@ -33,6 +43,7 @@ func (t *twiMLResponse) Redirect(url string) {
 	t.redirectURL = url
 	t.sendResponse()
 }
+
 func (t *twiMLResponse) RedirectPauseSec(url string, seconds int) {
 	t.redirectURL = url
 	t.redirectPauseSec = seconds
@@ -46,6 +57,7 @@ const (
 	optionCancel
 	optionConfirmStop
 	optionAck
+	optionEscalate
 	optionClose
 	optionAckAll
 	optionCloseAll
@@ -70,6 +82,9 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 		case optionAck:
 			t.expectResponse = true
 			t.Sayf("To acknowledge, press %s.", digitAck)
+		case optionEscalate:
+			t.expectResponse = true
+			t.Sayf("To escalate, press %s.", digitEscalate)
 		case optionClose:
 			t.expectResponse = true
 			t.Sayf("To close, press %s.", digitClose)
@@ -101,8 +116,10 @@ func (t *twiMLResponse) SayUnknownDigit() *twiMLResponse {
 
 func (t *twiMLResponse) Say(text string) *twiMLResponse {
 	t.say = append(t.say, text)
+
 	return t
 }
+
 func (t *twiMLResponse) Sayf(format string, args ...interface{}) *twiMLResponse {
 	return t.Say(fmt.Sprintf(format, args...))
 }
@@ -111,6 +128,42 @@ func (t *twiMLResponse) Hangup() {
 	t.hangup = true
 	t.Say("Goodbye.")
 	t.sendResponse()
+}
+
+type verbSay struct {
+	XMLName  xml.Name `xml:"Say"`
+	Language string   `xml:"language,attr,omitempty"`
+	Voice    string   `xml:"voice,attr,omitempty"`
+	Text     string   `xml:"-"`
+	Prosody  *prosody `xml:"prosody"`
+}
+type prosody struct {
+	XMLName xml.Name `xml:"prosody"`
+	Text    string   `xml:",chardata"`
+	Rate    string   `xml:"rate,attr"`
+}
+
+type twimlResponse struct {
+	XMLName xml.Name `xml:"Response"`
+	Verbs   []any    `xml:",any"`
+}
+type verbPause struct {
+	XMLName   xml.Name `xml:"Pause"`
+	LengthSec int      `xml:"length,attr"`
+}
+type verbRedirect struct {
+	XMLName xml.Name `xml:"Redirect"`
+	URL     string   `xml:",chardata"`
+}
+type verbHangup struct {
+	XMLName xml.Name `xml:"Hangup"`
+}
+type verbGather struct {
+	XMLName    xml.Name `xml:"Gather"`
+	NumDigits  int      `xml:"numDigits,attr"`
+	TimeoutSec int      `xml:"timeout,attr"`
+	Action     string   `xml:"action,attr"`
+	Verbs      []any    `xml:",any"`
 }
 
 func (t *twiMLResponse) sendResponse() {
@@ -124,35 +177,52 @@ func (t *twiMLResponse) sendResponse() {
 		panic("Options without gather")
 	}
 
-	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-
-	io.WriteString(t.w, xml.Header)
-	io.WriteString(t.w, "<Response>\n")
-	if t.gatherURL != "" {
-		io.WriteString(t.w, `<Gather numDigits="1" timeout="10" action="`)
-		xml.EscapeText(t.w, []byte(t.gatherURL))
-		io.WriteString(t.w, `">`+"\n")
-	}
-	for _, s := range t.say {
-		io.WriteString(t.w, `<Say><prosody rate="slow">`)
-		xml.EscapeText(t.w, []byte(s))
-		io.WriteString(t.w, "</prosody></Say>\n")
+	var doc twimlResponse
+	for _, text := range t.say {
+		doc.Verbs = append(
+			doc.Verbs,
+			verbSay{
+				Language: t.voiceLanguage,
+				Voice:    t.voiceName,
+				Prosody: &prosody{
+					Rate: "slow",
+					Text: text,
+				},
+			},
+		)
 	}
 
 	if t.redirectPauseSec > 0 {
-		fmt.Fprintf(t.w, `<Pause length="%d"/>`+"\n", t.redirectPauseSec)
+		doc.Verbs = append(doc.Verbs, verbPause{LengthSec: t.redirectPauseSec})
 	}
 
 	if t.redirectURL != "" {
-		io.WriteString(t.w, "<Redirect>")
-		xml.EscapeText(t.w, []byte(t.redirectURL))
-		io.WriteString(t.w, "</Redirect>\n")
+		doc.Verbs = append(doc.Verbs, verbRedirect{URL: t.redirectURL})
 	}
+
 	if t.gatherURL != "" {
-		io.WriteString(t.w, "</Gather>\n")
+		doc.Verbs = []any{verbGather{
+			Action:     t.gatherURL,
+			TimeoutSec: 10,
+			NumDigits:  1,
+			Verbs:      doc.Verbs,
+		}}
 	}
+
 	if t.hangup {
-		io.WriteString(t.w, "<Hangup/>\n")
+		doc.Verbs = append(doc.Verbs, verbHangup{})
 	}
-	io.WriteString(t.w, "</Response>\n")
+
+	var buf bytes.Buffer
+	_, _ = io.WriteString(&buf, xml.Header)
+	enc := xml.NewEncoder(&buf)
+	enc.Indent("", "\t")
+	err := enc.Encode(doc)
+	if err != nil {
+		http.Error(t.w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		panic(err)
+	}
+
+	t.w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	_, _ = io.WriteString(t.w, buf.String())
 }

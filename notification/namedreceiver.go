@@ -1,6 +1,10 @@
 package notification
 
-import "context"
+import (
+	"context"
+
+	"github.com/target/goalert/auth/authlink"
+)
 
 type namedReceiver struct {
 	r  ResultReceiver
@@ -21,6 +25,11 @@ func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string
 	res.ProviderMessageID.ProviderName = nr.ns.name
 	res.ProviderMessageID.ExternalID = externalID
 	return nr.r.SetSendResult(ctx, res)
+}
+
+// AuthLinkURL calls the underlying AuthLinkURL method.
+func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error) {
+	return nr.r.AuthLinkURL(ctx, providerID, subjectID, meta)
 }
 
 // Start implements the Receiver interface by calling the underlying Receiver.Start method.

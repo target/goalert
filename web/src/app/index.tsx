@@ -1,15 +1,14 @@
-import { GOALERT_VERSION, pathPrefix } from './env'
-
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
+
+import { GOALERT_VERSION, pathPrefix } from './env'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
-import MuiPickersUtilsProvider from './mui-pickers'
 import store from './reduxStore'
 import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
@@ -44,14 +43,12 @@ root.render(
         <ApolloProvider client={GraphQLClient}>
           <ReduxProvider store={store}>
             <Router base={pathPrefix}>
-              <MuiPickersUtilsProvider>
-                <URQLProvider value={urqlClient}>
-                  <ConfigProvider>
-                    <NewVersionCheck />
-                    <App />
-                  </ConfigProvider>
-                </URQLProvider>
-              </MuiPickersUtilsProvider>
+              <URQLProvider value={urqlClient}>
+                <ConfigProvider>
+                  <NewVersionCheck />
+                  <App />
+                </ConfigProvider>
+              </URQLProvider>
             </Router>
           </ReduxProvider>
         </ApolloProvider>

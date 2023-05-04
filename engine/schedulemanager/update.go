@@ -32,11 +32,12 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 }
 
 func (db *DB) update(ctx context.Context) error {
-	tx, err := db.lock.BeginTx(ctx, nil)
+	tx, err := db.lock.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "schedule manager", tx)
+
 	log.Debugf(ctx, "Updating schedule rules.")
 
 	var now time.Time

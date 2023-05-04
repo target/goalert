@@ -24,19 +24,19 @@ interface DetailsPageProps {
   avatar?: JSX.Element // placement for an icon or image
   subheader?: string | JSX.Element
   details?: string
-  notices?: Array<Notice>
+  notices?: Array<Notice> | JSX.Element
   links?: Array<Link>
   pageContent?: JSX.Element
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
 }
 
-type LinkStatus = 'ok' | 'warn' | 'err'
+export type LinkStatus = 'ok' | 'warn' | 'err'
 type Link = {
   url: string
   label: string
   subText?: string
-  status?: LinkStatus
+  status?: LinkStatus | null
 }
 
 const useStyles = makeStyles({
@@ -96,11 +96,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       {/* Notices */}
-      {Boolean(p.notices?.length) && (
-        <Grid item xs={12}>
-          <Notices notices={p.notices} />
-        </Grid>
-      )}
+      {Array.isArray(p.notices) ? <Notices notices={p.notices} /> : p.notices}
 
       {/* Header card */}
       <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>
@@ -120,7 +116,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 titleTypographyProps={{
                   'data-cy': 'title',
                   variant: 'h5',
-                  component: 'h2',
+                  component: 'h1',
                 }}
                 subheaderTypographyProps={{
                   'data-cy': 'subheader',
@@ -173,7 +169,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 <ListItem
                   key={idx}
                   sx={{
-                    borderLeft: `3px solid ${borderColor(li.status)}`,
+                    borderLeft: `3px solid ${borderColor(
+                      li.status?.toString(),
+                    )}`,
                   }}
                   component={LIApplink}
                   to={li.url}

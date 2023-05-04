@@ -13,7 +13,8 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	cleanupNoSteps *sql.Stmt
+	clearMaintExpiredSvc *sql.Stmt
+	cleanupNoSteps       *sql.Stmt
 
 	lockStmt     *sql.Stmt
 	updateOnCall *sql.Stmt
@@ -31,7 +32,7 @@ func (db *DB) Name() string { return "Engine.EscalationManager" }
 // NewDB creates a new DB.
 func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
-		Version: 3,
+		Version: 4,
 		Type:    processinglock.TypeEscalation,
 	})
 	if err != nil {
@@ -82,6 +83,12 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 			returning ep_step_id, user_id
 		`),
 
+		clearMaintExpiredSvc: p.P(`
+				update services s
+				set maintenance_expires_at = null
+				where s.maintenance_expires_at <= now()
+		`),
+
 		cleanupNoSteps: p.P(`
 			delete from escalation_policy_state state
 			using escalation_policies pol
@@ -99,6 +106,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					step.escalation_policy_id = state.escalation_policy_id and
 					step.step_number = 0
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
 				where state.last_escalation isnull
 				for update skip locked
 				limit 1000
@@ -169,6 +177,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 						WHEN state.escalation_policy_step_number >= ep.step_count THEN 0
 						ELSE state.escalation_policy_step_number
 						END
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
 				where
 					state.last_escalation notnull and
 					escalation_policy_step_id isnull
@@ -248,6 +257,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 						WHEN state.loop_count < ep.repeat THEN 0
 						ELSE -1
 					END
+				join services s on a.service_id = s.id and s.maintenance_expires_at isnull
 				where
 					state.last_escalation notnull and
 					escalation_policy_step_id notnull and

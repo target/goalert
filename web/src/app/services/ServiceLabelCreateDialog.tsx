@@ -4,6 +4,7 @@ import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import ServiceLabelForm from './ServiceLabelForm'
+import { Label } from '../../schema'
 
 const mutation = gql`
   mutation ($input: SetLabelInput!) {
@@ -19,7 +20,7 @@ interface ServiceLabelCreateDialogProps {
 export default function ServiceLabelCreateDialog(
   props: ServiceLabelCreateDialogProps,
 ): JSX.Element {
-  const [value, setValue] = useState({ key: '', value: '' })
+  const [value, setValue] = useState<Label>({ key: '', value: '' })
 
   const [createLabel, { loading, error }] = useMutation(mutation, {
     variables: {
@@ -43,7 +44,7 @@ export default function ServiceLabelCreateDialog(
           errors={fieldErrors(error)}
           disabled={loading}
           value={value}
-          onChange={(val) => setValue(val)}
+          onChange={(val: Label) => setValue(val)}
         />
       }
     />

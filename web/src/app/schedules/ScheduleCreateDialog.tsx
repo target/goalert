@@ -18,7 +18,7 @@ const mutation = gql`
 `
 
 export default function ScheduleCreateDialog(props: {
-  onClose?: () => void
+  onClose: () => void
 }): JSX.Element {
   const [value, setValue] = useState<Value>({
     name: '',

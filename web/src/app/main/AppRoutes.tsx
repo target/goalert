@@ -2,9 +2,11 @@ import React, { JSXElementConstructor, useLayoutEffect } from 'react'
 import { gql, useQuery } from 'urql'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
 import AdminDebugMessagesLayout from '../admin/admin-message-logs/AdminDebugMessagesLayout'
+import AdminAlertCounts from '../admin/admin-alert-counts/AdminAlertCounts'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
+import AdminSwitchover from '../admin/switchover/AdminSwitchover'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
 import Documentation from '../documentation/Documentation'
@@ -36,6 +38,7 @@ import UserOnCallAssignmentList from '../users/UserOnCallAssignmentList'
 import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
+import LocalDev from '../localdev/LocalDev'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -68,6 +71,7 @@ const alertQuery = gql`
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
+  '/': AlertsList,
   '/alerts': AlertsList,
   '/alerts/:alertID': AlertDetailPage,
 
@@ -110,9 +114,15 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/limits': AdminLimits,
   '/admin/toolbox': AdminToolbox,
   '/admin/message-logs': AdminDebugMessagesLayout,
+  '/admin/alert-counts': AdminAlertCounts,
+  '/admin/switchover': AdminSwitchover,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,
+}
+
+if (process.env.NODE_ENV !== 'production') {
+  routes['/dev'] = LocalDev
 }
 
 export default function AppRoutes(): JSX.Element {

@@ -14,7 +14,6 @@ import (
 
 // A User is the base information of a user of the system. Authentication details are stored
 // separately based on the auth provider.
-//
 type User struct {
 	// ID is the unique identifier for the user
 	ID string
@@ -37,6 +36,8 @@ type User struct {
 	// isUserFavorite returns true if a user is favorited by the current user.
 	isUserFavorite bool
 }
+
+func (User) TableName() string { return "users" }
 
 // ResolveAvatarURL will resolve the user avatar URL, using the email if none is set.
 func (u User) ResolveAvatarURL(fullSize bool) string {

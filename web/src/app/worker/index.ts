@@ -3,6 +3,7 @@ import { pathPrefix } from '../env'
 import methods, {
   WorkerMethod,
   WorkerMethodName,
+  WorkerReturnType,
   WorkerParam,
   WorkerResult,
 } from './methods'
@@ -24,6 +25,8 @@ type Post<N extends WorkerMethodName> = {
   arg: WorkerParam<N>
 }
 
+type OnMessage<N extends WorkerMethodName> = (e: RecvMessage<N>) => void
+
 // StubWorker does work after a setTimeout, but in the main thread.
 class StubWorker<N extends WorkerMethodName> {
   constructor(methodName: N) {
@@ -32,7 +35,7 @@ class StubWorker<N extends WorkerMethodName> {
 
   private method: WorkerMethod<N>
   private _timeout: ReturnType<typeof setTimeout> | undefined
-  onmessage: (e: RecvMessage<N>) => void = (): void => {}
+  onmessage: OnMessage<N> = (): void => {}
 
   postMessage = (data: Post<N>): void => {
     this._timeout = setTimeout(() => {
@@ -61,6 +64,7 @@ class Runner<N extends WorkerMethodName> {
   private next: NextRun<N> | null = null
   private onChange: ChangeCallback<N>
   private isBusy = false
+  private loading = true
 
   private _initWorker = (): Worker | StubWorker<N> => {
     const w = window.Worker
@@ -77,7 +81,10 @@ class Runner<N extends WorkerMethodName> {
   }
 
   private _send = (): void => {
-    if (!this.next) return
+    if (!this.next) {
+      this.loading = false
+      return
+    }
     if (!this.worker) {
       this.worker = this._initWorker()
     }
@@ -89,6 +96,7 @@ class Runner<N extends WorkerMethodName> {
 
   run = (arg: WorkerParam<N>): void => {
     this.next = { arg }
+    this.loading = true
     this._send()
   }
 
@@ -97,13 +105,17 @@ class Runner<N extends WorkerMethodName> {
     this.worker.terminate()
     this.worker = null
   }
+
+  isLoading = (): boolean => {
+    return this.loading
+  }
 }
 
 export function useWorker<N extends WorkerMethodName>(
   methodName: N,
   arg: WorkerParam<N>,
   def: WorkerResult<N>,
-): WorkerResult<N> {
+): WorkerReturnType<N> {
   if (!(methodName in methods)) {
     throw new Error(`method must be a valid method from app/worker/methods.ts`)
   }
@@ -122,5 +134,7 @@ export function useWorker<N extends WorkerMethodName>(
     worker.run(arg)
   }, [worker, arg])
 
-  return result
+  const loadingStatus = worker?.isLoading() || false
+
+  return [result, { loading: loadingStatus }]
 }

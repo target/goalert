@@ -53,7 +53,7 @@ export default function UserContactMethodVerificationDialog(props) {
   })
 
   const fromNumber =
-    data?.userContactMethod?.lastVerifyMessageState?.formattedSrcValue ?? '...'
+    data?.userContactMethod?.lastVerifyMessageState?.formattedSrcValue ?? ''
   const cm = data?.userContactMethod ?? {}
 
   const { loading, error } = status

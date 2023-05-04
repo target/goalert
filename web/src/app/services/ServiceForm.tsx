@@ -3,8 +3,11 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
+import { FieldError } from '../util/errutil'
 
-interface Value {
+const MaxDetailsLength = 6 * 1024 // 6KiB
+
+export interface Value {
   name: string
   description: string
   escalationPolicyID?: string
@@ -13,10 +16,7 @@ interface Value {
 interface ServiceFormProps {
   value: Value
 
-  errors: {
-    field: 'name' | 'description' | 'escalationPolicyID'
-    message: string
-  }[]
+  errors: FieldError[]
 
   onChange: (val: Value) => void
 
@@ -45,7 +45,10 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
             label='Description'
             name='description'
             multiline
+            rows={4}
             component={TextField}
+            charCount={MaxDetailsLength}
+            hint='Markdown Supported'
           />
         </Grid>
         <Grid item xs={12}>
