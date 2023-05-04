@@ -31,6 +31,9 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormField
+            InputProps={{
+              'data-cy': 'oldPassword',
+            }}
             fullWidth
             component={TextField}
             name='oldPassword'
@@ -39,6 +42,9 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
         </Grid>
         <Grid item xs={12}>
           <FormField
+            InputProps={{
+              'data-cy': 'newPassword',
+            }}
             fullWidth
             component={TextField}
             name='newPassword'
@@ -47,6 +53,9 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
         </Grid>
         <Grid item xs={12}>
           <FormField
+            InputProps={{
+              'data-cy': 'confirmNewPassword',
+            }}
             fullWidth
             component={TextField}
             name='confirmNewPassword'

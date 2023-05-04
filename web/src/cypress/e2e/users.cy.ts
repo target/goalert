@@ -54,7 +54,7 @@ function testUsers(screen: ScreenFormat): void {
         .find('button[aria-label="Edit"]')
         .click()
       cy.get('[type="checkbox"]').check()
-      cy.dialogFinish('Confirm')
+      cy.dialogFinish('Submit')
 
       cy.reload()
       cy.get('[data-cy="card-actions"]')
@@ -69,8 +69,44 @@ function testUsers(screen: ScreenFormat): void {
         .click()
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
-
       cy.get('[data-cy=paginated-list]').should('not.contain', user.name)
+    })
+
+    describe('User Password', () => {
+      beforeEach(() => {
+        cy.get('[data-cy="card-actions"]')
+          .find('button[aria-label="Edit"]')
+          .click()
+      })
+      it('should show error when password length is too short', () => {
+        cy.get('[data-cy="newPassword"]').type('test')
+        cy.dialogClick('Submit')
+        cy.get('[data-cy="newPassword"]')
+          .parent()
+          .next('p')
+          .should('contain', 'Password length must be between 8 - 20')
+      })
+
+      it('should show error when passwords do not match', () => {
+        cy.get('[data-cy="newPassword"]').type('example123')
+        cy.get('[data-cy="confirmNewPassword"]').type('example456')
+        cy.dialogClick('Submit')
+        cy.get('[data-cy="confirmNewPassword"]')
+          .parent()
+          .next('p')
+          .should('contain', 'Passwords do not match')
+      })
+
+      it('should show error when password is incorrect', () => {
+        cy.get('[data-cy="oldPassword"]').type('InvalidPassword')
+        cy.get('[data-cy="newPassword"]').type('ValidPassword')
+        cy.get('[data-cy="confirmNewPassword"]').type('ValidPassword')
+        cy.dialogClick('Submit')
+        cy.get('[data-cy="oldPassword"]')
+          .parent()
+          .next('p')
+          .should('contain', 'Invalid Password')
+      })
     })
   })
 
