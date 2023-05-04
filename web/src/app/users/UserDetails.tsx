@@ -148,6 +148,36 @@ export default function UserDetails(props: {
     })
   }
 
+  const options: (
+    | JSX.Element
+    | {
+        label: string
+        icon: JSX.Element
+        handleOnClick: () => void
+      }
+  )[] = [
+    <QuerySetFavoriteButton
+      key='secondary-action-favorite'
+      id={userID}
+      type='user'
+    />,
+  ]
+
+  if (isAdmin || userID === currentUserID) {
+    options.unshift({
+      label: 'Edit',
+      icon: <EditIcon />,
+      handleOnClick: () => setShowEdit(true),
+    })
+  }
+  if (isAdmin) {
+    options.unshift({
+      label: 'Delete',
+      icon: <Delete />,
+      handleOnClick: () => setShowUserDeleteDialog(true),
+    })
+  }
+
   return (
     <React.Fragment>
       {showEdit && (
@@ -217,33 +247,7 @@ export default function UserDetails(props: {
             />
           </Grid>
         }
-        secondaryActions={
-          isAdmin
-            ? [
-                {
-                  label: 'Delete',
-                  icon: <Delete />,
-                  handleOnClick: () => setShowUserDeleteDialog(true),
-                },
-                {
-                  label: 'Edit',
-                  icon: <EditIcon />,
-                  handleOnClick: () => setShowEdit(true),
-                },
-                <QuerySetFavoriteButton
-                  key='secondary-action-favorite'
-                  id={userID}
-                  type='user'
-                />,
-              ]
-            : [
-                <QuerySetFavoriteButton
-                  key='secondary-action-favorite'
-                  id={userID}
-                  type='user'
-                />,
-              ]
-        }
+        secondaryActions={options}
         links={links}
       />
     </React.Fragment>

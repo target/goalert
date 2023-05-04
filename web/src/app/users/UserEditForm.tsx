@@ -14,11 +14,12 @@ export type Value = {
 export interface UserEditFormProps {
   value: Value
   errors: Array<FieldError>
+  admin: boolean
   onChange: (newValue: Value) => void
 }
 
 function UserEditForm(props: UserEditFormProps): JSX.Element {
-  const { value, errors, onChange } = props
+  const { value, errors, admin, onChange } = props
 
   return (
     <FormContainer
@@ -29,17 +30,20 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
       }}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <FormField
-            InputProps={{
-              'data-cy': 'oldPassword',
-            }}
-            fullWidth
-            component={TextField}
-            name='oldPassword'
-            type='password'
-          />
-        </Grid>
+        {!admin && (
+          <Grid item xs={12}>
+            <FormField
+              InputProps={{
+                'data-cy': 'oldPassword',
+              }}
+              fullWidth
+              component={TextField}
+              name='oldPassword'
+              type='password'
+              disabled={admin}
+            />
+          </Grid>
+        )}
         <Grid item xs={12}>
           <FormField
             InputProps={{
@@ -63,20 +67,22 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             type='password'
           />
         </Grid>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <FormField
-                component={Checkbox}
-                checkbox
-                name='isAdmin'
-                fieldName='isAdmin'
-              />
-            }
-            label='Admin'
-            labelPlacement='end'
-          />
-        </Grid>
+        {admin && (
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <FormField
+                  component={Checkbox}
+                  checkbox
+                  name='isAdmin'
+                  fieldName='isAdmin'
+                />
+              }
+              label='Admin'
+              labelPlacement='end'
+            />
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )

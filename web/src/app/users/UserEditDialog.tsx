@@ -32,7 +32,11 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     isAdmin: props.role === 'admin',
   }
 
-  const { ready: isSessionReady, userID: currentUserID } = useSessionInfo()
+  const {
+    ready: isSessionReady,
+    userID: currentUserID,
+    isAdmin,
+  } = useSessionInfo()
 
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
@@ -70,7 +74,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   function canProceed(err: FieldError[]): boolean {
     if (
       passwordChanged() &&
-      (value.oldPassword === '' ||
+      ((!isAdmin && value.oldPassword === '') ||
         value.newPassword === '' ||
         value.confirmNewPassword === '')
     ) {
@@ -117,7 +121,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     if (caughtError instanceof Error) {
       errorList = [
         ...errorList,
-        { field: 'oldPassword', message: caughtError.message } as FieldError,
+        { field: fname, message: caughtError.message } as FieldError,
       ]
     } else {
       console.error(caughtError)
@@ -190,6 +194,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
         <UserEditForm
           value={value}
           errors={errors}
+          admin={isAdmin}
           onChange={(value) => {
             setValue(value)
           }}

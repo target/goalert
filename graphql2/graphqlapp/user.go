@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calsub"
@@ -148,12 +149,13 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 
 func (a *Mutation) UpdateUserPassword(ctx context.Context, input graphql2.UpdateUserPassword) (bool, error) {
 	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		usr, err := a.UserStore.FindOneTx(ctx, tx, input.ID, true)
+		username, err := a.UserStore.FindAuthBasicUsername(ctx, tx, input.ID)
 		if err != nil {
+			fmt.Println("Happened here", err)
 			return err
 		}
 
-		err = a.AuthBasicStore.UpdateTx(ctx, tx, input.ID, usr.Name, input.OldPassword, input.NewPassword)
+		err = a.AuthBasicStore.UpdateTx(ctx, tx, input.ID, *username, input.OldPassword, input.NewPassword)
 		if err != nil {
 			return err
 		}

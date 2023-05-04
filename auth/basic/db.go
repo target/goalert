@@ -65,7 +65,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username, pass
 
 // UpdateTx should update auth_basic_users with newPassword if username and oldPassword matches
 func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID, username, oldPassword, newPassword string) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(userID))
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User, permission.MatchUser(userID))
 	if err != nil {
 		return err
 	}
@@ -73,20 +73,22 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID, username, oldP
 	err = validate.Many(
 		validate.UUID("UserID", userID),
 		validate.Username("Username", username),
-		validate.Text("oldPassword", oldPassword, 8, 200),
+		validate.Text("oldPassword", oldPassword, 0, 200),
 		validate.Text("newPassword", newPassword, 8, 200),
 	)
 	if err != nil {
 		return err
 	}
 
-	validatedUserId, err := b.Validate(ctx, username, oldPassword)
-	if err != nil {
-		return validation.NewFieldError("oldPassword", "Invalid Password")
-	}
+	if !permission.Admin(ctx) {
+		validatedUserId, err := b.Validate(ctx, username, oldPassword)
+		if err != nil {
+			return validation.NewFieldError("oldPassword", "Invalid Password")
+		}
 
-	if validatedUserId != userID {
-		return err
+		if validatedUserId != userID {
+			return err
+		}
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
