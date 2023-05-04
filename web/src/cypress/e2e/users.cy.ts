@@ -44,7 +44,6 @@ function testUsers(screen: ScreenFormat): void {
         return cy.visit(`/users/${user.id}`)
       }),
     )
-
     it('should display correct information', () => {
       cy.get('body').should('contain', user.name).should('contain', user.email)
     })
@@ -97,15 +96,10 @@ function testUsers(screen: ScreenFormat): void {
           .should('contain', 'Passwords do not match')
       })
 
-      it('should show error when password is incorrect', () => {
-        cy.get('[data-cy="oldPassword"]').type('InvalidPassword')
+      it("should handle resetting a user's password as an admin", () => {
         cy.get('[data-cy="newPassword"]').type('ValidPassword')
         cy.get('[data-cy="confirmNewPassword"]').type('ValidPassword')
         cy.dialogClick('Submit')
-        cy.get('[data-cy="oldPassword"]')
-          .parent()
-          .next('p')
-          .should('contain', 'Invalid Password')
       })
     })
   })
