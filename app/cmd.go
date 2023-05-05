@@ -569,7 +569,12 @@ Migration: %s (#%d)
 				fmt.Fprintln(os.Stderr)
 			}
 
-			err = basicStore.CreateTx(ctx, tx, id, username, pass)
+			pw, err := basicStore.NewHashedPassword(pass)
+			if err != nil {
+				return errors.Wrap(err, "hash password")
+			}
+
+			err = basicStore.CreateTx(ctx, tx, id, username, pw)
 			if err != nil {
 				return errors.Wrap(err, "add basic auth entry")
 			}
