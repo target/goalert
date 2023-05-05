@@ -336,3 +336,9 @@ coverage/total: coverage/integration/*/* coverage/*/*
 	mkdir -p coverage/total
 	go tool covdata merge -i coverage/integration/cypress-wide,coverage/integration/cypress-mobile,coverage/smoke,coverage/unit -pcombine -o coverage/total
 
+coverage/total.out: coverage/total
+	go tool covdata textfmt -i coverage/total -o coverage/total.out.tmp
+	cat coverage/total.out.tmp | grep -v ^github.com/target/goalert/graphql2/generated.go | grep -v ^github.com/target/goalert/graphql2/mapconfig.go | grep -v ^github.com/target/goalert/graphql2/maplimit.go | grep -v ^github.com/target/goalert/graphql2/models_gen.go | grep -v ^github.com/target/goalert/gadb | grep -v ^github.com/target/goalert/devtools >coverage/total.out
+
+coverage/report.txt: coverage/total.out
+	go tool cover -func=coverage/total.out | tee coverage/report.txt
