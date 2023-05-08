@@ -55,7 +55,7 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 	}
 
 	userSlackIDs := make(map[string]string, len(t.Users))
-	err = s.cfg.UserStore.AuthSubjectsFunc(ctx, "slack:"+teamID, userIDs, func(sub user.AuthSubject) error {
+	err = s.cfg.UserStore.AuthSubjectsFunc(ctx, fmt.Sprintf("slack:%s", teamID), userIDs, func(sub user.AuthSubject) error {
 		userSlackIDs[sub.UserID] = sub.SubjectID
 		return nil
 	})

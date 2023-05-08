@@ -171,14 +171,17 @@ check: check-go check-js ## Run all lint checks
 .yarnrc.yml: package.json
 	$(MAKE) yarn
 
+.yarn/releases/yarn-$(YARN_VERSION).cjs:
+	yarn set version stable || $(MAKE) yarn
+
 ensure-yarn: # Yarn ensures the correct version of yarn is installed
 	@echo "Checking yarn version..."
 	@yarn --version | grep -q -F "$(YARN_VERSION)" || $(MAKE) yarn
+	$(MAKE) .yarn/releases/yarn-$(YARN_VERSION).cjs
 
 yarn:
 	corepack enable
 	corepack prepare yarn@stable --activate
-	yarn set version stable --only-if-needed
 
 check-js: generate $(NODE_DEPS)
 	$(MAKE) ensure-yarn
@@ -298,7 +301,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
-	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn .yarnrc.yml
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)

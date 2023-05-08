@@ -78,6 +78,11 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		return nil, err
 	}
 
+	pass, err := a.AuthBasicStore.NewHashedPassword(input.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	// user default values
 	usr := &user.User{
 		Name: input.Username,
@@ -108,7 +113,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 				return err
 			}
 		}
-		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, pass)
 		if err != nil {
 			return err
 		}
