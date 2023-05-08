@@ -2199,10 +2199,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:5.0.1":
-  version: 5.0.1
-  resolution: "@types/diff@npm:5.0.1"
-  checksum: 57aaee86dd6254949b4897999f78ce2eb0cabb28ddae4d178218717b8d9103524f99508d51926c3c89cd79cb6ffa18941f095b951c052cce9004d6fb8cfca64f
+"@types/diff@npm:5.0.3":
+  version: 5.0.3
+  resolution: "@types/diff@npm:5.0.3"
+  checksum: d8a7d4de12f1aba0bd0c17b0b0d1e45c83824d3d6cc65763fbad371cd8315361a7e16fbae3f260a83bfdf30cebe1c876b42cec4518698055bc430fb09db1cbc8
   languageName: node
   linkType: hard
 
@@ -4441,14 +4441,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:5.0.0":
-  version: 5.0.0
-  resolution: "diff@npm:5.0.0"
-  checksum: f19fe29284b633afdb2725c2a8bb7d25761ea54d321d8e67987ac851c5294be4afeab532bd84531e02583a3fe7f4014aa314a3eda84f5590e7a9e6b371ef3b46
-  languageName: node
-  linkType: hard
-
-"diff@npm:^5.0.0":
+"diff@npm:5.1.0, diff@npm:^5.0.0":
   version: 5.1.0
   resolution: "diff@npm:5.1.0"
   checksum: c7bf0df7c9bfbe1cf8a678fd1b2137c4fb11be117a67bc18a0e03ae75105e8533dbfb1cda6b46beb3586ef5aed22143ef9d70713977d5fb1f9114e21455fba90
@@ -10461,7 +10454,7 @@ __metadata:
     "@mui/x-data-grid": 6.2.1
     "@playwright/test": 1.32.0
     "@types/chance": 1.1.3
-    "@types/diff": 5.0.1
+    "@types/diff": 5.0.3
     "@types/glob": 8.1.0
     "@types/jest": 29.5.0
     "@types/lodash": 4.14.194
@@ -10479,7 +10472,7 @@ __metadata:
     chance: 1.1.7
     classnames: 2.3.2
     cypress: 12.5.0
-    diff: 5.0.0
+    diff: 5.1.0
     esbuild: 0.17.5
     esbuild-jest: 0.5.0
     eslint: 8.38.0
