@@ -13,6 +13,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -23,6 +24,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -33,6 +35,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -43,6 +46,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -53,6 +57,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -63,6 +68,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -73,6 +79,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -83,6 +90,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -93,6 +101,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 3
     allow:
       - dependency-type: 'direct'
 
@@ -103,6 +112,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -113,6 +123,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -123,6 +134,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 3
     allow:
       - dependency-type: 'direct'
 
@@ -133,6 +145,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -143,6 +156,7 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
 
@@ -153,5 +167,6 @@ updates:
       day: 'sunday'
       time: '00:00'
       timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 1
     allow:
       - dependency-type: 'direct'
