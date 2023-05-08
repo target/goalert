@@ -31,7 +31,7 @@ require (
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/rubenv/sql-migrate v1.4.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/slack-go/slack v0.12.2
