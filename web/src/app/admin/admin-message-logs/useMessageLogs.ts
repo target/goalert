@@ -84,7 +84,6 @@ export function useMessageLogs(
         .toPromise()
 
       if (q.error) {
-        console.log('error: ', q.error)
         return [[], false, '', q.error]
       }
 
