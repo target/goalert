@@ -102,7 +102,7 @@ export default function AdminMessageLogsGraph(props: {
             <Grid
               item
               xs={12}
-              data-cy='metrics-averages-graph'
+              data-cy='message-logs-graph'
               sx={{ height: 500 }}
             >
               {(status.loading || loadingData) && <Spinner />}
@@ -137,14 +137,17 @@ export default function AdminMessageLogsGraph(props: {
                       stroke={theme.palette.text.secondary}
                     />
                     <Tooltip
-                      data-cy='message-count-tooltip'
                       cursor={{ fill: theme.palette.background.default }}
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null
 
                         const p = payload[0].payload
                         return (
-                          <Paper variant='outlined' sx={{ p: 1 }}>
+                          <Paper
+                            data-cy='message-log-tooltip'
+                            variant='outlined'
+                            sx={{ p: 1 }}
+                          >
                             <Typography variant='body2'>{p.label}</Typography>
                             <Typography variant='body2'>
                               Count: {p.count}

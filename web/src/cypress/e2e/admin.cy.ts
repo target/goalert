@@ -249,15 +249,27 @@ function testAdmin(): void {
     before(() => {
       login() // required for before hooks
 
-      cy.createOutgoingMessage().then((msg: DebugMessage) => {
-        debugMessage = msg
-      })
+      cy.createOutgoingMessage({ createdAt: DateTime.local().toISO() }).then(
+        (msg: DebugMessage) => {
+          debugMessage = msg
+        },
+      )
     })
     beforeEach(() => {
       cy.visit('/admin/message-logs')
     })
 
-    it('should view the logs list with one log', () => {
+    it('should view the logs list and graph with one log', () => {
+      const now = DateTime.local().toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
+
+      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
+      cy.get('[data-cy=message-log-tooltip]')
+        .should('contain', now)
+        .should('contain', 'Count: 1')
+
       cy.get('[data-cy="paginated-list"]').as('list')
       cy.get('@list').should('have.length', 1)
       cy.get('@list')
