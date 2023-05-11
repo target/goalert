@@ -605,6 +605,8 @@ type UpdateUserInput struct {
 	Name                        *string   `json:"name,omitempty"`
 	Email                       *string   `json:"email,omitempty"`
 	Role                        *UserRole `json:"role,omitempty"`
+	OldPassword                 *string   `json:"oldPassword,omitempty"`
+	NewPassword                 *string   `json:"newPassword,omitempty"`
 	StatusUpdateContactMethodID *string   `json:"statusUpdateContactMethodID,omitempty"`
 }
 
@@ -614,12 +616,6 @@ type UpdateUserOverrideInput struct {
 	End          *time.Time `json:"end,omitempty"`
 	AddUserID    *string    `json:"addUserID,omitempty"`
 	RemoveUserID *string    `json:"removeUserID,omitempty"`
-}
-
-type UpdateUserPassword struct {
-	ID          string `json:"id"`
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
 }
 
 type UserConnection struct {

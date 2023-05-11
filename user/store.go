@@ -42,8 +42,6 @@ type Store struct {
 
 	findOneForUpdate *sql.Stmt
 
-	findAuthBasicUsername *sql.Stmt
-
 	findOneBySubject *sql.Stmt
 
 	insertUserAuthSubject *sql.Stmt
@@ -154,13 +152,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			FROM users
 			WHERE id = $1
 			FOR UPDATE
-		`),
-
-		findAuthBasicUsername: p.P(`
-			SELECT
-				username
-			FROM auth_basic_users
-			WHERE user_id = $1
 		`),
 
 		findAuthSubjectsByUser: p.P(`
@@ -783,26 +774,4 @@ func (s *Store) DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubj
 		return err
 	}
 	return nil
-}
-
-// FindAuthBasicUsername will return a user's user_id and username from auth_basic_users
-func (s *Store) FindAuthBasicUsername(ctx context.Context, tx *sql.Tx, id string) (*string, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate.UUID("UserID", id)
-	if err != nil {
-		return nil, err
-	}
-
-	row := withTx(ctx, tx, s.findAuthBasicUsername).QueryRowContext(ctx, id)
-
-	var username string
-	err = row.Scan(&username)
-	if err != nil {
-		return nil, err
-	}
-	return &username, nil
 }

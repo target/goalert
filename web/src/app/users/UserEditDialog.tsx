@@ -12,12 +12,6 @@ const updateUserInput = gql`
   }
 `
 
-const updateUserPassword = gql`
-  mutation ($input: UpdateUserPassword!) {
-    updateUserPassword(input: $input)
-  }
-`
-
 interface UserEditDialogProps {
   userID: string
   role: string
@@ -45,17 +39,14 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     variables: {
       input: {
         id: props.userID,
-        role: value.isAdmin ? 'admin' : 'user',
-      },
-    },
-  })
-
-  const [resetPassword, resetPasswordStatus] = useMutation(updateUserPassword, {
-    variables: {
-      input: {
-        id: props.userID,
-        oldPassword: value.oldPassword,
-        newPassword: value.newPassword,
+        role:
+          defaultValue.isAdmin !== value.isAdmin
+            ? value.isAdmin
+              ? 'admin'
+              : 'user'
+            : null,
+        oldPassword: value.oldPassword !== '' ? value.oldPassword : null,
+        newPassword: value.newPassword !== '' ? value.newPassword : null,
       },
     },
   })
@@ -69,24 +60,10 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     )
   }
 
-  // Ensures that if one password field is used, then the others are also populated.
-  // Also validates that there are no errors.
-  function canProceed(err: FieldError[]): boolean {
-    if (
-      passwordChanged() &&
-      ((!isAdmin && value.oldPassword === '') ||
-        value.newPassword === '' ||
-        value.confirmNewPassword === '')
-    ) {
-      return false
-    }
-
-    return !err?.length
-  }
-
   // Validates inputs to the newPassword and confirmNewPassword fields
   function handleValidation(): FieldError[] {
     let err: FieldError[] = []
+    if (!passwordChanged()) return err
     if (value.newPassword.length < 8 || value.newPassword.length > 20) {
       err = [
         ...err,
@@ -110,19 +87,11 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
   // wrapper function to handle errors caught while executing useMutation Promises
   function errorHandler(
-    fname: string,
     caughtError: unknown,
-    error: ApolloError | undefined,
     errorList: FieldError[],
   ): FieldError[] {
-    if (error) {
-      errorList = [...errorList, ...fieldErrors(error)]
-    }
-    if (caughtError instanceof Error) {
-      errorList = [
-        ...errorList,
-        { field: fname, message: caughtError.message } as FieldError,
-      ]
+    if (caughtError instanceof ApolloError) {
+      errorList = [...errorList, ...fieldErrors(caughtError)]
     } else {
       console.error(caughtError)
     }
@@ -132,36 +101,17 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   // async wrapper function in order to await for useMutation Promises
   async function submitHandler(): Promise<void> {
     let errorList: FieldError[] = []
-
-    if (passwordChanged()) {
-      errorList = [...errorList, ...handleValidation()]
-      if (errorList.length === 0) {
-        try {
-          await resetPassword()
-        } catch (err) {
-          errorList = errorHandler(
-            'oldPassword',
-            err,
-            resetPasswordStatus.error,
-            errorList,
-          )
-        }
-      }
-    }
-    if (defaultValue.isAdmin !== value.isAdmin) {
+    errorList = [...errorList, ...handleValidation()]
+    if (!errorList?.length) {
       try {
         await editUser()
       } catch (err) {
-        errorList = errorHandler(
-          'isAdmin',
-          err,
-          editUserStatus.error,
-          errorList,
-        )
+        errorList = errorHandler(err, errorList)
       }
     }
+
     setErrors(errorList)
-    if (canProceed(errorList)) {
+    if (!errorList?.length) {
       props.onClose()
     }
   }
@@ -171,15 +121,14 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   return (
     <FormDialog
       title='Edit User Info'
-      loading={resetPasswordStatus.loading || editUserStatus.loading}
-      errors={[
-        ...nonFieldErrors(resetPasswordStatus.error),
-        ...nonFieldErrors(editUserStatus.error),
-      ]}
+      loading={editUserStatus.loading}
+      errors={nonFieldErrors(editUserStatus.error)}
       onClose={props.onClose}
       onSubmit={submitHandler}
       notices={
-        props.role === 'admin' && props.userID === currentUserID
+        props.role === 'admin' &&
+        props.userID === currentUserID &&
+        !value.isAdmin
           ? [
               {
                 type: 'WARNING',

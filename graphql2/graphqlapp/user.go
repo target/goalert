@@ -3,9 +3,9 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"fmt"
 
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/validation/validate"
 
@@ -125,7 +125,25 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 }
 
 func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInput) (bool, error) {
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+	var err error
+	var newPassword basic.HashedPassword
+	var oldPassword basic.ValidatedPassword
+
+	if input.NewPassword != nil {
+		newPassword, err = a.AuthBasicStore.NewHashedPassword(*input.NewPassword)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	if input.OldPassword != nil {
+		oldPassword, err = a.AuthBasicStore.ValidatePassword(ctx, input.ID, *input.OldPassword)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		usr, err := a.UserStore.FindOneTx(ctx, tx, input.ID, true)
 		if err != nil {
 			return err
@@ -147,26 +165,15 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if input.StatusUpdateContactMethodID != nil {
 			usr.AlertStatusCMID = *input.StatusUpdateContactMethodID
 		}
+
+		if newPassword != nil {
+			err = a.AuthBasicStore.UpdateTx(ctx, tx, input.ID, oldPassword, newPassword)
+			if err != nil {
+				return err
+			}
+		}
 		return a.UserStore.UpdateTx(ctx, tx, usr)
 	})
-	return err == nil, err
-}
-
-func (a *Mutation) UpdateUserPassword(ctx context.Context, input graphql2.UpdateUserPassword) (bool, error) {
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		username, err := a.UserStore.FindAuthBasicUsername(ctx, tx, input.ID)
-		if err != nil {
-			fmt.Println("Happened here", err)
-			return err
-		}
-
-		err = a.AuthBasicStore.UpdateTx(ctx, tx, input.ID, *username, input.OldPassword, input.NewPassword)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
 	return err == nil, err
 }
 
