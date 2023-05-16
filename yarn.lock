@@ -1916,19 +1916,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.32.0":
-  version: 1.32.0
-  resolution: "@playwright/test@npm:1.32.0"
+"@playwright/test@npm:1.33.0":
+  version: 1.33.0
+  resolution: "@playwright/test@npm:1.33.0"
   dependencies:
     "@types/node": "*"
     fsevents: 2.3.2
-    playwright-core: 1.32.0
+    playwright-core: 1.33.0
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 73664460dc9f0e455704fb47f346683ca7d0b6377d11001190f65fcbaa5448eab6adc3c87a0f0164fe14e736b96c83e5ac2528152cdcbe84ba626b3815d9e78a
+  checksum: cec3215fc92c1cb9f5bfba357ea1cbe97b54979ab82f9d34a2287b1687cda5e0966b8ea7290dcd35416e18668e56d5781b6b8c4cec64baf12f3ae8dde0f68f5e
   languageName: node
   linkType: hard
 
@@ -9605,15 +9605,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.32.0":
-  version: 1.32.0
-  resolution: "playwright-core@npm:1.32.0"
-  bin:
-    playwright: cli.js
-  checksum: f53fc45573c35ceb18926a9a517add7a467e4a6900325a72592cbc6b09c4d0df2a1b8e0453176e04ff546cd0b6ec87b3e4bfecbdccdaf1d9fa74ae6fd31faee9
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.33.0":
   version: 1.33.0
   resolution: "playwright-core@npm:1.33.0"
@@ -10625,7 +10616,7 @@ __metadata:
     "@mui/styles": 5.11.13
     "@mui/system": 5.12.1
     "@mui/x-data-grid": 6.2.1
-    "@playwright/test": 1.32.0
+    "@playwright/test": 1.33.0
     "@types/chance": 1.1.3
     "@types/diff": 5.0.3
     "@types/glob": 8.1.0
