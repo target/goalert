@@ -68,7 +68,11 @@ export default function AdminMessageLogsGraph(props: {
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <CardHeader
             title='Message Logs'
-            subheader={`Total Loaded: ${logs.length}`}
+            subheader={
+              (status.loading || loadingData) && (
+                <Spinner text={`Total Loaded: ${logs.length}`} />
+              )
+            }
           />
         </AccordionSummary>
         <AccordionDetails>
@@ -105,7 +109,6 @@ export default function AdminMessageLogsGraph(props: {
               data-cy='message-logs-graph'
               sx={{ height: 500 }}
             >
-              {(status.loading || loadingData) && <Spinner />}
               <AutoSizer>
                 {({ width, height }) => (
                   <LineChart
