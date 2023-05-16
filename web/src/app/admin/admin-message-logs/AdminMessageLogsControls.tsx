@@ -1,12 +1,9 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button, Card, Grid } from '@mui/material'
 import ResetIcon from '@mui/icons-material/Replay'
-import FilterIcon from '@mui/icons-material/FilterAlt'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { useURLParams } from '../../actions'
-import FilterContainer from '../../util/FilterContainer'
-import { ServiceSelect, UserSelect } from '../../selection'
 import { DateTime } from 'luxon'
 
 export default function AdminMessageLogsControls(): JSX.Element {
@@ -16,41 +13,11 @@ export default function AdminMessageLogsControls(): JSX.Element {
     end: DateTime.now().toISO(),
   })
 
-  const [filterByUser, setFilterByUser] = useState('')
-  const [filterByService, setFilterByService] = useState('')
-
   return (
     <Card>
       <Grid container spacing={1} sx={{ padding: 2 }}>
         <Grid item sx={{ flex: 1 }}>
-          <Search
-            transition={false}
-            fullWidth
-            endAdornment={
-              <FilterContainer icon={<FilterIcon />}>
-                <Grid item xs={12}>
-                  <UserSelect
-                    label='Select a user...'
-                    value={filterByUser}
-                    onChange={(val) => {
-                      setFilterByUser(val)
-                      setParams({ ...params, search: val })
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <ServiceSelect
-                    label='Select a service...'
-                    value={filterByService}
-                    onChange={(val) => {
-                      setFilterByService(val)
-                      setParams({ ...params, search: val })
-                    }}
-                  />
-                </Grid>
-              </FilterContainer>
-            }
-          />
+          <Search transition={false} fullWidth />
         </Grid>
         <Grid item>
           <ISODateTimePicker
@@ -88,8 +55,6 @@ export default function AdminMessageLogsControls(): JSX.Element {
                 start: '',
                 end: '',
               })
-              setFilterByUser('')
-              setFilterByService('')
             }}
             endIcon={<ResetIcon />}
             sx={{ height: '100%' }}
