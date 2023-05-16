@@ -50,12 +50,12 @@ export default function AlertAveragesGraph(
 
   return (
     <Grid
-    container
-    sx={{
-      height: '500px',
-      fontFamily: theme.typography.body2.fontFamily,
-    }}
-  >
+      container
+      sx={{
+        height: '500px',
+        fontFamily: theme.typography.body2.fontFamily,
+      }}
+    >
       <Grid item xs={12} data-cy='metrics-averages-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
