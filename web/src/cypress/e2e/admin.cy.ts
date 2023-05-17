@@ -265,7 +265,7 @@ function testAdmin(): void {
         day: 'numeric',
       })
 
-      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover')
       cy.get('[data-cy=message-log-tooltip]')
         .should('contain', now)
         .should('contain', 'Count: 1')
