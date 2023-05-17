@@ -86,12 +86,12 @@ export default function AdminMessageLogsGraph(props: {
               <CardContent
                 sx={{ display: 'flex', alignItems: 'center', pt: 0 }}
               >
-                <InputLabel id='demo-simple-select-label' sx={{ pr: 1 }}>
+                <InputLabel id='interval-select-label' sx={{ pr: 1 }}>
                   Interval Duration
                 </InputLabel>
                 <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
+                  labelId='interval-select-label'
+                  id='interval-select'
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                 >

@@ -97,7 +97,7 @@ export function useMessageLogs(
 
     const throttledSetLogs = _.throttle(
       (logs, loading) => {
-        setLogs(logs) // todo: additional sorting needed?
+        setLogs(logs)
         setLoading(loading)
       },
       3000,
