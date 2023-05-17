@@ -11,14 +11,14 @@ let scheduleID: string
 
 test.beforeEach(async ({ page }) => {
   // create schedule
-  const name = c.name() + ' Service'
+  const name = 'sched-spec ' + c.string({ length: 10, alpha: true })
+
   await page.goto(`${baseURL}/schedules`)
   await page.getByRole('button', { name: 'Create Schedule' }).click()
   await page.fill('input[name=name]', name)
   await page.locator('button[type=submit]').click()
-  await page.waitForTimeout(1000)
-  const p = page.url().split('/')
-  scheduleID = p[p.length - 1]
+  await page.waitForURL(/\/schedules\/.{36}/)
+  scheduleID = page.url().split('/schedules/')[1]
 })
 
 test.afterEach(async ({ page }) => {
@@ -32,20 +32,24 @@ test('local time hover', async ({ page, isMobile }) => {
   // change schedule tz to Europe/Amsterdam
   await page.click('[aria-label="Edit"]')
   await page.fill('input[name=time-zone]', 'Europe/Amsterdam')
-  await page.waitForTimeout(2000)
-  for (let i = 0; i < 2; i++) await page.keyboard.press('Enter')
+  await page.click('li:has-text("Europe/Amsterdam")')
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  await page.goto(`${baseURL}/schedules/${scheduleID}/shifts`)
 
   // add user override
-  await page.goto(`${baseURL}/schedules/${scheduleID}/shifts`)
   if (!isMobile) {
     await page.click('button:has-text("Create Override")')
     await page.keyboard.press('Tab')
-    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Enter')
   } else {
     await page.click('[data-testid="AddIcon"]')
-    for (let i = 0; i < 2; i++) await page.keyboard.press('Tab')
-    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Enter')
   }
 
@@ -53,10 +57,9 @@ test('local time hover', async ({ page, isMobile }) => {
   await expect(page.locator('form[id=dialog-form]')).toContainText(
     'Times shown in schedule timezone (Europe/Amsterdam)',
   )
-
   await page.locator('input[name=addUserID]').fill('Admin McIntegrationFace')
-  await page.waitForTimeout(1000)
-  await page.getByText('Admin McIntegrationFace').click()
+
+  await page.click('li:has-text("Admin McIntegrationFace")')
   await page.locator('button[type=submit]').click()
 
   // should display local tz on hover
