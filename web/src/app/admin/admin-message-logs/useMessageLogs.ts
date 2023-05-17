@@ -127,11 +127,11 @@ export function useMessageLogs(
     }
 
     throttledSetLogs(allLogs, false)
-  }, [depKey, pause])
+  }, [depKey, pause, search])
 
   useLayoutEffect(() => {
     fetch()
-  }, [depKey, pause])
+  }, [depKey, pause, search])
 
   return {
     logs,
