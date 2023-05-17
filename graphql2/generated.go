@@ -240,12 +240,6 @@ type ComplexityRoot struct {
 		TimeoutMinutes func(childComplexity int) int
 	}
 
-	HistogramBucket struct {
-		Count func(childComplexity int) int
-		End   func(childComplexity int) int
-		Start func(childComplexity int) int
-	}
-
 	IntegrationKey struct {
 		Href      func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -288,7 +282,7 @@ type ComplexityRoot struct {
 	}
 
 	MessageLogConnectionStats struct {
-		Histogram func(childComplexity int, input HistogramOptions) int
+		TimeSeries func(childComplexity int, input TimeSeriesOptions) int
 	}
 
 	Mutation struct {
@@ -574,6 +568,12 @@ type ComplexityRoot struct {
 		Start  func(childComplexity int) int
 	}
 
+	TimeSeriesBucket struct {
+		Count func(childComplexity int) int
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
+	}
+
 	TimeZone struct {
 		ID func(childComplexity int) int
 	}
@@ -700,7 +700,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MessageLogConnectionStatsResolver interface {
-	Histogram(ctx context.Context, obj *notification.SearchOptions, input HistogramOptions) ([]HistogramBucket, error)
+	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
 }
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
@@ -1511,27 +1511,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HeartbeatMonitor.TimeoutMinutes(childComplexity), true
 
-	case "HistogramBucket.count":
-		if e.complexity.HistogramBucket.Count == nil {
-			break
-		}
-
-		return e.complexity.HistogramBucket.Count(childComplexity), true
-
-	case "HistogramBucket.end":
-		if e.complexity.HistogramBucket.End == nil {
-			break
-		}
-
-		return e.complexity.HistogramBucket.End(childComplexity), true
-
-	case "HistogramBucket.start":
-		if e.complexity.HistogramBucket.Start == nil {
-			break
-		}
-
-		return e.complexity.HistogramBucket.Start(childComplexity), true
-
 	case "IntegrationKey.href":
 		if e.complexity.IntegrationKey.Href == nil {
 			break
@@ -1672,17 +1651,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageLogConnection.Stats(childComplexity), true
 
-	case "MessageLogConnectionStats.histogram":
-		if e.complexity.MessageLogConnectionStats.Histogram == nil {
+	case "MessageLogConnectionStats.timeSeries":
+		if e.complexity.MessageLogConnectionStats.TimeSeries == nil {
 			break
 		}
 
-		args, err := ec.field_MessageLogConnectionStats_histogram_args(context.TODO(), rawArgs)
+		args, err := ec.field_MessageLogConnectionStats_timeSeries_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.MessageLogConnectionStats.Histogram(childComplexity, args["input"].(HistogramOptions)), true
+		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions)), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -3487,6 +3466,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TemporarySchedule.Start(childComplexity), true
 
+	case "TimeSeriesBucket.count":
+		if e.complexity.TimeSeriesBucket.Count == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Count(childComplexity), true
+
+	case "TimeSeriesBucket.end":
+		if e.complexity.TimeSeriesBucket.End == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.End(childComplexity), true
+
+	case "TimeSeriesBucket.start":
+		if e.complexity.TimeSeriesBucket.Start == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Start(childComplexity), true
+
 	case "TimeZone.id":
 		if e.complexity.TimeZone.ID == nil {
 			break
@@ -3905,7 +3905,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDebugMessagesInput,
 		ec.unmarshalInputDebugSendSMSInput,
 		ec.unmarshalInputEscalationPolicySearchOptions,
-		ec.unmarshalInputHistogramOptions,
 		ec.unmarshalInputIntegrationKeySearchOptions,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
@@ -3927,6 +3926,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSlackUserGroupSearchOptions,
 		ec.unmarshalInputSystemLimitInput,
 		ec.unmarshalInputTargetInput,
+		ec.unmarshalInputTimeSeriesOptions,
 		ec.unmarshalInputTimeZoneSearchOptions,
 		ec.unmarshalInputUpdateAlertsByServiceInput,
 		ec.unmarshalInputUpdateAlertsInput,
@@ -4037,13 +4037,13 @@ func (ec *executionContext) field_Alert_recentEvents_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_MessageLogConnectionStats_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 HistogramOptions
+	var arg0 TimeSeriesOptions
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNHistogramOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramOptions(ctx, tmp)
+		arg0, err = ec.unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9440,138 +9440,6 @@ func (ec *executionContext) fieldContext_HeartbeatMonitor_href(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _HistogramBucket_start(ctx context.Context, field graphql.CollectedField, obj *HistogramBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramBucket_start(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Start, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramBucket_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramBucket_end(ctx context.Context, field graphql.CollectedField, obj *HistogramBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramBucket_end(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramBucket_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HistogramBucket_count(ctx context.Context, field graphql.CollectedField, obj *HistogramBucket) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HistogramBucket_count(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HistogramBucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HistogramBucket",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKey_id(ctx, field)
 	if err != nil {
@@ -10509,8 +10377,8 @@ func (ec *executionContext) fieldContext_MessageLogConnection_stats(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "histogram":
-				return ec.fieldContext_MessageLogConnectionStats_histogram(ctx, field)
+			case "timeSeries":
+				return ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnectionStats", field.Name)
 		},
@@ -10518,8 +10386,8 @@ func (ec *executionContext) fieldContext_MessageLogConnection_stats(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _MessageLogConnectionStats_histogram(ctx context.Context, field graphql.CollectedField, obj *notification.SearchOptions) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MessageLogConnectionStats_histogram(ctx, field)
+func (ec *executionContext) _MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField, obj *notification.SearchOptions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10532,7 +10400,7 @@ func (ec *executionContext) _MessageLogConnectionStats_histogram(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.MessageLogConnectionStats().Histogram(rctx, obj, fc.Args["input"].(HistogramOptions))
+		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10544,12 +10412,12 @@ func (ec *executionContext) _MessageLogConnectionStats_histogram(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]HistogramBucket)
+	res := resTmp.([]TimeSeriesBucket)
 	fc.Result = res
-	return ec.marshalNHistogramBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramBucketᚄ(ctx, field.Selections, res)
+	return ec.marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_MessageLogConnectionStats_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "MessageLogConnectionStats",
 		Field:      field,
@@ -10558,13 +10426,13 @@ func (ec *executionContext) fieldContext_MessageLogConnectionStats_histogram(ctx
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "start":
-				return ec.fieldContext_HistogramBucket_start(ctx, field)
+				return ec.fieldContext_TimeSeriesBucket_start(ctx, field)
 			case "end":
-				return ec.fieldContext_HistogramBucket_end(ctx, field)
+				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
-				return ec.fieldContext_HistogramBucket_count(ctx, field)
+				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type HistogramBucket", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
 	}
 	defer func() {
@@ -10574,7 +10442,7 @@ func (ec *executionContext) fieldContext_MessageLogConnectionStats_histogram(ctx
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_MessageLogConnectionStats_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_MessageLogConnectionStats_timeSeries_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -21403,6 +21271,138 @@ func (ec *executionContext) fieldContext_TemporarySchedule_shifts(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_start(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_end(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TimeZone_id(ctx context.Context, field graphql.CollectedField, obj *TimeZone) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TimeZone_id(ctx, field)
 	if err != nil {
@@ -27382,44 +27382,6 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputHistogramOptions(ctx context.Context, obj interface{}) (HistogramOptions, error) {
-	var it HistogramOptions
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "bucketDuration":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketDuration"))
-			data, err := ec.unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BucketDuration = data
-		case "bucketOrigin":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketOrigin"))
-			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BucketOrigin = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx context.Context, obj interface{}) (IntegrationKeySearchOptions, error) {
 	var it IntegrationKeySearchOptions
 	asMap := map[string]interface{}{}
@@ -28702,6 +28664,44 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 				return it, err
 			}
 			it.Type = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context, obj interface{}) (TimeSeriesOptions, error) {
+	var it TimeSeriesOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bucketDuration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketDuration"))
+			data, err := ec.unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketDuration = data
+		case "bucketOrigin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketOrigin"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketOrigin = data
 		}
 	}
 
@@ -30992,48 +30992,6 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var histogramBucketImplementors = []string{"HistogramBucket"}
-
-func (ec *executionContext) _HistogramBucket(ctx context.Context, sel ast.SelectionSet, obj *HistogramBucket) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, histogramBucketImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("HistogramBucket")
-		case "start":
-
-			out.Values[i] = ec._HistogramBucket_start(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "end":
-
-			out.Values[i] = ec._HistogramBucket_end(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "count":
-
-			out.Values[i] = ec._HistogramBucket_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var integrationKeyImplementors = []string{"IntegrationKey"}
 
 func (ec *executionContext) _IntegrationKey(ctx context.Context, sel ast.SelectionSet, obj *integrationkey.IntegrationKey) graphql.Marshaler {
@@ -31351,7 +31309,7 @@ func (ec *executionContext) _MessageLogConnectionStats(ctx context.Context, sel 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("MessageLogConnectionStats")
-		case "histogram":
+		case "timeSeries":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -31360,7 +31318,7 @@ func (ec *executionContext) _MessageLogConnectionStats(ctx context.Context, sel 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._MessageLogConnectionStats_histogram(ctx, field, obj)
+				res = ec._MessageLogConnectionStats_timeSeries(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -34344,6 +34302,48 @@ func (ec *executionContext) _TemporarySchedule(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var timeSeriesBucketImplementors = []string{"TimeSeriesBucket"}
+
+func (ec *executionContext) _TimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, obj *TimeSeriesBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timeSeriesBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimeSeriesBucket")
+		case "start":
+
+			out.Values[i] = ec._TimeSeriesBucket_start(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end":
+
+			out.Values[i] = ec._TimeSeriesBucket_end(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._TimeSeriesBucket_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var timeZoneImplementors = []string{"TimeZone"}
 
 func (ec *executionContext) _TimeZone(ctx context.Context, sel ast.SelectionSet, obj *TimeZone) graphql.Marshaler {
@@ -36238,59 +36238,6 @@ func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtarget�
 	return res
 }
 
-func (ec *executionContext) marshalNHistogramBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramBucket(ctx context.Context, sel ast.SelectionSet, v HistogramBucket) graphql.Marshaler {
-	return ec._HistogramBucket(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNHistogramBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []HistogramBucket) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNHistogramBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramBucket(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalNHistogramOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHistogramOptions(ctx context.Context, v interface{}) (HistogramOptions, error) {
-	res, err := ec.unmarshalInputHistogramOptions(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
 	var res schedule.RuleID
 	err := res.UnmarshalGQL(v)
@@ -37737,6 +37684,59 @@ func (ec *executionContext) marshalNTemporarySchedule2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, v TimeSeriesBucket) graphql.Marshaler {
+	return ec._TimeSeriesBucket(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []TimeSeriesBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx context.Context, v interface{}) (TimeSeriesOptions, error) {
+	res, err := ec.unmarshalInputTimeSeriesOptions(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNTimeZone2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeZone(ctx context.Context, sel ast.SelectionSet, v TimeZone) graphql.Marshaler {

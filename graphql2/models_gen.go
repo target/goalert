@@ -276,17 +276,6 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
-type HistogramBucket struct {
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
-	Count int       `json:"count"`
-}
-
-type HistogramOptions struct {
-	BucketDuration timeutil.ISODuration `json:"bucketDuration"`
-	BucketOrigin   *time.Time           `json:"bucketOrigin,omitempty"`
-}
-
 type IntegrationKeyConnection struct {
 	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
 	PageInfo *PageInfo                       `json:"pageInfo"`
@@ -530,6 +519,17 @@ type SystemLimit struct {
 type SystemLimitInput struct {
 	ID    limit.ID `json:"id"`
 	Value int      `json:"value"`
+}
+
+type TimeSeriesBucket struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+	Count int       `json:"count"`
+}
+
+type TimeSeriesOptions struct {
+	BucketDuration timeutil.ISODuration `json:"bucketDuration"`
+	BucketOrigin   *time.Time           `json:"bucketOrigin,omitempty"`
 }
 
 type TimeZone struct {

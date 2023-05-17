@@ -98,10 +98,10 @@ func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsReso
 	return (*MessageLogConnectionStats)(a)
 }
 
-func (q *MessageLogConnectionStats) Histogram(ctx context.Context, opts *notification.SearchOptions, input graphql2.HistogramOptions) ([]graphql2.HistogramBucket, error) {
+func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notification.SearchOptions, input graphql2.TimeSeriesOptions) ([]graphql2.TimeSeriesBucket, error) {
 
 	n := time.Now()
-	return []graphql2.HistogramBucket{
+	return []graphql2.TimeSeriesBucket{
 		{Count: 10, Start: n.Add(-time.Hour), End: n},
 		{Count: 20, Start: n.Add(-2 * time.Hour), End: n.Add(-time.Hour)},
 	}, nil

@@ -235,15 +235,15 @@ type MessageLogConnection {
 }
 
 type MessageLogConnectionStats {
-  histogram(input: HistogramOptions!): [HistogramBucket!]!
+  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
 }
 
-input HistogramOptions {
+input TimeSeriesOptions {
   bucketDuration: ISODuration!
   bucketOrigin: ISOTimestamp
 }
 
-type HistogramBucket {
+type TimeSeriesBucket {
   start: ISOTimestamp!
   end: ISOTimestamp!
   count: Int!
