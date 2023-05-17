@@ -113,9 +113,6 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
           colorScheme: theme.palette.mode,
         },
         ...textFieldProps?.inputProps,
-        style: {
-          colorScheme: theme.palette.mode,
-        },
       }}
     />
   )
