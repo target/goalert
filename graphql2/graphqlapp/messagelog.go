@@ -92,7 +92,7 @@ func msgStatus(stat notification.Status) string {
 	return str.String()
 }
 
-func (q *Query) MessageLogStats(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (*graphql2.MessageLogStats, error) {
+func (q *Query) MessageLogsStats(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (*graphql2.MessageLogStats, error) {
 	s := time.Now()
 	return &graphql2.MessageLogStats{
 		MessageCounts: []graphql2.MessageCount{
