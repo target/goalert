@@ -91,6 +91,17 @@ export default function LocalDev(): JSX.Element {
           desc='UI for interacting with the GraphQL API.'
           url='/api/graphql/explore'
         />
+        <DevTool
+          name='OIDC'
+          desc='Configure OIDC using the local test server.'
+          config={{
+            'OIDC.Enable': 'true',
+            'OIDC.ClientID': 'test-client',
+            'OIDC.ClientSecret': 'test-secret',
+            'OIDC.IssuerURL': 'http://127.0.0.1:9998/oidc',
+            'OIDC.UserInfoNamePath': 'preferred_username',
+          }}
+        />
       </Grid>
 
       {updateConfig && (
