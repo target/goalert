@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -275,6 +276,17 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type HistogramBucket struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+	Count int       `json:"count"`
+}
+
+type HistogramOptions struct {
+	BucketDuration timeutil.ISODuration `json:"bucketDuration"`
+	BucketOrigin   *time.Time           `json:"bucketOrigin,omitempty"`
+}
+
 type IntegrationKeyConnection struct {
 	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
 	PageInfo *PageInfo                       `json:"pageInfo"`
@@ -328,8 +340,9 @@ type MessageCount struct {
 }
 
 type MessageLogConnection struct {
-	Nodes    []DebugMessage `json:"nodes"`
-	PageInfo *PageInfo      `json:"pageInfo"`
+	Nodes    []DebugMessage              `json:"nodes"`
+	PageInfo *PageInfo                   `json:"pageInfo"`
+	Stats    *notification.SearchOptions `json:"stats"`
 }
 
 type MessageLogSearchOptions struct {
@@ -339,10 +352,6 @@ type MessageLogSearchOptions struct {
 	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
 	Search        *string    `json:"search,omitempty"`
 	Omit          []string   `json:"omit,omitempty"`
-}
-
-type MessageLogStats struct {
-	MessageCounts []MessageCount `json:"messageCounts,omitempty"`
 }
 
 type NotificationState struct {

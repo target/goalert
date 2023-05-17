@@ -5,7 +5,6 @@ type Query {
 
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
-  messageLogsStats(input: MessageLogSearchOptions): MessageLogStats!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
     @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
 
@@ -135,10 +134,6 @@ type MessageCount {
   end: ISOTimestamp!
 }
 
-type MessageLogStats {
-  messageCounts: [MessageCount!]
-}
-
 type SWOStatus {
   state: SWOState!
   lastStatus: String!
@@ -235,6 +230,23 @@ input MessageLogSearchOptions {
 type MessageLogConnection {
   nodes: [DebugMessage!]!
   pageInfo: PageInfo!
+
+  stats: MessageLogConnectionStats!
+}
+
+type MessageLogConnectionStats {
+  histogram(input: HistogramOptions!): [HistogramBucket!]!
+}
+
+input HistogramOptions {
+  bucketDuration: ISODuration!
+  bucketOrigin: ISOTimestamp
+}
+
+type HistogramBucket {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  count: Int!
 }
 
 input SlackUserGroupSearchOptions {

@@ -92,13 +92,18 @@ func msgStatus(stat notification.Status) string {
 	return str.String()
 }
 
-func (q *Query) MessageLogsStats(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (*graphql2.MessageLogStats, error) {
-	s := time.Now()
-	return &graphql2.MessageLogStats{
-		MessageCounts: []graphql2.MessageCount{
-			{Count: 10, Start: s, End: s.Add(time.Hour)},
-			{Count: 50, Start: s.Add(time.Hour), End: s.Add(2 * time.Hour)},
-		},
+type MessageLogConnectionStats App
+
+func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsResolver {
+	return (*MessageLogConnectionStats)(a)
+}
+
+func (q *MessageLogConnectionStats) Histogram(ctx context.Context, opts *notification.SearchOptions, input graphql2.HistogramOptions) ([]graphql2.HistogramBucket, error) {
+
+	n := time.Now()
+	return []graphql2.HistogramBucket{
+		{Count: 10, Start: n.Add(-time.Hour), End: n},
+		{Count: 20, Start: n.Add(-2 * time.Hour), End: n.Add(-time.Hour)},
 	}, nil
 }
 
@@ -227,6 +232,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 		conn.Nodes = append(conn.Nodes, dm)
 	}
+	conn.Stats = &searchOpts
 
 	return conn, nil
 }
