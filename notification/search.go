@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"text/template"
 	"time"
 
@@ -225,6 +226,10 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 		result = append(result, l)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].CreatedAt.Unix() > result[j].CreatedAt.Unix()
+	})
 
 	return result, nil
 }
