@@ -5,6 +5,7 @@ type Query {
 
   # Returns the list of recent messages.
   messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
+  messageLogsStats(input: MessageLogSearchOptions): MessageLogStats!
   debugMessages(input: DebugMessagesInput): [DebugMessage!]!
     @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
 
@@ -126,6 +127,16 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+}
+
+type MessageCount {
+  count: Int!
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+}
+
+type MessageLogStats {
+  messageCounts: [MessageCount!]
 }
 
 type SWOStatus {

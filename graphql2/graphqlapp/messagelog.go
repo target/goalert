@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
@@ -89,6 +90,16 @@ func msgStatus(stat notification.Status) string {
 		str.WriteString(stat.Details)
 	}
 	return str.String()
+}
+
+func (q *Query) MessageLogStats(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (*graphql2.MessageLogStats, error) {
+	s := time.Now()
+	return &graphql2.MessageLogStats{
+		MessageCounts: []graphql2.MessageCount{
+			{Count: 10, Start: s, End: s.Add(time.Hour)},
+			{Count: 50, Start: s.Add(time.Hour), End: s.Add(2 * time.Hour)},
+		},
+	}, nil
 }
 
 func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (conn *graphql2.MessageLogConnection, err error) {

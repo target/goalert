@@ -321,6 +321,12 @@ type LinkAccountInfo struct {
 	AlertNewStatus *AlertStatus `json:"alertNewStatus,omitempty"`
 }
 
+type MessageCount struct {
+	Count int       `json:"count"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
 type MessageLogConnection struct {
 	Nodes    []DebugMessage `json:"nodes"`
 	PageInfo *PageInfo      `json:"pageInfo"`
@@ -333,6 +339,10 @@ type MessageLogSearchOptions struct {
 	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
 	Search        *string    `json:"search,omitempty"`
 	Omit          []string   `json:"omit,omitempty"`
+}
+
+type MessageLogStats struct {
+	MessageCounts []MessageCount `json:"messageCounts,omitempty"`
 }
 
 type NotificationState struct {

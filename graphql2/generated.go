@@ -267,9 +267,19 @@ type ComplexityRoot struct {
 		UserDetails    func(childComplexity int) int
 	}
 
+	MessageCount struct {
+		Count func(childComplexity int) int
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
+	}
+
 	MessageLogConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	MessageLogStats struct {
+		MessageCounts func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -382,6 +392,7 @@ type ComplexityRoot struct {
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
 		LinkAccountInfo          func(childComplexity int, token string) int
 		MessageLogs              func(childComplexity int, input *MessageLogSearchOptions) int
+		MessageLogsStats         func(childComplexity int, input *MessageLogSearchOptions) int
 		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
@@ -737,6 +748,7 @@ type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
 	ExperimentalFlags(ctx context.Context) ([]string, error)
 	MessageLogs(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogConnection, error)
+	MessageLogsStats(ctx context.Context, input *MessageLogSearchOptions) (*MessageLogStats, error)
 	DebugMessages(ctx context.Context, input *DebugMessagesInput) ([]DebugMessage, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
@@ -1587,6 +1599,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LinkAccountInfo.UserDetails(childComplexity), true
 
+	case "MessageCount.count":
+		if e.complexity.MessageCount.Count == nil {
+			break
+		}
+
+		return e.complexity.MessageCount.Count(childComplexity), true
+
+	case "MessageCount.end":
+		if e.complexity.MessageCount.End == nil {
+			break
+		}
+
+		return e.complexity.MessageCount.End(childComplexity), true
+
+	case "MessageCount.start":
+		if e.complexity.MessageCount.Start == nil {
+			break
+		}
+
+		return e.complexity.MessageCount.Start(childComplexity), true
+
 	case "MessageLogConnection.nodes":
 		if e.complexity.MessageLogConnection.Nodes == nil {
 			break
@@ -1600,6 +1633,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageLogConnection.PageInfo(childComplexity), true
+
+	case "MessageLogStats.messageCounts":
+		if e.complexity.MessageLogStats.MessageCounts == nil {
+			break
+		}
+
+		return e.complexity.MessageLogStats.MessageCounts(childComplexity), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -2521,6 +2561,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MessageLogs(childComplexity, args["input"].(*MessageLogSearchOptions)), true
+
+	case "Query.messageLogsStats":
+		if e.complexity.Query.MessageLogsStats == nil {
+			break
+		}
+
+		args, err := ec.field_Query_messageLogsStats_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MessageLogsStats(childComplexity, args["input"].(*MessageLogSearchOptions)), true
 
 	case "Query.phoneNumberInfo":
 		if e.complexity.Query.PhoneNumberInfo == nil {
@@ -4883,6 +4935,21 @@ func (ec *executionContext) field_Query_linkAccountInfo_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_messageLogsStats_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *MessageLogSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -9981,6 +10048,138 @@ func (ec *executionContext) fieldContext_LinkAccountInfo_alertNewStatus(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _MessageCount_count(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageCount_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageCount_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageCount_start(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageCount_start(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageCount_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageCount_end(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageCount_end(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageCount_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageCount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MessageLogConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MessageLogConnection_nodes(ctx, field)
 	if err != nil {
@@ -10102,6 +10301,55 @@ func (ec *executionContext) fieldContext_MessageLogConnection_pageInfo(ctx conte
 				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogStats_messageCounts(ctx context.Context, field graphql.CollectedField, obj *MessageLogStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogStats_messageCounts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MessageCounts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]MessageCount)
+	fc.Result = res
+	return ec.marshalOMessageCount2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageCountᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogStats_messageCounts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "count":
+				return ec.fieldContext_MessageCount_count(ctx, field)
+			case "start":
+				return ec.fieldContext_MessageCount_start(ctx, field)
+			case "end":
+				return ec.fieldContext_MessageCount_end(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageCount", field.Name)
 		},
 	}
 	return fc, nil
@@ -14048,6 +14296,65 @@ func (ec *executionContext) fieldContext_Query_messageLogs(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_messageLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_messageLogsStats(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_messageLogsStats(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MessageLogsStats(rctx, fc.Args["input"].(*MessageLogSearchOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*MessageLogStats)
+	fc.Result = res
+	return ec.marshalNMessageLogStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogStats(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_messageLogsStats(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "messageCounts":
+				return ec.fieldContext_MessageLogStats_messageCounts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLogStats", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_messageLogsStats_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -30701,6 +31008,48 @@ func (ec *executionContext) _LinkAccountInfo(ctx context.Context, sel ast.Select
 	return out
 }
 
+var messageCountImplementors = []string{"MessageCount"}
+
+func (ec *executionContext) _MessageCount(ctx context.Context, sel ast.SelectionSet, obj *MessageCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageCountImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageCount")
+		case "count":
+
+			out.Values[i] = ec._MessageCount_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "start":
+
+			out.Values[i] = ec._MessageCount_start(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end":
+
+			out.Values[i] = ec._MessageCount_end(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var messageLogConnectionImplementors = []string{"MessageLogConnection"}
 
 func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.SelectionSet, obj *MessageLogConnection) graphql.Marshaler {
@@ -30725,6 +31074,31 @@ func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var messageLogStatsImplementors = []string{"MessageLogStats"}
+
+func (ec *executionContext) _MessageLogStats(ctx context.Context, sel ast.SelectionSet, obj *MessageLogStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogStatsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLogStats")
+		case "messageCounts":
+
+			out.Values[i] = ec._MessageLogStats_messageCounts(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31496,6 +31870,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_messageLogs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "messageLogsStats":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_messageLogsStats(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -35913,6 +36310,10 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._LabelConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMessageCount2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageCount(ctx context.Context, sel ast.SelectionSet, v MessageCount) graphql.Marshaler {
+	return ec._MessageCount(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNMessageLogConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v MessageLogConnection) graphql.Marshaler {
 	return ec._MessageLogConnection(ctx, sel, &v)
 }
@@ -35925,6 +36326,20 @@ func (ec *executionContext) marshalNMessageLogConnection2ᚖgithubᚗcomᚋtarge
 		return graphql.Null
 	}
 	return ec._MessageLogConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMessageLogStats2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogStats(ctx context.Context, sel ast.SelectionSet, v MessageLogStats) graphql.Marshaler {
+	return ec._MessageLogStats(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMessageLogStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogStats(ctx context.Context, sel ast.SelectionSet, v *MessageLogStats) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageLogStats(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
@@ -38379,6 +38794,53 @@ func (ec *executionContext) marshalOLinkAccountInfo2ᚖgithubᚗcomᚋtargetᚋg
 		return graphql.Null
 	}
 	return ec._LinkAccountInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOMessageCount2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageCountᚄ(ctx context.Context, sel ast.SelectionSet, v []MessageCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMessageCount2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageCount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSearchOptions(ctx context.Context, v interface{}) (*MessageLogSearchOptions, error) {
