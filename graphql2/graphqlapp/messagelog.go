@@ -99,12 +99,35 @@ func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsReso
 }
 
 func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notification.SearchOptions, input graphql2.TimeSeriesOptions) ([]graphql2.TimeSeriesBucket, error) {
+	if opts == nil {
+		opts = &notification.SearchOptions{}
+	}
 
-	n := time.Now()
-	return []graphql2.TimeSeriesBucket{
-		{Count: 10, Start: n.Add(-time.Hour), End: n},
-		{Count: 20, Start: n.Add(-2 * time.Hour), End: n.Add(-time.Hour)},
-	}, nil
+	dur := input.BucketDuration.TimePart
+	dur += time.Duration(input.BucketDuration.Days) * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.Months) * 30 * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.Years) * 365 * 24 * time.Hour
+
+	var origin time.Time
+	if input.BucketOrigin != nil {
+		origin = *input.BucketOrigin
+	}
+
+	buckets, err := q.NotificationStore.TimeSeries(ctx, notification.TimeSeriesOpts{
+		SearchOptions:      *opts,
+		TimeSeriesInterval: dur,
+		TimeSeriesOrigin:   origin,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]graphql2.TimeSeriesBucket, len(buckets))
+	for i, b := range buckets {
+		out[i] = graphql2.TimeSeriesBucket(b)
+	}
+
+	return out, nil
 }
 
 func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (conn *graphql2.MessageLogConnection, err error) {
