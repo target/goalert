@@ -3,8 +3,8 @@ import { gql } from 'urql'
 import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
-import DebugMessagesControls from './DebugMessagesControls'
-import DebugMessageDetails from './DebugMessageDetails'
+import DebugMessagesControls from './AdminMessageLogsControls'
+import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
 import { useURLParams } from '../../actions'
 import QueryList from '../../lists/QueryList'
@@ -83,7 +83,7 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
 
   return (
     <React.Fragment>
-      <DebugMessageDetails
+      <AdminMessageLogDrawer
         onClose={() => setSelectedLog(null)}
         log={selectedLog}
       />
