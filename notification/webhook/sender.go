@@ -80,7 +80,6 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
-	fmt.Printf("webhook sender %+v\n", msg)
 	var payload interface{}
 	switch m := msg.(type) {
 	case notification.Test:
