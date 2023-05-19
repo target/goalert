@@ -88,7 +88,13 @@ export type Value = {
 }
 
 export type RuleFieldError = {
-  field: 'time' | 'weekdayFilter' | 'slackChannelID' | 'slackUserGroup' | 'type'
+  field:
+    | 'time'
+    | 'weekdayFilter'
+    | 'type'
+    | 'slackChannelID'
+    | 'slackUserGroup'
+    | 'webhookURL'
   message: string
 }
 

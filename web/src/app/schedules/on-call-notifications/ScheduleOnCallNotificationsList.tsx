@@ -4,7 +4,7 @@ import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
-import { SlackBW } from '../../icons/components/Icons'
+import { SlackBW, WebhookBW } from '../../icons/components/Icons'
 import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
@@ -12,7 +12,7 @@ import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificatio
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 import { useIsWidthDown } from '../../util/useWidth'
-import { Add, Webhook } from '@mui/icons-material'
+import { Add } from '@mui/icons-material'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -29,7 +29,7 @@ function getChannelIcon(targetType: string): JSX.Element | null {
   if (targetType === 'chanWebhook') {
     return (
       <Avatar>
-        <Webhook />
+        <WebhookBW />
       </Avatar>
     )
   }
