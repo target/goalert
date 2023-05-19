@@ -37,13 +37,10 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   const busy = (q.loading && !zone) || m.loading
 
   const setNewValue = (newValue: Value): void => {
-    console.log(newValue)
     let channelFields = newValue.channelFields
     if (value.type !== newValue.type) {
-      console.log('resetting channel fields')
       channelFields = channelFieldsFromType(newValue.type)
     }
-    console.log({ ...newValue, channelFields })
     setValue({ ...newValue, channelFields })
   }
 

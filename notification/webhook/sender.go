@@ -57,6 +57,16 @@ type POSTDataVerification struct {
 	Code    string
 }
 
+// POSTDataOnCallNotification represents fields in outgoing on call notification.
+type POSTDataOnCallNotification struct {
+	AppName      string
+	Type         string
+	Users        []notification.User
+	ScheduleID   string
+	ScheduleName string
+	ScheduleURL  string
+}
+
 // POSTDataTest represents fields in outgoing test notification.
 type POSTDataTest struct {
 	AppName string
@@ -70,6 +80,7 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
+	fmt.Printf("webhook sender %+v\n", msg)
 	var payload interface{}
 	switch m := msg.(type) {
 	case notification.Test:
@@ -105,6 +116,15 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			Type:     "AlertStatus",
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
+		}
+	case notification.ScheduleOnCallUsers:
+		payload = POSTDataOnCallNotification{
+			AppName:      cfg.ApplicationName(),
+			Type:         "ScheduleOnCallUsers",
+			Users:        m.Users,
+			ScheduleID:   m.ScheduleID,
+			ScheduleName: m.ScheduleName,
+			ScheduleURL:  m.ScheduleURL,
 		}
 	default:
 		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())

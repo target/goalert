@@ -48,12 +48,10 @@ export default function ScheduleOnCallNotificationsForm(
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    console.log('handleRuleChange:', e)
     if (e.target.value === 'on-change') {
       props.onChange({ ...formProps.value, time: null, weekdayFilter: NO_DAY })
       return
     }
-
     props.onChange({
       ...props.value,
       weekdayFilter: EVERY_DAY,
@@ -62,7 +60,6 @@ export default function ScheduleOnCallNotificationsForm(
   }
 
   const handleChannelDataChange = (channelFields: ChannelFields): void => {
-    console.log(channelFields)
     props.onChange({
       ...props.value,
       channelFields,

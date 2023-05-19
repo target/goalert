@@ -12,10 +12,28 @@ import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificatio
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 import { useIsWidthDown } from '../../util/useWidth'
-import { Add } from '@mui/icons-material'
+import { Add, Webhook } from '@mui/icons-material'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
+}
+
+function getChannelIcon(targetType: string): JSX.Element | null {
+  if (targetType === 'slackUserGroup' || targetType === 'slackChannel') {
+    return (
+      <Avatar>
+        <SlackBW />
+      </Avatar>
+    )
+  }
+  if (targetType === 'chanWebhook') {
+    return (
+      <Avatar>
+        <Webhook />
+      </Avatar>
+    )
+  }
+  return null
 }
 
 export default function ScheduleOnCallNotificationsList({
@@ -53,13 +71,7 @@ export default function ScheduleOnCallNotificationsList({
               }
               items={rules.map((rule) => {
                 return {
-                  icon:
-                    rule.target.type === 'slackChannel' ||
-                    rule.target.type === 'slackUserGroup' ? (
-                      <Avatar>
-                        <SlackBW />{' '}
-                      </Avatar>
-                    ) : null,
+                  icon: getChannelIcon(rule.target.type),
                   title: rule.target.name ?? undefined,
                   subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (

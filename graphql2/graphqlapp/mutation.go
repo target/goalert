@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
@@ -50,11 +51,10 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 	if err != nil {
 		return false, err
 	}
-
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
 		for i, r := range input.Rules {
-			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup)
+			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup, assignment.TargetTypeChanWebhook)
 			if err != nil {
 				return err
 			}
@@ -90,6 +90,20 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 					Type:  notificationchannel.TypeSlackChan,
 					Name:  ch.Name,
 					Value: ch.ID,
+				}
+			case assignment.TargetTypeChanWebhook:
+				if !expflag.ContextHas(ctx, expflag.ChanWebhook) {
+					return validation.NewFieldError(fmt.Sprintf("Rules[%d].Target.Type", i), "Webhook channels are not enabled.")
+				}
+				cfg := config.FromContext(ctx)
+				if !cfg.ValidWebhookURL(r.Target.ID) {
+					return validation.NewFieldError("Rules[%d].Target.ID", "URL not allowed by administrator")
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeWebhook,
+					Name:  "Webhook",
+					Value: r.Target.ID,
 				}
 			}
 
