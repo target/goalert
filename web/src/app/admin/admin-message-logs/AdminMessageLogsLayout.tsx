@@ -1,21 +1,60 @@
 import React, { useState } from 'react'
-import { Card, Chip, Grid, Typography } from '@mui/material'
+import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
+import { DateTime } from 'luxon'
+import { gql, useQuery } from '@apollo/client'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
 import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
-
 import AdminMessageLogsGraph from './AdminMessageLogsGraph'
-import { useURLParams } from '../../actions'
 import toTitleCase from '../../util/toTitleCase'
-import { useMessageLogs } from './useMessageLogs'
-import { DateTime } from 'luxon'
-import {
-  PaginatedList,
-  PaginatedListItemProps,
-} from '../../lists/PaginatedList'
-import { PageControls } from '../../lists/PageControls'
+import QueryList from '../../lists/QueryList'
+import { PaginatedListItemProps } from '../../lists/PaginatedList'
+import { useURLParams } from '../../actions'
+
+const query = gql`
+  query messageLogsQuery($input: MessageLogSearchOptions) {
+    messageLogs(input: $input) {
+      nodes {
+        id
+        createdAt
+        updatedAt
+        type
+        status
+        userID
+        userName
+        source
+        destination
+        serviceID
+        serviceName
+        alertID
+        providerID
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+const statsQuery = gql`
+  query messageLogsQuery(
+    $logsInput: MessageLogSearchOptions
+    $statsInput: TimeSeriesOptions!
+  ) {
+    messageLogs(input: $logsInput) {
+      stats {
+        timeSeries(input: $statsInput) {
+          start
+          end
+          count
+        }
+      }
+    }
+  }
+`
 
 const useStyles = makeStyles((theme: Theme) => ({
   containerDefault: {
@@ -34,30 +73,37 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
-  const [page, setPage] = useState(0)
-
-  // all data is fetched on page load, but the number of logs rendered is limited
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  const [params] = useURLParams({
+  console.log('render')
+
+  const [{ search, start, end, graphInterval }] = useURLParams({
     search: '',
-    start: '',
-    end: '',
+    start: DateTime.now().minus({ hours: 8 }).toISO(),
+    end: DateTime.now().toISO(),
+    graphInterval: 'PT1H',
   })
-  const depKey = `logs-${params.start}-${params.end}`
 
-  const { logs, loading, error } = useMessageLogs(
-    {
-      search: params.search,
-      createdAfter: params.start || DateTime.now().minus({ hours: 8 }).toISO(),
-      createdBefore: params.end || DateTime.now().toISO(),
-    },
-    depKey,
-  )
-
-  if (error) {
-    return <div>Error: {error.message}</div>
+  const logsInput = {
+    search,
+    createdAfter: start,
+    createdBefore: end,
   }
+
+  const {
+    data,
+    loading: fetching,
+    error,
+  } = useQuery(statsQuery, {
+    variables: {
+      logsInput,
+      statsInput: {
+        bucketDuration: graphInterval,
+        bucketOrigin: start,
+      },
+    },
+    pollInterval: 0,
+  })
 
   function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
     const status = toTitleCase(log.status)
@@ -127,24 +173,18 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           <AdminMessageLogsControls />
         </Grid>
 
-        <AdminMessageLogsGraph logs={logs} loadingData={loading} />
+        <AdminMessageLogsGraph
+          loading={fetching}
+          error={error}
+          stats={data?.messageLogs?.stats?.timeSeries}
+        />
 
         <Grid item xs={12}>
-          <Card>
-            <PaginatedList
-              items={logs.map((log) => mapLogToListItem(log))}
-              isLoading={loading}
-              itemsPerPage={15}
-              page={page}
-            />
-          </Card>
-        </Grid>
-        <Grid item xs={12}>
-          <PageControls
-            pageCount={logs.length / 15}
-            page={page}
-            setPage={setPage}
-            isLoading={loading}
+          <QueryList
+            query={query}
+            variables={{ input: { ...logsInput } }}
+            noSearch
+            mapDataNode={(n) => mapLogToListItem(n as DebugMessage)}
           />
         </Grid>
       </Grid>

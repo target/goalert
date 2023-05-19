@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -25,32 +25,57 @@ import {
 } from 'recharts'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
-import { useURLParam, useURLParams } from '../../actions'
-import { DateTime } from 'luxon'
-import { DebugMessage } from '../../../schema'
-import { useWorker } from '../../worker'
+import { DateTime, DateTimeFormatOptions } from 'luxon'
+import { useURLParam } from '../../actions'
 import Spinner from '../../loading/components/Spinner'
+import { CombinedError } from 'urql'
 
-export default function AdminMessageLogsGraph(props: {
-  logs: DebugMessage[]
-  loadingData: boolean
-}): JSX.Element {
-  const { logs, loadingData } = props
+interface AdminMessageLogsGraphProps {
+  loading: boolean
+  error?: CombinedError
+  stats: Array<{
+    start: string
+    end: string
+    count: number
+  }>
+}
+
+interface MessageLogGraphData {
+  date: string
+  label: string
+  count: number
+}
+
+export default function AdminMessageLogsGraph({
+  loading,
+  // error,
+  stats = [],
+}: AdminMessageLogsGraphProps): JSX.Element {
   const theme = useTheme()
-  const [params] = useURLParams({
-    search: '',
-    start: '',
-    end: '',
-  })
 
   // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
 
-  const opts = useMemo(
-    () => ({ start: params.start, end: params.end, duration, logs }),
-    [params.start, params.end, duration, logs],
+  const locale: DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  }
+  const graphData = React.useMemo(
+    (): MessageLogGraphData[] =>
+      stats.map(({ start, end, count }) => ({
+        count,
+        date: start,
+        label:
+          DateTime.fromISO(start).toLocaleString(locale) +
+          ' - ' +
+          DateTime.fromISO(end).toLocaleString(locale),
+      })),
+    [stats],
   )
-  const [graphData, status] = useWorker('useMessageLogGraphData', opts, [])
+
   const formatIntervals = (label: string): string => {
     // check for default bounds
     if (label.toString() !== '0' && label !== 'auto') {
@@ -68,11 +93,7 @@ export default function AdminMessageLogsGraph(props: {
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <CardHeader
             title='Message Logs'
-            subheader={
-              (status.loading || loadingData) && (
-                <Spinner text={`Total Loaded: ${logs.length}`} />
-              )
-            }
+            subheader={loading && <Spinner text='Loading...' />}
           />
         </AccordionSummary>
         <AccordionDetails>

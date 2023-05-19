@@ -2,14 +2,12 @@ import { useAlertCSV } from '../services/AlertMetrics/useAlertCSV'
 import { useAlertCountCSV } from '../admin/admin-alert-counts/useAlertCountCSV'
 import { useAlertMetrics } from '../services/AlertMetrics/useAlertMetrics'
 import { useAdminAlertCounts } from '../admin/admin-alert-counts/useAdminAlertCounts'
-import { useMessageLogGraphData } from '../admin/admin-message-logs/useMessageLogGraphData'
 
 const methods = {
   useAdminAlertCounts,
   useAlertCountCSV,
   useAlertMetrics,
   useAlertCSV,
-  useMessageLogGraphData,
 }
 export default methods
 

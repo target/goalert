@@ -135,15 +135,11 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     },
   }
 
-  if (noSearch) {
-    delete queryVariables.input.search
-  }
-
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
     variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
-    pollInterval: POLL_INTERVAL,
+    pollInterval: 0,
   })
 
   const nodes = data?.data?.nodes ?? []
