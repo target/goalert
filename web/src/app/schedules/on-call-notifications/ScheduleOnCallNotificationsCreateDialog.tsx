@@ -1,40 +1,51 @@
 import React, { useState } from 'react'
-import { mapOnCallErrors, NO_DAY, Value } from './util'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
+import { NO_DAY, Value, channelFieldsFromType, mapOnCallErrors } from './util'
 
 interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
   scheduleID: string
 }
 
+const defaultValue: Value = {
+  time: null,
+  weekdayFilter: NO_DAY,
+  type: 'SLACK',
+  channelFields: {
+    slackChannelID: null,
+  },
+}
+
 export default function ScheduleOnCallNotificationsCreateDialog(
   props: ScheduleOnCallNotificationsCreateDialogProps,
 ): JSX.Element {
   const { onClose, scheduleID } = props
-  const [value, setValue] = useState<Value | null>(null)
-  const [slackType, setSlackType] = useState('channel')
+  const [value, setValue] = useState<Value>(defaultValue)
 
   const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
-  const newValue: Value = value || {
-    time: null,
-    weekdayFilter: NO_DAY,
-    slackChannelID: null,
-    slackUserGroup: null,
-  }
-  if (!newValue.slackChannelID) delete newValue.slackChannelID
-  if (!newValue.slackUserGroup) delete newValue.slackUserGroup
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
     zone,
-    newValue,
+    value,
     ...rules,
   )
 
   const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
   const busy = (q.loading && !zone) || m.loading
+
+  const setNewValue = (newValue: Value): void => {
+    console.log(newValue)
+    let channelFields = newValue.channelFields
+    if (value.type !== newValue.type) {
+      console.log('resetting channel fields')
+      channelFields = channelFieldsFromType(newValue.type)
+    }
+    console.log({ ...newValue, channelFields })
+    setValue({ ...newValue, channelFields })
+  }
 
   return (
     <FormDialog
@@ -47,10 +58,8 @@ export default function ScheduleOnCallNotificationsCreateDialog(
         <ScheduleOnCallNotificationsForm
           scheduleID={scheduleID}
           errors={fieldErrors}
-          value={newValue}
-          onChange={(value) => setValue(value)}
-          slackType={slackType}
-          setSlackType={setSlackType}
+          value={value}
+          onChange={setNewValue}
         />
       }
     />

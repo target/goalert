@@ -4,20 +4,91 @@ import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
+  TargetInput,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
+export type NotificationChannelType = 'SLACK' | 'WEBHOOK'
+
+export type SlackFields = {
+  slackChannelID: string | null
+  slackUserGroup?: string
+}
+
+export type WebhookFields = {
+  webhookURL: string | null
+}
+
+export type ChannelFields = SlackFields | WebhookFields
+
+export function channelFieldsFromType(
+  type: NotificationChannelType,
+): ChannelFields {
+  switch (type) {
+    case 'SLACK':
+      return {
+        slackChannelID: null,
+      }
+    case 'WEBHOOK':
+      return {
+        webhookURL: null,
+      }
+    default:
+      return {
+        slackChannelID: null,
+      }
+  }
+}
+
+export function channelTypeFromTarget(
+  target?: TargetInput,
+): NotificationChannelType {
+  if (
+    !target ||
+    target.type === 'slackChannel' ||
+    target.type === 'slackUserGroup'
+  ) {
+    return 'SLACK'
+  }
+  if (target.type === 'chanWebhook') {
+    return 'WEBHOOK'
+  }
+  return 'SLACK'
+}
+
+export function channelFieldsFromTarget(target?: TargetInput): ChannelFields {
+  switch (target?.type) {
+    case 'slackChannel':
+      return {
+        slackChannelID: target.id,
+      }
+    case 'slackUserGroup':
+      return {
+        slackChannelID: target.id.split(':')[1],
+        slackUserGroup: target.id.split(':')[0],
+      }
+    case 'chanWebhook':
+      return {
+        webhookURL: target.id,
+      }
+    default:
+      return {
+        slackChannelID: null,
+      }
+  }
+}
+
 export type Value = {
-  slackChannelID?: string | null
-  slackUserGroup?: string | null
   time: string | null
   weekdayFilter: WeekdayFilter
+  type: NotificationChannelType
+  channelFields: ChannelFields
 }
 
 export type RuleFieldError = {
-  field: 'time' | 'weekdayFilter' | 'slackChannelID' | 'slackUserGroup'
+  field: 'time' | 'weekdayFilter' | 'slackChannelID' | 'slackUserGroup' | 'type'
   message: string
 }
 
@@ -63,6 +134,27 @@ function formatZoneTime(zone: string, time: string): string {
   return formatClockTime(dt)
 }
 
+function targetFromChannelFields(fields?: ChannelFields): TargetInput {
+  const target: TargetInput = {
+    type: 'slackChannel',
+    id: '',
+  }
+  if (!fields) {
+    return target
+  }
+  if ('slackUserGroup' in fields) {
+    target.type = 'slackUserGroup'
+    target.id = `${fields.slackUserGroup}:${fields.slackChannelID}`
+  } else if ('slackChannelID' in fields) {
+    target.type = 'slackChannel'
+    target.id = fields.slackChannelID ?? ''
+  } else if ('webhookURL' in fields) {
+    target.type = 'chanWebhook'
+    target.id = fields.webhookURL ?? ''
+  }
+  return target
+}
+
 export const onCallValueToRuleInput = (
   zone: string,
   v: Value,
@@ -71,12 +163,7 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: {
-    type: v?.slackUserGroup ? 'slackUserGroup' : 'slackChannel',
-    id: v?.slackUserGroup
-      ? `${v.slackUserGroup}:${v.slackChannelID}`
-      : v?.slackChannelID ?? '',
-  },
+  target: targetFromChannelFields(v.channelFields),
 })
 
 export const onCallRuleToInput = (
@@ -103,7 +190,6 @@ export function mapOnCallErrors(
   }
 
   dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
-
   const fieldErrs = fieldErrors(mErr)
     .map((e) => {
       switch (e.field) {
@@ -118,6 +204,10 @@ export function mapOnCallErrors(
 
       if (e.field === 'targetTypeSlackUserGroup') {
         return { ...e, field: 'slackUserGroup' }
+      }
+
+      if (e.field === 'targetTypeChanWebhook') {
+        return { ...e, field: 'webhookURL' }
       }
 
       dialogErrs.push(e)

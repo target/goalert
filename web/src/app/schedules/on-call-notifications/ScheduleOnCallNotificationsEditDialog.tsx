@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 
-import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
+import {
+  channelFieldsFromTarget,
+  channelTypeFromTarget,
+  EVERY_DAY,
+  mapOnCallErrors,
+  NO_DAY,
+  Value,
+} from './util'
 import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
@@ -17,7 +24,6 @@ export default function ScheduleOnCallNotificationsEditDialog(
   p: ScheduleOnCallNotificationsEditDialogProps,
 ): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
-  const [slackType, setSlackType] = useState('channel')
 
   const { q, zone, rules } = useOnCallRulesData(p.scheduleID)
 
@@ -27,14 +33,8 @@ export default function ScheduleOnCallNotificationsEditDialog(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    slackChannelID:
-      rule?.target.type === 'slackChannel'
-        ? rule?.target.id
-        : rule?.target.id.split(':')[1],
-    slackUserGroup:
-      rule?.target.type === 'slackUserGroup'
-        ? rule?.target.id.split(':')[0]
-        : null,
+    type: channelTypeFromTarget(rule?.target),
+    channelFields: channelFieldsFromTarget(rule?.target),
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     p.scheduleID,
@@ -58,8 +58,6 @@ export default function ScheduleOnCallNotificationsEditDialog(
           errors={fieldErrors}
           value={newValue}
           onChange={(value) => setValue(value)}
-          slackType={slackType}
-          setSlackType={setSlackType}
         />
       }
     />
