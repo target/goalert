@@ -259,12 +259,14 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 			cursor = nextCursor
 
-			for _, ch := range respChan {
-				channels = append(channels, Channel{
-					ID:     ch.ID,
-					Name:   "#" + ch.Name,
+			for _, rCh := range respChan {
+				ch := Channel{
+					ID:     rCh.ID,
+					Name:   "#" + rCh.Name,
 					TeamID: teamID,
-				})
+				}
+				channels = append(channels, ch)
+				s.chanCache.Add(ch.ID, &ch)
 			}
 
 			return nil
