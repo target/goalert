@@ -44,7 +44,8 @@ export default function ScheduleOnCallNotificationsForm(
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
   const [slackEnabled] = useConfigValue('Slack.Enable')
-  const webhookEnabled = useExpFlag('chan-webhook')
+  const [webhookEnabled] = useConfigValue('Slack.Enable')
+  const webhookChannelEnabled = useExpFlag('chan-webhook')
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -78,7 +79,9 @@ export default function ScheduleOnCallNotificationsForm(
             component={TextField}
           >
             {slackEnabled && <MenuItem value='SLACK'>SLACK</MenuItem>}
-            {webhookEnabled && <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>}
+            {webhookEnabled && webhookChannelEnabled && (
+              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
+            )}
           </FormField>
         </Grid>
         <Grid item>
