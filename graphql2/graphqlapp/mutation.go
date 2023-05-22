@@ -77,7 +77,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 
 				nfyChan = &notificationchannel.Channel{
 					Type:  notificationchannel.TypeSlackUG,
-					Name:  fmt.Sprintf("@%s (%s)", grp.Handle, ch.Name),
+					Name:  fmt.Sprintf("%s (%s)", grp.Handle, ch.Name),
 					Value: r.Target.ID,
 				}
 			case assignment.TargetTypeSlackChannel:

@@ -71,7 +71,7 @@ func (s *ChannelSender) ListUserGroups(ctx context.Context) ([]UserGroup, error)
 		res = append(res, UserGroup{
 			ID:     g.ID,
 			Name:   g.Name,
-			Handle: g.Handle,
+			Handle: "@" + g.Handle,
 		})
 	}
 
