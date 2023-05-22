@@ -1,7 +1,6 @@
 import React from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles/makeStyles'
-import { Theme, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import Spinner from '../../loading/components/Spinner'
 import {
@@ -44,25 +43,19 @@ interface AlertAveragesGraphProps {
   loading: boolean
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  graphContent: {
-    height: '500px',
-    fontFamily: theme.typography.body2.fontFamily,
-  },
-  bar: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-}))
-
 export default function AlertAveragesGraph(
   props: AlertAveragesGraphProps,
 ): JSX.Element {
-  const classes = useStyles()
   const theme = useTheme()
+
   return (
-    <Grid container className={classes.graphContent}>
+    <Grid
+      container
+      sx={{
+        height: '500px',
+        fontFamily: theme.typography.body2.fontFamily,
+      }}
+    >
       <Grid item xs={12} data-cy='metrics-averages-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>

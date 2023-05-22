@@ -79,7 +79,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
-		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional.", Value: cfg.SMTP.Address},
+		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS.", Value: cfg.SMTP.Address},
 		{ID: "SMTP.DisableTLS", Type: ConfigTypeBoolean, Description: "Disables TLS on the connection (STARTTLS will still be used if supported).", Value: fmt.Sprintf("%t", cfg.SMTP.DisableTLS)},
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
