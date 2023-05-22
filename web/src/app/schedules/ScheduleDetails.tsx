@@ -19,6 +19,7 @@ import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
+import { useExpFlag } from '../util/useExpFlag'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -74,6 +75,8 @@ export default function ScheduleDetails({
   const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
+  const [webhookEnabled] = useConfigValue('Webhook.Enable')
+  const chanWebhookEnabled = useExpFlag('chan-webhook')
 
   const [configTempSchedule, setConfigTempSchedule] =
     useState<Partial<TempSchedValue> | null>(null)
@@ -207,8 +210,8 @@ export default function ScheduleDetails({
             subText: 'Review a list of past and future on-call shifts',
           },
         ].concat(
-          // only slack is supported ATM, so hide the link if disabled
-          slackEnabled
+          // only slack/webhook supported atm, so hide the link if disabled
+          slackEnabled || (webhookEnabled && chanWebhookEnabled)
             ? [
                 {
                   label: 'On-Call Notifications',
