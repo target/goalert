@@ -91,7 +91,10 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   async function submitHandler(): Promise<void> {
     let errorList: FieldError[] = []
     errorList = [...errorList, ...handleValidation()]
-    if (!errorList?.length && (passwordChanged() || defaultValue.isAdmin !== value.isAdmin)) {
+    if (
+      !errorList?.length &&
+      (passwordChanged() || defaultValue.isAdmin !== value.isAdmin)
+    ) {
       try {
         await editUser()
       } catch (err) {
