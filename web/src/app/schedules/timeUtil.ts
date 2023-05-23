@@ -15,14 +15,14 @@ export function ensureInterval<T extends Spanable, N extends Spanable>(
     const newStart = DateTime.fromISO(newValue.start)
     if (newStart >= oldEnd) {
       // if start time is put after end time, move end time forward
-      newValue.end = newStart.plus(oldDur).toISO()
+      newValue.end = newStart.plus(oldDur).toUTC().toISO()
     }
   } else if (value.end !== newValue.end) {
     const newEnd = DateTime.fromISO(newValue.end)
     const start = DateTime.fromISO(newValue.start)
     if (newEnd <= start) {
       // if end time is put before start time, move start time back
-      newValue.start = newEnd.minus(oldDur).toISO()
+      newValue.start = newEnd.minus(oldDur).toUTC().toISO()
     }
   }
 
