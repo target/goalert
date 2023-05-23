@@ -992,7 +992,7 @@ export interface UpdateUserInput {
   email?: null | string
   role?: null | UserRole
   oldPassword?: null | string
-  newPassword?: null | string
+  password?: null | string
   statusUpdateContactMethodID?: null | string
 }
 

@@ -6,7 +6,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import { FieldError, fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserEditForm, { Value } from './UserEditForm'
 
-const updateUserInput = gql`
+const updateUserMutation = gql`
   mutation ($input: UpdateUserInput!) {
     updateUser(input: $input)
   }
@@ -21,7 +21,7 @@ interface UserEditDialogProps {
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const defaultValue: Value = {
     oldPassword: '',
-    newPassword: '',
+    password: '',
     confirmNewPassword: '',
     isAdmin: props.role === 'admin',
   }
@@ -35,7 +35,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
 
-  const [editUser, editUserStatus] = useMutation(updateUserInput, {
+  const [editUser, editUserStatus] = useMutation(updateUserMutation, {
     variables: {
       input: {
         id: props.userID,
@@ -46,17 +46,15 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
               : 'user'
             : null,
         oldPassword: value.oldPassword !== '' ? value.oldPassword : null,
-        newPassword: value.newPassword !== '' ? value.newPassword : null,
+        password: value.password !== '' ? value.password : null,
       },
     },
   })
 
-  // Checks if any of the password fields are used. Used to skip any unnecessary updateUserPassword mutation
+  // Checks if any of the password fields are used. Used to skip any unnecessary updateUserMutation
   function passwordChanged(): boolean {
-    return !(
-      value.oldPassword === '' &&
-      value.newPassword === '' &&
-      value.confirmNewPassword === ''
+    return Boolean(
+      value.oldPassword || value.password || value.confirmNewPassword,
     )
   }
 
@@ -64,16 +62,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   function handleValidation(): FieldError[] {
     let err: FieldError[] = []
     if (!passwordChanged()) return err
-    if (value.newPassword.length < 8 || value.newPassword.length > 20) {
-      err = [
-        ...err,
-        {
-          field: 'newPassword',
-          message: 'Password length must be between 8 - 20',
-        } as FieldError,
-      ]
-    }
-    if (value.newPassword !== value.confirmNewPassword) {
+    if (value.password !== value.confirmNewPassword) {
       err = [
         ...err,
         {
@@ -102,7 +91,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   async function submitHandler(): Promise<void> {
     let errorList: FieldError[] = []
     errorList = [...errorList, ...handleValidation()]
-    if (!errorList?.length) {
+    if (!errorList?.length && (passwordChanged() || defaultValue.isAdmin !== value.isAdmin)) {
       try {
         await editUser()
       } catch (err) {

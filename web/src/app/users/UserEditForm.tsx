@@ -6,7 +6,7 @@ import { FieldError } from '../util/errutil'
 
 export type Value = {
   oldPassword: string
-  newPassword: string
+  password: string
   confirmNewPassword: string
   isAdmin: boolean
 }
@@ -39,6 +39,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
               fullWidth
               component={TextField}
               name='oldPassword'
+              label='Old Password'
               type='password'
               disabled={admin}
             />
@@ -51,7 +52,8 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             }}
             fullWidth
             component={TextField}
-            name='newPassword'
+            name='password'
+            label='New Password'
             type='password'
           />
         </Grid>

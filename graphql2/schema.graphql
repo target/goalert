@@ -1239,7 +1239,7 @@ input UpdateUserInput {
   email: String
   role: UserRole
   oldPassword: String
-  newPassword: String
+  password: String
 
   statusUpdateContactMethodID: ID
     @deprecated(

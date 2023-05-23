@@ -28836,7 +28836,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "email", "role", "oldPassword", "newPassword", "statusUpdateContactMethodID"}
+	fieldsInOrder := [...]string{"id", "name", "email", "role", "oldPassword", "password", "statusUpdateContactMethodID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28888,15 +28888,15 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.OldPassword = data
-		case "newPassword":
+		case "password":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newPassword"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.NewPassword = data
+			it.Password = data
 		case "statusUpdateContactMethodID":
 			var err error
 

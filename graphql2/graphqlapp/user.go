@@ -129,8 +129,8 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 	var newPassword basic.HashedPassword
 	var oldPassword basic.ValidatedPassword
 
-	if input.NewPassword != nil {
-		newPassword, err = a.AuthBasicStore.NewHashedPassword(*input.NewPassword)
+	if input.Password != nil {
+		newPassword, err = a.AuthBasicStore.NewHashedPassword(*input.Password)
 		if err != nil {
 			return false, err
 		}

@@ -606,7 +606,7 @@ type UpdateUserInput struct {
 	Email                       *string   `json:"email,omitempty"`
 	Role                        *UserRole `json:"role,omitempty"`
 	OldPassword                 *string   `json:"oldPassword,omitempty"`
-	NewPassword                 *string   `json:"newPassword,omitempty"`
+	Password                    *string   `json:"password,omitempty"`
 	StatusUpdateContactMethodID *string   `json:"statusUpdateContactMethodID,omitempty"`
 }
 

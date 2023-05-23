@@ -79,11 +79,12 @@ function testUsers(screen: ScreenFormat): void {
       })
       it('should show error when password length is too short', () => {
         cy.get('[data-cy="newPassword"]').type('test')
+        cy.get('[data-cy="confirmNewPassword"]').type('test')
         cy.dialogClick('Submit')
         cy.get('[data-cy="newPassword"]')
           .parent()
           .next('p')
-          .should('contain', 'Password length must be between 8 - 20')
+          .should('contain', 'Must be at least 8 characters')
       })
 
       it('should show error when passwords do not match', () => {
