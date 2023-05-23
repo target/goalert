@@ -8,14 +8,14 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 
-interface DebugMessageControlsValue {
+interface AdminMessageLogsControlsValue {
   search: string
   start: string
   end: string
 }
 interface Props {
-  value: DebugMessageControlsValue
-  onChange: (newValue: DebugMessageControlsValue) => void
+  value: AdminMessageLogsControlsValue
+  onChange: (newValue: AdminMessageLogsControlsValue) => void
 }
 
 const useStyles = makeStyles((theme: Theme) => {

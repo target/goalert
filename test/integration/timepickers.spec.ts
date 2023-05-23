@@ -11,14 +11,13 @@ let scheduleID: string
 
 test.beforeEach(async ({ page }) => {
   // create schedule
-  const name = c.name() + ' Service'
+  const name = 'time-picker ' + c.string({ length: 10, alpha: true })
   await page.goto(`${baseURL}/schedules`)
   await page.getByRole('button', { name: 'Create Schedule' }).click()
   await page.fill('input[name=name]', name)
   await page.locator('button[type=submit]').click()
-  await page.waitForTimeout(1000)
-  const p = page.url().split('/')
-  scheduleID = p[p.length - 1]
+  await page.waitForURL(/\/schedules\/.{36}/)
+  scheduleID = page.url().split('/schedules/')[1]
 })
 
 test.afterEach(async ({ page }) => {
