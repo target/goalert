@@ -71,7 +71,7 @@ func (s *ChannelSender) ListUserGroups(ctx context.Context) ([]UserGroup, error)
 		grp := UserGroup{
 			ID:     g.ID,
 			Name:   g.Name,
-			Handle: g.Handle,
+			Handle: "@" + g.Handle,
 		}
 		res = append(res, grp)
 		s.ugInfoCache.Add(g.ID, grp)
