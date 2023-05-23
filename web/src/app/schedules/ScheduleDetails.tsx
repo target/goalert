@@ -17,8 +17,9 @@ import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import { TempSchedValue } from './temp-sched/sharedUtils'
+import { TempSchedValue, defaultTempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
+import { useScheduleTZ } from './useScheduleTZ'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -76,8 +77,12 @@ export default function ScheduleDetails({
   const [slackEnabled] = useConfigValue('Slack.Enable')
 
   const [configTempSchedule, setConfigTempSchedule] =
-    useState<Partial<TempSchedValue> | null>(null)
-  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
+    useState<TempSchedValue | null>(null)
+  const { zone } = useScheduleTZ(scheduleID)
+  const onNewTempSched = useCallback(
+    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    [],
+  )
   const onEditTempSched = useCallback(
     (v: TempSchedValue) => setConfigTempSchedule(v),
     [],
