@@ -102,7 +102,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 
 				nfyChan = &notificationchannel.Channel{
 					Type:  notificationchannel.TypeWebhook,
-					Name:  "Webhook",
+					Name:  r.Target.ID,
 					Value: r.Target.ID,
 				}
 			}
