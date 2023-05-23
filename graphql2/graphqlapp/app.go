@@ -195,7 +195,9 @@ func (a *App) Handler() http.Handler {
 		}
 
 		if isUnsafe && !isGQLValidation(gqlErr) {
-			log.Log(ctx, err)
+			if !errors.Is(err, context.Canceled) {
+				log.Log(ctx, err)
+			}
 			gqlErr.Message = safeErr.Error()
 		}
 
