@@ -20,6 +20,24 @@ export type Shift = {
   }
 }
 
+// defaultTempScheduleValue returns a timespan, with no shifts,
+// of the following week.
+export function defaultTempSchedValue(zone: string): TempSchedValue {
+  // We want the start to be the _next_ start-of-week for the current locale.
+  // For example, if today is Sunday, we want the start to be next Sunday.
+  // If today is Saturday, we want the start to be tomorrow.
+  const startDT = DateTime.local()
+    .setZone(zone)
+    .startOf('week')
+    .plus({ weeks: 1 })
+
+  return {
+    start: startDT.toISO(),
+    end: startDT.plus({ days: 7 }).toISO(),
+    shifts: [],
+  }
+}
+
 // removes bottom margin from content text so form fields
 // don't have a bunch of whitespace above them
 export const contentText = {
