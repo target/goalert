@@ -63,7 +63,7 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 
 		u, err := db.cs.User(ctx, c.SlackUserID)
 		if err != nil {
-			log.Log(ctx, err)
+			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", c.SlackUserID, err))
 			continue
 		}
 
