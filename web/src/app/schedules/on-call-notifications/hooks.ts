@@ -17,6 +17,8 @@ import {
   EVERY_DAY,
   formatLocalClockTime,
   onCallRuleToInput,
+  channelTypeFromTarget,
+  channelFieldsFromTarget,
 } from './util'
 
 const schedTZQuery = gql`
@@ -101,7 +103,7 @@ export function useSetOnCallRulesSubmit(
       rules: rules
         .map((r) => {
           if (r === null) return null
-          if ('slackChannelID' in r || 'slackUserGroup' in r) {
+          if ('channelFields' in r) {
             return onCallValueToRuleInput(zone, r)
           }
 
@@ -144,8 +146,8 @@ export function useEditOnCallRule(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    slackChannelID: rule?.target.id || null,
-    slackUserGroup: rule?.target.id || null,
+    type: channelTypeFromTarget(rule?.target),
+    channelFields: channelFieldsFromTarget(rule?.target),
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
