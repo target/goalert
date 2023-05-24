@@ -36,10 +36,13 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
   const busy = (q.loading && !zone) || m.loading
 
-  const setNewValue = (newValue: Value): void => {
+  function onValueChange(newValue: Value): void {
     let channelFields = newValue.channelFields
     if (value.type !== newValue.type) {
       channelFields = getEmptyChannelFields(newValue.type)
+      if ('slackChannelID' in value && 'slackChannelID' in newValue) {
+        channelFields.slackChannelID = value.slackChannelID as string | null
+      }
     }
     setValue({ ...newValue, channelFields })
   }
@@ -56,7 +59,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
           scheduleID={scheduleID}
           errors={fieldErrors}
           value={value}
-          onChange={setNewValue}
+          onChange={onValueChange}
         />
       }
     />
