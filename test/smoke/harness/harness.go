@@ -365,6 +365,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 		"email":          func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
 		"phoneCC":        func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
 		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
+		"slackUserID":    func(name string) string { return fmt.Sprintf("'%s'", h.Slack().User(name).ID()) },
 	})
 	_, err := t.Parse(sql)
 	if err != nil {
