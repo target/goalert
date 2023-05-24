@@ -139,7 +139,12 @@ func (a *slackAction) Click() {
 	a.h.t.Helper()
 
 	a.h.t.Logf("clicking action: %s", a.Text)
-	err := a.h.slack.PerformActionAs(a.h.slackUser.ID, a.Action)
+	asID := a.h.slackUser.ID
+	if strings.HasPrefix(a.ChannelID, "W") {
+		// Perform actions in DMs as the user who received the DM.
+		asID = a.ChannelID
+	}
+	err := a.h.slack.PerformActionAs(asID, a.Action)
 	require.NoError(a.h.t, err, "perform Slack action")
 }
 
