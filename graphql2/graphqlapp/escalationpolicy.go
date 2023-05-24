@@ -226,8 +226,8 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 }
 
 func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql2.UpdateEscalationPolicyStepInput) (bool, error) {
-	cfg := config.FromContext(ctx)
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		cfg := config.FromContext(ctx)
 		step, err := m.PolicyStore.FindOneStepForUpdateTx(ctx, tx, input.ID) // get delay
 		if err != nil {
 			return err
@@ -248,7 +248,7 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 			step.Targets = make([]assignment.Target, len(input.Targets))
 			for i, tgt := range input.Targets {
 				if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
-					return validation.NewFieldError("targets", "URL not allowed by administrator")
+					return validation.NewFieldError("webhook-targets", "URL not allowed by administrator")
 				}
 				step.Targets[i] = tgt
 			}
