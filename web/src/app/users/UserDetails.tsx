@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from 'urql'
 import Delete from '@mui/icons-material/Delete'
-import KeyIcon from '@mui/icons-material/Key'
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import DetailsPage from '../details/DetailsPage'
 import { UserAvatar } from '../util/avatars'
 import UserContactMethodList from './UserContactMethodList'
@@ -166,7 +166,7 @@ export default function UserDetails(props: {
   if (isAdmin || userID === currentUserID) {
     options.unshift({
       label: 'Edit',
-      icon: <KeyIcon />,
+      icon: <LockOpenIcon />,
       handleOnClick: () => setShowEdit(true),
     })
   }
