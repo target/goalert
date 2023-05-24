@@ -165,7 +165,7 @@ export default function UserDetails(props: {
 
   if (isAdmin || userID === currentUserID) {
     options.unshift({
-      label: 'Edit',
+      label: 'Edit Access',
       icon: <LockOpenIcon />,
       handleOnClick: () => setShowEdit(true),
     })
