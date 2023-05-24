@@ -9,6 +9,7 @@ import {
   SelectChangeEvent,
   Typography,
 } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React from 'react'
@@ -86,6 +87,23 @@ export default function ScheduleOnCallNotificationsForm(
       case 'SLACK_UG':
         return (
           <React.Fragment>
+            <Grid item container>
+              <Grid
+                item
+                xs={1}
+                display='flex'
+                justifyContent='center'
+                alignItems='center'
+              >
+                <InfoIcon color='primary' />
+              </Grid>
+              <Grid item xs={11}>
+                <Typography>
+                  This will edit your user group in Slack to ensure that only
+                  the members in the selected group are also on-call
+                </Typography>
+              </Grid>
+            </Grid>
             <Grid item>
               <FormField
                 component={SlackUserGroupSelect}
