@@ -6,8 +6,7 @@ const query = gql`
     slackUserGroups(input: $input) {
       nodes {
         id
-        name
-        handle
+        name: handle
       }
     }
   }
@@ -17,8 +16,7 @@ const valueQuery = gql`
   query ($id: ID!) {
     slackUserGroup(id: $id) {
       id
-      name
-      handle
+      name: handle
     }
   }
 `

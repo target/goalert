@@ -57,11 +57,11 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 
 		listCache: newTTLCache[string, []Channel](250, time.Minute),
 		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
-		ugCache:   newTTLCache[string, []slack.UserGroup](1000, 15*time.Minute),
+		ugCache:   newTTLCache[string, []slack.UserGroup](1000, time.Minute),
 
-		teamInfoCache: newTTLCache[string, *slack.TeamInfo](1, 24*time.Hour),
-		userInfoCache: newTTLCache[string, *slack.User](1000, 24*time.Hour),
-		ugInfoCache:   newTTLCache[string, UserGroup](1000, 24*time.Hour),
+		teamInfoCache: newTTLCache[string, *slack.TeamInfo](1, 15*time.Minute),
+		userInfoCache: newTTLCache[string, *slack.User](1000, 15*time.Minute),
+		ugInfoCache:   newTTLCache[string, UserGroup](1000, 15*time.Minute),
 	}, nil
 }
 
@@ -259,12 +259,14 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 			cursor = nextCursor
 
-			for _, ch := range respChan {
-				channels = append(channels, Channel{
-					ID:     ch.ID,
-					Name:   "#" + ch.Name,
+			for _, rCh := range respChan {
+				ch := Channel{
+					ID:     rCh.ID,
+					Name:   "#" + rCh.Name,
 					TeamID: teamID,
-				})
+				}
+				channels = append(channels, ch)
+				s.chanCache.Add(ch.ID, &ch)
 			}
 
 			return nil
