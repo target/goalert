@@ -1,4 +1,10 @@
-import { Checkbox, MenuItem, TextField, Typography } from '@mui/material'
+import {
+  Checkbox,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography,
+} from '@mui/material'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Grid from '@mui/material/Grid'
 import Radio from '@mui/material/Radio'
@@ -8,6 +14,7 @@ import { DateTime } from 'luxon'
 import React from 'react'
 
 import { FormContainer, FormField } from '../../forms'
+import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
@@ -19,8 +26,8 @@ import {
   NotificationChannelType,
   RuleFieldError,
   Value,
+  getEmptyChannelFields,
 } from './util'
-import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -57,6 +64,23 @@ export default function ScheduleOnCallNotificationsForm(
     })
   }
 
+  const handleTypeChange = (
+    e: SelectChangeEvent<NotificationChannelType>,
+  ): void => {
+    const newType = e.target.value as NotificationChannelType
+    if (props.value.type !== newType) {
+      const channelFields = getEmptyChannelFields(newType)
+      if (
+        'slackChannelID' in props.value.channelFields &&
+        'slackChannelID' in channelFields
+      ) {
+        channelFields.slackChannelID = props.value.channelFields
+          .slackChannelID as string | null
+      }
+      props.onChange({ ...props.value, type: newType, channelFields })
+    }
+  }
+
   function renderTypeFields(type: NotificationChannelType): JSX.Element {
     switch (type) {
       case 'SLACK_UG':
@@ -64,23 +88,19 @@ export default function ScheduleOnCallNotificationsForm(
           <React.Fragment>
             <Grid item>
               <FormField
+                component={SlackUserGroupSelect}
+                fullWidth
+                label='Slack User Group'
+                name='channelFields.slackUserGroup'
+              />
+            </Grid>
+            <Grid item>
+              <FormField
                 component={SlackChannelSelect}
                 fullWidth
                 required
                 label='Slack Channel'
                 name='channelFields.slackChannelID'
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                component={SlackUserGroupSelect}
-                fullWidth
-                label='Slack User Group'
-                name='channelFields.slackUserGroup'
-                mapOnChangeValue={(v) => {
-                  //   setSlackType('usergroup')
-                  return v
-                }}
               />
             </Grid>
           </React.Fragment>
@@ -105,12 +125,11 @@ export default function ScheduleOnCallNotificationsForm(
     <FormContainer {...formProps}>
       <Grid container spacing={2} direction='column'>
         <Grid item xs={12}>
-          <FormField
+          <Select
             fullWidth
-            name='type'
+            value={props.value.type}
             required
-            select
-            component={TextField}
+            onChange={handleTypeChange}
           >
             <MenuItem value='SLACK_CHANNEL' disabled={!slackEnabled}>
               SLACK CHANNEL
@@ -120,7 +139,7 @@ export default function ScheduleOnCallNotificationsForm(
                 SLACK USER GROUP
               </MenuItem>
             )}
-          </FormField>
+          </Select>
         </Grid>
         <Grid item>
           <RadioGroup

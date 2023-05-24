@@ -57,7 +57,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
           scheduleID={p.scheduleID}
           errors={fieldErrors}
           value={newValue}
-          onChange={(value) => setValue(value)}
+          onChange={setValue}
         />
       }
     />
