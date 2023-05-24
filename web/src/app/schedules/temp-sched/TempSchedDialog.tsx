@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@mui/material/Checkbox'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -19,12 +19,12 @@ import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
-import { getNextWeekday } from '../../util/luxon-helpers'
 import { useScheduleTZ } from '../useScheduleTZ'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
+import { ensureInterval } from '../timeUtil'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -69,10 +69,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
-  value: Partial<TempSchedValue>
+  value: TempSchedValue
 }
 
-const clampForward = (nowISO: string, iso: string | undefined): string => {
+const clampForward = (nowISO: string, iso: string): string => {
   if (!iso) return ''
 
   const now = DateTime.fromISO(nowISO)
@@ -94,11 +94,11 @@ export default function TempSchedDialog({
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
-    start: clampForward(now, _value?.start),
-    end: _value?.end ?? '',
-    clearStart: _value?.start ?? null,
-    clearEnd: _value?.end ?? null,
-    shifts: (_value?.shifts ?? [])
+    start: clampForward(now, _value.start),
+    end: _value.end,
+    clearStart: _value.start,
+    clearEnd: _value.end,
+    shifts: _value.shifts
       .map((s) =>
         _.pick(s, 'start', 'end', 'userID', 'truncated', 'displayStart'),
       )
@@ -110,22 +110,15 @@ export default function TempSchedDialog({
         return true
       }),
   })
-  const [shift, setShift] = useState<Shift | null>(null)
+  const startDT = DateTime.fromISO(value.start, { zone })
+  const [shift, setShift] = useState<Shift>({
+    start: startDT.toISO(),
+    end: startDT.plus({ hours: 8 }).toISO(),
+    userID: '',
+    truncated: false,
+  })
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
-
-  useEffect(() => {
-    // set default start, end times when zone is ready
-    if (!value.start && !value.end && !q.loading && zone) {
-      const nextMonday = getNextWeekday(1, DateTime.now(), zone)
-      const nextFriday = nextMonday.plus({ days: 5 }) // thru to the end of Friday
-      setValue({
-        ...value,
-        start: nextMonday.toISO(),
-        end: nextFriday.toISO(),
-      })
-    }
-  }, [q.loading, zone])
 
   function validate(): Error | null {
     if (isISOAfter(value.start, value.end)) {
@@ -249,9 +242,7 @@ export default function TempSchedDialog({
       errors={errs}
       disableBackdropClose
       notices={
-        !value.start ||
-        DateTime.fromISO(value.start, { zone }) >
-          DateTime.utc().minus({ hour: 1 }) ||
+        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
         edit
           ? []
           : [
@@ -268,9 +259,9 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: TempSchedValue) =>
-            setValue({ ...value, ...newValue })
-          }
+          onChange={(newValue: TempSchedValue) => {
+            setValue({ ...value, ...ensureInterval(value, newValue) })
+          }}
         >
           <Grid
             container
