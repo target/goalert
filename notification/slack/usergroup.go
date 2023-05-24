@@ -68,11 +68,13 @@ func (s *ChannelSender) ListUserGroups(ctx context.Context) ([]UserGroup, error)
 
 	res := make([]UserGroup, 0, len(groups))
 	for _, g := range groups {
-		res = append(res, UserGroup{
+		grp := UserGroup{
 			ID:     g.ID,
 			Name:   g.Name,
-			Handle: g.Handle,
-		})
+			Handle: "@" + g.Handle,
+		}
+		res = append(res, grp)
+		s.ugInfoCache.Add(g.ID, grp)
 	}
 
 	return res, nil
