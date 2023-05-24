@@ -1,14 +1,14 @@
 import {
   Checkbox,
+  FormControlLabel,
+  Grid,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   SelectChangeEvent,
   Typography,
 } from '@mui/material'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Grid from '@mui/material/Grid'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React from 'react'
@@ -99,7 +99,7 @@ export default function ScheduleOnCallNotificationsForm(
                 component={SlackChannelSelect}
                 fullWidth
                 required
-                label='Slack Channel'
+                label='Slack Channel (fallback)'
                 name='channelFields.slackChannelID'
               />
             </Grid>
