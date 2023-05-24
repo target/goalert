@@ -593,6 +593,7 @@ func (h *Harness) Close() error {
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+	h.dumpDB() // early as possible
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
@@ -614,7 +615,6 @@ func (h *Harness) Close() error {
 	h.twS.Close()
 
 	h.tw.Close()
-	h.dumpDB()
 
 	h.pgTime.Close()
 
