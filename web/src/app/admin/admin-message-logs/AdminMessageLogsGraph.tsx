@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -64,24 +64,23 @@ export default function AdminMessageLogsGraph(): JSX.Element {
 
   // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
+  const [now] = useState(DateTime.now())
 
   const [{ search, start, end, graphInterval }] = useURLParams({
     search: '',
-    start: DateTime.now().minus({ hours: 8 }).toISO(),
-    end: DateTime.now().toISO(),
+    start: now.minus({ hours: 8 }).toISO(),
+    end: now.toISO(),
     graphInterval: 'PT1H',
   })
-
-  const logsInput = {
-    search,
-    createdAfter: start,
-    createdBefore: end,
-  }
 
   const [{ data, fetching, error }] = useQuery({
     query: statsQuery,
     variables: {
-      logsInput,
+      logsInput: {
+        search,
+        createdAfter: start,
+        createdBefore: end,
+      },
       statsInput: {
         bucketDuration: graphInterval,
         bucketOrigin: start,
