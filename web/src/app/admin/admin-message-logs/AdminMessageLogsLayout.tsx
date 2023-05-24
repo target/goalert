@@ -3,7 +3,7 @@ import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
-import { gql, useQuery } from '@apollo/client'
+import { gql } from 'urql'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
 import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
@@ -39,23 +39,6 @@ const query = gql`
   }
 `
 
-const statsQuery = gql`
-  query messageLogsQuery(
-    $logsInput: MessageLogSearchOptions
-    $statsInput: TimeSeriesOptions!
-  ) {
-    messageLogs(input: $logsInput) {
-      stats {
-        timeSeries(input: $statsInput) {
-          start
-          end
-          count
-        }
-      }
-    }
-  }
-`
-
 const useStyles = makeStyles((theme: Theme) => ({
   containerDefault: {
     [theme.breakpoints.up('md')]: {
@@ -75,13 +58,10 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  console.log('render')
-
-  const [{ search, start, end, graphInterval }] = useURLParams({
+  const [{ search, start, end }] = useURLParams({
     search: '',
     start: DateTime.now().minus({ hours: 8 }).toISO(),
     end: DateTime.now().toISO(),
-    graphInterval: 'PT1H',
   })
 
   const logsInput = {
@@ -89,21 +69,6 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     createdAfter: start,
     createdBefore: end,
   }
-
-  const {
-    data,
-    loading: fetching,
-    error,
-  } = useQuery(statsQuery, {
-    variables: {
-      logsInput,
-      statsInput: {
-        bucketDuration: graphInterval,
-        bucketOrigin: start,
-      },
-    },
-    pollInterval: 0,
-  })
 
   function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
     const status = toTitleCase(log.status)
@@ -173,11 +138,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           <AdminMessageLogsControls />
         </Grid>
 
-        <AdminMessageLogsGraph
-          loading={fetching}
-          error={error}
-          stats={data?.messageLogs?.stats?.timeSeries}
-        />
+        <AdminMessageLogsGraph />
 
         <Grid item xs={12}>
           <QueryList

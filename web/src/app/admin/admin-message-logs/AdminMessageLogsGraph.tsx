@@ -26,19 +26,15 @@ import {
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
 import { DateTime, DateTimeFormatOptions } from 'luxon'
-import { useURLParam } from '../../actions'
+import { useURLParam, useURLParams } from '../../actions'
 import Spinner from '../../loading/components/Spinner'
-import { CombinedError } from 'urql'
+import { gql, useQuery } from 'urql'
 
-interface AdminMessageLogsGraphProps {
-  loading: boolean
-  error?: CombinedError
-  stats: Array<{
-    start: string
-    end: string
-    count: number
-  }>
-}
+type Stats = Array<{
+  start: string
+  end: string
+  count: number
+}>
 
 interface MessageLogGraphData {
   date: string
@@ -46,15 +42,53 @@ interface MessageLogGraphData {
   count: number
 }
 
-export default function AdminMessageLogsGraph({
-  loading,
-  // error,
-  stats = [],
-}: AdminMessageLogsGraphProps): JSX.Element {
+const statsQuery = gql`
+  query messageStatsQuery(
+    $logsInput: MessageLogSearchOptions
+    $statsInput: TimeSeriesOptions!
+  ) {
+    messageLogs(input: $logsInput) {
+      stats {
+        timeSeries(input: $statsInput) {
+          start
+          end
+          count
+        }
+      }
+    }
+  }
+`
+
+export default function AdminMessageLogsGraph(): JSX.Element {
   const theme = useTheme()
 
   // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
   const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
+
+  const [{ search, start, end, graphInterval }] = useURLParams({
+    search: '',
+    start: DateTime.now().minus({ hours: 8 }).toISO(),
+    end: DateTime.now().toISO(),
+    graphInterval: 'PT1H',
+  })
+
+  const logsInput = {
+    search,
+    createdAfter: start,
+    createdBefore: end,
+  }
+
+  const [{ data, fetching, error }] = useQuery({
+    query: statsQuery,
+    variables: {
+      logsInput,
+      statsInput: {
+        bucketDuration: graphInterval,
+        bucketOrigin: start,
+      },
+    },
+  })
+  const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
 
   const locale: DateTimeFormatOptions = {
     month: 'short',
@@ -93,7 +127,12 @@ export default function AdminMessageLogsGraph({
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <CardHeader
             title='Message Logs'
-            subheader={loading && <Spinner text='Loading...' />}
+            subheader={
+              (fetching && <Spinner text='Loading...' />) ||
+              (error && (
+                <Typography>Error loading graph: {error.message}</Typography>
+              ))
+            }
           />
         </AccordionSummary>
         <AccordionDetails>
