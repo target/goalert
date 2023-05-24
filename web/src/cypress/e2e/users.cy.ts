@@ -50,14 +50,14 @@ function testUsers(screen: ScreenFormat): void {
 
     it('should edit a user role', () => {
       cy.get('[data-cy="card-actions"]')
-        .find('button[aria-label="Edit"]')
+        .find('button[aria-label="Edit Access"]')
         .click()
       cy.get('[type="checkbox"]').check()
       cy.dialogFinish('Submit')
 
       cy.reload()
       cy.get('[data-cy="card-actions"]')
-        .find('button[aria-label="Edit"]')
+        .find('button[aria-label="Edit Access"]')
         .click()
       cy.get('[type="checkbox"]').should('be.checked')
     })
@@ -74,7 +74,7 @@ function testUsers(screen: ScreenFormat): void {
     describe('User Password', () => {
       beforeEach(() => {
         cy.get('[data-cy="card-actions"]')
-          .find('button[aria-label="Edit"]')
+          .find('button[aria-label="Edit Access"]')
           .click()
       })
       it('should show error when password length is too short', () => {
