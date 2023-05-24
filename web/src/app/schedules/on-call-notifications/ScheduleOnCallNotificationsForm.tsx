@@ -1,3 +1,4 @@
+import InfoIcon from '@mui/icons-material/Info'
 import {
   Checkbox,
   FormControlLabel,
@@ -5,11 +6,9 @@ import {
   MenuItem,
   Radio,
   RadioGroup,
-  Select,
-  SelectChangeEvent,
-  Typography,
+  TextField,
+  Typography
 } from '@mui/material'
-import InfoIcon from '@mui/icons-material/Info'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React from 'react'
@@ -65,9 +64,7 @@ export default function ScheduleOnCallNotificationsForm(
     })
   }
 
-  const handleTypeChange = (
-    e: SelectChangeEvent<NotificationChannelType>,
-  ): void => {
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newType = e.target.value as NotificationChannelType
     if (props.value.type !== newType) {
       const channelFields = getEmptyChannelFields(newType)
@@ -143,10 +140,12 @@ export default function ScheduleOnCallNotificationsForm(
     <FormContainer {...formProps}>
       <Grid container spacing={2} direction='column'>
         <Grid item xs={12}>
-          <Select
+          <TextField
             fullWidth
             value={props.value.type}
             required
+            label='Type'
+            select
             onChange={handleTypeChange}
           >
             <MenuItem value='SLACK_CHANNEL' disabled={!slackEnabled}>
@@ -157,7 +156,7 @@ export default function ScheduleOnCallNotificationsForm(
                 SLACK USER GROUP
               </MenuItem>
             )}
-          </Select>
+          </TextField>
         </Grid>
         <Grid item>
           <RadioGroup
