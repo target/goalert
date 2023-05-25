@@ -45,8 +45,8 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
               ? 'admin'
               : 'user'
             : null,
-        oldPassword: value.oldPassword !== '' ? value.oldPassword : null,
-        password: value.password !== '' ? value.password : null,
+        oldPassword: value.oldPassword || null,
+        password: value.password || null,
       },
     },
   })
@@ -112,7 +112,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
   return (
     <FormDialog
-      title='Edit User Info'
+      title='Edit User Access'
       loading={editUserStatus.loading}
       errors={nonFieldErrors(editUserStatus.error)}
       onClose={props.onClose}

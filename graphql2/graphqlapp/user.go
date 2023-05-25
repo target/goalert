@@ -137,7 +137,7 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 	}
 
 	if input.OldPassword != nil {
-		oldPassword, err = a.AuthBasicStore.ValidatePassword(ctx, input.ID, *input.OldPassword)
+		oldPassword, err = a.AuthBasicStore.ValidatePassword(ctx, *input.OldPassword)
 		if err != nil {
 			return false, err
 		}

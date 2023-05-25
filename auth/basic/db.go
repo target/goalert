@@ -53,14 +53,14 @@ func (h hashed) _private()    {}
 
 // ValidatedPassword is an interface that can be used to store the userId of a user with a validated password.
 type ValidatedPassword interface {
-	UserId() string
+	UserID() string
 
 	_private() // prevent external implementations
 }
 
 type validated string
 
-func (v validated) UserId() string { return string(v) }
+func (v validated) UserID() string { return string(v) }
 func (v validated) _private()      {}
 
 // NewHashedPassword will hash the given password and return a Password object.
@@ -102,7 +102,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username strin
 }
 
 // UpdateTx should update a user's password in auth_basic_users
-func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPassword ValidatedPassword, newPassword HashedPassword) error {
+func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass ValidatedPassword, newPass HashedPassword) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return err
@@ -113,17 +113,14 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass
 		return err
 	}
 
-	if oldPassword != nil {
-		if userID != oldPassword.UserId() {
-			return validation.NewFieldError("oldPassword", "Password does not match User")
-		}
-	} else {
-		if !permission.Admin(ctx) {
-			return validation.NewFieldError("oldPassword", "Previous password required")
-		}
+	if oldPass != nil && oldPass.UserID() != userID {
+		return validation.NewFieldError("oldPassword", "Password does not match User")
+	}
+	if oldPass == nil && !permission.Admin(ctx) {
+		return validation.NewFieldError("oldPassword", "Previous password required")
 	}
 
-	_, err = tx.StmtContext(ctx, b.update).ExecContext(ctx, userID, newPassword.Hash())
+	_, err = tx.StmtContext(ctx, b.update).ExecContext(ctx, userID, newPass.Hash())
 	return err
 }
 
@@ -160,11 +157,13 @@ func (b *Store) Validate(ctx context.Context, username, password string) (string
 }
 
 // ValidatePassword should check if the password matches the user's stored password
-func (b *Store) ValidatePassword(ctx context.Context, userID, password string) (ValidatedPassword, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+func (b *Store) ValidatePassword(ctx context.Context, password string) (ValidatedPassword, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
+
+	userID := permission.UserID(ctx)
 
 	err = validate.Many(
 		validate.UUID("UserID", userID),
@@ -174,10 +173,8 @@ func (b *Store) ValidatePassword(ctx context.Context, userID, password string) (
 		return nil, err
 	}
 
-	row := b.getByID.QueryRowContext(ctx, userID)
 	var hash string
-	err = row.Scan(&hash)
-
+	err = b.getByID.QueryRowContext(ctx, userID).Scan(&hash)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.New("unknown userID")
 	}
