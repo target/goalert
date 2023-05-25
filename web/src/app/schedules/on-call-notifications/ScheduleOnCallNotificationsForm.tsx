@@ -7,7 +7,7 @@ import {
   Radio,
   RadioGroup,
   TextField,
-  Typography
+  Typography,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
@@ -114,7 +114,7 @@ export default function ScheduleOnCallNotificationsForm(
                 component={SlackChannelSelect}
                 fullWidth
                 required
-                label='Slack Channel (fallback)'
+                label='Slack Channel (for error reporting)'
                 name='channelFields.slackChannelID'
               />
             </Grid>
@@ -139,25 +139,6 @@ export default function ScheduleOnCallNotificationsForm(
   return (
     <FormContainer {...formProps}>
       <Grid container spacing={2} direction='column'>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            value={props.value.type}
-            required
-            label='Type'
-            select
-            onChange={handleTypeChange}
-          >
-            <MenuItem value='SLACK_CHANNEL' disabled={!slackEnabled}>
-              SLACK CHANNEL
-            </MenuItem>
-            {slackUGEnabled && (
-              <MenuItem value='SLACK_UG' disabled={!slackEnabled}>
-                SLACK USER GROUP
-              </MenuItem>
-            )}
-          </TextField>
-        </Grid>
         <Grid item>
           <RadioGroup
             name='ruleType'
@@ -224,6 +205,25 @@ export default function ScheduleOnCallNotificationsForm(
               ))}
             </Grid>
           </Grid>
+        </Grid>
+        <Grid item>
+          <TextField
+            fullWidth
+            value={props.value.type}
+            required
+            label='Type'
+            select
+            onChange={handleTypeChange}
+          >
+            <MenuItem value='SLACK_CHANNEL' disabled={!slackEnabled}>
+              SLACK CHANNEL
+            </MenuItem>
+            {slackUGEnabled && (
+              <MenuItem value='SLACK_UG' disabled={!slackEnabled}>
+                SLACK USER GROUP
+              </MenuItem>
+            )}
+          </TextField>
         </Grid>
         {renderTypeFields(formProps.value.type)}
       </Grid>
