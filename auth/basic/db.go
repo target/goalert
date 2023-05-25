@@ -116,7 +116,7 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass
 	if oldPass != nil && oldPass.UserID() != userID {
 		return validation.NewFieldError("oldPassword", "Password does not match User")
 	}
-	if oldPass == nil && !permission.Admin(ctx) {
+	if !permission.Admin(ctx) && oldPass == nil {
 		return validation.NewFieldError("oldPassword", "Previous password required")
 	}
 
