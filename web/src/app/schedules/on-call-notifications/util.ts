@@ -106,13 +106,7 @@ export type Value = {
 }
 
 export type RuleFieldError = {
-  field:
-    | 'time'
-    | 'weekdayFilter'
-    | 'type'
-    | 'slackChannelID'
-    | 'slackUserGroup'
-    | 'webhookURL'
+  field: 'time' | 'weekdayFilter' | 'type' | 'slackChannelID' | 'slackUserGroup'
   message: string
 }
 
@@ -207,10 +201,6 @@ export function mapOnCallErrors(
 
       if (e.field === 'targetTypeSlackUserGroup') {
         return { ...e, field: 'slackUserGroup' }
-      }
-
-      if (e.field === 'targetTypeChanWebhook') {
-        return { ...e, field: 'webhookURL' }
       }
 
       dialogErrs.push(e)
