@@ -89,7 +89,6 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 			GroupID:      ugID,
 			Missing:      missing,
 			callbackFunc: cfg.CallbackURL,
-			ErrorMsg:     errorMsg,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
@@ -107,7 +106,6 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 			ScheduleID:   t.ScheduleID,
 			ScheduleName: t.ScheduleName,
 			callbackFunc: cfg.CallbackURL,
-			ErrorMsg:     errorMsg,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
@@ -131,9 +129,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		log.Log(log.WithField(ctx, "SlackUGErrorID", errID), err)
 		var buf bytes.Buffer
 		err := userGroupErrorUpdate.Execute(&buf, userGroupError{
-			ErrorID:  errID,
-			GroupID:  ugID,
-			ErrorMsg: errorMsg,
+			ErrorID: errID,
+			GroupID: ugID,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
@@ -142,20 +139,18 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		stateDetails = "failed to update user-group, sent error to channel and log"
 	}
 
-	var ts string
-
 	// Only send to the channel if an error occurred
-	if stateDetails != "" {
-		err = s.withClient(ctx, func(c *slack.Client) error {
-			_, ts, err = c.PostMessageContext(ctx, chanID, slack.MsgOptionText(errorMsg, false))
-			if err != nil {
-				return fmt.Errorf("post message to channel '%s': %w", chanID, err)
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
+	if stateDetails == "" {
+		return &notification.SentMessage{State: notification.StateDelivered}, nil
+	}
+
+	var ts string
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		_, ts, err = c.PostMessageContext(ctx, chanID, slack.MsgOptionText(errorMsg, false))
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("post message to channel '%s': %w", chanID, err)
 	}
 
 	return &notification.SentMessage{State: notification.StateDelivered, ExternalID: ts, StateDetails: stateDetails}, nil
