@@ -62,7 +62,7 @@
     "@typescript-eslint/parser": "5.58.0",
     "@urql/exchange-retry": "1.1.1",
     "bowser": "2.11.0",
-    "chance": "1.1.7",
+    "chance": "1.1.11",
     "classnames": "2.3.2",
     "cypress": "12.5.0",
     "diff": "5.1.0",
