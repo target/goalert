@@ -36,7 +36,7 @@
     "@dnd-kit/core": "6.0.8",
     "@dnd-kit/sortable": "7.0.0",
     "@dnd-kit/utilities": "3.2.1",
-    "@emotion/react": "11.10.0",
+    "@emotion/react": "11.11.0",
     "@emotion/styled": "11.10.6",
     "@material/material-color-utilities": "0.2.6",
     "@mui/icons-material": "5.11.16",
