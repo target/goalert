@@ -3813,10 +3813,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chance@npm:1.1.7":
-  version: 1.1.7
-  resolution: "chance@npm:1.1.7"
-  checksum: 4d9f7f7b3a5a7436ebdc33ae06e5e6e7d40e66f9dbcf0e3ee78cf304d50f2fadd1ab8d9ab1f59f66428b32750c23ec82c832afbca4aa2bdf58f4fc85618cdd8b
+"chance@npm:1.1.11":
+  version: 1.1.11
+  resolution: "chance@npm:1.1.11"
+  checksum: 2e871fcc76584d274f860f0f25380b6ab547caf0d22d8b043a313be73d5c3db38941373241f83aeba049e7511f752f9746dc722a0f2b0182020d493c4e11da84
   languageName: node
   linkType: hard
 
@@ -10656,7 +10656,7 @@ __metadata:
     "@typescript-eslint/parser": 5.58.0
     "@urql/exchange-retry": 1.1.1
     bowser: 2.11.0
-    chance: 1.1.7
+    chance: 1.1.11
     classnames: 2.3.2
     cypress: 12.5.0
     diff: 5.1.0
