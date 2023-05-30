@@ -51,7 +51,7 @@ type hashed []byte
 func (h hashed) Hash() string { return string(h) }
 func (h hashed) _private()    {}
 
-// ValidatedPassword is an interface that can be used to store the userId of a user with a validated password.
+// ValidatedPassword represents a validated password for a UserID.
 type ValidatedPassword interface {
 	UserID() string
 
@@ -101,7 +101,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username strin
 	return err
 }
 
-// UpdateTx should update a user's password in auth_basic_users
+// UpdateTx updates a user's password. oldPass is required if the current context is not an admin.
 func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass ValidatedPassword, newPass HashedPassword) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
@@ -156,7 +156,7 @@ func (b *Store) Validate(ctx context.Context, username, password string) (string
 	return userID, nil
 }
 
-// ValidatePassword should check if the password matches the user's stored password
+// ValidatePassword will validate the password of the currently authenticated user.
 func (b *Store) ValidatePassword(ctx context.Context, password string) (ValidatedPassword, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
