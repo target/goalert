@@ -59,6 +59,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 
 	for _, tgt := range input.Targets {
 		if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
+			// UI code expects targets to be un-indexed
 			return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
 		}
 	}
@@ -248,7 +249,8 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 			step.Targets = make([]assignment.Target, len(input.Targets))
 			for i, tgt := range input.Targets {
 				if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
-					return validation.NewFieldError("webhook-targets", "URL not allowed by administrator")
+					// UI code expects targets to be un-indexed
+					return validation.NewFieldError("targets", "URL not allowed by administrator")
 				}
 				step.Targets[i] = tgt
 			}
