@@ -27,6 +27,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -68,6 +69,7 @@ type ResolverRoot interface {
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
+	MessageLogConnectionStats() MessageLogConnectionStatsResolver
 	Mutation() MutationResolver
 	OnCallNotificationRule() OnCallNotificationRuleResolver
 	OnCallShift() OnCallShiftResolver
@@ -270,6 +272,11 @@ type ComplexityRoot struct {
 	MessageLogConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+		Stats    func(childComplexity int) int
+	}
+
+	MessageLogConnectionStats struct {
+		TimeSeries func(childComplexity int, input TimeSeriesOptions) int
 	}
 
 	Mutation struct {
@@ -555,6 +562,12 @@ type ComplexityRoot struct {
 		Start  func(childComplexity int) int
 	}
 
+	TimeSeriesBucket struct {
+		Count func(childComplexity int) int
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
+	}
+
 	TimeZone struct {
 		ID func(childComplexity int) int
 	}
@@ -679,6 +692,9 @@ type IntegrationKeyResolver interface {
 	Type(ctx context.Context, obj *integrationkey.IntegrationKey) (IntegrationKeyType, error)
 
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
+}
+type MessageLogConnectionStatsResolver interface {
+	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
 }
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
@@ -1600,6 +1616,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MessageLogConnection.PageInfo(childComplexity), true
+
+	case "MessageLogConnection.stats":
+		if e.complexity.MessageLogConnection.Stats == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.Stats(childComplexity), true
+
+	case "MessageLogConnectionStats.timeSeries":
+		if e.complexity.MessageLogConnectionStats.TimeSeries == nil {
+			break
+		}
+
+		args, err := ec.field_MessageLogConnectionStats_timeSeries_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions)), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -3404,6 +3439,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TemporarySchedule.Start(childComplexity), true
 
+	case "TimeSeriesBucket.count":
+		if e.complexity.TimeSeriesBucket.Count == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Count(childComplexity), true
+
+	case "TimeSeriesBucket.end":
+		if e.complexity.TimeSeriesBucket.End == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.End(childComplexity), true
+
+	case "TimeSeriesBucket.start":
+		if e.complexity.TimeSeriesBucket.Start == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Start(childComplexity), true
+
 	case "TimeZone.id":
 		if e.complexity.TimeZone.ID == nil {
 			break
@@ -3843,6 +3899,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSlackUserGroupSearchOptions,
 		ec.unmarshalInputSystemLimitInput,
 		ec.unmarshalInputTargetInput,
+		ec.unmarshalInputTimeSeriesOptions,
 		ec.unmarshalInputTimeZoneSearchOptions,
 		ec.unmarshalInputUpdateAlertsByServiceInput,
 		ec.unmarshalInputUpdateAlertsInput,
@@ -3945,6 +4002,21 @@ func (ec *executionContext) field_Alert_recentEvents_args(ctx context.Context, r
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 TimeSeriesOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10107,6 +10179,117 @@ func (ec *executionContext) fieldContext_MessageLogConnection_pageInfo(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _MessageLogConnection_stats(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_stats(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Stats, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*notification.SearchOptions)
+	fc.Result = res
+	return ec.marshalNMessageLogConnectionStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐSearchOptions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_stats(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "timeSeries":
+				return ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnectionStats", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField, obj *notification.SearchOptions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]TimeSeriesBucket)
+	fc.Result = res
+	return ec.marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnectionStats",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "start":
+				return ec.fieldContext_TimeSeriesBucket_start(ctx, field)
+			case "end":
+				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
+			case "count":
+				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_MessageLogConnectionStats_timeSeries_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_swoAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_swoAction(ctx, field)
 	if err != nil {
@@ -14036,6 +14219,8 @@ func (ec *executionContext) fieldContext_Query_messageLogs(ctx context.Context, 
 				return ec.fieldContext_MessageLogConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
+			case "stats":
+				return ec.fieldContext_MessageLogConnection_stats(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnection", field.Name)
 		},
@@ -20922,6 +21107,138 @@ func (ec *executionContext) fieldContext_TemporarySchedule_shifts(ctx context.Co
 				return ec.fieldContext_OnCallShift_truncated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_start(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_end(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28194,6 +28511,44 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context, obj interface{}) (TimeSeriesOptions, error) {
+	var it TimeSeriesOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bucketDuration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketDuration"))
+			data, err := ec.unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketDuration = data
+		case "bucketOrigin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketOrigin"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketOrigin = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Context, obj interface{}) (TimeZoneSearchOptions, error) {
 	var it TimeZoneSearchOptions
 	asMap := map[string]interface{}{}
@@ -30725,6 +31080,54 @@ func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "stats":
+
+			out.Values[i] = ec._MessageLogConnection_stats(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var messageLogConnectionStatsImplementors = []string{"MessageLogConnectionStats"}
+
+func (ec *executionContext) _MessageLogConnectionStats(ctx context.Context, sel ast.SelectionSet, obj *notification.SearchOptions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogConnectionStatsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLogConnectionStats")
+		case "timeSeries":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MessageLogConnectionStats_timeSeries(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -33698,6 +34101,48 @@ func (ec *executionContext) _TemporarySchedule(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var timeSeriesBucketImplementors = []string{"TimeSeriesBucket"}
+
+func (ec *executionContext) _TimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, obj *TimeSeriesBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timeSeriesBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimeSeriesBucket")
+		case "start":
+
+			out.Values[i] = ec._TimeSeriesBucket_start(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end":
+
+			out.Values[i] = ec._TimeSeriesBucket_end(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._TimeSeriesBucket_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var timeZoneImplementors = []string{"TimeZone"}
 
 func (ec *executionContext) _TimeZone(ctx context.Context, sel ast.SelectionSet, obj *TimeZone) graphql.Marshaler {
@@ -35927,6 +36372,16 @@ func (ec *executionContext) marshalNMessageLogConnection2ᚖgithubᚗcomᚋtarge
 	return ec._MessageLogConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMessageLogConnectionStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐSearchOptions(ctx context.Context, sel ast.SelectionSet, v *notification.SearchOptions) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageLogConnectionStats(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
 	return ec._Notice(ctx, sel, &v)
 }
@@ -37028,6 +37483,59 @@ func (ec *executionContext) marshalNTemporarySchedule2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, v TimeSeriesBucket) graphql.Marshaler {
+	return ec._TimeSeriesBucket(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []TimeSeriesBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx context.Context, v interface{}) (TimeSeriesOptions, error) {
+	res, err := ec.unmarshalInputTimeSeriesOptions(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNTimeZone2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeZone(ctx context.Context, sel ast.SelectionSet, v TimeZone) graphql.Marshaler {
