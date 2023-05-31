@@ -43,12 +43,6 @@ export interface Query {
   swoStatus: SWOStatus
 }
 
-export interface MessageCount {
-  count: number
-  start: ISOTimestamp
-  end: ISOTimestamp
-}
-
 export interface SWOStatus {
   state: SWOState
   lastStatus: string

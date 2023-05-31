@@ -128,12 +128,6 @@ type Query {
   swoStatus: SWOStatus!
 }
 
-type MessageCount {
-  count: Int!
-  start: ISOTimestamp!
-  end: ISOTimestamp!
-}
-
 type SWOStatus {
   state: SWOState!
   lastStatus: String!

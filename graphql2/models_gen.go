@@ -322,12 +322,6 @@ type LinkAccountInfo struct {
 	AlertNewStatus *AlertStatus `json:"alertNewStatus,omitempty"`
 }
 
-type MessageCount struct {
-	Count int       `json:"count"`
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
-}
-
 type MessageLogConnection struct {
 	Nodes    []DebugMessage              `json:"nodes"`
 	PageInfo *PageInfo                   `json:"pageInfo"`

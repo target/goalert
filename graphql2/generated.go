@@ -269,12 +269,6 @@ type ComplexityRoot struct {
 		UserDetails    func(childComplexity int) int
 	}
 
-	MessageCount struct {
-		Count func(childComplexity int) int
-		End   func(childComplexity int) int
-		Start func(childComplexity int) int
-	}
-
 	MessageLogConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
@@ -1608,27 +1602,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LinkAccountInfo.UserDetails(childComplexity), true
-
-	case "MessageCount.count":
-		if e.complexity.MessageCount.Count == nil {
-			break
-		}
-
-		return e.complexity.MessageCount.Count(childComplexity), true
-
-	case "MessageCount.end":
-		if e.complexity.MessageCount.End == nil {
-			break
-		}
-
-		return e.complexity.MessageCount.End(childComplexity), true
-
-	case "MessageCount.start":
-		if e.complexity.MessageCount.Start == nil {
-			break
-		}
-
-		return e.complexity.MessageCount.Start(childComplexity), true
 
 	case "MessageLogConnection.nodes":
 		if e.complexity.MessageLogConnection.Nodes == nil {
@@ -10075,138 +10048,6 @@ func (ec *executionContext) fieldContext_LinkAccountInfo_alertNewStatus(ctx cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AlertStatus does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MessageCount_count(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MessageCount_count(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_MessageCount_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MessageCount",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MessageCount_start(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MessageCount_start(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Start, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_MessageCount_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MessageCount",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MessageCount_end(ctx context.Context, field graphql.CollectedField, obj *MessageCount) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MessageCount_end(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_MessageCount_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MessageCount",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -31204,48 +31045,6 @@ func (ec *executionContext) _LinkAccountInfo(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._LinkAccountInfo_alertNewStatus(ctx, field, obj)
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var messageCountImplementors = []string{"MessageCount"}
-
-func (ec *executionContext) _MessageCount(ctx context.Context, sel ast.SelectionSet, obj *MessageCount) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, messageCountImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("MessageCount")
-		case "count":
-
-			out.Values[i] = ec._MessageCount_count(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "start":
-
-			out.Values[i] = ec._MessageCount_start(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "end":
-
-			out.Values[i] = ec._MessageCount_end(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
