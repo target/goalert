@@ -112,7 +112,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   const formatIntervals = (label: string): string => {
     // check for default bounds
     if (label.toString() !== '0' && label !== 'auto') {
-      const dt = DateTime.fromFormat(label, 'MMM d, t')
+      const dt = DateTime.fromISO(label)
       if (duration.endsWith('D')) return dt.toFormat('MMM d')
       if (duration.endsWith('H')) return dt.toFormat('h a')
       if (duration.endsWith('M')) return dt.toFormat('h:mma').toLowerCase()
