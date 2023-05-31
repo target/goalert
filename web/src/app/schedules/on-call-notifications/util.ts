@@ -1,4 +1,3 @@
-/* eslint-disable no-fallthrough */
 import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
