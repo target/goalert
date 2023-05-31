@@ -19,13 +19,8 @@ import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
-import {
-  EVERY_DAY,
-  NO_DAY,
-  NotificationChannelType,
-  RuleFieldError,
-  Value,
-} from './util'
+import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { TargetType } from '../../../schema'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -63,7 +58,7 @@ export default function ScheduleOnCallNotificationsForm(
   }
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const newType = e.target.value as NotificationChannelType
+    const newType = e.target.value as TargetType
     if (props.value.type !== newType) {
       props.onChange({
         ...props.value,
@@ -77,14 +72,18 @@ export default function ScheduleOnCallNotificationsForm(
     () => [
       <MenuItem
         key='SLACK_CHANNEL'
-        value='SLACK_CHANNEL'
+        value='slackChannel'
         disabled={!slackEnabled}
       >
         SLACK CHANNEL
       </MenuItem>,
       ...(slackUGEnabled
         ? [
-            <MenuItem key='SLACK_UG' value='SLACK_UG' disabled={!slackEnabled}>
+            <MenuItem
+              key='SLACK_UG'
+              value='slackUserGroup'
+              disabled={!slackEnabled}
+            >
               SLACK USER GROUP
             </MenuItem>,
           ]
@@ -93,9 +92,9 @@ export default function ScheduleOnCallNotificationsForm(
     [slackEnabled, slackUGEnabled],
   )
 
-  function renderTypeFields(type: NotificationChannelType): JSX.Element {
+  function renderTypeFields(type: TargetType): JSX.Element {
     switch (type) {
-      case 'SLACK_UG':
+      case 'slackUserGroup':
         return (
           <Grid item>
             <FormField
@@ -106,8 +105,7 @@ export default function ScheduleOnCallNotificationsForm(
             />
           </Grid>
         )
-      case 'SLACK_CHANNEL':
-      default:
+      case 'slackChannel':
         return (
           <Grid item>
             <FormField
@@ -119,6 +117,9 @@ export default function ScheduleOnCallNotificationsForm(
             />
           </Grid>
         )
+      default:
+        // unsupported type
+        return <Grid item />
     }
   }
 

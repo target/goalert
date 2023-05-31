@@ -5,76 +5,17 @@ import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
-  TargetInput,
+  TargetType,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
-export type NotificationChannelType = 'SLACK_CHANNEL' | 'SLACK_UG'
-
 export type Value = {
   time: string | null
   weekdayFilter: WeekdayFilter
-  type: NotificationChannelType
+  type: TargetType
   targetID: string | null
-}
-
-// channelTypeFromTarget will return the NotificationChannelType based on the type
-// of the target supplied. If the target is undefined or has an invalid type,
-// SLACK_CHANNEL is returned by default.
-export function channelTypeFromTarget(
-  target?: TargetInput,
-): NotificationChannelType {
-  switch (target?.type) {
-    case 'slackUserGroup':
-      return 'SLACK_UG'
-    case 'slackChannel':
-    default:
-      return 'SLACK_CHANNEL'
-  }
-}
-
-// channelFieldsFromTarget will return an object with a channelField and possibly a
-// slackUserGroup based on the target supplied. If the target is undefined or has
-// an invalid type, an object with a null channelField is returned.
-export function channelFieldsFromTarget(target?: TargetInput): {
-  channelField: string | null
-  slackUserGroup?: string | null
-} {
-  switch (target?.type) {
-    case 'slackChannel':
-      return {
-        channelField: target.id,
-      }
-    case 'slackUserGroup':
-      return {
-        channelField: target.id.split(':')[1],
-        slackUserGroup: target.id.split(':')[0],
-      }
-    default:
-      return {
-        channelField: null,
-      }
-  }
-}
-
-// targetFromValue will create a TargetInput object based on the value
-// supplied.
-function targetFromValue(value: Value): TargetInput {
-  switch (value.type) {
-    case 'SLACK_UG':
-      return {
-        type: 'slackUserGroup',
-        id: value.targetID ?? '',
-      }
-    case 'SLACK_CHANNEL':
-    default:
-      return {
-        type: 'slackChannel',
-        id: value.targetID ?? '',
-      }
-  }
 }
 
 export type RuleFieldError = {
@@ -132,7 +73,7 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: targetFromValue(v),
+  target: { id: v.targetID || '', type: v.type },
 })
 
 export const onCallRuleToInput = (
@@ -159,7 +100,6 @@ export function mapOnCallErrors(
   }
 
   dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
-  console.log(dialogErrs)
   const fieldErrs = fieldErrors(mErr)
     .map((e) => {
       switch (e.field) {

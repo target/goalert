@@ -12,7 +12,7 @@ interface ScheduleOnCallNotificationsCreateDialogProps {
 const defaultValue: Value = {
   time: null,
   weekdayFilter: NO_DAY,
-  type: 'SLACK_CHANNEL',
+  type: 'slackChannel',
   targetID: null,
 }
 

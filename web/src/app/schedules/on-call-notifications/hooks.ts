@@ -8,7 +8,6 @@ import {
 import { DateTime } from 'luxon'
 import { OnCallNotificationRule, Schedule } from '../../../schema'
 import {
-  channelTypeFromTarget,
   EVERY_DAY,
   formatLocalClockTime,
   mapOnCallErrors,
@@ -145,7 +144,7 @@ export function useEditOnCallRule(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    type: channelTypeFromTarget(rule?.target),
+    type: rule?.target?.type ?? 'slackChannel',
     targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
