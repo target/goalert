@@ -223,6 +223,11 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 		buckets = append(buckets, bucket)
 	}
 
+	// sort buckets by start time
+	sort.Slice(buckets, func(i, j int) bool {
+		return buckets[i].Start.Before(buckets[j].Start)
+	})
+
 	return buckets, nil
 }
 
@@ -315,10 +320,6 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 		result = append(result, l)
 	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].CreatedAt.Unix() > result[j].CreatedAt.Unix()
-	})
 
 	return result, nil
 }
