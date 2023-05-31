@@ -102,6 +102,7 @@ export default function ScheduleOnCallNotificationsForm(
               component={SlackUserGroupSelect}
               fullWidth
               name='targetID'
+              label='Slack User Group'
             />
           </Grid>
         )

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { gql } from 'urql'
 import { makeQuerySelect } from './QuerySelect'
 import { SlackChannelSelect } from './SlackChannelSelect'
+import { FormControl, FormHelperText } from '@mui/material'
 
 const query = gql`
   query ($input: SlackUserGroupSearchOptions) {
@@ -31,6 +32,8 @@ const SlackUserGroupQuerySelect = makeQuerySelect('SlackUserGroupSelect', {
 export type SlackUserGroupSelectProps = {
   value: string | null
   onChange: (newValue: string | null) => void
+  error?: { message: string }
+  label?: string
 }
 
 export const SlackUserGroupSelect: React.FC<SlackUserGroupSelectProps> = (
@@ -60,10 +63,30 @@ export const SlackUserGroupSelect: React.FC<SlackUserGroupSelectProps> = (
   }
 
   return (
-    <div>
-      <SlackUserGroupQuerySelect value={groupID} onChange={handleGroupChange} />
-      <SlackChannelSelect value={channelID} onChange={handleChannelChange} />
-    </div>
+    <React.Fragment>
+      <FormControl error={Boolean(props.error)}>
+        <SlackUserGroupQuerySelect
+          value={groupID}
+          onChange={handleGroupChange}
+          label={props.label}
+        />
+        <FormHelperText>
+          The selected group's membership will be replaced/set to the schedule's
+          on-call user(s).
+        </FormHelperText>
+      </FormControl>
+
+      <FormControl style={{ marginTop: '0.5em' }} error={Boolean(props.error)}>
+        <SlackChannelSelect
+          label='Error Channel'
+          value={channelID}
+          onChange={handleChannelChange}
+        />
+        <FormHelperText>
+          Any problems updating the user group will be sent to this channel.
+        </FormHelperText>
+      </FormControl>
+    </React.Fragment>
   )
 }
 
