@@ -60,8 +60,26 @@ func (st *API) ChatPostMessage(ctx context.Context, opts ChatPostMessageOptions)
 	defer st.mx.Unlock()
 
 	ch := st.channels[opts.ChannelID]
+	if ch == nil && strings.HasPrefix(opts.ChannelID, "W") {
+		// We need to create a new "channel" for the DM conversation.
+		u, ok := st.users[opts.ChannelID]
+		if !ok {
+			return nil, &response{Err: "user_not_found"}
+		}
+
+		ch = &channelState{
+			Channel: Channel{
+				ID:        opts.ChannelID,
+				Name:      "DM:" + u.Name,
+				IsChannel: true,
+			},
+			Users: []string{userID(ctx)},
+		}
+		st.channels[opts.ChannelID] = ch
+	}
+
 	if ch == nil {
-		if !st.flags.autoCreateChannel {
+		if !st.flags.autoCreateChannel && !strings.HasPrefix(opts.ChannelID, "W") {
 			return nil, &response{Err: "channel_not_found"}
 		}
 

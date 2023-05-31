@@ -1,8 +1,9 @@
 package mockslack
 
 type User struct {
-	ID   string
-	Name string
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	TeamID string `json:"team_id"`
 }
 type userState struct {
 	User
@@ -21,6 +22,9 @@ func (st *state) newUser(u User) User {
 
 	if u.ID == "" {
 		u.ID = st.gen.UserID()
+	}
+	if u.TeamID == "" {
+		u.TeamID = st.teamID
 	}
 	st.users[u.ID] = &userState{User: u, appTokens: make(map[string]*AuthToken)}
 
