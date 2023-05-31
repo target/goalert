@@ -17,8 +17,7 @@ export type Value = {
   time: string | null
   weekdayFilter: WeekdayFilter
   type: NotificationChannelType
-  channelField: string | null
-  slackUserGroup?: string | null
+  targetID: string | null
 }
 
 // channelTypeFromTarget will return the NotificationChannelType based on the type
@@ -67,13 +66,13 @@ function targetFromValue(value: Value): TargetInput {
     case 'SLACK_UG':
       return {
         type: 'slackUserGroup',
-        id: `${value.slackUserGroup ?? ''}:${value.channelField ?? ''}`,
+        id: value.targetID ?? '',
       }
     case 'SLACK_CHANNEL':
     default:
       return {
         type: 'slackChannel',
-        id: value.channelField ?? '',
+        id: value.targetID ?? '',
       }
   }
 }
@@ -160,6 +159,7 @@ export function mapOnCallErrors(
   }
 
   dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
+  console.log(dialogErrs)
   const fieldErrs = fieldErrors(mErr)
     .map((e) => {
       switch (e.field) {

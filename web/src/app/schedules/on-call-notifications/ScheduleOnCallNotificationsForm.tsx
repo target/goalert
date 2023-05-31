@@ -1,4 +1,3 @@
-import InfoIcon from '@mui/icons-material/Info'
 import {
   Checkbox,
   FormControlLabel,
@@ -65,14 +64,11 @@ export default function ScheduleOnCallNotificationsForm(
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newType = e.target.value as NotificationChannelType
-    const persistSlackChannel =
-      props.value.type.startsWith('SLACK') && newType.startsWith('SLACK')
     if (props.value.type !== newType) {
       props.onChange({
         ...props.value,
         type: newType,
-        channelField: persistSlackChannel ? props.value.channelField : null,
-        slackUserGroup: newType === 'SLACK_UG' ? null : undefined,
+        targetID: null,
       })
     }
   }
@@ -101,42 +97,13 @@ export default function ScheduleOnCallNotificationsForm(
     switch (type) {
       case 'SLACK_UG':
         return (
-          <React.Fragment>
-            <Grid item container>
-              <Grid
-                item
-                xs={1}
-                display='flex'
-                justifyContent='center'
-                alignItems='center'
-              >
-                <InfoIcon color='primary' />
-              </Grid>
-              <Grid item xs={11}>
-                <Typography>
-                  This will edit your user group in Slack to ensure that only
-                  the members in the selected group are also on-call
-                </Typography>
-              </Grid>
-            </Grid>
-            <Grid item>
-              <FormField
-                component={SlackUserGroupSelect}
-                fullWidth
-                label='Slack User Group'
-                name='slackUserGroup'
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                component={SlackChannelSelect}
-                fullWidth
-                required
-                label='Slack Channel (for error reporting)'
-                name='channelField'
-              />
-            </Grid>
-          </React.Fragment>
+          <Grid item>
+            <FormField
+              component={SlackUserGroupSelect}
+              fullWidth
+              name='targetID'
+            />
+          </Grid>
         )
       case 'SLACK_CHANNEL':
       default:
@@ -147,7 +114,7 @@ export default function ScheduleOnCallNotificationsForm(
               fullWidth
               required
               label='Slack Channel'
-              name='channelField'
+              name='targetID'
             />
           </Grid>
         )

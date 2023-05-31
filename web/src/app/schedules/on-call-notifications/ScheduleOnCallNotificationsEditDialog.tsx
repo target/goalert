@@ -1,17 +1,16 @@
 import React, { useState } from 'react'
 
+import { DateTime } from 'luxon'
+import FormDialog from '../../dialogs/FormDialog'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
+import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import {
-  channelFieldsFromTarget,
   channelTypeFromTarget,
   EVERY_DAY,
   mapOnCallErrors,
   NO_DAY,
   Value,
 } from './util'
-import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
-import FormDialog from '../../dialogs/FormDialog'
-import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
-import { DateTime } from 'luxon'
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
@@ -34,7 +33,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     type: channelTypeFromTarget(rule?.target),
-    ...channelFieldsFromTarget(rule?.target),
+    targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     p.scheduleID,

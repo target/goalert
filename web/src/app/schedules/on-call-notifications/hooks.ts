@@ -8,17 +8,16 @@ import {
 import { DateTime } from 'luxon'
 import { OnCallNotificationRule, Schedule } from '../../../schema'
 import {
-  Value,
-  onCallValueToRuleInput,
-  RuleFieldError,
-  onCallRuleSummary,
-  NO_DAY,
-  mapOnCallErrors,
+  channelTypeFromTarget,
   EVERY_DAY,
   formatLocalClockTime,
+  mapOnCallErrors,
+  NO_DAY,
+  onCallRuleSummary,
   onCallRuleToInput,
-  channelTypeFromTarget,
-  channelFieldsFromTarget,
+  onCallValueToRuleInput,
+  RuleFieldError,
+  Value,
 } from './util'
 
 const schedTZQuery = gql`
@@ -103,7 +102,7 @@ export function useSetOnCallRulesSubmit(
       rules: rules
         .map((r) => {
           if (r === null) return null
-          if ('channelField' in r) {
+          if ('targetID' in r) {
             return onCallValueToRuleInput(zone, r)
           }
 
@@ -147,7 +146,7 @@ export function useEditOnCallRule(
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     type: channelTypeFromTarget(rule?.target),
-    ...channelFieldsFromTarget(rule?.target),
+    targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,
