@@ -13,9 +13,7 @@ const defaultValue: Value = {
   time: null,
   weekdayFilter: NO_DAY,
   type: 'SLACK_CHANNEL',
-  channelFields: {
-    slackChannelID: null,
-  },
+  channelField: null,
 }
 
 export default function ScheduleOnCallNotificationsCreateDialog(

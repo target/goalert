@@ -103,7 +103,7 @@ export function useSetOnCallRulesSubmit(
       rules: rules
         .map((r) => {
           if (r === null) return null
-          if ('channelFields' in r) {
+          if ('channelField' in r) {
             return onCallValueToRuleInput(zone, r)
           }
 
@@ -147,7 +147,7 @@ export function useEditOnCallRule(
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     type: channelTypeFromTarget(rule?.target),
-    channelFields: channelFieldsFromTarget(rule?.target),
+    ...channelFieldsFromTarget(rule?.target),
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,

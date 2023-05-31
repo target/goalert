@@ -1,3 +1,4 @@
+/* eslint-disable no-fallthrough */
 import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
@@ -12,34 +13,12 @@ import { weekdaySummary } from '../util'
 
 export type NotificationChannelType = 'SLACK_CHANNEL' | 'SLACK_UG'
 
-export type SlackChannelFields = {
-  slackChannelID: string | null
-}
-
-export type SlackUGFields = {
-  slackChannelID: string | null
-  slackUserGroup: string | null
-}
-
-export type ChannelFields = SlackChannelFields | SlackUGFields
-
-// getEmptyChannelFields will return a ChannelFields object with the appropriate
-// fields initialized to null based on the given type
-export function getEmptyChannelFields(
-  type: NotificationChannelType,
-): ChannelFields {
-  switch (type) {
-    case 'SLACK_UG':
-      return {
-        slackChannelID: null,
-        slackUserGroup: null,
-      }
-    case 'SLACK_CHANNEL':
-    default:
-      return {
-        slackChannelID: null,
-      }
-  }
+export type Value = {
+  time: string | null
+  weekdayFilter: WeekdayFilter
+  type: NotificationChannelType
+  channelField: string | null
+  slackUserGroup?: string | null
 }
 
 // channelTypeFromTarget will return the NotificationChannelType based on the type
@@ -57,52 +36,46 @@ export function channelTypeFromTarget(
   }
 }
 
-// channelFieldsFromTarget will create a ChannelFields object based on the target
-// supplied. If the target is undefined or has an invalid type, a ChannelFields object
-// with a null slackChannelID is returned.
-export function channelFieldsFromTarget(target?: TargetInput): ChannelFields {
+// channelFieldsFromTarget will return an object with a channelField and possibly a
+// slackUserGroup based on the target supplied. If the target is undefined or has
+// an invalid type, an object with a null channelField is returned.
+export function channelFieldsFromTarget(target?: TargetInput): {
+  channelField: string | null
+  slackUserGroup?: string | null
+} {
   switch (target?.type) {
     case 'slackChannel':
       return {
-        slackChannelID: target.id,
+        channelField: target.id,
       }
     case 'slackUserGroup':
       return {
-        slackChannelID: target.id.split(':')[1],
+        channelField: target.id.split(':')[1],
         slackUserGroup: target.id.split(':')[0],
       }
     default:
       return {
-        slackChannelID: null,
+        channelField: null,
       }
   }
 }
 
-// targetFromChannelFields will create a TargetInput object based on the fields
-// supplied. If fields is undefined, it will return a slackChannel target with an empty id.
-function targetFromChannelFields(fields?: ChannelFields): TargetInput {
-  const target: TargetInput = {
-    type: 'slackChannel',
-    id: '',
+// targetFromValue will create a TargetInput object based on the value
+// supplied.
+function targetFromValue(value: Value): TargetInput {
+  switch (value.type) {
+    case 'SLACK_UG':
+      return {
+        type: 'slackUserGroup',
+        id: `${value.slackUserGroup ?? ''}:${value.channelField ?? ''}`,
+      }
+    case 'SLACK_CHANNEL':
+    default:
+      return {
+        type: 'slackChannel',
+        id: value.channelField ?? '',
+      }
   }
-  if (!fields) {
-    return target
-  }
-  if ('slackUserGroup' in fields) {
-    target.type = 'slackUserGroup'
-    target.id = `${fields.slackUserGroup}:${fields.slackChannelID}`
-  } else if ('slackChannelID' in fields) {
-    target.type = 'slackChannel'
-    target.id = fields.slackChannelID ?? ''
-  }
-  return target
-}
-
-export type Value = {
-  time: string | null
-  weekdayFilter: WeekdayFilter
-  type: NotificationChannelType
-  channelFields: ChannelFields
 }
 
 export type RuleFieldError = {
@@ -160,7 +133,7 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: targetFromChannelFields(v.channelFields),
+  target: targetFromValue(v),
 })
 
 export const onCallRuleToInput = (

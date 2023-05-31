@@ -34,7 +34,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
     type: channelTypeFromTarget(rule?.target),
-    channelFields: channelFieldsFromTarget(rule?.target),
+    ...channelFieldsFromTarget(rule?.target),
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     p.scheduleID,
