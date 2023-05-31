@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"text/template"
 	"time"
 
@@ -62,11 +63,17 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
+	{{if .TimeSeries}}
+	SELECT
+		(trunc((extract('epoch' from om.created_at)-:timeSeriesOrigin)/:timeSeriesInterval))::bigint AS bucket,
+		count(*)
+	{{else}}
 	SELECT
 		om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
 		om.src_value, om.alert_id, om.provider_msg_id,
 		om.user_id, u.name, om.contact_method_id, om.channel_id, om.service_id, s.name,
 		om.sent_at, om.retry_count
+	{{end}}
 	FROM outgoing_messages om
 	LEFT JOIN users u ON om.user_id = u.id
 	LEFT JOIN services s ON om.service_id = s.id
@@ -102,11 +109,21 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		OR (om.created_at = :cursorCreatedAt AND om.id > :afterID)
 	{{end}}
 		AND om.last_status != 'bundled'
+	{{if .TimeSeries}}
+	GROUP BY bucket
+	{{else}}
 	ORDER BY om.last_status = 'pending' desc, coalesce(om.sent_at, om.last_status_at) desc, om.created_at desc, om.id asc
 	LIMIT {{.Limit}}
+	{{end}}
 `))
 
-type renderData SearchOptions
+type renderData struct {
+	SearchOptions
+
+	TimeSeries         bool
+	TimeSeriesOrigin   time.Time
+	TimeSeriesInterval time.Duration
+}
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
@@ -123,6 +140,14 @@ func (opts renderData) Normalize() (*renderData, error) {
 		return nil, err
 	}
 
+	if opts.TimeSeries {
+		opts.TimeSeriesInterval = opts.TimeSeriesInterval.Truncate(time.Second)
+		err = validate.Duration("TimeSeriesInterval", opts.TimeSeriesInterval, time.Minute, time.Hour*24*365)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	return &opts, err
 }
 
@@ -134,7 +159,71 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("createdBefore", opts.CreatedBefore),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("timeSeriesOrigin", opts.TimeSeriesOrigin.Unix()),
+		sql.Named("timeSeriesInterval", int(opts.TimeSeriesInterval.Seconds())),
 	}
+}
+
+type TimeSeriesOpts struct {
+	SearchOptions
+	TimeSeriesOrigin   time.Time
+	TimeSeriesInterval time.Duration
+}
+type TimeSeriesBucket struct {
+	Start time.Time
+	End   time.Time
+	Count int
+}
+
+// TimeSeries returns a list of time series buckets for the given search options.
+func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeriesBucket, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &renderData{
+		SearchOptions:      opts.SearchOptions,
+		TimeSeries:         true,
+		TimeSeriesOrigin:   opts.TimeSeriesOrigin,
+		TimeSeriesInterval: opts.TimeSeriesInterval,
+	}
+	data, err = data.Normalize()
+	if err != nil {
+		return nil, err
+	}
+
+	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
+	if err != nil {
+		return nil, errors.Wrap(err, "render query")
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var buckets []TimeSeriesBucket
+	for rows.Next() {
+		var bucketSecs int
+		var bucket TimeSeriesBucket
+		err := rows.Scan(&bucketSecs, &bucket.Count)
+		if err != nil {
+			return nil, err
+		}
+
+		bucketSecs *= int(data.TimeSeriesInterval.Seconds())
+		bucketSecs += int(data.TimeSeriesOrigin.Unix())
+		bucket.Start = time.Unix(int64(bucketSecs), 0)
+		bucket.End = bucket.Start.Add(data.TimeSeriesInterval)
+		buckets = append(buckets, bucket)
+	}
+
+	return buckets, nil
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, error) {
@@ -142,12 +231,13 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		opts = &SearchOptions{}
 	}
 
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := (*renderData)(opts).Normalize()
+	data := &renderData{SearchOptions: *opts}
+	data, err = data.Normalize()
 	if err != nil {
 		return nil, err
 	}
@@ -225,6 +315,10 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 		result = append(result, l)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].CreatedAt.Unix() > result[j].CreatedAt.Unix()
+	})
 
 	return result, nil
 }

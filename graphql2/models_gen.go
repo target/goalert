@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -322,8 +323,9 @@ type LinkAccountInfo struct {
 }
 
 type MessageLogConnection struct {
-	Nodes    []DebugMessage `json:"nodes"`
-	PageInfo *PageInfo      `json:"pageInfo"`
+	Nodes    []DebugMessage              `json:"nodes"`
+	PageInfo *PageInfo                   `json:"pageInfo"`
+	Stats    *notification.SearchOptions `json:"stats"`
 }
 
 type MessageLogSearchOptions struct {
@@ -511,6 +513,17 @@ type SystemLimit struct {
 type SystemLimitInput struct {
 	ID    limit.ID `json:"id"`
 	Value int      `json:"value"`
+}
+
+type TimeSeriesBucket struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+	Count int       `json:"count"`
+}
+
+type TimeSeriesOptions struct {
+	BucketDuration timeutil.ISODuration `json:"bucketDuration"`
+	BucketOrigin   *time.Time           `json:"bucketOrigin,omitempty"`
 }
 
 type TimeZone struct {
