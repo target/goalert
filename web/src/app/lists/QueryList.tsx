@@ -139,7 +139,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     client: GraphQLClientWithErrors,
     variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
-    pollInterval: 0,
+    pollInterval: POLL_INTERVAL,
   })
 
   const nodes = data?.data?.nodes ?? []
