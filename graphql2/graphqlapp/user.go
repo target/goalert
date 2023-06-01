@@ -84,6 +84,10 @@ func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBas
 	return true, nil
 }
 
+func (a *Mutation) UpdateBasicAuth(ctx context.Context, input graphql2.UpdateBasicAuthInput) (bool, error) {
+	return false, errors.New("not implemented")
+}
+
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
 	var newUser *user.User
 
