@@ -25,10 +25,11 @@ import {
 } from 'recharts'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
-import { DateTime, DateTimeFormatOptions } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 import { useURLParam, useURLParams } from '../../actions'
 import Spinner from '../../loading/components/Spinner'
 import { gql, useQuery } from 'urql'
+import { Time } from '../../util/Time'
 
 type Stats = Array<{
   start: string
@@ -38,7 +39,7 @@ type Stats = Array<{
 
 interface MessageLogGraphData {
   date: string
-  label: string
+  label: JSX.Element
   count: number
 }
 
@@ -89,35 +90,37 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   })
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
 
-  const locale: DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-  }
   const graphData = React.useMemo(
     (): MessageLogGraphData[] =>
       stats.map(({ start, end, count }) => ({
         count,
         date: start,
-        label:
-          DateTime.fromISO(start).toLocaleString(locale) +
-          ' - ' +
-          DateTime.fromISO(end).toLocaleString(locale),
+        label: (
+          <React.Fragment>
+            <Time time={start} /> - <Time time={end} />
+          </React.Fragment>
+        ),
       })),
     [stats],
   )
 
   const formatIntervals = (label: string): string => {
-    // check for default bounds
-    if (label.toString() !== '0' && label !== 'auto') {
-      const dt = DateTime.fromISO(label)
-      if (duration.endsWith('D')) return dt.toFormat('MMM d')
-      if (duration.endsWith('H')) return dt.toFormat('h a')
-      if (duration.endsWith('M')) return dt.toFormat('h:mma').toLowerCase()
-    }
-    return ''
+    if (label.toString() === '0' || label === 'auto') return ''
+    const dt = DateTime.fromISO(label)
+    const dur = Duration.fromISO(duration)
+
+    if (dur.as('hours') < 1)
+      return dt.toLocaleString({
+        hour: 'numeric',
+        minute: 'numeric',
+      })
+
+    if (dur.as('days') < 1) return dt.toLocaleString({ hour: 'numeric' })
+
+    return dt.toLocaleString({
+      month: 'short',
+      day: 'numeric',
+    })
   }
 
   return (
