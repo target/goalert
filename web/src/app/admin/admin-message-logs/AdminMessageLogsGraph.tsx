@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -26,10 +26,10 @@ import {
 import AutoSizer from 'react-virtualized-auto-sizer'
 import _ from 'lodash'
 import { DateTime, Duration } from 'luxon'
-import { useURLParam, useURLParams } from '../../actions'
 import Spinner from '../../loading/components/Spinner'
 import { gql, useQuery } from 'urql'
 import { Time } from '../../util/Time'
+import { useMessageLogsParams } from './util'
 
 type Stats = Array<{
   start: string
@@ -63,16 +63,8 @@ const statsQuery = gql`
 export default function AdminMessageLogsGraph(): JSX.Element {
   const theme = useTheme()
 
-  // graph duration set with ISO duration values, e.g. PT8H for a duration of 8 hours
-  const [duration, setDuration] = useURLParam<string>('graphInterval', 'PT1H')
-  const [now] = useState(DateTime.now())
-
-  const [{ search, start, end, graphInterval }] = useURLParams({
-    search: '',
-    start: now.minus({ hours: 8 }).toISO(),
-    end: now.toISO(),
-    graphInterval: 'PT1H',
-  })
+  const [{ search, start, end, graphInterval }, setParams] =
+    useMessageLogsParams()
 
   const [{ data, fetching, error }] = useQuery({
     query: statsQuery,
@@ -107,7 +99,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   const formatIntervals = (label: string): string => {
     if (label.toString() === '0' || label === 'auto') return ''
     const dt = DateTime.fromISO(label)
-    const dur = Duration.fromISO(duration)
+    const dur = Duration.fromISO(graphInterval)
 
     if (dur.as('hours') < 1)
       return dt.toLocaleString({
@@ -154,8 +146,8 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                 <Select
                   labelId='interval-select-label'
                   id='interval-select'
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                  value={graphInterval}
+                  onChange={(e) => setParams({ graphInterval: e.target.value })}
                 >
                   <MenuItem value='P1D'>Daily</MenuItem>
                   <MenuItem value='PT8H'>8 hours</MenuItem>

@@ -11,7 +11,7 @@ import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 import toTitleCase from '../../util/toTitleCase'
 import QueryList from '../../lists/QueryList'
 import { PaginatedListItemProps } from '../../lists/PaginatedList'
-import { useURLParams } from '../../actions'
+import { useMessageLogsParams } from './util'
 
 const query = gql`
   query messageLogsQuery($input: MessageLogSearchOptions) {
@@ -58,11 +58,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  const [{ search, start, end }] = useURLParams({
-    search: '',
-    start: DateTime.now().minus({ hours: 8 }).toISO(),
-    end: DateTime.now().toISO(),
-  })
+  const [{ search, start, end }] = useMessageLogsParams()
 
   const logsInput = {
     search,

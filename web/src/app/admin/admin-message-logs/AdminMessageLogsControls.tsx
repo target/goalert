@@ -3,15 +3,10 @@ import { Button, Card, Grid } from '@mui/material'
 import ResetIcon from '@mui/icons-material/Replay'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
-import { useURLParams } from '../../actions'
-import { DateTime } from 'luxon'
+import { useMessageLogsParams } from './util'
 
 export default function AdminMessageLogsControls(): JSX.Element {
-  const [params, setParams] = useURLParams({
-    search: '',
-    start: DateTime.now().minus({ hours: 8 }).toISO(),
-    end: DateTime.now().toISO(),
-  })
+  const [params, setParams] = useMessageLogsParams()
 
   return (
     <Card>
