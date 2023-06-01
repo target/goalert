@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ApolloError, gql, useMutation } from '@apollo/client'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
-import { useSessionInfo } from '../util/RequireConfig'
+import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { FieldError, fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserEditForm, { Value } from './UserEditForm'
 
@@ -19,6 +19,8 @@ interface UserEditDialogProps {
 }
 
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
+  const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
+  console.info(authDisableBasic)
   const defaultValue: Value = {
     oldPassword: '',
     password: '',
@@ -26,11 +28,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     isAdmin: props.role === 'admin',
   }
 
-  const {
-    ready: isSessionReady,
-    userID: currentUserID,
-    isAdmin,
-  } = useSessionInfo()
+  const { ready: isSessionReady, userID: currentUserID } = useSessionInfo()
 
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
@@ -108,6 +106,27 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     }
   }
 
+  const notices: object[] = []
+  if (
+    props.role === 'admin' &&
+    props.userID === currentUserID &&
+    !value.isAdmin
+  ) {
+    notices.push({
+      type: 'WARNING',
+      message: 'Updating role to User',
+      details:
+        'If you remove your admin privileges you will need to log in as a different admin to restore them.',
+    })
+  }
+  if (authDisableBasic) {
+    notices.push({
+      type: 'WARNING',
+      message: 'Basic Auth is Disabled',
+      details: 'Password authentication is currently disabled.',
+    })
+  }
+
   if (!isSessionReady) return <Spinner />
 
   return (
@@ -117,25 +136,14 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
       errors={nonFieldErrors(editUserStatus.error)}
       onClose={props.onClose}
       onSubmit={submitHandler}
-      notices={
-        props.role === 'admin' &&
-        props.userID === currentUserID &&
-        !value.isAdmin
-          ? [
-              {
-                type: 'WARNING',
-                message: 'Updating role to User',
-                details:
-                  'If you remove your admin privileges you will need to log in as a different admin to restore them.',
-              },
-            ]
-          : []
-      }
+      notices={notices}
       form={
         <UserEditForm
           value={value}
           errors={errors}
-          admin={isAdmin}
+          admin={props.role === 'admin'}
+          disable={!!authDisableBasic}
+          passwordRequired={props.userID === currentUserID}
           onChange={(value) => {
             setValue(value)
           }}

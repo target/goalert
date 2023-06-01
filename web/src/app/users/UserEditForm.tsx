@@ -15,11 +15,13 @@ export interface UserEditFormProps {
   value: Value
   errors: Array<FieldError>
   admin: boolean
+  disable: boolean
+  passwordRequired: boolean
   onChange: (newValue: Value) => void
 }
 
 function UserEditForm(props: UserEditFormProps): JSX.Element {
-  const { value, errors, admin, onChange } = props
+  const { value, errors, admin, disable, passwordRequired, onChange } = props
 
   return (
     <FormContainer
@@ -30,7 +32,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
       }}
     >
       <Grid container spacing={2}>
-        {!admin && (
+        {passwordRequired && (
           <Grid item xs={12}>
             <FormField
               fullWidth
@@ -38,7 +40,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
               name='oldPassword'
               label='Old Password'
               type='password'
-              disabled={admin}
+              disabled={disable}
             />
           </Grid>
         )}
@@ -49,6 +51,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='password'
             label='New Password'
             type='password'
+            disabled={disable}
           />
         </Grid>
         <Grid item xs={12}>
@@ -58,6 +61,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='confirmNewPassword'
             label='Confirm New Password'
             type='password'
+            disabled={disable}
           />
         </Grid>
         {admin && (
