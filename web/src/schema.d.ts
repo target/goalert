@@ -130,6 +130,22 @@ export interface MessageLogSearchOptions {
 export interface MessageLogConnection {
   nodes: DebugMessage[]
   pageInfo: PageInfo
+  stats: MessageLogConnectionStats
+}
+
+export interface MessageLogConnectionStats {
+  timeSeries: TimeSeriesBucket[]
+}
+
+export interface TimeSeriesOptions {
+  bucketDuration: ISODuration
+  bucketOrigin?: null | ISOTimestamp
+}
+
+export interface TimeSeriesBucket {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  count: number
 }
 
 export interface SlackUserGroupSearchOptions {

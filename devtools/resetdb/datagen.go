@@ -371,7 +371,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	}
 	d.Alerts = append(d.Alerts, alert.Alert{
 		ID:        len(d.Alerts) + 1,
-		CreatedAt: d.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
+		CreatedAt: d.DateRange(time.Now().Add(-180*24*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
 		Summary:   d.ids.Gen(func() string { return d.LoremIpsumSentence(d.Intn(10) + 3) }, serviceID),

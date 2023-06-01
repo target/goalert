@@ -224,6 +224,23 @@ input MessageLogSearchOptions {
 type MessageLogConnection {
   nodes: [DebugMessage!]!
   pageInfo: PageInfo!
+
+  stats: MessageLogConnectionStats!
+}
+
+type MessageLogConnectionStats {
+  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
+}
+
+input TimeSeriesOptions {
+  bucketDuration: ISODuration!
+  bucketOrigin: ISOTimestamp
+}
+
+type TimeSeriesBucket {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  count: Int!
 }
 
 input SlackUserGroupSearchOptions {
