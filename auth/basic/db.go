@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"sync"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
@@ -63,9 +64,28 @@ type validated string
 func (v validated) UserID() string { return string(v) }
 func (v validated) _private()      {}
 
+// ValidateBasicAuth returns an access denied error for non-admins when basic auth is disabled in configs.
+func ValidateBasicAuth(ctx context.Context) error {
+	if permission.Admin(ctx) {
+		return nil
+	}
+
+	cfg := config.FromContext(ctx)
+	if cfg.Auth.DisableBasic {
+		return permission.NewAccessDenied("Basic auth is disabled by administrator.")
+	}
+
+	return nil
+}
+
 // NewHashedPassword will hash the given password and return a Password object.
-func (b *Store) NewHashedPassword(password string) (HashedPassword, error) {
-	err := validate.Text("Password", password, 8, 200)
+func (b *Store) NewHashedPassword(ctx context.Context, password string) (HashedPassword, error) {
+	err := ValidateBasicAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Text("Password", password, 8, 200)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +104,12 @@ func (b *Store) NewHashedPassword(password string) (HashedPassword, error) {
 // An error is returned if the username is not unique or the userID is invalid.
 // Must have same user or admin role.
 func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username string, password HashedPassword) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(userID))
+	err := ValidateBasicAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return err
 	}
@@ -103,7 +128,12 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, userID, username strin
 
 // UpdateTx updates a user's password. oldPass is required if the current context is not an admin.
 func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass ValidatedPassword, newPass HashedPassword) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+	err := ValidateBasicAuth(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return err
 	}
@@ -114,14 +144,27 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, userID string, oldPass
 	}
 
 	if oldPass != nil && oldPass.UserID() != userID {
-		return validation.NewFieldError("oldPassword", "Password does not match User")
+		return validation.NewFieldError("OldPassword", "Password does not match User")
 	}
-	if !permission.Admin(ctx) && oldPass == nil {
-		return validation.NewFieldError("oldPassword", "Previous password required")
+	if (!permission.Admin(ctx) || permission.UserID(ctx) == userID) && oldPass == nil {
+		return validation.NewFieldError("OldPassword", "Previous password required")
 	}
 
-	_, err = tx.StmtContext(ctx, b.update).ExecContext(ctx, userID, newPass.Hash())
-	return err
+	res, err := tx.StmtContext(ctx, b.update).ExecContext(ctx, userID, newPass.Hash())
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return validation.NewFieldError("UserID", "does not have basic auth configured")
+	}
+
+	return nil
 }
 
 // Validate should return a userID if the username and password match.
@@ -158,7 +201,12 @@ func (b *Store) Validate(ctx context.Context, username, password string) (string
 
 // ValidatePassword will validate the password of the currently authenticated user.
 func (b *Store) ValidatePassword(ctx context.Context, password string) (ValidatedPassword, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := ValidateBasicAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +215,7 @@ func (b *Store) ValidatePassword(ctx context.Context, password string) (Validate
 
 	err = validate.Many(
 		validate.UUID("UserID", userID),
-		validate.Text("oldPassword", password, 8, 200),
+		validate.Text("OldPassword", password, 8, 200),
 	)
 	if err != nil {
 		return nil, err
@@ -187,7 +235,7 @@ func (b *Store) ValidatePassword(ctx context.Context, password string) (Validate
 
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
-		return nil, validation.NewFieldError("oldPassword", "invalid password")
+		return nil, validation.NewFieldError("OldPassword", "invalid password")
 	}
 
 	return validated(userID), nil
