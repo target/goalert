@@ -143,9 +143,7 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if input.Email != nil {
 			usr.Email = *input.Email
 		}
-		if input.StatusUpdateContactMethodID != nil {
-			usr.AlertStatusCMID = *input.StatusUpdateContactMethodID
-		}
+
 		return a.UserStore.UpdateTx(ctx, tx, usr)
 	})
 	return err == nil, err
