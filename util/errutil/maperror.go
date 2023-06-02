@@ -39,6 +39,8 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("TargetID", "user does not exist")
 		case "rotation_participants_user_id_fkey":
 			return validation.NewFieldError("UserID", "user does not exist")
+		case "auth_basic_users_user_id_fkey":
+			return validation.NewFieldError("UserID", "user does not exist")
 		}
 	case "23505": // unique constraint
 		if dbErr.ConstraintName == "auth_basic_users_username_key" {
@@ -58,6 +60,9 @@ func MapDBError(err error) error {
 		}
 		if dbErr.ConstraintName == "idx_no_alert_duplicates" {
 			return validation.NewFieldError("", "duplicate alert already exists")
+		}
+		if dbErr.ConstraintName == "auth_basic_users_pkey" {
+			return validation.NewFieldError("UserID", "already has a basic auth username configured")
 		}
 	case "23514": // check constraint
 		newErr := mapLimitError(dbErr)

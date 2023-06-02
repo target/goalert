@@ -562,6 +562,21 @@ type Mutation {
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+
+  createBasicAuth(input: CreateBasicAuthInput!): Boolean!
+  updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+input CreateBasicAuthInput {
+  username: String!
+  password: String!
+  userID: ID!
+}
+
+input UpdateBasicAuthInput {
+  password: String!
+  oldPassword: String
+  userID: ID!
 }
 
 input UpdateAlertsByServiceInput {
