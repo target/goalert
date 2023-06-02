@@ -130,6 +130,22 @@ export interface MessageLogSearchOptions {
 export interface MessageLogConnection {
   nodes: DebugMessage[]
   pageInfo: PageInfo
+  stats: MessageLogConnectionStats
+}
+
+export interface MessageLogConnectionStats {
+  timeSeries: TimeSeriesBucket[]
+}
+
+export interface TimeSeriesOptions {
+  bucketDuration: ISODuration
+  bucketOrigin?: null | ISOTimestamp
+}
+
+export interface TimeSeriesBucket {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  count: number
 }
 
 export interface SlackUserGroupSearchOptions {
@@ -397,6 +413,20 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createBasicAuth: boolean
+  updateBasicAuth: boolean
+}
+
+export interface CreateBasicAuthInput {
+  username: string
+  password: string
+  userID: string
+}
+
+export interface UpdateBasicAuthInput {
+  password: string
+  oldPassword?: null | string
+  userID: string
 }
 
 export interface UpdateAlertsByServiceInput {
