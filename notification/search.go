@@ -207,28 +207,38 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	var buckets []TimeSeriesBucket
+	counts := make(map[int]int)
 	for rows.Next() {
 		var bucketSecs int
-		var bucket TimeSeriesBucket
-		err := rows.Scan(&bucketSecs, &bucket.Count)
+		var count int
+		err := rows.Scan(&bucketSecs, &count)
 		if err != nil {
 			return nil, err
 		}
 
+		counts[bucketSecs] = count
+
 		bucketSecs *= int(data.TimeSeriesInterval.Seconds())
 		bucketSecs += int(data.TimeSeriesOrigin.Unix())
-		bucket.Start = time.Unix(int64(bucketSecs), 0)
-		bucket.End = bucket.Start.Add(data.TimeSeriesInterval)
-		buckets = append(buckets, bucket)
+	}
+
+	return mapBucketsToTimes(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
+}
+
+func mapBucketsToTimes(start time.Time, duration time.Duration, counts map[int]int) []TimeSeriesBucket {
+	var buckets []TimeSeriesBucket
+	for secs := int(start.Unix()); secs < int(time.Now().Unix()); secs += int(duration.Seconds()) {
+		var b TimeSeriesBucket
+		b.Start = time.Unix(int64(secs), 0)
+		b.End = b.Start.Add(duration)
+		buckets = append(buckets, b)
 	}
 
 	// sort buckets by start time
 	sort.Slice(buckets, func(i, j int) bool {
 		return buckets[i].Start.Before(buckets[j].Start)
 	})
-
-	return buckets, nil
+	return buckets
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, error) {
