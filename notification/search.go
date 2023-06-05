@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -141,7 +142,17 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 	if opts.TimeSeries {
 		opts.TimeSeriesInterval = opts.TimeSeriesInterval.Truncate(time.Second)
-		err = validate.Duration("TimeSeriesInterval", opts.TimeSeriesInterval, time.Minute, time.Hour*24*365)
+		if opts.CreatedBefore.IsZero() {
+			return nil, validation.NewFieldError("CreatedBefore", "required for time series queries")
+		}
+		if opts.CreatedAfter.IsZero() {
+			return nil, validation.NewFieldError("CreatedAfter", "required for time series queries")
+		}
+
+		diff := opts.CreatedBefore.Sub(opts.CreatedAfter)
+		minInterval := diff/1000 + 1
+		minInterval = minInterval.Truncate(time.Minute)
+		err = validate.Duration("TimeSeriesInterval", opts.TimeSeriesInterval, minInterval, time.Hour*24*365)
 	}
 	if err != nil {
 		return nil, err
