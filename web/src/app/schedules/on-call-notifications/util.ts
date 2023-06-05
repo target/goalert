@@ -10,38 +10,6 @@ import {
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
-export type NotificationChannelType = 'SLACK' | 'WEBHOOK'
-
-export type SlackFields = {
-  slackChannelID: string | null
-  slackUserGroup?: string
-}
-
-export type WebhookFields = {
-  webhookURL: string | null
-}
-
-export type ChannelFields = SlackFields | WebhookFields
-
-export function channelFieldsFromType(
-  type: NotificationChannelType,
-): ChannelFields {
-  switch (type) {
-    case 'SLACK':
-      return {
-        slackChannelID: null,
-      }
-    case 'WEBHOOK':
-      return {
-        webhookURL: null,
-      }
-    default:
-      return {
-        slackChannelID: null,
-      }
-  }
-}
-
 export type Value = {
   time: string | null
   weekdayFilter: WeekdayFilter
@@ -145,10 +113,6 @@ export function mapOnCallErrors(
 
       if (e.field === 'targetTypeSlackUserGroup') {
         return { ...e, field: 'slackUserGroup' }
-      }
-
-      if (e.field === 'targetTypeChanWebhook') {
-        return { ...e, field: 'webhookURL' }
       }
 
       dialogErrs.push(e)

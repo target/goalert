@@ -102,7 +102,7 @@ export default function ScheduleOnCallNotificationsForm(
           ]
         : []),
     ],
-    [slackEnabled, slackUGEnabled],
+    [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
   )
 
   function renderTypeFields(type: TargetType): JSX.Element {
