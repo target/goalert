@@ -218,46 +218,17 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	defer rows.Close()
 
 	counts := make(map[int]int)
-	var firstIndex, lastIndex int
-	var init bool
 	for rows.Next() {
 		var index, count int
 		err := rows.Scan(&index, &count)
 		if err != nil {
 			return nil, err
 		}
-
-		counts[index] = count
-		if !init {
-			firstIndex = index
-			lastIndex = index
-			init = true
-		}
-
-		if index < firstIndex {
-			firstIndex = index
-		}
-
-		if index > lastIndex {
-			lastIndex = index
-		}
 	}
 
-	start := opts.CreatedAfter
-	if start.IsZero() {
-		start = indexToTime(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, firstIndex)
-	}
-	end := opts.CreatedBefore
-	if end.IsZero() {
-		end = indexToTime(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, lastIndex)
-	}
-
-	return makeTimeSeries(start, end, opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
+	return makeTimeSeries(opts.CreatedAfter, opts.CreatedBefore, opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
 }
 
-func indexToTime(origin time.Time, interval time.Duration, index int) time.Time {
-	return origin.Add(interval * time.Duration(index))
-}
 func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
 	return int(t.Sub(origin) / interval)
 }
