@@ -4,20 +4,21 @@ import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
+  TargetType,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
 export type Value = {
-  slackChannelID?: string | null
-  slackUserGroup?: string | null
   time: string | null
   weekdayFilter: WeekdayFilter
+  type: TargetType
+  targetID: string | null
 }
 
 export type RuleFieldError = {
-  field: 'time' | 'weekdayFilter' | 'slackChannelID' | 'slackUserGroup'
+  field: 'time' | 'weekdayFilter' | 'type' | 'slackChannelID' | 'slackUserGroup'
   message: string
 }
 
@@ -71,12 +72,7 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: {
-    type: v?.slackUserGroup ? 'slackUserGroup' : 'slackChannel',
-    id: v?.slackUserGroup
-      ? `${v.slackUserGroup}:${v.slackChannelID}`
-      : v?.slackChannelID ?? '',
-  },
+  target: { id: v.targetID || '', type: v.type },
 })
 
 export const onCallRuleToInput = (
@@ -103,7 +99,6 @@ export function mapOnCallErrors(
   }
 
   dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
-
   const fieldErrs = fieldErrors(mErr)
     .map((e) => {
       switch (e.field) {
