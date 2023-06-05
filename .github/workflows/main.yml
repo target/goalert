@@ -2,10 +2,7 @@ name: reviewdog
 
 on:
   pull_request:
-    - opened
-    - ready_for_review
-    - reopened
-    - synchronize
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
 
 jobs:
   node-checks:
