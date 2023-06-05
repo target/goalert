@@ -78,8 +78,7 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 	ugID, chanID, _ := strings.Cut(t.Dest.Value, ":")
 	cfg := config.FromContext(ctx)
 
-	onCallMsg := renderOnCallNotificationMessage(t, userSlackIDs)
-	var stateDetails string
+	var errorMsg, stateDetails string
 
 	// If any users are missing, we need to abort and let the channel know.
 	switch {
@@ -90,12 +89,11 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 			GroupID:      ugID,
 			Missing:      missing,
 			callbackFunc: cfg.CallbackURL,
-			OnCall:       onCallMsg,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
 		}
-		onCallMsg = buf.String()
+		errorMsg = buf.String()
 		stateDetails = "missing users, sent error to channel"
 
 		// If no users are on-call, we need to abort and let the channel know.
@@ -108,12 +106,11 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 			ScheduleID:   t.ScheduleID,
 			ScheduleName: t.ScheduleName,
 			callbackFunc: cfg.CallbackURL,
-			OnCall:       onCallMsg,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
 		}
-		onCallMsg = buf.String()
+		errorMsg = buf.String()
 		stateDetails = "empty user-group, sent error to channel"
 	default:
 		err = s.withClient(ctx, func(c *slack.Client) error {
@@ -134,25 +131,26 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		err := userGroupErrorUpdate.Execute(&buf, userGroupError{
 			ErrorID: errID,
 			GroupID: ugID,
-			OnCall:  onCallMsg,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("execute template: %w", err)
 		}
-		onCallMsg = buf.String()
+		errorMsg = buf.String()
 		stateDetails = "failed to update user-group, sent error to channel and log"
+	}
+
+	// Only send to the channel if an error occurred
+	if stateDetails == "" {
+		return &notification.SentMessage{State: notification.StateDelivered}, nil
 	}
 
 	var ts string
 	err = s.withClient(ctx, func(c *slack.Client) error {
-		_, ts, err = c.PostMessageContext(ctx, chanID, slack.MsgOptionText(onCallMsg, false))
-		if err != nil {
-			return fmt.Errorf("post message to channel '%s': %w", chanID, err)
-		}
-		return nil
+		_, ts, err = c.PostMessageContext(ctx, chanID, slack.MsgOptionText(errorMsg, false))
+		return err
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("post message to channel '%s': %w", chanID, err)
 	}
 
 	return &notification.SentMessage{State: notification.StateDelivered, ExternalID: ts, StateDetails: stateDetails}, nil
