@@ -1,6 +1,11 @@
 name: labeler
 
-on: [pull_request]
+on:
+  pull_request:
+    - opened
+    - ready_for_review
+    - reopened
+    - synchronize
 
 jobs:
   labeler:
