@@ -117,6 +117,12 @@ type CreateAlertInput struct {
 	Sanitize  *bool   `json:"sanitize,omitempty"`
 }
 
+type CreateBasicAuthInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	UserID   string `json:"userID"`
+}
+
 type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description,omitempty"`
@@ -550,6 +556,12 @@ type UpdateAlertsByServiceInput struct {
 type UpdateAlertsInput struct {
 	AlertIDs  []int       `json:"alertIDs"`
 	NewStatus AlertStatus `json:"newStatus"`
+}
+
+type UpdateBasicAuthInput struct {
+	Password    string  `json:"password"`
+	OldPassword *string `json:"oldPassword,omitempty"`
+	UserID      string  `json:"userID"`
 }
 
 type UpdateEscalationPolicyInput struct {

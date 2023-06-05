@@ -48,7 +48,6 @@ type DB struct {
 
 	sentByCMType *sql.Stmt
 
-	updateCMStatusUpdate      *sql.Stmt
 	cleanupStatusUpdateOptOut *sql.Stmt
 
 	tempFail     *sql.Stmt
@@ -174,20 +173,6 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 			where msg.sent_at > $1 and cm.type = $2
 		`),
 
-		updateCMStatusUpdate: p.P(`
-			update outgoing_messages msg
-			set contact_method_id = usr.alert_status_log_contact_method_id
-			from users usr
-			where
-				msg.message_type = 'alert_status_update' and
-				(
-					msg.last_status = 'pending' or
-					(msg.last_status = 'failed' and msg.next_retry_at notnull)
-				) and
-				msg.contact_method_id != usr.alert_status_log_contact_method_id and
-				msg.user_id = usr.id and
-				usr.alert_status_log_contact_method_id notnull
-		`),
 		cleanupStatusUpdateOptOut: p.P(`
 			delete from outgoing_messages msg
 			using user_contact_methods cm
@@ -615,11 +600,6 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	err = tx.Stmt(db.currentTime).QueryRowContext(execCtx).Scan(&t)
 	if err != nil {
 		return errors.Wrap(err, "get current time")
-	}
-
-	_, err = tx.Stmt(db.updateCMStatusUpdate).ExecContext(execCtx)
-	if err != nil {
-		return errors.Wrap(err, "update status update CM preferences")
 	}
 
 	_, err = tx.Stmt(db.cleanupStatusUpdateOptOut).ExecContext(execCtx)

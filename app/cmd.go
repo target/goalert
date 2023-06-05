@@ -569,7 +569,7 @@ Migration: %s (#%d)
 				fmt.Fprintln(os.Stderr)
 			}
 
-			pw, err := basicStore.NewHashedPassword(pass)
+			pw, err := basicStore.NewHashedPassword(ctx, pass)
 			if err != nil {
 				return errors.Wrap(err, "hash password")
 			}

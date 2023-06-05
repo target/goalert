@@ -413,6 +413,20 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createBasicAuth: boolean
+  updateBasicAuth: boolean
+}
+
+export interface CreateBasicAuthInput {
+  username: string
+  password: string
+  userID: string
+}
+
+export interface UpdateBasicAuthInput {
+  password: string
+  oldPassword?: null | string
+  userID: string
 }
 
 export interface UpdateAlertsByServiceInput {
