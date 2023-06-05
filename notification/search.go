@@ -3,7 +3,6 @@ package notification
 import (
 	"context"
 	"database/sql"
-	"sort"
 	"text/template"
 	"time"
 
@@ -208,36 +207,60 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	defer rows.Close()
 
 	counts := make(map[int]int)
+	var firstIndex, lastIndex int
+	var init bool
 	for rows.Next() {
-		var bucketSecs int
-		var count int
-		err := rows.Scan(&bucketSecs, &count)
+		var index, count int
+		err := rows.Scan(&index, &count)
 		if err != nil {
 			return nil, err
 		}
 
-		counts[bucketSecs] = count
+		counts[index] = count
+		if !init {
+			firstIndex = index
+			lastIndex = index
+			init = true
+		}
 
-		bucketSecs *= int(data.TimeSeriesInterval.Seconds())
-		bucketSecs += int(data.TimeSeriesOrigin.Unix())
+		if index < firstIndex {
+			firstIndex = index
+		}
+
+		if index > lastIndex {
+			lastIndex = index
+		}
 	}
 
-	return mapBucketsToTimes(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
+	start := opts.CreatedAfter
+	if start.IsZero() {
+		start = indexToTime(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, firstIndex)
+	}
+	end := opts.CreatedBefore
+	if end.IsZero() {
+		end = indexToTime(opts.TimeSeriesOrigin, opts.TimeSeriesInterval, lastIndex)
+	}
+
+	return makeTimeSeries(start, end, opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
 }
 
-func mapBucketsToTimes(start time.Time, duration time.Duration, counts map[int]int) []TimeSeriesBucket {
+func indexToTime(origin time.Time, interval time.Duration, index int) time.Time {
+	return origin.Add(interval * time.Duration(index))
+}
+func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
+	return int(t.Sub(origin) / interval)
+}
+
+func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]int) []TimeSeriesBucket {
 	var buckets []TimeSeriesBucket
-	for secs := int(start.Unix()); secs < int(time.Now().Unix()); secs += int(duration.Seconds()) {
+	for t := start; t.Before(end); t = t.Add(duration) {
 		var b TimeSeriesBucket
-		b.Start = time.Unix(int64(secs), 0)
-		b.End = b.Start.Add(duration)
+		b.Start = t
+		b.End = t.Add(duration)
+		b.Count = counts[timeToIndex(origin, duration, t)]
 		buckets = append(buckets, b)
 	}
 
-	// sort buckets by start time
-	sort.Slice(buckets, func(i, j int) bool {
-		return buckets[i].Start.Before(buckets[j].Start)
-	})
 	return buckets
 }
 
