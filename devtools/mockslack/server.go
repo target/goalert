@@ -34,6 +34,7 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
 	srv.mux.HandleFunc("/api/users.conversations", srv.ServeConversationsList) // same data
+	srv.mux.HandleFunc("/api/users.info", srv.ServeUsersInfo)
 	srv.mux.HandleFunc("/api/oauth.access", srv.ServeOAuthAccess)
 	srv.mux.HandleFunc("/api/auth.revoke", srv.ServeAuthRevoke)
 	srv.mux.HandleFunc("/api/auth.test", srv.ServeAuthTest)

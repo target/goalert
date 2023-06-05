@@ -1,28 +1,26 @@
-import React from 'react'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Grid from '@mui/material/Grid'
-import RadioGroup from '@mui/material/RadioGroup'
-import Radio from '@mui/material/Radio'
-import { DateTime } from 'luxon'
-import { Checkbox, MenuItem, TextField, Typography } from '@mui/material'
+import {
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { DateTime } from 'luxon'
+import React, { useMemo } from 'react'
 
 import { FormContainer, FormField } from '../../forms'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import {
-  Value,
-  NO_DAY,
-  EVERY_DAY,
-  RuleFieldError,
-  ChannelFields,
-  SlackFields,
-} from './util'
-import { Time } from '../../util/Time'
-import { useScheduleTZ } from '../useScheduleTZ'
-import SlackFieldsForm from './channel-type-fields/SlackFieldsForm'
-import { useExpFlag } from '../../util/useExpFlag'
 import { useConfigValue } from '../../util/RequireConfig'
-import WebhookFieldsForm from './channel-type-fields/WebhookFieldsForm'
+import { Time } from '../../util/Time'
+import { useExpFlag } from '../../util/useExpFlag'
+import { useScheduleTZ } from '../useScheduleTZ'
+import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { TargetType } from '../../../schema'
+import { SlackUserGroupSelect, SlackChannelSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -44,8 +42,9 @@ export default function ScheduleOnCallNotificationsForm(
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
   const [slackEnabled] = useConfigValue('Slack.Enable')
-  const [webhookEnabled] = useConfigValue('Slack.Enable')
+  const [webhookEnabled] = useConfigValue('Webhook.Enable')
   const webhookChannelEnabled = useExpFlag('chan-webhook')
+  const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -60,30 +59,98 @@ export default function ScheduleOnCallNotificationsForm(
     })
   }
 
-  const handleChannelDataChange = (channelFields: ChannelFields): void => {
-    props.onChange({
-      ...props.value,
-      channelFields,
-    })
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const newType = e.target.value as TargetType
+    if (props.value.type !== newType) {
+      props.onChange({
+        ...props.value,
+        type: newType,
+        targetID: null,
+      })
+    }
+  }
+
+  const channelTypeItems = useMemo(
+    () => [
+      <MenuItem
+        key='SLACK_CHANNEL'
+        value='slackChannel'
+        disabled={!slackEnabled}
+      >
+        SLACK CHANNEL
+      </MenuItem>,
+      ...(slackUGEnabled
+        ? [
+            <MenuItem
+              key='SLACK_UG'
+              value='slackUserGroup'
+              disabled={!slackEnabled}
+            >
+              SLACK USER GROUP
+            </MenuItem>,
+          ]
+        : []),
+      ...(webhookChannelEnabled
+        ? [
+            <MenuItem
+              key='WEBHOOK'
+              value='chanWebhook'
+              disabled={!webhookEnabled}
+            >
+              WEBHOOK
+            </MenuItem>,
+          ]
+        : []),
+    ],
+    [slackEnabled, slackUGEnabled],
+  )
+
+  function renderTypeFields(type: TargetType): JSX.Element {
+    switch (type) {
+      case 'slackUserGroup':
+        return (
+          <Grid item>
+            <FormField
+              component={SlackUserGroupSelect}
+              fullWidth
+              name='targetID'
+              label='Slack User Group'
+            />
+          </Grid>
+        )
+      case 'slackChannel':
+        return (
+          <Grid item>
+            <FormField
+              component={SlackChannelSelect}
+              fullWidth
+              required
+              label='Slack Channel'
+              name='targetID'
+            />
+          </Grid>
+        )
+      case 'chanWebhook':
+        return (
+          <Grid item>
+            <FormField
+              component={TextField}
+              fullWidth
+              required
+              label='Webhook'
+              name='targetID'
+            />
+          </Grid>
+        )
+      default:
+        // unsupported type
+        return <Grid item />
+    }
   }
 
   return (
     <FormContainer {...formProps}>
       <Grid container spacing={2} direction='column'>
-        <Grid item xs={12}>
-          <FormField
-            fullWidth
-            name='type'
-            required
-            select
-            component={TextField}
-          >
-            {slackEnabled && <MenuItem value='SLACK'>SLACK</MenuItem>}
-            {webhookEnabled && webhookChannelEnabled && (
-              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
-            )}
-          </FormField>
-        </Grid>
         <Grid item>
           <RadioGroup
             name='ruleType'
@@ -151,17 +218,20 @@ export default function ScheduleOnCallNotificationsForm(
             </Grid>
           </Grid>
         </Grid>
-        {formProps.value.type === 'SLACK' && (
-          <SlackFieldsForm
-            slackFields={
-              (formProps.value.channelFields as SlackFields) ?? {
-                slackChannelID: null,
-              }
-            }
-            onChange={handleChannelDataChange}
-          />
-        )}
-        {formProps.value.type === 'WEBHOOK' && <WebhookFieldsForm />}
+        <Grid item>
+          <TextField
+            fullWidth
+            value={props.value.type}
+            required
+            label='Type'
+            select
+            onChange={handleTypeChange}
+            disabled={channelTypeItems.length <= 1}
+          >
+            {channelTypeItems}
+          </TextField>
+        </Grid>
+        {renderTypeFields(formProps.value.type)}
       </Grid>
     </FormContainer>
   )

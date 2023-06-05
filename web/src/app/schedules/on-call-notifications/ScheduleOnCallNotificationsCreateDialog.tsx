@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
-import { NO_DAY, Value, channelFieldsFromType, mapOnCallErrors } from './util'
+import { NO_DAY, Value, mapOnCallErrors } from './util'
 
 interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
@@ -12,10 +12,8 @@ interface ScheduleOnCallNotificationsCreateDialogProps {
 const defaultValue: Value = {
   time: null,
   weekdayFilter: NO_DAY,
-  type: 'SLACK',
-  channelFields: {
-    slackChannelID: null,
-  },
+  type: 'slackChannel',
+  targetID: null,
 }
 
 export default function ScheduleOnCallNotificationsCreateDialog(
@@ -36,14 +34,6 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
   const busy = (q.loading && !zone) || m.loading
 
-  const setNewValue = (newValue: Value): void => {
-    let channelFields = newValue.channelFields
-    if (value.type !== newValue.type) {
-      channelFields = channelFieldsFromType(newValue.type)
-    }
-    setValue({ ...newValue, channelFields })
-  }
-
   return (
     <FormDialog
       title='Create Notification Rule'
@@ -56,7 +46,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
           scheduleID={scheduleID}
           errors={fieldErrors}
           value={value}
-          onChange={setNewValue}
+          onChange={setValue}
         />
       }
     />

@@ -181,7 +181,7 @@ ensure-yarn: # Yarn ensures the correct version of yarn is installed
 
 yarn:
 	corepack enable
-	corepack prepare yarn@3.5.0 --activate
+	corepack prepare yarn@$(YARN_VERSION) --activate
 
 check-js: generate $(NODE_DEPS)
 	$(MAKE) ensure-yarn

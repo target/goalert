@@ -107,3 +107,5 @@ models:
       - github.com/99designs/gqlgen/graphql.ID
       - github.com/google/uuid.UUID
       - github.com/target/goalert/schedule.RuleID
+  MessageLogConnectionStats:
+    model: github.com/target/goalert/notification.SearchOptions

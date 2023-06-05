@@ -1,17 +1,10 @@
 import React, { useState } from 'react'
 
-import {
-  channelFieldsFromTarget,
-  channelTypeFromTarget,
-  EVERY_DAY,
-  mapOnCallErrors,
-  NO_DAY,
-  Value,
-} from './util'
-import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
-import FormDialog from '../../dialogs/FormDialog'
-import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import { DateTime } from 'luxon'
+import FormDialog from '../../dialogs/FormDialog'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
+import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
+import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
@@ -33,8 +26,8 @@ export default function ScheduleOnCallNotificationsEditDialog(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    type: channelTypeFromTarget(rule?.target),
-    channelFields: channelFieldsFromTarget(rule?.target),
+    type: rule?.target?.type ?? 'slackChannel',
+    targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     p.scheduleID,
@@ -57,7 +50,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
           scheduleID={p.scheduleID}
           errors={fieldErrors}
           value={newValue}
-          onChange={(value) => setValue(value)}
+          onChange={setValue}
         />
       }
     />
