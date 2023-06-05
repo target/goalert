@@ -224,9 +224,11 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 		if err != nil {
 			return nil, err
 		}
+
+		counts[index] = count
 	}
 
-	return makeTimeSeries(opts.CreatedAfter, opts.CreatedBefore, opts.TimeSeriesOrigin, opts.TimeSeriesInterval, counts), nil
+	return makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts), nil
 }
 
 func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
