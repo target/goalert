@@ -9,7 +9,7 @@ import slackIconBlack from '../../public/icons/slack_monochrome_black.svg'
 import slackIconWhite from '../../public/icons/slack_monochrome_white.svg'
 import makeStyles from '@mui/styles/makeStyles'
 import { useTheme } from '@mui/material'
-import { Webhook } from '@mui/icons-material'
+import { Help, Webhook } from '@mui/icons-material'
 
 const useStyles = makeStyles({
   trashIcon: {
@@ -77,6 +77,15 @@ export function WebhookBW() {
   const theme = useTheme()
   return (
     <Webhook
+      sx={{ color: theme.palette.mode === 'light' ? '#000000' : '#ffffff' }}
+    />
+  )
+}
+
+export function UnknownBW() {
+  const theme = useTheme()
+  return (
+    <Help
       sx={{ color: theme.palette.mode === 'light' ? '#000000' : '#ffffff' }}
     />
   )

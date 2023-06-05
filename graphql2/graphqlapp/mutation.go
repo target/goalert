@@ -51,6 +51,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 	if err != nil {
 		return false, err
 	}
+
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
 		for i, r := range input.Rules {
