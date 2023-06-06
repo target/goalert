@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
@@ -96,6 +98,16 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 				if !expflag.ContextHas(ctx, expflag.ChanWebhook) {
 					return validation.NewFieldError(fmt.Sprintf("Rules[%d].Target.Type", i), "Webhook channels are not enabled.")
 				}
+
+				url, err := url.Parse(r.Target.ID)
+				if err != nil {
+					return validation.NewFieldError("Rules[%d].Target.ID", "Invalid URL format")
+				}
+				url.RawQuery = ""
+				if len(url.Path) > 15 {
+					url.Path = url.Path[:12] + "..."
+				}
+
 				cfg := config.FromContext(ctx)
 				if !cfg.ValidWebhookURL(r.Target.ID) {
 					return validation.NewFieldError("Rules[%d].Target.ID", "URL not allowed by administrator")
@@ -103,7 +115,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 
 				nfyChan = &notificationchannel.Channel{
 					Type:  notificationchannel.TypeWebhook,
-					Name:  r.Target.ID,
+					Name:  webhook.MaskURLPass(url),
 					Value: r.Target.ID,
 				}
 			}
