@@ -41,6 +41,7 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/auth.test", srv.ServeAuthTest)
 	srv.mux.HandleFunc("/api/channels.create", srv.ServeChannelsCreate)
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
+	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
 	// TODO: history, leave, join
 	srv.mux.HandleFunc("/oauth/authorize", srv.ServeOAuthAuthorize)
 
