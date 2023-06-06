@@ -19,7 +19,6 @@ import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
-import { useExpFlag } from '../util/useExpFlag'
 import { useSessionInfo } from '../util/RequireConfig'
 
 const query = gql`
@@ -66,7 +65,6 @@ export default function UserContactMethodList(
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
-  const hasSlackDM = useExpFlag('slack-dm')
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -117,9 +115,6 @@ export default function UserContactMethodList(
         tooltip: '',
       },
     ]
-
-    // don't show send test for slack DMs if disabled
-    if (cm.type === 'SLACK_DM' && !hasSlackDM) return actions
 
     // disable send test and reactivate if not current user
     if (!cm.disabled) {
