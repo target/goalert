@@ -71,7 +71,7 @@ export default function SendTestDialog(
     Boolean(data?.userContactMethod.lastTestMessageState) &&
     now.diff(lastSent).as('seconds') < 60
   useEffect(() => {
-    if (fetching && !data?.userContactMethod) return
+    if (fetching || !data?.userContactMethod) return
     if (errorMessage || sendTestStatus.data) return
 
     if (hasSent) return
