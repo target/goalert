@@ -4,7 +4,7 @@ import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
-import { SlackBW, UnknownBW, WebhookBW } from '../../icons/components/Icons'
+import { SlackBW, WebhookBW } from '../../icons/components/Icons'
 import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
@@ -25,7 +25,7 @@ function getChannelIcon(targetType: string): JSX.Element {
   if (targetType === 'chanWebhook') {
     return <WebhookBW />
   }
-  return <UnknownBW />
+  return <div />
 }
 
 export default function ScheduleOnCallNotificationsList({
