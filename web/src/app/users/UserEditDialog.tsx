@@ -116,9 +116,9 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     },
   })
 
-  const userHasBasicAuth: boolean = data
-    ? data.user.authSubjects[0]?.providerID === 'basic'
-    : false
+  const userHasBasicAuth = (data?.user?.authSubjects ?? []).some(
+    (s) => s.providerID === 'basic',
+  )
 
   // Checks if any of the password fields are used. Used to skip any unnecessary updateUserMutation
   function passwordChanged(): boolean {
@@ -235,7 +235,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           errors={errors}
           admin={currentUserAdmin}
           disable={!!authDisableBasic}
-          passwordRequired={props.userID === currentUserID}
+          passwordRequired={props.userID === currentUserID && userHasBasicAuth}
           username={!userHasBasicAuth}
           onChange={(value) => {
             setValue(value)
