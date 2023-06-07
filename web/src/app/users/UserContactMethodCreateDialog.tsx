@@ -8,7 +8,6 @@ import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { ContactMethodType } from '../../schema'
-import { useExpFlag } from '../util/useExpFlag'
 
 type Value = {
   name: string
@@ -47,7 +46,6 @@ export default function UserContactMethodCreateDialog(props: {
     'Webhook.Enable',
     'Slack.Enable',
   )
-  const allowSFlag = useExpFlag('slack-dm')
 
   let typeVal: ContactMethodType = 'VOICE'
   if (allowSV) {
@@ -56,7 +54,7 @@ export default function UserContactMethodCreateDialog(props: {
     typeVal = 'EMAIL'
   } else if (allowW) {
     typeVal = 'WEBHOOK'
-  } else if (allowS && allowSFlag) {
+  } else if (allowS) {
     typeVal = 'SLACK_DM'
   }
 

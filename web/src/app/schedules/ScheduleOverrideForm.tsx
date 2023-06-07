@@ -11,6 +11,7 @@ import { ISODateTimePicker } from '../util/ISOPickers'
 import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { FieldError } from '../util/errutil'
+import { ensureInterval } from './timeUtil'
 
 const query = gql`
   query ($id: ID!) {
@@ -91,6 +92,9 @@ export default function ScheduleOverrideForm(
       errors={errors.concat(userConflictErrors)}
       value={value}
       {...formProps}
+      onChange={(newValue: ScheduleOverrideFormValue) => {
+        formProps.onChange(ensureInterval(value, newValue))
+      }}
     >
       <Grid container spacing={2}>
         {remove && (

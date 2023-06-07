@@ -5,8 +5,9 @@
 /*.session.json
 *.zip
 /test-results
-/coverage
+/coverage/
 
+/cypress/
 
 *.pem
 *.key

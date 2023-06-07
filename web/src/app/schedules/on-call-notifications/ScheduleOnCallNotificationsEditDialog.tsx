@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 
-import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
-import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
-import FormDialog from '../../dialogs/FormDialog'
-import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import { DateTime } from 'luxon'
+import FormDialog from '../../dialogs/FormDialog'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
+import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
+import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
@@ -17,7 +17,6 @@ export default function ScheduleOnCallNotificationsEditDialog(
   p: ScheduleOnCallNotificationsEditDialogProps,
 ): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
-  const [slackType, setSlackType] = useState('channel')
 
   const { q, zone, rules } = useOnCallRulesData(p.scheduleID)
 
@@ -27,14 +26,8 @@ export default function ScheduleOnCallNotificationsEditDialog(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    slackChannelID:
-      rule?.target.type === 'slackChannel'
-        ? rule?.target.id
-        : rule?.target.id.split(':')[1],
-    slackUserGroup:
-      rule?.target.type === 'slackUserGroup'
-        ? rule?.target.id.split(':')[0]
-        : null,
+    type: rule?.target?.type ?? 'slackChannel',
+    targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     p.scheduleID,
@@ -57,9 +50,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
           scheduleID={p.scheduleID}
           errors={fieldErrors}
           value={newValue}
-          onChange={(value) => setValue(value)}
-          slackType={slackType}
-          setSlackType={setSlackType}
+          onChange={setValue}
         />
       }
     />

@@ -19,8 +19,6 @@ type userGroupError struct {
 	ScheduleName string
 	Missing      []notification.User
 
-	OnCall string
-
 	callbackFunc func(string, ...url.Values) string
 }
 
@@ -56,23 +54,17 @@ func slackLink(url, label string) string {
 }
 
 // userGroupErrorMissing is a template for when a user-group update fails because one or more users are missing from Slack.
-var userGroupErrorMissing = template.Must(template.New("userGroupErrorMissing").Parse(`{{.OnCall}}
-
-Hey everyone! I couldn't update {{.GroupRef}} because I couldn't find the following user(s) in Slack: {{.MissingUserRefs}}
+var userGroupErrorMissing = template.Must(template.New("userGroupErrorMissing").Parse(`Hey everyone! I couldn't update {{.GroupRef}} because I couldn't find the following user(s) in Slack: {{.MissingUserRefs}}
 
 If you could have them add a SLACK_DM contact method from their respective GoAlert profile page(s), that would be great! Hopefully I'll be able to update the user-group next time.`))
 
 // userGroupErrorEmpty is a template for when a user-group update fails because there are no users on-call.
-var userGroupErrorEmpty = template.Must(template.New("userGroupErrorEmpty").Parse(`{{.OnCall}}
-
-Hey everyone! I couldn't update {{.GroupRef}} because there is nobody on-call for {{.ScheduleRef}}.
+var userGroupErrorEmpty = template.Must(template.New("userGroupErrorEmpty").Parse(`Hey everyone! I couldn't update {{.GroupRef}} because there is nobody on-call for {{.ScheduleRef}}.
 
 Since a Slack user-group cannot be empty, I'm going to leave it as-is for now.`))
 
 // userGroupErrorUpdate is a template for when a user-group update fails for any reason other than missing users.
-var userGroupErrorUpdate = template.Must(template.New("userGroupErrorUpdate").Parse(`{{.OnCall}}
-
-Hey everyone! I couldn't update {{.GroupRef}} because I ran into a problem. Maybe touch base with the GoAlert admin(s) to see if they can help? I'm sorry for the inconvenience!
+var userGroupErrorUpdate = template.Must(template.New("userGroupErrorUpdate").Parse(`Hey everyone! I couldn't update {{.GroupRef}} because I ran into a problem. Maybe touch base with the GoAlert admin(s) to see if they can help? I'm sorry for the inconvenience!
 
 Here's the ID I left with the error in my logs so they can find it:
 {{.ErrorRef}}`))

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
@@ -34,11 +35,13 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
 	srv.mux.HandleFunc("/api/users.conversations", srv.ServeConversationsList) // same data
+	srv.mux.HandleFunc("/api/users.info", srv.ServeUsersInfo)
 	srv.mux.HandleFunc("/api/oauth.access", srv.ServeOAuthAccess)
 	srv.mux.HandleFunc("/api/auth.revoke", srv.ServeAuthRevoke)
 	srv.mux.HandleFunc("/api/auth.test", srv.ServeAuthTest)
 	srv.mux.HandleFunc("/api/channels.create", srv.ServeChannelsCreate)
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
+	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
 	// TODO: history, leave, join
 	srv.mux.HandleFunc("/oauth/authorize", srv.ServeOAuthAuthorize)
 
@@ -50,7 +53,7 @@ func NewServer() *Server {
 
 	// handle 404/unknown api methods
 	srv.mux.HandleFunc("/api/", func(w http.ResponseWriter, req *http.Request) {
-		err := json.NewEncoder(w).Encode(response{Err: "unknown_method"})
+		err := json.NewEncoder(w).Encode(response{Err: "unknown_method: " + strings.TrimPrefix(req.URL.Path, "/api/")})
 		if err != nil {
 			log.Println("ERROR:", err)
 		}

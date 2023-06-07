@@ -66,9 +66,13 @@ export function randDT({
   min,
   max,
 }: {
-  min?: DateTime
-  max?: DateTime
+  min?: DateTime | string | null
+  max?: DateTime | string | null
 }): DateTime {
+  if (typeof min === 'string') min = DateTime.fromISO(min)
+  if (typeof max === 'string') max = DateTime.fromISO(max)
+
+  if (!min && max) min = max.minus({ days: 7 })
   if (!min) min = DateTime.utc().plus({ minutes: 15 })
   if (!max) max = min.plus({ days: 7 })
 
