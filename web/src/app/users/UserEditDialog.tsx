@@ -1,16 +1,18 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ApolloError, gql, useMutation, useQuery } from '@apollo/client'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { FieldError, fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserEditForm, { Value } from './UserEditForm'
+import { Query } from '../../schema'
 
 const userAuthQuery = gql`
   query ($id: ID!) {
     user(id: $id) {
       authSubjects {
         providerID
+        subjectID
       }
     }
   }
@@ -59,9 +61,20 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
 
-  const { loading, data } = useQuery(userAuthQuery, {
+  const { loading, data } = useQuery<Pick<Query, 'user'>>(userAuthQuery, {
     variables: { id: props.userID },
   })
+  useEffect(() => {
+    if (!data?.user?.authSubjects) return
+
+    const basicAuth = data.user.authSubjects.find(
+      (s) => s.providerID === 'basic',
+    )
+    if (!basicAuth) return
+
+    if (basicAuth.subjectID === value.username) return
+    setValue({ ...value, username: basicAuth.subjectID })
+  }, [data?.user?.authSubjects])
 
   const [createBasicAuth, createBasicAuthStatus] = useMutation(
     createBasicAuthMutation,
