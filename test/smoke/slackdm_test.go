@@ -3,7 +3,6 @@ package smoke
 import (
 	"testing"
 
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -39,7 +38,7 @@ func TestSlackDM(t *testing.T) {
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
 `
-	h := harness.NewHarnessWithFlags(t, sql, "slack-dm-cm-type", expflag.FlagSet{expflag.SlackDM})
+	h := harness.NewHarness(t, sql, "slack-dm-cm-type")
 	defer h.Close()
 	h.SetConfigValue("Slack.InteractiveMessages", "true")
 	h.Trigger() // the user's account should get "linked" via compat mgr
