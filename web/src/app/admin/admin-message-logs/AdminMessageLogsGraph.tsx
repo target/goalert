@@ -29,7 +29,7 @@ import { DateTime, Duration } from 'luxon'
 import Spinner from '../../loading/components/Spinner'
 import { gql, useQuery } from 'urql'
 import { Time } from '../../util/Time'
-import { useMessageLogsParams } from './util'
+import { getValidIntervals, useMessageLogsParams } from './util'
 
 type Stats = Array<{
   start: string
@@ -149,11 +149,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                   value={graphInterval}
                   onChange={(e) => setParams({ graphInterval: e.target.value })}
                 >
-                  <MenuItem value='P1D'>Daily</MenuItem>
-                  <MenuItem value='PT8H'>8 hours</MenuItem>
-                  <MenuItem value='PT1H'>Hourly</MenuItem>
-                  <MenuItem value='PT15M'>15 minutes</MenuItem>
-                  <MenuItem value='PT5M'>5 minutes</MenuItem>
+                  {getValidIntervals({ start, end }).map((ivl) => (
+                    <MenuItem key={ivl.value} value={ivl.value}>
+                      {ivl.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </CardContent>
             </Grid>
