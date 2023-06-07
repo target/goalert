@@ -77,7 +77,19 @@ function testUsers(screen: ScreenFormat): void {
           .find('button[aria-label="Edit Access"]')
           .click()
       })
+      it('should show error when username is missing', () => {
+        cy.get('input[name="password"]').type('test')
+        cy.get('input[name="confirmNewPassword"]').type('test')
+        cy.dialogClick('Submit')
+        cy.get('input[name="username"]')
+          .parent()
+          .parent()
+          .next('p')
+          .should('contain', 'Username required')
+      })
+
       it('should show error when password length is too short', () => {
+        cy.get('input[name="username"]').type('test')
         cy.get('input[name="password"]').type('test')
         cy.get('input[name="confirmNewPassword"]').type('test')
         cy.dialogClick('Submit')

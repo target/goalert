@@ -140,6 +140,15 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
         } as FieldError,
       ]
     }
+    if (!userHasBasicAuth && !value.username) {
+      err = [
+        ...err,
+        {
+          field: 'username',
+          message: 'Username required',
+        } as FieldError,
+      ]
+    }
     return err
   }
 
