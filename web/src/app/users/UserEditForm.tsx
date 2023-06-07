@@ -15,10 +15,10 @@ export type Value = {
 export interface UserEditFormProps {
   value: Value
   errors: Array<FieldError>
-  admin: boolean
-  disable: boolean
-  passwordRequired: boolean
-  username: boolean
+  isAdmin: boolean
+  disabled: boolean
+  requireOldPassword: boolean
+  hasUsername: boolean
   onChange: (newValue: Value) => void
 }
 
@@ -26,14 +26,14 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
   const {
     value,
     errors,
-    admin,
-    disable,
-    passwordRequired,
-    username,
+    isAdmin,
+    disabled,
+    requireOldPassword,
+    hasUsername,
     onChange,
   } = props
 
-  const usernameDisabled = disable || !username
+  const usernameDisabled = disabled || hasUsername
 
   return (
     <FormContainer
@@ -54,7 +54,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             disabled={usernameDisabled}
           />
         </Grid>
-        {passwordRequired && (
+        {requireOldPassword && (
           <Grid item xs={12}>
             <FormField
               fullWidth
@@ -62,8 +62,8 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
               name='oldPassword'
               label='Old Password'
               type='password'
-              autoComplete={disable ? 'off' : 'current-password'}
-              disabled={disable}
+              autoComplete={disabled ? 'off' : 'current-password'}
+              disabled={disabled}
             />
           </Grid>
         )}
@@ -74,8 +74,8 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='password'
             label='New Password'
             type='password'
-            autoComplete={disable ? 'off' : 'new-password'}
-            disabled={disable}
+            autoComplete={disabled ? 'off' : 'new-password'}
+            disabled={disabled}
           />
         </Grid>
         <Grid item xs={12}>
@@ -85,11 +85,11 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='confirmNewPassword'
             label='Confirm New Password'
             type='password'
-            autoComplete={disable ? 'off' : 'new-password'}
-            disabled={disable}
+            autoComplete={disabled ? 'off' : 'new-password'}
+            disabled={disabled}
           />
         </Grid>
-        {admin && (
+        {isAdmin && (
           <Grid item xs={12}>
             <FormControlLabel
               control={

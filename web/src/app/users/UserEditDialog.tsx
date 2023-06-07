@@ -233,10 +233,12 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
         <UserEditForm
           value={value}
           errors={errors}
-          admin={currentUserAdmin}
-          disable={!!authDisableBasic}
-          passwordRequired={props.userID === currentUserID && userHasBasicAuth}
-          username={!userHasBasicAuth}
+          isAdmin={currentUserAdmin}
+          disabled={!!authDisableBasic}
+          requireOldPassword={
+            props.userID === currentUserID && userHasBasicAuth
+          }
+          hasUsername={userHasBasicAuth}
           onChange={(value) => {
             setValue(value)
           }}
