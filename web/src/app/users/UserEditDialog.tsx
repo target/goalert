@@ -234,7 +234,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           value={value}
           errors={errors}
           isAdmin={currentUserAdmin}
-          disabled={!!authDisableBasic}
+          disabled={!!authDisableBasic && !currentUserAdmin}
           requireOldPassword={
             props.userID === currentUserID && userHasBasicAuth
           }
