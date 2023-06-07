@@ -1021,8 +1021,6 @@ export interface UpdateUserInput {
   name?: null | string
   email?: null | string
   role?: null | UserRole
-  oldPassword?: null | string
-  password?: null | string
   statusUpdateContactMethodID?: null | string
 }
 

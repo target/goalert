@@ -5,6 +5,7 @@ import { FormContainer, FormField } from '../forms'
 import { FieldError } from '../util/errutil'
 
 export type Value = {
+  username: string
   oldPassword: string
   password: string
   confirmNewPassword: string
@@ -17,11 +18,22 @@ export interface UserEditFormProps {
   admin: boolean
   disable: boolean
   passwordRequired: boolean
+  username: boolean
   onChange: (newValue: Value) => void
 }
 
 function UserEditForm(props: UserEditFormProps): JSX.Element {
-  const { value, errors, admin, disable, passwordRequired, onChange } = props
+  const {
+    value,
+    errors,
+    admin,
+    disable,
+    passwordRequired,
+    username,
+    onChange,
+  } = props
+
+  const usernameDisabled = disable || !username
 
   return (
     <FormContainer
@@ -32,6 +44,20 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
       }}
     >
       <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
+            name='username'
+            label={
+              usernameDisabled
+                ? 'Username (required only for new basic auth, admin only)'
+                : 'Username'
+            }
+            type='username'
+            disabled={usernameDisabled}
+          />
+        </Grid>
         {passwordRequired && (
           <Grid item xs={12}>
             <FormField
