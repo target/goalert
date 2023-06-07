@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './setup/testWithCoverage'
 import { userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()

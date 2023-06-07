@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './setup/testWithCoverage'
 import { baseURLFromFlags, userSessionFile } from './lib'
 
 test.use({ storageState: userSessionFile })
