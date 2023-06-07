@@ -48,12 +48,8 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
           <FormField
             fullWidth
             component={TextField}
+            autoComplete='off'
             name='username'
-            label={
-              usernameDisabled
-                ? 'Username (required only for new basic auth, admin only)'
-                : 'Username'
-            }
             type='username'
             disabled={usernameDisabled}
           />
@@ -66,6 +62,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
               name='oldPassword'
               label='Old Password'
               type='password'
+              autoComplete={disable ? 'off' : 'current-password'}
               disabled={disable}
             />
           </Grid>
@@ -77,6 +74,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='password'
             label='New Password'
             type='password'
+            autoComplete={disable ? 'off' : 'new-password'}
             disabled={disable}
           />
         </Grid>
@@ -87,6 +85,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             name='confirmNewPassword'
             label='Confirm New Password'
             type='password'
+            autoComplete={disable ? 'off' : 'new-password'}
             disabled={disable}
           />
         </Grid>
