@@ -44,21 +44,20 @@ function testUsers(screen: ScreenFormat): void {
         return cy.visit(`/users/${user.id}`)
       }),
     )
-
     it('should display correct information', () => {
       cy.get('body').should('contain', user.name).should('contain', user.email)
     })
 
     it('should edit a user role', () => {
       cy.get('[data-cy="card-actions"]')
-        .find('button[aria-label="Edit"]')
+        .find('button[aria-label="Edit Access"]')
         .click()
       cy.get('[type="checkbox"]').check()
-      cy.dialogFinish('Confirm')
+      cy.dialogFinish('Submit')
 
       cy.reload()
       cy.get('[data-cy="card-actions"]')
-        .find('button[aria-label="Edit"]')
+        .find('button[aria-label="Edit Access"]')
         .click()
       cy.get('[type="checkbox"]').should('be.checked')
     })
@@ -69,8 +68,54 @@ function testUsers(screen: ScreenFormat): void {
         .click()
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
-
       cy.get('[data-cy=paginated-list]').should('not.contain', user.name)
+    })
+
+    describe('User Password', () => {
+      beforeEach(() => {
+        cy.get('[data-cy="card-actions"]')
+          .find('button[aria-label="Edit Access"]')
+          .click()
+      })
+      it('should show error when username is missing', () => {
+        cy.get('input[name="password"]').type('test')
+        cy.get('input[name="confirmNewPassword"]').type('test')
+        cy.dialogClick('Submit')
+        cy.get('input[name="username"]')
+          .parent()
+          .parent()
+          .next('p')
+          .should('contain', 'Username required')
+      })
+
+      it('should show error when password length is too short', () => {
+        cy.get('input[name="username"]').type('test')
+        cy.get('input[name="password"]').type('test')
+        cy.get('input[name="confirmNewPassword"]').type('test')
+        cy.dialogClick('Submit')
+        cy.get('input[name="password"]')
+          .parent()
+          .parent()
+          .next('p')
+          .should('contain', 'Must be at least 8 characters')
+      })
+
+      it('should show error when passwords do not match', () => {
+        cy.get('input[name="password"]').type('example123')
+        cy.get('input[name="confirmNewPassword"]').type('example456')
+        cy.dialogClick('Submit')
+        cy.get('input[name="confirmNewPassword"]')
+          .parent()
+          .parent()
+          .next('p')
+          .should('contain', 'Passwords do not match')
+      })
+
+      it("should handle resetting a user's password as an admin", () => {
+        cy.get('input[name="password"]').type('ValidPassword')
+        cy.get('input[name="confirmNewPassword"]').type('ValidPassword')
+        cy.dialogClick('Submit')
+      })
     })
   })
 
