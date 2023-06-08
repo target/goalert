@@ -130,13 +130,12 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     ...vars,
     input: {
       first: ITEMS_PER_PAGE,
-      search: searchParam,
       ...input,
     },
   }
 
-  if (noSearch) {
-    delete queryVariables.input.search
+  if (searchParam) {
+    queryVariables.input.search = searchParam
   }
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {

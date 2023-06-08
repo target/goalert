@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
-import { gql } from 'urql'
 import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
-import DebugMessagesControls from './AdminMessageLogsControls'
+import { DateTime } from 'luxon'
+import { gql } from 'urql'
+import AdminMessageLogsControls from './AdminMessageLogsControls'
 import AdminMessageLogDrawer from './AdminMessageLogDrawer'
 import { DebugMessage } from '../../../schema'
-import { useURLParams } from '../../actions'
-import QueryList from '../../lists/QueryList'
-import { DateTime } from 'luxon'
+import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 import toTitleCase from '../../util/toTitleCase'
+import QueryList from '../../lists/QueryList'
+import { PaginatedListItemProps } from '../../lists/PaginatedList'
+import { useMessageLogsParams } from './util'
 
 const query = gql`
   query messageLogsQuery($input: MessageLogSearchOptions) {
-    data: messageLogs(input: $input) {
+    messageLogs(input: $input) {
       nodes {
         id
         createdAt
@@ -28,8 +30,6 @@ const query = gql`
         serviceName
         alertID
         providerID
-        retryCount
-        sentAt
       }
       pageInfo {
         hasNextPage
@@ -52,34 +52,70 @@ const useStyles = makeStyles((theme: Theme) => ({
       transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
     },
   },
-  groupTitle: {
-    fontSize: '1.1rem',
-  },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  card: {
-    margin: theme.spacing(1),
-    cursor: 'pointer',
-  },
-  textField: {
-    backgroundColor: 'white',
-    borderRadius: '4px',
-    minWidth: 250,
-  },
 }))
 
-export default function AdminDebugMessagesLayout(): JSX.Element {
+export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
-
-  // all data is fetched on page load, but the number of logs rendered is limited
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
-  const [params, setParams] = useURLParams({
-    search: '',
-    start: '',
-    end: '',
-  })
+  const [{ search, start, end }] = useMessageLogsParams()
+
+  const logsInput = {
+    search,
+    createdAfter: start,
+    createdBefore: end,
+  }
+
+  function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
+    const status = toTitleCase(log.status)
+    const statusDict = {
+      success: {
+        backgroundColor: '#EDF6ED',
+        color: '#1D4620',
+      },
+      error: {
+        backgroundColor: '#FDEBE9',
+        color: '#611A15',
+      },
+      warning: {
+        backgroundColor: '#FFF4E5',
+        color: '#663C00',
+      },
+      info: {
+        backgroundColor: '#E8F4FD',
+        color: '#0E3C61',
+      },
+    }
+
+    let statusStyles
+    const s = status.toLowerCase()
+    if (s.includes('deliver')) statusStyles = statusDict.success
+    if (s.includes('sent')) statusStyles = statusDict.success
+    if (s.includes('fail')) statusStyles = statusDict.error
+    if (s.includes('temp')) statusStyles = statusDict.warning
+    if (s.includes('pend')) statusStyles = statusDict.info
+
+    return {
+      onClick: () => setSelectedLog(log as DebugMessage),
+      selected: (log as DebugMessage).id === selectedLog?.id,
+      title: `${log.type} Notification`,
+      subText: (
+        <Grid container spacing={2} direction='column'>
+          <Grid item>Destination: {log.destination}</Grid>
+          {log.serviceName && <Grid item>Service: {log.serviceName}</Grid>}
+          {log.userName && <Grid item>User: {log.userName}</Grid>}
+          <Grid item>
+            <Chip label={status} style={statusStyles} />
+          </Grid>
+        </Grid>
+      ),
+      action: (
+        <Typography variant='body2' color='textSecondary'>
+          {DateTime.fromISO(log.createdAt).toFormat('fff')}
+        </Typography>
+      ),
+    }
+  }
 
   return (
     <React.Fragment>
@@ -95,75 +131,17 @@ export default function AdminDebugMessagesLayout(): JSX.Element {
         }
       >
         <Grid item xs={12}>
-          <DebugMessagesControls
-            value={params}
-            onChange={(newParams) => {
-              setParams(newParams)
-            }}
-          />
+          <AdminMessageLogsControls />
         </Grid>
+
+        <AdminMessageLogsGraph />
+
         <Grid item xs={12}>
           <QueryList
             query={query}
+            variables={{ input: { ...logsInput } }}
             noSearch
-            mapVariables={(vars) => {
-              if (params.search) vars.input.search = params.search
-              if (params.start) vars.input.createdAfter = params.start
-              if (params.end) vars.input.createdBefore = params.end
-              return vars
-            }}
-            mapDataNode={(n) => {
-              const status = toTitleCase(n.status)
-              const statusDict = {
-                success: {
-                  backgroundColor: '#EDF6ED',
-                  color: '#1D4620',
-                },
-                error: {
-                  backgroundColor: '#FDEBE9',
-                  color: '#611A15',
-                },
-                warning: {
-                  backgroundColor: '#FFF4E5',
-                  color: '#663C00',
-                },
-                info: {
-                  backgroundColor: '#E8F4FD',
-                  color: '#0E3C61',
-                },
-              }
-
-              let statusStyles
-              const s = status.toLowerCase()
-              if (s.includes('deliver')) statusStyles = statusDict.success
-              if (s.includes('sent')) statusStyles = statusDict.success
-              if (s.includes('fail')) statusStyles = statusDict.error
-              if (s.includes('temp')) statusStyles = statusDict.warning
-              if (s.includes('pend')) statusStyles = statusDict.info
-
-              return {
-                onClick: () => setSelectedLog(n as DebugMessage),
-                selected: (n as DebugMessage).id === selectedLog?.id,
-                title: `${n.type} Notification`,
-                subText: (
-                  <Grid container spacing={2} direction='column'>
-                    <Grid item>Destination: {n.destination}</Grid>
-                    {n.serviceName && (
-                      <Grid item>Service: {n.serviceName}</Grid>
-                    )}
-                    {n.userName && <Grid item>User: {n.userName}</Grid>}
-                    <Grid item>
-                      <Chip label={status} style={statusStyles} />
-                    </Grid>
-                  </Grid>
-                ),
-                action: (
-                  <Typography variant='body2' color='textSecondary'>
-                    {DateTime.fromISO(n.createdAt).toFormat('fff')}
-                  </Typography>
-                ),
-              }
-            }}
+            mapDataNode={(n) => mapLogToListItem(n as DebugMessage)}
           />
         </Grid>
       </Grid>

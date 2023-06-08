@@ -3,7 +3,6 @@ package notification
 import (
 	"context"
 	"database/sql"
-	"sort"
 	"text/template"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -142,7 +142,17 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 	if opts.TimeSeries {
 		opts.TimeSeriesInterval = opts.TimeSeriesInterval.Truncate(time.Second)
-		err = validate.Duration("TimeSeriesInterval", opts.TimeSeriesInterval, time.Minute, time.Hour*24*365)
+		if opts.CreatedBefore.IsZero() {
+			return nil, validation.NewFieldError("CreatedBefore", "required for time series queries")
+		}
+		if opts.CreatedAfter.IsZero() {
+			return nil, validation.NewFieldError("CreatedAfter", "required for time series queries")
+		}
+
+		diff := opts.CreatedBefore.Sub(opts.CreatedAfter)
+		minInterval := diff/1000 + 1
+		minInterval = minInterval.Truncate(time.Minute)
+		err = validate.Duration("TimeSeriesInterval", opts.TimeSeriesInterval, minInterval, time.Hour*24*365)
 	}
 	if err != nil {
 		return nil, err
@@ -207,28 +217,35 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	var buckets []TimeSeriesBucket
+	counts := make(map[int]int)
 	for rows.Next() {
-		var bucketSecs int
-		var bucket TimeSeriesBucket
-		err := rows.Scan(&bucketSecs, &bucket.Count)
+		var index, count int
+		err := rows.Scan(&index, &count)
 		if err != nil {
 			return nil, err
 		}
 
-		bucketSecs *= int(data.TimeSeriesInterval.Seconds())
-		bucketSecs += int(data.TimeSeriesOrigin.Unix())
-		bucket.Start = time.Unix(int64(bucketSecs), 0)
-		bucket.End = bucket.Start.Add(data.TimeSeriesInterval)
-		buckets = append(buckets, bucket)
+		counts[index] = count
 	}
 
-	// sort buckets by start time
-	sort.Slice(buckets, func(i, j int) bool {
-		return buckets[i].Start.Before(buckets[j].Start)
-	})
+	return makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts), nil
+}
 
-	return buckets, nil
+func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
+	return int(t.Sub(origin) / interval)
+}
+
+func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]int) []TimeSeriesBucket {
+	var buckets []TimeSeriesBucket
+	for t := start; t.Before(end); t = t.Add(duration) {
+		var b TimeSeriesBucket
+		b.Start = t
+		b.End = t.Add(duration)
+		b.Count = counts[timeToIndex(origin, duration, t)]
+		buckets = append(buckets, b)
+	}
+
+	return buckets
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, error) {
