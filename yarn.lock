@@ -2925,13 +2925,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@urql/exchange-retry@npm:1.1.1":
-  version: 1.1.1
-  resolution: "@urql/exchange-retry@npm:1.1.1"
+"@urql/exchange-retry@npm:1.2.0":
+  version: 1.2.0
+  resolution: "@urql/exchange-retry@npm:1.2.0"
   dependencies:
     "@urql/core": ">=4.0.0"
     wonka: ^6.3.2
-  checksum: ec34f1033faef6ba137d61fe409a2d0213c03fc0c6e25935dc2af6852034fa433448a8d9f5c8582c58d924665ad68c24aa9f824750686a1eb084e32c8a52b90b
+  checksum: 5bb30c1de9fc6c1cd25224da4c2445567dc3d6bacac43a15dcca07bbd87c2c30c765dc522a3150dc119dc76230b2da27328a4ccd4e9cfb02039d87a9beaf97b4
   languageName: node
   linkType: hard
 
@@ -10643,7 +10643,7 @@ __metadata:
     "@types/react-virtualized-auto-sizer": 1.0.1
     "@typescript-eslint/eslint-plugin": 5.59.1
     "@typescript-eslint/parser": 5.58.0
-    "@urql/exchange-retry": 1.1.1
+    "@urql/exchange-retry": 1.2.0
     bowser: 2.11.0
     chance: 1.1.11
     classnames: 2.3.2
