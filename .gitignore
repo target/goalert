@@ -5,7 +5,7 @@
 /*.session.json
 *.zip
 /test-results
-/coverage/
+/test/coverage/
 
 /cypress/
 

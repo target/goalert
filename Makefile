@@ -109,13 +109,13 @@ cy-wide-prod: web/src/build/static/app.js cypress
 cy-mobile-prod: web/src/build/static/app.js cypress
 	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress
-	rm -rf coverage/integration/cypress-wide
-	mkdir -p coverage/integration/cypress-wide
-	GOCOVERDIR=coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	rm -rf test/coverage/integration/cypress-wide
+	mkdir -p test/coverage/integration/cypress-wide
+	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 cy-mobile-prod-run: web/src/build/static/app.js cypress
-	rm -rf coverage/integration/cypress-mobile
-	mkdir -p coverage/integration/cypress-mobile
-	GOCOVERDIR=coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	rm -rf test/coverage/integration/cypress-mobile
+	mkdir -p test/coverage/integration/cypress-mobile
+	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
 
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
@@ -149,15 +149,15 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/sr
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
 reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite
-	rm -rf coverage/integration/reset
-	mkdir -p coverage/integration/reset
+	rm -rf test/coverage/integration/reset
+	mkdir -p test/coverage/integration/reset
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
-	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
+	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
 	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
-	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
-	GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
-	cat test/integration/setup/goalert-config.json | GOCOVERDIR=coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
+	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
+	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
+	cat test/integration/setup/goalert-config.json | GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
 
 start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
@@ -168,9 +168,9 @@ jest: $(NODE_DEPS)
 	yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
-	rm -rf $(PWD)/coverage/unit
-	mkdir -p $(PWD)/coverage/unit
-	go test -coverpkg=./... -short ./... -args -test.gocoverdir=$(PWD)/coverage/unit
+	rm -rf $(PWD)/test/coverage/unit
+	mkdir -p $(PWD)/test/coverage/unit
+	go test -coverpkg=./... -short ./... -args -test.gocoverdir=$(PWD)/test/coverage/unit
 
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
@@ -231,18 +231,18 @@ bin/MailHog: go.mod go.sum
 
 playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
-	rm -rf coverage/integration/playwright
-	mkdir -p coverage/integration/playwright
-	GOCOVERDIR=coverage/integration/playwright yarn playwright test
+	rm -rf test/coverage/integration/playwright
+	mkdir -p test/coverage/integration/playwright
+	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
 	yarn playwright test --ui
 
 smoketest:
-	rm -rf coverage/smoke
-	mkdir -p coverage/smoke
-	(cd test/smoke && go test -coverpkg=../../... -parallel 10 -timeout 20m -args -test.gocoverdir=$(PWD)/coverage/smoke)
+	rm -rf test/coverage/smoke
+	mkdir -p test/coverage/smoke
+	(cd test/smoke && go test -coverpkg=../../... -parallel 10 -timeout 20m -args -test.gocoverdir=$(PWD)/test/coverage/smoke)
 
 test-migrations: bin/goalert
 	(cd test/smoke && go test -run TestMigrations)
@@ -331,14 +331,13 @@ vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations
 upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
 	yarn upgrade-interactive
 
-coverage/total: coverage/integration/*/* coverage/*/*
-	rm -rf coverage/total
-	mkdir -p coverage/total
-	go tool covdata merge -i coverage/integration/cypress-wide,coverage/integration/cypress-mobile,coverage/smoke,coverage/unit -pcombine -o coverage/total
+test/coverage/total.out: test/coverage/integration/*/* test/coverage/*/*
+	rm -rf test/coverage/total
+	mkdir -p test/coverage/total
+	go tool covdata merge -i test/coverage/integration/cypress-wide,test/coverage/integration/cypress-mobile,test/coverage/integration/playwright,test/coverage/integration/reset,test/coverage/smoke,test/coverage/unit -pcombine -o test/coverage/total
 
-coverage/total.out: coverage/total
-	go tool covdata textfmt -i coverage/total -o coverage/total.out.tmp
-	cat coverage/total.out.tmp | grep -v ^github.com/target/goalert/graphql2/generated.go | grep -v ^github.com/target/goalert/graphql2/mapconfig.go | grep -v ^github.com/target/goalert/graphql2/maplimit.go | grep -v ^github.com/target/goalert/graphql2/models_gen.go | grep -v ^github.com/target/goalert/gadb | grep -v ^github.com/target/goalert/devtools >coverage/total.out
+	go tool covdata textfmt -i test/coverage/total -o test/coverage/total.out.tmp
+	cat test/coverage/total.out.tmp | grep -v ^github.com/target/goalert/graphql2/generated.go | grep -v ^github.com/target/goalert/graphql2/mapconfig.go | grep -v ^github.com/target/goalert/graphql2/maplimit.go | grep -v ^github.com/target/goalert/graphql2/models_gen.go | grep -v ^github.com/target/goalert/gadb | grep -v ^github.com/target/goalert/devtools >test/coverage/total.out
 
-coverage/report.txt: coverage/total.out
-	go tool cover -func=coverage/total.out | tee coverage/report.txt
+test/coverage/report.txt: test/coverage/total.out
+	go tool cover -func=test/coverage/total.out | tee test/coverage/report.txt
