@@ -144,6 +144,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				fav.tgt_user_id = u.id AND fav.user_id = $2
 			WHERE u.id = $1
 		`),
+
 		findOneForUpdate: p.P(`
 			SELECT
 				id, name, email, avatar_url, role, false
@@ -256,7 +257,11 @@ func (s *Store) WithoutAuthProviderFunc(ctx context.Context, providerID string, 
 // providerID, if not empty, will limit AuthSubjects to those with the same providerID.
 // userID, if not empty, will limit AuthSubjects to those assigned to the given userID(s).
 func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID string, userIDs []string, forEachFn func(AuthSubject) error) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	checks := []permission.Checker{permission.Admin}
+	if len(userIDs) == 1 {
+		checks = append(checks, permission.MatchUser(userIDs[0]))
+	}
+	err := permission.LimitCheckAny(ctx, checks...)
 	if err != nil {
 		return err
 	}

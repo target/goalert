@@ -13,7 +13,6 @@ import { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
 
 import { FormContainer, FormField } from '../../forms'
-import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
@@ -21,6 +20,7 @@ import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
 import { TargetType } from '../../../schema'
+import { SlackUserGroupSelect, SlackChannelSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -42,6 +42,8 @@ export default function ScheduleOnCallNotificationsForm(
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
   const [slackEnabled] = useConfigValue('Slack.Enable')
+  const [webhookEnabled] = useConfigValue('Webhook.Enable')
+  const webhookChannelEnabled = useExpFlag('chan-webhook')
   const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
 
@@ -88,8 +90,19 @@ export default function ScheduleOnCallNotificationsForm(
             </MenuItem>,
           ]
         : []),
+      ...(webhookChannelEnabled
+        ? [
+            <MenuItem
+              key='WEBHOOK'
+              value='chanWebhook'
+              disabled={!webhookEnabled}
+            >
+              WEBHOOK
+            </MenuItem>,
+          ]
+        : []),
     ],
-    [slackEnabled, slackUGEnabled],
+    [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
   )
 
   function renderTypeFields(type: TargetType): JSX.Element {
@@ -113,6 +126,18 @@ export default function ScheduleOnCallNotificationsForm(
               fullWidth
               required
               label='Slack Channel'
+              name='targetID'
+            />
+          </Grid>
+        )
+      case 'chanWebhook':
+        return (
+          <Grid item>
+            <FormField
+              component={TextField}
+              fullWidth
+              required
+              label='Webhook'
               name='targetID'
             />
           </Grid>

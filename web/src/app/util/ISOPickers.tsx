@@ -109,10 +109,10 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       inputProps={{
         min: min ? DateTime.fromISO(min, { zone }).toFormat(format) : undefined,
         max: max ? DateTime.fromISO(max, { zone }).toFormat(format) : undefined,
-        ...textFieldProps?.inputProps,
         style: {
           colorScheme: theme.palette.mode,
         },
+        ...textFieldProps?.inputProps,
       }}
     />
   )
