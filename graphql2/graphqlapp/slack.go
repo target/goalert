@@ -9,12 +9,10 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/validation"
 )
 
 func (q *Query) SlackChannel(ctx context.Context, id string) (*slack.Channel, error) {
@@ -23,17 +21,11 @@ func (q *Query) SlackChannel(ctx context.Context, id string) (*slack.Channel, er
 
 // SlackUserGroup is a GraphQL resolver for a Slack user group.
 func (q *Query) SlackUserGroup(ctx context.Context, id string) (*slack.UserGroup, error) {
-	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
-		return nil, validation.NewGenericError("Slack user groups are not enabled")
-	}
 	return q.SlackStore.UserGroup(ctx, id)
 }
 
 // SlackUserGroups is a GraphQL resolver for a list of Slack user groups.
 func (q *Query) SlackUserGroups(ctx context.Context, input *graphql2.SlackUserGroupSearchOptions) (conn *graphql2.SlackUserGroupConnection, err error) {
-	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
-		return nil, validation.NewGenericError("Slack user groups are not enabled")
-	}
 	if input == nil {
 		input = &graphql2.SlackUserGroupSearchOptions{}
 	}
