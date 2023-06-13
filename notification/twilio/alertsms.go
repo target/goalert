@@ -166,10 +166,10 @@ func renderMinGSMSegments(inputs []string, render func(inputs []string) (string,
 	}
 }
 
-// renderAlertMessage will render a single-segment SMS for an Alert.
+// renderAlertMessage will render a SMS message for an Alert.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
+// truncated (as needed) to use the minimum number of message segments.
 func renderAlertMessage(appName string, a notification.Alert, link string, code int) (string, error) {
 	var buf bytes.Buffer
 	var data struct {
@@ -199,10 +199,10 @@ func renderAlertMessage(appName string, a notification.Alert, link string, code 
 	return result, nil
 }
 
-// renderAlertStatusMessage will render a single-segment SMS for an Alert Status.
+// renderAlertStatusMessage will render a SMS message for an Alert Status.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
+// truncated (as needed) to use the minimum number of message segments.
 func renderAlertStatusMessage(appName string, a notification.AlertStatus) (string, error) {
 	var buf bytes.Buffer
 	var data struct {
@@ -228,10 +228,10 @@ func renderAlertStatusMessage(appName string, a notification.AlertStatus) (strin
 	return result, nil
 }
 
-// renderAlertBundleMessage will render a single-segment SMS for an Alert Bundle.
+// renderAlertBundleMessage will render a SMS message for an Alert Bundle.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
+// truncated (as needed) to use the minimum number of message segments.
 func renderAlertBundleMessage(appName string, a notification.AlertBundle, link string, code int) (string, error) {
 	var buf bytes.Buffer
 
