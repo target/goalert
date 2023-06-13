@@ -165,7 +165,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 
 jest: $(NODE_DEPS)
 	$(MAKE) ensure-yarn
-	# yarn run jest $(JEST_ARGS)
+	yarn run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest ## Run all unit tests
 	rm -rf $(PWD)/coverage/unit
