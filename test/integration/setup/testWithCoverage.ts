@@ -26,7 +26,7 @@ export async function saveV8Coverage(page: Page): Promise<void> {
     const converter = v8toIstanbul(
       scriptPath,
       0,
-      { source: entry?.source ?? '', sourceMap: { sourcemap: '' } },
+      { source: entry?.source ?? '' },
       (filepath) => {
         const normalized = filepath.replace(/\\/g, '/')
         const ret = normalized.includes('node_modules/')
@@ -47,16 +47,7 @@ export async function saveV8Coverage(page: Page): Promise<void> {
 }
 
 test.afterAll(async () => {
-  // await saveV8Coverage(page)
-  // await page.close()
-
-  const coverage = await page.coverage.stopJSCoverage()
-  for (const entry of coverage) {
-    const converter = v8toIstanbul('', 0, { source: entry?.source ?? '' })
-    await converter.load()
-    converter.applyCoverage(entry.functions)
-    console.log(JSON.stringify(converter.toIstanbul()))
-  }
+  await saveV8Coverage(page)
   await page.close()
 })
 

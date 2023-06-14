@@ -40,7 +40,7 @@ async function run() {
       app: 'web/src/app/index.tsx',
       worker: 'web/src/app/worker/worker.ts',
     },
-    outdir: 'web/src/build/static/',
+    outdir: 'web/src/build/static/', // 'test/static/' for coverage
     logLevel: 'info',
     bundle: true,
     define: {
