@@ -228,7 +228,7 @@ func renderAlertStatusMessage(appName string, a notification.AlertStatus) (strin
 	return result, nil
 }
 
-// renderAlertBundleMessage will render a SMS message for an Alert Bundle.
+// renderAlertBundleMessage will render an SMS message for an Alert Bundle.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
 // truncated (as needed) to use the minimum number of message segments.
