@@ -6,6 +6,8 @@
 *.zip
 /test-results
 /cypress/
+/test/static
+/coverage
 
 *.pem
 *.key
