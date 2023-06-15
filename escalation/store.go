@@ -7,14 +7,12 @@ import (
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -343,9 +341,6 @@ func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, 
 		}
 	}
 	if tgt.TargetType() == assignment.TargetTypeChanWebhook {
-		if !expflag.ContextHas(ctx, expflag.ChanWebhook) {
-			return validation.NewFieldError("type", "Webhook notification channels are not enabled")
-		}
 		var err error
 		tgt, err = s.chanWebhook(ctx, tx, tgt)
 		if err != nil {
