@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import NumberField from './NumberField'
-import { MenuItem, Select } from '@mui/material'
+import { Grid, MenuItem, Select } from '@mui/material'
 import { Duration, DurationLikeObject } from 'luxon'
 
 export type DurationFieldProps = {
@@ -44,25 +44,41 @@ export const DurationField: React.FC<DurationFieldProps> = (props) => {
   }
 
   return (
-    <NumberField
-      value={val.toString()}
-      onChange={(e) => handleChange(parseInt(e.target.value, 10))}
-      InputProps={{
-        endAdornment: (
-          <Select
-            value={unit}
-            onChange={(e) => {
-              setUnit(e.target.value as Unit)
-              handleChange(val, e.target.value as Unit)
-            }}
-          >
-            <MenuItem value='minute'>Minute(s)</MenuItem>
-            <MenuItem value='hour'>Hour(s)</MenuItem>
-            <MenuItem value='day'>Day(s) (24h)</MenuItem>
-            <MenuItem value='week'>Week(s)</MenuItem>
-          </Select>
-        ),
-      }}
-    />
+    <Grid container sx={{ width: '100%' }}>
+      <Grid item xs={8}>
+        <NumberField
+          fullWidth
+          value={val.toString()}
+          onChange={(e) => handleChange(parseInt(e.target.value, 10))}
+          sx={{
+            '& fieldset': {
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
+            },
+          }}
+        />
+      </Grid>
+      <Grid item xs={4}>
+        <Select
+          value={unit}
+          onChange={(e) => {
+            setUnit(e.target.value as Unit)
+            handleChange(val, e.target.value as Unit)
+          }}
+          sx={{
+            width: '100%',
+            '& fieldset': {
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+            },
+          }}
+        >
+          <MenuItem value='minute'>Minute(s)</MenuItem>
+          <MenuItem value='hour'>Hour(s)</MenuItem>
+          <MenuItem value='day'>Day(s) (24h)</MenuItem>
+          <MenuItem value='week'>Week(s)</MenuItem>
+        </Select>
+      </Grid>
+    </Grid>
   )
 }
