@@ -1,13 +1,19 @@
 import React, { useRef, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CardHeader from '@mui/material/CardHeader'
 import Dialog from '@mui/material/Dialog'
 import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
+import { Add } from '@mui/icons-material'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { gql, useMutation } from '@apollo/client'
+import CreateFAB from '../lists/CreateFAB'
+import PolicyStepCreateDialog from './PolicyStepCreateDialog'
+import { useResetURLParams, useURLParam } from '../actions'
 import PolicyStep from './PolicyStep'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -34,6 +40,11 @@ const mutation = gql`
 function PolicyStepsCard(props) {
   const classes = useStyles()
   const { escalationPolicyID, repeat, steps } = props
+
+  const isMobile = useIsWidthDown('md')
+  const stepNumParam = 'createStep'
+  const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
+  const resetCreateStep = useResetURLParams(stepNumParam)
 
   const oldID = useRef(null)
   const oldIdx = useRef(null)
@@ -231,11 +242,33 @@ function PolicyStepsCard(props) {
 
   return (
     <React.Fragment>
+      {isMobile && (
+        <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
+      )}
+      {createStep && (
+        <PolicyStepCreateDialog
+          escalationPolicyID={escalationPolicyID}
+          onClose={resetCreateStep}
+        />
+      )}
       <Card>
         <CardContent>
-          <Typography variant='h5' component='h3'>
-            Escalation Steps
-          </Typography>
+          <CardHeader
+            title='Escalation Steps'
+            component='h3'
+            sx={{ padding: 0, margin: 0 }}
+            action={
+              !isMobile && (
+                <Button
+                  variant='contained'
+                  onClick={() => setCreateStep(true)}
+                  startIcon={<Add />}
+                >
+                  Create Step
+                </Button>
+              )
+            }
+          />
           {renderStepsList()}
           {renderRepeatText()}
         </CardContent>

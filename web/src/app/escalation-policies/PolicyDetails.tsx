@@ -2,15 +2,11 @@ import React, { useState } from 'react'
 import { useQuery, gql } from 'urql'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
-
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import CreateFAB from '../lists/CreateFAB'
-import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import DetailsPage from '../details/DetailsPage'
 import PolicyEditDialog from './PolicyEditDialog'
-import { useResetURLParams, useURLParam } from '../actions'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { EPAvatar } from '../util/avatars'
@@ -35,10 +31,6 @@ const query = gql`
 export default function PolicyDetails(props: {
   policyID: string
 }): JSX.Element {
-  const stepNumParam = 'createStep'
-  const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
-  const resetCreateStep = useResetURLParams(stepNumParam)
-
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
@@ -95,13 +87,6 @@ export default function PolicyDetails(props: {
           },
         ]}
       />
-      <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
-      {createStep && (
-        <PolicyStepCreateDialog
-          escalationPolicyID={data.id}
-          onClose={resetCreateStep}
-        />
-      )}
       {showEditDialog && (
         <PolicyEditDialog
           escalationPolicyID={data.id}
