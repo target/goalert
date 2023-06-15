@@ -8,7 +8,11 @@ function testMaterialSelect(screen: ScreenFormat): void {
     cy.createRotation().then((r) => {
       const u = users[3]
       cy.visit(`rotations/${r.id}`)
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
       cy.get('input[name=users]').click()
       cy.focused().type(u.name.replace('.', ' '))
