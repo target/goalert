@@ -119,7 +119,7 @@ type Config struct {
 
 		From string `public:"true" info:"The email address messages should be sent from."`
 
-		Address    string `info:"The server address to use for sending email. Port is optional."`
+		Address    string `info:"The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS."`
 		DisableTLS bool   `info:"Disables TLS on the connection (STARTTLS will still be used if supported)."`
 		SkipVerify bool   `info:"Disables certificate validation for TLS/STARTTLS (insecure)."`
 

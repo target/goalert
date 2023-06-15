@@ -365,6 +365,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 		"email":          func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
 		"phoneCC":        func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
 		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
+		"slackUserID":    func(name string) string { return fmt.Sprintf("'%s'", h.Slack().User(name).ID()) },
 	})
 	_, err := t.Parse(sql)
 	if err != nil {
@@ -592,6 +593,7 @@ func (h *Harness) Close() error {
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+	h.dumpDB() // early as possible
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
@@ -613,7 +615,6 @@ func (h *Harness) Close() error {
 	h.twS.Close()
 
 	h.tw.Close()
-	h.dumpDB()
 
 	h.pgTime.Close()
 

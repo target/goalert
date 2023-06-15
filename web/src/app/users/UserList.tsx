@@ -39,7 +39,7 @@ function UserList(): JSX.Element {
           icon: <UserAvatar userID={n.id} />,
         })}
         mapVariables={(vars) => {
-          if (vars?.input.search.startsWith('phone=')) {
+          if (vars?.input?.search?.startsWith('phone=')) {
             vars.input.CMValue = vars.input.search.replace(/^phone=/, '')
             vars.input.search = ''
           }

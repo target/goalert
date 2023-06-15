@@ -367,7 +367,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[0].name)
-      cy.get('p').should('contain', 'Added from')
+      cy.get('span').should('contain', 'Added from')
       expect('span').to.not.contain('No results')
     })
 
@@ -388,7 +388,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[0].name)
-      cy.get('p').should('contain', 'Removed from')
+      cy.get('span').should('contain', 'Removed from')
       expect('span').to.not.contain('No results')
     })
 
@@ -409,7 +409,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[1].name)
-      cy.get('p').should('contain', `Replaces ${users[0].name} from`)
+      cy.get('span').should('contain', `Replaces ${users[0].name} from`)
       expect('span').to.not.contain('No results')
     })
 
@@ -488,7 +488,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
-        slackChannelID: 'general',
+        targetID: 'general',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', '#general')
@@ -502,7 +502,7 @@ function testSchedules(screen: ScreenFormat): void {
       }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
-        slackChannelID: 'foobar',
+        targetID: 'foobar',
         ruleType: 'time-of-day',
         time: '00:00',
         'weekdayFilter[0]': false,
@@ -600,7 +600,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Edit Notification Rule')
       cy.dialogForm({
         ruleType: 'time-of-day',
-        slackChannelID: 'foobar',
+        targetID: 'foobar',
         time: '07:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,

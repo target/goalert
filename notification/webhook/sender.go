@@ -57,6 +57,23 @@ type POSTDataVerification struct {
 	Code    string
 }
 
+// POSTDataOnCallUser represents User fields in outgoing on call notification.
+type POSTDataOnCallUser struct {
+	ID   string
+	Name string
+	URL  string
+}
+
+// POSTDataOnCallNotification represents fields in outgoing on call notification.
+type POSTDataOnCallNotification struct {
+	AppName      string
+	Type         string
+	Users        []POSTDataOnCallUser
+	ScheduleID   string
+	ScheduleName string
+	ScheduleURL  string
+}
+
 // POSTDataTest represents fields in outgoing test notification.
 type POSTDataTest struct {
 	AppName string
@@ -105,6 +122,21 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			Type:     "AlertStatus",
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
+		}
+	case notification.ScheduleOnCallUsers:
+		// We use types defined in this package to insulate against unintended API
+		// changes.
+		users := make([]POSTDataOnCallUser, len(m.Users))
+		for i, u := range m.Users {
+			users[i] = POSTDataOnCallUser(u)
+		}
+		payload = POSTDataOnCallNotification{
+			AppName:      cfg.ApplicationName(),
+			Type:         "ScheduleOnCallUsers",
+			Users:        users,
+			ScheduleID:   m.ScheduleID,
+			ScheduleName: m.ScheduleName,
+			ScheduleURL:  m.ScheduleURL,
 		}
 	default:
 		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())

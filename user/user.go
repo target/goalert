@@ -2,7 +2,6 @@ package user
 
 import (
 	"crypto/md5"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
 
@@ -28,7 +27,9 @@ type User struct {
 	AvatarURL string
 
 	// AlertStatusCMID defines a contact method ID for alert status updates.
-	AlertStatusCMID string `gorm:"column:alert_status_log_contact_method_id"`
+	//
+	// Deprecated: No longer used.
+	AlertStatusCMID string
 
 	// The Role of the user
 	Role permission.Role
@@ -55,47 +56,32 @@ func (u User) ResolveAvatarURL(fullSize bool) string {
 type scanFn func(...interface{}) error
 
 func (u *User) scanFrom(fn scanFn) error {
-	var statusCM sql.NullString
 	err := fn(
 		&u.ID,
 		&u.Name,
 		&u.Email,
 		&u.AvatarURL,
 		&u.Role,
-		&statusCM,
 		&u.isUserFavorite,
 	)
-	u.AlertStatusCMID = statusCM.String
 	return err
 }
 
 func (u *User) userUpdateFields() []interface{} {
-	var statusCM sql.NullString
-	if u.AlertStatusCMID != "" {
-		statusCM.Valid = true
-		statusCM.String = u.AlertStatusCMID
-	}
 	return []interface{}{
 		u.ID,
 		u.Name,
 		u.Email,
-		statusCM,
 	}
 }
 
 func (u *User) fields() []interface{} {
-	var statusCM sql.NullString
-	if u.AlertStatusCMID != "" {
-		statusCM.Valid = true
-		statusCM.String = u.AlertStatusCMID
-	}
 	return []interface{}{
 		u.ID,
 		u.Name,
 		u.Email,
 		u.AvatarURL,
 		u.Role,
-		statusCM,
 	}
 }
 
@@ -115,13 +101,6 @@ func (u User) Normalize() (*User, error) {
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL("AvatarURL", u.AvatarURL),
-		)
-	}
-
-	if u.AlertStatusCMID != "" {
-		err = validate.Many(
-			err,
-			validate.UUID("AlertStatusCMID", u.AlertStatusCMID),
 		)
 	}
 

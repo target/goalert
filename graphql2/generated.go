@@ -27,6 +27,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -68,6 +69,7 @@ type ResolverRoot interface {
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
+	MessageLogConnectionStats() MessageLogConnectionStatsResolver
 	Mutation() MutationResolver
 	OnCallNotificationRule() OnCallNotificationRuleResolver
 	OnCallShift() OnCallShiftResolver
@@ -270,12 +272,18 @@ type ComplexityRoot struct {
 	MessageLogConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+		Stats    func(childComplexity int) int
+	}
+
+	MessageLogConnectionStats struct {
+		TimeSeries func(childComplexity int, input TimeSeriesOptions) int
 	}
 
 	Mutation struct {
 		AddAuthSubject                     func(childComplexity int, input user.AuthSubject) int
 		ClearTemporarySchedules            func(childComplexity int, input ClearTemporarySchedulesInput) int
 		CreateAlert                        func(childComplexity int, input CreateAlertInput) int
+		CreateBasicAuth                    func(childComplexity int, input CreateBasicAuthInput) int
 		CreateEscalationPolicy             func(childComplexity int, input CreateEscalationPolicyInput) int
 		CreateEscalationPolicyStep         func(childComplexity int, input CreateEscalationPolicyStepInput) int
 		CreateHeartbeatMonitor             func(childComplexity int, input CreateHeartbeatMonitorInput) int
@@ -306,6 +314,7 @@ type ComplexityRoot struct {
 		TestContactMethod                  func(childComplexity int, id string) int
 		UpdateAlerts                       func(childComplexity int, input UpdateAlertsInput) int
 		UpdateAlertsByService              func(childComplexity int, input UpdateAlertsByServiceInput) int
+		UpdateBasicAuth                    func(childComplexity int, input UpdateBasicAuthInput) int
 		UpdateEscalationPolicy             func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep         func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateHeartbeatMonitor             func(childComplexity int, input UpdateHeartbeatMonitorInput) int
@@ -555,6 +564,12 @@ type ComplexityRoot struct {
 		Start  func(childComplexity int) int
 	}
 
+	TimeSeriesBucket struct {
+		Count func(childComplexity int) int
+		End   func(childComplexity int) int
+		Start func(childComplexity int) int
+	}
+
 	TimeZone struct {
 		ID func(childComplexity int) int
 	}
@@ -680,6 +695,9 @@ type IntegrationKeyResolver interface {
 
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
+type MessageLogConnectionStatsResolver interface {
+	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
+}
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
 	LinkAccount(ctx context.Context, token string) (bool, error)
@@ -726,6 +744,8 @@ type MutationResolver interface {
 	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
+	CreateBasicAuth(ctx context.Context, input CreateBasicAuthInput) (bool, error)
+	UpdateBasicAuth(ctx context.Context, input UpdateBasicAuthInput) (bool, error)
 }
 type OnCallNotificationRuleResolver interface {
 	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
@@ -1601,6 +1621,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MessageLogConnection.PageInfo(childComplexity), true
 
+	case "MessageLogConnection.stats":
+		if e.complexity.MessageLogConnection.Stats == nil {
+			break
+		}
+
+		return e.complexity.MessageLogConnection.Stats(childComplexity), true
+
+	case "MessageLogConnectionStats.timeSeries":
+		if e.complexity.MessageLogConnectionStats.TimeSeries == nil {
+			break
+		}
+
+		args, err := ec.field_MessageLogConnectionStats_timeSeries_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions)), true
+
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
 			break
@@ -1636,6 +1675,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateAlert(childComplexity, args["input"].(CreateAlertInput)), true
+
+	case "Mutation.createBasicAuth":
+		if e.complexity.Mutation.CreateBasicAuth == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createBasicAuth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateBasicAuth(childComplexity, args["input"].(CreateBasicAuthInput)), true
 
 	case "Mutation.createEscalationPolicy":
 		if e.complexity.Mutation.CreateEscalationPolicy == nil {
@@ -1991,6 +2042,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlertsByService(childComplexity, args["input"].(UpdateAlertsByServiceInput)), true
+
+	case "Mutation.updateBasicAuth":
+		if e.complexity.Mutation.UpdateBasicAuth == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateBasicAuth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateBasicAuth(childComplexity, args["input"].(UpdateBasicAuthInput)), true
 
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
@@ -3404,6 +3467,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TemporarySchedule.Start(childComplexity), true
 
+	case "TimeSeriesBucket.count":
+		if e.complexity.TimeSeriesBucket.Count == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Count(childComplexity), true
+
+	case "TimeSeriesBucket.end":
+		if e.complexity.TimeSeriesBucket.End == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.End(childComplexity), true
+
+	case "TimeSeriesBucket.start":
+		if e.complexity.TimeSeriesBucket.Start == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Start(childComplexity), true
+
 	case "TimeZone.id":
 		if e.complexity.TimeZone.ID == nil {
 			break
@@ -3805,6 +3889,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputClearTemporarySchedulesInput,
 		ec.unmarshalInputConfigValueInput,
 		ec.unmarshalInputCreateAlertInput,
+		ec.unmarshalInputCreateBasicAuthInput,
 		ec.unmarshalInputCreateEscalationPolicyInput,
 		ec.unmarshalInputCreateEscalationPolicyStepInput,
 		ec.unmarshalInputCreateHeartbeatMonitorInput,
@@ -3843,9 +3928,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSlackUserGroupSearchOptions,
 		ec.unmarshalInputSystemLimitInput,
 		ec.unmarshalInputTargetInput,
+		ec.unmarshalInputTimeSeriesOptions,
 		ec.unmarshalInputTimeZoneSearchOptions,
 		ec.unmarshalInputUpdateAlertsByServiceInput,
 		ec.unmarshalInputUpdateAlertsInput,
+		ec.unmarshalInputUpdateBasicAuthInput,
 		ec.unmarshalInputUpdateEscalationPolicyInput,
 		ec.unmarshalInputUpdateEscalationPolicyStepInput,
 		ec.unmarshalInputUpdateHeartbeatMonitorInput,
@@ -3953,6 +4040,21 @@ func (ec *executionContext) field_Alert_recentEvents_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 TimeSeriesOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addAuthSubject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3990,6 +4092,21 @@ func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateAlertInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createBasicAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateBasicAuthInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateBasicAuthInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateBasicAuthInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4425,6 +4542,21 @@ func (ec *executionContext) field_Mutation_updateAlerts_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateBasicAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateBasicAuthInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateBasicAuthInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateBasicAuthInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10107,6 +10239,117 @@ func (ec *executionContext) fieldContext_MessageLogConnection_pageInfo(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _MessageLogConnection_stats(ctx context.Context, field graphql.CollectedField, obj *MessageLogConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnection_stats(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Stats, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*notification.SearchOptions)
+	fc.Result = res
+	return ec.marshalNMessageLogConnectionStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐSearchOptions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnection_stats(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "timeSeries":
+				return ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnectionStats", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField, obj *notification.SearchOptions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MessageLogConnectionStats_timeSeries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]TimeSeriesBucket)
+	fc.Result = res
+	return ec.marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MessageLogConnectionStats_timeSeries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MessageLogConnectionStats",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "start":
+				return ec.fieldContext_TimeSeriesBucket_start(ctx, field)
+			case "end":
+				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
+			case "count":
+				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_MessageLogConnectionStats_timeSeries_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_swoAction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_swoAction(ctx, field)
 	if err != nil {
@@ -12852,6 +13095,116 @@ func (ec *executionContext) fieldContext_Mutation_setSystemLimits(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createBasicAuth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createBasicAuth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateBasicAuth(rctx, fc.Args["input"].(CreateBasicAuthInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createBasicAuth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createBasicAuth_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateBasicAuth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateBasicAuth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateBasicAuth(rctx, fc.Args["input"].(UpdateBasicAuthInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateBasicAuth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateBasicAuth_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Notice_type(ctx, field)
 	if err != nil {
@@ -14036,6 +14389,8 @@ func (ec *executionContext) fieldContext_Query_messageLogs(ctx context.Context, 
 				return ec.fieldContext_MessageLogConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_MessageLogConnection_pageInfo(ctx, field)
+			case "stats":
+				return ec.fieldContext_MessageLogConnection_stats(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MessageLogConnection", field.Name)
 		},
@@ -20927,6 +21282,138 @@ func (ec *executionContext) fieldContext_TemporarySchedule_shifts(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_start(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Start, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_end(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.End, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TimeZone_id(ctx context.Context, field graphql.CollectedField, obj *TimeZone) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TimeZone_id(ctx, field)
 	if err != nil {
@@ -25385,18 +25872,20 @@ func (ec *executionContext) unmarshalInputAlertMetricsOptions(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rInterval"))
-			it.RInterval, err = ec.unmarshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx, v)
+			data, err := ec.unmarshalNISORInterval2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISORInterval(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.RInterval = data
 		case "filterByServiceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByServiceID"))
-			it.FilterByServiceID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterByServiceID = data
 		}
 	}
 
@@ -25425,18 +25914,20 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Limit = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		}
 	}
 
@@ -25480,106 +25971,119 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByStatus"))
-			it.FilterByStatus, err = ec.unmarshalOAlertStatus2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOAlertStatus2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterByStatus = data
 		case "filterByServiceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByServiceID"))
-			it.FilterByServiceID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterByServiceID = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "first":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "includeNotified":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeNotified"))
-			it.IncludeNotified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IncludeNotified = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "sort":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-			it.Sort, err = ec.unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
+			data, err := ec.unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Sort = data
 		case "createdBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
-			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedBefore = data
 		case "notCreatedBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notCreatedBefore"))
-			it.NotCreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NotCreatedBefore = data
 		case "closedBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closedBefore"))
-			it.ClosedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ClosedBefore = data
 		case "notClosedBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notClosedBefore"))
-			it.NotClosedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NotClosedBefore = data
 		}
 	}
 
@@ -25604,26 +26108,29 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserID = data
 		case "providerID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providerID"))
-			it.ProviderID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ProviderID = data
 		case "subjectID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subjectID"))
-			it.SubjectID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SubjectID = data
 		}
 	}
 
@@ -25648,42 +26155,47 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("handoff"))
-			it.Handoff, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Handoff = data
 		case "from":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
-			it.From, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.From = data
 		case "timeZone":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeZone = data
 		case "shiftLengthHours":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthHours"))
-			it.ShiftLengthHours, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ShiftLengthHours = data
 		case "count":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-			it.Count, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Count = data
 		}
 	}
 
@@ -25708,26 +26220,29 @@ func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		}
 	}
 
@@ -25752,18 +26267,20 @@ func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Value = data
 		}
 	}
 
@@ -25788,34 +26305,85 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("summary"))
-			it.Summary, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Summary = data
 		case "details":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
-			it.Details, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Details = data
 		case "serviceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ServiceID = data
 		case "sanitize":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sanitize"))
-			it.Sanitize, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Sanitize = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateBasicAuthInput(ctx context.Context, obj interface{}) (CreateBasicAuthInput, error) {
+	var it CreateBasicAuthInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"username", "password", "userID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
 		}
 	}
 
@@ -25847,42 +26415,47 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "repeat":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repeat"))
-			it.Repeat, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Repeat = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		case "steps":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("steps"))
-			it.Steps, err = ec.unmarshalOCreateEscalationPolicyStepInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyStepInputᚄ(ctx, v)
+			data, err := ec.unmarshalOCreateEscalationPolicyStepInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyStepInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Steps = data
 		}
 	}
 
@@ -25907,42 +26480,47 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("escalationPolicyID"))
-			it.EscalationPolicyID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.EscalationPolicyID = data
 		case "delayMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delayMinutes"))
-			it.DelayMinutes, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.DelayMinutes = data
 		case "targets":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targets"))
-			it.Targets, err = ec.unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx, v)
+			data, err := ec.unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Targets = data
 		case "newRotation":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newRotation"))
-			it.NewRotation, err = ec.unmarshalOCreateRotationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateRotationInput(ctx, v)
+			data, err := ec.unmarshalOCreateRotationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateRotationInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewRotation = data
 		case "newSchedule":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newSchedule"))
-			it.NewSchedule, err = ec.unmarshalOCreateScheduleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateScheduleInput(ctx, v)
+			data, err := ec.unmarshalOCreateScheduleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateScheduleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewSchedule = data
 		}
 	}
 
@@ -25967,26 +26545,29 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-			it.ServiceID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ServiceID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "timeoutMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeoutMinutes"))
-			it.TimeoutMinutes, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeoutMinutes = data
 		}
 	}
 
@@ -26011,26 +26592,29 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-			it.ServiceID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ServiceID = data
 		case "type":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNIntegrationKeyType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyType(ctx, v)
+			data, err := ec.unmarshalNIntegrationKeyType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Type = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		}
 	}
 
@@ -26059,66 +26643,74 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "timeZone":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeZone = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		case "type":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNRotationType2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx, v)
+			data, err := ec.unmarshalNRotationType2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Type = data
 		case "shiftLength":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
-			it.ShiftLength, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ShiftLength = data
 		case "userIDs":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
-			it.UserIDs, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserIDs = data
 		}
 	}
 
@@ -26143,50 +26735,56 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "timeZone":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeZone = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		case "targets":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targets"))
-			it.Targets, err = ec.unmarshalOScheduleTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleTargetInputᚄ(ctx, v)
+			data, err := ec.unmarshalOScheduleTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleTargetInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Targets = data
 		case "newUserOverrides":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newUserOverrides"))
-			it.NewUserOverrides, err = ec.unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInputᚄ(ctx, v)
+			data, err := ec.unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewUserOverrides = data
 		}
 	}
 
@@ -26215,66 +26813,74 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		case "escalationPolicyID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("escalationPolicyID"))
-			it.EscalationPolicyID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.EscalationPolicyID = data
 		case "newEscalationPolicy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newEscalationPolicy"))
-			it.NewEscalationPolicy, err = ec.unmarshalOCreateEscalationPolicyInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx, v)
+			data, err := ec.unmarshalOCreateEscalationPolicyInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewEscalationPolicy = data
 		case "newIntegrationKeys":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newIntegrationKeys"))
-			it.NewIntegrationKeys, err = ec.unmarshalOCreateIntegrationKeyInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIntegrationKeyInputᚄ(ctx, v)
+			data, err := ec.unmarshalOCreateIntegrationKeyInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIntegrationKeyInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewIntegrationKeys = data
 		case "labels":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
-			it.Labels, err = ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
+			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Labels = data
 		case "newHeartbeatMonitors":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newHeartbeatMonitors"))
-			it.NewHeartbeatMonitors, err = ec.unmarshalOCreateHeartbeatMonitorInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatMonitorInputᚄ(ctx, v)
+			data, err := ec.unmarshalOCreateHeartbeatMonitorInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatMonitorInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewHeartbeatMonitors = data
 		}
 	}
 
@@ -26299,34 +26905,38 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "reminderMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reminderMinutes"))
-			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ReminderMinutes = data
 		case "scheduleID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "disabled":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Disabled = data
 		}
 	}
 
@@ -26351,42 +26961,47 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserID = data
 		case "type":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			data, err := ec.unmarshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Type = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Value = data
 		case "newUserNotificationRule":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newUserNotificationRule"))
-			it.NewUserNotificationRule, err = ec.unmarshalOCreateUserNotificationRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserNotificationRuleInput(ctx, v)
+			data, err := ec.unmarshalOCreateUserNotificationRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserNotificationRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewUserNotificationRule = data
 		}
 	}
 
@@ -26411,50 +27026,56 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Username = data
 		case "password":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Password = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "email":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Email = data
 		case "role":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
+			data, err := ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Role = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		}
 	}
 
@@ -26479,26 +27100,29 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserID = data
 		case "contactMethodID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactMethodID"))
-			it.ContactMethodID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ContactMethodID = data
 		case "delayMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delayMinutes"))
-			it.DelayMinutes, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.DelayMinutes = data
 		}
 	}
 
@@ -26523,42 +27147,47 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		case "addUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addUserID"))
-			it.AddUserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.AddUserID = data
 		case "removeUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeUserID"))
-			it.RemoveUserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.RemoveUserID = data
 		}
 	}
 
@@ -26583,10 +27212,11 @@ func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
-			it.Number, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Number = data
 		}
 	}
 
@@ -26611,10 +27241,11 @@ func (ec *executionContext) unmarshalInputDebugMessageStatusInput(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providerMessageID"))
-			it.ProviderMessageID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ProviderMessageID = data
 		}
 	}
 
@@ -26643,26 +27274,29 @@ func (ec *executionContext) unmarshalInputDebugMessagesInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "createdBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
-			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedBefore = data
 		case "createdAfter":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
-			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAfter = data
 		}
 	}
 
@@ -26687,26 +27321,29 @@ func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
-			it.From, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.From = data
 		case "to":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to"))
-			it.To, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.To = data
 		case "body":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("body"))
-			it.Body, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Body = data
 		}
 	}
 
@@ -26747,50 +27384,56 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "favoritesFirst":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
-			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesFirst = data
 		}
 	}
 
@@ -26825,34 +27468,38 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -26887,34 +27534,38 @@ func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -26952,42 +27603,47 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "uniqueKeys":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uniqueKeys"))
-			it.UniqueKeys, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UniqueKeys = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -27022,42 +27678,47 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
-			it.Key, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Key = data
 		case "first":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -27092,50 +27753,56 @@ func (ec *executionContext) unmarshalInputMessageLogSearchOptions(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "createdBefore":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
-			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedBefore = data
 		case "createdAfter":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAfter"))
-			it.CreatedAfter, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAfter = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -27160,34 +27827,38 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, v)
+			data, err := ec.unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "target":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			it.Target, err = ec.unmarshalNTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalNTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Target = data
 		case "time":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
-			it.Time, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
+			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Time = data
 		case "weekdayFilter":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weekdayFilter"))
-			it.WeekdayFilter, err = ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
+			data, err := ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.WeekdayFilter = data
 		}
 	}
 
@@ -27228,50 +27899,56 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "favoritesFirst":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
-			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesFirst = data
 		}
 	}
 
@@ -27296,34 +27973,38 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
+			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
+			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		case "weekdayFilter":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weekdayFilter"))
-			it.WeekdayFilter, err = ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
+			data, err := ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.WeekdayFilter = data
 		}
 	}
 
@@ -27364,50 +28045,56 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "favoritesFirst":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
-			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesFirst = data
 		}
 	}
 
@@ -27432,34 +28119,38 @@ func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "target":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			it.Target, err = ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Target = data
 		case "newRotation":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newRotation"))
-			it.NewRotation, err = ec.unmarshalOCreateRotationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateRotationInput(ctx, v)
+			data, err := ec.unmarshalOCreateRotationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateRotationInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewRotation = data
 		case "rules":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
-			it.Rules, err = ec.unmarshalNScheduleRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleRuleInputᚄ(ctx, v)
+			data, err := ec.unmarshalNScheduleRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleRuleInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Rules = data
 		}
 	}
 
@@ -27484,10 +28175,11 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactMethodID"))
-			it.ContactMethodID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ContactMethodID = data
 		}
 	}
 
@@ -27528,50 +28220,56 @@ func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "favoritesFirst":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
-			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesFirst = data
 		}
 	}
 
@@ -27596,18 +28294,20 @@ func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			it.Target, err = ec.unmarshalNTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalNTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Target = data
 		case "favorite":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
-			it.Favorite, err = ec.unmarshalNBoolean2bool(ctx, v)
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Favorite = data
 		}
 	}
 
@@ -27632,26 +28332,29 @@ func (ec *executionContext) unmarshalInputSetLabelInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			it.Target, err = ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Target = data
 		case "key":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
-			it.Key, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Key = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Value = data
 		}
 	}
 
@@ -27676,18 +28379,20 @@ func (ec *executionContext) unmarshalInputSetScheduleOnCallNotificationRulesInpu
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "rules":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
-			it.Rules, err = ec.unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInputᚄ(ctx, v)
+			data, err := ec.unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Rules = data
 		}
 	}
 
@@ -27712,26 +28417,29 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		}
 	}
 
@@ -27756,50 +28464,56 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "clearStart":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearStart"))
-			it.ClearStart, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ClearStart = data
 		case "clearEnd":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearEnd"))
-			it.ClearEnd, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ClearEnd = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		case "shifts":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shifts"))
-			it.Shifts, err = ec.unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐFixedShiftᚄ(ctx, v)
+			data, err := ec.unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐFixedShiftᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Shifts = data
 		}
 	}
 
@@ -27834,34 +28548,38 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -27896,34 +28614,38 @@ func (ec *executionContext) unmarshalInputSlackUserGroupSearchOptions(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -27948,18 +28670,20 @@ func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, v)
+			data, err := ec.unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Value = data
 		}
 	}
 
@@ -27984,18 +28708,58 @@ func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "type":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNTargetType2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐTargetType(ctx, v)
+			data, err := ec.unmarshalNTargetType2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐTargetType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Type = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context, obj interface{}) (TimeSeriesOptions, error) {
+	var it TimeSeriesOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bucketDuration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketDuration"))
+			data, err := ec.unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketDuration = data
+		case "bucketOrigin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketOrigin"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketOrigin = data
 		}
 	}
 
@@ -28030,34 +28794,38 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		}
 	}
 
@@ -28082,18 +28850,20 @@ func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ServiceID = data
 		case "newStatus":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newStatus"))
-			it.NewStatus, err = ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			data, err := ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewStatus = data
 		}
 	}
 
@@ -28118,18 +28888,67 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alertIDs"))
-			it.AlertIDs, err = ec.unmarshalNInt2ᚕintᚄ(ctx, v)
+			data, err := ec.unmarshalNInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.AlertIDs = data
 		case "newStatus":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newStatus"))
-			it.NewStatus, err = ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			data, err := ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NewStatus = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateBasicAuthInput(ctx context.Context, obj interface{}) (UpdateBasicAuthInput, error) {
+	var it UpdateBasicAuthInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"password", "oldPassword", "userID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "oldPassword":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oldPassword"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OldPassword = data
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
 		}
 	}
 
@@ -28154,42 +28973,47 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "repeat":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repeat"))
-			it.Repeat, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Repeat = data
 		case "stepIDs":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stepIDs"))
-			it.StepIDs, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.StepIDs = data
 		}
 	}
 
@@ -28214,26 +29038,29 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "delayMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delayMinutes"))
-			it.DelayMinutes, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.DelayMinutes = data
 		case "targets":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targets"))
-			it.Targets, err = ec.unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx, v)
+			data, err := ec.unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Targets = data
 		}
 	}
 
@@ -28258,26 +29085,29 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "timeoutMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeoutMinutes"))
-			it.TimeoutMinutes, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeoutMinutes = data
 		}
 	}
 
@@ -28302,74 +29132,83 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "timeZone":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeZone = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "type":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalORotationType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx, v)
+			data, err := ec.unmarshalORotationType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Type = data
 		case "shiftLength":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
-			it.ShiftLength, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ShiftLength = data
 		case "activeUserIndex":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUserIndex"))
-			it.ActiveUserIndex, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ActiveUserIndex = data
 		case "userIDs":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
-			it.UserIDs, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UserIDs = data
 		}
 	}
 
@@ -28394,34 +29233,38 @@ func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "timeZone":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TimeZone = data
 		}
 	}
 
@@ -28446,42 +29289,47 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "description":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Description = data
 		case "escalationPolicyID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("escalationPolicyID"))
-			it.EscalationPolicyID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.EscalationPolicyID = data
 		case "maintenanceExpiresAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maintenanceExpiresAt"))
-			it.MaintenanceExpiresAt, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.MaintenanceExpiresAt = data
 		}
 	}
 
@@ -28506,34 +29354,38 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "reminderMinutes":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reminderMinutes"))
-			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ReminderMinutes = data
 		case "disabled":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Disabled = data
 		}
 	}
 
@@ -28558,34 +29410,38 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Value = data
 		case "enableStatusUpdates":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enableStatusUpdates"))
-			it.EnableStatusUpdates, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.EnableStatusUpdates = data
 		}
 	}
 
@@ -28610,42 +29466,47 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "email":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Email = data
 		case "role":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
+			data, err := ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Role = data
 		case "statusUpdateContactMethodID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusUpdateContactMethodID"))
-			it.StatusUpdateContactMethodID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.StatusUpdateContactMethodID = data
 		}
 	}
 
@@ -28670,42 +29531,47 @@ func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		case "addUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addUserID"))
-			it.AddUserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.AddUserID = data
 		case "removeUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeUserID"))
-			it.RemoveUserID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.RemoveUserID = data
 		}
 	}
 
@@ -28737,74 +29603,83 @@ func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "scheduleID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
-			it.ScheduleID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ScheduleID = data
 		case "filterAddUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterAddUserID"))
-			it.FilterAddUserID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterAddUserID = data
 		case "filterRemoveUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterRemoveUserID"))
-			it.FilterRemoveUserID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterRemoveUserID = data
 		case "filterAnyUserID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterAnyUserID"))
-			it.FilterAnyUserID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FilterAnyUserID = data
 		case "start":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Start = data
 		case "end":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.End = data
 		}
 	}
 
@@ -28848,66 +29723,74 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
-			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.First = data
 		case "after":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
-			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.After = data
 		case "search":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Search = data
 		case "omit":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
-			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Omit = data
 		case "CMValue":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CMValue"))
-			it.CMValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CMValue = data
 		case "CMType":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CMType"))
-			it.CMType, err = ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CMType = data
 		case "favoritesOnly":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
-			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesOnly = data
 		case "favoritesFirst":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
-			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.FavoritesFirst = data
 		}
 	}
 
@@ -28932,18 +29815,20 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contactMethodID"))
-			it.ContactMethodID, err = ec.unmarshalNID2string(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ContactMethodID = data
 		case "code":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-			it.Code, err = ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Code = data
 		}
 	}
 
@@ -30459,6 +31344,54 @@ func (ec *executionContext) _MessageLogConnection(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "stats":
+
+			out.Values[i] = ec._MessageLogConnection_stats(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var messageLogConnectionStatsImplementors = []string{"MessageLogConnectionStats"}
+
+func (ec *executionContext) _MessageLogConnectionStats(ctx context.Context, sel ast.SelectionSet, obj *notification.SearchOptions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, messageLogConnectionStatsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MessageLogConnectionStats")
+		case "timeSeries":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MessageLogConnectionStats_timeSeries(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30844,6 +31777,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_setSystemLimits(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createBasicAuth":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createBasicAuth(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateBasicAuth":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateBasicAuth(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -33432,6 +34383,48 @@ func (ec *executionContext) _TemporarySchedule(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var timeSeriesBucketImplementors = []string{"TimeSeriesBucket"}
+
+func (ec *executionContext) _TimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, obj *TimeSeriesBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timeSeriesBucketImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimeSeriesBucket")
+		case "start":
+
+			out.Values[i] = ec._TimeSeriesBucket_start(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "end":
+
+			out.Values[i] = ec._TimeSeriesBucket_end(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._TimeSeriesBucket_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var timeZoneImplementors = []string{"TimeZone"}
 
 func (ec *executionContext) _TimeZone(ctx context.Context, sel ast.SelectionSet, obj *TimeZone) graphql.Marshaler {
@@ -35001,6 +35994,11 @@ func (ec *executionContext) unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateBasicAuthInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateBasicAuthInput(ctx context.Context, v interface{}) (CreateBasicAuthInput, error) {
+	res, err := ec.unmarshalInputCreateBasicAuthInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx context.Context, v interface{}) (CreateEscalationPolicyInput, error) {
 	res, err := ec.unmarshalInputCreateEscalationPolicyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -35659,6 +36657,16 @@ func (ec *executionContext) marshalNMessageLogConnection2ᚖgithubᚗcomᚋtarge
 		return graphql.Null
 	}
 	return ec._MessageLogConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMessageLogConnectionStats2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚐSearchOptions(ctx context.Context, sel ast.SelectionSet, v *notification.SearchOptions) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MessageLogConnectionStats(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
@@ -36764,6 +37772,59 @@ func (ec *executionContext) marshalNTemporarySchedule2ᚕgithubᚗcomᚋtarget�
 	return ret
 }
 
+func (ec *executionContext) marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx context.Context, sel ast.SelectionSet, v TimeSeriesBucket) graphql.Marshaler {
+	return ec._TimeSeriesBucket(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []TimeSeriesBucket) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimeSeriesBucket2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucket(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNTimeSeriesOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesOptions(ctx context.Context, v interface{}) (TimeSeriesOptions, error) {
+	res, err := ec.unmarshalInputTimeSeriesOptions(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNTimeZone2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeZone(ctx context.Context, sel ast.SelectionSet, v TimeZone) graphql.Marshaler {
 	return ec._TimeZone(ctx, sel, &v)
 }
@@ -36833,6 +37894,11 @@ func (ec *executionContext) unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋ
 
 func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx context.Context, v interface{}) (UpdateAlertsInput, error) {
 	res, err := ec.unmarshalInputUpdateAlertsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateBasicAuthInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateBasicAuthInput(ctx context.Context, v interface{}) (UpdateBasicAuthInput, error) {
+	res, err := ec.unmarshalInputUpdateBasicAuthInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -130,13 +130,12 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     ...vars,
     input: {
       first: ITEMS_PER_PAGE,
-      search: searchParam,
       ...input,
     },
   }
 
-  if (noSearch) {
-    delete queryVariables.input.search
+  if (searchParam) {
+    queryVariables.input.search = searchParam
   }
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
@@ -194,7 +193,6 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           items={items}
           itemsPerPage={queryVariables.input.first}
           page={page}
-          pageCount={pageCount}
           isLoading={isLoading}
           loadMore={loadMore}
           noSearch={noSearch}
@@ -218,7 +216,6 @@ export default function QueryList(props: QueryListProps): JSX.Element {
             key={urlKey}
             items={items}
             page={page}
-            pageCount={pageCount}
             isLoading={isLoading}
             itemsPerPage={queryVariables.input.first}
             loadMore={loadMore}
