@@ -188,13 +188,14 @@ export default function UserContactMethodList(
           title='Contact Methods'
           action={
             !mobile ? (
-              <IconButton
-                title='Add contact method'
+              <Button
+                title='Create Contact Method'
+                variant='contained'
                 onClick={() => setShowAddDialog(true)}
-                size='large'
+                startIcon={<Add />}
               >
-                <Add fontSize='large' />
-              </IconButton>
+                Create Method
+              </Button>
             ) : null
           }
         />
