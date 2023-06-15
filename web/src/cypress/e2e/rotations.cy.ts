@@ -97,7 +97,11 @@ function testRotations(screen: ScreenFormat): void {
       cy.get('@parts').should('not.contain', rot.users[1].name)
 
       // add again
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
       cy.dialogForm({ users: rot.users[1].name })
       cy.dialogFinish('Submit')
@@ -114,7 +118,11 @@ function testRotations(screen: ScreenFormat): void {
       cy.createUser({ name, email })
       cy.createUser({ name, email: dupEmail })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
       cy.get('input').click()
       cy.focused().type(name)
