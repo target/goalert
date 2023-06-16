@@ -1,5 +1,7 @@
 import React, { ReactElement, useState, ReactNode } from 'react'
 import p from 'prop-types'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -32,7 +34,7 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import CardActions, { Action } from '../../details/CardActions'
+import CardActions from '../../details/CardActions'
 import {
   Alert,
   Target,
@@ -41,6 +43,7 @@ import {
 } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
+import AlertMetadata from './AlertMetadata'
 
 interface AlertDetailsProps {
   data: Alert
@@ -317,42 +320,33 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions(): Action[] {
+  function getMenuOptions(): JSX.Element {
     const { status } = props.data
-    let options: Action[] = []
-
-    if (status === 'StatusClosed') return options
-    if (status === 'StatusUnacknowledged') {
-      options = [
-        {
-          icon: <AcknowledgeIcon />,
-          label: 'Acknowledge',
-          handleOnClick: () => ack(),
-        },
-      ]
-    }
-
+    if (status === 'StatusClosed') return <React.Fragment />
     const isMaintMode = Boolean(props.data?.service?.maintenanceExpiresAt)
 
-    // only remaining status is acknowledged, show remaining buttons
-    return [
-      ...options,
-      {
-        icon: <CloseIcon />,
-        label: 'Close',
-        handleOnClick: () => close(),
-      },
-      {
-        icon: <EscalateIcon />,
-        label: isMaintMode
-          ? 'Escalate disabled. In maintenance mode.'
-          : 'Escalate',
-        handleOnClick: () => escalate(),
-        ButtonProps: {
-          disabled: isMaintMode,
-        },
-      },
-    ]
+    return (
+      <ButtonGroup
+        variant='contained'
+        aria-label='Update Alert Status Button Group'
+      >
+        {status === 'StatusUnacknowledged' && (
+          <Button startIcon={<AcknowledgeIcon />} onClick={() => ack()}>
+            Acknowledge
+          </Button>
+        )}
+        <Button
+          startIcon={<EscalateIcon />}
+          onClick={() => escalate()}
+          disabled={isMaintMode}
+        >
+          Escalate
+        </Button>
+        <Button startIcon={<CloseIcon />} onClick={() => close()}>
+          Close
+        </Button>
+      </ButtonGroup>
+    )
   }
 
   const { data: alert } = props
@@ -392,7 +386,12 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               </Grid>
             </Grid>
           </CardContent>
-          <CardActions secondaryActions={getMenuOptions()} />
+          <CardActions
+            primaryActions={[getMenuOptions()]}
+            secondaryActions={[
+              <AlertMetadata key='AlertMetadata' alertID={alert.alertID} />,
+            ]}
+          />
         </Card>
       </Grid>
       {renderAlertDetails()}

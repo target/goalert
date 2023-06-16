@@ -28,6 +28,7 @@ const useStyles = makeStyles({
   },
   primaryActionsContainer: {
     padding: 8,
+    width: '100%',
   },
   autoExpandWidth: {
     margin: '0 auto',

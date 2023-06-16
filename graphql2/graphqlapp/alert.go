@@ -32,9 +32,8 @@ type (
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
-func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
-
+func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
@@ -359,6 +358,36 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	}
 
 	return m.AlertStore.Create(ctx, a)
+}
+
+func (a *Alert) Metadata(ctx context.Context, raw *alert.Alert) (*graphql2.AlertMetadata, error) {
+	am, err := a.AlertStore.Metadata(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &graphql2.AlertMetadata{
+		Sentiment: am.Sentiment,
+		Note:      &am.Note,
+	}, nil
+}
+
+func (m *Mutation) UpdateAlertMetadata(ctx context.Context, input graphql2.UpdateAlertMetadataInput) (bool, error) {
+	am := &alert.Metadata{
+		AlertID: input.AlertID,
+	}
+
+	if input.Sentiment != nil {
+		am.Sentiment = *input.Sentiment
+	}
+	if input.Note != nil {
+		am.Note = *input.Note
+	}
+
+	err := m.AlertStore.UpdateMetadata(ctx, am)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {

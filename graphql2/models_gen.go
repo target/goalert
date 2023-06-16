@@ -42,6 +42,11 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertMetadata struct {
+	Sentiment int     `json:"sentiment"`
+	Note      *string `json:"note,omitempty"`
+}
+
 type AlertMetricsOptions struct {
 	RInterval         timeutil.ISORInterval `json:"rInterval"`
 	FilterByServiceID []string              `json:"filterByServiceID,omitempty"`
@@ -546,6 +551,12 @@ type TimeZoneSearchOptions struct {
 	After  *string  `json:"after,omitempty"`
 	Search *string  `json:"search,omitempty"`
 	Omit   []string `json:"omit,omitempty"`
+}
+
+type UpdateAlertMetadataInput struct {
+	AlertID   int     `json:"alertID"`
+	Sentiment *int    `json:"sentiment,omitempty"`
+	Note      *string `json:"note,omitempty"`
 }
 
 type UpdateAlertsByServiceInput struct {

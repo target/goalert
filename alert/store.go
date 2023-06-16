@@ -51,6 +51,9 @@ type Store struct {
 	escalate *sql.Stmt
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
+
+	metadata       *sql.Stmt
+	updateMetadata *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -221,6 +224,21 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				(SELECT count(*) FROM alerts WHERE service_id = $1 AND status = 'triggered')
 			FROM services
 			WHERE id = $1
+		`),
+
+		metadata: p(`
+			SELECT
+				alert_id, sentiment, note
+			FROM alert_metadata
+			WHERE alert_id = $1
+		`),
+
+		updateMetadata: p(`
+			INSERT INTO alert_metadata (alert_id, sentiment, note)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (alert_id) DO UPDATE
+			SET sentiment = $2, note = $3
+			WHERE alert_metadata.alert_id = $1
 		`),
 	}, prep.Err
 }
@@ -856,4 +874,42 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	}
 
 	return list, nil
+}
+
+func (s *Store) Metadata(ctx context.Context, alertID int) (am Metadata, err error) {
+	row := s.metadata.QueryRowContext(ctx, alertID)
+	err = row.Scan(&am.AlertID, &am.Sentiment, &am.Note)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Metadata{
+			AlertID:   alertID,
+			Sentiment: 0,
+			Note:      "",
+		}, nil
+	}
+	return am, err
+}
+
+func (s Store) UpdateMetadata(ctx context.Context, metadata *Metadata) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return err
+	}
+
+	am, err := (s).Metadata(ctx, metadata.AlertID)
+	if err != nil {
+		return err
+	}
+	if metadata.Sentiment != 0 {
+		am.Sentiment = metadata.Sentiment
+	}
+	if metadata.Note != "" {
+		am.Note = metadata.Note
+	}
+
+	_, err = s.updateMetadata.ExecContext(ctx, metadata.AlertID, am.Sentiment, am.Note)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

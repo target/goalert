@@ -389,6 +389,7 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   deleteAll: boolean
   createAlert?: null | Alert
+  updateAlertMetadata: boolean
   createService?: null | Service
   createEscalationPolicy?: null | EscalationPolicy
   createEscalationPolicyStep?: null | EscalationPolicyStep
@@ -439,6 +440,12 @@ export interface CreateAlertInput {
   details?: null | string
   serviceID: string
   sanitize?: null | boolean
+}
+
+export interface UpdateAlertMetadataInput {
+  alertID: number
+  sentiment?: null | number
+  note?: null | string
 }
 
 export interface CreateUserInput {
@@ -835,6 +842,7 @@ export interface Alert {
   recentEvents: AlertLogEntryConnection
   pendingNotifications: AlertPendingNotification[]
   metrics?: null | AlertMetric
+  metadata?: null | AlertMetadata
 }
 
 export interface AlertMetric {
@@ -877,6 +885,11 @@ export interface AlertState {
   lastEscalation: ISOTimestamp
   stepNumber: number
   repeatCount: number
+}
+
+export interface AlertMetadata {
+  sentiment: number
+  note?: null | string
 }
 
 export interface Service {
