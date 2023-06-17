@@ -41,10 +41,10 @@ require (
 	github.com/tabbed/pqtype v0.1.1
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/vektah/gqlparser/v2 v2.5.3
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.10.0
 	golang.org/x/oauth2 v0.8.0
-	golang.org/x/sys v0.8.0
-	golang.org/x/term v0.8.0
+	golang.org/x/sys v0.9.0
+	golang.org/x/term v0.9.0
 	golang.org/x/tools v0.9.3
 	google.golang.org/grpc v1.55.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
@@ -145,7 +145,7 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
