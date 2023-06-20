@@ -41,7 +41,7 @@
     "@material/material-color-utilities": "0.2.6",
     "@mui/icons-material": "5.11.16",
     "@mui/lab": "5.0.0-alpha.130",
-    "@mui/material": "5.13.3",
+    "@mui/material": "5.13.5",
     "@mui/styles": "5.13.1",
     "@mui/system": "5.13.2",
     "@mui/x-data-grid": "6.2.1",
