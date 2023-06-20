@@ -360,18 +360,18 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	return m.AlertStore.Create(ctx, a)
 }
 
-func (a *Alert) Metadata(ctx context.Context, raw *alert.Alert) (*graphql2.AlertMetadata, error) {
+func (a *Alert) Feedback(ctx context.Context, raw *alert.Alert) (*graphql2.AlertFeedback, error) {
 	am, err := a.AlertStore.Metadata(ctx, raw.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &graphql2.AlertMetadata{
+	return &graphql2.AlertFeedback{
 		Sentiment: am.Sentiment,
 		Note:      &am.Note,
 	}, nil
 }
 
-func (m *Mutation) UpdateAlertMetadata(ctx context.Context, input graphql2.UpdateAlertMetadataInput) (bool, error) {
+func (m *Mutation) UpdateAlertFeedback(ctx context.Context, input graphql2.UpdateAlertFeedbackInput) (bool, error) {
 	am := &alert.Metadata{
 		AlertID: input.AlertID,
 	}

@@ -11,10 +11,10 @@ import {
 import { DEBOUNCE_DELAY } from '../../config'
 
 const query = gql`
-  query AlertMetadataQuery($id: Int!) {
+  query AlertFeedbackQuery($id: Int!) {
     alert(id: $id) {
       id
-      metadata {
+      feedback {
         sentiment
         note
       }
@@ -23,16 +23,16 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation UpdateMetadataMutation($input: UpdateAlertMetadataInput!) {
-    updateAlertMetadata(input: $input)
+  mutation UpdateFeedbackMutation($input: UpdateAlertFeedbackInput!) {
+    updateAlertFeedback(input: $input)
   }
 `
 
-interface AlertMetadataProps {
+interface AlertFeedbackProps {
   alertID: number
 }
 
-export default function AlertMetadata(props: AlertMetadataProps): JSX.Element {
+export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
   const [{ data, fetching, error }] = useQuery({
     query,
@@ -41,7 +41,7 @@ export default function AlertMetadata(props: AlertMetadataProps): JSX.Element {
     },
     requestPolicy: 'cache-first',
   })
-  const [note, setNote] = useState(data?.alert?.metadata?.note ?? '')
+  const [note, setNote] = useState(data?.alert?.feedback?.note ?? '')
   const [mutationStatus, commit] = useMutation(mutation)
 
   // Debounce setting note
@@ -59,17 +59,17 @@ export default function AlertMetadata(props: AlertMetadataProps): JSX.Element {
   }, [note])
 
   useEffect(() => {
-    setNote(data?.alert?.metadata?.note ?? '')
-  }, [data?.alert?.metadata?.note])
+    setNote(data?.alert?.feedback?.note ?? '')
+  }, [data?.alert?.feedback?.note])
 
   const thumbUp =
-    !fetching && !error && data?.alert?.metadata?.sentiment === 1 ? (
+    !fetching && !error && data?.alert?.feedback?.sentiment === 1 ? (
       <ThumbUp />
     ) : (
       <ThumbUpOutlined />
     )
 
-  const isDown = data?.alert?.metadata?.sentiment === -1
+  const isDown = data?.alert?.feedback?.sentiment === -1
   const thumbDown =
     !fetching && !error && isDown ? <ThumbDown /> : <ThumbDownOutlined />
 

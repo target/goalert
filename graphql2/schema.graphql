@@ -514,7 +514,7 @@ type Mutation {
   deleteAll(input: [TargetInput!]): Boolean!
 
   createAlert(input: CreateAlertInput!): Alert
-  updateAlertMetadata(input: UpdateAlertMetadataInput!): Boolean!
+  updateAlertFeedback(input: UpdateAlertFeedbackInput!): Boolean!
 
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
@@ -592,7 +592,7 @@ input CreateAlertInput {
   sanitize: Boolean
 }
 
-input UpdateAlertMetadataInput {
+input UpdateAlertFeedbackInput {
   alertID: Int!
   sentiment: Int
   note: String
@@ -1075,7 +1075,7 @@ type Alert {
   # metrics are only available for closed alerts
   metrics: AlertMetric
 
-  metadata: AlertMetadata
+  feedback: AlertFeedback
 }
 
 type AlertMetric {
@@ -1125,7 +1125,7 @@ type AlertState {
   repeatCount: Int!
 }
 
-type AlertMetadata {
+type AlertFeedback {
   sentiment: Int!
   note: String
 }

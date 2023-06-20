@@ -1,5 +1,5 @@
 -- +migrate Up
-CREATE TABLE alert_metadata
+CREATE TABLE alert_feedback
 (
     alert_id BIGINT PRIMARY KEY REFERENCES alerts (id) ON DELETE CASCADE,
     sentiment INT NOT NULL DEFAULT 0,
@@ -7,4 +7,4 @@ CREATE TABLE alert_metadata
 );
 
 -- +migrate Down
-DROP TABLE alert_metadata;
+DROP TABLE alert_feedback;

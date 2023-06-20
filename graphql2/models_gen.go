@@ -37,14 +37,14 @@ type AlertDataPoint struct {
 	AlertCount int       `json:"alertCount"`
 }
 
+type AlertFeedback struct {
+	Sentiment int     `json:"sentiment"`
+	Note      *string `json:"note,omitempty"`
+}
+
 type AlertLogEntryConnection struct {
 	Nodes    []alertlog.Entry `json:"nodes"`
 	PageInfo *PageInfo        `json:"pageInfo"`
-}
-
-type AlertMetadata struct {
-	Sentiment int     `json:"sentiment"`
-	Note      *string `json:"note,omitempty"`
 }
 
 type AlertMetricsOptions struct {
@@ -553,7 +553,7 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit,omitempty"`
 }
 
-type UpdateAlertMetadataInput struct {
+type UpdateAlertFeedbackInput struct {
 	AlertID   int     `json:"alertID"`
 	Sentiment *int    `json:"sentiment,omitempty"`
 	Note      *string `json:"note,omitempty"`

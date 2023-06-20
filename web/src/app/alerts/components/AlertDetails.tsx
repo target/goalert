@@ -43,7 +43,7 @@ import {
 } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
-import AlertMetadata from './AlertMetadata'
+import AlertFeedback from './AlertFeedback'
 
 interface AlertDetailsProps {
   data: Alert
@@ -389,7 +389,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           <CardActions
             primaryActions={[getMenuOptions()]}
             secondaryActions={[
-              <AlertMetadata key='AlertMetadata' alertID={alert.alertID} />,
+              <AlertFeedback key='AlertFeedback' alertID={alert.alertID} />,
             ]}
           />
         </Card>

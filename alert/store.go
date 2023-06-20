@@ -229,16 +229,16 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		metadata: p(`
 			SELECT
 				alert_id, sentiment, note
-			FROM alert_metadata
+			FROM alert_feedback
 			WHERE alert_id = $1
 		`),
 
 		updateMetadata: p(`
-			INSERT INTO alert_metadata (alert_id, sentiment, note)
+			INSERT INTO alert_feedback (alert_id, sentiment, note)
 			VALUES ($1, $2, $3)
 			ON CONFLICT (alert_id) DO UPDATE
 			SET sentiment = $2, note = $3
-			WHERE alert_metadata.alert_id = $1
+			WHERE alert_feedback.alert_id = $1
 		`),
 	}, prep.Err
 }
