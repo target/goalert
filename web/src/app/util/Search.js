@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
-import makeStyles from '@mui/styles/makeStyles'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import IconButton from '@mui/material/IconButton'
@@ -12,30 +11,7 @@ import { Close as CloseIcon, Search as SearchIcon } from '@mui/icons-material'
 import { DEBOUNCE_DELAY } from '../config'
 import AppBarSearchContainer from './AppBarSearchContainer'
 import { useURLParam } from '../actions'
-
-const useStyles = makeStyles((theme) => {
-  return {
-    transition: {
-      [theme.breakpoints.down('md')]: {
-        flex: 1,
-      },
-      [theme.breakpoints.up('md')]: {
-        '& input:focus': {
-          minWidth: 275,
-        },
-        '& input:not(:placeholder-shown)': {
-          minWidth: 275,
-        },
-        '& input': {
-          minWidth: 180,
-          transitionProperty: 'min-width',
-          transitionDuration: theme.transitions.duration.standard,
-          transitionTimingFunction: theme.transitions.easing.easeInOut,
-        },
-      },
-    },
-  }
-})
+import { transitionStyles } from './Transitions'
 
 /*
  * Renders a search text field that utilizes the URL params to regulate
@@ -52,7 +28,7 @@ export default function Search(props) {
   // or from a local event so we don't lose typed characters.
   const [prevParamValue, setPrevParamValue] = useState(searchParam)
 
-  const classes = useStyles()
+  const classes = transitionStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()

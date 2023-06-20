@@ -9,6 +9,7 @@ import {
   Info,
 } from '@mui/icons-material'
 import { DEBOUNCE_DELAY } from '../../config'
+import { transitionStyles } from '../../util/Transitions'
 
 const query = gql`
   query AlertFeedbackQuery($id: Int!) {
@@ -34,6 +35,8 @@ interface AlertFeedbackProps {
 
 export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
+  const classes = transitionStyles()
+
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: {
@@ -117,16 +120,21 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
           <Info fontSize='small' sx={{ p: '12px' }} />
         </Tooltip>
       </Grid>
-      <Grow in={isDown}>
+      <Grow in={isDown} mountOnEnter unmountOnExit>
         <Grid
           item
           xs={12}
           sx={{
-            display: !isDown ? 'none' : 'flex',
+            display: 'flex',
             justifyContent: 'flex-end',
           }}
         >
-          <TextField value={note} onChange={(e) => setNote(e.target.value)} />
+          <TextField
+            className={classes.transition}
+            placeholder='Why?'
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
         </Grid>
       </Grow>
     </Grid>
