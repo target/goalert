@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -23,11 +24,6 @@ type Store struct {
 	db *sql.DB
 
 	k keyring.Keyring
-
-	newLink    *sql.Stmt
-	rmLink     *sql.Stmt
-	addSubject *sql.Stmt
-	findLink   *sql.Stmt
 }
 
 type Metadata struct {
@@ -50,12 +46,8 @@ func NewStore(ctx context.Context, db *sql.DB, k keyring.Keyring) (*Store, error
 	}
 
 	return &Store{
-		db:         db,
-		k:          k,
-		newLink:    p.P(`insert into auth_link_requests (id, provider_id, subject_id, expires_at, metadata) values ($1, $2, $3, $4, $5)`),
-		rmLink:     p.P(`delete from auth_link_requests where id = $1 and expires_at > now() returning provider_id, subject_id`),
-		addSubject: p.P(`insert into auth_subjects (provider_id, subject_id, user_id) values ($1, $2, $3)`),
-		findLink:   p.P(`select metadata from auth_link_requests where id = $1 and expires_at > now()`),
+		db: db,
+		k:  k,
 	}, p.Err
 }
 
@@ -71,9 +63,7 @@ func (s *Store) FindLinkMetadata(ctx context.Context, token string) (*Metadata, 
 		return nil, nil
 	}
 
-	var meta Metadata
-	var data json.RawMessage
-	err = s.findLink.QueryRowContext(ctx, tokID).Scan(&data)
+	data, err := gadb.New(s.db).AuthLinkMetadata(ctx, uuid.MustParse(tokID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -81,6 +71,7 @@ func (s *Store) FindLinkMetadata(ctx context.Context, token string) (*Metadata, 
 		return nil, err
 	}
 
+	var meta Metadata
 	err = json.Unmarshal(data, &meta)
 	if err != nil {
 		return nil, err
@@ -127,8 +118,7 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 	}
 	defer sqlutil.Rollback(ctx, "authlink: link auth subject", tx)
 
-	var providerID, subjectID string
-	err = tx.StmtContext(ctx, s.rmLink).QueryRowContext(ctx, tokID).Scan(&providerID, &subjectID)
+	row, err := gadb.New(tx).AuthLinkUseReq(ctx, uuid.MustParse(tokID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewGenericError("invalid link token")
 	}
@@ -136,7 +126,11 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, s.addSubject).ExecContext(ctx, providerID, subjectID, permission.UserID(ctx))
+	err = gadb.New(tx).AuthLinkAddAuthSubject(ctx, gadb.AuthLinkAddAuthSubjectParams{
+		ProviderID: row.ProviderID,
+		SubjectID:  row.SubjectID,
+		UserID:     uuid.MustParse(permission.UserID(ctx)),
+	})
 	if err != nil {
 		return err
 	}
@@ -175,7 +169,17 @@ func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string, m
 		return "", err
 	}
 
-	_, err = s.newLink.ExecContext(ctx, id, providerID, subjectID, expires, meta)
+	data, err := json.Marshal(meta)
+	if err != nil {
+		return "", err
+	}
+	err = gadb.New(s.db).AuthLinkAddReq(ctx, gadb.AuthLinkAddReqParams{
+		ID:         id,
+		ProviderID: providerID,
+		SubjectID:  subjectID,
+		ExpiresAt:  expires,
+		Metadata:   data,
+	})
 	if err != nil {
 		return "", err
 	}
