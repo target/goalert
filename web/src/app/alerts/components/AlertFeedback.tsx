@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, gql } from 'urql'
 import { Grid, Grow, IconButton, Tooltip, TextField } from '@mui/material'
 import {
@@ -36,9 +36,16 @@ interface AlertFeedbackProps {
 export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
   const classes = transitionStyles()
+  const [cacheCount, setCacheCount] = useState(0) // reset cache on tick
 
+  // stable query reference
+  const context = useMemo(
+    () => ({ additionalTypenames: ['Feedback'] }),
+    [cacheCount],
+  )
   const [{ data, fetching, error }] = useQuery({
     query,
+    context,
     variables: {
       id: alertID,
     },
@@ -88,12 +95,16 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       <Grid item>
         <IconButton
           onClick={() => {
-            commit({
-              input: {
-                alertID,
-                sentiment: 1,
+            setCacheCount(cacheCount + 1)
+            commit(
+              {
+                input: {
+                  alertID,
+                  sentiment: 1,
+                },
               },
-            })
+              { additionalTypenames: ['Feedback'] },
+            )
           }}
           size='large'
         >
@@ -103,12 +114,16 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       <Grid item>
         <IconButton
           onClick={() => {
-            commit({
-              input: {
-                alertID,
-                sentiment: -1,
+            setCacheCount(cacheCount + 1)
+            commit(
+              {
+                input: {
+                  alertID,
+                  sentiment: -1,
+                },
               },
-            })
+              { additionalTypenames: ['Feedback'] },
+            )
           }}
           size='large'
         >
