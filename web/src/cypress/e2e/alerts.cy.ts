@@ -377,21 +377,43 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should allow the user to take action', () => {
       // ack
-      cy.get('button[aria-label=Acknowledge]').click()
+      cy.get('button').contains('Acknowledge').click()
 
       cy.get('body').should('contain', 'ACKNOWLEDGED')
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
       // escalate
-      cy.get('button[aria-label=Escalate]').click()
+      cy.get('button').contains('Escalate').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
       cy.reload() // allows time for escalation request to process
 
       // close
-      cy.get('button[aria-label=Close]').click()
+      cy.get('button').contains('Close').click()
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+
+    it('should set alert feedback', () => {
+      // upvote alert
+      cy.get('button[aria-label="Mark alert as useful"]').click()
+      cy.get('button[aria-label="Mark alert as useful"]').should('not.exist')
+      cy.get('button[aria-label="Alert marked as useful"]').should('be.visible')
+      cy.get('[aria-label="Alert Note"]').should('not.exist')
+
+      // downvote alert
+      cy.get('button[aria-label="Mark alert as not useful"]').click()
+      cy.get('button[aria-label="Mark alert as not useful"]').should(
+        'not.exist',
+      )
+      cy.get('button[aria-label="Alert marked as not useful"]').should(
+        'be.visible',
+      )
+
+      // set alert note
+      const value = 'Test'
+      cy.get('[aria-label="Alert Note"]').type(value)
+      cy.get('[aria-label="Alert Note"] input').should('have.value', value)
     })
   })
 

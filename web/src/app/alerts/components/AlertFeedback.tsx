@@ -79,6 +79,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       <ThumbUpOutlined />
     )
 
+  const isUp = data?.alert?.feedback?.sentiment === 1
   const isDown = data?.alert?.feedback?.sentiment === -1
   const thumbDown =
     !fetching && !error && isDown ? <ThumbDown /> : <ThumbDownOutlined />
@@ -94,6 +95,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       {mutationStatus.error?.message}
       <Grid item>
         <IconButton
+          aria-label={isUp ? 'Alert marked as useful' : 'Mark alert as useful'}
           onClick={() => {
             setCacheCount(cacheCount + 1)
             commit(
@@ -113,6 +115,9 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       </Grid>
       <Grid item>
         <IconButton
+          aria-label={
+            isDown ? 'Alert marked as not useful' : 'Mark alert as not useful'
+          }
           onClick={() => {
             setCacheCount(cacheCount + 1)
             commit(
@@ -145,6 +150,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
           }}
         >
           <TextField
+            aria-label='Alert Note'
             className={classes.transition}
             placeholder='Why?'
             value={note}
