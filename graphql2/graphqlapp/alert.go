@@ -361,7 +361,7 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 }
 
 func (a *Alert) Feedback(ctx context.Context, raw *alert.Alert) (*graphql2.AlertFeedback, error) {
-	am, err := a.AlertStore.Metadata(ctx, raw.ID)
+	am, err := a.AlertStore.Feedback(ctx, raw.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -372,18 +372,18 @@ func (a *Alert) Feedback(ctx context.Context, raw *alert.Alert) (*graphql2.Alert
 }
 
 func (m *Mutation) UpdateAlertFeedback(ctx context.Context, input graphql2.UpdateAlertFeedbackInput) (bool, error) {
-	am := &alert.Metadata{
+	f := &alert.Feedback{
 		AlertID: input.AlertID,
 	}
 
 	if input.Sentiment != nil {
-		am.Sentiment = *input.Sentiment
+		f.Sentiment = *input.Sentiment
 	}
 	if input.Note != nil {
-		am.Note = *input.Note
+		f.Note = *input.Note
 	}
 
-	err := m.AlertStore.UpdateMetadata(ctx, am)
+	err := m.AlertStore.UpdateFeedback(ctx, f)
 	if err != nil {
 		return false, err
 	}

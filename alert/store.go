@@ -52,8 +52,8 @@ type Store struct {
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
 
-	metadata       *sql.Stmt
-	updateMetadata *sql.Stmt
+	feedback       *sql.Stmt
+	updateFeedback *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -226,14 +226,14 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 			WHERE id = $1
 		`),
 
-		metadata: p(`
+		feedback: p(`
 			SELECT
 				alert_id, sentiment, note
 			FROM alert_feedback
 			WHERE alert_id = $1
 		`),
 
-		updateMetadata: p(`
+		updateFeedback: p(`
 			INSERT INTO alert_feedback (alert_id, sentiment, note)
 			VALUES ($1, $2, $3)
 			ON CONFLICT (alert_id) DO UPDATE
@@ -876,37 +876,37 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	return list, nil
 }
 
-func (s *Store) Metadata(ctx context.Context, alertID int) (am Metadata, err error) {
-	row := s.metadata.QueryRowContext(ctx, alertID)
-	err = row.Scan(&am.AlertID, &am.Sentiment, &am.Note)
+func (s *Store) Feedback(ctx context.Context, alertID int) (f Feedback, err error) {
+	row := s.feedback.QueryRowContext(ctx, alertID)
+	err = row.Scan(&f.AlertID, &f.Sentiment, &f.Note)
 	if errors.Is(err, sql.ErrNoRows) {
-		return Metadata{
+		return Feedback{
 			AlertID:   alertID,
 			Sentiment: 0,
 			Note:      "",
 		}, nil
 	}
-	return am, err
+	return f, err
 }
 
-func (s Store) UpdateMetadata(ctx context.Context, metadata *Metadata) error {
+func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return err
 	}
 
-	am, err := (s).Metadata(ctx, metadata.AlertID)
+	f, err := (s).Feedback(ctx, feedback.AlertID)
 	if err != nil {
 		return err
 	}
-	if metadata.Sentiment != 0 {
-		am.Sentiment = metadata.Sentiment
+	if feedback.Sentiment != 0 {
+		f.Sentiment = feedback.Sentiment
 	}
-	if metadata.Note != "" {
-		am.Note = metadata.Note
+	if feedback.Note != "" {
+		f.Note = feedback.Note
 	}
 
-	_, err = s.updateMetadata.ExecContext(ctx, metadata.AlertID, am.Sentiment, am.Note)
+	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.Sentiment, f.Note)
 	if err != nil {
 		return err
 	}
