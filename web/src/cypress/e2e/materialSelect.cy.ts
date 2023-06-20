@@ -34,7 +34,11 @@ function testMaterialSelect(screen: ScreenFormat): void {
         const u1 = users[0]
         const u2 = users[1]
 
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Step').click()
+        }
         cy.dialogTitle('Create Step')
 
         // populate users
