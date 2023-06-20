@@ -69,12 +69,9 @@ export default function AlertMetadata(props: AlertMetadataProps): JSX.Element {
       <ThumbUpOutlined />
     )
 
+  const isDown = data?.alert?.metadata?.sentiment === -1
   const thumbDown =
-    !fetching && !error && data?.alert?.metadata?.sentiment === -1 ? (
-      <ThumbDown />
-    ) : (
-      <ThumbDownOutlined />
-    )
+    !fetching && !error && isDown ? <ThumbDown /> : <ThumbDownOutlined />
 
   return (
     <Grid
@@ -120,8 +117,15 @@ export default function AlertMetadata(props: AlertMetadataProps): JSX.Element {
           <Info fontSize='small' sx={{ p: '12px' }} />
         </Tooltip>
       </Grid>
-      <Grow in={data?.alert?.metadata?.sentiment === -1}>
-        <Grid item xs={12} display='flex' justifyContent='flex-end'>
+      <Grow in={isDown}>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            display: !isDown ? 'none' : 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
           <TextField value={note} onChange={(e) => setNote(e.target.value)} />
         </Grid>
       </Grow>
