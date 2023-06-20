@@ -5,7 +5,7 @@ import users from '../fixtures/users.json'
 
 const c = new Chance()
 
-function testSteps(): void {
+function testSteps(screen: ScreenFormat): void {
   describe('Steps', () => {
     let ep: EP
     let r1: Rotation
@@ -38,7 +38,11 @@ function testSteps(): void {
       const u2 = users[1]
       const delay = c.integer({ min: 1, max: 9000 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
       cy.dialogTitle('Create Step')
       cy.dialogForm({ schedules: [s1.name, s2.name] })
 
@@ -72,7 +76,11 @@ function testSteps(): void {
       const u1 = users[0]
       const u2 = users[1]
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
       cy.dialogTitle('Create Step')
       cy.get('button[data-cy="users-step"]').click()
       cy.dialogForm({ users: [u1.name, u2.name] })
@@ -114,7 +122,11 @@ function testSteps(): void {
       cy.updateConfig({ Slack: { Enable: true } })
       cy.reload()
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
       cy.dialogTitle('Create Step')
 
       // expand slack channels section
@@ -246,7 +258,7 @@ testScreen('Escalation Policy Steps', testSteps)
 
 testScreenWithFlags(
   'Webhook Support',
-  () => {
+  (screen: ScreenFormat) => {
     let ep: EP
     beforeEach(() => {
       cy.createEP().then((e: EP) => {
@@ -259,7 +271,11 @@ testScreenWithFlags(
       cy.updateConfig({ Webhook: { Enable: true } })
       cy.reload()
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
       cy.dialogTitle('Create Step')
 
       // expand webhook section
