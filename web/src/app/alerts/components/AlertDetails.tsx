@@ -327,6 +327,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
     return (
       <ButtonGroup
+        key='update-alert-buttons'
         variant='contained'
         aria-label='Update Alert Status Button Group'
       >
