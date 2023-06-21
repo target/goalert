@@ -33,7 +33,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	m.Start(l, nil)
-	select {}
+	err = m.Start(l, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	select {}
 }
