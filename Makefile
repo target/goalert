@@ -130,14 +130,14 @@ start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tool
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
+start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
@@ -222,11 +222,11 @@ test-unit: test
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
-playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
 	yarn playwright test
 
-playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
+playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
 	yarn playwright test --ui
 
