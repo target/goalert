@@ -1,11 +1,9 @@
-import { test, expect } from '@playwright/test'
-import Chance from 'chance'
-const c = new Chance()
+import { test } from '@playwright/test'
 
 test.describe.configure({ mode: 'parallel' })
 
 // test loging in with OIDC
-test('OIDC Login', async ({ page, browser, isMobile }) => {
+test('OIDC Login', async ({ page }) => {
   await page.goto('./profile')
 
   await page.click('button[type=submit] >> "Login with OIDC"')
