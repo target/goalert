@@ -49,6 +49,10 @@ const config = {
       port: 6125,
     },
     {
+      command: './bin/mockoidc -addr=127.0.0.1:9997',
+      port: 9997,
+    },
+    {
       command:
         './bin/goalert -l=localhost:6130 --public-url=http://localhost:6130',
       env: wsEnv,

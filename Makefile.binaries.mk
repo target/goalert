@@ -170,6 +170,25 @@ $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
 
+$(BIN_DIR)/mockoidc: $(GO_DEPS) 
+	go build  -o $@ ./devtools/mockoidc
+
+$(BIN_DIR)/darwin-amd64/mockoidc: $(GO_DEPS)  
+	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
+
+$(BIN_DIR)/linux-amd64/mockoidc: $(GO_DEPS)  
+	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
+
+$(BIN_DIR)/linux-arm/mockoidc: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/mockoidc
+
+$(BIN_DIR)/linux-arm64/mockoidc: $(GO_DEPS)  
+	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/mockoidc
+
+$(BIN_DIR)/windows-amd64/mockoidc.exe: $(GO_DEPS)  
+	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
+
+
 $(BIN_DIR)/mockslack: $(GO_DEPS) 
 	go build  -o $@ ./devtools/mockslack/cmd/mockslack
 
@@ -400,27 +419,27 @@ $(BIN_DIR)/windows-amd64/waitfor.exe: $(GO_DEPS)
 
 
 
-$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runproc $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
+$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $(BIN_DIR)/darwin-amd64/mockoidc $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runproc $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
 
 $(BIN_DIR)/darwin-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=darwin GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runproc $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
+$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $(BIN_DIR)/linux-amd64/mockoidc $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runproc $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
 
 $(BIN_DIR)/linux-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runproc $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
+$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $(BIN_DIR)/linux-arm/mockoidc $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runproc $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
 
 $(BIN_DIR)/linux-arm/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm GOARM=7 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runproc $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
+$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $(BIN_DIR)/linux-arm64/mockoidc $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runproc $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
 
 $(BIN_DIR)/linux-arm64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runproc.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
+$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runproc.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
 
 $(BIN_DIR)/windows-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go test ./smoketest -c -o $@
@@ -497,10 +516,10 @@ $(BIN_DIR)/goalert-windows-amd64.zip: $(BIN_DIR)/build/goalert-windows-amd64
 
 
 
-$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $@/goalert/bin/
+	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -511,10 +530,10 @@ $(BIN_DIR)/integration-darwin-amd64.zip: $(BIN_DIR)/build/integration-darwin-amd
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-darwin-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -525,10 +544,10 @@ $(BIN_DIR)/integration-linux-amd64.zip: $(BIN_DIR)/build/integration-linux-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -539,10 +558,10 @@ $(BIN_DIR)/integration-linux-arm.zip: $(BIN_DIR)/build/integration-linux-arm
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -553,10 +572,10 @@ $(BIN_DIR)/integration-linux-arm64.zip: $(BIN_DIR)/build/integration-linux-arm64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $@/goalert/bin/
+	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
