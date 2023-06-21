@@ -27,7 +27,6 @@ type Store struct {
 	update      *sql.Stmt
 	setUserRole *sql.Stmt
 	findOne     *sql.Stmt
-	findAll     *sql.Stmt
 
 	findMany *sql.Stmt
 
@@ -50,8 +49,6 @@ type Store struct {
 	usersMissingProvider *sql.Stmt
 	setAuthSubject       *sql.Stmt
 
-	findAuthSubjectsByUser *sql.Stmt
-
 	findAuthSubjects *sql.Stmt
 
 	grp *groupcache.Group
@@ -69,8 +66,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		db: db,
 
 		userExist: make(chan map[uuid.UUID]struct{}, 1),
-
-		ids: p.P(`SELECT id FROM users`),
 
 		insert: p.P(`
 			INSERT INTO users (
@@ -151,18 +146,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			FROM users
 			WHERE id = $1
 			FOR UPDATE
-		`),
-
-		findAuthSubjectsByUser: p.P(`
-			SELECT provider_id, subject_id
-			FROM auth_subjects 
-			WHERE user_id = $1
-		`),
-
-		findAll: p.P(`
-			SELECT
-				id, name, email, avatar_url, role, false
-			FROM users
 		`),
 
 		insertUserAuthSubject: p.P(`
@@ -502,9 +485,6 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 	return nil
 }
 
-// Update id equivalent to calling UpdateTx(ctx, nil, u).
-func (s *Store) Update(ctx context.Context, u *User) error { return s.UpdateTx(ctx, nil, u) }
-
 // UpdateTx allows updating a user name and email.
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(u.ID))
@@ -710,31 +690,6 @@ func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) (
 	}
 
 	return result, nil
-}
-
-// FindAll returns all users, favorites information is not included (always false).
-func (s *Store) FindAll(ctx context.Context) ([]User, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := s.findAll.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	users := []User{}
-	for rows.Next() {
-		var u User
-		err = u.scanFrom(rows.Scan)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, u)
-	}
-
-	return users, nil
 }
 
 // AddAuthSubjectTx adds an auth subject for a user.

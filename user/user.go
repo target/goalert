@@ -38,8 +38,6 @@ type User struct {
 	isUserFavorite bool
 }
 
-func (User) TableName() string { return "users" }
-
 // ResolveAvatarURL will resolve the user avatar URL, using the email if none is set.
 func (u User) ResolveAvatarURL(fullSize bool) string {
 	if u.AvatarURL == "" {
