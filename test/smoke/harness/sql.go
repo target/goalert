@@ -78,26 +78,6 @@ func sqlSplit(query string) []string {
 	return queries
 }
 
-// ExecSQL will execute all queries one-by-one.
-func ExecSQL(ctx context.Context, url string, query string) error {
-	queries := sqlSplit(query)
-
-	conn, err := pgx.Connect(ctx, url)
-	if err != nil {
-		return err
-	}
-	defer conn.Close(ctx)
-
-	for _, q := range queries {
-		_, err := conn.Exec(ctx, q)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // ExecSQLBatch will execute all queries in a transaction by sending them all at once.
 func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	queries := sqlSplit(query)
