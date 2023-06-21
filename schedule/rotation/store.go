@@ -23,29 +23,18 @@ type Store struct {
 
 	createRotation        *sql.Stmt
 	updateRotation        *sql.Stmt
-	findAllRotations      *sql.Stmt
 	findRotation          *sql.Stmt
 	findRotationForUpdate *sql.Stmt
 	deleteRotation        *sql.Stmt
 	findMany              *sql.Stmt
 
-	findAllBySched             *sql.Stmt
-	findAllParticipantsBySched *sql.Stmt
-	findAllStateBySched        *sql.Stmt
+	findAllParticipants *sql.Stmt
+	addParticipant      *sql.Stmt
+	findParticipant     *sql.Stmt
 
-	findAllParticipants  *sql.Stmt
-	addParticipant       *sql.Stmt
-	deleteParticipant    *sql.Stmt
-	moveParticipant      *sql.Stmt
-	setActiveParticipant *sql.Stmt
-	findParticipant      *sql.Stmt
-	participantActive    *sql.Stmt
-	findPartPos          *sql.Stmt
-
-	state     *sql.Stmt
-	rmState   *sql.Stmt
-	lockPart  *sql.Stmt
-	partRotID *sql.Stmt
+	state    *sql.Stmt
+	rmState  *sql.Stmt
+	lockPart *sql.Stmt
 
 	deleteParticipants      *sql.Stmt
 	updateParticipantUserID *sql.Stmt
@@ -71,7 +60,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			)
 			UPDATE rotations SET name = $2, description = $3, type = $4, start_time = $5, shift_length = $6, time_zone = $7 WHERE id = $1
 		`),
-		findAllRotations: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations`),
 		findRotation: p.P(`
 			SELECT 
 				r.id, 
@@ -106,40 +94,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			WHERE r.id = ANY($1)
 		`),
 
-		partRotID: p.P(`SELECT rotation_id FROM rotation_participants WHERE id = $1`),
-
-		findAllBySched: p.P(`
-			SELECT id, name, description, type, start_time, shift_length, time_zone
-			FROM rotations
-			WHERE id IN (
-				SELECT DISTINCT tgt_rotation_id
-				FROM schedule_rules
-				WHERE schedule_id = $1
-			)
-		`),
-		findAllParticipantsBySched: p.P(`
-			SELECT id, rotation_id, position, user_id
-			FROM rotation_participants
-			WHERE rotation_id IN (
-				SELECT DISTINCT tgt_rotation_id
-				FROM schedule_rules
-				WHERE schedule_id = $1
-			)
-		`),
-		findAllStateBySched: p.P(`
-			SELECT
-				rotation_id,
-				position,
-				rotation_participant_id,
-				shift_start
-			FROM rotation_state
-			WHERE rotation_id IN (
-				SELECT DISTINCT tgt_rotation_id
-				FROM schedule_rules
-				WHERE schedule_id = $1
-			)
-		`),
-
 		addParticipant: p.P(`
 			INSERT INTO rotation_participants (id, rotation_id, position, user_id)
 			VALUES (
@@ -150,44 +104,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			)
 			RETURNING position
 		`),
-		deleteParticipant: p.P(`DELETE FROM rotation_participants WHERE id = $1 RETURNING rotation_id`),
-		moveParticipant: p.P(`
-			WITH calc AS (
-				SELECT
-					rotation_id rot_id,
-					position old_pos,
-					LEAST(position, $2) min,
-					GREATEST(position, $2) max,
-					($2 - position) diff,
-					CASE
-						WHEN position < $2 THEN abs($2-position)
-						WHEN position > $2 THEN 1
-						ELSE 0
-					END shift
-				FROM rotation_participants
-				WHERE id = $1
-				FOR UPDATE
-			)
-			UPDATE rotation_participants
-			SET position =  ((position - calc.min) + calc.shift) % (abs(calc.diff) + 1) + calc.min
-			FROM calc
-			WHERE
-				rotation_id = calc.rot_id AND
-				position >= calc.min AND
-				position <= calc.max
-			RETURNING rotation_id
-		`),
-		setActiveParticipant: p.P(`
-			UPDATE rotation_state
-			SET rotation_participant_id = $2
-			WHERE rotation_id = $1
-		`),
 
-		findPartPos:         p.P(`SELECT position, rotation_id FROM rotation_participants WHERE id = $1`),
 		findAllParticipants: p.P(`SELECT id, rotation_id, position, user_id FROM rotation_participants WHERE rotation_id = $1 ORDER BY position`),
 
-		findParticipant:   p.P(`SELECT rotation_id, position, user_id FROM rotation_participants WHERE id = $1`),
-		participantActive: p.P(`SELECT 1 FROM rotation_state WHERE rotation_participant_id = $1 LIMIT 1`),
+		findParticipant: p.P(`SELECT rotation_id, position, user_id FROM rotation_participants WHERE id = $1`),
+
 		state: p.P(`
 			SELECT
 				position,
@@ -215,62 +136,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		`),
 		findPartCount: p.P(`SELECT participant_count FROM rotations WHERE id = $1`),
 	}, p.Err
-}
-
-func (s *Store) FindAllRotationsByScheduleID(ctx context.Context, schedID string) ([]Rotation, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-	err = validate.UUID("ScheduleID", schedID)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := s.findAllBySched.QueryContext(ctx, schedID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var rotations []Rotation
-	var rot Rotation
-	var tz string
-	for rows.Next() {
-		err = rows.Scan(&rot.ID, &rot.Name, &rot.Description, &rot.Type, &rot.Start, &rot.ShiftLength, &tz)
-		if err != nil {
-			return nil, err
-		}
-		loc, err := util.LoadLocation(tz)
-		if err != nil {
-			return nil, err
-		}
-		rot.Start = rot.Start.In(loc)
-		rotations = append(rotations, rot)
-	}
-	return rotations, nil
-}
-
-func (s *Store) IsParticipantActive(ctx context.Context, partID string) (bool, error) {
-	err := validate.UUID("RotationParticipantID", partID)
-	if err != nil {
-		return false, err
-	}
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return false, err
-	}
-	var n int
-	err = s.participantActive.QueryRowContext(ctx, partID).Scan(&n)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 func (s *Store) State(ctx context.Context, id string) (*State, error) {
@@ -306,44 +171,6 @@ func (s *Store) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, err
 	return &st, nil
 }
 
-func (s *Store) FindAllStateByScheduleID(ctx context.Context, scheduleID string) ([]State, error) {
-	err := validate.UUID("ScheduleID", scheduleID)
-	if err != nil {
-		return nil, err
-	}
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAllStateBySched.QueryContext(ctx, scheduleID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var results []State
-	var st State
-	var part sql.NullString
-	for rows.Next() {
-		err = rows.Scan(&st.RotationID, &st.Position, &part, &st.ShiftStart)
-		if err != nil {
-			return nil, err
-		}
-		st.ParticipantID = part.String
-		results = append(results, st)
-	}
-
-	return results, nil
-}
-
-func (s *Store) CreateRotation(ctx context.Context, r *Rotation) (*Rotation, error) {
-	return s.CreateRotationTx(ctx, nil, r)
-}
-
 func (s *Store) CreateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) (*Rotation, error) {
 	n, err := r.Normalize()
 	if err != nil {
@@ -369,10 +196,6 @@ func (s *Store) CreateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) (
 	return n, nil
 }
 
-func (s *Store) UpdateRotation(ctx context.Context, r *Rotation) error {
-	return s.UpdateRotationTx(ctx, nil, r)
-}
-
 func (s *Store) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) error {
 	err := validate.UUID("RotationID", r.ID)
 	if err != nil {
@@ -395,36 +218,6 @@ func (s *Store) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) e
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Type, n.Start, n.ShiftLength, n.Start.Location().String())
 	return err
-}
-
-func (s *Store) FindAllRotations(ctx context.Context) ([]Rotation, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAllRotations.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var r Rotation
-	var res []Rotation
-	var tz string
-	for rows.Next() {
-		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz)
-		if err != nil {
-			return nil, err
-		}
-		loc, err := util.LoadLocation(tz)
-		if err != nil {
-			return nil, err
-		}
-		r.Start = r.Start.In(loc)
-		res = append(res, r)
-	}
-	return res, nil
 }
 
 func (s *Store) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
@@ -549,14 +342,6 @@ func (s *Store) FindRotationForUpdateTx(ctx context.Context, tx *sql.Tx, rotatio
 	return &r, nil
 }
 
-func (s *Store) DeleteRotation(ctx context.Context, id string) error {
-	return s.DeleteRotationTx(ctx, nil, id)
-}
-
-func (s *Store) DeleteRotationTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return s.DeleteManyTx(ctx, nil, []string{id})
-}
-
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
@@ -571,41 +356,6 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		_, err := tx.StmtContext(ctx, s.deleteRotation).ExecContext(ctx, sqlutil.UUIDArray(ids))
 		return err
 	})
-}
-
-func (s *Store) FindAllParticipantsByScheduleID(ctx context.Context, scheduleID string) ([]Participant, error) {
-	err := validate.UUID("ScheduleID", scheduleID)
-	if err != nil {
-		return nil, err
-	}
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAllParticipantsBySched.QueryContext(ctx, scheduleID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var p Participant
-	var userID sql.NullString
-	var res []Participant
-	for rows.Next() {
-		err = rows.Scan(&p.ID, &p.RotationID, &p.Position, &userID)
-		if err != nil {
-			return nil, err
-		}
-		if userID.Valid {
-			p.Target = assignment.UserTarget(userID.String)
-		} else {
-			p.Target = nil
-		}
-		res = append(res, p)
-	}
-
-	return res, nil
 }
 
 func (s *Store) FindAllParticipantsTx(ctx context.Context, tx *sql.Tx, rotationID string) ([]Participant, error) {
@@ -654,10 +404,6 @@ func (s *Store) FindAllParticipants(ctx context.Context, rotationID string) ([]P
 	return s.FindAllParticipantsTx(ctx, nil, rotationID)
 }
 
-func (s *Store) AddParticipant(ctx context.Context, p *Participant) (*Participant, error) {
-	return s.AddParticipantTx(ctx, nil, p)
-}
-
 func (s *Store) withTxLock(ctx context.Context, tx *sql.Tx, f func(*sql.Tx) error) error {
 	if tx != nil {
 		_, err := tx.StmtContext(ctx, s.lockPart).ExecContext(ctx)
@@ -680,99 +426,6 @@ func (s *Store) withTxLock(ctx context.Context, tx *sql.Tx, f func(*sql.Tx) erro
 	}
 
 	return tx.Commit()
-}
-
-func (s *Store) AddParticipantTx(ctx context.Context, tx *sql.Tx, p *Participant) (*Participant, error) {
-	n, err := p.Normalize()
-	if err != nil {
-		return nil, err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	n.ID = uuid.New().String()
-
-	err = s.withTxLock(ctx, tx, func(tx *sql.Tx) error {
-		return tx.StmtContext(ctx, s.addParticipant).
-			QueryRowContext(ctx, n.ID, n.RotationID, n.Target.TargetID()).Scan(&n.Position)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return n, nil
-}
-
-func (s *Store) RemoveParticipant(ctx context.Context, id string) (string, error) {
-	return s.RemoveParticipantTx(ctx, nil, id)
-}
-
-func (s *Store) RemoveParticipantTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
-	err := validate.UUID("RotationParticipantID", id)
-	if err != nil {
-		return "", err
-	}
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return "", err
-	}
-
-	stmt := s.deleteParticipant
-	if tx != nil {
-		stmt = tx.Stmt(stmt)
-	}
-	var rotID string
-	err = s.withTxLock(ctx, tx, func(tx *sql.Tx) error {
-		return stmt.QueryRowContext(ctx, id).Scan(&rotID)
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		err = nil
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return rotID, nil
-}
-
-func (s *Store) MoveParticipant(ctx context.Context, id string, newPos int) error {
-	err := validate.Many(
-		validate.UUID("RotationParticipantID", id),
-		validate.Range("NewPosition", newPos, 0, 9000),
-	)
-	if err != nil {
-		return err
-	}
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	var rotID string
-	return s.withTxLock(ctx, nil, func(tx *sql.Tx) error {
-		return tx.StmtContext(ctx, s.moveParticipant).QueryRowContext(ctx, id, newPos).Scan(&rotID)
-	})
-}
-
-func (s *Store) SetActiveParticipant(ctx context.Context, rotID string, partID string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	err = validate.Many(
-		validate.UUID("RotationID", rotID),
-		validate.UUID("RotationParticipantID", partID),
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.setActiveParticipant.ExecContext(ctx, rotID, partID)
-	return err
 }
 
 func (s *Store) SetActiveIndexTx(ctx context.Context, tx *sql.Tx, rotID string, position int) error {
