@@ -18,7 +18,6 @@ type Store struct {
 	findOne     *sql.Stmt
 	findOneUp   *sql.Stmt
 	findMany    *sql.Stmt
-	findAll     *sql.Stmt
 	findAllByEP *sql.Stmt
 	insert      *sql.Stmt
 	update      *sql.Stmt
@@ -73,21 +72,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			s.id = any($1)
 	`)
 
-	s.findAll = p(`
-		SELECT
-			s.id,
-			s.name,
-			s.description,
-			s.escalation_policy_id,
-			e.name,
-			false,
-			s.maintenance_expires_at
-		FROM
-			services s,
-			escalation_policies e
-		WHERE
-			e.id = s.escalation_policy_id
-	`)
 	s.findAllByEP = p(`
 		SELECT
 			s.id,
@@ -150,9 +134,6 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 	return scanAllFrom(rows)
 }
 
-func (s *Store) Insert(ctx context.Context, svc *Service) (*Service, error) {
-	return s.CreateServiceTx(ctx, nil, svc)
-}
 func (s *Store) CreateServiceTx(ctx context.Context, tx *sql.Tx, svc *Service) (*Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
@@ -177,13 +158,6 @@ func (s *Store) CreateServiceTx(ctx context.Context, tx *sql.Tx, svc *Service) (
 	return n, nil
 }
 
-// Delete implements the ServiceInterface interface.
-func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.DeleteTx(ctx, nil, id)
-}
-func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return s.DeleteManyTx(ctx, tx, []string{id})
-}
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
@@ -208,10 +182,6 @@ func wrap(tx *sql.Tx, s *sql.Stmt) *sql.Stmt {
 	return tx.Stmt(s)
 }
 
-// Update implements the ServiceStore interface.
-func (s *Store) Update(ctx context.Context, svc *Service) error {
-	return s.UpdateTx(ctx, nil, svc)
-}
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
@@ -298,19 +268,6 @@ func scanAllFrom(rows *sql.Rows) (services []Service, err error) {
 	return services, nil
 }
 
-func (s *Store) FindAll(ctx context.Context) ([]Service, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAll.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	return scanAllFrom(rows)
-}
 func (s *Store) FindAllByEP(ctx context.Context, epID string) ([]Service, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
