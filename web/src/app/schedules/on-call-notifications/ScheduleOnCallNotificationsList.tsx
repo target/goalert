@@ -4,7 +4,7 @@ import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
-import { SlackBW } from '../../icons/components/Icons'
+import { SlackBW, WebhookBW } from '../../icons/components/Icons'
 import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
@@ -16,6 +16,16 @@ import { Add } from '@mui/icons-material'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
+}
+
+function getChannelIcon(targetType: string): JSX.Element {
+  if (targetType === 'slackUserGroup' || targetType === 'slackChannel') {
+    return <SlackBW />
+  }
+  if (targetType === 'chanWebhook') {
+    return <WebhookBW />
+  }
+  return <div />
 }
 
 export default function ScheduleOnCallNotificationsList({
@@ -53,13 +63,7 @@ export default function ScheduleOnCallNotificationsList({
               }
               items={rules.map((rule) => {
                 return {
-                  icon:
-                    rule.target.type === 'slackChannel' ||
-                    rule.target.type === 'slackUserGroup' ? (
-                      <Avatar>
-                        <SlackBW />{' '}
-                      </Avatar>
-                    ) : null,
+                  icon: <Avatar>{getChannelIcon(rule.target.type)}</Avatar>,
                   title: rule.target.name ?? undefined,
                   subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (

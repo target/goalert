@@ -195,7 +195,10 @@ func (a *App) Handler() http.Handler {
 		}
 
 		if isUnsafe && !isGQLValidation(gqlErr) {
-			log.Log(ctx, err)
+			// context.Canceled is caused by normal things like closing a browser tab.
+			if !errors.Is(err, context.Canceled) {
+				log.Log(ctx, err)
+			}
 			gqlErr.Message = safeErr.Error()
 		}
 

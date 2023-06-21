@@ -224,6 +224,23 @@ input MessageLogSearchOptions {
 type MessageLogConnection {
   nodes: [DebugMessage!]!
   pageInfo: PageInfo!
+
+  stats: MessageLogConnectionStats!
+}
+
+type MessageLogConnectionStats {
+  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
+}
+
+input TimeSeriesOptions {
+  bucketDuration: ISODuration!
+  bucketOrigin: ISOTimestamp
+}
+
+type TimeSeriesBucket {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  count: Int!
 }
 
 input SlackUserGroupSearchOptions {
@@ -545,6 +562,21 @@ type Mutation {
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+
+  createBasicAuth(input: CreateBasicAuthInput!): Boolean!
+  updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+input CreateBasicAuthInput {
+  username: String!
+  password: String!
+  userID: ID!
+}
+
+input UpdateBasicAuthInput {
+  password: String!
+  oldPassword: String
+  userID: ID!
 }
 
 input UpdateAlertsByServiceInput {

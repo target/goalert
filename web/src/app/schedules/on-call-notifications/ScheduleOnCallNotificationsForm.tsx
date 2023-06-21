@@ -1,20 +1,26 @@
-import React, { useState } from 'react'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Grid from '@mui/material/Grid'
-import RadioGroup from '@mui/material/RadioGroup'
-import Radio from '@mui/material/Radio'
-import { DateTime } from 'luxon'
-import { Checkbox, Tooltip, Typography } from '@mui/material'
-import InfoIcon from '@mui/icons-material/Info'
+import {
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { DateTime } from 'luxon'
+import React, { useMemo } from 'react'
 
 import { FormContainer, FormField } from '../../forms'
-import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import { Value, NO_DAY, EVERY_DAY, RuleFieldError } from './util'
+import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
-import { useScheduleTZ } from '../useScheduleTZ'
 import { useExpFlag } from '../../util/useExpFlag'
+import { useScheduleTZ } from '../useScheduleTZ'
+import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { TargetType } from '../../../schema'
+import { SlackUserGroupSelect, SlackChannelSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -23,36 +29,123 @@ interface ScheduleOnCallNotificationsFormProps {
   value: Value
   errors: RuleFieldError[]
   onChange: (val: Value) => void
-  slackType: string
-  setSlackType: (slackType: string) => void
 }
 
 const useStyles = makeStyles({
   margin0: { margin: 0 },
   tzNote: { fontStyle: 'italic' },
 })
+
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
-  const { scheduleID, slackType, setSlackType, ...formProps } = props
+  const { scheduleID, ...formProps } = props
   const classes = useStyles()
+  const [slackEnabled] = useConfigValue('Slack.Enable')
+  const [webhookEnabled] = useConfigValue('Webhook.Enable')
+  const webhookChannelEnabled = useExpFlag('chan-webhook')
   const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
-  const [slackUGChecked, setSlackUGChecked] = useState(
-    !!formProps.value.slackUserGroup,
-  )
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
       props.onChange({ ...formProps.value, time: null, weekdayFilter: NO_DAY })
       return
     }
-
     props.onChange({
       ...props.value,
       weekdayFilter: EVERY_DAY,
       time: DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
     })
+  }
+
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const newType = e.target.value as TargetType
+    if (props.value.type !== newType) {
+      props.onChange({
+        ...props.value,
+        type: newType,
+        targetID: null,
+      })
+    }
+  }
+
+  const channelTypeItems = useMemo(
+    () => [
+      <MenuItem
+        key='SLACK_CHANNEL'
+        value='slackChannel'
+        disabled={!slackEnabled}
+      >
+        SLACK CHANNEL
+      </MenuItem>,
+      ...(slackUGEnabled
+        ? [
+            <MenuItem
+              key='SLACK_UG'
+              value='slackUserGroup'
+              disabled={!slackEnabled}
+            >
+              SLACK USER GROUP
+            </MenuItem>,
+          ]
+        : []),
+      ...(webhookChannelEnabled
+        ? [
+            <MenuItem
+              key='WEBHOOK'
+              value='chanWebhook'
+              disabled={!webhookEnabled}
+            >
+              WEBHOOK
+            </MenuItem>,
+          ]
+        : []),
+    ],
+    [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
+  )
+
+  function renderTypeFields(type: TargetType): JSX.Element {
+    switch (type) {
+      case 'slackUserGroup':
+        return (
+          <Grid item>
+            <FormField
+              component={SlackUserGroupSelect}
+              fullWidth
+              name='targetID'
+              label='Slack User Group'
+            />
+          </Grid>
+        )
+      case 'slackChannel':
+        return (
+          <Grid item>
+            <FormField
+              component={SlackChannelSelect}
+              fullWidth
+              required
+              label='Slack Channel'
+              name='targetID'
+            />
+          </Grid>
+        )
+      case 'chanWebhook':
+        return (
+          <Grid item>
+            <FormField
+              component={TextField}
+              fullWidth
+              required
+              label='Webhook'
+              name='targetID'
+            />
+          </Grid>
+        )
+      default:
+        // unsupported type
+        return <Grid item />
+    }
   }
 
   return (
@@ -126,65 +219,19 @@ export default function ScheduleOnCallNotificationsForm(
           </Grid>
         </Grid>
         <Grid item>
-          <FormField
-            component={SlackChannelSelect}
+          <TextField
             fullWidth
+            value={props.value.type}
             required
-            label='Slack Channel'
-            name='slackChannelID'
-            mapOnChangeValue={(v) => {
-              setSlackType('channel')
-              return v
-            }}
-          />
+            label='Type'
+            select
+            onChange={handleTypeChange}
+            disabled={channelTypeItems.length <= 1}
+          >
+            {channelTypeItems}
+          </TextField>
         </Grid>
-        {slackUGEnabled && (
-          <Grid item>
-            <FormControlLabel
-              sx={{ pb: 2 }}
-              control={
-                <Checkbox
-                  checked={slackUGChecked}
-                  onChange={() => {
-                    const newVal = !slackUGChecked
-                    setSlackUGChecked(newVal)
-                    setSlackType(newVal ? 'usergroup' : 'channel')
-                    if (!newVal) {
-                      props.onChange({
-                        ...props.value,
-                        slackUserGroup: null,
-                      })
-                    }
-                  }}
-                />
-              }
-              label={
-                <Typography sx={{ display: 'flex' }}>
-                  Also set the members of a Slack user group?
-                  <Tooltip
-                    data-cy='fts-tooltip'
-                    disableFocusListener
-                    placement='right'
-                    title='This will edit your user group in Slack to ensure that only the members in the selected group are also on-call'
-                  >
-                    <InfoIcon color='primary' sx={{ pl: 0.5 }} />
-                  </Tooltip>
-                </Typography>
-              }
-            />
-            <FormField
-              component={SlackUserGroupSelect}
-              disabled={!slackUGChecked}
-              fullWidth
-              label='Slack User Group'
-              name='slackUserGroup'
-              mapOnChangeValue={(v) => {
-                setSlackType('usergroup')
-                return v
-              }}
-            />
-          </Grid>
-        )}
+        {renderTypeFields(formProps.value.type)}
       </Grid>
     </FormContainer>
   )

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -102,9 +101,6 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 	}
 
 	if input.Type == contactmethod.TypeSlackDM {
-		if !expflag.ContextHas(ctx, expflag.SlackDM) {
-			return nil, validation.NewFieldError("type", "Slack DMs are not enabled")
-		}
 		if strings.HasPrefix(input.Value, "@") {
 			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
 		}

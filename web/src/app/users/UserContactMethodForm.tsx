@@ -7,7 +7,6 @@ import { Checkbox, FormControlLabel, MenuItem, Typography } from '@mui/material'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
 import { FieldError } from '../util/errutil'
-import { useExpFlag } from '../util/useExpFlag'
 
 type Value = {
   name: string
@@ -139,8 +138,6 @@ export default function UserContactMethodForm(
     'General.NotificationDisclaimer',
   )
 
-  const slackDMEnabled = useExpFlag('slack-dm')
-
   const statusUpdateChecked =
     value.statusUpdates === 'ENABLED' ||
     value.statusUpdates === 'ENABLED_FORCED' ||
@@ -187,7 +184,7 @@ export default function UserContactMethodForm(
             {(edit || webhookEnabled) && (
               <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
             )}
-            {(edit || (slackEnabled && slackDMEnabled)) && (
+            {(edit || slackEnabled) && (
               <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
             )}
           </FormField>

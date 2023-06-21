@@ -65,14 +65,14 @@ func (q *Query) SlackUserGroups(ctx context.Context, input *graphql2.SlackUserGr
 	if err != nil {
 		return nil, err
 	}
-	// Sort by name, case-insensitive, then sensitive.
+	// Sort by handle, case-insensitive, then sensitive.
 	sort.Slice(groups, func(i, j int) bool {
-		iName, jName := strings.ToLower(groups[i].Name), strings.ToLower(groups[j].Name)
+		iName, jName := strings.ToLower(groups[i].Handle), strings.ToLower(groups[j].Handle)
 
 		if iName != jName {
 			return iName < jName
 		}
-		return groups[i].Name < groups[j].Name
+		return groups[i].Handle < groups[j].Handle
 	})
 
 	// No DB search, so we manually filter for the cursor and search strings.
@@ -80,7 +80,7 @@ func (q *Query) SlackUserGroups(ctx context.Context, input *graphql2.SlackUserGr
 	n := strings.ToLower(searchOpts.After.Name)
 	filtered := groups[:0]
 	for _, ch := range groups {
-		grpName := strings.ToLower(ch.Name)
+		grpName := strings.ToLower(ch.Handle)
 		if !strings.Contains(grpName, s) {
 			continue
 		}

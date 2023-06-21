@@ -1,5 +1,9 @@
 name: reviewdog
-on: [pull_request]
+
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+
 jobs:
   node-checks:
     name: Node checks

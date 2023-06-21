@@ -104,11 +104,16 @@ function testFavorites(screen: ScreenFormat): void {
     (name: string, favorite: boolean) =>
       cy.createRotation({ name, favorite }).then((r: Rotation) => r.id),
     () => {
-      cy.createEP()
-        .then((e: EP) => {
-          return cy.visit(`/escalation-policies/${e.id}`)
-        })
-        .pageFab()
+      cy.createEP().then((e: EP) => {
+        return cy.visit(`/escalation-policies/${e.id}`)
+      })
+
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
+
       cy.get('[data-cy="rotations-step"]').click()
       return cy.get('input[name=rotations]')
     },
@@ -121,14 +126,17 @@ function testFavorites(screen: ScreenFormat): void {
       cy
         .createSchedule({ name, isFavorite })
         .then((sched: Schedule) => sched.id),
-    () =>
-      cy
-        .createEP()
-        .then((e: EP) => {
-          return cy.visit(`/escalation-policies/${e.id}`)
-        })
-        .pageFab()
-        .get('input[name=schedules]'),
+    () => {
+      cy.createEP().then((e: EP) => {
+        return cy.visit(`/escalation-policies/${e.id}`)
+      })
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
+      return cy.get('input[name=schedules]')
+    },
   )
 
   check(
@@ -150,11 +158,14 @@ function testFavorites(screen: ScreenFormat): void {
     (name: string, favorite: boolean) =>
       cy.createUser({ name, favorite }).then((user: Profile) => user.id),
     () => {
-      cy.createEP()
-        .then((e: EP) => {
-          return cy.visit(`/escalation-policies/${e.id}`)
-        })
-        .pageFab()
+      cy.createEP().then((e: EP) => {
+        return cy.visit(`/escalation-policies/${e.id}`)
+      })
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
       cy.get('[data-cy="users-step"]').click()
       return cy.get('input[name=users]')
     },

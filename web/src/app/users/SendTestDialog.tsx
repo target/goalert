@@ -14,7 +14,7 @@ import {
 import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { DateTime } from 'luxon'
-import { ContactMethodType } from '../../schema'
+import { ContactMethodType, UserContactMethod } from '../../schema'
 
 const query = gql`
   query ($id: ID!) {
@@ -45,7 +45,9 @@ export default function SendTestDialog(
 
   const [sendTestStatus, sendTest] = useMutation(mutation)
 
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, fetching, error }] = useQuery<{
+    userContactMethod: UserContactMethod
+  }>({
     query,
     variables: {
       id: messageID,
@@ -57,34 +59,33 @@ export default function SendTestDialog(
   const [now] = useState(DateTime.utc())
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
   const cmDestValue = data?.userContactMethod?.formattedValue ?? ''
-  const cmType: ContactMethodType = data?.userContactMethod?.type ?? ''
-  const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
-  const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
+  const cmType: ContactMethodType | '' = data?.userContactMethod.type ?? ''
+  const lastSent = data?.userContactMethod?.lastTestVerifyAt
+    ? DateTime.fromISO(data.userContactMethod.lastTestVerifyAt)
+    : now.plus({ day: -1 })
   const fromValue =
     data?.userContactMethod?.lastTestMessageState?.formattedSrcValue ?? ''
   const errorMessage = (error?.message || sendTestStatus.error?.message) ?? ''
 
+  const hasSent =
+    Boolean(data?.userContactMethod.lastTestMessageState) &&
+    now.diff(lastSent).as('seconds') < 60
   useEffect(() => {
-    if (fetching || errorMessage || sendTestStatus.data) {
-      return
-    }
-    if (
-      data?.lastTestMessageState == null ||
-      !(timeSinceLastVerified.as('seconds') < 60)
-    ) {
-      sendTest({ id: messageID })
-    }
-  }, [lastTestVerifyAt, fetching])
+    if (fetching || !data?.userContactMethod) return
+    if (errorMessage || sendTestStatus.data) return
 
-  let details = ''
-  if (sendTestStatus.data && lastTestVerifyAt > now.toISO()) {
-    details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
-  }
+    if (hasSent) return
+
+    sendTest({ id: messageID })
+  }, [lastSent.toISO(), fetching, data, errorMessage, sendTestStatus.data])
+
+  const details =
+    (hasSent && data?.userContactMethod?.lastTestMessageState?.details) || ''
 
   const isLoading =
     sendTestStatus.fetching ||
     (!!details && !!errorMessage) ||
-    status === 'pending'
+    ['pending', 'sending'].includes(details.toLowerCase())
 
   const getTestStatusColor = (status: string): string => {
     switch (status) {

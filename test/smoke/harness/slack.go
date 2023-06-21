@@ -19,8 +19,16 @@ const (
 
 type SlackServer interface {
 	Channel(string) SlackChannel
+	User(string) SlackUser
 
 	WaitAndAssert()
+}
+
+type SlackUser interface {
+	ID() string
+	Name() string
+
+	ExpectMessage(keywords ...string) SlackMessage
 }
 
 type SlackChannel interface {
@@ -113,7 +121,7 @@ func (msg *slackMessage) Action(text string) SlackAction {
 		a = &action
 		break
 	}
-	require.NotNilf(msg.h.t, a, `expected action "%s"`, text)
+	require.NotNilf(msg.h.t, a, `expected action "%s"; got %#v`, text, msg.Actions)
 	msg.h.t.Logf("found action: %s\n%#v", text, *a)
 
 	return &slackAction{
@@ -131,7 +139,12 @@ func (a *slackAction) Click() {
 	a.h.t.Helper()
 
 	a.h.t.Logf("clicking action: %s", a.Text)
-	err := a.h.slack.PerformActionAs(a.h.slackUser.ID, a.Action)
+	asID := a.h.slackUser.ID
+	if strings.HasPrefix(a.ChannelID, "W") {
+		// Perform actions in DMs as the user who received the DM.
+		asID = a.ChannelID
+	}
+	err := a.h.slack.PerformActionAs(asID, a.Action)
 	require.NoError(a.h.t, err, "perform Slack action")
 }
 
@@ -156,6 +169,20 @@ func (s *slackServer) WaitAndAssert() {
 			s.h.t.FailNow()
 		}
 	}
+}
+
+func (s *slackServer) User(name string) SlackUser {
+	ch := s.channels["_user:"+name]
+	if ch != nil {
+		return ch
+	}
+
+	info := s.NewUser(name)
+
+	ch = &slackChannel{h: s.h, name: "@" + name, id: info.ID}
+	s.channels["_user:"+name] = ch
+
+	return ch
 }
 
 func (s *slackServer) Channel(name string) SlackChannel {

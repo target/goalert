@@ -5,6 +5,7 @@
 /*.session.json
 *.zip
 /test-results
+/cypress/
 
 *.pem
 *.key

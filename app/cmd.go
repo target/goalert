@@ -569,7 +569,7 @@ Migration: %s (#%d)
 				fmt.Fprintln(os.Stderr)
 			}
 
-			pw, err := basicStore.NewHashedPassword(pass)
+			pw, err := basicStore.NewHashedPassword(ctx, pass)
 			if err != nil {
 				return errors.Wrap(err, "hash password")
 			}
@@ -757,8 +757,8 @@ func init() {
 	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
-	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length.")
-	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only.")
+	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length. Only use this when performing a switchover.")
+	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only. Only necessary when changing --data-encryption-key.")
 	RootCmd.PersistentFlags().Bool("stack-traces", false, "Enables stack traces with all error logs.")
 
 	RootCmd.Flags().Bool("stub-notifiers", def.StubNotifiers, "If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).")

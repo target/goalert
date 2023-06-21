@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.20.2-bullseye
+FROM docker.io/library/golang:1.20.5-bullseye
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \

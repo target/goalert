@@ -264,22 +264,19 @@ function genShifts(
 
 function shiftRange(
   shifts?: Partial<SetScheduleShiftInput>[],
-): [DateTime, DateTime] {
-  if (!shifts || !shifts.length)
-    return [DateTime.fromISO(''), DateTime.fromISO('')]
+): [DateTime | null, DateTime | null] {
+  if (!shifts || !shifts.length) return [null, null]
 
-  let min = DateTime.fromISO('')
-  let max = DateTime.fromISO('')
+  let min: DateTime | null = null
+  let max: DateTime | null = null
   shifts.forEach((s) => {
-    const start = DateTime.fromISO(s.start || '')
-    const end = DateTime.fromISO(s.end || '')
-
-    if ((start.isValid && !min.isValid) || start < min) {
-      min = start
+    if (s.start) {
+      const start = DateTime.fromISO(s.start)
+      if (!min || start < min) min = start
     }
-
-    if ((end.isValid && !max.isValid) || end > max) {
-      max = end
+    if (s.end) {
+      const end = DateTime.fromISO(s.end)
+      if (!max || end > max) max = end
     }
   })
 
@@ -303,6 +300,9 @@ function createTemporarySchedule(
     }
   `
 
+  if (!opts.start) opts.start = randDT({ max: opts.end }).toISO()
+  if (!opts.end) opts.end = randDT({ min: opts.start }).toISO()
+
   // create schedule if necessary
   if (!opts.scheduleID) {
     return cy
@@ -319,13 +319,13 @@ function createTemporarySchedule(
   let start = DateTime.fromISO(opts.start || '')
   let end = DateTime.fromISO(opts.end || '')
   if (start.isValid && !end.isValid) {
-    if (shiftEnd.isValid) {
+    if (shiftEnd) {
       end = randDT({ min: shiftEnd })
     } else {
       end = randDT({ min: start.plus({ day: 1 }) })
     }
   } else if (end.isValid && !start.isValid) {
-    if (shiftStart.isValid) {
+    if (shiftStart) {
       start = randDT({ min: now, max: shiftStart })
     } else {
       start = randDT({

@@ -5,7 +5,9 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -68,6 +70,49 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
 }
 
+func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBasicAuthInput) (bool, error) {
+	pw, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.AuthBasicStore.CreateTx(ctx, tx, input.UserID, input.Username, pw)
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (a *Mutation) UpdateBasicAuth(ctx context.Context, input graphql2.UpdateBasicAuthInput) (bool, error) {
+	var validatedPW basic.ValidatedPassword
+	var err error
+	if input.OldPassword != nil {
+		if *input.OldPassword == input.Password {
+			return false, validation.NewFieldError("Password", "Cannot match OldPassword")
+		}
+		validatedPW, err = a.AuthBasicStore.ValidatePassword(ctx, *input.OldPassword)
+		if err != nil {
+			return false, err
+		}
+	}
+	pw, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.AuthBasicStore.UpdateTx(ctx, tx, input.UserID, validatedPW, pw)
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
 	var newUser *user.User
 
@@ -78,7 +123,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		return nil, err
 	}
 
-	pass, err := a.AuthBasicStore.NewHashedPassword(input.Password)
+	pass, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +188,7 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if input.Email != nil {
 			usr.Email = *input.Email
 		}
-		if input.StatusUpdateContactMethodID != nil {
-			usr.AlertStatusCMID = *input.StatusUpdateContactMethodID
-		}
+
 		return a.UserStore.UpdateTx(ctx, tx, usr)
 	})
 	return err == nil, err

@@ -54,6 +54,12 @@ func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCal
 			ID:   ch.Value,
 			Name: ch.Name,
 		}, nil
+	case notificationchannel.TypeWebhook:
+		return &assignment.RawTarget{
+			Type: assignment.TargetTypeChanWebhook,
+			ID:   ch.Value,
+			Name: ch.Name,
+		}, nil
 	}
 
 	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID, Name: ch.Name}, nil

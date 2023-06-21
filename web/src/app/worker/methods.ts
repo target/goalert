@@ -5,9 +5,9 @@ import { useAdminAlertCounts } from '../admin/admin-alert-counts/useAdminAlertCo
 
 const methods = {
   useAdminAlertCounts,
+  useAlertCountCSV,
   useAlertMetrics,
   useAlertCSV,
-  useAlertCountCSV,
 }
 export default methods
 

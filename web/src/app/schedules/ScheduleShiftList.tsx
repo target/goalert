@@ -25,7 +25,11 @@ import { relativeDate } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
 import { OverrideDialog, OverrideDialogContext } from './ScheduleDetails'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
-import { Shift, TempSchedValue } from './temp-sched/sharedUtils'
+import {
+  Shift,
+  TempSchedValue,
+  defaultTempSchedValue,
+} from './temp-sched/sharedUtils'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 
 // query name is important, as it's used for refetching data after mutations
@@ -79,11 +83,14 @@ function ScheduleShiftList({
   const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
     null,
   )
-  const [configTempSchedule, setConfigTempSchedule] =
-    useState<Partial<TempSchedValue> | null>(null)
-  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
-  const [duration, setDuration] = useURLParam<string>('duration', 'P14D')
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const [configTempSchedule, setConfigTempSchedule] =
+    useState<TempSchedValue | null>(null)
+  const onNewTempSched = useCallback(
+    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    [],
+  )
+  const [duration, setDuration] = useURLParam<string>('duration', 'P14D')
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
 

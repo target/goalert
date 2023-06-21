@@ -17,6 +17,15 @@ import { Provider as URQLProvider } from 'urql'
 import { client as urqlClient } from './urql'
 import { Router } from 'wouter'
 
+import { Settings } from 'luxon'
+Settings.throwOnInvalid = true
+
+declare module 'luxon' {
+  interface TSSettings {
+    throwOnInvalid: true
+  }
+}
+
 // version check
 if (
   document

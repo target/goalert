@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
-import { TextField, TextFieldProps } from '@mui/material'
+import { TextField, TextFieldProps, useTheme } from '@mui/material'
 import { useURLParam } from '../actions'
 
 interface ISOPickerProps extends ISOTextFieldProps {
@@ -35,14 +35,19 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     ...textFieldProps
   } = props
 
+  const theme = useTheme()
   const [_zone] = useURLParam('tz', 'local')
   const zone = timeZone || _zone
   let valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
-    valueAsDT ? valueAsDT.toFormat(format) : '',
+    valueAsDT?.toFormat(format) ?? '',
   )
+
+  useEffect(() => {
+    setInputValue(valueAsDT?.toFormat(format) ?? '')
+  }, [valueAsDT])
 
   // update isopickers render on reset
   useEffect(() => {
@@ -104,6 +109,9 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       inputProps={{
         min: min ? DateTime.fromISO(min, { zone }).toFormat(format) : undefined,
         max: max ? DateTime.fromISO(max, { zone }).toFormat(format) : undefined,
+        style: {
+          colorScheme: theme.palette.mode,
+        },
         ...textFieldProps?.inputProps,
       }}
     />

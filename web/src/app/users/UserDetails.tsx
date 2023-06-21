@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from 'urql'
 import Delete from '@mui/icons-material/Delete'
-import EditIcon from '@mui/icons-material/Edit'
+import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DetailsPage from '../details/DetailsPage'
 import { UserAvatar } from '../util/avatars'
 import UserContactMethodList from './UserContactMethodList'
@@ -148,6 +148,36 @@ export default function UserDetails(props: {
     })
   }
 
+  const options: (
+    | JSX.Element
+    | {
+        label: string
+        icon: JSX.Element
+        handleOnClick: () => void
+      }
+  )[] = [
+    <QuerySetFavoriteButton
+      key='secondary-action-favorite'
+      id={userID}
+      type='user'
+    />,
+  ]
+
+  if (isAdmin || userID === currentUserID) {
+    options.unshift({
+      label: 'Edit Access',
+      icon: <LockOpenIcon />,
+      handleOnClick: () => setShowEdit(true),
+    })
+  }
+  if (isAdmin) {
+    options.unshift({
+      label: 'Delete',
+      icon: <Delete />,
+      handleOnClick: () => setShowUserDeleteDialog(true),
+    })
+  }
+
   return (
     <React.Fragment>
       {showEdit && (
@@ -170,7 +200,7 @@ export default function UserDetails(props: {
           label='Add Items'
           actions={[
             {
-              label: 'Add Contact Method',
+              label: 'Create Contact Method',
               icon: <SettingsPhone />,
               onClick: () => setCreateCM(true),
             },
@@ -217,33 +247,7 @@ export default function UserDetails(props: {
             />
           </Grid>
         }
-        secondaryActions={
-          isAdmin
-            ? [
-                {
-                  label: 'Delete',
-                  icon: <Delete />,
-                  handleOnClick: () => setShowUserDeleteDialog(true),
-                },
-                {
-                  label: 'Edit',
-                  icon: <EditIcon />,
-                  handleOnClick: () => setShowEdit(true),
-                },
-                <QuerySetFavoriteButton
-                  key='secondary-action-favorite'
-                  id={userID}
-                  type='user'
-                />,
-              ]
-            : [
-                <QuerySetFavoriteButton
-                  key='secondary-action-favorite'
-                  id={userID}
-                  type='user'
-                />,
-              ]
-        }
+        secondaryActions={options}
         links={links}
       />
     </React.Fragment>
