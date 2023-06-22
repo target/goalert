@@ -13,15 +13,10 @@ type Service struct {
 	EscalationPolicyID   string
 	MaintenanceExpiresAt time.Time
 
-	epName         string
 	isUserFavorite bool
 }
 
 const MaxDetailsLength = 6 * 1024 // 6KiB
-
-func (s Service) EscalationPolicyName() string {
-	return s.epName
-}
 
 // IsUserFavorite returns a boolean value based on if the service is a favorite of the user or not.
 func (s Service) IsUserFavorite() bool {

@@ -407,6 +407,215 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const serviceDeleteMany = `-- name: ServiceDeleteMany :exec
+DELETE FROM services
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ServiceDeleteMany(ctx context.Context, serviceIds []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, serviceDeleteMany, pq.Array(serviceIds))
+	return err
+}
+
+const serviceFindMany = `-- name: ServiceFindMany :many
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.escalation_policy_id,
+    fav IS DISTINCT FROM NULL AS is_user_favorite,
+    s.maintenance_expires_at
+FROM
+    services s
+    LEFT JOIN user_favorites fav ON s.id = fav.tgt_service_id
+        AND fav.user_id = $1
+WHERE
+    s.id = ANY ($2::uuid[])
+`
+
+type ServiceFindManyParams struct {
+	UserID     uuid.UUID
+	ServiceIds []uuid.UUID
+}
+
+type ServiceFindManyRow struct {
+	ID                   uuid.UUID
+	Name                 string
+	Description          string
+	EscalationPolicyID   uuid.UUID
+	IsUserFavorite       bool
+	MaintenanceExpiresAt sql.NullTime
+}
+
+func (q *Queries) ServiceFindMany(ctx context.Context, arg ServiceFindManyParams) ([]ServiceFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceFindMany, arg.UserID, pq.Array(arg.ServiceIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceFindManyRow
+	for rows.Next() {
+		var i ServiceFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.EscalationPolicyID,
+			&i.IsUserFavorite,
+			&i.MaintenanceExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const serviceFindManyByEP = `-- name: ServiceFindManyByEP :many
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.escalation_policy_id,
+    fav IS DISTINCT FROM NULL AS is_user_favorite,
+    s.maintenance_expires_at
+FROM
+    services s
+    LEFT JOIN user_favorites fav ON s.id = fav.tgt_service_id
+        AND fav.user_id = $2
+WHERE
+    s.escalation_policy_id = $1
+`
+
+type ServiceFindManyByEPParams struct {
+	EscalationPolicyID uuid.UUID
+	UserID             uuid.UUID
+}
+
+type ServiceFindManyByEPRow struct {
+	ID                   uuid.UUID
+	Name                 string
+	Description          string
+	EscalationPolicyID   uuid.UUID
+	IsUserFavorite       bool
+	MaintenanceExpiresAt sql.NullTime
+}
+
+func (q *Queries) ServiceFindManyByEP(ctx context.Context, arg ServiceFindManyByEPParams) ([]ServiceFindManyByEPRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceFindManyByEP, arg.EscalationPolicyID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceFindManyByEPRow
+	for rows.Next() {
+		var i ServiceFindManyByEPRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.EscalationPolicyID,
+			&i.IsUserFavorite,
+			&i.MaintenanceExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const serviceFindOneForUpdate = `-- name: ServiceFindOneForUpdate :one
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.escalation_policy_id,
+    s.maintenance_expires_at
+FROM
+    services s
+WHERE
+    s.id = $1
+`
+
+func (q *Queries) ServiceFindOneForUpdate(ctx context.Context, id uuid.UUID) (Service, error) {
+	row := q.db.QueryRowContext(ctx, serviceFindOneForUpdate, id)
+	var i Service
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.EscalationPolicyID,
+		&i.MaintenanceExpiresAt,
+	)
+	return i, err
+}
+
+const serviceInsert = `-- name: ServiceInsert :exec
+INSERT INTO services(id, name, description, escalation_policy_id)
+    VALUES ($1, $2, $3, $4)
+`
+
+type ServiceInsertParams struct {
+	ID                 uuid.UUID
+	Name               string
+	Description        string
+	EscalationPolicyID uuid.UUID
+}
+
+func (q *Queries) ServiceInsert(ctx context.Context, arg ServiceInsertParams) error {
+	_, err := q.db.ExecContext(ctx, serviceInsert,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.EscalationPolicyID,
+	)
+	return err
+}
+
+const serviceUpdate = `-- name: ServiceUpdate :exec
+UPDATE
+    services
+SET
+    name = $2,
+    description = $3,
+    escalation_policy_id = $4,
+    maintenance_expires_at = $5
+WHERE
+    id = $1
+`
+
+type ServiceUpdateParams struct {
+	ID                   uuid.UUID
+	Name                 string
+	Description          string
+	EscalationPolicyID   uuid.UUID
+	MaintenanceExpiresAt sql.NullTime
+}
+
+func (q *Queries) ServiceUpdate(ctx context.Context, arg ServiceUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, serviceUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.EscalationPolicyID,
+		arg.MaintenanceExpiresAt,
+	)
+	return err
+}
+
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,
