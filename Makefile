@@ -126,7 +126,7 @@ web/src/schema.d.ts: graphql2/schema.graphql $(NODE_DEPS) web/src/genschema.go
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
 	@if [ -d ".vscode" ]; then \
 		echo "Detected .vscode directory, running 'vscode' target"; \
 		$(MAKE) vscode; \
@@ -134,14 +134,14 @@ start: bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus 
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus ## Start the production version of the application
+start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
@@ -229,13 +229,13 @@ test-unit: test
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
-playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
 	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
-playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
+playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
 	yarn playwright test --ui
 

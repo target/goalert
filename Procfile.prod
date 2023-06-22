@@ -9,3 +9,5 @@ prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/pr
 
 @watch-file=./web/src/esbuild.config.js
 ui: yarn run esbuild --watch --prod
+
+oidc: ./bin/mockoidc
