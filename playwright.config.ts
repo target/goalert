@@ -57,7 +57,7 @@ const config = {
       port: 9997,
     },
     {
-      command: './bin/goalert -l=localhost:6120', // no public url (fallback code)
+      command: './bin/goalert.cover -l=localhost:6120', // no public url (fallback code)
       env: { ...wsEnv, GOALERT_PUBLIC_URL: '' },
       url: 'http://localhost:6120/health',
     },
