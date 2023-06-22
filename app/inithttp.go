@@ -35,19 +35,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
-		// request cooldown tracking (for graceful shutdown)
-		func(next http.Handler) http.Handler {
-			if app.cooldown == nil {
-				return next
-			}
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				if !strings.HasPrefix(req.URL.Path, "/health") {
-					app.cooldown.Trigger()
-				}
-				next.ServeHTTP(w, req)
-			})
-		},
-
 		config.ShortURLMiddleware,
 
 		// redirect http to https if public URL is https

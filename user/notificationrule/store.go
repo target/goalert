@@ -16,9 +16,7 @@ type Store struct {
 	db *sql.DB
 
 	insert       *sql.Stmt
-	update       *sql.Stmt
 	delete       *sql.Stmt
-	findOne      *sql.Stmt
 	findAll      *sql.Stmt
 	lookupUserID *sql.Stmt
 }
@@ -30,24 +28,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	s := &Store{db: db}
 
 	s.insert = p("INSERT INTO user_notification_rules (id,user_id,delay_minutes,contact_method_id) VALUES ($1,$2,$3,$4)")
-	s.findOne = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE id = $1 LIMIT 1")
 	s.findAll = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = $1")
-	s.update = p("UPDATE user_notification_rules SET delay_minutes = $2 WHERE id = $1")
 	s.delete = p("DELETE FROM user_notification_rules WHERE id = any($1)")
 	s.lookupUserID = p("SELECT user_id FROM user_notification_rules WHERE id = any($1)")
 
 	return s, prep.Err
-}
-
-// WrapTx will wrap the NotificationRuleDB for use within the given transaction.
-func (s *Store) WrapTx(tx *sql.Tx) *Store {
-	return &Store{
-		insert:  tx.Stmt(s.insert),
-		findOne: tx.Stmt(s.findOne),
-		findAll: tx.Stmt(s.findAll),
-		update:  tx.Stmt(s.update),
-		delete:  tx.Stmt(s.delete),
-	}
 }
 
 // Insert implements the NotificationRuleStore interface by inserting the new NotificationRule into the database.
@@ -77,11 +62,6 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, n *NotificationRule) (
 	}
 
 	return n, nil
-}
-
-// Delete implements the NotificationRuleStore interface.
-func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.DeleteTx(ctx, nil, id)
 }
 
 func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
@@ -134,64 +114,6 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 		return err
 	}
 	_, err = wrapTx(ctx, tx, s.delete).ExecContext(ctx, sqlutil.UUIDArray(ids))
-	return err
-}
-
-// FindOne implements the NotificationRuleStore interface.
-func (s *Store) FindOne(ctx context.Context, id string) (*NotificationRule, error) {
-	err := validate.UUID("NotificationRuleID", id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
-	if err != nil {
-		return nil, err
-	}
-	var n NotificationRule
-	row := s.findOne.QueryRowContext(ctx, id)
-	err = row.Scan(&n.ID, &n.UserID, &n.DelayMinutes, &n.ContactMethodID)
-	if err != nil {
-		return nil, err
-	}
-	return &n, nil
-}
-
-// Update implements the NotificationRuleStore interface.
-func (s *Store) UpdateDelay(ctx context.Context, id string, delay int) error {
-	err := validate.UUID("NotificationRuleID", id)
-	if err != nil {
-		return err
-	}
-	err = validateDelay(delay)
-	if err != nil {
-		return err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	if permission.Admin(ctx) {
-		_, err = s.update.ExecContext(ctx, id, delay)
-		return err
-	}
-
-	var userID string
-
-	row := s.lookupUserID.QueryRowContext(ctx, sqlutil.UUIDArray{id})
-	err = row.Scan(&userID)
-	if err != nil {
-		return err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.MatchUser(userID))
-	if err != nil {
-		return err
-	}
-
-	_, err = s.update.ExecContext(ctx, id, delay)
 	return err
 }
 

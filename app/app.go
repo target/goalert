@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
@@ -62,11 +60,7 @@ type App struct {
 	l      net.Listener
 	events *sqlutil.Listener
 
-	timeOffset time.Duration
-	timeMx     sync.Mutex
-
-	cooldown *cooldown
-	doneCh   chan struct{}
+	doneCh chan struct{}
 
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
@@ -179,17 +173,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		doneCh: make(chan struct{}),
 	}
 
-	var n time.Time
-	err = db.QueryRow("SELECT now()").Scan(&n)
-	if err != nil {
-		return nil, fmt.Errorf("get current time: %w", err)
-	}
-	app.SetTimeOffset(time.Until(n))
-
-	if c.KubernetesCooldown > 0 {
-		app.cooldown = newCooldown(c.KubernetesCooldown)
-	}
-
 	if c.StatusAddr != "" {
 		err = listenStatus(c.StatusAddr, app.doneCh)
 		if err != nil {
@@ -220,9 +203,4 @@ func (a *App) DB() *sql.DB { return a.db }
 // URL returns the non-TLS listener URL of the application.
 func (a *App) URL() string {
 	return "http://" + a.l.Addr().String()
-}
-
-// Status returns the current lifecycle status of the App.
-func (a *App) Status() lifecycle.Status {
-	return a.mgr.Status()
 }
