@@ -74,6 +74,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			VALUES ($1, $2, $3, $4, $5)
 		`),
 
+		ids: p.P(`SELECT id FROM users`),
+
 		update: p.P(`
 			UPDATE users
 			SET
