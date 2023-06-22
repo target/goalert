@@ -22,6 +22,7 @@ sql:
       - notice/queries.sql
       - graphql2/graphqlapp/queries.sql
       - engine/statusmgr/queries.sql
+      - service/queries.sql
     engine: postgresql
     gen:
       go:
