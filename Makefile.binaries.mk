@@ -132,6 +132,10 @@ $(BIN_DIR)/build/integration: $(BIN_DIR)/build/integration/.git $(BIN_DIR)/build
 	touch $@
 
 
+
+$(BIN_DIR)/goalert.cover: $(GO_DEPS) graphql2/mapconfig.go
+	go build -ldflags "$(LD_FLAGS)" -cover -coverpkg=./... -o $@ ./cmd/goalert
+
 $(BIN_DIR)/goalert: $(GO_DEPS) graphql2/mapconfig.go
 	go build -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
@@ -149,6 +153,7 @@ $(BIN_DIR)/linux-arm64/goalert: $(GO_DEPS) graphql2/mapconfig.go web/src/build/s
 
 $(BIN_DIR)/windows-amd64/goalert.exe: $(GO_DEPS) graphql2/mapconfig.go web/src/build/static/app.js
 	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+
 
 
 $(BIN_DIR)/goalert-slack-email-sync: $(GO_DEPS) 
@@ -170,6 +175,7 @@ $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
 
+
 $(BIN_DIR)/mockoidc: $(GO_DEPS) 
 	go build  -o $@ ./devtools/mockoidc
 
@@ -187,6 +193,7 @@ $(BIN_DIR)/linux-arm64/mockoidc: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/mockoidc.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
+
 
 
 $(BIN_DIR)/mockslack: $(GO_DEPS) 
@@ -208,6 +215,7 @@ $(BIN_DIR)/windows-amd64/mockslack.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
 
 
+
 $(BIN_DIR)/pgdump-lite: $(GO_DEPS) 
 	go build  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
 
@@ -225,6 +233,7 @@ $(BIN_DIR)/linux-arm64/pgdump-lite: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/pgdump-lite.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
+
 
 
 $(BIN_DIR)/pgmocktime: $(GO_DEPS) 
@@ -246,6 +255,7 @@ $(BIN_DIR)/windows-amd64/pgmocktime.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
 
 
+
 $(BIN_DIR)/procwrap: $(GO_DEPS) 
 	go build  -o $@ ./devtools/procwrap
 
@@ -263,6 +273,7 @@ $(BIN_DIR)/linux-arm64/procwrap: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/procwrap.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/procwrap
+
 
 
 $(BIN_DIR)/psql-lite: $(GO_DEPS) 
@@ -284,6 +295,7 @@ $(BIN_DIR)/windows-amd64/psql-lite.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/psql-lite
 
 
+
 $(BIN_DIR)/resetdb: $(GO_DEPS) 
 	go build  -o $@ ./devtools/resetdb
 
@@ -301,6 +313,7 @@ $(BIN_DIR)/linux-arm64/resetdb: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/resetdb.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/resetdb
+
 
 
 $(BIN_DIR)/runproc: $(GO_DEPS) 
@@ -322,6 +335,7 @@ $(BIN_DIR)/windows-amd64/runproc.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/runproc
 
 
+
 $(BIN_DIR)/sendit: $(GO_DEPS) 
 	go build  -o $@ ./devtools/sendit/cmd/sendit
 
@@ -339,6 +353,7 @@ $(BIN_DIR)/linux-arm64/sendit: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/sendit.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
+
 
 
 $(BIN_DIR)/sendit-server: $(GO_DEPS) 
@@ -360,6 +375,7 @@ $(BIN_DIR)/windows-amd64/sendit-server.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
 
 
+
 $(BIN_DIR)/sendit-token: $(GO_DEPS) 
 	go build  -o $@ ./devtools/sendit/cmd/sendit-token
 
@@ -379,6 +395,7 @@ $(BIN_DIR)/windows-amd64/sendit-token.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
 
 
+
 $(BIN_DIR)/simpleproxy: $(GO_DEPS) 
 	go build  -o $@ ./devtools/simpleproxy
 
@@ -396,6 +413,7 @@ $(BIN_DIR)/linux-arm64/simpleproxy: $(GO_DEPS)
 
 $(BIN_DIR)/windows-amd64/simpleproxy.exe: $(GO_DEPS)  
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/simpleproxy
+
 
 
 $(BIN_DIR)/waitfor: $(GO_DEPS) 
