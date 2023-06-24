@@ -41,7 +41,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tabbed/pqtype v0.1.1
 	github.com/ttacon/libphonenumber v1.2.1
-	github.com/vektah/gqlparser/v2 v2.5.3
+	github.com/vektah/gqlparser/v2 v2.5.5
 	golang.org/x/crypto v0.10.0
 	golang.org/x/oauth2 v0.8.0
 	golang.org/x/sys v0.9.0
