@@ -223,10 +223,12 @@ export default function ScheduleOnCallNotificationsForm(
             fullWidth
             value={props.value.type}
             required
+            name='notificationType'
             label='Type'
             select
             onChange={handleTypeChange}
             disabled={channelTypeItems.length <= 1}
+            data-cy='select-notification-type'
           >
             {channelTypeItems}
           </TextField>

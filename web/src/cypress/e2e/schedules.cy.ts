@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support/e2e'
+import { testScreen, testScreenWithFlags } from '../support/e2e'
 import { Schedule, ScheduleTarget } from '../../schema'
 import users from '../fixtures/users.json'
 
@@ -617,3 +617,63 @@ function testSchedules(screen: ScreenFormat): void {
 }
 
 testScreen('Schedules', testSchedules)
+
+testScreenWithFlags(
+  'Slack User Group Support',
+  (screen: ScreenFormat) => {
+    describe('Schedule On-Call Notifications', () => {
+      let sched: Schedule
+      it('should create notification rules with slack user groups', () => {
+        cy.createSchedule({ timeZone: 'UTC' }).then((s: Schedule) => {
+          sched = s
+          return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
+        })
+
+        // on change
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Notification Rule').click()
+        }
+
+        cy.dialogTitle('Create Notification Rule')
+        cy.dialogForm({
+          ruleType: 'on-change',
+          notificationType: 'SLACK USER GROUP',
+          selectUserGroup: 'foobar',
+          errorChannel: 'foobar',
+        })
+
+        cy.dialogFinish('Submit')
+        cy.get('body').should('contain', '#foobar')
+        cy.get('body').should('contain', 'Notifies when on-call changes')
+
+        // time of day
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Notification Rule').click()
+        }
+        cy.dialogTitle('Create Notification Rule')
+        cy.dialogForm({
+          targetID: 'foobar',
+          ruleType: 'time-of-day',
+          notificationType: 'SLACK USER GROUP',
+          selectUserGroup: 'foobar',
+          errorChannel: 'foobar',
+          time: '00:00',
+          'weekdayFilter[0]': false,
+          'weekdayFilter[1]': true,
+          'weekdayFilter[2]': false,
+          'weekdayFilter[3]': false,
+          'weekdayFilter[4]': false,
+          'weekdayFilter[5]': false,
+          'weekdayFilter[6]': false,
+        })
+        cy.dialogFinish('Submit')
+        cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
+      })
+    })
+  },
+  ['slack-ug'],
+)
