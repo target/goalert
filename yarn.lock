@@ -9776,17 +9776,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:1.35.1":
-  version: 1.35.1
-  resolution: "playwright@npm:1.35.1"
-  dependencies:
-    playwright-core: 1.35.1
-  bin:
-    playwright: cli.js
-  checksum: 46e8ad6d4429acd8e6c8e680ed8107b13c62a22bb95172666411aedb8e9abd8f9c379e4905493a330e29c3dcf63b9a49a528f2f081d682d9f5da078c54760634
-  languageName: node
-  linkType: hard
-
 "posix-character-classes@npm:^0.1.0":
   version: 0.1.1
   resolution: "posix-character-classes@npm:0.1.1"
@@ -10822,7 +10811,6 @@ __metadata:
     lodash: 4.17.21
     luxon: 3.3.0
     mdi-material-ui: 7.7.0
-    playwright: 1.35.1
     prettier: 2.8.8
     prop-types: 15.8.1
     react: 18.2.0
