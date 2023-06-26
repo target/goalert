@@ -12416,17 +12416,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wonka@npm:6.3.2, wonka@npm:^6.3.2":
+"wonka@npm:6.3.2, wonka@npm:^6.3.0, wonka@npm:^6.3.2":
   version: 6.3.2
   resolution: "wonka@npm:6.3.2"
   checksum: e161f377a4ea17cc2b19fe8820219a9e3e2c78db5df08b820525bc2cc261184823d1bc33bd2385e632656a9676c9de6ff614b6324c441dd5fc5faa253433d032
-  languageName: node
-  linkType: hard
-
-"wonka@npm:^6.3.0":
-  version: 6.3.1
-  resolution: "wonka@npm:6.3.1"
-  checksum: 8748d5c8ce5ff4cdb69d61ce64ed19bd007a7c65d46dbb11ddd2271091c51c7241cb36642a2c32dd31bfcf5841f4c370a81b3be746b118c26bb30ba21b2b8c29
   languageName: node
   linkType: hard
 
