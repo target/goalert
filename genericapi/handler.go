@@ -139,7 +139,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = retry.DoTemporaryError(func(int) error {
-		_, err = h.c.AlertStore.CreateOrUpdate(ctx, a)
+		a, err = h.c.AlertStore.CreateOrUpdate(ctx, a)
 		return err
 	},
 		retry.Log(ctx),
@@ -150,5 +150,12 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(204)
+	resp, _ := json.MarshalIndent(*a, "", " ")
+
+	w.WriteHeader(200)
+	_, err = w.Write(resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
 }
