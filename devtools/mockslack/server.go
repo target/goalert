@@ -35,6 +35,7 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
 	srv.mux.HandleFunc("/api/users.conversations", srv.ServeConversationsList) // same data
+	srv.mux.HandleFunc("/api/usergroups.list", srv.ServeUserGroupList)
 	srv.mux.HandleFunc("/api/users.info", srv.ServeUsersInfo)
 	srv.mux.HandleFunc("/api/oauth.access", srv.ServeOAuthAccess)
 	srv.mux.HandleFunc("/api/auth.revoke", srv.ServeAuthRevoke)
@@ -203,6 +204,29 @@ func (st *state) NewChannel(name string) ChannelInfo {
 		ID:        info.ID,
 		Name:      info.Name,
 		IsChannel: true,
+	}}
+	st.mx.Unlock()
+
+	return info
+}
+
+type UserGroupInfo struct {
+	ID, Name, Handle string
+}
+
+func (st *state) NewUserGroup(name string) UserGroupInfo {
+	info := UserGroupInfo{
+		ID:     st.gen.UserGroupID(),
+		Name:   name,
+		Handle: name,
+	}
+
+	st.mx.Lock()
+	st.usergroups[info.ID] = &usergroupState{UserGroup: UserGroup{
+		ID:          info.ID,
+		Name:        info.Name,
+		Handle:      info.Handle,
+		IsUserGroup: true,
 	}}
 	st.mx.Unlock()
 
