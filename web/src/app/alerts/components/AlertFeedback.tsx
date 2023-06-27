@@ -67,7 +67,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       </Button>
       {showDialog && (
         <FormDialog
-          title='Problem with this alert?'
+          title='Having a problem with this alert?'
           loading={mutationStatus.fetching}
           errors={nonFieldErrors(mutationStatus.error)}
           onClose={() => setShowDialog(false)}

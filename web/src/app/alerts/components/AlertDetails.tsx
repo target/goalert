@@ -382,6 +382,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         action: (
           <LoadingButton
             buttonText='Undo'
+            variant='text'
             loading={undoFeedbackStatus.called && undoFeedbackStatus.loading}
             onClick={() => undoFeedback()}
           />
