@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, gql } from 'urql'
 import Button from '@mui/material/Button'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
+import Checkbox from '@mui/material/Checkbox'
+import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import TextField from '@mui/material/TextField'
 import FormDialog from '../../dialogs/FormDialog'
@@ -40,25 +40,47 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
     'Poor details',
   ]
 
-  const [{ data }] = useQuery({
-    query,
-    variables: {
-      id: alertID,
-    },
-  })
-  const [note, setNote] = useState(data?.alert?.feedback?.note ?? options[0])
+  // const [{ data }] = useQuery({
+  //   query,
+  //   variables: {
+  //     id: alertID,
+  //   },
+  // })
+  const [notes, setNotes] = useState<Array<string>>([])
   const [other, setOther] = useState('')
   const [mutationStatus, commit] = useMutation(mutation)
 
-  const dataNote = data?.alert?.feedback?.note ?? ''
-  useEffect(() => {
-    if (options.includes(dataNote)) {
-      setNote(dataNote)
+  // const dataNote = data?.alert?.feedback?.note ?? ''
+  // useEffect(() => {
+  //   if (options.includes(dataNote)) {
+  //     setNote(dataNote)
+  //   } else {
+  //     setNote(['Other'])
+  //     setOther(dataNote)
+  //   }
+  // }, [dataNote])
+
+  function handleSubmit(): void {
+    commit({
+      input: {
+        alertID,
+        note: notes.join('|'),
+      },
+    }).then((result) => {
+      if (!result.error) setShowDialog(false)
+    })
+  }
+
+  function handleCheck(
+    e: React.ChangeEvent<HTMLInputElement>,
+    note: string,
+  ): void {
+    if (e.target.checked) {
+      setNotes([...notes, note])
     } else {
-      setNote('Other')
-      setOther(dataNote)
+      setNotes(notes.filter((n) => n !== note))
     }
-  }, [dataNote])
+  }
 
   return (
     <React.Fragment>
@@ -71,28 +93,14 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
           loading={mutationStatus.fetching}
           errors={nonFieldErrors(mutationStatus.error)}
           onClose={() => setShowDialog(false)}
-          onSubmit={() =>
-            commit({
-              input: {
-                alertID,
-                note: note === 'Other' ? other : note,
-              },
-            }).then((result) => {
-              if (!result.error) setShowDialog(false)
-            })
-          }
+          onSubmit={handleSubmit}
           form={
-            <RadioGroup
-              name='controlled-radio-buttons-group'
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            >
+            <FormGroup>
               {options.map((o) => (
                 <FormControlLabel
                   key={o}
-                  value={o}
                   label={o}
-                  control={<Radio />}
+                  control={<Checkbox onChange={(e) => handleCheck(e, o)} />}
                 />
               ))}
               <FormControlLabel
@@ -101,16 +109,15 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
                   <TextField
                     fullWidth
                     size='small'
-                    onFocus={() => setNote('Other')}
                     value={other}
                     placeholder='Other (please specify)'
                     onChange={(e) => setOther(e.target.value)}
                   />
                 }
-                control={<Radio />}
+                control={<Checkbox onChange={(e) => handleCheck(e, other)} />}
                 disableTypography
               />
-            </RadioGroup>
+            </FormGroup>
           }
         />
       )}

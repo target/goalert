@@ -372,13 +372,15 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       'This could be due to rate-limiting, processing, or network delays.',
   }))
 
-  if (alert.feedback?.note !== '') {
+  const note = alert?.feedback?.note ?? ''
+  if (note !== '') {
+    const reasons = note.split('|').join(', ')
     extraNotices = [
       ...extraNotices,
       {
         type: 'WARNING',
         message: 'This alert has been marked as problematic',
-        details: 'Reason: ' + alert.feedback?.note ?? '',
+        details: `Reason${reasons.length > 1 ? 's' : ''}: ${reasons}`,
         action: (
           <LoadingButton
             buttonText='Undo'
