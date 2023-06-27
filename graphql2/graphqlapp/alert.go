@@ -375,6 +375,8 @@ func (m *Mutation) UpdateAlertFeedback(ctx context.Context, input graphql2.Updat
 		AlertID: input.AlertID,
 	}
 
+	f.Note = input.Note
+
 	err := m.AlertStore.UpdateFeedback(ctx, f)
 	if err != nil {
 		return false, err

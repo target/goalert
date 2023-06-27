@@ -444,8 +444,7 @@ export interface CreateAlertInput {
 
 export interface UpdateAlertFeedbackInput {
   alertID: number
-  sentiment?: null | number
-  note?: null | string
+  note: string
 }
 
 export interface CreateUserInput {
@@ -888,7 +887,6 @@ export interface AlertState {
 }
 
 export interface AlertFeedback {
-  sentiment: number
   note?: null | string
 }
 
