@@ -594,8 +594,7 @@ input CreateAlertInput {
 
 input UpdateAlertFeedbackInput {
   alertID: Int!
-  sentiment: Int
-  note: String
+  note: String!
 }
 
 input CreateUserInput {
@@ -1126,7 +1125,6 @@ type AlertState {
 }
 
 type AlertFeedback {
-  sentiment: Int!
   note: String
 }
 

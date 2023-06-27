@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, gql } from 'urql'
-import { Grid, Grow, IconButton, Tooltip, TextField } from '@mui/material'
-import {
-  ThumbUp,
-  ThumbDown,
-  ThumbUpOutlined,
-  ThumbDownOutlined,
-  Info,
-} from '@mui/icons-material'
+import { Button } from '@mui/material'
 import { DEBOUNCE_DELAY } from '../../config'
 import { transitionStyles } from '../../util/Transitions'
 
@@ -16,7 +9,6 @@ const query = gql`
     alert(id: $id) {
       id
       feedback {
-        sentiment
         note
       }
     }
@@ -35,7 +27,6 @@ interface AlertFeedbackProps {
 
 export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
-  const classes = transitionStyles()
   const [cacheCount, setCacheCount] = useState(0) // reset cache on tick
 
   // stable query reference
@@ -72,92 +63,5 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
     setNote(data?.alert?.feedback?.note ?? '')
   }, [data?.alert?.feedback?.note])
 
-  const thumbUp =
-    !fetching && !error && data?.alert?.feedback?.sentiment === 1 ? (
-      <ThumbUp />
-    ) : (
-      <ThumbUpOutlined />
-    )
-
-  const isUp = data?.alert?.feedback?.sentiment === 1
-  const isDown = data?.alert?.feedback?.sentiment === -1
-  const thumbDown =
-    !fetching && !error && isDown ? <ThumbDown /> : <ThumbDownOutlined />
-
-  return (
-    <Grid
-      container
-      spacing={1}
-      justifyContent='flex-end'
-      alignItems='center'
-      sx={{ pr: '8px' }}
-    >
-      {mutationStatus.error?.message}
-      <Grid item>
-        <IconButton
-          aria-label={isUp ? 'Alert marked as useful' : 'Mark alert as useful'}
-          onClick={() => {
-            setCacheCount(cacheCount + 1)
-            commit(
-              {
-                input: {
-                  alertID,
-                  sentiment: 1,
-                },
-              },
-              { additionalTypenames: ['Feedback'] },
-            )
-          }}
-          size='large'
-        >
-          {thumbUp}
-        </IconButton>
-      </Grid>
-      <Grid item>
-        <IconButton
-          aria-label={
-            isDown ? 'Alert marked as not useful' : 'Mark alert as not useful'
-          }
-          onClick={() => {
-            setCacheCount(cacheCount + 1)
-            commit(
-              {
-                input: {
-                  alertID,
-                  sentiment: -1,
-                },
-              },
-              { additionalTypenames: ['Feedback'] },
-            )
-          }}
-          size='large'
-        >
-          {thumbDown}
-        </IconButton>
-      </Grid>
-      <Grid item>
-        <Tooltip title='Was this alert actionable?' placement='top'>
-          <Info fontSize='small' sx={{ p: '12px' }} />
-        </Tooltip>
-      </Grid>
-      <Grow in={isDown} mountOnEnter unmountOnExit>
-        <Grid
-          item
-          xs={12}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <TextField
-            aria-label='Alert Note'
-            className={classes.transition}
-            placeholder='Why?'
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </Grid>
-      </Grow>
-    </Grid>
-  )
+  return <Button>Problem?</Button>
 }

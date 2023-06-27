@@ -228,16 +228,16 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 
 		feedback: p(`
 			SELECT
-				alert_id, sentiment, note
+				alert_id, note
 			FROM alert_feedback
 			WHERE alert_id = $1
 		`),
 
 		updateFeedback: p(`
-			INSERT INTO alert_feedback (alert_id, sentiment, note)
-			VALUES ($1, $2, $3)
+			INSERT INTO alert_feedback (alert_id, note)
+			VALUES ($1, $2)
 			ON CONFLICT (alert_id) DO UPDATE
-			SET sentiment = $2, note = $3
+			SET note = $2
 			WHERE alert_feedback.alert_id = $1
 		`),
 	}, prep.Err
@@ -878,12 +878,11 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 
 func (s *Store) Feedback(ctx context.Context, alertID int) (f Feedback, err error) {
 	row := s.feedback.QueryRowContext(ctx, alertID)
-	err = row.Scan(&f.AlertID, &f.Sentiment, &f.Note)
+	err = row.Scan(&f.AlertID, &f.Note)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Feedback{
-			AlertID:   alertID,
-			Sentiment: 0,
-			Note:      "",
+			AlertID: alertID,
+			Note:    "",
 		}, nil
 	}
 	return f, err
@@ -899,14 +898,11 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	if err != nil {
 		return err
 	}
-	if feedback.Sentiment != 0 {
-		f.Sentiment = feedback.Sentiment
-	}
 	if feedback.Note != "" {
 		f.Note = feedback.Note
 	}
 
-	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.Sentiment, f.Note)
+	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.Note)
 	if err != nil {
 		return err
 	}

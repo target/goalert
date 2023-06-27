@@ -366,21 +366,13 @@ func (a *Alert) Feedback(ctx context.Context, raw *alert.Alert) (*graphql2.Alert
 		return nil, err
 	}
 	return &graphql2.AlertFeedback{
-		Sentiment: am.Sentiment,
-		Note:      &am.Note,
+		Note: &am.Note,
 	}, nil
 }
 
 func (m *Mutation) UpdateAlertFeedback(ctx context.Context, input graphql2.UpdateAlertFeedbackInput) (bool, error) {
 	f := &alert.Feedback{
 		AlertID: input.AlertID,
-	}
-
-	if input.Sentiment != nil {
-		f.Sentiment = *input.Sentiment
-	}
-	if input.Note != nil {
-		f.Note = *input.Note
 	}
 
 	err := m.AlertStore.UpdateFeedback(ctx, f)

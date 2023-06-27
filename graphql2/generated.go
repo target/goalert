@@ -119,8 +119,7 @@ type ComplexityRoot struct {
 	}
 
 	AlertFeedback struct {
-		Note      func(childComplexity int) int
-		Sentiment func(childComplexity int) int
+		Note func(childComplexity int) int
 	}
 
 	AlertLogEntry struct {
@@ -1027,13 +1026,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertFeedback.Note(childComplexity), true
-
-	case "AlertFeedback.sentiment":
-		if e.complexity.AlertFeedback.Sentiment == nil {
-			break
-		}
-
-		return e.complexity.AlertFeedback.Sentiment(childComplexity), true
 
 	case "AlertLogEntry.id":
 		if e.complexity.AlertLogEntry.ID == nil {
@@ -6100,8 +6092,6 @@ func (ec *executionContext) fieldContext_Alert_feedback(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "sentiment":
-				return ec.fieldContext_AlertFeedback_sentiment(ctx, field)
 			case "note":
 				return ec.fieldContext_AlertFeedback_note(ctx, field)
 			}
@@ -6311,50 +6301,6 @@ func (ec *executionContext) _AlertDataPoint_alertCount(ctx context.Context, fiel
 func (ec *executionContext) fieldContext_AlertDataPoint_alertCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertDataPoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertFeedback_sentiment(ctx context.Context, field graphql.CollectedField, obj *AlertFeedback) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertFeedback_sentiment(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Sentiment, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertFeedback_sentiment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertFeedback",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -29094,7 +29040,7 @@ func (ec *executionContext) unmarshalInputUpdateAlertFeedbackInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"alertID", "sentiment", "note"}
+	fieldsInOrder := [...]string{"alertID", "note"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29110,20 +29056,11 @@ func (ec *executionContext) unmarshalInputUpdateAlertFeedbackInput(ctx context.C
 				return it, err
 			}
 			it.AlertID = data
-		case "sentiment":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sentiment"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Sentiment = data
 		case "note":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30442,13 +30379,6 @@ func (ec *executionContext) _AlertFeedback(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AlertFeedback")
-		case "sentiment":
-
-			out.Values[i] = ec._AlertFeedback_sentiment(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "note":
 
 			out.Values[i] = ec._AlertFeedback_note(ctx, field, obj)

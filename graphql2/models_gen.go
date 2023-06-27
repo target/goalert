@@ -38,8 +38,7 @@ type AlertDataPoint struct {
 }
 
 type AlertFeedback struct {
-	Sentiment int     `json:"sentiment"`
-	Note      *string `json:"note,omitempty"`
+	Note *string `json:"note,omitempty"`
 }
 
 type AlertLogEntryConnection struct {
@@ -554,9 +553,8 @@ type TimeZoneSearchOptions struct {
 }
 
 type UpdateAlertFeedbackInput struct {
-	AlertID   int     `json:"alertID"`
-	Sentiment *int    `json:"sentiment,omitempty"`
-	Note      *string `json:"note,omitempty"`
+	AlertID int    `json:"alertID"`
+	Note    string `json:"note"`
 }
 
 type UpdateAlertsByServiceInput struct {
