@@ -898,9 +898,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	if err != nil {
 		return err
 	}
-	if feedback.Note != "" {
-		f.Note = feedback.Note
-	}
+	f.Note = feedback.Note
 
 	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.Note)
 	if err != nil {

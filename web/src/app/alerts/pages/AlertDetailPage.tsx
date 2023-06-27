@@ -38,6 +38,9 @@ const query = gql`
       pendingNotifications {
         destination
       }
+      feedback {
+        note
+      }
     }
   }
 `

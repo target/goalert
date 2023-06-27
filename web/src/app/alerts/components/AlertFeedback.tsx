@@ -19,7 +19,7 @@ const query = gql`
   }
 `
 
-const mutation = gql`
+export const mutation = gql`
   mutation UpdateFeedbackMutation($input: UpdateAlertFeedbackInput!) {
     updateAlertFeedback(input: $input)
   }
@@ -33,22 +33,22 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
   const [showDialog, setShowDialog] = useState(false)
 
-  const [{ data }] = useQuery({
-    query,
-    variables: {
-      id: alertID,
-    },
-  })
-  const [note, setNote] = useState(data?.alert?.feedback?.note ?? '')
-  const [other, setOther] = useState('')
-  const [mutationStatus, commit] = useMutation(mutation)
-
   const options = [
     'False positive',
     'Resolved itself',
     "Wasn't actionable",
     'Poor details',
   ]
+
+  const [{ data }] = useQuery({
+    query,
+    variables: {
+      id: alertID,
+    },
+  })
+  const [note, setNote] = useState(data?.alert?.feedback?.note ?? options[0])
+  const [other, setOther] = useState('')
+  const [mutationStatus, commit] = useMutation(mutation)
 
   const dataNote = data?.alert?.feedback?.note ?? ''
   useEffect(() => {

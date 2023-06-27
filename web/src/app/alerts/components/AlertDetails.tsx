@@ -43,7 +43,11 @@ import {
 } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
-import AlertFeedback from './AlertFeedback'
+import AlertFeedback, {
+  mutation as undoFeedbackMutation,
+} from './AlertFeedback'
+import LoadingButton from '../../loading/components/LoadingButton'
+import { Notice } from '../../details/Notices'
 
 interface AlertDetailsProps {
   data: Alert
@@ -82,6 +86,15 @@ const updateStatusMutation = gql`
 
 export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
+
+  const [undoFeedback, undoFeedbackStatus] = useMutation(undoFeedbackMutation, {
+    variables: {
+      input: {
+        alertID: props.data.id,
+        note: '',
+      },
+    },
+  })
 
   const [ack] = useMutation(updateStatusMutation, {
     variables: {
@@ -351,16 +364,36 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   }
 
   const { data: alert } = props
+
+  let extraNotices: Notice[] = alert.pendingNotifications.map((n) => ({
+    type: 'WARNING',
+    message: `Notification Pending for ${n.destination}`,
+    details:
+      'This could be due to rate-limiting, processing, or network delays.',
+  }))
+
+  if (alert.feedback?.note !== '') {
+    extraNotices = [
+      ...extraNotices,
+      {
+        type: 'WARNING',
+        message: 'This alert has been marked as problematic',
+        details: 'Reason: ' + alert.feedback?.note ?? '',
+        action: (
+          <LoadingButton
+            buttonText='Undo'
+            loading={undoFeedbackStatus.called && undoFeedbackStatus.loading}
+            onClick={() => undoFeedback()}
+          />
+        ),
+      },
+    ]
+  }
   return (
     <Grid container spacing={2}>
       <ServiceNotices
         serviceID={alert?.service?.id ?? ''}
-        extraNotices={alert.pendingNotifications.map((n) => ({
-          type: 'WARNING',
-          message: `Notification Pending for ${n.destination}`,
-          details:
-            'This could be due to rate-limiting, processing, or network delays.',
-        }))}
+        extraNotices={extraNotices as Notice[]}
       />
 
       {/* Main Alert Info */}
