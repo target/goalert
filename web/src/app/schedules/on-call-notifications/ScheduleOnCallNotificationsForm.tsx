@@ -228,7 +228,6 @@ export default function ScheduleOnCallNotificationsForm(
             select
             onChange={handleTypeChange}
             disabled={channelTypeItems.length <= 1}
-            data-cy='select-notification-type'
           >
             {channelTypeItems}
           </TextField>

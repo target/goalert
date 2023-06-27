@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// UserGroupList returns a list of User Groups in a workspace.
 func (st *API) UserGroupList(ctx context.Context) ([]UserGroup, error) {
 	err := checkPermission(ctx, "bot", "usergroups:read")
 	if err != nil {
@@ -30,6 +31,9 @@ func (st *API) UserGroupList(ctx context.Context) ([]UserGroup, error) {
 	return result, nil
 }
 
+// ServeUserGroupList serves a request to the `usergroups.list` API call.
+//
+// https://api.slack.com/methods/usergroups.list
 func (s *Server) ServeUserGroupList(w http.ResponseWriter, req *http.Request) {
 	ug, err := s.API().UserGroupList(req.Context())
 	if respondErr(w, err) {
