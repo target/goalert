@@ -105,6 +105,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
               label={option}
               control={
                 <Checkbox
+                  data-cy={option}
                   checked={notes.includes(option)}
                   onChange={(e) => handleCheck(e, option)}
                 />
@@ -149,6 +150,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       <CardActions
         primaryActions={[
           <Button
+            aria-label='Submit alert notes'
             key='submit'
             variant='contained'
             onClick={handleSubmit}

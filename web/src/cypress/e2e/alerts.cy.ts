@@ -394,26 +394,44 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'CLOSED')
     })
 
-    it('should set alert feedback', () => {
-      // upvote alert
-      cy.get('button[aria-label="Mark alert as useful"]').click()
-      cy.get('button[aria-label="Mark alert as useful"]').should('not.exist')
-      cy.get('button[aria-label="Alert marked as useful"]').should('be.visible')
-      cy.get('[aria-label="Alert Note"]').should('not.exist')
-
-      // downvote alert
-      cy.get('button[aria-label="Mark alert as not useful"]').click()
-      cy.get('button[aria-label="Mark alert as not useful"]').should(
-        'not.exist',
+    it.only('should set alert notes', () => {
+      // set all notes, checking carefully because of async setState
+      cy.get('body').should('contain.text', 'Is this alert noise?')
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').check()
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'be.checked',
       )
-      cy.get('button[aria-label="Alert marked as not useful"]').should(
-        'be.visible',
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[placeholder="Other (please specify)"]').type('Test')
+
+      // submit
+      cy.get('button[aria-label="Submit alert notes"]').should(
+        'not.be.disabled',
+      )
+      cy.get('button[aria-label="Submit alert notes"]').click()
+      cy.get('label').contains('False positive').should('not.exist')
+
+      // see notice
+      const noticeTitle = 'Info: This alert has been marked as noise'
+      cy.get('body').should('contain.text', noticeTitle)
+      cy.get('body').should(
+        'contain.text',
+        'Reasons: False positive, Not actionable, Poor details, Test',
       )
 
-      // set alert note
-      const value = 'Test'
-      cy.get('[aria-label="Alert Note"]').type(value)
-      cy.get('[aria-label="Alert Note"] input').should('have.value', value)
+      // undo
+      cy.get('button[aria-label="Reset alert notes"]').click()
+      cy.get('body').should('not.contain.text', noticeTitle)
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'not.be.checked',
+      )
     })
   })
 
