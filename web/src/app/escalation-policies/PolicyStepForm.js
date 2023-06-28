@@ -21,6 +21,7 @@ import {
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   Group as UsersIcon,
+  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'

@@ -6,7 +6,13 @@ import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import Typography from '@mui/material/Typography'
 import { sortBy } from 'lodash'
 import makeStyles from '@mui/styles/makeStyles'
-import { RotationChip, ScheduleChip, UserChip, SlackChip } from '../util/Chips'
+import {
+  RotationChip,
+  ScheduleChip,
+  UserChip,
+  SlackChip,
+  WebhookChip 
+} from '../util/Chips'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import OtherActions from '../util/OtherActions'
