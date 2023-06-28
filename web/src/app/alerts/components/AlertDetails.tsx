@@ -336,12 +336,12 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions(): JSX.Element {
+  function getMenuOptions(): Array<JSX.Element> {
     const { status } = props.data
-    if (status === 'StatusClosed') return <React.Fragment />
+    if (status === 'StatusClosed') return []
     const isMaintMode = Boolean(props.data?.service?.maintenanceExpiresAt)
 
-    return (
+    return [
       <ButtonGroup
         key='update-alert-buttons'
         variant='contained'
@@ -362,8 +362,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         <Button startIcon={<CloseIcon />} onClick={() => close()}>
           Close
         </Button>
-      </ButtonGroup>
-    )
+      </ButtonGroup>,
+    ]
   }
 
   const { data: alert } = props
@@ -442,7 +442,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               </Grid>
             </Grid>
           </CardContent>
-          <CardActions primaryActions={[getMenuOptions()]} />
+          <CardActions primaryActions={getMenuOptions()} />
         </Card>
       </Grid>
       <Fade in={!note} unmountOnExit>
