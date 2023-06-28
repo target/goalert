@@ -11,7 +11,7 @@ import {
   ScheduleChip,
   UserChip,
   SlackChip,
-  WebhookChip 
+  WebhookChip,
 } from '../util/Chips'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'

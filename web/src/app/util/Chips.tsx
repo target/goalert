@@ -5,6 +5,7 @@ import { useQuery, gql } from 'urql'
 import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
+  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import Avatar from '@mui/material/Avatar'
 
