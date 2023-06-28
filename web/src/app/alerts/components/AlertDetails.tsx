@@ -376,13 +376,14 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
   const note = alert?.feedback?.note ?? ''
   if (note !== '') {
-    const reasons = note.split('|').join(', ')
+    const notesArr = note.split('|')
+    const reasons = notesArr.join(', ')
     extraNotices = [
       ...extraNotices,
       {
         type: 'INFO',
         message: 'This alert has been marked as noise',
-        details: `Reason${reasons.length > 1 ? 's' : ''}: ${reasons}`,
+        details: `Reason${notesArr.length > 1 ? 's' : ''}: ${reasons}`,
         action: (
           <LoadingButton
             buttonText='Undo'

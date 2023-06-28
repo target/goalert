@@ -39,12 +39,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
     },
   })
 
-  const options = [
-    'False positive',
-    "Wasn't Actionable",
-    'Resolved itself',
-    'Poor details',
-  ]
+  const options = ['False positive', 'Not actionable', 'Poor details']
 
   const dataNotes = data?.alert?.feedback?.note ?? ''
 
