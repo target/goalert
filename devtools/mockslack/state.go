@@ -19,6 +19,7 @@ type state struct {
 	tokens     map[string]*AuthToken
 	users      map[string]*userState
 	tokenCodes map[string]*tokenCode
+	usergroups map[string]*usergroupState
 	teamID     string
 }
 
@@ -30,6 +31,7 @@ func newState() *state {
 		tokens:     make(map[string]*AuthToken),
 		users:      make(map[string]*userState),
 		tokenCodes: make(map[string]*tokenCode),
+		usergroups: make(map[string]*usergroupState),
 		teamID:     genTeamID(),
 	}
 }
@@ -58,6 +60,12 @@ type channelState struct {
 	TS       time.Time
 	Users    []string
 	Messages []*Message
+}
+
+type usergroupState struct {
+	UserGroup
+
+	Users []string
 }
 
 // SetAutoCreateChannel, if set to true, will cause messages sent to
