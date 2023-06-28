@@ -33,38 +33,40 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
   const [showDialog, setShowDialog] = useState(false)
 
-  const options = [
-    'False positive',
-    'Resolved itself',
-    "Wasn't actionable",
-    'Poor details',
-  ]
+  const [{ data }] = useQuery({
+    query,
+    variables: {
+      id: alertID,
+    },
+  })
 
-  // const [{ data }] = useQuery({
-  //   query,
-  //   variables: {
-  //     id: alertID,
-  //   },
-  // })
-  const [notes, setNotes] = useState<Array<string>>([])
+  const dataNotes = data?.alert?.feedback?.note ?? ''
+  const defaultValue = dataNotes !== '' ? dataNotes.split('|') : []
+
+  // TODO: set "other" from default value
+
+  const [notes, setNotes] = useState<Array<string>>(defaultValue)
   const [other, setOther] = useState('')
+  const [otherChecked, setOtherChecked] = useState(false)
   const [mutationStatus, commit] = useMutation(mutation)
 
-  // const dataNote = data?.alert?.feedback?.note ?? ''
-  // useEffect(() => {
-  //   if (options.includes(dataNote)) {
-  //     setNote(dataNote)
-  //   } else {
-  //     setNote(['Other'])
-  //     setOther(dataNote)
-  //   }
-  // }, [dataNote])
+  useEffect(() => {
+    setNotes(defaultValue)
+    // if (options.includes(dataNote)) {
+    //   setNote(dataNote)
+    // } else {
+    //   setNote(['Other'])
+    //   setOther(dataNote)
+    // }
+  }, [dataNotes])
 
   function handleSubmit(): void {
+    let n = notes.slice()
+    if (other !== '') n = [...n, other]
     commit({
       input: {
         alertID,
-        note: notes.join('|'),
+        note: n.join('|'),
       },
     }).then((result) => {
       if (!result.error) setShowDialog(false)
@@ -96,13 +98,42 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
           onSubmit={handleSubmit}
           form={
             <FormGroup>
-              {options.map((o) => (
-                <FormControlLabel
-                  key={o}
-                  label={o}
-                  control={<Checkbox onChange={(e) => handleCheck(e, o)} />}
-                />
-              ))}
+              <FormControlLabel
+                label='False positive'
+                control={
+                  <Checkbox
+                    checked={notes.includes('False positive')}
+                    onChange={(e) => handleCheck(e, 'False positive')}
+                  />
+                }
+              />
+              <FormControlLabel
+                label='Resolved itself'
+                control={
+                  <Checkbox
+                    checked={notes.includes('Resolved itself')}
+                    onChange={(e) => handleCheck(e, 'Resolved itself')}
+                  />
+                }
+              />
+              <FormControlLabel
+                label="Wasn't actionable"
+                control={
+                  <Checkbox
+                    checked={notes.includes("Wasn't actionable")}
+                    onChange={(e) => handleCheck(e, "Wasn't actionable")}
+                  />
+                }
+              />
+              <FormControlLabel
+                label='Poor details'
+                control={
+                  <Checkbox
+                    checked={notes.includes('Poor details')}
+                    onChange={(e) => handleCheck(e, 'Poor details')}
+                  />
+                }
+              />
               <FormControlLabel
                 value='Other'
                 label={
@@ -111,10 +142,23 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
                     size='small'
                     value={other}
                     placeholder='Other (please specify)'
-                    onChange={(e) => setOther(e.target.value)}
+                    onFocus={() => setOtherChecked(true)}
+                    onChange={(e) => {
+                      setOther(e.target.value)
+                    }}
                   />
                 }
-                control={<Checkbox onChange={(e) => handleCheck(e, other)} />}
+                control={
+                  <Checkbox
+                    checked={otherChecked}
+                    onChange={(e) => {
+                      setOtherChecked(e.target.checked)
+                      if (!e) {
+                        setOther('')
+                      }
+                    }}
+                  />
+                }
                 disableTypography
               />
             </FormGroup>
