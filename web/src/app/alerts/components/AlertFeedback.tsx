@@ -40,29 +40,46 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
     },
   })
 
+  const options = [
+    'False positive',
+    'Resolved itself',
+    "Wasn't actionable",
+    'Poor details',
+  ]
+
   const dataNotes = data?.alert?.feedback?.note ?? ''
-  const defaultValue = dataNotes !== '' ? dataNotes.split('|') : []
 
-  // TODO: set "other" from default value
+  const getDefaults = (): [Array<string>, string] => {
+    const vals = dataNotes !== '' ? dataNotes.split('|') : []
+    let defaultValue: Array<string> = []
+    let defaultOther = ''
+    vals.forEach((val: string) => {
+      if (!options.includes(val)) {
+        defaultOther = val
+      } else {
+        defaultValue = [...defaultValue, val]
+      }
+    })
 
-  const [notes, setNotes] = useState<Array<string>>(defaultValue)
-  const [other, setOther] = useState('')
-  const [otherChecked, setOtherChecked] = useState(false)
+    return [defaultValue, defaultOther]
+  }
+
+  const defaults = getDefaults()
+  const [notes, setNotes] = useState<Array<string>>(defaults[0])
+  const [other, setOther] = useState(defaults[1])
+  const [otherChecked, setOtherChecked] = useState(Boolean(defaults[1]))
   const [mutationStatus, commit] = useMutation(mutation)
 
   useEffect(() => {
-    setNotes(defaultValue)
-    // if (options.includes(dataNote)) {
-    //   setNote(dataNote)
-    // } else {
-    //   setNote(['Other'])
-    //   setOther(dataNote)
-    // }
+    const v = getDefaults()
+    setNotes(v[0])
+    setOther(v[1])
+    setOtherChecked(Boolean(v[1]))
   }, [dataNotes])
 
   function handleSubmit(): void {
     let n = notes.slice()
-    if (other !== '') n = [...n, other]
+    if (other !== '' && otherChecked) n = [...n, other]
     commit({
       input: {
         alertID,
@@ -98,42 +115,19 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
           onSubmit={handleSubmit}
           form={
             <FormGroup>
-              <FormControlLabel
-                label='False positive'
-                control={
-                  <Checkbox
-                    checked={notes.includes('False positive')}
-                    onChange={(e) => handleCheck(e, 'False positive')}
-                  />
-                }
-              />
-              <FormControlLabel
-                label='Resolved itself'
-                control={
-                  <Checkbox
-                    checked={notes.includes('Resolved itself')}
-                    onChange={(e) => handleCheck(e, 'Resolved itself')}
-                  />
-                }
-              />
-              <FormControlLabel
-                label="Wasn't actionable"
-                control={
-                  <Checkbox
-                    checked={notes.includes("Wasn't actionable")}
-                    onChange={(e) => handleCheck(e, "Wasn't actionable")}
-                  />
-                }
-              />
-              <FormControlLabel
-                label='Poor details'
-                control={
-                  <Checkbox
-                    checked={notes.includes('Poor details')}
-                    onChange={(e) => handleCheck(e, 'Poor details')}
-                  />
-                }
-              />
+              {options.map((option) => (
+                <FormControlLabel
+                  key={option}
+                  label={option}
+                  control={
+                    <Checkbox
+                      checked={notes.includes(option)}
+                      onChange={(e) => handleCheck(e, option)}
+                    />
+                  }
+                />
+              ))}
+
               <FormControlLabel
                 value='Other'
                 label={
