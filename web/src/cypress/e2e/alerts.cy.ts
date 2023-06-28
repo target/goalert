@@ -394,7 +394,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'CLOSED')
     })
 
-    it.only('should set alert notes', () => {
+    it('should set alert notes', () => {
       // set all notes, checking carefully because of async setState
       cy.get('body').should('contain.text', 'Is this alert noise?')
       cy.get('[data-cy="False positive"] input[type="checkbox"]').check()
