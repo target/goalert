@@ -24,13 +24,11 @@ type Store struct {
 	db    *sql.DB
 	logDB *alertlog.Store
 
-	insert          *sql.Stmt
-	update          *sql.Stmt
-	logs            *sql.Stmt
-	findAllSummary  *sql.Stmt
-	findMany        *sql.Stmt
-	getCreationTime *sql.Stmt
-	getServiceID    *sql.Stmt
+	insert       *sql.Stmt
+	update       *sql.Stmt
+	logs         *sql.Stmt
+	findMany     *sql.Stmt
+	getServiceID *sql.Stmt
 
 	lockSvc      *sql.Stmt
 	lockAlertSvc *sql.Stmt
@@ -100,23 +98,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		`),
 		update: p("UPDATE alerts SET status = $2 WHERE id = $1"),
 		logs:   p("SELECT timestamp, event, message FROM alert_logs WHERE alert_id = $1"),
-		findAllSummary: p(`
-			with counts as (
-				select count(id), status, service_id
-				from alerts
-				group by status, service_id
-			)
-			select distinct
-				service_id,
-				svc.name,
-				(select count from counts c where status = 'triggered' and c.service_id = cn.service_id) triggered,
-				(select count from counts c where status = 'active' and c.service_id = cn.service_id) active,
-				(select count from counts c where status = 'closed' and c.service_id = cn.service_id) closed
-			from counts cn
-			join services svc on svc.id = service_id
-			order by triggered desc nulls last, active desc nulls last, closed desc nulls last, service_id
-			limit 50
-		`),
 
 		findMany: p(`
 			SELECT
@@ -174,8 +155,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 			RETURNING id, summary, details, created_at
 		`),
 
-		getCreationTime: p("SELECT created_at FROM alerts WHERE id = $1"),
-		getServiceID:    p("SELECT service_id FROM alerts WHERE id = $1"),
+		getServiceID: p("SELECT service_id FROM alerts WHERE id = $1"),
 		updateByStatusAndService: p(`
 			UPDATE
 				alerts
@@ -727,52 +707,6 @@ func (s *Store) UpdateStatus(ctx context.Context, id int, stat Status) error {
 		return err
 	}
 	return tx.Commit()
-}
-
-func (s *Store) GetCreationTime(ctx context.Context, id int) (t time.Time, err error) {
-	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
-	if err != nil {
-		return t, err
-	}
-
-	row := s.getCreationTime.QueryRowContext(ctx, id)
-	err = row.Scan(&t)
-	return t, err
-}
-
-func (s *Store) FindAllSummary(ctx context.Context) ([]Summary, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAllSummary.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var sum Summary
-
-	var result []Summary
-	var unack, ack, clos sql.NullInt64
-	for rows.Next() {
-		err = rows.Scan(
-			&sum.ServiceID,
-			&sum.ServiceName,
-			&unack, &ack, &clos,
-		)
-		if err != nil {
-			return nil, err
-		}
-		sum.Totals.Unack = int(unack.Int64)
-		sum.Totals.Ack = int(ack.Int64)
-		sum.Totals.Closed = int(clos.Int64)
-
-		result = append(result, sum)
-	}
-
-	return result, nil
 }
 
 func (s *Store) FindOne(ctx context.Context, id int) (*Alert, error) {

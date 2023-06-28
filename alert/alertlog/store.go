@@ -260,10 +260,6 @@ func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type
 	return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
 }
 
-func (s *Store) Log(ctx context.Context, alertID int, _type Type, meta interface{}) error {
-	return s.LogTx(ctx, nil, alertID, _type, meta)
-}
-
 func (s *Store) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
 	return s.logAny(ctx, tx, s.insert, alertID, _type, meta)
 }
@@ -459,84 +455,6 @@ func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {
 	}
 
 	return &e, nil
-}
-
-func (s *Store) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := s.findAll.QueryContext(ctx, alertID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var raw []Entry
-	var e Entry
-	for rows.Next() {
-		err := e.scanWith(rows.Scan)
-		if err != nil {
-			return nil, err
-		}
-		raw = append(raw, e)
-	}
-
-	return dedupEvents(raw), nil
-}
-
-func dedupEvents(raw []Entry) []Entry {
-	var cur *Entry
-	var result []Entry
-	for _, e := range raw {
-		switch e.Type() {
-		case TypeCreated, TypeAcknowledged, TypeEscalationRequest, TypeEscalated:
-			// these are the ones we want to dedup
-		default:
-			if cur != nil {
-				result = append(result, *cur)
-				cur = nil
-			}
-			result = append(result, e)
-			continue
-		}
-		if cur == nil {
-			cur = &e
-			continue
-		}
-
-		if e.Type() != cur.Type() {
-			result = append(result, *cur)
-			cur = &e
-			continue
-		}
-
-		eSub := e.Subject()
-		if eSub == nil {
-			// no new subject info
-			continue
-		}
-
-		cSub := cur.Subject()
-		if cSub == nil {
-			// old one has none, new one does
-			cur = &e
-			continue
-		}
-
-		// both have subjects, only replace if the new one
-		// has a classifier
-		if eSub.Classifier != "" {
-			cur = &e
-			continue
-		}
-	}
-	if cur != nil {
-		result = append(result, *cur)
-	}
-
-	return result
 }
 
 // FindLatestByType returns the latest Log Entry given alertID and status type

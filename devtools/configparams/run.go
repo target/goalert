@@ -79,7 +79,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 		if v == "" {
 			return 0, nil
 		}
-		val, err := strconv.ParseInt(v, 10, 64)
+		val, err := strconv.ParseInt(v, 10, 32)
 		if err != nil {
 			return 0, validation.NewFieldError("\""+id+"\".Value", "integer value invalid: " + err.Error())
 		}

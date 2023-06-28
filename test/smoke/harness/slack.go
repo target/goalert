@@ -1,13 +1,11 @@
 package harness
 
 import (
-	"context"
 	"net/http/httptest"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mockslack"
@@ -336,15 +334,4 @@ func (h *Harness) initSlack() {
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
 
 	h.slack.SetURLPrefix(h.slackS.URL)
-}
-
-// LinkSlackUser creates a link between the GraphQL user and the smoketest Slack user.
-func (h *Harness) LinkSlackUser() {
-	conn, err := pgx.Connect(context.Background(), h.dbURL)
-	require.NoError(h.t, err)
-	defer conn.Close(context.Background())
-
-	_, err = conn.Exec(context.Background(), `insert into auth_subjects (provider_id, subject_id, user_id) values ($1, $2, $3)`,
-		"slack:"+h.slackApp.TeamID, h.slackUser.ID, DefaultGraphQLAdminUserID)
-	require.NoError(h.t, err, "insert Slack auth subject")
 }
