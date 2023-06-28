@@ -7,6 +7,9 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import TextField from '@mui/material/TextField'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
+import { Card, CardContent, CardHeader, Typography } from '@mui/material'
+import ErrorBoundary from '../../main/ErrorBoundary'
+import { DEBOUNCE_DELAY } from '../../config'
 
 const query = gql`
   query AlertFeedbackQuery($id: Int!) {
@@ -42,8 +45,8 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
 
   const options = [
     'False positive',
-    'Resolved itself',
-    "Wasn't actionable",
+    'Self resolving',
+    'Not actionable',
     'Poor details',
   ]
 
@@ -69,6 +72,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const [other, setOther] = useState(defaults[1])
   const [otherChecked, setOtherChecked] = useState(Boolean(defaults[1]))
   const [mutationStatus, commit] = useMutation(mutation)
+  const { fetching, error } = mutationStatus
 
   useEffect(() => {
     const v = getDefaults()
@@ -85,10 +89,17 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
         alertID,
         note: n.join('|'),
       },
-    }).then((result) => {
-      if (!result.error) setShowDialog(false)
     })
   }
+
+  // Debounce submitting notes on changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      handleSubmit()
+    }, DEBOUNCE_DELAY)
+
+    return () => clearTimeout(t)
+  }, [other, notes])
 
   function handleCheck(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -103,62 +114,58 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
 
   return (
     <React.Fragment>
-      <Button variant='contained' onClick={() => setShowDialog(true)}>
-        Problem?
-      </Button>
-      {showDialog && (
-        <FormDialog
-          title='Having a problem with this alert?'
-          loading={mutationStatus.fetching}
-          errors={nonFieldErrors(mutationStatus.error)}
-          onClose={() => setShowDialog(false)}
-          onSubmit={handleSubmit}
-          form={
-            <FormGroup>
-              {options.map((option) => (
-                <FormControlLabel
-                  key={option}
-                  label={option}
-                  control={
-                    <Checkbox
-                      checked={notes.includes(option)}
-                      onChange={(e) => handleCheck(e, option)}
-                    />
-                  }
-                />
-              ))}
-
+      <Card>
+        <CardHeader title='Is this alert noise?' />
+        <CardContent sx={{ pt: 0 }}>
+          <FormGroup>
+            {options.map((option) => (
               <FormControlLabel
-                value='Other'
-                label={
-                  <TextField
-                    fullWidth
-                    size='small'
-                    value={other}
-                    placeholder='Other (please specify)'
-                    onFocus={() => setOtherChecked(true)}
-                    onChange={(e) => {
-                      setOther(e.target.value)
-                    }}
-                  />
-                }
+                key={option}
+                label={option}
                 control={
                   <Checkbox
-                    checked={otherChecked}
-                    onChange={(e) => {
-                      setOtherChecked(e.target.checked)
-                      if (!e) {
-                        setOther('')
-                      }
-                    }}
+                    checked={notes.includes(option)}
+                    onChange={(e) => handleCheck(e, option)}
                   />
                 }
-                disableTypography
               />
-            </FormGroup>
-          }
-        />
-      )}
+            ))}
+
+            <FormControlLabel
+              value='Other'
+              label={
+                <TextField
+                  fullWidth
+                  size='small'
+                  value={other}
+                  placeholder='Other (please specify)'
+                  onFocus={() => setOtherChecked(true)}
+                  onChange={(e) => {
+                    setOther(e.target.value)
+                  }}
+                />
+              }
+              control={
+                <Checkbox
+                  checked={otherChecked}
+                  onChange={(e) => {
+                    setOtherChecked(e.target.checked)
+                    if (!e.target.checked) {
+                      setOther('')
+                    }
+                  }}
+                />
+              }
+              disableTypography
+            />
+          </FormGroup>
+          {error?.message && (
+            <Typography color='error' sx={{ pt: 2 }}>
+              {error?.message}
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
     </React.Fragment>
   )
 }

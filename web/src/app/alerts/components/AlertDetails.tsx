@@ -48,6 +48,7 @@ import AlertFeedback, {
 } from './AlertFeedback'
 import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
+import { useIsWidthDown } from '../../util/useWidth'
 
 interface AlertDetailsProps {
   data: Alert
@@ -86,6 +87,7 @@ const updateStatusMutation = gql`
 
 export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
+  const isMobile = useIsWidthDown('sm')
 
   const [undoFeedback, undoFeedbackStatus] = useMutation(undoFeedbackMutation, {
     variables: {
@@ -378,8 +380,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     extraNotices = [
       ...extraNotices,
       {
-        type: 'WARNING',
-        message: 'This alert has been marked as problematic',
+        type: 'INFO',
+        message: 'This alert has been marked as noise',
         details: `Reason${reasons.length > 1 ? 's' : ''}: ${reasons}`,
         action: (
           <LoadingButton
@@ -400,8 +402,21 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       />
 
       {/* Main Alert Info */}
-      <Grid item xs={12} className={classes.cardContainer}>
-        <Card sx={{ width: '100%' }}>
+      <Grid
+        item
+        xs={12}
+        lg={isMobile ? 12 : 8}
+        className={classes.cardContainer}
+      >
+        <Card
+          sx={{
+            width: '100%',
+            height: '100%',
+            flexDirection: 'column',
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
               {alert.service && (
@@ -423,13 +438,11 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               </Grid>
             </Grid>
           </CardContent>
-          <CardActions
-            primaryActions={[getMenuOptions()]}
-            secondaryActions={[
-              <AlertFeedback key='AlertFeedback' alertID={alert.alertID} />,
-            ]}
-          />
+          <CardActions primaryActions={[getMenuOptions()]} />
         </Card>
+      </Grid>
+      <Grid item xs={12} lg={isMobile ? 12 : 4}>
+        <AlertFeedback alertID={alert.alertID} />
       </Grid>
       {renderAlertDetails()}
 
