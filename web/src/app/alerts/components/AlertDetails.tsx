@@ -408,7 +408,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       {/* Main Alert Info */}
       <Grid
         item
-        xs={12}
         lg={isMobile || note !== '' ? 12 : 8}
         className={classes.cardContainer}
       >
@@ -445,11 +444,11 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           <CardActions primaryActions={getMenuOptions()} />
         </Card>
       </Grid>
-      <Fade in={!note} unmountOnExit>
+      {!note && (
         <Grid item xs={12} lg={isMobile ? 12 : 4}>
           <AlertFeedback alertID={alert.alertID} />
         </Grid>
-      </Fade>
+      )}
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
