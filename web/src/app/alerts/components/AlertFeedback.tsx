@@ -10,6 +10,8 @@ import { nonFieldErrors } from '../../util/errutil'
 import { Card, CardContent, CardHeader, Typography } from '@mui/material'
 import ErrorBoundary from '../../main/ErrorBoundary'
 import { DEBOUNCE_DELAY } from '../../config'
+import { AlertStatus } from '../../../schema'
+import CardActions from '../../details/CardActions'
 
 const query = gql`
   query AlertFeedbackQuery($id: Int!) {
@@ -34,7 +36,6 @@ interface AlertFeedbackProps {
 
 export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
-  const [showDialog, setShowDialog] = useState(false)
 
   const [{ data }] = useQuery({
     query,
@@ -45,8 +46,8 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
 
   const options = [
     'False positive',
-    'Self resolving',
-    'Not actionable',
+    "Wasn't Actionable",
+    'Resolved itself',
     'Poor details',
   ]
 
@@ -72,7 +73,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const [other, setOther] = useState(defaults[1])
   const [otherChecked, setOtherChecked] = useState(Boolean(defaults[1]))
   const [mutationStatus, commit] = useMutation(mutation)
-  const { fetching, error } = mutationStatus
+  const { error } = mutationStatus
 
   useEffect(() => {
     const v = getDefaults()
@@ -91,15 +92,6 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       },
     })
   }
-
-  // Debounce submitting notes on changes
-  useEffect(() => {
-    const t = setTimeout(() => {
-      handleSubmit()
-    }, DEBOUNCE_DELAY)
-
-    return () => clearTimeout(t)
-  }, [other, notes])
 
   function handleCheck(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -165,6 +157,13 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
             </Typography>
           )}
         </CardContent>
+        <CardActions
+          primaryActions={[
+            <Button key='submit' variant='contained' onClick={handleSubmit}>
+              Submit
+            </Button>,
+          ]}
+        />
       </Card>
     </React.Fragment>
   )

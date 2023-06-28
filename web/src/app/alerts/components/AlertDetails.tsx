@@ -394,6 +394,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       },
     ]
   }
+
   return (
     <Grid container spacing={2}>
       <ServiceNotices
@@ -405,7 +406,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       <Grid
         item
         xs={12}
-        lg={isMobile ? 12 : 8}
+        lg={isMobile || note !== '' ? 12 : 8}
         className={classes.cardContainer}
       >
         <Card
@@ -441,9 +442,11 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           <CardActions primaryActions={[getMenuOptions()]} />
         </Card>
       </Grid>
-      <Grid item xs={12} lg={isMobile ? 12 : 4}>
-        <AlertFeedback alertID={alert.alertID} />
-      </Grid>
+      {!note && (
+        <Grid item xs={12} lg={isMobile ? 12 : 4}>
+          <AlertFeedback alertID={alert.alertID} />
+        </Grid>
+      )}
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
