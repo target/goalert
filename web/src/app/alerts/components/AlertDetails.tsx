@@ -49,6 +49,7 @@ import AlertFeedback, {
 import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
+import { Fade } from '@mui/material'
 
 interface AlertDetailsProps {
   data: Alert
@@ -443,11 +444,11 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           <CardActions primaryActions={[getMenuOptions()]} />
         </Card>
       </Grid>
-      {!note && (
+      <Fade in={!note} unmountOnExit>
         <Grid item xs={12} lg={isMobile ? 12 : 4}>
           <AlertFeedback alertID={alert.alertID} />
         </Grid>
-      )}
+      </Fade>
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}

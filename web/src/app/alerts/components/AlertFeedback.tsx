@@ -95,66 +95,69 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   }
 
   return (
-    <React.Fragment>
-      <Card>
-        <CardHeader title='Is this alert noise?' />
-        <CardContent sx={{ pt: 0 }}>
-          <FormGroup>
-            {options.map((option) => (
-              <FormControlLabel
-                key={option}
-                label={option}
-                control={
-                  <Checkbox
-                    checked={notes.includes(option)}
-                    onChange={(e) => handleCheck(e, option)}
-                  />
-                }
-              />
-            ))}
-
+    <Card>
+      <CardHeader title='Is this alert noise?' />
+      <CardContent sx={{ pt: 0 }}>
+        <FormGroup>
+          {options.map((option) => (
             <FormControlLabel
-              value='Other'
-              label={
-                <TextField
-                  fullWidth
-                  size='small'
-                  value={other}
-                  placeholder='Other (please specify)'
-                  onFocus={() => setOtherChecked(true)}
-                  onChange={(e) => {
-                    setOther(e.target.value)
-                  }}
-                />
-              }
+              key={option}
+              label={option}
               control={
                 <Checkbox
-                  checked={otherChecked}
-                  onChange={(e) => {
-                    setOtherChecked(e.target.checked)
-                    if (!e.target.checked) {
-                      setOther('')
-                    }
-                  }}
+                  checked={notes.includes(option)}
+                  onChange={(e) => handleCheck(e, option)}
                 />
               }
-              disableTypography
             />
-          </FormGroup>
-          {error?.message && (
-            <Typography color='error' sx={{ pt: 2 }}>
-              {error?.message}
-            </Typography>
-          )}
-        </CardContent>
-        <CardActions
-          primaryActions={[
-            <Button key='submit' variant='contained' onClick={handleSubmit}>
-              Submit
-            </Button>,
-          ]}
-        />
-      </Card>
-    </React.Fragment>
+          ))}
+
+          <FormControlLabel
+            value='Other'
+            label={
+              <TextField
+                fullWidth
+                size='small'
+                value={other}
+                placeholder='Other (please specify)'
+                onFocus={() => setOtherChecked(true)}
+                onChange={(e) => {
+                  setOther(e.target.value)
+                }}
+              />
+            }
+            control={
+              <Checkbox
+                checked={otherChecked}
+                onChange={(e) => {
+                  setOtherChecked(e.target.checked)
+                  if (!e.target.checked) {
+                    setOther('')
+                  }
+                }}
+              />
+            }
+            disableTypography
+          />
+        </FormGroup>
+        {error?.message && (
+          <Typography color='error' sx={{ pt: 2 }}>
+            {error?.message}
+          </Typography>
+        )}
+      </CardContent>
+      <CardActions
+        primaryActions={[
+          <Button
+            key='submit'
+            variant='contained'
+            onClick={handleSubmit}
+            disabled={!notes.length && !other}
+          >
+            Submit
+          </Button>,
+        ]}
+      />
+    </Card>
   )
 }
