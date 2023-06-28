@@ -112,7 +112,7 @@ function useName(type = '', id = ''): string {
     return result.data.data.name
   }
 
-  return isUUID ? toTitleCase(typeMap[type] ?? type) : id
+  return toTitleCase(isUUID ? typeMap[type] ?? type : id)
 }
 
 function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {

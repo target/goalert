@@ -1,12 +1,5 @@
-import React, { useState } from 'react'
-import {
-  TextField,
-  Grid,
-  MenuItem,
-  Typography,
-  Switch,
-  FormControlLabel,
-} from '@mui/material'
+import React from 'react'
+import { TextField, Grid, MenuItem, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
@@ -19,6 +12,7 @@ import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 import { FieldError } from '../util/errutil'
 import { RotationType, CreateRotationInput } from '../../schema'
+import { Time } from '../util/Time'
 
 interface RotationFormProps {
   value: CreateRotationInput
@@ -65,12 +59,15 @@ function getHours(count: number, unit: RotationType): number {
   return lookup[unit] * count
 }
 
+const sameAsLocal = (t: string, z: string): boolean => {
+  const inZone = DateTime.fromISO(t, { zone: z })
+  const inLocal = DateTime.fromISO(t, { zone: 'local' })
+  return inZone.toFormat('Z') === inLocal.toFormat('Z')
+}
+
 export default function RotationForm(props: RotationFormProps): JSX.Element {
   const { value } = props
   const classes = useStyles()
-  const localZone = DateTime.local().zone.name
-  const [configInZone, setConfigInZone] = useState(false)
-  const configZone = configInZone ? value.timeZone : 'local'
 
   const { data, loading, error } = useQuery(query, {
     variables: {
@@ -87,13 +84,7 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
   const isCalculating = !data || loading
 
   const isHandoffValid = DateTime.fromISO(value.start).isValid
-  const nextHandoffs = isCalculating
-    ? []
-    : data.calcRotationHandoffTimes.map((iso: string) =>
-        DateTime.fromISO(iso)
-          .setZone(configZone)
-          .toLocaleString(DateTime.DATETIME_FULL),
-      )
+  const nextHandoffs = isCalculating ? [] : data.calcRotationHandoffTimes
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -145,7 +136,7 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             max={9000}
           />
         </Grid>
-        <Grid item xs={localZone === value.timeZone ? 12 : 6}>
+        <Grid item xs={12}>
           <FormField
             fullWidth
             component={TimeZoneSelect}
@@ -156,31 +147,20 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             required
           />
         </Grid>
-        {localZone !== value.timeZone && (
-          <Grid item xs={6} className={classes.tzContainer}>
-            <Grid container justifyContent='center'>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={configInZone}
-                    onChange={() => setConfigInZone(!configInZone)}
-                    value={value.timeZone}
-                  />
-                }
-                label={`Configure in ${value.timeZone}`}
-              />
-            </Grid>
-          </Grid>
-        )}
 
         <Grid item xs={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
-            timeZone={configZone}
-            label='Handoff Time'
+            timeZone={value.timeZone}
+            label={`Handoff Time (${value.timeZone})`}
             name='start'
             required
+            hint={
+              sameAsLocal(value.start, value.timeZone) ? undefined : (
+                <Time time={value.start} suffix=' local time' />
+              )
+            }
           />
         </Grid>
 
@@ -190,14 +170,14 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
           </Typography>
           {isHandoffValid ? (
             <ol className={classes.handoffsList}>
-              {nextHandoffs.map((text: string, i: number) => (
+              {nextHandoffs.map((time: string, i: number) => (
                 <Typography
                   key={i}
                   component='li'
                   className={classes.handoffTimestamp}
                   variant='body2'
                 >
-                  {text}
+                  <Time time={time} zone={value.timeZone} />
                 </Typography>
               ))}
             </ol>

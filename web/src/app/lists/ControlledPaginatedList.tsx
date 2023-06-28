@@ -1,5 +1,13 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
-import { Card, Checkbox, Grid, IconButton, Tooltip } from '@mui/material'
+import {
+  Button,
+  Card,
+  Checkbox,
+  Grid,
+  IconButton,
+  Tooltip,
+} from '@mui/material'
+import { Add, ArrowDropDown } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
@@ -9,18 +17,11 @@ import {
 import { ListHeaderProps } from './ListHeader'
 import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
-import { ArrowDropDown } from '@mui/icons-material'
 import Search from '../util/Search'
 import { useURLKey } from '../actions'
+import { useIsWidthDown } from '../util/useWidth'
 
 const useStyles = makeStyles({
-  actionsContainer: {
-    alignItems: 'center',
-    display: 'flex',
-    marginRight: 'auto',
-    paddingLeft: '1em', // align with listItem icons
-    width: 'fit-content',
-  },
   checkbox: {
     marginTop: 4,
     marginBottom: 4,
@@ -36,9 +37,6 @@ const useStyles = makeStyles({
   },
   popper: {
     opacity: 1,
-  },
-  search: {
-    paddingLeft: '0.5em',
   },
 })
 
@@ -57,6 +55,12 @@ export interface ControlledPaginatedListProps
   searchAdornment?: ReactElement
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
+
+  renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
+
+  createLabel?: string
+  hideCreate?: boolean
+  onSelectionChange?: (selectedIDs: (string | number)[]) => void
 }
 
 export interface ControlledPaginatedListAction {
@@ -90,13 +94,19 @@ export default function ControlledPaginatedList(
   const classes = useStyles()
   const {
     checkboxActions,
+    createLabel,
     secondaryActions,
     noSearch,
+    renderCreateDialog,
     searchAdornment,
     items,
     listHeader,
+    hideCreate,
     ...listProps
   } = props
+
+  const [showCreate, setShowCreate] = useState(false)
+  const isMobile = useIsWidthDown('md')
 
   /*
    * ensures item type is of CheckboxItemsProps and not PaginatedListItemProps
@@ -118,7 +128,11 @@ export default function ControlledPaginatedList(
     return []
   }
 
-  const [_checkedItems, setCheckedItems] = useState<Array<string | number>>([])
+  const [_checkedItems, _setCheckedItems] = useState<Array<string | number>>([])
+  const setCheckedItems = (ids: Array<string | number>): void => {
+    _setCheckedItems(ids)
+    if (props.onSelectionChange) props.onSelectionChange(ids)
+  }
   // covers the use case where an item may no longer be selectable after an update
   const checkedItems = _checkedItems.filter((id) =>
     getSelectableIDs().includes(id),
@@ -149,9 +163,13 @@ export default function ControlledPaginatedList(
     return (
       <Grid
         aria-label='List Checkbox Controls'
-        className={classes.actionsContainer}
         item
         container
+        sx={{
+          alignItems: 'center',
+          display: 'flex',
+          width: 'fit-content',
+        }}
       >
         <Grid item>
           <Checkbox
@@ -165,6 +183,9 @@ export default function ControlledPaginatedList(
             }
             onChange={handleToggleSelectAll}
             disabled={items.length === 0}
+            sx={{
+              ml: '1em', // align with listItem icons
+            }}
           />
         </Grid>
 
@@ -252,14 +273,28 @@ export default function ControlledPaginatedList(
         container
         item
         xs={12}
-        justifyContent='flex-end'
+        spacing={2}
+        justifyContent='flex-start'
         alignItems='center'
       >
         {renderActions()}
-        {secondaryActions}
         {!noSearch && (
-          <Grid item className={classes.search}>
+          <Grid item>
             <Search endAdornment={searchAdornment} />
+          </Grid>
+        )}
+        {secondaryActions && <Grid item>{secondaryActions}</Grid>}
+
+        {!hideCreate && renderCreateDialog && !isMobile && (
+          <Grid item sx={{ ml: 'auto' }}>
+            <Button
+              variant='contained'
+              startIcon={<Add />}
+              onClick={() => setShowCreate(true)}
+            >
+              Create {createLabel}
+            </Button>
+            {showCreate && renderCreateDialog(() => setShowCreate(false))}
           </Grid>
         )}
       </Grid>

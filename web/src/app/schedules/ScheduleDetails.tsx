@@ -17,8 +17,10 @@ import { ScheduleAvatar } from '../util/avatars'
 import { useConfigValue } from '../util/RequireConfig'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import { TempSchedValue } from './temp-sched/sharedUtils'
+import { TempSchedValue, defaultTempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
+import { useExpFlag } from '../util/useExpFlag'
+import { useScheduleTZ } from './useScheduleTZ'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -34,7 +36,7 @@ const query = gql`
   }
 `
 
-interface OverrideDialog {
+export interface OverrideDialog {
   variantOptions: string[]
   removeUserReadOnly: boolean
   defaultValue?: {
@@ -74,10 +76,16 @@ export default function ScheduleDetails({
   const isMobile = useIsWidthDown('md')
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
+  const [webhookEnabled] = useConfigValue('Webhook.Enable')
+  const chanWebhookEnabled = useExpFlag('chan-webhook')
 
   const [configTempSchedule, setConfigTempSchedule] =
-    useState<Partial<TempSchedValue> | null>(null)
-  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
+    useState<TempSchedValue | null>(null)
+  const { zone } = useScheduleTZ(scheduleID)
+  const onNewTempSched = useCallback(
+    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    [],
+  )
   const onEditTempSched = useCallback(
     (v: TempSchedValue) => setConfigTempSchedule(v),
     [],
@@ -207,11 +215,10 @@ export default function ScheduleDetails({
             subText: 'Review a list of past and future on-call shifts',
           },
         ].concat(
-          slackEnabled
+          // only slack/webhook supported atm, so hide the link if disabled
+          slackEnabled || (webhookEnabled && chanWebhookEnabled)
             ? [
                 {
-                  // only slack is supported ATM, so hide the link if disabled
-
                   label: 'On-Call Notifications',
                   url: 'on-call-notifications',
                   subText: 'Set up notifications to know who is on-call',

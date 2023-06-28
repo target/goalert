@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notice"
@@ -34,6 +35,7 @@ func contains(ids []string, id string) bool {
 }
 
 func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql2.CreateEscalationPolicyStepInput) (step *escalation.Step, err error) {
+	cfg := config.FromContext(ctx)
 	if len(input.Targets) != 0 && input.NewRotation != nil {
 		return nil, validate.Many(
 			validation.NewFieldError("targets", "cannot be used with `newRotation`"),
@@ -53,6 +55,13 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			validation.NewFieldError("newSchedule", "cannot be used with `newRotation`"),
 			validation.NewFieldError("newRotation", "cannot be used with `newSchedule`"),
 		)
+	}
+
+	for _, tgt := range input.Targets {
+		if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
+			// UI code expects targets to be un-indexed
+			return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
+		}
 	}
 
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -219,6 +228,7 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 
 func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql2.UpdateEscalationPolicyStepInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		cfg := config.FromContext(ctx)
 		step, err := m.PolicyStore.FindOneStepForUpdateTx(ctx, tx, input.ID) // get delay
 		if err != nil {
 			return err
@@ -238,6 +248,10 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 		if input.Targets != nil {
 			step.Targets = make([]assignment.Target, len(input.Targets))
 			for i, tgt := range input.Targets {
+				if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
+					// UI code expects targets to be un-indexed
+					return validation.NewFieldError("targets", "URL not allowed by administrator")
+				}
 				step.Targets[i] = tgt
 			}
 

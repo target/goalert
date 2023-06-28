@@ -11,8 +11,3 @@ var pathPrefix: string
 var applicationName: string
 var GOALERT_VERSION: string
 var Cypress: any
-
-declare module 'modernizr-esm/feature/inputtypes' {
-  import * as m from 'modernizr'
-  export const inputtypes = m.inputtypes
-}

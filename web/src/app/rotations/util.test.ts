@@ -1,9 +1,4 @@
-import {
-  calcNewActiveIndex,
-  handoffSummary,
-  HandoffSummaryInput,
-  reorderList,
-} from './util'
+import { calcNewActiveIndex, reorderList } from './util'
 import { Settings, Zone } from 'luxon'
 
 let oldZone: Zone
@@ -45,78 +40,6 @@ describe('calcNewActiveIndex', () => {
   test('should return newIndex -1', () => {
     check(1, 0, 2, 0)
     check(1, 0, 1, 0)
-  })
-})
-
-describe('handoffSummary', () => {
-  const check = (rotation: HandoffSummaryInput, exp: string): void => {
-    expect(handoffSummary(rotation)).toBe(exp)
-  }
-
-  test('should be as per hourly rotation', () => {
-    check(
-      {
-        shiftLength: 1,
-        start: '2018-07-25T02:22:33Z',
-        timeZone: 'UTC',
-        type: 'hourly',
-      },
-      'First hand off time at 2:22 AM UTC, hands off every hour.',
-    )
-
-    check(
-      {
-        shiftLength: 1,
-        start: '2017-07-14T06:32:33Z',
-        timeZone: 'Asia/Kolkata',
-        type: 'hourly',
-      },
-      'First hand off time at 12:02 PM Asia/Kolkata (6:32 AM local), hands off every hour.',
-    )
-  })
-
-  test('should be as per daily rotation', () => {
-    check(
-      {
-        shiftLength: 2,
-        start: '2018-02-25T09:10:22Z',
-        timeZone: 'America/Cancun',
-        type: 'daily',
-      },
-      'Hands off every 2 days at 4:10 AM America/Cancun (9:10 AM local).',
-    )
-
-    check(
-      {
-        shiftLength: 1,
-        start: '2017-07-14T06:32:33Z',
-        timeZone: 'UTC',
-        type: 'daily',
-      },
-      'Hands off daily at 6:32 AM UTC.',
-    )
-  })
-
-  test('should be as per weekly rotation', () => {
-    check(
-      {
-        shiftLength: 2,
-        start: '2018-02-25T09:10:22Z',
-        timeZone: 'UTC',
-        type: 'weekly',
-      },
-      'Hands off every 2 weeks on Sunday at 9:10 AM UTC.',
-    )
-
-    check(
-      {
-        shiftLength: 2,
-        start: '2017-06-26T06:50:11Z',
-        timeZone: 'Asia/Kolkata',
-        type: 'weekly',
-      },
-      'Hands off every 2 weeks on Monday at 12:20 PM Asia/Kolkata (Monday at 6:50 AM local time).',
-    )
   })
 })
 

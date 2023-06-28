@@ -56,7 +56,7 @@ func TestReadme(t *testing.T) {
 
 	rd := bufio.NewReader(r)
 	s, err := rd.ReadString('\n')
-	go io.Copy(io.Discard, rd)
+	go func(rd *bufio.Reader) { _, _ = io.Copy(io.Discard, rd) }(rd)
 	require.NoError(t, err)
 
 	_, srvAddr, ok := strings.Cut(strings.TrimSpace(s), "Listening: ")
@@ -89,7 +89,7 @@ func TestReadme(t *testing.T) {
 			break
 		}
 	}
-	go io.Copy(io.Discard, rd)
+	go func(rd *bufio.Reader) { _, _ = io.Copy(io.Discard, rd) }(rd)
 
 	resp, err := http.Get(srcURL + "/test")
 	require.NoError(t, err)

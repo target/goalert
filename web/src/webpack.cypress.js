@@ -7,7 +7,9 @@ module.exports = {
   // Paths and extensions
   entry: {
     'support/e2e': path.join(__dirname, 'cypress/support'),
-    'integration/all': glob.sync(path.join(__dirname, 'cypress/integration/*')),
+    'integration/all': glob.globSync(
+      path.join(__dirname, 'cypress/integration/*'),
+    ),
     'plugins/index': path.join(__dirname, 'cypress/ci-plugins.js'),
   },
   target: 'node',

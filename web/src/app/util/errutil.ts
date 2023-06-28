@@ -27,7 +27,7 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
   if (!err) return []
   if (!err.graphQLErrors || !err.graphQLErrors.length) return [err]
 
-  return err.graphQLErrors.filter(
+  return (err.graphQLErrors as GraphQLError[]).filter(
     (err) =>
       !err.extensions ||
       !(err.extensions.isFieldError || err.extensions.isMultiFieldError),
@@ -54,7 +54,7 @@ export function fieldErrors(err?: ApolloError | CombinedError): FieldError[] {
   if (!err) return []
   if (!err.graphQLErrors) return []
 
-  const errs = err.graphQLErrors
+  const errs = (err.graphQLErrors as GraphQLError[])
     .filter(
       (err) =>
         err.extensions &&

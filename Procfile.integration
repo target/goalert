@@ -1,4 +1,4 @@
 build: while true; do make -qs bin/goalert BUNDLE=1 || make bin/goalert BUNDLE=1 || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./web/src/esbuild.config.js
-ui: yarn workspace goalert-web run esbuild --watch --prod
+ui: yarn run esbuild --watch --prod

@@ -148,3 +148,21 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
     />
   )
 }
+
+export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
+  const { id: urlStr, ...rest } = props
+
+  const url = new URL(urlStr)
+  return (
+    <Chip
+      data-cy='webhook-chip'
+      avatar={
+        <Avatar>
+          <WebhookIcon />
+        </Avatar>
+      }
+      label={url.hostname}
+      {...rest}
+    />
+  )
+}

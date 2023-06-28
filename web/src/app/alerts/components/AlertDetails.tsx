@@ -18,7 +18,6 @@ import {
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@mui/icons-material'
-import Countdown from 'react-countdown'
 import { gql, useMutation } from '@apollo/client'
 import { DateTime } from 'luxon'
 import _ from 'lodash'
@@ -40,7 +39,8 @@ import {
   EscalationPolicyStep,
   AlertStatus,
 } from '../../../schema'
-import ServiceMaintenanceNotice from '../../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../../services/ServiceNotices'
+import { Time } from '../../util/Time'
 
 interface AlertDetailsProps {
   data: Alert
@@ -191,38 +191,21 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
 
   function getNextEscalation(): JSX.Element | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
-    const prevEscalation = new Date(lastEscalation ?? '')
+    if (!canAutoEscalate()) return 'None'
 
-    if (canAutoEscalate()) {
-      return (
-        <Countdown
-          date={
-            new Date(
-              prevEscalation.getTime() +
-                (steps ? steps[currentLevel ?? 0].delayMinutes : 0) * 60000,
-            )
-          }
-          overtime
-          renderer={(props) => {
-            const { hours, minutes, seconds, completed } = props
+    const prevEscalation = DateTime.fromISO(lastEscalation ?? '')
+    const nextEsclation = prevEscalation.plus({
+      minutes: steps ? steps[currentLevel ?? 0].delayMinutes : 0,
+    })
 
-            if (completed) return 'Escalating...'
-
-            const hourTxt = hours
-              ? `${hours} hour${hours === 1 ? '' : 's'} `
-              : ''
-            const minTxt = minutes
-              ? `${minutes} minute${minutes === 1 ? '' : 's'} `
-              : ''
-            const secTxt = `${seconds} second${seconds === 1 ? '' : 's'}`
-
-            return hourTxt + minTxt + secTxt
-          }}
-        />
-      )
-    }
-
-    return 'None'
+    return (
+      <Time
+        time={nextEsclation}
+        format='relative'
+        units={['hours', 'minutes', 'seconds']}
+        precise
+      />
+    )
   }
 
   function renderEscalationPolicySteps(): JSX.Element[] | JSX.Element {
@@ -245,6 +228,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       const schedules = targets.filter((t) => t.type === 'schedule')
       const slackChannels = targets.filter((t) => t.type === 'slackChannel')
       const users = targets.filter((t) => t.type === 'user')
+      const webhooks = targets.filter((t) => t.type === 'chanWebhook')
       const selected =
         status !== 'StatusClosed' &&
         (currentLevel ?? 0) % steps.length === index
@@ -264,6 +248,9 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
             )}
             {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
+            {webhooks.length > 0 && (
+              <div>Webhooks: {renderTargets(webhooks, id)}</div>
+            )}
           </TableCell>
         </TableRow>
       )
@@ -371,8 +358,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const { data: alert } = props
   return (
     <Grid container spacing={2}>
-      <ServiceMaintenanceNotice
-        serviceID={props.data?.service?.id ?? ''}
+      <ServiceNotices
+        serviceID={alert?.service?.id ?? ''}
         extraNotices={alert.pendingNotifications.map((n) => ({
           type: 'WARNING',
           message: `Notification Pending for ${n.destination}`,
@@ -386,11 +373,13 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         <Card sx={{ width: '100%' }}>
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
-              <Grid item xs={12}>
-                <Typography variant='body1'>
-                  {ServiceLink(alert.service)}
-                </Typography>
-              </Grid>
+              {alert.service && (
+                <Grid item xs={12}>
+                  <Typography variant='body1'>
+                    {ServiceLink(alert.service)}
+                  </Typography>
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <Typography component='h2' variant='h5'>
                   {alert.alertID}: {alert.summary}
@@ -426,8 +415,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
             {alert?.state?.lastEscalation && (
               <React.Fragment>
                 <Typography color='textSecondary' variant='caption'>
-                  Last Escalated:{' '}
-                  {DateTime.fromISO(alert.state.lastEscalation).toFormat('fff')}
+                  Last Escalated: <Time time={alert.state.lastEscalation} />
                 </Typography>
                 <br />
                 <Typography color='textSecondary' variant='caption'>

@@ -96,7 +96,7 @@ export default function AdminSMSSend(): JSX.Element {
   return (
     <React.Fragment>
       <Form
-        onSubmit={(e) => {
+        onSubmit={(e: { preventDefault: () => void }) => {
           e.preventDefault()
           send()
         }}

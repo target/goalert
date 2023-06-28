@@ -1,7 +1,10 @@
 import React from 'react'
 import { FormContainer, FormField } from '../../../forms'
 import { CreateAlertInfo } from './CreateAlertInfo'
-import { CreateAlertServiceSelect } from './CreateAlertServiceSelect'
+import {
+  CreateAlertServiceSelect,
+  CreateAlertServiceSelectProps,
+} from './CreateAlertServiceSelect'
 import { CreateAlertConfirm } from './CreateAlertConfirm'
 import { Value } from '../CreateAlertDialog'
 
@@ -40,7 +43,9 @@ export function CreateAlertForm({
       {activeStep === 1 && (
         <FormField
           required
-          render={(props) => <CreateAlertServiceSelect {...props} />}
+          render={(props: CreateAlertServiceSelectProps) => (
+            <CreateAlertServiceSelect {...props} />
+          )}
           name='serviceIDs'
         />
       )}

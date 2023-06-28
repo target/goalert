@@ -137,7 +137,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			port = "25"
 		}
 	} else if port == "" {
-		port = "587"
+		port = "465"
 	}
 
 	var authFn NegotiateAuth

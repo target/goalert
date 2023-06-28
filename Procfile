@@ -7,6 +7,6 @@ smtp: go run github.com/mailhog/MailHog -ui-bind-addr=localhost:8025 -api-bind-a
 prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/prometheus.yml --storage.tsdb.path=bin/prom-data/ --web.listen-address=localhost:9090
 
 @watch-file=./web/src/esbuild.config.js
-ui: yarn workspace goalert-web run esbuild --watch
+ui: yarn run esbuild --watch
 
 grpcui: go run github.com/fullstorydev/grpcui/cmd/grpcui -plaintext -open-browser=false -port 8234 localhost:1234

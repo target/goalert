@@ -9,7 +9,6 @@ import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
 import App from './main/App'
-import MuiPickersUtilsProvider from './mui-pickers'
 import store from './reduxStore'
 import { ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
@@ -17,6 +16,15 @@ import NewVersionCheck from './NewVersionCheck'
 import { Provider as URQLProvider } from 'urql'
 import { client as urqlClient } from './urql'
 import { Router } from 'wouter'
+
+import { Settings } from 'luxon'
+Settings.throwOnInvalid = true
+
+declare module 'luxon' {
+  interface TSSettings {
+    throwOnInvalid: true
+  }
+}
 
 // version check
 if (
@@ -44,14 +52,12 @@ root.render(
         <ApolloProvider client={GraphQLClient}>
           <ReduxProvider store={store}>
             <Router base={pathPrefix}>
-              <MuiPickersUtilsProvider>
-                <URQLProvider value={urqlClient}>
-                  <ConfigProvider>
-                    <NewVersionCheck />
-                    <App />
-                  </ConfigProvider>
-                </URQLProvider>
-              </MuiPickersUtilsProvider>
+              <URQLProvider value={urqlClient}>
+                <ConfigProvider>
+                  <NewVersionCheck />
+                  <App />
+                </ConfigProvider>
+              </URQLProvider>
             </Router>
           </ReduxProvider>
         </ApolloProvider>

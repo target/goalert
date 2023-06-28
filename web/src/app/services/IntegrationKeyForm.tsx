@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import { FormContainer, FormField } from '../forms'
-import { Config } from '../util/RequireConfig'
+import { Config, ConfigData } from '../util/RequireConfig'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
 
@@ -41,7 +41,7 @@ export default function IntegrationKeyForm(
         </Grid>
         <Grid item xs={12}>
           <Config>
-            {(cfg: { [x: string]: unknown }): ReactElement => (
+            {(cfg: ConfigData): ReactElement => (
               <FormField
                 fullWidth
                 component={TextField}

@@ -111,16 +111,19 @@ class Runner<N extends WorkerMethodName> {
   }
 }
 
+// useWorker runs a method in a separate worker context
+// when debugging, be sure to switch to the worker.js context, or
+// disable "Selected context only" under the devtools Console settings
 export function useWorker<N extends WorkerMethodName>(
   methodName: N,
-  arg: WorkerParam<N>,
-  def: WorkerResult<N>,
+  methodOpts: WorkerParam<N>,
+  defaultValue: WorkerResult<N>,
 ): WorkerReturnType<N> {
   if (!(methodName in methods)) {
     throw new Error(`method must be a valid method from app/worker/methods.ts`)
   }
 
-  const [result, setResult] = useState(def)
+  const [result, setResult] = useState(defaultValue)
   const [worker, setWorker] = useState<Runner<N> | null>(null)
 
   useEffect(() => {
@@ -131,8 +134,8 @@ export function useWorker<N extends WorkerMethodName>(
 
   useMemo(() => {
     if (!worker) return
-    worker.run(arg)
-  }, [worker, arg])
+    worker.run(methodOpts)
+  }, [worker, methodOpts])
 
   const loadingStatus = worker?.isLoading() || false
 

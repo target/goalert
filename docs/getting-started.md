@@ -20,6 +20,8 @@ GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREAT
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
 
+Note: If you are using default install of Postgres on Debian (maybe others) you may run into an issue where the OOM (out of memory) killer terminates the supervisor process. More information along with steps to resolve can be found [here](https://www.postgresql.org/docs/current/kernel-resources.html#LINUX-MEMORY-OVERCOMMIT).
+
 ### Encryption of Sensitive Data
 
 It is also recommended to set the `--data-encryption-key` which is used to encrypt sensitive information (like API keys) before transmitting to the database.
@@ -226,3 +228,52 @@ Twilio trial account limitations (if you decide to upgrade your Twilio account t
 
 - SMS: The message "Sent from your Twilio trial account" is prepended to all SMS messages
 - Voice: "You have a trial account..." verbal message before GoAlert message.
+
+
+### CLI Flags
+
+Additional options are available for running GoAlert in the form of CLI flags. Their corresponding environment variable names are listed as well. 
+
+| Flag                            | Environment Variable               | Description                                                                                                                                             |
+|---------------------------------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **`--db-url`**                  | `GOALERT_DB_URL`                   | Connection string for Postgres.                                                                                                                         |
+| **`--db-url-next`**             | `GOALERT_DB_URL_NEXT`              | Connection string for the *next* Postgres server (enables DB switchover mode).                                                                          |
+| **`--public-url`**              | `GOALERT_PUBLIC_URL`               | Externally routable URL to the application. Used for validating callback requests, links, auth, and prefix calculation.                                  |
+| `--data-encryption-key`         | `GOALERT_DATA_ENCRYPTION_KEY`      | Used to generate an encryption key for sensitive data like signing keys. Can be any length. only use this when performing a switchover.                 |
+| `--data-encryption-key-old`     | `GOALERT_DATA_ENCRYPTION_KEY_OLD`  | Fallback key. Used for decrypting existing data only. only necessary when changing --data-encryption-key.                                               |
+| `--api-only`                    | `GOALERT_API_ONLY`                 | Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.                                                           |
+| `--db-max-idle`                 | `GOALERT_DB_MAX_IDLE`              | Max idle DB connections. (default 5)                                                                                                                    |
+| `--db-max-open`                 | `GOALERT_DB_MAX_OPEN`              | Max open DB connections. (default 15)                                                                                                                   |
+| `--disable-https-redirect`      | `GOALERT_DISABLE_HTTPS_REDIRECT`   | Disable automatic HTTPS redirects.                                                                                                                      |
+| `--engine-cycle-time`           | `GOALERT_ENGINE_CYCLE_TIME`        | Time between engine cycles. (default 5s)                                                                                                                |
+| `--experimental`                | `GOALERT_EXPERIMENTAL`             | Enable experimental features.                                                                                                                           |
+| `--github-base-url`             | `GOALERT_GITHUB_BASE_URL`          | Base URL for GitHub auth and API calls.                                                                                                                 |
+| `--help`                        | -                                  | Help about any command                                                                                                                                  |
+| `--json`                        | `GOALERT_JSON`                     | Log in JSON format.                                                                                                                                     |
+| `--kubernetes-cooldown`         | `GOALERT_KUBERNETES_COOLDOWN`      | Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.                                        |
+| `--list-experimental`           | `GOALERT_LIST_EXPERIMENTAL`        | List experimental features.                                                                                                                             |
+| `--listen`                      | `GOALERT_LISTEN`                   | Listen address:port for the application. (default "localhost:8081")                                                                                     |
+| `--listen-prometheus`           | `GOALERT_LISTEN_PROMETHEUS`        | Bind address for Prometheus metrics.                                                                                                                    |
+| `--listen-sysapi`               | `GOALERT_LISTEN_SYSAPI`            | (Experimental) Listen address:port for the system API (gRPC).                                                                                           |
+| `--listen-tls`                  | `GOALERT_LISTEN_TLS`               | HTTPS listen address:port for the application. Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.                 |
+| `--log-engine-cycles`           | `GOALERT_LOG_ENGINE_CYCLES`        | Log start and end of each engine cycle.                                                                                                                 |
+| `--log-errors-only`             | `GOALERT_LOG_ERRORS_ONLY`          | Only log errors (superseeds other flags).                                                                                                                |
+| `--log-requests`                | `GOALERT_LOG_REQUESTS`             | Log all HTTP requests. If false, requests will be logged for debug/trace contexts only.                                                                 |
+| `--max-request-body-bytes`      | `GOALERT_MAX_REQUEST_BODY_BYTES`   | Max body size for all incoming requests (in bytes). Set to 0 to disable limit. (default 262144)                                                         |
+| `--max-request-header-bytes`    | `GOALERT_MAX_REQUEST_HEADER_BYTES` | Max header size for all incoming requests (in bytes). Set to 0 to disable limit. (default 4096)                                                         |
+| `--region-name`                 | `GOALERT_REGION_NAME`              | Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages. (default "default")           |
+| `--slack-base-url`              | `GOALERT_SLACK_BASE_URL`           | Override the Slack base URL.                                                                                                                            |
+| `--stack-traces`                | `GOALERT_STACK_TRACES`             | Enables stack traces with all error logs.                                                                                                               |
+| `--status-addr`                 | `GOALERT_STATUS_ADDR`              | Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited. |
+| `--strict-experimental`         | `GOALERT_STRICT_EXPERIMENTAL`      | Fail to start if unknown experimental features are specified.                                                                                            |
+| `--stub-notifiers`               | `GOALERT_STUB_NOTIFIERS`           | If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).                       |
+| `--sysapi-ca-file`               | `GOALERT_SYSAPI_CA_FILE`           | (Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.                                            |
+| `--sysapi-cert-file`             | `GOALERT_SYSAPI_CERT_FILE`         | (Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.                                                   |
+| `--sysapi-key-file`              | `GOALERT_SYSAPI_KEY_FILE`          | (Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.                                                 |
+| `--tls-cert-data`               | `GOALERT_TLS_CERT_DATA`            | Specifies a PEM-encoded certificate. Has no effect if --listen-tls is unset.                                                                              |
+| `--tls-cert-file`                | `GOALERT_TLS_CERT_FILE`            | Specifies a path to a PEM-encoded certificate. Has no effect if --listen-tls is unset.                                                                    |
+| `--tls-key-data`                | `GOALERT_TLS_KEY_DATA`             | Specifies a PEM-encoded private key. Has no effect if --listen-tls is unset.                                                                             |
+| `--tls-key-file`                 | `GOALERT_TLS_KEY_FILE`             | Specifies a path to a PEM-encoded private key file. Has no effect if --listen-tls is unset.                                                               |
+| `--twilio-base-url`             | `GOALERT_TWILIO_BASE_URL`          | Override the Twilio API URL.                                                                                                                            |
+| `--ui-dir`                      | `GOALERT_UI_DIR`                   | Serve UI assets from a local directory instead of from memory.                                                                                          |
+| `--verbose`, `-v`               | `GOALERT_VERBOSE`                  | Enable verbose logging.                                                                                                                                 |

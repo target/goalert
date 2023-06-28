@@ -169,7 +169,7 @@ func (p *Process) run() error {
 		p.cmd.Stdin = tty
 		err = p.cmd.Start()
 		if err == nil {
-			go io.Copy(p.p, p.pty)
+			go p.copyIO(p.p, p.pty)
 		} else {
 			p.pty.Close()
 		}
@@ -229,5 +229,12 @@ func (p *Process) Done() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (p *Process) copyIO(dst io.Writer, src io.Reader) {
+	_, err := io.Copy(dst, src)
+	if err != nil {
+		p.logError(err)
 	}
 }

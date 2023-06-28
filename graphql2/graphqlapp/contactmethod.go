@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
@@ -31,6 +32,22 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 		return "", err
 	}
 	return webhook.MaskURLPass(u), nil
+}
+
+func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
+	if obj.Type.StatusUpdatesAlways() {
+		return graphql2.StatusUpdateStateEnabledForced, nil
+	}
+
+	if obj.Type.StatusUpdatesNever() {
+		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if obj.StatusUpdates {
+		return graphql2.StatusUpdateStateEnabled, nil
+	}
+
+	return graphql2.StatusUpdateStateDisabled, nil
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
@@ -83,6 +100,16 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
 	}
 
+	if input.Type == contactmethod.TypeSlackDM {
+		if strings.HasPrefix(input.Value, "@") {
+			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
+		}
+		formatted := m.FormatDestFunc(ctx, notification.DestTypeSlackDM, input.Value)
+		if !strings.HasPrefix(formatted, "@") {
+			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
+		}
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{
@@ -129,6 +156,9 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		if input.Value != nil {
 			cm.Value = *input.Value
+		}
+		if input.EnableStatusUpdates != nil {
+			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
 
 		return m.CMStore.UpdateTx(ctx, tx, cm)

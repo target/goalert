@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,10 +25,17 @@ type ChannelSender struct {
 
 	chanCache *ttlCache[string, *Channel]
 	listCache *ttlCache[string, []Channel]
+	ugCache   *ttlCache[string, []slack.UserGroup]
+
+	teamInfoCache *ttlCache[string, *slack.TeamInfo]
+	userInfoCache *ttlCache[string, *slack.User]
+	ugInfoCache   *ttlCache[string, UserGroup]
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
 	teamMx sync.Mutex
+
+	teamInfoMx sync.Mutex
 
 	recv notification.Receiver
 }
@@ -49,6 +57,11 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 
 		listCache: newTTLCache[string, []Channel](250, time.Minute),
 		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
+		ugCache:   newTTLCache[string, []slack.UserGroup](1000, time.Minute),
+
+		teamInfoCache: newTTLCache[string, *slack.TeamInfo](1, 15*time.Minute),
+		userInfoCache: newTTLCache[string, *slack.User](1000, 15*time.Minute),
+		ugInfoCache:   newTTLCache[string, UserGroup](1000, 15*time.Minute),
 	}, nil
 }
 
@@ -58,6 +71,13 @@ func (s *ChannelSender) SetReceiver(r notification.Receiver) {
 
 // Channel contains information about a Slack channel.
 type Channel struct {
+	ID     string
+	Name   string
+	TeamID string
+}
+
+// User contains information about a Slack user.
+type User struct {
 	ID     string
 	Name   string
 	TeamID string
@@ -109,6 +129,29 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res, nil
 }
 
+func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, err error) {
+	s.teamInfoMx.Lock()
+	defer s.teamInfoMx.Unlock()
+
+	info, ok := s.teamInfoCache.Get(id)
+	if ok {
+		return info.Name, nil
+	}
+
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		info, err := c.GetTeamInfoContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		name = info.Name
+		s.teamInfoCache.Add(id, info)
+		return nil
+	})
+
+	return name, err
+}
+
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
 	cfg := config.FromContext(ctx)
 
@@ -137,7 +180,10 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 
 	ch := &Channel{TeamID: teamID}
 	err = s.withClient(ctx, func(c *slack.Client) error {
-		resp, err := c.GetConversationInfoContext(ctx, channelID, false)
+		resp, err := c.GetConversationInfoContext(ctx,
+			&slack.GetConversationInfoInput{
+				ChannelID: channelID,
+			})
 		if err != nil {
 			return err
 		}
@@ -213,12 +259,14 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 			cursor = nextCursor
 
-			for _, ch := range respChan {
-				channels = append(channels, Channel{
-					ID:     ch.ID,
-					Name:   "#" + ch.Name,
+			for _, rCh := range respChan {
+				ch := Channel{
+					ID:     rCh.ID,
+					Name:   "#" + rCh.Name,
 					TeamID: teamID,
-				})
+				}
+				channels = append(channels, ch)
+				s.chanCache.Add(ch.ID, &ch)
 			}
 
 			return nil
@@ -296,6 +344,20 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, log
 	)
 }
 
+func chanTS(origChannelID, externalID string) (channelID, ts string) {
+	ts = externalID
+	if strings.Contains(ts, ":") {
+		// DMs have a channel ID and timestamp separated by a colon,
+		// so we need to split them out. Trying to update a message
+		// with a user ID will fail.
+		channelID, ts, _ = strings.Cut(ts, ":")
+	} else {
+		channelID = origChannelID
+	}
+
+	return channelID, ts
+}
+
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
@@ -303,12 +365,20 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var opts []slack.MsgOption
 	var isUpdate bool
+	channelID := msg.Destination().Value
 	switch t := msg.(type) {
+	case notification.Test:
+		opts = append(opts, slack.MsgOptionText("This is a test message.", false))
+	case notification.Verification:
+		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %06d", t.Code), false))
 	case notification.Alert:
 		if t.OriginalStatus != nil {
+			var ts string
+			channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
+
 			// Reply in thread if we already sent a message for this alert.
 			opts = append(opts,
-				slack.MsgOptionTS(t.OriginalStatus.ProviderMessageID.ExternalID),
+				slack.MsgOptionTS(ts),
 				slack.MsgOptionBroadcast(),
 				slack.MsgOptionText(alertLink(ctx, t.AlertID, t.Summary), false),
 			)
@@ -318,8 +388,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		isUpdate = true
+		var ts string
+		channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
 		opts = append(opts,
-			slack.MsgOptionUpdate(t.OriginalStatus.ProviderMessageID.ExternalID),
+			slack.MsgOptionUpdate(ts),
 			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.LogEntry, t.NewAlertState),
 		)
 	case notification.AlertBundle:
@@ -332,13 +404,22 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
-	var msgTS string
+	var externalID string
 	err := s.withClient(ctx, func(c *slack.Client) error {
-		_, _msgTS, err := c.PostMessageContext(ctx, msg.Destination().Value, opts...)
+		msgChan, msgTS, err := c.PostMessageContext(ctx, channelID, opts...)
 		if err != nil {
 			return err
 		}
-		msgTS = _msgTS
+		if msgChan != channelID {
+			// DMs have a generated channel ID that we need to store
+			// along with the timestamp that does not match the original
+			// in order to update the message.
+			externalID = fmt.Sprintf("%s:%s", msgChan, msgTS)
+		} else {
+			// For other channels, we can just store the timestamp,
+			// to preserve compatibility with older versions of GoAlert.
+			externalID = msgTS
+		}
 		return nil
 	})
 	if err != nil {
@@ -346,11 +427,11 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	}
 
 	if isUpdate {
-		msgTS = ""
+		externalID = ""
 	}
 
 	return &notification.SentMessage{
-		ExternalID: msgTS,
+		ExternalID: externalID,
 		State:      notification.StateDelivered,
 	}, nil
 }

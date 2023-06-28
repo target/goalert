@@ -21,6 +21,8 @@ type logError struct {
 	logDB                 *alertlog.Store
 }
 
+func (logError) ClientError() bool { return true }
+
 func (e logError) LogEntry(ctx context.Context) (*alertlog.Entry, error) {
 	return e.logDB.FindLatestByType(ctx, e.alertID, e._type)
 }

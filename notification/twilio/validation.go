@@ -13,7 +13,9 @@ import (
 
 func validateRequest(req *http.Request) error {
 	if req.Method == "POST" {
-		req.ParseForm()
+		if err := req.ParseForm(); err != nil {
+			return errors.New("unable to parse form input")
+		}
 	}
 	ctx := req.Context()
 	cfg := config.FromContext(ctx)

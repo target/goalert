@@ -67,6 +67,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "Signing secret to verify requests from slack.", Value: cfg.Slack.SigningSecret, Password: true},
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
+		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceName},
+		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceLanguage},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
 		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests.", Value: cfg.Twilio.AuthToken, Password: true},
 		{ID: "Twilio.AlternateAuthToken", Type: ConfigTypeString, Description: "An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field.", Value: cfg.Twilio.AlternateAuthToken, Password: true},
@@ -77,7 +79,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
-		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional.", Value: cfg.SMTP.Address},
+		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS.", Value: cfg.SMTP.Address},
 		{ID: "SMTP.DisableTLS", Type: ConfigTypeBoolean, Description: "Disables TLS on the connection (STARTTLS will still be used if supported).", Value: fmt.Sprintf("%t", cfg.SMTP.DisableTLS)},
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
@@ -304,6 +306,10 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Twilio.Enable = val
+		case "Twilio.VoiceName":
+			cfg.Twilio.VoiceName = v.Value
+		case "Twilio.VoiceLanguage":
+			cfg.Twilio.VoiceLanguage = v.Value
 		case "Twilio.AccountSID":
 			cfg.Twilio.AccountSID = v.Value
 		case "Twilio.AuthToken":

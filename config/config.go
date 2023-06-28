@@ -98,6 +98,9 @@ type Config struct {
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
+		VoiceName     string `info:"The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices"`
+		VoiceLanguage string `info:"The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices"`
+
 		AccountSID         string
 		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests."`
 		AlternateAuthToken string `password:"true" info:"An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field."`
@@ -116,7 +119,7 @@ type Config struct {
 
 		From string `public:"true" info:"The email address messages should be sent from."`
 
-		Address    string `info:"The server address to use for sending email. Port is optional."`
+		Address    string `info:"The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS."`
 		DisableTLS bool   `info:"Disables TLS on the connection (STARTTLS will still be used if supported)."`
 		SkipVerify bool   `info:"Disables certificate validation for TLS/STARTTLS (insecure)."`
 
@@ -432,6 +435,8 @@ func (cfg Config) Validate() error {
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
 		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
+		validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 0, 50),
+		validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10),
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
@@ -445,6 +450,10 @@ func (cfg Config) Validate() error {
 		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
+
+	if cfg.Twilio.VoiceName != "" && cfg.Twilio.VoiceLanguage == "" {
+		err = validate.Many(err, validation.NewFieldError("Twilio.VoiceLanguage", "required when Twilio.VoiceName is set"))
+	}
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))

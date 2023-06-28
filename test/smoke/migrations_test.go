@@ -414,12 +414,12 @@ func parsePGDump(data []byte, name string) []pgDumpEntry {
 		if strings.HasPrefix(line, "-- Name: ") {
 			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Name: "))
 			entry.Body = ""
-			rd.ReadString('\n') // skip next line
+			_, _ = rd.ReadString('\n') // skip next line
 			continue
 		} else if strings.HasPrefix(line, "-- Data for Name: ") {
 			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Data for Name: "))
 			entry.Body = ""
-			rd.ReadString('\n') // skip next line
+			_, _ = rd.ReadString('\n') // skip next line
 			continue
 		} else if strings.HasPrefix(line, "--") {
 			if entry.Name != "" {
@@ -550,7 +550,7 @@ func TestMigrations(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer db.Exec("drop database " + sqlutil.QuoteID(dbName))
+	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
 	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {
@@ -571,7 +571,7 @@ func TestMigrations(t *testing.T) {
 		start = env
 		skipTo = true
 	} else {
-		start = "add-alert-metrics" // default skip_to
+		start = "switchover-mk2" // default skip_to
 		skipTo = true
 	}
 	var idx int

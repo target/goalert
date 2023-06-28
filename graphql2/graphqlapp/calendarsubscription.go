@@ -5,16 +5,11 @@ import (
 	"database/sql"
 	"net/url"
 
-	"github.com/pkg/errors"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
-	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type UserCalendarSubscription App
@@ -70,15 +65,8 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 }
 
 func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
-	err := sqlutil.Transaction(ctx, func(ctx context.Context, db *gorm.DB) error {
-		var cs calsub.Subscription
-		err := db.
-			Where(calsub.Subscription{
-				ID:     input.ID,
-				UserID: permission.UserID(ctx),
-			}).
-			Clauses(clause.Locking{Strength: "UPDATE"}).
-			Take(&cs).Error
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		cs, err := m.CalSubStore.FindOneForUpdate(ctx, tx, input.ID)
 		if err != nil {
 			return err
 		}
@@ -93,11 +81,8 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 			cs.Config.ReminderMinutes = input.ReminderMinutes
 		}
 
-		return db.Save(&cs).Error
+		return m.CalSubStore.UpdateTx(ctx, tx, cs)
 	})
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, validation.NewGenericError("unknown calendar subscription id")
-	}
 
 	return err == nil, err
 }

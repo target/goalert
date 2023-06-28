@@ -1,15 +1,21 @@
 name: reviewdog
-on: [pull_request]
+
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+
 jobs:
   node-checks:
     name: Node checks
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '16'
+      - run: make yarn
+      - run: 'echo "nodeLinker: node-modules" >>.yarnrc.yml'
       - run: yarn install
       - uses: reviewdog/action-eslint@v1
         with:
@@ -23,4 +29,4 @@ jobs:
           level: warning
           fail_on_error: true
       - name: tsc
-        run: yarn workspaces run check
+        run: yarn run check

@@ -1,25 +1,96 @@
-import { formatTimeSince } from './timeFormat'
-import { DateTime, Duration, DurationLikeObject } from 'luxon'
+import {
+  formatTimestamp,
+  FormatRelativeArg,
+  FormatTimestampArg,
+  formatRelative,
+} from './timeFormat'
 
-describe('formatTimeSince', () => {
-  const check = (time: DurationLikeObject, exp: string): void => {
-    const dur = Duration.fromObject(time)
-    it(`${dur.toFormat('dDays h:m:s')} === ${exp}`, () => {
-      const since = DateTime.utc()
-      expect(formatTimeSince(since, since.plus(dur))).toBe(exp)
+describe('formatTimestamp', () => {
+  const check = (opts: FormatTimestampArg, exp: string): void => {
+    it(`${opts.time} === ${exp}`, () => {
+      expect(formatTimestamp(opts)).toBe(exp)
     })
   }
-  check({ seconds: -1 }, '< 1m ago')
-  check({ seconds: 1 }, '< 1m ago')
-  check({ seconds: 59 }, '< 1m ago')
-  check({ minutes: 1 }, '1m ago')
-  check({ minutes: 1, seconds: 1 }, '1m ago')
-  check({ hours: 1 }, '1h ago')
-  check({ hours: 1, seconds: 1 }, '1h ago')
-  check({ hours: 3, seconds: 1 }, '3h ago')
-  check({ days: 1, seconds: 1 }, '1d ago')
-  check({ days: 20, seconds: 1 }, '20d ago')
-  check({ months: 3, days: 5 }, '> 3mo ago')
-  check({ months: 20, seconds: 1 }, '> 1y ago')
-  check({ months: 200, seconds: 1 }, '> 16y ago')
+
+  check({ time: '2020-01-01T00:00:00Z', zone: 'UTC' }, 'Jan 1, 2020, 12:00 AM')
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'default' },
+    'Jan 1, 2020, 12:00 AM',
+  )
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'clock' },
+    '12:00 AM',
+  )
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'weekday-clock' },
+    'Wed 12:00 AM',
+  )
+  check(
+    {
+      time: '2020-01-01T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative-date',
+      from: '2020-01-02T00:00:00Z',
+    },
+    'Yesterday, January 1',
+  )
+
+  check(
+    {
+      time: '2020-01-01T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative',
+      from: '2020-01-02T00:00:00Z',
+    },
+    '1 day ago',
+  )
+
+  check(
+    {
+      time: '2020-01-02T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative',
+      from: '2020-01-01T00:00:00Z',
+    },
+    'in 1 day',
+  )
+
+  check(
+    {
+      time: '2020-01-02T00:00:10Z',
+      zone: 'UTC',
+      format: 'relative',
+      from: '2020-01-01T00:00:00Z',
+      units: ['hour', 'minute', 'seconds'],
+      precise: true,
+    },
+    'in 24 hr, 10 sec',
+  )
+})
+
+describe('toRelative', () => {
+  const check = (arg: FormatRelativeArg, exp: string): void => {
+    it(exp, () => {
+      expect(formatRelative(arg)).toBe(exp)
+    })
+  }
+
+  check({ dur: { minute: -1 } }, '1 min ago')
+  check({ dur: { minute: 1 } }, 'in 1 min')
+  check({ dur: { hour: 1.5 }, precise: true }, 'in 1 hr, 30 min')
+  check({ dur: { seconds: -5 }, precise: true }, '< 1 min ago') // default
+  check({ dur: { seconds: -5 }, units: ['hour'], precise: true }, '< 1 hr ago') // default min
+  check(
+    { dur: { seconds: -5 }, min: { minute: 2 }, precise: true },
+    '< 2 min ago',
+  )
+
+  check(
+    {
+      dur: { minutes: -1, seconds: -5 },
+      units: ['minutes', 'seconds'],
+      precise: true,
+    },
+    '1 min, 5 sec ago',
+  )
 })

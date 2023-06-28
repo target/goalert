@@ -1,5 +1,22 @@
-import { Interval, DateTime, DateTimeFormatOptions } from 'luxon'
+import {
+  Interval,
+  DateTime,
+  Duration,
+  DurationLikeObject,
+  DateTimeFormatOptions,
+} from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
+
+export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
+  DateTime.isDateTime(t)
+    ? t.setZone(z || 'local')
+    : DateTime.fromISO(t, { zone: z })
+
+export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
+  if (typeof d === 'string') return Duration.fromISO(d)
+  if (Duration.isDuration(d)) return d
+  return Duration.fromObject(d)
+}
 
 export function formatTimeSince(
   _since: DateTime | string,
@@ -64,6 +81,105 @@ export function relativeDate(
     return build('Next', { weekday: 'long' })
 
   return build('', { weekday: 'long' })
+}
+
+export type FormatRelativeArg = {
+  dur: Duration | string | DurationLikeObject
+  noQualifier?: boolean
+  units?: ReadonlyArray<keyof DurationLikeObject>
+  min?: Duration | string | DurationLikeObject
+  precise?: boolean
+}
+
+export function formatRelative({
+  dur: durArg,
+  noQualifier,
+  units = ['days', 'hours', 'minutes'],
+  min: minArg,
+  precise,
+}: FormatRelativeArg): string {
+  const parts = []
+  let dur = getDur(durArg)
+  let min = minArg ? getDur(minArg) : undefined
+  if (!min) {
+    // default to lowest unit
+    min = Duration.fromObject({ [units[units.length - 1]]: 1 })
+  }
+  const neg = dur.valueOf() < 0
+  let prefix = noQualifier || neg ? '' : 'in '
+  const suffix = noQualifier || !neg ? '' : ' ago'
+  if (dur.valueOf() < 0) dur = dur.negate()
+  if (min && min.valueOf() > dur.valueOf()) {
+    dur = min
+    prefix = neg ? '< ' : '> '
+  }
+
+  for (const unit of units) {
+    const val = Math.floor(dur.as(unit))
+    if (val === 0) continue
+    const part = Duration.fromObject({ [unit]: val })
+    dur = dur.minus(part)
+
+    parts.push(part.toHuman({ unitDisplay: 'short' }))
+    if (!precise) break
+  }
+
+  return prefix + parts.join(', ') + suffix
+}
+
+function formatGuard(fmt: never): never {
+  throw new Error('invalid time format ' + fmt)
+}
+
+export type FormatTimestampArg = {
+  time: string | DateTime
+  zone?: string
+} & (
+  | {
+      format: 'relative'
+      from?: string | DateTime
+
+      // If true, the 'relative' format will include multiple units.
+      precise?: boolean
+      min?: string | DurationLikeObject | Duration
+      units?: ReadonlyArray<keyof DurationLikeObject>
+    }
+  | {
+      format: 'relative-date'
+      from?: string | DateTime
+    }
+  | {
+      format?: 'clock' | 'default' | 'weekday-clock'
+    }
+)
+
+export function formatTimestamp(arg: FormatTimestampArg): string {
+  const { zone = 'local' } = arg
+  const dt = getDT(arg.time, zone)
+  const from = getDT('from' in arg && arg.from ? arg.from : DateTime.utc())
+
+  if (!arg.format || arg.format === 'default')
+    return dt.toLocaleString(DateTime.DATETIME_MED)
+  if (arg.format === 'clock') return dt.toLocaleString(DateTime.TIME_SIMPLE)
+  if (arg.format === 'relative-date') return relativeDate(dt, from)
+
+  if (arg.format === 'weekday-clock')
+    return dt.toLocaleString({
+      hour: 'numeric',
+      minute: 'numeric',
+      weekday: 'short',
+    })
+
+  if (arg.format === 'relative')
+    return formatRelative({
+      dur: dt.diff(from),
+      precise: arg.precise,
+      min: arg.min,
+      units: arg.units,
+    })
+
+  // Create a type error if we add a new format and forget to handle it.
+  formatGuard(arg.format)
 }
 
 // fmtTime returns simple string for ISO string or DateTime object.

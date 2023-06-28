@@ -26,10 +26,8 @@ function testSubs(screen: ScreenFormat): void {
 
       cy.visit(`/schedules/${sched.id}`)
 
-      cy.get('[data-cy="subscribe-btn"]')
-        .trigger('mouseover')
-        .get('[data-cy="subscribe-btn-context"]')
-        .should('contain', defaultCptn)
+      cy.get('[data-cy="subscribe-btn"]').trigger('mouseover')
+      cy.get('[data-cy="subscribe-btn-context"]').should('contain', defaultCptn)
       cy.get('body').should('not.contain', 'You have 1 active subscription')
 
       // fill form out and submit
@@ -92,9 +90,8 @@ function testSubs(screen: ScreenFormat): void {
       const subsribeBtn = '[data-cy="subscribe-btn"]'
       const context = '[data-cy="subscribe-btn-context"]'
 
-      cy.get(subsribeBtn)
-        .trigger('mouseover')
-        .get(context)
+      cy.get(subsribeBtn).trigger('mouseover')
+      cy.get(context)
         .should('contain', defaultCptn)
         .should('not.contain', oneSubCptn)
         .should('not.contain', multipleSubsCptn)
@@ -102,9 +99,8 @@ function testSubs(screen: ScreenFormat): void {
       cy.createCalendarSubscription({ scheduleID: sched.id })
       cy.refetchAll()
 
-      cy.get(subsribeBtn)
-        .trigger('mouseover')
-        .get(context)
+      cy.get(subsribeBtn).trigger('mouseover')
+      cy.get(context)
         .should('not.contain', defaultCptn)
         .should('contain', oneSubCptn)
         .should('not.contain', multipleSubsCptn)
@@ -112,9 +108,8 @@ function testSubs(screen: ScreenFormat): void {
       cy.createCalendarSubscription({ scheduleID: sched.id })
       cy.refetchAll()
 
-      cy.get(subsribeBtn)
-        .trigger('mouseover')
-        .get(context)
+      cy.get(subsribeBtn).trigger('mouseover')
+      cy.get(context)
         .should('not.contain', defaultCptn)
         .should('not.contain', oneSubCptn)
         .should('contain', multipleSubsCptn)

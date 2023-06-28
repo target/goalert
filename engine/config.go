@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/schedule"
@@ -28,6 +29,7 @@ type Config struct {
 	OnCallStore         *oncall.Store
 	ScheduleStore       *schedule.Store
 	AuthLinkStore       *authlink.Store
+	SlackStore          *slack.ChannelSender
 
 	ConfigSource config.Source
 

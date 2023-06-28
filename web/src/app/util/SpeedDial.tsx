@@ -57,6 +57,9 @@ export default function CustomSpeedDial(
       onMouseLeave={() => setOpen(false)}
       open={open}
       className={classes.speedDial}
+      TransitionProps={{
+        unmountOnExit: true,
+      }}
     >
       {props.actions
         .slice()

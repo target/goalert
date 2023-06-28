@@ -81,6 +81,9 @@ export default function FilterContainer(props) {
           }}
           open={!!anchorEl}
           onClose={() => setAnchorEl(null)}
+          TransitionProps={{
+            unmountOnExit: true,
+          }}
         >
           {renderContent()}
         </Popover>
@@ -96,6 +99,9 @@ export default function FilterContainer(props) {
           open={!!anchorEl}
           onClose={() => setAnchorEl(null)}
           onOpen={() => {}}
+          SlideProps={{
+            unmountOnExit: true,
+          }}
         >
           {renderContent()}
         </SwipeableDrawer>

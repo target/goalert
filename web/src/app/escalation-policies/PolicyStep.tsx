@@ -81,6 +81,9 @@ function PolicyStep(props: PolicyStepProps): JSX.Element {
         case 'notificationChannel':
           chip = tgtChip(SlackChip)
           break
+        case 'chanWebhook':
+          chip = tgtChip(WebhookChip)
+          break
       }
 
       if (chip) {

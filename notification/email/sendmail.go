@@ -43,7 +43,7 @@ func SendMailTLS(ctx context.Context, addr string, a NegotiateAuth, from string,
 	if err != nil {
 		return err
 	}
-	conn.SetDeadline(t)
+	_ = conn.SetDeadline(t)
 	defer conn.Close()
 
 	host, _, _ := net.SplitHostPort(addr)
@@ -63,7 +63,7 @@ func SendMail(ctx context.Context, addr string, a NegotiateAuth, from string, to
 	if err != nil {
 		return err
 	}
-	conn.SetDeadline(t)
+	_ = conn.SetDeadline(t)
 	defer conn.Close()
 
 	host, _, _ := net.SplitHostPort(addr)

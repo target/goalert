@@ -115,6 +115,12 @@ type Query {
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
 
+  # Returns the list of Slack user groups available.
+  slackUserGroups(input: SlackUserGroupSearchOptions): SlackUserGroupConnection!
+
+  # Returns a Slack user group with the given ID.
+  slackUserGroup(id: ID!): SlackUserGroup
+
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
@@ -217,6 +223,41 @@ input MessageLogSearchOptions {
 
 type MessageLogConnection {
   nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
+
+  stats: MessageLogConnectionStats!
+}
+
+type MessageLogConnectionStats {
+  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
+}
+
+input TimeSeriesOptions {
+  bucketDuration: ISODuration!
+  bucketOrigin: ISOTimestamp
+}
+
+type TimeSeriesBucket {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  count: Int!
+}
+
+input SlackUserGroupSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type SlackUserGroup {
+  id: ID!
+  name: String!
+  handle: String!
+}
+
+type SlackUserGroupConnection {
+  nodes: [SlackUserGroup!]!
   pageInfo: PageInfo!
 }
 
@@ -521,6 +562,21 @@ type Mutation {
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+
+  createBasicAuth(input: CreateBasicAuthInput!): Boolean!
+  updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+input CreateBasicAuthInput {
+  username: String!
+  password: String!
+  userID: ID!
+}
+
+input UpdateBasicAuthInput {
+  password: String!
+  oldPassword: String
+  userID: ID!
 }
 
 input UpdateAlertsByServiceInput {
@@ -1073,6 +1129,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+
+  notices: [Notice!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -1171,11 +1229,13 @@ enum TargetType {
   escalationPolicy
   notificationChannel
   slackChannel
+  slackUserGroup
   notificationPolicy
   rotation
   service
   schedule
   user
+  chanWebhook
   integrationKey
   userOverride
   notificationRule
@@ -1212,6 +1272,9 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
+    @deprecated(
+      reason: "Use `UpdateUserContactMethodInput.enableStatusUpdates` instead."
+    )
 }
 
 input AuthSubjectInput {
@@ -1242,6 +1305,7 @@ type User {
   calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
+    @deprecated(reason: "Use `UserContactMethod.statusUpdates` instead.")
 
   authSubjects: [AuthSubject!]!
   sessions: [UserSession!]!
@@ -1272,6 +1336,7 @@ enum ContactMethodType {
   VOICE
   EMAIL
   WEBHOOK
+  SLACK_DM
 }
 
 # A method of contacting a user.
@@ -1284,10 +1349,20 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+  pending: Boolean!
 
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  statusUpdates: StatusUpdateState!
+}
+
+enum StatusUpdateState {
+  DISABLED
+  ENABLED
+  ENABLED_FORCED
+  DISABLED_FORCED
 }
 
 input CreateUserContactMethodInput {
@@ -1310,6 +1385,12 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like webhooks, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input SendContactMethodVerificationInput {

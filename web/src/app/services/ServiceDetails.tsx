@@ -15,7 +15,7 @@ import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
-import ServiceMaintenanceNotice from './ServiceMaintenanceNotice'
+import ServiceNotices from './ServiceNotices'
 import { HeartbeatMonitor } from '../../schema'
 
 interface AlertNode {
@@ -102,7 +102,7 @@ export default function ServiceDetails(props: {
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
-        notices={<ServiceMaintenanceNotice serviceID={serviceID} />}
+        notices={<ServiceNotices serviceID={serviceID} />}
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}

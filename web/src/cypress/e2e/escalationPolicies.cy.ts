@@ -33,7 +33,11 @@ function testEP(screen: ScreenFormat): void {
 
     describe('Creation', () => {
       it('should allow canceling', () => {
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Escalation Policy').click()
+        }
         cy.dialogTitle('Create Escalation Policy')
         cy.dialogFinish('Cancel')
       })
@@ -42,7 +46,12 @@ function testEP(screen: ScreenFormat): void {
         const name = 'SM EP ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
         const repeat = c.integer({ min: 0, max: 5 }).toString()
-        cy.pageFab()
+
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Escalation Policy').click()
+        }
 
         cy.dialogTitle('Create Escalation Policy')
         cy.dialogForm({ name, description, repeat })

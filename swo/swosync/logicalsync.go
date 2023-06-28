@@ -40,7 +40,7 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	if err != nil {
 		return fmt.Errorf("read changes: begin tx: %w", err)
 	}
-	defer l.srcConn.Exec(ctx, `rollback`)
+	defer func(srcConn *pgx.Conn) { _, _ = srcConn.Exec(ctx, `rollback`) }(l.srcConn)
 
 	// in-progress lock & check
 	_, err = res.Exec()
@@ -92,7 +92,7 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	}
 	err = l.dstConn.SendBatch(ctx, &applyChanges).Close()
 	if err != nil {
-		l.dstConn.Exec(ctx, `rollback`)
+		_, _ = l.dstConn.Exec(ctx, `rollback`)
 		return fmt.Errorf("apply changes: %w", err)
 	}
 

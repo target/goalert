@@ -5,7 +5,7 @@ import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { useLocation } from 'wouter'
 import Snackbar from '@mui/material/Snackbar'
-import { Alert, Typography } from '@mui/material'
+import { Alert, Grid, Typography } from '@mui/material'
 import { LinkAccountInfo } from '../../../schema'
 
 const mutation = gql`
@@ -136,18 +136,22 @@ export default function AuthLink(): JSX.Element | null {
         })
       }
       form={
-        <React.Fragment>
-          <Typography>
-            Clicking confirm will link the current GoAlert user{' '}
-            <b>{userName}</b> with:
-          </Typography>
-          {data.linkAccountInfo.userDetails}.
-          <br />
-          <br />
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography>
+              Clicking confirm will link the current GoAlert user{' '}
+              <b>{userName}</b> with:
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography>{data.linkAccountInfo.userDetails}.</Typography>
+          </Grid>
           {alertAction && (
-            <React.Fragment>After linking, {alertAction}</React.Fragment>
+            <Grid item xs={12}>
+              <Typography>After linking, {alertAction}</Typography>
+            </Grid>
           )}
-        </React.Fragment>
+        </Grid>
       }
     />
   )

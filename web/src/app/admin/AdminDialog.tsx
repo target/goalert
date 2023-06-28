@@ -73,7 +73,9 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
             c.value = c.value === '' && c.type === 'number' ? '0' : c.value
             return omit(c, ['oldValue', 'type'])
           }),
-        }).then(() => {
+        }).then((res) => {
+          if (res.error) return
+
           if (props.onComplete) props.onComplete()
           props.onClose()
         })

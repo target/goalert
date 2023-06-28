@@ -5,6 +5,7 @@
 /*.session.json
 *.zip
 /test-results
+/cypress/
 
 *.pem
 *.key
@@ -66,3 +67,6 @@ ngrok.log
 
 smoketest_db_dump
 *.pid
+
+/.yarn
+/.pnp.*

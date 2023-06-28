@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support/e2e'
 const c = new Chance()
 
-function testRotations(): void {
+function testRotations(screen: ScreenFormat): void {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {
@@ -29,7 +29,11 @@ function testRotations(): void {
 
     describe('Creation', () => {
       it('should allow canceling', () => {
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Rotation').click()
+        }
         cy.dialogTitle('Create Rotation')
         cy.dialogFinish('Cancel')
       })
@@ -40,7 +44,11 @@ function testRotations(): void {
           const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
           const shiftLength = c.integer({ min: 1, max: 10 })
 
-          cy.pageFab()
+          if (screen === 'mobile') {
+            cy.pageFab()
+          } else {
+            cy.get('button').contains('Create Rotation').click()
+          }
           cy.dialogTitle('Create Rotation')
           cy.dialogForm({
             name,
@@ -89,7 +97,11 @@ function testRotations(): void {
       cy.get('@parts').should('not.contain', rot.users[1].name)
 
       // add again
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
       cy.dialogForm({ users: rot.users[1].name })
       cy.dialogFinish('Submit')
@@ -106,9 +118,14 @@ function testRotations(): void {
       cy.createUser({ name, email })
       cy.createUser({ name, email: dupEmail })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
-      cy.get('input').click().type(name)
+      cy.get('input').click()
+      cy.focused().type(name)
 
       cy.get('body').should('contain', email)
       cy.get('body').should('contain', dupEmail)
@@ -126,7 +143,8 @@ function testRotations(): void {
       cy.get('button[aria-label="Toggle Drag and Drop"]').click()
 
       // pick up a participant
-      cy.get('svg[id="drag-0"]').focus().type('{enter}')
+      cy.get('svg[id="drag-0"]').focus()
+      cy.focused().type('{enter}')
       cy.get('body').should(
         'contain',
         'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
@@ -150,15 +168,15 @@ function testRotations(): void {
       cy.get('@parts')
         .eq(1)
         .should('contain', rot.users[1].name)
-        .should('not.contain', 'Active')
+        .should('not.contain', 'Shift ends')
       cy.get('@parts')
         .eq(2)
         .should('contain', rot.users[0].name)
-        .should('contain', 'Active')
+        .should('contain', 'Shift ends')
       cy.get('@parts')
         .eq(3)
         .should('contain', rot.users[2].name)
-        .should('not.contain', 'Active')
+        .should('not.contain', 'Shift ends')
     })
 
     it('should allow changing the active user', () => {
@@ -172,15 +190,15 @@ function testRotations(): void {
       cy.get('@parts')
         .eq(1)
         .should('contain', rot.users[0].name)
-        .should('not.contain', 'Active')
+        .should('not.contain', 'Shift ends')
       cy.get('@parts')
         .eq(2)
         .should('contain', rot.users[1].name)
-        .should('contain', 'Active')
+        .should('contain', 'Shift ends')
       cy.get('@parts')
         .eq(3)
         .should('contain', rot.users[2].name)
-        .should('not.contain', 'Active')
+        .should('not.contain', 'Shift ends')
     })
 
     it('should allow deleting the rotation', () => {

@@ -3,6 +3,7 @@ package twilio
 import (
 	"context"
 	"database/sql"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -17,15 +18,16 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation"
 	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
 )
 
 var (
-	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*'?$`)
-	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a)\s*'?$`)
-	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
+	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|e|ack[a-z]*)\s*'?$`)
+	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a|e)\s*'?$`)
+	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|e|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
 
 	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
@@ -110,32 +112,29 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return code
 	}
 
-	prefix := cfg.ApplicationName() + ": "
-	maxLen := maxGSMLen - len(prefix)
-
 	var message string
 	var err error
 	switch t := msg.(type) {
 	case notification.AlertStatus:
-		message, err = renderAlertStatusMessage(maxLen, t)
+		message, err = renderAlertStatusMessage(cfg.ApplicationName(), t)
 	case notification.AlertBundle:
 		var link string
 		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
 		}
 
-		message, err = renderAlertBundleMessage(maxLen, t, link, makeSMSCode(0, t.ServiceID))
+		message, err = renderAlertBundleMessage(cfg.ApplicationName(), t, link, makeSMSCode(0, t.ServiceID))
 	case notification.Alert:
 		var link string
 		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID))
 		}
 
-		message, err = renderAlertMessage(maxLen, t, link, makeSMSCode(t.AlertID, ""))
+		message, err = renderAlertMessage(cfg.ApplicationName(), t, link, makeSMSCode(t.AlertID, ""))
 	case notification.Test:
-		message = "Test message."
+		message = fmt.Sprintf("%s: Test message.", cfg.ApplicationName())
 	case notification.Verification:
-		message = fmt.Sprintf("Verification code: %d", t.Code)
+		message = fmt.Sprintf("%s: Verification code: %d", cfg.ApplicationName(), t.Code)
 	default:
 		return nil, errors.Errorf("unhandled message type %T", t)
 	}
@@ -149,7 +148,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	}
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Actually send notification to end user & receive Message Status
-	resp, err := s.c.SendSMS(ctx, destNumber, prefix+message, opts)
+	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "send message")
 	}
@@ -303,6 +302,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[1], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -310,6 +311,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if m := shortReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[2], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -323,6 +326,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if m := alertReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[1], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -337,6 +342,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		isSvc = true
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
+		} else if strings.HasPrefix(m[2], "e") {
+			result = notification.ResultEscalate
 		} else {
 			result = notification.ResultResolve
 		}
@@ -359,6 +366,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	var prefix string
 	if result == notification.ResultAcknowledge {
 		prefix = "Acknowledged"
+	} else if result == notification.ResultEscalate {
+		prefix = "Escalation requested"
 	} else {
 		prefix = "Closed"
 	}
@@ -390,6 +399,9 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	} else if alert.IsAlreadyAcknowledged(err) {
 		nonSystemErr = true
 		msg = fmt.Sprintf("Alert #%d already acknowledged", alert.AlertID(err))
+	} else if validation.IsClientError(err) {
+		respond(true, "Error: "+stderrors.Unwrap(err).Error())
+		return
 	}
 
 	if nonSystemErr {

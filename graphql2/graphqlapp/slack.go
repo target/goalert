@@ -9,14 +9,109 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation"
 )
 
 func (q *Query) SlackChannel(ctx context.Context, id string) (*slack.Channel, error) {
 	return q.SlackStore.Channel(ctx, id)
+}
+
+// SlackUserGroup is a GraphQL resolver for a Slack user group.
+func (q *Query) SlackUserGroup(ctx context.Context, id string) (*slack.UserGroup, error) {
+	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
+		return nil, validation.NewGenericError("Slack user groups are not enabled")
+	}
+	return q.SlackStore.UserGroup(ctx, id)
+}
+
+// SlackUserGroups is a GraphQL resolver for a list of Slack user groups.
+func (q *Query) SlackUserGroups(ctx context.Context, input *graphql2.SlackUserGroupSearchOptions) (conn *graphql2.SlackUserGroupConnection, err error) {
+	if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
+		return nil, validation.NewGenericError("Slack user groups are not enabled")
+	}
+	if input == nil {
+		input = &graphql2.SlackUserGroupSearchOptions{}
+	}
+
+	var searchOpts struct {
+		Search string   `json:"s,omitempty"`
+		Omit   []string `json:"m,omitempty"`
+		After  struct {
+			Name string `json:"n,omitempty"`
+		} `json:"a,omitempty"`
+	}
+	searchOpts.Omit = input.Omit
+	if input.Search != nil {
+		searchOpts.Search = *input.Search
+	}
+	if input.After != nil && *input.After != "" {
+		err = search.ParseCursor(*input.After, &searchOpts)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	limit := 15
+	if input.First != nil {
+		limit = *input.First
+	}
+
+	groups, err := q.SlackStore.ListUserGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Sort by handle, case-insensitive, then sensitive.
+	sort.Slice(groups, func(i, j int) bool {
+		iName, jName := strings.ToLower(groups[i].Handle), strings.ToLower(groups[j].Handle)
+
+		if iName != jName {
+			return iName < jName
+		}
+		return groups[i].Handle < groups[j].Handle
+	})
+
+	// No DB search, so we manually filter for the cursor and search strings.
+	s := strings.ToLower(searchOpts.Search)
+	n := strings.ToLower(searchOpts.After.Name)
+	filtered := groups[:0]
+	for _, ch := range groups {
+		grpName := strings.ToLower(ch.Handle)
+		if !strings.Contains(grpName, s) {
+			continue
+		}
+		if n != "" && grpName <= n {
+			continue
+		}
+		if contains(searchOpts.Omit, ch.ID) {
+			continue
+		}
+		filtered = append(filtered, ch)
+	}
+	groups = filtered
+
+	conn = new(graphql2.SlackUserGroupConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
+	if len(groups) > limit {
+		groups = groups[:limit]
+		conn.PageInfo.HasNextPage = true
+	}
+
+	if len(groups) > 0 {
+		searchOpts.After.Name = groups[len(groups)-1].Name
+		cur, err := search.Cursor(searchOpts)
+		if err != nil {
+			return conn, err
+		}
+		conn.PageInfo.EndCursor = &cur
+	}
+
+	conn.Nodes = groups
+	return conn, err
 }
 
 func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelSearchOptions) (conn *graphql2.SlackChannelConnection, err error) {

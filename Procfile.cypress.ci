@@ -1,10 +1,10 @@
 @oneshot
-cypress: go run ./devtools/waitfor http://localhost:3042 && CYPRESS_DB_URL=$DB_URL yarn workspace goalert-web --cwd=bin/build/integration cypress $CY_ACTION --config baseUrl=http://localhost:3040$HTTP_PREFIX
+cypress: go run ./devtools/waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=$DB_URL yarn cypress $CY_ACTION --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
 
-goalert: go run ./devtools/waitfor $DB_URL && go run ./devtools/procwrap -test=localhost:3042 bin/goalert -l=localhost:3042 --db-url=$DB_URL --slack-base-url=http://localhost:3040/slack --log-errors-only --public-url=http://localhost:3040$HTTP_PREFIX
+goalert: go run ./devtools/waitfor $DB_URL && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert -l=127.0.0.1:3042 --db-url=$DB_URL --slack-base-url=http://127.0.0.1:3040/slack --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX
 
-slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=localhost:3046
+slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
 
-proxy: go run ./devtools/simpleproxy -addr=localhost:3040 /slack/=http://localhost:3046 http://localhost:3042
+proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
 
 db: tail -f /var/log/postgresql/server.log

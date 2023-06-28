@@ -11,10 +11,10 @@ import { Button, Card, Grid, IconButton } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
-import { formatTimeSince } from '../util/timeFormat'
 import _ from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
+import { Time } from '../util/Time'
 
 const profileQuery = gql`
   query {
@@ -149,7 +149,14 @@ export default function UserSessionList({
                     <DeleteIcon />
                   </IconButton>
                 ),
-                subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
+                subText: (
+                  <Time
+                    format='relative'
+                    time={s.lastAccessAt}
+                    prefix='Last access: '
+                    min={{ minutes: 2 }}
+                  />
+                ),
               }))}
             />
           </Card>

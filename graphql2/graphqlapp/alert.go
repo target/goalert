@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,19 +14,15 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
-	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation/validate"
-	"gorm.io/gorm"
 )
 
 type (
@@ -465,32 +462,11 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		return nil, err
 	}
 
-	db := sqlutil.FromContext(ctx)
-
-	var rows []struct {
-		UserID          uuid.UUID
-		ChannelID       uuid.UUID
-		ContactMethodID uuid.UUID
-
-		User          *user.User                   `gorm:"foreignKey:UserID;references:ID"`
-		Channel       *notificationchannel.Channel `gorm:"foreignKey:ChannelID;references:ID"`
-		ContactMethod *contactmethod.ContactMethod `gorm:"foreignKey:ContactMethodID;references:ID"`
-	}
-
-	err = db.Table("outgoing_messages").
-		Select("UserID", "ChannelID", "ContactMethodID").Distinct().
-		Where("last_status = 'pending'").
-		Where("(now() - created_at) > interval '15 seconds'").
-		Where(
-			db.Where("alert_id = ?", obj.ID).Or(
-				"message_type = 'alert_notification_bundle' and service_id = ?", obj.ServiceID,
-			),
-		).
-		Preload("Channel", sqlutil.Columns("ID", "Type", "Name")).
-		Preload("ContactMethod", sqlutil.Columns("ID", "Type")).
-		Preload("User", sqlutil.Columns("ID", "Name")).
-		Find(&rows).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	rows, err := gadb.New(a.DB).AllPendingMsgDests(ctx, gadb.AllPendingMsgDestsParams{
+		AlertID:   int64(obj.ID),
+		ServiceID: uuid.MustParse(obj.ServiceID),
+	})
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -500,13 +476,13 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 	var result []graphql2.AlertPendingNotification
 	for _, r := range rows {
 		switch {
-		case r.ContactMethod != nil && r.User != nil:
+		case r.CmType.Valid && r.UserName.Valid:
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.User.Name, r.ContactMethod.Type),
+				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, r.CmType.EnumUserContactMethodType),
 			})
-		case r.Channel != nil:
+		case r.NcName.Valid && r.NcType.Valid:
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.Channel.Name, r.Channel.Type),
+				Destination: fmt.Sprintf("%s (%s)", r.NcName.String, r.NcType.EnumNotifChannelType),
 			})
 		default:
 			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)

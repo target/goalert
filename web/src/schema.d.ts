@@ -36,6 +36,8 @@ export interface Query {
   userContactMethod?: null | UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
+  slackUserGroups: SlackUserGroupConnection
+  slackUserGroup?: null | SlackUserGroup
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
@@ -127,6 +129,40 @@ export interface MessageLogSearchOptions {
 
 export interface MessageLogConnection {
   nodes: DebugMessage[]
+  pageInfo: PageInfo
+  stats: MessageLogConnectionStats
+}
+
+export interface MessageLogConnectionStats {
+  timeSeries: TimeSeriesBucket[]
+}
+
+export interface TimeSeriesOptions {
+  bucketDuration: ISODuration
+  bucketOrigin?: null | ISOTimestamp
+}
+
+export interface TimeSeriesBucket {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  count: number
+}
+
+export interface SlackUserGroupSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface SlackUserGroup {
+  id: string
+  name: string
+  handle: string
+}
+
+export interface SlackUserGroupConnection {
+  nodes: SlackUserGroup[]
   pageInfo: PageInfo
 }
 
@@ -377,6 +413,20 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createBasicAuth: boolean
+  updateBasicAuth: boolean
+}
+
+export interface CreateBasicAuthInput {
+  username: string
+  password: string
+  userID: string
+}
+
+export interface UpdateBasicAuthInput {
+  password: string
+  oldPassword?: null | string
+  userID: string
 }
 
 export interface UpdateAlertsByServiceInput {
@@ -841,6 +891,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -930,11 +981,13 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'
   | 'schedule'
   | 'user'
+  | 'chanWebhook'
   | 'integrationKey'
   | 'userOverride'
   | 'notificationRule'
@@ -1009,7 +1062,12 @@ export interface UserNotificationRule {
   contactMethod?: null | UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
+export type ContactMethodType =
+  | 'SMS'
+  | 'VOICE'
+  | 'EMAIL'
+  | 'WEBHOOK'
+  | 'SLACK_DM'
 
 export interface UserContactMethod {
   id: string
@@ -1018,10 +1076,18 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1041,6 +1107,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {
@@ -1109,6 +1176,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Twilio.Enable'
+  | 'Twilio.VoiceName'
+  | 'Twilio.VoiceLanguage'
   | 'Twilio.AccountSID'
   | 'Twilio.AuthToken'
   | 'Twilio.AlternateAuthToken'

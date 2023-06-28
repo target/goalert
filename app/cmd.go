@@ -263,8 +263,7 @@ Migration: %s (#%d)
 					return fmt.Errorf("read config: %w", err)
 				}
 				cfg = store.Config()
-				store.Shutdown(ctx)
-				return nil
+				return store.Shutdown(ctx)
 			}
 			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())
@@ -570,7 +569,12 @@ Migration: %s (#%d)
 				fmt.Fprintln(os.Stderr)
 			}
 
-			err = basicStore.CreateTx(ctx, tx, id, username, pass)
+			pw, err := basicStore.NewHashedPassword(ctx, pass)
+			if err != nil {
+				return errors.Wrap(err, "hash password")
+			}
+
+			err = basicStore.CreateTx(ctx, tx, id, username, pw)
 			if err != nil {
 				return errors.Wrap(err, "add basic auth entry")
 			}
@@ -710,7 +714,7 @@ func init() {
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
-	RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
+	_ = RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
 
 	RootCmd.Flags().Bool("api-only", def.APIOnly, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
@@ -733,28 +737,28 @@ func init() {
 
 	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
 	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
-	RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
-	RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
 	RootCmd.Flags().String("stackdriver-project-id", "", "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
-	RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
 	RootCmd.Flags().String("tracing-cluster-name", "", "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
-	RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-namespace", "", "Pod namespace to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-name", "", "Pod name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-container-name", "", "Container name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-node-name", "", "Node name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
 	RootCmd.Flags().Float64("tracing-probability", 0, "Probability of a new trace to be recorded.")
-	RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
 
 	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
-	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length.")
-	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only.")
+	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length. Only use this when performing a switchover.")
+	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only. Only necessary when changing --data-encryption-key.")
 	RootCmd.PersistentFlags().Bool("stack-traces", false, "Enables stack traces with all error logs.")
 
 	RootCmd.Flags().Bool("stub-notifiers", def.StubNotifiers, "If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).")

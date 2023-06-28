@@ -13,7 +13,11 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.visit('/schedules')
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Schedule').click()
+      }
       cy.dialogTitle('Create New Schedule')
       cy.dialogForm({ name, description })
       cy.dialogFinish('Submit')
@@ -174,7 +178,8 @@ function testSchedules(screen: ScreenFormat): void {
         })
         .then((s: ScheduleTarget) => {
           sched = s
-          return cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+          return cy.get('[role="progressbar"]').should('not.exist')
         })
     })
 
@@ -182,7 +187,11 @@ function testSchedules(screen: ScreenFormat): void {
       cy.createRotation().then(({ name }: Rotation) => {
         cy.get('ul').should('not.contain', name)
 
-        cy.pageFab('Rotation')
+        if (screen === 'mobile') {
+          cy.pageFab('Rotation')
+        } else {
+          cy.get('button').contains('Add Rotation').click()
+        }
         cy.dialogTitle('Add Rotation to Schedule')
         cy.dialogForm({ targetID: name })
         cy.dialogFinish('Submit')
@@ -196,7 +205,11 @@ function testSchedules(screen: ScreenFormat): void {
 
       cy.get('body').should('not.contain', name)
 
-      cy.pageFab('User')
+      if (screen === 'mobile') {
+        cy.pageFab('User')
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User to Schedule')
       cy.dialogForm({ targetID: name })
       cy.dialogFinish('Submit')
@@ -217,7 +230,11 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create multiple rules on an assignment', () => {
-      cy.pageFab('Rotation')
+      if (screen === 'mobile') {
+        cy.pageFab('Rotation')
+      } else {
+        cy.get('button').contains('Add Rotation').click()
+      }
       cy.dialogTitle('Add Rotation')
 
       if (screen === 'mobile' || screen === 'tablet') {
@@ -350,7 +367,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[0].name)
-      cy.get('p').should('contain', 'Added from')
+      cy.get('span').should('contain', 'Added from')
       expect('span').to.not.contain('No results')
     })
 
@@ -371,7 +388,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[0].name)
-      cy.get('p').should('contain', 'Removed from')
+      cy.get('span').should('contain', 'Removed from')
       expect('span').to.not.contain('No results')
     })
 
@@ -392,7 +409,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       cy.get('span').should('contain', users[1].name)
-      cy.get('p').should('contain', `Replaces ${users[0].name} from`)
+      cy.get('span').should('contain', `Replaces ${users[0].name} from`)
       expect('span').to.not.contain('No results')
     })
 
@@ -463,21 +480,29 @@ function testSchedules(screen: ScreenFormat): void {
       })
 
       // on change
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
-        slackChannelID: 'general',
+        targetID: 'general',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', '#general')
       cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Notification Rule').click()
+      }
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
-        slackChannelID: 'foobar',
+        targetID: 'foobar',
         ruleType: 'time-of-day',
         time: '00:00',
         'weekdayFilter[0]': false,
@@ -575,7 +600,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Edit Notification Rule')
       cy.dialogForm({
         ruleType: 'time-of-day',
-        slackChannelID: 'foobar',
+        targetID: 'foobar',
         time: '07:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,

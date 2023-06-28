@@ -3,6 +3,7 @@ package twilio
 import (
 	"bytes"
 	"context"
+	"errors"
 	"strings"
 	"text/template"
 	"unicode"
@@ -20,15 +21,15 @@ import (
 // then be 70 or 67 characters for single or multi-segmented messages, respectively.
 const maxGSMLen = 160
 
-var alertTempl = template.Must(template.New("alertSMS").Parse(`Alert #{{.AlertID}}: {{.Summary}}
+var alertTempl = template.Must(template.New("alertSMS").Parse(`{{.AppName}}: Alert #{{.AlertID}}: {{.Summary}}
 {{- if .Link }}
 
 {{.Link}}{{end}}
 {{- if .Code}}
 
-Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.{{end}}`))
+Reply '{{.Code}}a' to ack, '{{.Code}}e' to escalate, '{{.Code}}c' to close.{{end}}`))
 
-var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
+var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`{{.AppName}}: Svc '{{.ServiceName}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 
 {{- if .Link }}
 
@@ -37,7 +38,7 @@ var bundleTempl = template.Must(template.New("alertBundleSMS").Parse(`Svc '{{.Se
 {{- if .Code}}
 	Reply '{{.Code}}aa' to ack all, '{{.Code}}cc' to close all.{{end}}`))
 
-var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`Alert #{{.AlertID}}{{- if .Summary }}: {{.Summary}}{{end}}
+var statusTempl = template.Must(template.New("alertStatusSMS").Parse(`{{.AppName}}: Alert #{{.AlertID}}{{- if .Summary }}: {{.Summary}}{{end}}
 
 	{{.LogEntry}}`))
 
@@ -138,26 +139,53 @@ func normalizeGSM(str string) (s string) {
 	return s
 }
 
-// renderAlertMessage will render a single-segment SMS for an Alert.
+func renderMinGSMSegments(inputs []string, render func(inputs []string) (string, error)) (string, error) {
+	for i, s := range inputs {
+		inputs[i] = normalizeGSM(s)
+	}
+
+	size := maxGSMLen
+	for {
+		result, err := util.RenderSizeN(size, inputs, func(inputs []string) (string, error) {
+			cpy := make([]string, len(inputs))
+			for i, s := range inputs {
+				cpy[i] = strings.TrimSpace(s)
+			}
+
+			return render(cpy)
+		})
+		if errors.Is(err, util.ErrNoSolution) {
+			size += maxGSMLen
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+
+		return result, nil
+	}
+}
+
+// renderAlertMessage will render a SMS message for an Alert.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
-func renderAlertMessage(maxLen int, a notification.Alert, link string, code int) (string, error) {
+// truncated (as needed) to use the minimum number of message segments.
+func renderAlertMessage(appName string, a notification.Alert, link string, code int) (string, error) {
 	var buf bytes.Buffer
-	a.Summary = normalizeGSM(a.Summary)
-
 	var data struct {
+		AppName string
 		notification.Alert
 		Link string
 		Code int
 	}
+	data.AppName = appName
 	data.Alert = a
 	data.Link = link
 	data.Code = code
 
-	result, err := util.RenderSize(maxLen, data.Alert.Summary, func(summary string) (string, error) {
+	result, err := renderMinGSMSegments([]string{a.Summary}, func(inputs []string) (string, error) {
 		buf.Reset()
-		data.Alert.Summary = strings.TrimSpace(summary)
+		data.Summary = inputs[0]
 		err := alertTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
@@ -171,20 +199,23 @@ func renderAlertMessage(maxLen int, a notification.Alert, link string, code int)
 	return result, nil
 }
 
-// renderAlertStatusMessage will render a single-segment SMS for an Alert Status.
+// renderAlertStatusMessage will render a SMS message for an Alert Status.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
-func renderAlertStatusMessage(maxLen int, a notification.AlertStatus) (string, error) {
+// truncated (as needed) to use the minimum number of message segments.
+func renderAlertStatusMessage(appName string, a notification.AlertStatus) (string, error) {
 	var buf bytes.Buffer
-	a.Summary = normalizeGSM(a.Summary)
-	a.LogEntry = normalizeGSM(a.LogEntry)
-
-	result, err := util.RenderSizeN(maxLen, []string{a.Summary, a.LogEntry}, func(inputs []string) (string, error) {
+	var data struct {
+		AppName string
+		notification.AlertStatus
+	}
+	data.AppName = appName
+	data.AlertStatus = a
+	result, err := renderMinGSMSegments([]string{a.Summary, a.LogEntry}, func(inputs []string) (string, error) {
 		buf.Reset()
-		a.Summary = strings.TrimSpace(inputs[0])
-		a.LogEntry = strings.TrimSpace(inputs[1])
-		err := statusTempl.Execute(&buf, a)
+		data.Summary = inputs[0]
+		data.LogEntry = inputs[1]
+		err := statusTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err
 		}
@@ -197,26 +228,27 @@ func renderAlertStatusMessage(maxLen int, a notification.AlertStatus) (string, e
 	return result, nil
 }
 
-// renderAlertBundleMessage will render a single-segment SMS for an Alert Bundle.
+// renderAlertBundleMessage will render an SMS message for an Alert Bundle.
 //
 // Non-GSM characters will be replaced with '?' and fields will be
-// truncated (if needed) until the output is <= maxLen characters.
-func renderAlertBundleMessage(maxLen int, a notification.AlertBundle, link string, code int) (string, error) {
+// truncated (as needed) to use the minimum number of message segments.
+func renderAlertBundleMessage(appName string, a notification.AlertBundle, link string, code int) (string, error) {
 	var buf bytes.Buffer
-	a.ServiceName = normalizeGSM(a.ServiceName)
 
 	var data struct {
+		AppName string
 		notification.AlertBundle
 		Link string
 		Code int
 	}
+	data.AppName = appName
 	data.AlertBundle = a
 	data.Link = link
 	data.Code = code
 
-	result, err := util.RenderSize(maxLen, data.AlertBundle.ServiceName, func(name string) (string, error) {
+	result, err := renderMinGSMSegments([]string{data.AlertBundle.ServiceName}, func(inputs []string) (string, error) {
 		buf.Reset()
-		data.AlertBundle.ServiceName = strings.TrimSpace(name)
+		data.ServiceName = inputs[0]
 		err := bundleTempl.Execute(&buf, data)
 		if err != nil {
 			return "", err

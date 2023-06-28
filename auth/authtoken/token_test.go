@@ -83,12 +83,12 @@ func TestToken_Version2(t *testing.T) {
 	assert.NoError(t, err) // should be valid base64
 
 	var exp bytes.Buffer
-	exp.WriteByte('V')                                                 // Versioned header flag
-	exp.WriteByte(2)                                                   // version
-	exp.WriteByte(byte(TypeCalSub))                                    // type
-	exp.Write(tok.ID[:])                                               // ID
-	binary.Write(&exp, binary.BigEndian, uint64(tok.CreatedAt.Unix())) // CreatedAt
-	exp.WriteString("sig")                                             // Signature
+	exp.WriteByte('V')                                                     // Versioned header flag
+	exp.WriteByte(2)                                                       // version
+	exp.WriteByte(byte(TypeCalSub))                                        // type
+	exp.Write(tok.ID[:])                                                   // ID
+	_ = binary.Write(&exp, binary.BigEndian, uint64(tok.CreatedAt.Unix())) // CreatedAt
+	exp.WriteString("sig")                                                 // Signature
 	assert.Equal(t, exp.Bytes(), dec)
 
 	parsed, isOld, err := Parse(s, func(typ Type, p, sig []byte) (bool, bool) {

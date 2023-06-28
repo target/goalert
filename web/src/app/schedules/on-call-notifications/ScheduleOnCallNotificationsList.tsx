@@ -1,19 +1,31 @@
 import React, { useState } from 'react'
-import { Grid, Card } from '@mui/material'
+import { Button, Grid, Card } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
 
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
-import { SlackBW } from '../../icons/components/Icons'
+import { SlackBW, WebhookBW } from '../../icons/components/Icons'
 import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
+import { useIsWidthDown } from '../../util/useWidth'
+import { Add } from '@mui/icons-material'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
+}
+
+function getChannelIcon(targetType: string): JSX.Element {
+  if (targetType === 'slackUserGroup' || targetType === 'slackChannel') {
+    return <SlackBW />
+  }
+  if (targetType === 'chanWebhook') {
+    return <WebhookBW />
+  }
+  return <div />
 }
 
 export default function ScheduleOnCallNotificationsList({
@@ -22,6 +34,8 @@ export default function ScheduleOnCallNotificationsList({
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
+  const isMobile = useIsWidthDown('md')
+
   const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
   return (
@@ -36,14 +50,20 @@ export default function ScheduleOnCallNotificationsList({
                   ? 'Loading notification rules...'
                   : 'No notification rules.'
               }
+              headerAction={
+                isMobile ? undefined : (
+                  <Button
+                    variant='contained'
+                    onClick={() => setCreateRule(true)}
+                    startIcon={<Add />}
+                  >
+                    Create Notification Rule
+                  </Button>
+                )
+              }
               items={rules.map((rule) => {
                 return {
-                  icon:
-                    rule.target.type === 'slackChannel' ? (
-                      <Avatar>
-                        <SlackBW />{' '}
-                      </Avatar>
-                    ) : null,
+                  icon: <Avatar>{getChannelIcon(rule.target.type)}</Avatar>,
                   title: rule.target.name ?? undefined,
                   subText: 'Notifies ' + onCallRuleSummary(zone, rule),
                   secondaryAction: (
@@ -66,6 +86,12 @@ export default function ScheduleOnCallNotificationsList({
           </Card>
         </Grid>
       </Grid>
+      {isMobile && (
+        <CreateFAB
+          onClick={() => setCreateRule(true)}
+          title='Create Notification Rule'
+        />
+      )}
       {createRule && (
         <ScheduleOnCallNotificationsCreateDialog
           scheduleID={scheduleID}
@@ -86,10 +112,6 @@ export default function ScheduleOnCallNotificationsList({
           onClose={() => setDeleteRuleID('')}
         />
       )}
-      <CreateFAB
-        onClick={() => setCreateRule(true)}
-        title='Create Notification Rule'
-      />
     </React.Fragment>
   )
 }

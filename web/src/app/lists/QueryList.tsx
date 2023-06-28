@@ -17,6 +17,8 @@ import ControlledPaginatedList, {
 } from './ControlledPaginatedList'
 import { PageControls } from './PageControls'
 import { ListHeader } from './ListHeader'
+import CreateFAB from './CreateFAB'
+import { useIsWidthDown } from '../util/useWidth'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -84,6 +86,11 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
 
   // mapVariables transforms query variables just before submission
   mapVariables?: (vars: OperationVariables) => OperationVariables
+
+  renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
+
+  createLabel?: string
+  hideCreate?: boolean
 }
 
 export type QueryListProps = Omit<_QueryListProps, 'items'>
@@ -100,10 +107,15 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     variables = {},
     noSearch,
     mapVariables = (v) => v,
+    renderCreateDialog,
+    createLabel,
+    hideCreate,
     ...listProps
   } = props
   const { input, ...vars } = variables
   const [page, setPage] = useState(0)
+  const [showCreate, setShowCreate] = useState(false)
+  const isMobile = useIsWidthDown('md')
 
   const [searchParam] = useURLParam('search', '')
   const urlKey = useURLKey()
@@ -118,13 +130,12 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     ...vars,
     input: {
       first: ITEMS_PER_PAGE,
-      search: searchParam,
       ...input,
     },
   }
 
-  if (noSearch) {
-    delete queryVariables.input.search
+  if (searchParam) {
+    queryVariables.input.search = searchParam
   }
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
@@ -182,10 +193,12 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           items={items}
           itemsPerPage={queryVariables.input.first}
           page={page}
-          pageCount={pageCount}
           isLoading={isLoading}
           loadMore={loadMore}
           noSearch={noSearch}
+          renderCreateDialog={renderCreateDialog}
+          createLabel={createLabel}
+          hideCreate={hideCreate}
         />
       )
     }
@@ -203,7 +216,6 @@ export default function QueryList(props: QueryListProps): JSX.Element {
             key={urlKey}
             items={items}
             page={page}
-            pageCount={pageCount}
             isLoading={isLoading}
             itemsPerPage={queryVariables.input.first}
             loadMore={loadMore}
@@ -224,6 +236,15 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           setPage={setPage}
           isLoading={isLoading}
         />
+      )}
+      {!hideCreate && isMobile && renderCreateDialog && createLabel && (
+        <React.Fragment>
+          <CreateFAB
+            onClick={() => setShowCreate(true)}
+            title={`Create ${createLabel}`}
+          />
+          {showCreate && renderCreateDialog(() => setShowCreate(false))}
+        </React.Fragment>
       )}
     </Grid>
   )

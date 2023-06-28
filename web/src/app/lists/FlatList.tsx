@@ -8,7 +8,7 @@ import React, {
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
-import MUIListItem from '@mui/material/ListItem'
+import MUIListItem, { ListItemProps } from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -94,7 +94,7 @@ export interface FlatListNotice extends Notice {
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
 }
-export interface FlatListItem {
+export interface FlatListItem extends ListItemProps {
   title?: string
   highlight?: boolean
   subText?: JSX.Element | string

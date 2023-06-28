@@ -8,13 +8,15 @@ import (
 type Type string
 
 const (
-	TypeUnknown Type = ""
-	TypeSlack   Type = "SLACK"
+	TypeUnknown   Type = ""
+	TypeSlackChan Type = "SLACK"
+	TypeWebhook   Type = "WEBHOOK"
+	TypeSlackUG   Type = "SLACK_USER_GROUP"
 )
 
 // Valid returns true if t is a known Type.
 func (t Type) Valid() bool {
-	return t == TypeSlack
+	return t == TypeSlackChan
 }
 
 func (t Type) Value() (driver.Value, error) {

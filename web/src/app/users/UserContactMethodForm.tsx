@@ -3,8 +3,8 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
 import TelTextField from '../util/TelTextField'
-import { MenuItem, Typography } from '@mui/material'
-import { ContactMethodType } from '../../schema'
+import { Checkbox, FormControlLabel, MenuItem, Typography } from '@mui/material'
+import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
 import { FieldError } from '../util/errutil'
 
@@ -12,6 +12,7 @@ type Value = {
   name: string
   type: ContactMethodType
   value: string
+  statusUpdates?: StatusUpdateState
 }
 
 export type UserContactMethodFormProps = {
@@ -72,6 +73,22 @@ function renderURLField(edit: boolean): JSX.Element {
   )
 }
 
+function renderSlackField(edit: boolean): JSX.Element {
+  return (
+    <FormField
+      fullWidth
+      name='value'
+      required
+      label='Slack Member ID'
+      placeholder='member ID'
+      component={TextField}
+      disabled={edit}
+      // @ts-expect-error TS2322 -- FormField has not been converted to ts, and inferred type is incorrect.
+      helperText='Go to your Slack profile, click the three dots, and select "Copy member ID".'
+    />
+  )
+}
+
 function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
   switch (type) {
     case 'SMS':
@@ -81,6 +98,8 @@ function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
       return renderEmailField(edit)
     case 'WEBHOOK':
       return renderURLField(edit)
+    case 'SLACK_DM':
+      return renderSlackField(edit)
     default:
   }
 
@@ -105,13 +124,24 @@ export default function UserContactMethodForm(
 ): JSX.Element {
   const { value, edit = false, ...other } = props
 
-  const [smsVoiceEnabled, emailEnabled, webhookEnabled, disclaimer] =
-    useConfigValue(
-      'Twilio.Enable',
-      'SMTP.Enable',
-      'Webhook.Enable',
-      'General.NotificationDisclaimer',
-    )
+  const [
+    smsVoiceEnabled,
+    emailEnabled,
+    webhookEnabled,
+    slackEnabled,
+    disclaimer,
+  ] = useConfigValue(
+    'Twilio.Enable',
+    'SMTP.Enable',
+    'Webhook.Enable',
+    'Slack.Enable',
+    'General.NotificationDisclaimer',
+  )
+
+  const statusUpdateChecked =
+    value.statusUpdates === 'ENABLED' ||
+    value.statusUpdates === 'ENABLED_FORCED' ||
+    false
 
   return (
     <FormContainer
@@ -154,6 +184,9 @@ export default function UserContactMethodForm(
             {(edit || webhookEnabled) && (
               <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
             )}
+            {(edit || slackEnabled) && (
+              <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
+            )}
           </FormField>
         </Grid>
         <Grid item xs={12}>
@@ -162,6 +195,30 @@ export default function UserContactMethodForm(
         <Grid item xs={12}>
           <Typography variant='caption'>{disclaimer}</Typography>
         </Grid>
+        {edit && (
+          <Grid item xs={12}>
+            <FormControlLabel
+              label='Enable status updates'
+              control={
+                <Checkbox
+                  name='enableStatusUpdates'
+                  disabled={
+                    value.statusUpdates === 'DISABLED_FORCED' ||
+                    value.statusUpdates === 'ENABLED_FORCED'
+                  }
+                  checked={statusUpdateChecked}
+                  onChange={(v) =>
+                    props.onChange &&
+                    props.onChange({
+                      ...value,
+                      statusUpdates: v.target.checked ? 'ENABLED' : 'DISABLED',
+                    })
+                  }
+                />
+              }
+            />
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )

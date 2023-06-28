@@ -15,7 +15,7 @@ func FuzzJMESPath(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, s string) {
-		JMESPath("Name", s)
+		_ = JMESPath("Name", s)
 	})
 }
 

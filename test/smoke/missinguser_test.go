@@ -3,6 +3,7 @@ package smoke
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -94,7 +95,8 @@ func TestMissingUser(t *testing.T) {
 	defer h.Close()
 
 	d := h.Twilio(t).Device(h.Phone("1"))
-	h.Escalate(1, 0)
+	err := h.EscalateAlertErr(1)
+	assert.Error(t, err, "empty policy")
 	d.ExpectSMS("correct")
 
 	// Rotations will always have someone active, as long as there are 1 or more participants

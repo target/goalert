@@ -8,15 +8,15 @@ import {
 import { DateTime } from 'luxon'
 import { OnCallNotificationRule, Schedule } from '../../../schema'
 import {
-  Value,
-  onCallValueToRuleInput,
-  RuleFieldError,
-  onCallRuleSummary,
-  NO_DAY,
-  mapOnCallErrors,
   EVERY_DAY,
   formatLocalClockTime,
+  mapOnCallErrors,
+  NO_DAY,
+  onCallRuleSummary,
   onCallRuleToInput,
+  onCallValueToRuleInput,
+  RuleFieldError,
+  Value,
 } from './util'
 
 const schedTZQuery = gql`
@@ -93,26 +93,28 @@ export function useSetOnCallRulesSubmit(
   zone: string,
   ...rules: Array<OnCallNotificationRule | Value | null>
 ): _Submit {
-  const [submit, m] = useMutation(updateMutation, {
-    variables: {
-      input: {
-        scheduleID,
+  const variables = {
+    input: {
+      scheduleID,
 
-        // map value and rules into input format
-        rules: rules
-          .map((r) => {
-            if (r === null) return null
-            if ('slackChannelID' in r) {
-              return onCallValueToRuleInput(zone, r)
-            }
+      // map value and rules into input format
+      rules: rules
+        .map((r) => {
+          if (r === null) return null
+          if ('targetID' in r) {
+            return onCallValueToRuleInput(zone, r)
+          }
 
-            return onCallRuleToInput(r as OnCallNotificationRule)
-          })
+          return onCallRuleToInput(r as OnCallNotificationRule)
+        })
 
-          // remove any null values
-          .filter((r) => r),
-      },
+        // remove any null values
+        .filter((r) => r),
     },
+  }
+
+  const [submit, m] = useMutation(updateMutation, {
+    variables,
   })
   return { m, submit: () => submit().then(() => {}) }
 }
@@ -129,34 +131,6 @@ export type UpsertOnCallRuleState = UpdateOnCallRuleState & {
   value: Value
 }
 
-export function useCreateOnCallRule(
-  scheduleID: string,
-  value: Value | null,
-): UpsertOnCallRuleState {
-  const { q, zone, rules } = useOnCallRulesData(scheduleID)
-
-  const newValue: Value = value || {
-    time: null,
-    weekdayFilter: NO_DAY,
-    slackChannelID: null,
-  }
-  const { m, submit } = useSetOnCallRulesSubmit(
-    scheduleID,
-    zone,
-    newValue,
-    ...rules,
-  )
-
-  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
-  return {
-    dialogErrors,
-    fieldErrors,
-    busy: (q.loading && !zone) || m.loading,
-    value: newValue,
-    submit,
-  }
-}
-
 export function useEditOnCallRule(
   scheduleID: string,
   ruleID: string,
@@ -170,7 +144,8 @@ export function useEditOnCallRule(
       ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
       : null,
     weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    slackChannelID: rule?.target.id || null,
+    type: rule?.target?.type ?? 'slackChannel',
+    targetID: rule?.target?.id ?? null,
   }
   const { m, submit } = useSetOnCallRulesSubmit(
     scheduleID,

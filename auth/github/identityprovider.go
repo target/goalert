@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v51/github"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
@@ -38,7 +38,9 @@ func (p *Provider) newStateToken() (string, error) {
 	tok := p.c.NonceStore.New()
 	buf.Write(tok[:])
 
-	binary.Write(buf, binary.BigEndian, time.Now().Unix())
+	if err := binary.Write(buf, binary.BigEndian, time.Now().Unix()); err != nil {
+		return "", err
+	}
 
 	sig, err := p.c.Keyring.Sign(buf.Bytes())
 	if err != nil {
@@ -170,7 +172,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	if !inUsers && len(cfg.GitHub.AllowedOrgs) > 0 {
 		for _, o := range cfg.GitHub.AllowedOrgs {
 			if strings.Contains(o, "/") {
-				//skip teams (process below)
+				// skip teams (process below)
 				continue
 			}
 			m, _, err := g.Organizations.IsMember(ctx, o, login)
@@ -226,6 +228,9 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 
 	if !inUsers && !inOrg {
 		return nil, auth.Error("Not a member of an allowed org or whitelisted user.")
+	}
+	if strings.TrimSpace(u.GetName()) == "" {
+		return nil, auth.Error("GitHub user has no display name set.")
 	}
 
 	return &auth.Identity{
