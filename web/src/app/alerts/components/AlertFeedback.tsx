@@ -5,12 +5,7 @@ import Checkbox from '@mui/material/Checkbox'
 import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import TextField from '@mui/material/TextField'
-import FormDialog from '../../dialogs/FormDialog'
-import { nonFieldErrors } from '../../util/errutil'
 import { Card, CardContent, CardHeader, Typography } from '@mui/material'
-import ErrorBoundary from '../../main/ErrorBoundary'
-import { DEBOUNCE_DELAY } from '../../config'
-import { AlertStatus } from '../../../schema'
 import CardActions from '../../details/CardActions'
 
 const query = gql`
