@@ -472,23 +472,6 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 	return testAlert{h: h, a: newAlert}
 }
 
-// CreateManyAlert will create multiple new unacknowledged alerts for a given service.
-func (h *Harness) CreateManyAlert(serviceID, summary string) {
-	h.t.Helper()
-	a := &alert.Alert{
-		ServiceID: serviceID,
-		Summary:   summary,
-	}
-	h.t.Logf("insert alert: %v", a)
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		_, err := h.backend.AlertStore.Create(ctx, a)
-		if err != nil {
-			h.t.Fatalf("failed to insert alert: %v", err)
-		}
-	})
-}
-
 // AddNotificationRule will add a notification rule to the database.
 func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	h.t.Helper()

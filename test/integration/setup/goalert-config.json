@@ -4,5 +4,13 @@
     "From": "goalert@localhost",
     "Address": "localhost:6105",
     "DisableTLS": true
+  },
+  "OIDC": {
+    "Enable": true,
+    "NewUsers": true,
+    "IssuerURL": "http://127.0.0.1:9997/oidc",
+    "ClientID": "test-client",
+    "ClientSecret": "test-secret",
+    "UserInfoNamePath": "preferred_username"
   }
 }

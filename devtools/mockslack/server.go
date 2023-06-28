@@ -43,7 +43,6 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
 	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
 	// TODO: history, leave, join
-	srv.mux.HandleFunc("/oauth/authorize", srv.ServeOAuthAuthorize)
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {
 		srv.state.mx.Lock()

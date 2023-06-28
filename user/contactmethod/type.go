@@ -19,11 +19,6 @@ const (
 	TypeSlackDM Type = "SLACK_DM"
 )
 
-// Valid returns true if t is a known Type.
-func (t Type) Valid() bool {
-	return t == TypeVoice || t == TypeSMS || t == TypeEmail || t == TypePush || t == TypeWebhook || t == TypeSlackDM
-}
-
 func (t Type) StatusUpdatesAlways() bool {
 	return t == TypeSlackDM || t == TypeWebhook
 }

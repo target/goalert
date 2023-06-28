@@ -30,30 +30,3 @@ func (st *state) newUser(u User) User {
 
 	return u
 }
-
-func (st *state) addUserAppScope(userID, clientID string, scopes ...string) string {
-	st.mx.Lock()
-	defer st.mx.Unlock()
-
-	if st.users[userID].appTokens[clientID] == nil {
-		tok := &AuthToken{ID: st.gen.UserAccessToken(), User: userID, Scopes: scopes}
-		st.tokens[tok.ID] = tok
-		st.users[userID].appTokens[clientID] = tok
-
-		code := st.gen.TokenCode()
-		st.tokenCodes[code] = &tokenCode{AuthToken: tok, ClientID: clientID}
-		return code
-	}
-
-	tok := st.users[userID].appTokens[clientID]
-
-	for _, scope := range scopes {
-		if !contains(tok.Scopes, scope) {
-			tok.Scopes = append(tok.Scopes, scope)
-		}
-	}
-
-	code := st.gen.TokenCode()
-	st.tokenCodes[code] = &tokenCode{AuthToken: tok, ClientID: clientID}
-	return code
-}

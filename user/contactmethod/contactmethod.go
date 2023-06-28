@@ -23,8 +23,6 @@ type ContactMethod struct {
 	lastTestVerifyAt sql.NullTime
 }
 
-func (ContactMethod) TableName() string { return "user_contact_methods" }
-
 // LastTestVerifyAt will return the timestamp of the last test/verify request.
 func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.Time }
 

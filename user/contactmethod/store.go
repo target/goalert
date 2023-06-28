@@ -222,11 +222,6 @@ func (s *Store) DisableByValue(ctx context.Context, t Type, v string) error {
 	return err
 }
 
-// Insert inserts the new ContactMethod into the database. A new ID is always created.
-func (s *Store) Insert(ctx context.Context, c *ContactMethod) (*ContactMethod, error) {
-	return s.CreateTx(ctx, nil, c)
-}
-
 // CreateTx inserts the new ContactMethod into the database. A new ID is always created.
 func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*ContactMethod, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(c.UserID))
@@ -245,11 +240,6 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Co
 	}
 
 	return n, nil
-}
-
-// Delete removes the ContactMethod from the database using the provided ID.
-func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.DeleteTx(ctx, nil, id)
 }
 
 func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
@@ -344,11 +334,6 @@ func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) 
 		return nil, err
 	}
 	return &c, nil
-}
-
-// Update updates the contact method with the newly provided values.
-func (s *Store) Update(ctx context.Context, c *ContactMethod) error {
-	return s.UpdateTx(ctx, nil, c)
 }
 
 // UpdateTx updates the contact method with the newly provided values within a transaction.
