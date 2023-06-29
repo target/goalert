@@ -112,7 +112,7 @@ export default function AlertCountLineGraph(
       <Grid item xs={12} data-cy='alert-count-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
-          {({ width, height }) => (
+          {({ width, height }: { width: number; height: number }) => (
             <LineChart
               width={width}
               height={height}
