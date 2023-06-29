@@ -37,10 +37,6 @@ type AlertDataPoint struct {
 	AlertCount int       `json:"alertCount"`
 }
 
-type AlertFeedback struct {
-	Note *string `json:"note,omitempty"`
-}
-
 type AlertLogEntryConnection struct {
 	Nodes    []alertlog.Entry `json:"nodes"`
 	PageInfo *PageInfo        `json:"pageInfo"`
@@ -460,6 +456,11 @@ type ServiceSearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type SetAlertNoiseReasonInput struct {
+	AlertID     int    `json:"alertID"`
+	NoiseReason string `json:"noiseReason"`
+}
+
 type SetFavoriteInput struct {
 	Target   *assignment.RawTarget `json:"target"`
 	Favorite bool                  `json:"favorite"`
@@ -550,11 +551,6 @@ type TimeZoneSearchOptions struct {
 	After  *string  `json:"after,omitempty"`
 	Search *string  `json:"search,omitempty"`
 	Omit   []string `json:"omit,omitempty"`
-}
-
-type UpdateAlertFeedbackInput struct {
-	AlertID int    `json:"alertID"`
-	Note    string `json:"note"`
 }
 
 type UpdateAlertsByServiceInput struct {

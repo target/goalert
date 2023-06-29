@@ -2,6 +2,6 @@ package alert
 
 // Feedback represents user provided information about a given alert
 type Feedback struct {
-	AlertID int
-	Note    string
+	AlertID     int
+	NoiseReason string
 }

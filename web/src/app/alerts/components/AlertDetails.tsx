@@ -93,7 +93,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     variables: {
       input: {
         alertID: props.data.id,
-        note: '',
+        noiseReason: '',
       },
     },
   })
@@ -374,20 +374,20 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       'This could be due to rate-limiting, processing, or network delays.',
   }))
 
-  const note = alert?.feedback?.note ?? ''
-  if (note !== '') {
-    const notesArr = note.split('|')
-    const reasons = notesArr.join(', ')
+  const noiseReason = alert?.noiseReason ?? ''
+  if (noiseReason !== '') {
+    const nrArr = noiseReason.split('|')
+    const reasons = nrArr.join(', ')
     extraNotices = [
       ...extraNotices,
       {
         type: 'INFO',
         message: 'This alert has been marked as noise',
-        details: `Reason${notesArr.length > 1 ? 's' : ''}: ${reasons}`,
+        details: `Reason${nrArr.length > 1 ? 's' : ''}: ${reasons}`,
         action: (
           <LoadingButton
             buttonText='Undo'
-            aria-label='Reset alert notes'
+            aria-label='Reset noise reasons'
             variant='text'
             loading={undoFeedbackStatus.called && undoFeedbackStatus.loading}
             onClick={() => undoFeedback()}
@@ -407,7 +407,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       {/* Main Alert Info */}
       <Grid
         item
-        lg={isMobile || note !== '' ? 12 : 8}
+        lg={isMobile || noiseReason !== '' ? 12 : 8}
         className={classes.cardContainer}
       >
         <Card
@@ -443,7 +443,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
           <CardActions primaryActions={getMenuOptions()} />
         </Card>
       </Grid>
-      {!note && (
+      {!noiseReason && (
         <Grid item xs={12} lg={isMobile ? 12 : 4}>
           <AlertFeedback alertID={alert.alertID} />
         </Grid>

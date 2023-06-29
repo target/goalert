@@ -13,6 +13,7 @@ const query = gql`
       summary
       details
       createdAt
+      noiseReason
       service {
         id
         name
@@ -37,9 +38,6 @@ const query = gql`
       }
       pendingNotifications {
         destination
-      }
-      feedback {
-        note
       }
     }
   }

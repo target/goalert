@@ -2,7 +2,7 @@
 CREATE TABLE alert_feedback
 (
     alert_id BIGINT PRIMARY KEY REFERENCES alerts (id) ON DELETE CASCADE,
-    note TEXT
+    noise_reason TEXT
 );
 
 -- +migrate Down

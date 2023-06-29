@@ -360,22 +360,20 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	return m.AlertStore.Create(ctx, a)
 }
 
-func (a *Alert) Feedback(ctx context.Context, raw *alert.Alert) (*graphql2.AlertFeedback, error) {
+func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
 	am, err := a.AlertStore.Feedback(ctx, raw.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &graphql2.AlertFeedback{
-		Note: &am.Note,
-	}, nil
+	return &am.NoiseReason, nil
 }
 
-func (m *Mutation) UpdateAlertFeedback(ctx context.Context, input graphql2.UpdateAlertFeedbackInput) (bool, error) {
+func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAlertNoiseReasonInput) (bool, error) {
 	f := &alert.Feedback{
 		AlertID: input.AlertID,
 	}
 
-	f.Note = input.Note
+	f.NoiseReason = input.NoiseReason
 
 	err := m.AlertStore.UpdateFeedback(ctx, f)
 	if err != nil {

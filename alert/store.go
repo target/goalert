@@ -208,16 +208,16 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 
 		feedback: p(`
 			SELECT
-				alert_id, note
+				alert_id, noise_reason
 			FROM alert_feedback
 			WHERE alert_id = $1
 		`),
 
 		updateFeedback: p(`
-			INSERT INTO alert_feedback (alert_id, note)
+			INSERT INTO alert_feedback (alert_id, noise_reason)
 			VALUES ($1, $2)
 			ON CONFLICT (alert_id) DO UPDATE
-			SET note = $2
+			SET noise_reason = $2
 			WHERE alert_feedback.alert_id = $1
 		`),
 	}, prep.Err
@@ -812,11 +812,11 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 
 func (s *Store) Feedback(ctx context.Context, alertID int) (f Feedback, err error) {
 	row := s.feedback.QueryRowContext(ctx, alertID)
-	err = row.Scan(&f.AlertID, &f.Note)
+	err = row.Scan(&f.AlertID, &f.NoiseReason)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Feedback{
-			AlertID: alertID,
-			Note:    "",
+			AlertID:     alertID,
+			NoiseReason: "",
 		}, nil
 	}
 	return f, err
@@ -832,9 +832,9 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	if err != nil {
 		return err
 	}
-	f.Note = feedback.Note
+	f.NoiseReason = feedback.NoiseReason
 
-	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.Note)
+	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.NoiseReason)
 	if err != nil {
 		return err
 	}

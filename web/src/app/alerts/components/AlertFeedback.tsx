@@ -12,16 +12,14 @@ const query = gql`
   query AlertFeedbackQuery($id: Int!) {
     alert(id: $id) {
       id
-      feedback {
-        note
-      }
+      noiseReason
     }
   }
 `
 
 export const mutation = gql`
-  mutation UpdateFeedbackMutation($input: UpdateAlertFeedbackInput!) {
-    updateAlertFeedback(input: $input)
+  mutation SetAlertNoiseReasonMutation($input: SetAlertNoiseReasonInput!) {
+    setAlertNoiseReason(input: $input)
   }
 `
 
@@ -41,10 +39,10 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
 
   const options = ['False positive', 'Not actionable', 'Poor details']
 
-  const dataNotes = data?.alert?.feedback?.note ?? ''
+  const dataNoiseReason = data?.alert?.noiseReason ?? ''
 
   const getDefaults = (): [Array<string>, string] => {
-    const vals = dataNotes !== '' ? dataNotes.split('|') : []
+    const vals = dataNoiseReason !== '' ? dataNoiseReason.split('|') : []
     let defaultValue: Array<string> = []
     let defaultOther = ''
     vals.forEach((val: string) => {
@@ -59,7 +57,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   }
 
   const defaults = getDefaults()
-  const [notes, setNotes] = useState<Array<string>>(defaults[0])
+  const [noiseReasons, setNoiseReasons] = useState<Array<string>>(defaults[0])
   const [other, setOther] = useState(defaults[1])
   const [otherChecked, setOtherChecked] = useState(Boolean(defaults[1]))
   const [mutationStatus, commit] = useMutation(mutation)
@@ -67,30 +65,30 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
 
   useEffect(() => {
     const v = getDefaults()
-    setNotes(v[0])
+    setNoiseReasons(v[0])
     setOther(v[1])
     setOtherChecked(Boolean(v[1]))
-  }, [dataNotes])
+  }, [dataNoiseReason])
 
   function handleSubmit(): void {
-    let n = notes.slice()
+    let n = noiseReasons.slice()
     if (other !== '' && otherChecked) n = [...n, other]
     commit({
       input: {
         alertID,
-        note: n.join('|'),
+        noiseReason: n.join('|'),
       },
     })
   }
 
   function handleCheck(
     e: React.ChangeEvent<HTMLInputElement>,
-    note: string,
+    noiseReason: string,
   ): void {
     if (e.target.checked) {
-      setNotes([...notes, note])
+      setNoiseReasons([...noiseReasons, noiseReason])
     } else {
-      setNotes(notes.filter((n) => n !== note))
+      setNoiseReasons(noiseReasons.filter((n) => n !== noiseReason))
     }
   }
 
@@ -106,7 +104,7 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
               control={
                 <Checkbox
                   data-cy={option}
-                  checked={notes.includes(option)}
+                  checked={noiseReasons.includes(option)}
                   onChange={(e) => handleCheck(e, option)}
                 />
               }
@@ -150,11 +148,11 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       <CardActions
         primaryActions={[
           <Button
-            aria-label='Submit alert notes'
+            aria-label='Submit noise reasons'
             key='submit'
             variant='contained'
             onClick={handleSubmit}
-            disabled={!notes.length && !other}
+            disabled={!noiseReasons.length && !other}
           >
             Submit
           </Button>,

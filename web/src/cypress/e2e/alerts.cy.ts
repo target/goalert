@@ -412,10 +412,10 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('[placeholder="Other (please specify)"]').type('Test')
 
       // submit
-      cy.get('button[aria-label="Submit alert notes"]').should(
+      cy.get('button[aria-label="Submit noise reasons"]').should(
         'not.be.disabled',
       )
-      cy.get('button[aria-label="Submit alert notes"]').click()
+      cy.get('button[aria-label="Submit noise reasons"]').click()
       cy.get('label').contains('False positive').should('not.exist')
 
       // see notice
@@ -427,7 +427,7 @@ function testAlerts(screen: ScreenFormat): void {
       )
 
       // undo
-      cy.get('button[aria-label="Reset alert notes"]').click()
+      cy.get('button[aria-label="Reset noise reasons"]').click()
       cy.get('body').should('not.contain.text', noticeTitle)
       cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
         'not.be.checked',
