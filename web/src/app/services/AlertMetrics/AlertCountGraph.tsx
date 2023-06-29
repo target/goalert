@@ -41,7 +41,7 @@ export default function AlertCountGraph(
       <Grid item xs={12} data-cy='metrics-count-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
-          {({ width, height }) => (
+          {({ width, height }: { width: number; height: number }) => (
             <BarChart
               width={width}
               height={height}
