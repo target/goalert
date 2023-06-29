@@ -44,7 +44,6 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
 	srv.mux.HandleFunc("/api/usergroups.list", srv.ServeUserGroupList)
 	srv.mux.HandleFunc("/api/usergroups.users.update", srv.ServeUserGroupsUsersUpdate)
-
 	// TODO: history, leave, join
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {

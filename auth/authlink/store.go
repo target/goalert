@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
@@ -91,17 +91,11 @@ func (s *Store) FindLinkMetadata(ctx context.Context, token string) (*Metadata, 
 
 func (s *Store) tokenID(ctx context.Context, token string) (string, error) {
 	var c jwt.RegisteredClaims
-	_, err := s.k.VerifyJWT(token, &c)
+	_, err := s.k.VerifyJWT(token, &c, "goalert", "auth-link")
 	if err != nil {
 		return "", validation.WrapError(err)
 	}
 
-	if !c.VerifyIssuer("goalert", true) {
-		return "", validation.NewGenericError("invalid issuer")
-	}
-	if !c.VerifyAudience("auth-link", true) {
-		return "", validation.NewGenericError("invalid audience")
-	}
 	err = validate.UUID("ID", c.ID)
 	if err != nil {
 		return "", err

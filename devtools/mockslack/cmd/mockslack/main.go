@@ -20,6 +20,7 @@ func main() {
 	autoChannel := flag.Bool("auto-channel", false, "Automatically create missing channels on chat.postMessage calls.")
 	scopes := flag.String("scopes", "bot", "Comma-delimited list of scopes to add for the initial app.")
 	singleUser := flag.String("single-user", "", "If set, all requests will be implicitly authenticated.")
+	userGroups := flag.String("user-groups", "test,foobar", "Comma-delimited list of initial user groups.")
 	flag.Parse()
 
 	log.SetFlags(log.Lshortfile)
@@ -46,6 +47,12 @@ func main() {
 		}
 	}
 	srv.SetAutoCreateChannel(*autoChannel)
+
+	if *userGroups != "" {
+		for _, ug := range strings.Split(*userGroups, ",") {
+			srv.NewUserGroup(ug)
+		}
+	}
 
 	h := http.Handler(srv)
 	if *prefix != "" {

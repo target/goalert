@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -354,13 +354,13 @@ Migration: %s (#%d)
 				return errors.New("config file is required")
 			}
 
-			t, err := toml.LoadFile(file)
+			data, err := os.ReadFile(file)
 			if err != nil {
 				return err
 			}
 
 			var cfg remotemonitor.Config
-			err = t.Unmarshal(&cfg)
+			err = toml.Unmarshal(data, &cfg)
 			if err != nil {
 				return err
 			}

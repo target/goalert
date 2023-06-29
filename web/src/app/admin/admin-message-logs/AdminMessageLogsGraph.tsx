@@ -164,7 +164,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
               sx={{ height: 500 }}
             >
               <AutoSizer>
-                {({ width, height }) => (
+                {({ width, height }: { width: number; height: number }) => (
                   <LineChart
                     data={graphData}
                     width={width}
