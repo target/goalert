@@ -49,7 +49,6 @@ import AlertFeedback, {
 import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
-import { Fade } from '@mui/material'
 
 interface AlertDetailsProps {
   data: Alert
