@@ -42,6 +42,7 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/channels.create", srv.ServeChannelsCreate)
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
 	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
+	srv.mux.HandleFunc("/api/usergroups.list", srv.ServeUserGroupList)
 	// TODO: history, leave, join
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {
@@ -202,6 +203,30 @@ func (st *state) NewChannel(name string) ChannelInfo {
 		ID:        info.ID,
 		Name:      info.Name,
 		IsChannel: true,
+	}}
+	st.mx.Unlock()
+
+	return info
+}
+
+type UserGroupInfo struct {
+	ID, Name, Handle string
+}
+
+// NewUserGroup will create a new Slack user group with the given name.
+func (st *state) NewUserGroup(name string) UserGroupInfo {
+	info := UserGroupInfo{
+		ID:     st.gen.UserGroupID(),
+		Name:   name,
+		Handle: name,
+	}
+
+	st.mx.Lock()
+	st.usergroups[info.ID] = &usergroupState{UserGroup: UserGroup{
+		ID:          info.ID,
+		Name:        info.Name,
+		Handle:      info.Handle,
+		IsUserGroup: true,
 	}}
 	st.mx.Unlock()
 
