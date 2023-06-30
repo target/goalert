@@ -174,7 +174,7 @@ export default function UserContactMethodForm(
           disabled: !slackEnabled,
         },
       ].sort((cm) => (cm.disabled ? 1 : 0)),
-    [slackEnabled, webhookEnabled],
+    [smsVoiceEnabled, emailEnabled, webhookEnabled, slackEnabled],
   )
 
   return (
