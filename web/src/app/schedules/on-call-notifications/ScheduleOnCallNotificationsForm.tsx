@@ -70,7 +70,7 @@ export default function ScheduleOnCallNotificationsForm(
     }
   }
 
-  const channelTypeItems = useMemo(
+  const notificationChannels = useMemo(
     () => [
       {
         value: 'slackChannel',
@@ -223,11 +223,9 @@ export default function ScheduleOnCallNotificationsForm(
             label='Type'
             select
             onChange={handleTypeChange}
-            disabled={channelTypeItems.length <= 1}
+            disabled={notificationChannels.length <= 1}
           >
-            {channelTypeItems.map((channelType) =>
-              renderNotificationType(channelType),
-            )}
+            {notificationChannels.map(renderNotificationType)}
           </TextField>
         </Grid>
         {renderTypeFields(formProps.value.type)}

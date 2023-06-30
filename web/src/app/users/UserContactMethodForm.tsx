@@ -1,12 +1,13 @@
-import React from 'react'
+import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
-import { FormContainer, FormField } from '../forms'
-import TelTextField from '../util/TelTextField'
-import { Checkbox, FormControlLabel, MenuItem, Typography } from '@mui/material'
+import React, { useMemo } from 'react'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
+import { FormContainer, FormField } from '../forms'
 import { useConfigValue } from '../util/RequireConfig'
+import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
+import { renderContactMethod } from './UserContactMethodMenuItem'
 
 type Value = {
   name: string
@@ -143,6 +144,39 @@ export default function UserContactMethodForm(
     value.statusUpdates === 'ENABLED_FORCED' ||
     false
 
+  const contactMethods = useMemo(
+    () =>
+      [
+        {
+          value: 'SMS',
+          disabledMessage: 'Twilio must be configured by an administrator',
+          disabled: !smsVoiceEnabled,
+        },
+        {
+          value: 'VOICE',
+          disabledMessage: 'Twilio must be configured by an administrator',
+          disabled: !smsVoiceEnabled,
+        },
+        {
+          value: 'EMAIL',
+          disabledMessage: 'SMTP must be configured by an administrator',
+          disabled: !emailEnabled,
+        },
+        {
+          value: 'WEBHOOK',
+          disabledMessage: 'Webhooks must be enabled by an administrator',
+          disabled: !webhookEnabled,
+        },
+        {
+          value: 'SLACK_DM',
+          label: 'SLACK DM',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
+      ].sort((cm) => (cm.disabled ? 1 : 0)),
+    [slackEnabled, webhookEnabled],
+  )
+
   return (
     <FormContainer
       {...other}
@@ -176,17 +210,7 @@ export default function UserContactMethodForm(
             disabled={edit}
             component={TextField}
           >
-            {(edit || smsVoiceEnabled) && <MenuItem value='SMS'>SMS</MenuItem>}
-            {(edit || smsVoiceEnabled) && (
-              <MenuItem value='VOICE'>VOICE</MenuItem>
-            )}
-            {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
-            {(edit || webhookEnabled) && (
-              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
-            )}
-            {(edit || slackEnabled) && (
-              <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
-            )}
+            {contactMethods.map(renderContactMethod)}
           </FormField>
         </Grid>
         <Grid item xs={12}>

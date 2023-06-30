@@ -1,9 +1,9 @@
 import { ListItemText, MenuItem, Tooltip, TooltipProps } from '@mui/material'
 import React from 'react'
 
-export interface NotificationTypeOption {
-  label: string
+export interface ContactMethodOption {
   value: string
+  label?: string
   disabled: boolean
   disabledMessage: string
 }
@@ -14,16 +14,16 @@ const MenuTooltip = (props: TooltipProps & { value: string }): JSX.Element => {
   return <Tooltip {...props}>{props.children}</Tooltip>
 }
 
-export const renderNotificationType = (
-  notificationType: NotificationTypeOption,
+export const renderContactMethod = (
+  notificationType: ContactMethodOption,
 ): JSX.Element => {
-  const { label, value, disabled, disabledMessage } = notificationType
+  const { value, label, disabled, disabledMessage } = notificationType
   return disabled ? (
     // tooltips don't work on disabled elements so the MenuItem must be wrapped in a <span/>
     <MenuTooltip key={value} value={value} title={disabledMessage}>
       <span>
         <MenuItem key={value} value={value} disabled>
-          <ListItemText>{label}</ListItemText>
+          <ListItemText>{label ?? value}</ListItemText>
         </MenuItem>
       </span>
     </MenuTooltip>
@@ -34,7 +34,7 @@ export const renderNotificationType = (
       sx={{ paddingTop: 2.5, paddingBottom: 2.5 }}
     >
       <ListItemText sx={{ position: 'absolute', margin: 0 }}>
-        {label}
+        {label ?? value}
       </ListItemText>
     </MenuItem>
   )
