@@ -71,34 +71,35 @@ export default function ScheduleOnCallNotificationsForm(
   }
 
   const notificationChannels = useMemo(
-    () => [
-      {
-        value: 'slackChannel',
-        label: 'SLACK CHANNEL',
-        disabledMessage: 'Slack must be configured by an administrator',
-        disabled: !slackEnabled,
-      },
-      ...(slackUGEnabled
-        ? [
-            {
-              value: 'slackUserGroup',
-              label: 'SLACK USER GROUP',
-              disabledMessage: 'Slack must be configured by an administrator',
-              disabled: !slackEnabled,
-            },
-          ]
-        : []),
-      ...(webhookChannelEnabled
-        ? [
-            {
-              value: 'chanWebhook',
-              label: 'WEBHOOK',
-              disabledMessage: 'Webhooks must be enabled by an administrator',
-              disabled: !webhookEnabled,
-            },
-          ]
-        : []),
-    ],
+    () =>
+      [
+        {
+          value: 'slackChannel',
+          label: 'SLACK CHANNEL',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
+        ...(slackUGEnabled
+          ? [
+              {
+                value: 'slackUserGroup',
+                label: 'SLACK USER GROUP',
+                disabledMessage: 'Slack must be configured by an administrator',
+                disabled: !slackEnabled,
+              },
+            ]
+          : []),
+        ...(webhookChannelEnabled
+          ? [
+              {
+                value: 'chanWebhook',
+                label: 'WEBHOOK',
+                disabledMessage: 'Webhooks must be enabled by an administrator',
+                disabled: !webhookEnabled,
+              },
+            ]
+          : []),
+      ].sort((nc) => (nc.disabled ? 1 : 0)),
     [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
   )
 

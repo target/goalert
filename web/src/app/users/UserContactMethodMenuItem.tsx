@@ -20,7 +20,12 @@ export const renderContactMethod = (
   const { value, label, disabled, disabledMessage } = notificationType
   return disabled ? (
     // tooltips don't work on disabled elements so the MenuItem must be wrapped in a <span/>
-    <MenuTooltip key={value} value={value} title={disabledMessage}>
+    <MenuTooltip
+      key={value}
+      value={value}
+      title={disabledMessage}
+      placement='left'
+    >
       <span>
         <MenuItem key={value} value={value} disabled>
           <ListItemText>{label ?? value}</ListItemText>
