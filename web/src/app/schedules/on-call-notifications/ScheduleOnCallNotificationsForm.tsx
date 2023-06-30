@@ -72,30 +72,30 @@ export default function ScheduleOnCallNotificationsForm(
 
   const channelTypeItems = useMemo(
     () => [
-      renderNotificationType({
+      {
         value: 'slackChannel',
         label: 'SLACK CHANNEL',
         disabledMessage: 'Slack must be configured by an administrator',
         disabled: !slackEnabled,
-      }),
+      },
       ...(slackUGEnabled
         ? [
-            renderNotificationType({
+            {
               value: 'slackUserGroup',
               label: 'SLACK USER GROUP',
               disabledMessage: 'Slack must be configured by an administrator',
               disabled: !slackEnabled,
-            }),
+            },
           ]
         : []),
       ...(webhookChannelEnabled
         ? [
-            renderNotificationType({
+            {
               value: 'chanWebhook',
               label: 'WEBHOOK',
               disabledMessage: 'Webhooks must be enabled by an administrator',
               disabled: !webhookEnabled,
-            }),
+            },
           ]
         : []),
     ],
@@ -225,7 +225,9 @@ export default function ScheduleOnCallNotificationsForm(
             onChange={handleTypeChange}
             disabled={channelTypeItems.length <= 1}
           >
-            {channelTypeItems}
+            {channelTypeItems.map((channelType) =>
+              renderNotificationType(channelType),
+            )}
           </TextField>
         </Grid>
         {renderTypeFields(formProps.value.type)}
