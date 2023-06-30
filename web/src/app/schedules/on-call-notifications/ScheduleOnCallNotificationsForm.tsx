@@ -2,7 +2,6 @@ import {
   Checkbox,
   FormControlLabel,
   Grid,
-  MenuItem,
   Radio,
   RadioGroup,
   TextField,
@@ -12,15 +11,16 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
 
+import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
+import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
+import { renderNotificationType } from './NotificationTypeMenuItem'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
-import { TargetType } from '../../../schema'
-import { SlackUserGroupSelect, SlackChannelSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -72,33 +72,30 @@ export default function ScheduleOnCallNotificationsForm(
 
   const channelTypeItems = useMemo(
     () => [
-      <MenuItem
-        key='SLACK_CHANNEL'
-        value='slackChannel'
-        disabled={!slackEnabled}
-      >
-        SLACK CHANNEL
-      </MenuItem>,
+      renderNotificationType({
+        value: 'slackChannel',
+        label: 'SLACK CHANNEL',
+        disabledMessage: 'Slack must be configured by an administrator',
+        disabled: !slackEnabled,
+      }),
       ...(slackUGEnabled
         ? [
-            <MenuItem
-              key='SLACK_UG'
-              value='slackUserGroup'
-              disabled={!slackEnabled}
-            >
-              SLACK USER GROUP
-            </MenuItem>,
+            renderNotificationType({
+              value: 'slackUserGroup',
+              label: 'SLACK USER GROUP',
+              disabledMessage: 'Slack must be configured by an administrator',
+              disabled: !slackEnabled,
+            }),
           ]
         : []),
       ...(webhookChannelEnabled
         ? [
-            <MenuItem
-              key='WEBHOOK'
-              value='chanWebhook'
-              disabled={!webhookEnabled}
-            >
-              WEBHOOK
-            </MenuItem>,
+            renderNotificationType({
+              value: 'chanWebhook',
+              label: 'WEBHOOK',
+              disabledMessage: 'Webhooks must be enabled by an administrator',
+              disabled: !webhookEnabled,
+            }),
           ]
         : []),
     ],
