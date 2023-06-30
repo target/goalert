@@ -15,12 +15,28 @@ import (
 	"github.com/lib/pq"
 )
 
+const alertFeedback = `-- name: AlertFeedback :one
+SELECT
+    alert_id, noise_reason
+FROM alert_feedback
+WHERE alert_id = $1
+`
+
+func (q *Queries) AlertFeedback(ctx context.Context, alertID int64) (AlertFeedback, error) {
+	row := q.db.QueryRowContext(ctx, alertFeedback, alertID)
+	var i AlertFeedback
+	err := row.Scan(&i.AlertID, &i.NoiseReason)
+	return i, err
+}
+
 const alertHasEPState = `-- name: AlertHasEPState :one
-SELECT EXISTS (
+SELECT EXISTS
+(
         SELECT 1
-        FROM escalation_policy_state
-        WHERE alert_id = $1
-    ) AS has_ep_state
+FROM escalation_policy_state
+WHERE alert_id = $1
+    )
+AS has_ep_state
 `
 
 func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
@@ -324,7 +340,8 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 }
 
 const lockOneAlertService = `-- name: LockOneAlertService :one
-SELECT maintenance_expires_at notnull::bool AS is_maint_mode,
+SELECT maintenance_expires_at notnull
+::bool AS is_maint_mode,
     alerts.status
 FROM services svc
     JOIN alerts ON alerts.service_id = svc.id
@@ -390,7 +407,8 @@ UPDATE escalation_policy_state
 SET force_escalation = TRUE
 WHERE alert_id = $1
     AND (
-        last_escalation <= $2::timestamptz
+        last_escalation <= $2
+::timestamptz
         OR last_escalation IS NULL
     ) RETURNING TRUE
 `
@@ -405,6 +423,28 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const setAlertFeedback = `-- name: SetAlertFeedback :exec
+INSERT INTO alert_feedback
+    (alert_id, noise_reason)
+VALUES
+    ($1, $2)
+ON CONFLICT
+(alert_id) DO
+UPDATE
+SET noise_reason = $2
+WHERE alert_feedback.alert_id = $1
+`
+
+type SetAlertFeedbackParams struct {
+	AlertID     int64
+	NoiseReason sql.NullString
+}
+
+func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
+	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
+	return err
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one

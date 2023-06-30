@@ -49,9 +49,6 @@ type Store struct {
 	escalate *sql.Stmt
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
-
-	feedback       *sql.Stmt
-	updateFeedback *sql.Stmt
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -204,21 +201,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				(SELECT count(*) FROM alerts WHERE service_id = $1 AND status = 'triggered')
 			FROM services
 			WHERE id = $1
-		`),
-
-		feedback: p(`
-			SELECT
-				alert_id, noise_reason
-			FROM alert_feedback
-			WHERE alert_id = $1
-		`),
-
-		updateFeedback: p(`
-			INSERT INTO alert_feedback (alert_id, noise_reason)
-			VALUES ($1, $2)
-			ON CONFLICT (alert_id) DO UPDATE
-			SET noise_reason = $2
-			WHERE alert_feedback.alert_id = $1
 		`),
 	}, prep.Err
 }
@@ -811,15 +793,18 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 }
 
 func (s *Store) Feedback(ctx context.Context, alertID int) (f Feedback, err error) {
-	row := s.feedback.QueryRowContext(ctx, alertID)
-	err = row.Scan(&f.AlertID, &f.NoiseReason)
+	row, err := gadb.New(s.db).AlertFeedback(ctx, int64(alertID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return Feedback{
 			AlertID:     alertID,
 			NoiseReason: "",
 		}, nil
 	}
-	return f, err
+
+	return Feedback{
+		AlertID:     int(row.AlertID),
+		NoiseReason: row.NoiseReason.String,
+	}, err
 }
 
 func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
@@ -834,7 +819,10 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	}
 	f.NoiseReason = feedback.NoiseReason
 
-	_, err = s.updateFeedback.ExecContext(ctx, feedback.AlertID, f.NoiseReason)
+	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
+		AlertID:     int64(feedback.AlertID),
+		NoiseReason: sql.NullString{String: f.NoiseReason, Valid: true},
+	})
 	if err != nil {
 		return err
 	}
