@@ -66,7 +66,7 @@
     "classnames": "2.3.2",
     "cypress": "12.16.0",
     "diff": "5.1.0",
-    "esbuild": "0.18.10",
+    "esbuild": "0.18.11",
     "esbuild-jest": "0.5.0",
     "eslint": "8.43.0",
     "eslint-config-prettier": "8.8.0",
