@@ -1642,10 +1642,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material/material-color-utilities@npm:0.2.6":
-  version: 0.2.6
-  resolution: "@material/material-color-utilities@npm:0.2.6"
-  checksum: fe6e380ee4ede2d238a95962729cf93a1460b4dc6e4f61017db6e4f1d42ef65399141a04b01522b91f78a498adcbe3222b148514a6835f8a5bc15614bd925da4
+"@material/material-color-utilities@npm:0.2.7":
+  version: 0.2.7
+  resolution: "@material/material-color-utilities@npm:0.2.7"
+  checksum: 445c17646488a0564b21d2949429c871963158a9636f6f2869ace614c35bbabeb6e68a51770ff7752586ecc928274db3e4345a332c94e3fc296e988b0a24d527
   languageName: node
   linkType: hard
 
@@ -10664,7 +10664,7 @@ __metadata:
     "@dnd-kit/utilities": 3.2.1
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
-    "@material/material-color-utilities": 0.2.6
+    "@material/material-color-utilities": 0.2.7
     "@mui/icons-material": 5.11.16
     "@mui/lab": 5.0.0-alpha.134
     "@mui/material": 5.13.6
