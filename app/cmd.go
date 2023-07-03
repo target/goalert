@@ -683,7 +683,9 @@ func getConfig(ctx context.Context) (Config, error) {
 	if err != nil {
 		return cfg, err
 	}
-	cfg.TLSConfig.NextProtos = []string{"h2", "http/1.1"}
+	if cfg.TLSConfig != nil {
+		cfg.TLSConfig.NextProtos = []string{"h2", "http/1.1"}
+	}
 
 	cfg.TLSConfigSMTP, err = getTLSConfig("smtp-tls-cert-file", "smtp-tls-key-file", "smtp-tls-cert-data", "smtp-tls-key-data", "smtp-listen-tls")
 	if err != nil {
