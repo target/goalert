@@ -9,19 +9,19 @@ import (
 
 // getTLSConfig creates a static TLS config using supplied certificate values.
 // Returns nil if no certificate values are set.
-func getTLSConfig() (*tls.Config, error) {
+func getTLSConfig(certFileFlag string, keyFileFlag string, certDataFlag string, keyDataFlag string, listenFlag string) (*tls.Config, error) {
 
 	var n int
-	if viper.GetString("tls-cert-file") != "" {
+	if viper.GetString(certFileFlag) != "" {
 		n += 0b0001
 	}
-	if viper.GetString("tls-key-file") != "" {
+	if viper.GetString(keyFileFlag) != "" {
 		n += 0b0010
 	}
-	if viper.GetString("tls-cert-data") != "" {
+	if viper.GetString(certDataFlag) != "" {
 		n += 0b0100
 	}
-	if viper.GetString("tls-key-data") != "" {
+	if viper.GetString(keyDataFlag) != "" {
 		n += 0b1000
 	}
 
@@ -29,17 +29,17 @@ func getTLSConfig() (*tls.Config, error) {
 	var err error
 	switch n {
 	case 0b0011: // file mode
-		cert, err = tls.LoadX509KeyPair(viper.GetString("tls-cert-file"), viper.GetString("tls-key-file"))
+		cert, err = tls.LoadX509KeyPair(viper.GetString(certFileFlag), viper.GetString(keyFileFlag))
 		if err != nil {
 			return nil, errors.Wrap(err, "load tls cert files")
 		}
 	case 0b1100: // data mode
-		cert, err = tls.X509KeyPair([]byte(viper.GetString("tls-cert-data")), []byte(viper.GetString("tls-key-data")))
+		cert, err = tls.X509KeyPair([]byte(viper.GetString(certDataFlag)), []byte(viper.GetString(keyDataFlag)))
 		if err != nil {
 			return nil, errors.Wrap(err, "parse tls cert")
 		}
 	case 0: // no flags set
-		if viper.GetString("listen-tls") == "" {
+		if viper.GetString(listenFlag) == "" {
 			return nil, nil
 		}
 		fallthrough
@@ -47,5 +47,5 @@ func getTLSConfig() (*tls.Config, error) {
 		return nil, errors.New("--tls-cert-file and --tls-key-file OR --tls-cert-data and --tls-key-data must be specified")
 	}
 
-	return &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}}, nil
+	return &tls.Config{Certificates: []tls.Certificate{cert}}, nil
 }
