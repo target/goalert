@@ -33,13 +33,9 @@ type Config struct {
 	SysAPIKeyFile    string
 	SysAPICAFile     string
 
+	SMTPListenAddr     string
 	SMTPListenAddrTLS  string
 	TLSConfigSMTP      *tls.Config
-	SMTPCertData       string
-	SMTPCertFile       string
-	SMTPKeyData        string
-	SMTPKeyFile        string
-	SMTPListenAddr     string
 	SMTPAllowedDomains string
 
 	EmailIntegrationDomain string
