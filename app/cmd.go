@@ -621,6 +621,16 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
+		SMTPListenAddrTLS:  viper.GetString("smtp-listen-tls"),
+		SMTPCertData:       viper.GetString("smtp-tls-cert-data"),
+		SMTPCertFile:       viper.GetString("smtp-tls-cert-file"),
+		SMTPKeyData:        viper.GetString("smtp-tls-key-data"),
+		SMTPKeyFile:        viper.GetString("smtp-tls-key-file"),
+		SMTPListenAddr:     viper.GetString("smtp-listen"),
+		SMTPAllowedDomains: viper.GetString("smtp-allowed-domains"),
+
+		EmailIntegrationDomain: viper.GetString("email-integration-domain"),
+
 		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
 
 		HTTPPrefix: viper.GetString("http-prefix"),

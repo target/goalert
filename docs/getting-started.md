@@ -173,6 +173,14 @@ To configure Mailgun to forward to GoAlert:
 1. In the forward box, enter `<GOALERT_PUBLIC_URL>/api/v2/mailgun/incoming`
 1. Click **Create Route**
 
+### Email/SMTP
+
+GoAlert supports creating alerts from emails received by a native SMTP server.
+
+You'll need to create an MX-type DNS record for your GoAlert server.
+
+Note: This SMTP server only handles incoming messages/generating alerts; it will not send outgoing mail. For notifying users via email, you can configure an external SMTP server integration in the admin UI.
+
 ### Slack
 
 GoAlert supports generating a notification to a Slack channel as part of the Escalation Policy.
